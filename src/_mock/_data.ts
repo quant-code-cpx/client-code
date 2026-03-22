@@ -161,6 +161,76 @@ export const _tasks = Array.from({ length: 5 }, (_, index) => ({
 
 // ----------------------------------------------------------------------
 
+export const _skills = [
+  {
+    name: 'React',
+    proficiency: 95,
+    category: 'Frontend Framework',
+    icon: 'logos:react',
+    color: '#61DAFB',
+    description: 'Component-based UI library for building interactive user interfaces.',
+  },
+  {
+    name: 'Material UI (MUI)',
+    proficiency: 90,
+    category: 'UI Component Library',
+    icon: 'logos:material-ui',
+    color: '#007FFF',
+    description: 'Comprehensive React component library implementing Material Design.',
+  },
+  {
+    name: 'TypeScript',
+    proficiency: 85,
+    category: 'Programming Language',
+    icon: 'logos:typescript-icon',
+    color: '#3178C6',
+    description: 'Strongly typed superset of JavaScript for large-scale applications.',
+  },
+  {
+    name: 'Vite',
+    proficiency: 80,
+    category: 'Build Tool',
+    icon: 'logos:vitejs',
+    color: '#646CFF',
+    description: 'Next-generation frontend build tool with lightning-fast HMR.',
+  },
+  {
+    name: 'React Router',
+    proficiency: 85,
+    category: 'Routing',
+    icon: 'logos:react-router',
+    color: '#CA4245',
+    description: 'Declarative routing library for React single-page applications.',
+  },
+  {
+    name: 'ApexCharts',
+    proficiency: 75,
+    category: 'Data Visualization',
+    icon: 'simple-icons:apexcharts',
+    color: '#008FFB',
+    description: 'Modern charting library powering interactive analytics widgets.',
+  },
+  {
+    name: 'Emotion (CSS-in-JS)',
+    proficiency: 80,
+    category: 'Styling',
+    icon: 'simple-icons:styledcomponents',
+    color: '#C43BAD',
+    description: 'Performant CSS-in-JS library for dynamic component styling.',
+  },
+  {
+    name: 'Minimal UI Dashboard',
+    proficiency: 92,
+    category: 'Project-Specific Skill',
+    icon: 'solar:chart-bold-duotone',
+    color: '#1877F2',
+    description:
+      'End-to-end admin dashboard expertise applied in this project: analytics widgets, user/product/blog data tables, responsive MUI layouts, CSS-variable theming, lazy-loaded routing, and mock API integration.',
+  },
+];
+
+// ----------------------------------------------------------------------
+
 export const _notifications = [
   {
     id: _id(1),
