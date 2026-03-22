@@ -39,16 +39,6 @@ export const navData = [
     icon: icon('ic-blog'),
   },
   {
-    title: 'Skills',
-    path: '/skills',
-    icon: icon('ic-analytics'),
-    info: (
-      <Label color="info" variant="inverted">
-        New
-      </Label>
-    ),
-  },
-  {
     title: 'Sign in',
     path: '/sign-in',
     icon: icon('ic-lock'),

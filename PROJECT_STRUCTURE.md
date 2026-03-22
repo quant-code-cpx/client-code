@@ -80,7 +80,7 @@ Used exclusively during development and demo. No real API calls are made.
 | File | Purpose |
 |------|---------|
 | `_mock.ts` | Low-level generators: `_id`, `_fullName`, `_price`, `_company`, `_times`, etc. |
-| `_data.ts` | Pre-built datasets (`_users`, `_posts`, `_products`, `_skills`, `_notifications`, …) composed from the generators above |
+| `_data.ts` | Pre-built datasets (`_users`, `_posts`, `_products`, `_notifications`, …) composed from the generators above |
 | `index.ts` | Re-exports everything from both files for clean imports |
 
 ---
@@ -92,7 +92,7 @@ Generic, project-agnostic components reused across multiple sections and layouts
 | Folder | Description |
 |--------|-------------|
 | `chart/` | Thin wrapper around **ApexCharts** (`<Chart>`, `useChart` hook, `<ChartLegends>`, loading skeleton) |
-| `iconify/` | Wrapper around **Iconify React** for on-demand SVG icons; includes icon-set registration |
+| `iconify/` | Wrapper around **Iconify React** for on-demand SVG icons; includes icon-set registration. Bundled icons live in `icon-sets.ts` (solar, eva, mingcute, custom including `custom:ai-sparkle`) |
 | `label/` | Coloured badge / tag component with multiple colour variants (primary, success, error, …) |
 | `logo/` | Brand logo component rendered in the sidebar and auth pages |
 | `scrollbar/` | Custom scrollbar built on **SimpleBar React** |
@@ -114,7 +114,7 @@ Provide the structural frame (header, sidebar, content area) for groups of pages
 | `auth/layout.tsx` | Full-page centered layout for sign-in / register pages |
 | `auth/content.tsx` | Content container inside the auth layout |
 | `core/` | Primitive layout building blocks (`HeaderSection`, `LayoutSection`, `MainSection`) shared between dashboard and auth |
-| `components/` | Layout-level UI widgets: `AccountPopover`, `NotificationsPopover`, `LanguagePopover`, `Searchbar`, `WorkspacesPopover`, `MenuButton`, `NavUpgrade` |
+| `components/` | Layout-level UI widgets: `AccountPopover`, `NotificationsPopover`, `LanguagePopover`, `AiAssistantPopover` (AI chat widget), `Searchbar`, `WorkspacesPopover`, `MenuButton`, `NavUpgrade` |
 | `nav-config-dashboard.tsx` | Array of navigation items (title, path, icon) shown in the sidebar |
 | `nav-config-account.tsx` | Account-related navigation items shown in the account popover |
 | `nav-config-workspace.tsx` | Workspace items shown in the workspace switcher |
@@ -131,7 +131,6 @@ Each file corresponds to exactly one route. Pages are **thin**: they set the `<t
 | `user.tsx` | `/user` | `UserView` |
 | `products.tsx` | `/products` | `ProductsView` |
 | `blog.tsx` | `/blog` | `BlogView` |
-| `skills.tsx` | `/skills` | `SkillsView` |
 | `sign-in.tsx` | `/sign-in` | `SignInView` |
 | `page-not-found.tsx` | `/404` | `NotFoundView` |
 
@@ -161,7 +160,6 @@ Contain the actual business-logic UI for each feature area. Sections are compose
 | `user/` | User management: data table with `UserTableHead`, `UserTableRow`, `UserTableToolbar`, empty/no-data states, and utility helpers |
 | `product/` | Product catalogue: `ProductItem` card, `ProductFilters` drawer, `ProductSort` menu, `ProductCartWidget` |
 | `blog/` | Blog listing: `PostItem` card, `PostSearch` field, `PostSort` tabs, and the list view |
-| `skills/` | Tech-skills showcase: `SkillsTechCard` (progress-bar card per technology) and `SkillsView` grid |
 | `auth/` | Sign-in form (email + password, remember-me, forgot-password link) |
 | `error/` | 404 Not Found illustration and navigation link |
 
