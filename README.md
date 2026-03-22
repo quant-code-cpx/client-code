@@ -15,6 +15,20 @@
 - [Sign in](https://free.minimals.cc/sign-in)
 - [Not found](https://free.minimals.cc/404)
 
+## Skills
+
+Technologies used in this project:
+
+| Skill | Version | Role |
+|---|---|---|
+| [![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)](https://react.dev/) | 19 | Core UI library — component rendering, hooks, and state management |
+| [![MUI](https://img.shields.io/badge/MUI-v7-007FFF?logo=mui&logoColor=white)](https://mui.com/) | 7 | Component library — layout, typography, icons, theming, and the `sx` prop |
+| [![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org/) | 5 | Static typing across all source files |
+| [![Vite](https://img.shields.io/badge/Vite-6-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/) | 6 | Dev server with HMR and production bundler |
+| [![React Router](https://img.shields.io/badge/React%20Router-v7-CA4245?logo=reactrouter&logoColor=white)](https://reactrouter.com/) | 7 | Client-side routing with lazy-loaded pages |
+| [![Emotion](https://img.shields.io/badge/Emotion-11-DB7093?logo=css3&logoColor=white)](https://emotion.sh/) | 11 | CSS-in-JS engine powering MUI's `sx` prop and styled components |
+| [![ApexCharts](https://img.shields.io/badge/ApexCharts-4-008FFB)](https://apexcharts.com/) | 4 | Interactive SVG charts for the analytics dashboard |
+
 ## Quick start
 
 - Clone the repo: `git clone https://github.com/minimal-ui-kit/material-kit-react.git`
