@@ -19,8 +19,8 @@ export function DashboardContent({
   children,
   className,
   disablePadding,
-  maxWidth = 'lg',
-  layoutQuery = 'lg',
+  maxWidth = 'xl',
+  layoutQuery = 'xl',
   ...other
 }: DashboardContentProps) {
   return (
