@@ -161,6 +161,67 @@ export const _tasks = Array.from({ length: 5 }, (_, index) => ({
 
 // ----------------------------------------------------------------------
 
+export const _skills = [
+  {
+    id: _id(1),
+    name: 'React',
+    icon: 'logos:react',
+    category: 'Frontend',
+    proficiency: 95,
+    description: 'Core UI library — powers all component rendering, hooks, and state management.',
+  },
+  {
+    id: _id(2),
+    name: 'Material UI (MUI)',
+    icon: 'logos:material-ui',
+    category: 'UI Library',
+    proficiency: 92,
+    description: 'Complete React component library used for layout, typography, icons, and theming.',
+  },
+  {
+    id: _id(3),
+    name: 'TypeScript',
+    icon: 'logos:typescript-icon',
+    category: 'Language',
+    proficiency: 90,
+    description: 'Strict typing across all source files — improves IDE support and code safety.',
+  },
+  {
+    id: _id(4),
+    name: 'Vite',
+    icon: 'logos:vitejs',
+    category: 'Build Tool',
+    proficiency: 85,
+    description: 'Lightning-fast dev server and bundler — handles HMR, builds, and path aliases.',
+  },
+  {
+    id: _id(5),
+    name: 'React Router',
+    icon: 'logos:react-router',
+    category: 'Routing',
+    proficiency: 88,
+    description: 'Declarative client-side routing with lazy-loaded pages and nested layouts.',
+  },
+  {
+    id: _id(6),
+    name: 'ApexCharts',
+    icon: 'simple-icons:apexcharts',
+    category: 'Data Visualization',
+    proficiency: 80,
+    description: 'Interactive SVG chart library used for analytics widgets across the dashboard.',
+  },
+  {
+    id: _id(7),
+    name: 'Emotion',
+    icon: 'simple-icons:emotion',
+    category: 'Styling',
+    proficiency: 82,
+    description: "CSS-in-JS engine powering MUI's `sx` prop, theme overrides, and styled components.",
+  },
+];
+
+// ----------------------------------------------------------------------
+
 export const _notifications = [
   {
     id: _id(1),
