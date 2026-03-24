@@ -1,9 +1,11 @@
 import type { Theme, SxProps, Breakpoint } from '@mui/material/styles';
 
-import { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { varAlpha } from 'minimal-shared/utils';
 
 import Box from '@mui/material/Box';
+import List from '@mui/material/List';
+import Collapse from '@mui/material/Collapse';
 import ListItem from '@mui/material/ListItem';
 import { useTheme } from '@mui/material/styles';
 import ListItemButton from '@mui/material/ListItemButton';
@@ -13,6 +15,7 @@ import { usePathname } from 'src/routes/hooks';
 import { RouterLink } from 'src/routes/components';
 
 import { Logo } from 'src/components/logo';
+import { Iconify } from 'src/components/iconify';
 import { Scrollbar } from 'src/components/scrollbar';
 
 import { NavUpgrade } from '../components/nav-upgrade';
@@ -107,6 +110,122 @@ export function NavMobile({
 
 // ----------------------------------------------------------------------
 
+type NavItemWithChildrenProps = {
+  item: NavItem;
+  pathname: string;
+};
+
+function NavItemWithChildren({ item, pathname }: NavItemWithChildrenProps) {
+  const isChildActive = item.children?.some((child) => pathname.startsWith(child.path)) ?? false;
+  const [open, setOpen] = useState(isChildActive);
+
+  useEffect(() => {
+    if (isChildActive) setOpen(true);
+  }, [isChildActive]);
+
+  return (
+    <>
+      <ListItem disableGutters disablePadding>
+        <ListItemButton
+          disableGutters
+          onClick={() => setOpen((prev) => !prev)}
+          sx={[
+            (theme) => ({
+              pl: 2,
+              py: 1,
+              gap: 2,
+              pr: 1.5,
+              borderRadius: 0.75,
+              typography: 'body2',
+              fontWeight: 'fontWeightMedium',
+              color: theme.vars.palette.text.secondary,
+              minHeight: 44,
+              ...(isChildActive && {
+                fontWeight: 'fontWeightSemiBold',
+                color: theme.vars.palette.primary.main,
+                bgcolor: varAlpha(theme.vars.palette.primary.mainChannel, 0.08),
+                '&:hover': {
+                  bgcolor: varAlpha(theme.vars.palette.primary.mainChannel, 0.16),
+                },
+              }),
+            }),
+          ]}
+        >
+          <Box component="span" sx={{ width: 24, height: 24 }}>
+            {item.icon}
+          </Box>
+
+          <Box component="span" sx={{ flexGrow: 1 }}>
+            {item.title}
+          </Box>
+
+          <Iconify
+            icon={open ? 'eva:arrow-ios-downward-fill' : 'eva:arrow-ios-forward-fill'}
+            width={16}
+          />
+        </ListItemButton>
+      </ListItem>
+
+      <Collapse in={open} timeout="auto">
+        <List disablePadding sx={{ pl: 3.5 }}>
+          {item.children?.map((child) => {
+            const isActived = pathname === child.path || pathname.startsWith(`${child.path}/`);
+
+            return (
+              <ListItem disableGutters disablePadding key={child.title}>
+                <ListItemButton
+                  disableGutters
+                  component={RouterLink}
+                  href={child.path}
+                  sx={[
+                    (theme) => ({
+                      pl: 1.5,
+                      py: 0.75,
+                      gap: 1.5,
+                      pr: 1.5,
+                      borderRadius: 0.75,
+                      typography: 'body2',
+                      fontWeight: 'fontWeightMedium',
+                      color: theme.vars.palette.text.secondary,
+                      minHeight: 36,
+                      ...(isActived && {
+                        fontWeight: 'fontWeightSemiBold',
+                        color: theme.vars.palette.primary.main,
+                        bgcolor: varAlpha(theme.vars.palette.primary.mainChannel, 0.08),
+                        '&:hover': {
+                          bgcolor: varAlpha(theme.vars.palette.primary.mainChannel, 0.16),
+                        },
+                      }),
+                    }),
+                  ]}
+                >
+                  <Box
+                    component="span"
+                    sx={{
+                      width: 4,
+                      height: 4,
+                      borderRadius: '50%',
+                      bgcolor: 'currentColor',
+                      transition: 'transform 0.2s',
+                      ...(isActived && { transform: 'scale(2)' }),
+                    }}
+                  />
+
+                  <Box component="span" sx={{ flexGrow: 1 }}>
+                    {child.title}
+                  </Box>
+                </ListItemButton>
+              </ListItem>
+            );
+          })}
+        </List>
+      </Collapse>
+    </>
+  );
+}
+
+// ----------------------------------------------------------------------
+
 export function NavContent({ data, slots, workspaces, sx }: NavContentProps) {
   const pathname = usePathname();
 
@@ -139,6 +258,10 @@ export function NavContent({ data, slots, workspaces, sx }: NavContentProps) {
             }}
           >
             {data.map((item) => {
+              if (item.children) {
+                return <NavItemWithChildren key={item.title} item={item} pathname={pathname} />;
+              }
+
               const isActived = item.path === pathname;
 
               return (
@@ -192,3 +315,4 @@ export function NavContent({ data, slots, workspaces, sx }: NavContentProps) {
     </>
   );
 }
+
