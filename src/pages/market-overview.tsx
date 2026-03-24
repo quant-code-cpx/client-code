@@ -1,6 +1,6 @@
 import { CONFIG } from 'src/config-global';
 
-import { MarketOverviewView } from 'src/sections/market/view';
+import { MarketOverviewView } from 'src/sections/market-overview/view';
 
 // ----------------------------------------------------------------------
 

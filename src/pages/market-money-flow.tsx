@@ -1,6 +1,6 @@
 import { CONFIG } from 'src/config-global';
 
-import { MarketMoneyFlowView } from 'src/sections/market/view';
+import { MarketMoneyFlowView } from 'src/sections/market-money-flow/view';
 
 // ----------------------------------------------------------------------
 
