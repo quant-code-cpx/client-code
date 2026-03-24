@@ -10,6 +10,7 @@ export type NavItem = {
   path: string;
   icon: React.ReactNode;
   info?: React.ReactNode;
+  children?: Omit<NavItem, 'children'>[];
 };
 
 export const navData = [
@@ -17,6 +18,28 @@ export const navData = [
     title: 'Dashboard',
     path: '/',
     icon: icon('ic-analytics'),
+  },
+  {
+    title: '股票',
+    path: '/stock',
+    icon: icon('ic-cart'),
+  },
+  {
+    title: '行情',
+    path: '/market',
+    icon: icon('ic-analytics'),
+    children: [
+      {
+        title: '市场概览',
+        path: '/market/overview',
+        icon: icon('ic-analytics'),
+      },
+      {
+        title: '资金动态',
+        path: '/market/money-flow',
+        icon: icon('ic-analytics'),
+      },
+    ],
   },
   {
     title: '用户管理',
