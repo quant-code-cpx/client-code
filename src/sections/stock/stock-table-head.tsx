@@ -3,13 +3,15 @@ import TableHead from '@mui/material/TableHead';
 import TableCell from '@mui/material/TableCell';
 import TableSortLabel from '@mui/material/TableSortLabel';
 
+import type { HeadCell } from './types';
+
 // ----------------------------------------------------------------------
 
 type StockTableHeadProps = {
   order: 'asc' | 'desc';
   orderBy: string;
   onSort: (id: string) => void;
-  headLabel: { id: string; label: string; align?: 'left' | 'right' | 'center'; minWidth?: number }[];
+  headLabel: HeadCell[];
 };
 
 export function StockTableHead({ order, orderBy, onSort, headLabel }: StockTableHeadProps) {
@@ -20,17 +22,21 @@ export function StockTableHead({ order, orderBy, onSort, headLabel }: StockTable
           <TableCell
             key={headCell.id}
             align={headCell.align ?? 'left'}
-            sortDirection={orderBy === headCell.id ? order : false}
+            sortDirection={headCell.sortable && orderBy === headCell.id ? order : false}
             sx={{ minWidth: headCell.minWidth }}
           >
-            <TableSortLabel
-              hideSortIcon
-              active={orderBy === headCell.id}
-              direction={orderBy === headCell.id ? order : 'asc'}
-              onClick={() => onSort(headCell.id)}
-            >
-              {headCell.label}
-            </TableSortLabel>
+            {headCell.sortable === true ? (
+              <TableSortLabel
+                hideSortIcon
+                active={orderBy === headCell.id}
+                direction={orderBy === headCell.id ? order : 'asc'}
+                onClick={() => onSort(headCell.id)}
+              >
+                {headCell.label}
+              </TableSortLabel>
+            ) : (
+              headCell.label
+            )}
           </TableCell>
         ))}
       </TableRow>

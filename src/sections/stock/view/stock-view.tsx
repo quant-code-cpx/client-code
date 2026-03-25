@@ -1,86 +1,83 @@
-import { useState, useCallback } from 'react';
+import type { StockListItem } from 'src/api/stock';
 
+import { useState, useEffect, useCallback } from 'react';
+
+import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
+import Alert from '@mui/material/Alert';
 import Table from '@mui/material/Table';
+import TableRow from '@mui/material/TableRow';
 import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
 import Typography from '@mui/material/Typography';
 import TableContainer from '@mui/material/TableContainer';
 import TablePagination from '@mui/material/TablePagination';
+import CircularProgress from '@mui/material/CircularProgress';
 
-import { _stocks } from 'src/_mock';
+import { stockApi } from 'src/api/stock';
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Scrollbar } from 'src/components/scrollbar';
 
 import { StockTableRow } from '../stock-table-row';
+import { SORT_BY, HEAD_LABELS } from '../constants';
 import { StockTableHead } from '../stock-table-head';
 import { StockTableToolbar } from '../stock-table-toolbar';
 
-import type { StockRowProps } from '../stock-table-row';
-import type { StockFilters } from '../stock-table-toolbar';
+import type { StockFilters } from '../types';
 
 // ----------------------------------------------------------------------
 
-const HEAD_LABELS = [
-  { id: 'name', label: '股票名称 / 代码', minWidth: 160 },
-  { id: 'exchange', label: '交易所' },
-  { id: 'market', label: '板块' },
-  { id: 'industry', label: '行业' },
-  { id: 'pctChg', label: '涨跌幅', align: 'right' as const, minWidth: 90 },
-  { id: 'peTtm', label: '市盈率(TTM)', align: 'right' as const, minWidth: 110 },
-  { id: 'pb', label: '市净率', align: 'right' as const },
-  { id: 'dvTtm', label: '股息率(TTM)', align: 'right' as const, minWidth: 110 },
-  { id: 'totalMv', label: '总市值', align: 'right' as const },
-  { id: 'turnoverRate', label: '换手率', align: 'right' as const },
-  { id: 'close', label: '最新价', align: 'right' as const },
-];
-
-function applySort(data: StockRowProps[], orderBy: string, order: 'asc' | 'desc') {
-  return [...data].sort((a, b) => {
-    const aVal = (a[orderBy as keyof StockRowProps] as number | null) ?? -Infinity;
-    const bVal = (b[orderBy as keyof StockRowProps] as number | null) ?? -Infinity;
-    return order === 'asc' ? aVal - bVal : bVal - aVal;
-  });
-}
-
-function applyFilters(data: StockRowProps[], filters: StockFilters): StockRowProps[] {
-  return data.filter((row) => {
-    if (filters.keyword) {
-      const kw = filters.keyword.toLowerCase();
-      if (
-        !row.name.toLowerCase().includes(kw) &&
-        !row.tsCode.toLowerCase().includes(kw) &&
-        !row.symbol.toLowerCase().includes(kw)
-      ) {
-        return false;
-      }
-    }
-    if (filters.exchange && filters.exchange !== '全部' && row.exchange !== filters.exchange) {
-      return false;
-    }
-    if (filters.market && filters.market !== '全部' && row.market !== filters.market) {
-      return false;
-    }
-    if (filters.industry && filters.industry !== '全部' && row.industry !== filters.industry) {
-      return false;
-    }
-    return true;
-  });
-}
+const DEFAULT_FILTERS: StockFilters = {
+  keyword: '',
+  exchange: '',
+  market: '',
+  industry: '',
+  area: '',
+};
 
 // ----------------------------------------------------------------------
 
 export function StockView() {
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [rowsPerPage, setRowsPerPage] = useState(20);
   const [order, setOrder] = useState<'asc' | 'desc'>('desc');
-  const [orderBy, setOrderBy] = useState('totalMv');
-  const [filters, setFilters] = useState<StockFilters>({
-    keyword: '',
-    exchange: '',
-    market: '',
-    industry: '',
-  });
+  const [orderBy, setOrderBy] = useState<string>(SORT_BY.TOTAL_MV);
+  const [filters, setFilters] = useState<StockFilters>(DEFAULT_FILTERS);
+
+  const [rows, setRows] = useState<StockListItem[]>([]);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const fetchList = useCallback(async () => {
+    setLoading(true);
+    setError('');
+    try {
+      const result = await stockApi.list({
+        page: page + 1,
+        pageSize: rowsPerPage,
+        sortBy: orderBy,
+        sortOrder: order,
+        listStatus: 'L',
+        keyword: filters.keyword.trim() || undefined,
+        exchange: filters.exchange || undefined,
+        market: filters.market || undefined,
+        industry: filters.industry.trim() || undefined,
+        area: filters.area.trim() || undefined,
+      });
+      setRows(result.items ?? []);
+      setTotal(result.total ?? 0);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '获取股票列表失败');
+    } finally {
+      setLoading(false);
+    }
+  }, [page, rowsPerPage, order, orderBy, filters]);
+
+  useEffect(() => {
+    fetchList();
+  }, [fetchList]);
 
   const handleSort = useCallback(
     (id: string) => {
@@ -97,10 +94,6 @@ export function StockView() {
     setPage(0);
   }, []);
 
-  const filtered = applyFilters(_stocks as StockRowProps[], filters);
-  const sorted = applySort(filtered, orderBy, order);
-  const paginated = sorted.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
-
   return (
     <DashboardContent>
       <Typography variant="h4" sx={{ mb: 3 }}>
@@ -110,9 +103,15 @@ export function StockView() {
       <Card>
         <StockTableToolbar filters={filters} onFilterChange={handleFilterChange} />
 
+        {error && (
+          <Alert severity="error" sx={{ mx: 2.5, mb: 2 }}>
+            {error}
+          </Alert>
+        )}
+
         <Scrollbar>
           <TableContainer sx={{ overflow: 'unset' }}>
-            <Table sx={{ minWidth: 960 }}>
+            <Table sx={{ minWidth: 1200 }}>
               <StockTableHead
                 order={order}
                 orderBy={orderBy}
@@ -120,9 +119,17 @@ export function StockView() {
                 headLabel={HEAD_LABELS}
               />
               <TableBody>
-                {paginated.map((row) => (
-                  <StockTableRow key={row.tsCode} row={row} />
-                ))}
+                {loading ? (
+                  <TableRow>
+                    <TableCell colSpan={HEAD_LABELS.length} align="center" sx={{ py: 5 }}>
+                      <Box sx={{ display: 'flex', justifyContent: 'center' }}>
+                        <CircularProgress size={28} />
+                      </Box>
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  rows.map((row) => <StockTableRow key={row.tsCode} row={row} />)
+                )}
               </TableBody>
             </Table>
           </TableContainer>
@@ -131,14 +138,16 @@ export function StockView() {
         <TablePagination
           component="div"
           page={page}
-          count={filtered.length}
+          count={total}
           rowsPerPage={rowsPerPage}
           onPageChange={(_, newPage) => setPage(newPage)}
-          rowsPerPageOptions={[5, 10, 20]}
+          rowsPerPageOptions={[10, 20, 50]}
           onRowsPerPageChange={(e) => {
             setRowsPerPage(parseInt(e.target.value, 10));
             setPage(0);
           }}
+          labelRowsPerPage="每页行数"
+          labelDisplayedRows={({ from, to, count }) => `${from}-${to} 共 ${count} 条`}
         />
       </Card>
     </DashboardContent>
