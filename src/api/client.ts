@@ -5,17 +5,19 @@
 
 const BASE_URL = (import.meta.env.VITE_API_BASE_URL as string) ?? '';
 
-const TOKEN_KEY = 'access_token';
+// ---------- Token 存储（内存，非 localStorage） ----------
+// Access token 存内存而非 localStorage，防止 XSS 通过 localStorage 窃取 token。
+// 页面刷新后通过 HttpOnly Cookie 携带的 refresh token 静默重新获取 access token。
 
-// ---------- Token 存储 ----------
+let _accessToken: string | null = null;
 
 export const tokenStorage = {
-  get: (): string | null => localStorage.getItem(TOKEN_KEY),
+  get: (): string | null => _accessToken,
   set: (token: string): void => {
-    localStorage.setItem(TOKEN_KEY, token);
+    _accessToken = token;
   },
   clear: (): void => {
-    localStorage.removeItem(TOKEN_KEY);
+    _accessToken = null;
   },
 };
 
@@ -115,11 +117,11 @@ async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
       // refresh_token cookie and revoke the session, then clear local state.
       // NOTE: We use raw fetch (not apiClient) here to avoid triggering another refresh
       // attempt (apiClient retries 401s via attemptRefresh, which would cause an infinite loop).
-      const expiredToken = tokenStorage.get();
+      const currentToken = tokenStorage.get();
       fetch(`${BASE_URL}/api/auth/logout`, {
         method: 'POST',
         credentials: 'include',
-        headers: expiredToken ? { Authorization: `Bearer ${expiredToken}` } : {},
+        headers: currentToken ? { Authorization: `Bearer ${currentToken}` } : {},
       }).catch(() => {});
       tokenStorage.clear();
       authCallbacks.onUnauthorized?.();
