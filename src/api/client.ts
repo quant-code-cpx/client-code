@@ -111,6 +111,14 @@ async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
 
       return parseResponse<T>(retryResponse);
     } catch {
+      // Refresh token is also expired/invalid → best-effort server-side logout to clear the
+      // refresh_token cookie and revoke the session, then clear local state.
+      const expiredToken = tokenStorage.get();
+      fetch(`${BASE_URL}/api/auth/logout`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: expiredToken ? { Authorization: `Bearer ${expiredToken}` } : {},
+      }).catch(() => {});
       tokenStorage.clear();
       authCallbacks.onUnauthorized?.();
       throw new Error('登录已过期，请重新登录');

@@ -27,6 +27,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       onUnauthorized: () => {
         tokenStorage.clear();
         setAccessToken(null);
+        setUserProfile(null);
       },
     });
   }, []);
