@@ -113,6 +113,8 @@ async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
     } catch {
       // Refresh token is also expired/invalid → best-effort server-side logout to clear the
       // refresh_token cookie and revoke the session, then clear local state.
+      // NOTE: We use raw fetch (not apiClient) here to avoid triggering another refresh
+      // attempt (apiClient retries 401s via attemptRefresh, which would cause an infinite loop).
       const expiredToken = tokenStorage.get();
       fetch(`${BASE_URL}/api/auth/logout`, {
         method: 'POST',
