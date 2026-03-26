@@ -23,7 +23,16 @@ export function StockTableHead({ order, orderBy, onSort, headLabel }: StockTable
             key={headCell.id}
             align={headCell.align ?? 'left'}
             sortDirection={headCell.sortable && orderBy === headCell.id ? order : false}
-            sx={{ minWidth: headCell.minWidth }}
+            sx={{
+              minWidth: headCell.minWidth,
+              ...(headCell.sticky && {
+                position: 'sticky',
+                left: 0,
+                zIndex: 3,
+                bgcolor: 'background.neutral',
+                boxShadow: '2px 0 6px -2px rgba(0,0,0,0.12)',
+              }),
+            }}
           >
             {headCell.sortable === true ? (
               <TableSortLabel

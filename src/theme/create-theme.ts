@@ -20,6 +20,11 @@ export const baseTheme: ThemeOptions = {
       shadows: shadows.light,
       customShadows: customShadows.light,
     },
+    dark: {
+      palette: palette.dark,
+      shadows: shadows.dark ?? shadows.light,
+      customShadows: customShadows.dark ?? customShadows.light,
+    },
   },
   components,
   typography,
@@ -30,11 +35,15 @@ export const baseTheme: ThemeOptions = {
 // ----------------------------------------------------------------------
 
 type CreateThemeProps = {
+  themePresetOverrides?: ThemeOptions;
   themeOverrides?: ThemeOptions;
 };
 
-export function createTheme({ themeOverrides = {} }: CreateThemeProps = {}): Theme {
-  const theme = createMuiTheme(baseTheme, themeOverrides);
+export function createTheme({
+  themePresetOverrides = {},
+  themeOverrides = {},
+}: CreateThemeProps = {}): Theme {
+  const theme = createMuiTheme(baseTheme, themePresetOverrides, themeOverrides);
 
   return theme;
 }

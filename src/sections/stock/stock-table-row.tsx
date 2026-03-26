@@ -25,8 +25,16 @@ export function StockTableRow({ row }: StockTableRowProps) {
 
   return (
     <TableRow hover>
-      {/* 1. 股票名称 / 代码 */}
-      <TableCell>
+      {/* 1. 股票名称 / 代码（固定列） */}
+      <TableCell
+        sx={{
+          position: 'sticky',
+          left: 0,
+          zIndex: 1,
+          bgcolor: 'background.paper',
+          boxShadow: '2px 0 6px -2px rgba(0,0,0,0.12)',
+        }}
+      >
         <Typography variant="body2" fontWeight="fontWeightMedium">
           {row.name ?? '-'}
         </Typography>

@@ -19,4 +19,6 @@ export type HeadCell = {
   minWidth?: number;
   /** 是否支持排序（对应后端 StockSortBy 枚举，默认 false） */
   sortable?: boolean;
+  /** 是否固定在左侧（横向滚动时不移动） */
+  sticky?: boolean;
 };

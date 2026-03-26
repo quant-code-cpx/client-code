@@ -7,7 +7,7 @@ import Box from '@mui/material/Box';
 import Alert from '@mui/material/Alert';
 import { useTheme } from '@mui/material/styles';
 
-import { _langs, _notifications } from 'src/_mock';
+import { _notifications } from 'src/_mock';
 
 import { NavMobile, NavDesktop } from './nav';
 import { layoutClasses } from '../core/classes';
@@ -17,11 +17,12 @@ import { navData } from '../nav-config-dashboard';
 import { MainSection } from '../core/main-section';
 import { Searchbar } from '../components/searchbar';
 import { _workspaces } from '../nav-config-workspace';
-import { MenuButton } from '../components/menu-button';
 import { HeaderSection } from '../core/header-section';
 import { LayoutSection } from '../core/layout-section';
+import { MenuButton } from '../components/menu-button';
+import { ThemePopover } from '../components/theme-popover';
 import { AccountPopover } from '../components/account-popover';
-import { LanguagePopover } from '../components/language-popover';
+import { DarkModeButton } from '../components/dark-mode-button';
 import { NotificationsPopover } from '../components/notifications-popover';
 
 import type { MainSectionProps } from '../core/main-section';
@@ -79,8 +80,11 @@ export function DashboardLayout({
           {/** @slot Searchbar */}
           <Searchbar />
 
-          {/** @slot Language popover */}
-          <LanguagePopover data={_langs} />
+          {/** @slot Theme popover */}
+          <ThemePopover />
+
+          {/** @slot Dark mode toggle */}
+          <DarkModeButton />
 
           {/** @slot Notifications popover */}
           <NotificationsPopover data={_notifications} />

@@ -30,7 +30,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   // 跨标签页同步：监听其他标签页的 token 刷新 / 登出事件
   useEffect(() => {
-    if (typeof BroadcastChannel === 'undefined') return;
+    if (typeof BroadcastChannel === 'undefined') return undefined;
 
     const channel = new BroadcastChannel(BROADCAST_CHANNEL_NAME);
     channelRef.current = channel;

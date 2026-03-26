@@ -69,17 +69,17 @@ export const SORT_BY = {
 // ----------------------------------------------------------------------
 
 export const HEAD_LABELS: HeadCell[] = [
-  { id: 'name', label: '股票名称/代码', sortable: false, minWidth: 180 },
-  { id: 'close', label: '最新价', sortable: false, align: 'right' },
-  { id: 'pctChg', label: '涨跌幅', sortable: true, align: 'right' },
-  { id: 'exchange', label: '交易所', sortable: false },
-  { id: 'market', label: '板块', sortable: false },
-  { id: 'industry', label: '行业', sortable: false },
-  { id: 'totalMv', label: '总市值', sortable: true, align: 'right' },
-  { id: 'circMv', label: '流通市值', sortable: false, align: 'right' },
-  { id: 'turnoverRate', label: '换手率', sortable: true, align: 'right' },
-  { id: 'amount', label: '成交额', sortable: true, align: 'right' },
+  { id: 'name', label: '股票名称/代码', sortable: false, minWidth: 180, sticky: true },
+  { id: 'close', label: '最新价', sortable: false, align: 'right', minWidth: 90 },
+  { id: 'pctChg', label: '涨跌幅', sortable: true, align: 'right', minWidth: 90 },
+  { id: 'exchange', label: '交易所', sortable: false, minWidth: 90 },
+  { id: 'market', label: '板块', sortable: false, minWidth: 90 },
+  { id: 'industry', label: '行业', sortable: false, minWidth: 90 },
+  { id: 'totalMv', label: '总市值', sortable: true, align: 'right', minWidth: 100 },
+  { id: 'circMv', label: '流通市值', sortable: false, align: 'right', minWidth: 100 },
+  { id: 'turnoverRate', label: '换手率', sortable: true, align: 'right', minWidth: 90 },
+  { id: 'amount', label: '成交额', sortable: true, align: 'right', minWidth: 100 },
   { id: 'peTtm', label: '市盈率(TTM)', sortable: true, align: 'right', minWidth: 110 },
-  { id: 'pb', label: '市净率', sortable: true, align: 'right' },
+  { id: 'pb', label: '市净率', sortable: true, align: 'right', minWidth: 90 },
   { id: 'dvTtm', label: '股息率(TTM)', sortable: true, align: 'right', minWidth: 110 },
 ];

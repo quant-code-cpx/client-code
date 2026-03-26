@@ -58,6 +58,7 @@ export function NavDesktop({
         flexDirection: 'column',
         zIndex: 'var(--layout-nav-zIndex)',
         width: 'var(--layout-nav-vertical-width)',
+        bgcolor: 'background.paper',
         borderRight: `1px solid ${varAlpha(theme.vars.palette.grey['500Channel'], 0.12)}`,
         [theme.breakpoints.up(layoutQuery)]: {
           display: 'flex',
