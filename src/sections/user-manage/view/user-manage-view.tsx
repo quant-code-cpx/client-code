@@ -38,6 +38,7 @@ import { Scrollbar } from 'src/components/scrollbar';
 import { UserManageTableRow } from '../user-manage-table-row';
 import { UserManageFormDialog } from '../user-manage-form-dialog';
 import { UserManageTableToolbar } from '../user-manage-table-toolbar';
+import { UserManageResetPasswordDialog } from '../user-manage-reset-password-dialog';
 
 // ----------------------------------------------------------------------
 
@@ -81,7 +82,11 @@ export function UserManageView() {
   const [formMode, setFormMode] = useState<'create' | 'edit'>('create');
   const [editRow, setEditRow] = useState<UserManageItem | null>(null);
 
-  // 二次确认弹窗（禁用 / 重置密码 / 删除）
+  // 重置密码对话框
+  const [resetPwdOpen, setResetPwdOpen] = useState(false);
+  const [resetPwdRow, setResetPwdRow] = useState<UserManageItem | null>(null);
+
+  // 二次确认弹窗（禁用 / 删除）
   const [confirm, setConfirm] = useState<ConfirmAction | null>(null);
   const [confirmSubmitting, setConfirmSubmitting] = useState(false);
   const [confirmError, setConfirmError] = useState('');
@@ -124,10 +129,11 @@ export function UserManageView() {
 
   // ---------- 操作处理 ----------
   const handleCreate = useCallback(
-    async (data: CreateUserDto) => {
-      await userManageApi.create(data);
+    async (data: CreateUserDto): Promise<string> => {
+      const result = await userManageApi.create(data);
       setPage(0);
       await fetchList();
+      return result.initialPassword;
     },
     [fetchList]
   );
@@ -158,15 +164,17 @@ export function UserManageView() {
   );
 
   const handleResetPassword = useCallback((row: UserManageItem) => {
-    setConfirmError('');
-    setConfirm({
-      title: '重置密码',
-      description: `确定要重置账号「${row.account}」的密码吗？密码将被还原为系统默认密码。`,
-      onConfirm: async () => {
-        await userManageApi.resetPassword(row.id);
-      },
-    });
+    setResetPwdRow(row);
+    setResetPwdOpen(true);
   }, []);
+
+  const handleDoResetPassword = useCallback(
+    async (id: number, newPassword?: string): Promise<string> => {
+      const result = await userManageApi.resetPassword({ id, newPassword });
+      return result.newPassword;
+    },
+    []
+  );
 
   const handleDelete = useCallback(
     (row: UserManageItem) => {
@@ -351,7 +359,16 @@ export function UserManageView() {
         onUpdate={handleUpdate}
       />
 
-      {/* 二次确认弹窗 */}
+      {/* 重置密码对话框 */}
+      <UserManageResetPasswordDialog
+        open={resetPwdOpen}
+        account={resetPwdRow?.account ?? ''}
+        userId={resetPwdRow?.id ?? 0}
+        onClose={() => setResetPwdOpen(false)}
+        onReset={handleDoResetPassword}
+      />
+
+      {/* 二次确认弹窗（禁用 / 删除） */}
       <Dialog
         open={!!confirm}
         onClose={() => !confirmSubmitting && setConfirm(null)}

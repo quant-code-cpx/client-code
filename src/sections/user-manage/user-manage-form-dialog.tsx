@@ -14,14 +14,19 @@ import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
 import InputLabel from '@mui/material/InputLabel';
+import Typography from '@mui/material/Typography';
+import IconButton from '@mui/material/IconButton';
 import DialogTitle from '@mui/material/DialogTitle';
 import FormControl from '@mui/material/FormControl';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
+import InputAdornment from '@mui/material/InputAdornment';
 import CircularProgress from '@mui/material/CircularProgress';
 
 import { usePermission } from 'src/permission';
 import { ROLE_LABEL } from 'src/api/user-manage';
+
+import { Iconify } from 'src/components/iconify';
 
 // ----------------------------------------------------------------------
 
@@ -32,7 +37,8 @@ type UserManageFormDialogProps = {
   mode: Mode;
   row?: UserManageItem | null;
   onClose: () => void;
-  onCreate: (data: CreateUserDto) => Promise<void>;
+  /** 返回服务端生成的初始密码，供界面展示 */
+  onCreate: (data: CreateUserDto) => Promise<string>;
   onUpdate: (data: AdminUpdateUserDto) => Promise<void>;
 };
 
@@ -59,6 +65,12 @@ export function UserManageFormDialog({
   const [account, setAccount] = useState('');
   const [newNickname, setNewNickname] = useState('');
   const [newRole, setNewRole] = useState<UserRole>('USER');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  /** 创建成功后的初始密码，显示给管理员 */
+  const [createResult, setCreateResult] = useState('');
 
   // 编辑模式字段
   const [nickname, setNickname] = useState('');
@@ -84,6 +96,11 @@ export function UserManageFormDialog({
       setAccount('');
       setNewNickname('');
       setNewRole(creatableRoles[creatableRoles.length - 1]?.value ?? 'USER');
+      setPassword('');
+      setConfirmPassword('');
+      setShowPassword(false);
+      setShowConfirm(false);
+      setCreateResult('');
       setError('');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -100,10 +117,25 @@ export function UserManageFormDialog({
         setError('昵称不能为空');
         return;
       }
+      if (password) {
+        if (password.trim().length < 8) {
+          setError('密码至少需要8位');
+          return;
+        }
+        if (password.trim() !== confirmPassword.trim()) {
+          setError('两次输入的密码不一致');
+          return;
+        }
+      }
       setSubmitting(true);
       try {
-        await onCreate({ account: account.trim(), nickname: newNickname.trim(), role: newRole });
-        onClose();
+        const initialPassword = await onCreate({
+          account: account.trim(),
+          nickname: newNickname.trim(),
+          role: newRole,
+          ...(password.trim() ? { password: password.trim() } : {}),
+        });
+        setCreateResult(initialPassword);
       } catch (err) {
         setError(err instanceof Error ? err.message : '操作失败，请重试');
       } finally {
@@ -139,38 +171,128 @@ export function UserManageFormDialog({
       <DialogContent>
         <Box sx={{ pt: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
           {isCreate ? (
-            <>
-              <TextField
-                label="账号"
-                value={account}
-                onChange={(e) => setAccount(e.target.value)}
-                required
-                autoFocus
-                slotProps={{ inputLabel: { shrink: true } }}
-              />
-              <TextField
-                label="昵称"
-                value={newNickname}
-                onChange={(e) => setNewNickname(e.target.value)}
-                required
-                slotProps={{ inputLabel: { shrink: true } }}
-              />
-              <FormControl fullWidth>
-                <InputLabel shrink>角色</InputLabel>
-                <Select
-                  label="角色"
-                  value={newRole}
-                  onChange={(e) => setNewRole(e.target.value as UserRole)}
-                  notched
+            createResult ? (
+              /* ── 创建成功：展示初始密码 ── */
+              <>
+                <Typography variant="body2" color="text.secondary">
+                  用户创建成功！初始密码如下，请妥善告知用户：
+                </Typography>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 1,
+                    bgcolor: 'action.hover',
+                    borderRadius: 1,
+                    px: 2,
+                    py: 1.5,
+                  }}
                 >
-                  {creatableRoles.map((r) => (
-                    <MenuItem key={r.value} value={r.value}>
-                      {r.label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </>
+                  <Typography
+                    variant="body1"
+                    sx={{ fontFamily: 'monospace', flexGrow: 1, fontWeight: 700 }}
+                  >
+                    {createResult}
+                  </Typography>
+                  <IconButton
+                    size="small"
+                    onClick={() => navigator.clipboard.writeText(createResult)}
+                    title="复制密码"
+                  >
+                    <Iconify icon="solar:copy-bold" width={18} />
+                  </IconButton>
+                </Box>
+                <Typography variant="caption" color="warning.main">
+                  此密码仅显示一次，关闭后将无法再次查看
+                </Typography>
+              </>
+            ) : (
+              /* ── 创建表单 ── */
+              <>
+                <TextField
+                  label="账号"
+                  value={account}
+                  onChange={(e) => setAccount(e.target.value)}
+                  required
+                  autoFocus
+                  slotProps={{ inputLabel: { shrink: true } }}
+                />
+                <TextField
+                  label="昵称"
+                  value={newNickname}
+                  onChange={(e) => setNewNickname(e.target.value)}
+                  required
+                  slotProps={{ inputLabel: { shrink: true } }}
+                />
+                <FormControl fullWidth>
+                  <InputLabel shrink>角色</InputLabel>
+                  <Select
+                    label="角色"
+                    value={newRole}
+                    onChange={(e) => setNewRole(e.target.value as UserRole)}
+                    notched
+                  >
+                    {creatableRoles.map((r) => (
+                      <MenuItem key={r.value} value={r.value}>
+                        {r.label}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+                <TextField
+                  label="初始密码（留空自动生成）"
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  slotProps={{
+                    inputLabel: { shrink: true },
+                    input: {
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton
+                            size="small"
+                            edge="end"
+                            onClick={() => setShowPassword((v) => !v)}
+                          >
+                            <Iconify
+                              icon={showPassword ? 'solar:eye-closed-bold' : 'solar:eye-bold'}
+                              width={20}
+                            />
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    },
+                  }}
+                />
+                <TextField
+                  label="确认密码"
+                  type={showConfirm ? 'text' : 'password'}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  disabled={!password}
+                  slotProps={{
+                    inputLabel: { shrink: true },
+                    input: {
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton
+                            size="small"
+                            edge="end"
+                            onClick={() => setShowConfirm((v) => !v)}
+                            disabled={!password}
+                          >
+                            <Iconify
+                              icon={showConfirm ? 'solar:eye-closed-bold' : 'solar:eye-bold'}
+                              width={20}
+                            />
+                          </IconButton>
+                        </InputAdornment>
+                      ),
+                    },
+                  }}
+                />
+              </>
+            )
           ) : (
             <>
               <TextField
@@ -214,16 +336,18 @@ export function UserManageFormDialog({
 
       <DialogActions sx={{ px: 3, pb: 2 }}>
         <Button onClick={onClose} disabled={submitting}>
-          取消
+          {isCreate && createResult ? '关闭' : '取消'}
         </Button>
-        <Button
-          variant="contained"
-          onClick={handleSubmit}
-          disabled={submitting}
-          startIcon={submitting ? <CircularProgress size={14} /> : null}
-        >
-          {isCreate ? '创建' : '保存'}
-        </Button>
+        {!(isCreate && createResult) && (
+          <Button
+            variant="contained"
+            onClick={handleSubmit}
+            disabled={submitting}
+            startIcon={submitting ? <CircularProgress size={14} /> : null}
+          >
+            {isCreate ? '创建' : '保存'}
+          </Button>
+        )}
       </DialogActions>
     </Dialog>
   );
