@@ -4,6 +4,8 @@ import TableRow from '@mui/material/TableRow';
 import TableCell from '@mui/material/TableCell';
 import Typography from '@mui/material/Typography';
 
+import { RouterLink } from 'src/routes/components';
+
 import { fNumber, fPctChg, fWanYuan, fQianYuan, fRatePercent } from 'src/utils/format-number';
 
 import { Label } from 'src/components/label';
@@ -35,10 +37,16 @@ export function StockTableRow({ row }: StockTableRowProps) {
           boxShadow: '2px 0 6px -2px rgba(0,0,0,0.12)',
         }}
       >
-        <Typography variant="body2" fontWeight="fontWeightMedium">
+        <Typography
+          component={RouterLink}
+          href={`/stock/detail?code=${encodeURIComponent(row.tsCode)}`}
+          variant="body2"
+          fontWeight="fontWeightMedium"
+          sx={{ color: 'primary.main', textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}
+        >
           {row.name ?? '-'}
         </Typography>
-        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
           {row.tsCode}
         </Typography>
       </TableCell>
