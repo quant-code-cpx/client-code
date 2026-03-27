@@ -60,6 +60,25 @@ export interface CreateUserDto {
   account: string;
   nickname: string;
   role?: UserRole;
+  /** 初始密码（至少8位） */
+  password: string;
+}
+
+/** 创建用户响应（含初始密码，仅本次返回） */
+export interface CreatedUserResult extends UserManageItem {
+  initialPassword: string;
+}
+
+/** 重置密码 DTO */
+export interface ResetPasswordDto {
+  id: number;
+  /** 新密码（至少8位） */
+  newPassword: string;
+}
+
+/** 重置密码响应 */
+export interface ResetPasswordResult {
+  newPassword: string;
 }
 
 /** 管理员更新用户 DTO */
@@ -91,8 +110,8 @@ export const userManageApi = {
     apiClient.post<UserListResult>('/api/user/list', query),
 
   /** 创建用户 */
-  create: (data: CreateUserDto): Promise<UserManageItem> =>
-    apiClient.post<UserManageItem>('/api/user/create', data),
+  create: (data: CreateUserDto): Promise<CreatedUserResult> =>
+    apiClient.post<CreatedUserResult>('/api/user/create', data),
 
   /** 获取指定用户详情 */
   detail: (id: number): Promise<UserManageItem> =>
@@ -107,8 +126,8 @@ export const userManageApi = {
     apiClient.post<void>('/api/user/update-status', data),
 
   /** 重置用户密码 */
-  resetPassword: (id: number): Promise<void> =>
-    apiClient.post<void>('/api/user/reset-password', { id }),
+  resetPassword: (dto: ResetPasswordDto): Promise<ResetPasswordResult> =>
+    apiClient.post<ResetPasswordResult>('/api/user/reset-password', dto),
 
   /** 删除用户（软删除） */
   delete: (id: number): Promise<void> => apiClient.post<void>('/api/user/delete', { id }),

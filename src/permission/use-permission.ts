@@ -49,12 +49,14 @@ export function usePermission() {
 
     /**
      * 判断是否可以操作指定角色的用户
-     * - SUPER_ADMIN 可操作所有角色（包括同级）
-     * - 其他角色需严格高于目标角色
+     * - SUPER_ADMIN 账号不允许任何人对其进行操作
+     * - SUPER_ADMIN 操作者可管理 ADMIN / USER
+     * - ADMIN 操作者只能管理 USER
      * @example canManage('USER') // true for ADMIN and SUPER_ADMIN
      * @example canManage('ADMIN') // true only for SUPER_ADMIN
-     * @example canManage('SUPER_ADMIN') // true only for SUPER_ADMIN
+     * @example canManage('SUPER_ADMIN') // always false
      */
-    canManage: (targetRole: UserRole) => role === 'SUPER_ADMIN' || myLevel > ROLE_LEVEL[targetRole],
+    canManage: (targetRole: UserRole) =>
+      targetRole !== 'SUPER_ADMIN' && (role === 'SUPER_ADMIN' || myLevel > ROLE_LEVEL[targetRole]),
   };
 }
