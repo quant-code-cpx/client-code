@@ -169,7 +169,7 @@ export function UserManageView() {
   }, []);
 
   const handleDoResetPassword = useCallback(
-    async (id: number, newPassword?: string): Promise<string> => {
+    async (id: number, newPassword: string): Promise<string> => {
       const result = await userManageApi.resetPassword({ id, newPassword });
       return result.newPassword;
     },

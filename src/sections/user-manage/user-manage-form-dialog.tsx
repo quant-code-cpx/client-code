@@ -117,15 +117,17 @@ export function UserManageFormDialog({
         setError('昵称不能为空');
         return;
       }
-      if (password) {
-        if (password.trim().length < 8) {
-          setError('密码至少需要8位');
-          return;
-        }
-        if (password.trim() !== confirmPassword.trim()) {
-          setError('两次输入的密码不一致');
-          return;
-        }
+      if (!password.trim()) {
+        setError('密码不能为空');
+        return;
+      }
+      if (password.trim().length < 8) {
+        setError('密码至少需要8位');
+        return;
+      }
+      if (password.trim() !== confirmPassword.trim()) {
+        setError('两次输入的密码不一致');
+        return;
       }
       setSubmitting(true);
       try {
@@ -133,7 +135,7 @@ export function UserManageFormDialog({
           account: account.trim(),
           nickname: newNickname.trim(),
           role: newRole,
-          ...(password.trim() ? { password: password.trim() } : {}),
+          password: password.trim(),
         });
         setCreateResult(initialPassword);
       } catch (err) {
@@ -240,10 +242,11 @@ export function UserManageFormDialog({
                   </Select>
                 </FormControl>
                 <TextField
-                  label="初始密码（留空自动生成）"
+                  label="初始密码"
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  required
                   slotProps={{
                     inputLabel: { shrink: true },
                     input: {
@@ -269,7 +272,7 @@ export function UserManageFormDialog({
                   type={showConfirm ? 'text' : 'password'}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  disabled={!password}
+                  required
                   slotProps={{
                     inputLabel: { shrink: true },
                     input: {
@@ -279,7 +282,6 @@ export function UserManageFormDialog({
                             size="small"
                             edge="end"
                             onClick={() => setShowConfirm((v) => !v)}
-                            disabled={!password}
                           >
                             <Iconify
                               icon={showConfirm ? 'solar:eye-closed-bold' : 'solar:eye-bold'}

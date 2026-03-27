@@ -22,7 +22,7 @@ type UserManageResetPasswordDialogProps = {
   userId: number;
   onClose: () => void;
   /** 执行重置，返回服务端生成的新密码 */
-  onReset: (id: number, newPassword?: string) => Promise<string>;
+  onReset: (id: number, newPassword: string) => Promise<string>;
 };
 
 export function UserManageResetPasswordDialog({
@@ -54,19 +54,21 @@ export function UserManageResetPasswordDialog({
 
   const handleSubmit = async () => {
     setError('');
-    if (newPassword) {
-      if (newPassword.trim().length < 8) {
-        setError('密码至少需要8位');
-        return;
-      }
-      if (newPassword.trim() !== confirmPassword.trim()) {
-        setError('两次输入的密码不一致');
-        return;
-      }
+    if (!newPassword.trim()) {
+      setError('密码不能为空');
+      return;
+    }
+    if (newPassword.trim().length < 8) {
+      setError('密码至少需要8位');
+      return;
+    }
+    if (newPassword.trim() !== confirmPassword.trim()) {
+      setError('两次输入的密码不一致');
+      return;
     }
     setSubmitting(true);
     try {
-      const resultPassword = await onReset(userId, newPassword.trim() || undefined);
+      const resultPassword = await onReset(userId, newPassword.trim());
       setResult(resultPassword);
       setNewPassword('');
       setConfirmPassword('');
@@ -121,13 +123,14 @@ export function UserManageResetPasswordDialog({
           /* ── 重置表单 ── */
           <Box sx={{ pt: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
             <Typography variant="body2" color="text.secondary">
-              确定要重置账号「{account}」的密码吗？可以指定新密码，留空则由系统自动生成。
+              请输入账号「{account}」的新密码：
             </Typography>
             <TextField
-              label="新密码（留空自动生成）"
+              label="新密码"
               type={showNew ? 'text' : 'password'}
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
+              required
               slotProps={{
                 inputLabel: { shrink: true },
                 input: {
@@ -153,7 +156,7 @@ export function UserManageResetPasswordDialog({
               type={showConfirm ? 'text' : 'password'}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              disabled={!newPassword}
+              required
               slotProps={{
                 inputLabel: { shrink: true },
                 input: {
@@ -163,7 +166,6 @@ export function UserManageResetPasswordDialog({
                         size="small"
                         edge="end"
                         onClick={() => setShowConfirm((v) => !v)}
-                        disabled={!newPassword}
                       >
                         <Iconify
                           icon={showConfirm ? 'solar:eye-closed-bold' : 'solar:eye-bold'}

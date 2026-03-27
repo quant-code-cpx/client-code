@@ -60,8 +60,8 @@ export interface CreateUserDto {
   account: string;
   nickname: string;
   role?: UserRole;
-  /** 初始密码（至少8位，不传则服务端自动生成） */
-  password?: string;
+  /** 初始密码（至少8位） */
+  password: string;
 }
 
 /** 创建用户响应（含初始密码，仅本次返回） */
@@ -72,8 +72,8 @@ export interface CreatedUserResult extends UserManageItem {
 /** 重置密码 DTO */
 export interface ResetPasswordDto {
   id: number;
-  /** 新密码（至少8位，不传则服务端自动生成随机密码） */
-  newPassword?: string;
+  /** 新密码（至少8位） */
+  newPassword: string;
 }
 
 /** 重置密码响应 */
