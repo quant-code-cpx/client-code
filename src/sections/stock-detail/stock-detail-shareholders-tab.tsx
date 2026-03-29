@@ -16,6 +16,7 @@ import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 import TableContainer from '@mui/material/TableContainer';
 
+import { fDate } from 'src/utils/format-time';
 import { fNumber, fRatePercent } from 'src/utils/format-number';
 
 import { stockDetailApi } from 'src/api/stock';
@@ -46,9 +47,10 @@ function HoldersTable({
   title: string;
   data: Record<string, unknown> | undefined;
 }) {
-  const holders = (data?.holders ??
-    data?.items ??
-    (Array.isArray(data) ? data : [])) as Record<string, unknown>[];
+  const holders = (data?.holders ?? data?.items ?? (Array.isArray(data) ? data : [])) as Record<
+    string,
+    unknown
+  >[];
 
   if (!holders.length) {
     return (
@@ -73,7 +75,7 @@ function HoldersTable({
         </Typography>
         {data?.announceDate != null && (
           <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 1 }}>
-            公告日期：{str(data.announceDate)}
+            公告日期：{fDate(data.announceDate as string, 'YYYY-MM-DD')}
           </Typography>
         )}
         <TableContainer>

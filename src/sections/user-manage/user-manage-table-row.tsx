@@ -10,6 +10,8 @@ import TableCell from '@mui/material/TableCell';
 import IconButton from '@mui/material/IconButton';
 import MenuItem, { menuItemClasses } from '@mui/material/MenuItem';
 
+import { fDate } from 'src/utils/format-time';
+
 import { usePermission } from 'src/permission';
 import { ROLE_LABEL, STATUS_LABEL } from 'src/api/user-manage';
 
@@ -81,7 +83,7 @@ export function UserManageTableRow({
         <TableCell align="center">{row.watchlistLimit}</TableCell>
 
         <TableCell sx={{ color: 'text.secondary', fontSize: 12 }}>
-          {row.createdAt ? new Date(row.createdAt).toLocaleDateString('zh-CN') : '—'}
+          {row.createdAt ? fDate(row.createdAt, 'YYYY-MM-DD') : '—'}
         </TableCell>
 
         <TableCell align="right">

@@ -25,9 +25,9 @@ import { StockDetailShareholdersTab } from '../stock-detail-shareholders-tab';
 
 const TABS = [
   { value: 'market', label: '行情' },
+  { value: 'company', label: '公司概况' },
   { value: 'analysis', label: '分析' },
   { value: 'financials', label: '财务' },
-  { value: 'company', label: '公司概况' },
   { value: 'shareholders', label: '股本股东' },
   { value: 'dividend', label: '分红融资' },
 ];
@@ -97,9 +97,7 @@ export function StockDetailView() {
       </Box>
 
       <Box sx={{ pt: 3 }}>
-        {activeTab === 'market' && (
-          <StockDetailMarketTab tsCode={tsCode} overview={overview} />
-        )}
+        {activeTab === 'market' && <StockDetailMarketTab tsCode={tsCode} />}
         {activeTab === 'analysis' && <StockDetailAnalysisTab />}
         {activeTab === 'financials' && <StockDetailFinancialsTab tsCode={tsCode} />}
         {activeTab === 'company' && (

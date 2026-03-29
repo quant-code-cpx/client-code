@@ -106,8 +106,8 @@ export const userManageApi = {
   getProfile: (): Promise<UserProfile> => apiClient.post<UserProfile>('/api/user/profile/detail'),
 
   /** 用户列表（分页 + 筛选） */
-  list: (query: UserListQuery): Promise<UserListResult> =>
-    apiClient.post<UserListResult>('/api/user/list', query),
+  list: (query: UserListQuery, signal?: AbortSignal): Promise<UserListResult> =>
+    apiClient.post<UserListResult>('/api/user/list', query, signal),
 
   /** 创建用户 */
   create: (data: CreateUserDto): Promise<CreatedUserResult> =>

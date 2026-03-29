@@ -40,27 +40,25 @@ function InfoRow({ label, value }: InfoRowProps) {
 // ----------------------------------------------------------------------
 
 export function StockDetailCompanyTab({ overview, loading }: Props) {
-  const company = overview?.company as Record<string, unknown> | null | undefined;
-  const basic = overview?.basic as Record<string, unknown> | null | undefined;
+  const company = overview?.company;
+  const basic = overview?.basic;
 
   const str = (v: unknown) => (v != null && v !== '' ? String(v) : '-');
 
-  const introduction = str(company?.introduction ?? company?.bizScope ?? company?.mainBusiness);
-  const legalPerson = str(company?.legalPerson ?? company?.legalRep);
-  const generalManager = str(company?.generalManager ?? company?.chairman);
-  const employees = str(company?.employees ?? company?.empNum);
-  const established = str(
-    company?.establishedDate ?? company?.setupDate ?? basic?.listDate
-  );
-  const registered = str(company?.registeredCapital ?? company?.regCapital);
+  const introduction = str(company?.introduction ?? company?.mainBusiness);
+  const legalPerson = str(company?.chairman);
+  const generalManager = str(company?.manager ?? company?.chairman);
+  const employees = str(company?.employees);
+  const established = str(basic?.listDate);
+  const registered = str(company?.regCapital);
   const province = str(company?.province ?? basic?.area);
   const city = str(company?.city);
-  const address = str(company?.address ?? company?.officeAddr);
+  const address = '-';
   const website = str(company?.website);
-  const email = str(company?.email);
-  const phone = str(company?.phone);
-  const orgType = str(company?.orgType);
-  const exchangeCode = str(company?.exchange ?? basic?.exchange);
+  const email = '-';
+  const phone = '-';
+  const orgType = '-';
+  const exchangeCode = str(basic?.exchange);
 
   return (
     <Box>

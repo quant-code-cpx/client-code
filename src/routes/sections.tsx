@@ -25,6 +25,7 @@ export const StockPage = lazy(() => import('src/pages/stock'));
 export const StockDetailPage = lazy(() => import('src/pages/stock-detail'));
 export const MarketOverviewPage = lazy(() => import('src/pages/market-overview'));
 export const MarketMoneyFlowPage = lazy(() => import('src/pages/market-money-flow'));
+export const TushareSyncPage = lazy(() => import('src/pages/tushare-sync'));
 
 const renderFallback = () => (
   <Box
@@ -67,6 +68,7 @@ export const routesSection: RouteObject[] = [
       { path: 'stock/detail', element: <StockDetailPage /> },
       { path: 'market/overview', element: <MarketOverviewPage /> },
       { path: 'market/money-flow', element: <MarketMoneyFlowPage /> },
+      { path: 'tushare-sync', element: <TushareSyncPage /> },
     ],
   },
   {

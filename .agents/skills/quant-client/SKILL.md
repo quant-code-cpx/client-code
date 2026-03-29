@@ -4,7 +4,6 @@ description: >
   Project-specific coding skill for the quant-client frontend dashboard.
   USE THIS whenever working on this codebase. Contains architecture conventions,
   component patterns, theming rules, and project-specific best practices.
-applyTo: '**/*.{tsx,ts}'
 ---
 
 # Quant Client — Project Coding Skill
@@ -343,6 +342,22 @@ fShortenNumber(1234567); // "1.23M"
 fData(1024); // file size formatting
 ```
 
+### Stock quantity formatting convention
+
+- In stock-related screens, quantities should prefer only **万 / 亿** two levels.
+- Keep **2 decimal places** consistently for quantity displays.
+- Use `fWanYuan(...)` for values already expressed in **万元**.
+- Use `fQianYuan(...)` for values expressed in **千元**; it should still render only **万 / 亿**.
+- Use `fWanYi(value, suffix)` for non-currency quantities like **成交量（手）** or **股本（股）**.
+- In `stock-detail-header.tsx`, do **not** repeat the stock code inside the metric grid if it is already shown in the title row.
+
+### Date / time field formatting (REQUIRED)
+
+- **Never render raw date values directly in JSX** — raw ISO strings (e.g., `2025-01-01T00:00:00.000Z`), `Date` objects, or YYYYMMDD integers must always be formatted first.
+- Use `fDate(value, 'YYYY-MM-DD')` for date-only fields (report periods, user timestamps, any date field from the backend). Calling `fDate(date)` without a template outputs English locale ("17 Apr 2022") — always pass `'YYYY-MM-DD'` for financial screens.
+- For stock-specific dates that arrive as YYYYMMDD integers from tushare (e.g., `20250101`), use the local component helpers `fmtD()` (market-tab) or `fmtPeriod()` (financials-tab) — they handle both YYYYMMDD integers and ISO strings.
+- Full timestamp: use `fDateTime(value)`. Relative time: use `fToNow(value)`.
+
 ---
 
 ## Scrollbar
@@ -366,6 +381,16 @@ CONFIG.appName; // application name
 CONFIG.appVersion; // current version
 CONFIG.assetsDir; // public assets base path
 ```
+
+---
+
+## Finding Backend Code
+
+The backend lives at `../server-code/src` relative to the client project root (`client-code/`).
+
+- **Feature modules**: `../server-code/src/apps/<feature>/` — e.g., `../server-code/src/apps/stock/` for all stock endpoints
+- **File types to search**: `*.controller.ts` for route definitions, `*.dto.ts` for request/response shapes, `*.service.ts` for business logic
+- When on a GitHub / cloud environment (no local file access): search the same organization's **`server-code`** repository under its `src/` directory.
 
 ---
 

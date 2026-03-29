@@ -1,4 +1,4 @@
-import { Label } from 'src/components/label';
+import { Iconify } from 'src/components/iconify';
 import { SvgColor } from 'src/components/svg-color';
 
 // ----------------------------------------------------------------------
@@ -15,9 +15,9 @@ export type NavItem = {
 
 export const navData = [
   {
-    title: 'Dashboard',
+    title: '首页',
     path: '/',
-    icon: icon('ic-analytics'),
+    icon: <Iconify icon="solar:home-angle-bold-duotone" width={24} />,
   },
   {
     title: '股票',
@@ -47,33 +47,8 @@ export const navData = [
     icon: icon('ic-user'),
   },
   {
-    title: 'User',
-    path: '/user',
-    icon: icon('ic-user'),
-  },
-  {
-    title: 'Product',
-    path: '/products',
-    icon: icon('ic-cart'),
-    info: (
-      <Label color="error" variant="inverted">
-        +3
-      </Label>
-    ),
-  },
-  {
-    title: 'Blog',
-    path: '/blog',
-    icon: icon('ic-blog'),
-  },
-  {
-    title: 'Sign in',
-    path: '/sign-in',
-    icon: icon('ic-lock'),
-  },
-  {
-    title: 'Not found',
-    path: '/404',
-    icon: icon('ic-disabled'),
+    title: '数据同步',
+    path: '/tushare-sync',
+    icon: <Iconify icon="solar:restart-bold" width={24} />,
   },
 ];

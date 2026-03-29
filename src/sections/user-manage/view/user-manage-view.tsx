@@ -6,7 +6,7 @@ import type {
   AdminUpdateUserDto,
 } from 'src/api/user-manage';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -92,29 +92,45 @@ export function UserManageView() {
   const [confirmError, setConfirmError] = useState('');
 
   // ---------- 数据拉取 ----------
+  // abortRef 持有当前进行中的请求控制器，用于在 StrictMode cleanup / deps 变更时取消旧请求
+  const abortRef = useRef<AbortController | null>(null);
+
   const fetchList = useCallback(async () => {
     if (!isAdmin) return;
+
+    // 取消上一次未完成的请求
+    abortRef.current?.abort();
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
+
     setLoading(true);
     setListError('');
     try {
-      const result = await userManageApi.list({
-        page: page + 1, // MUI page 从 0 开始，API 从 1 开始
-        pageSize,
-        account: filterAccount.trim() || undefined,
-        status: filterStatus || undefined,
-        role: filterRole || undefined,
-      });
+      const result = await userManageApi.list(
+        {
+          page: page + 1, // MUI page 从 0 开始，API 从 1 开始
+          pageSize,
+          account: filterAccount.trim() || undefined,
+          status: filterStatus || undefined,
+          role: filterRole || undefined,
+        },
+        ctrl.signal
+      );
+      if (ctrl.signal.aborted) return;
       setRows(result.items ?? []);
       setTotal(result.total ?? 0);
     } catch (err) {
+      if (ctrl.signal.aborted) return;
       setListError(err instanceof Error ? err.message : '获取用户列表失败');
     } finally {
-      setLoading(false);
+      if (!ctrl.signal.aborted) setLoading(false);
     }
   }, [isAdmin, page, pageSize, filterAccount, filterStatus, filterRole]);
 
   useEffect(() => {
     fetchList();
+    // cleanup：组件卸载或 deps 变更时中止进行中的请求
+    return () => abortRef.current?.abort();
   }, [fetchList]);
 
   // 筛选变更时重置到第一页

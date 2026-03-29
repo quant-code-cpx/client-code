@@ -98,7 +98,7 @@ export function fWanYuan(value: InputNumberValue, decimals = 2): string {
   const num = processInput(value);
   if (num === null) return '-';
   if (Math.abs(num) >= 10000) return `${(num / 10000).toFixed(decimals)}亿`;
-  return `${num.toFixed(0)}万`;
+  return `${num.toFixed(decimals)}万`;
 }
 
 /**
@@ -113,9 +113,23 @@ export function fQianYuan(value: InputNumberValue, decimals = 2): string {
   if (num === null) return '-';
   // 1亿 = 100,000千元
   if (Math.abs(num) >= 100000) return `${(num / 100000).toFixed(decimals)}亿`;
-  // 1万 = 10千元
-  if (Math.abs(num) >= 10) return `${(num / 10).toFixed(0)}万`;
-  return `${num.toFixed(2)}千`;
+  // 统一只保留「万 / 亿」两个数量级
+  return `${(num / 10).toFixed(decimals)}万`;
+}
+
+/**
+ * 将普通数值格式化为「万 / 亿」单位。
+ * 适用于：成交量、股本数量等不带货币含义但需要缩量展示的数字。
+ *
+ * @param value  - 原始值，null 返回 '-'
+ * @param suffix - 单位后缀，如「手」「股」；默认空字符串
+ * @param decimals - 小数位数，默认 2
+ */
+export function fWanYi(value: InputNumberValue, suffix = '', decimals = 2): string {
+  const num = processInput(value);
+  if (num === null) return '-';
+  if (Math.abs(num) >= 100000000) return `${(num / 100000000).toFixed(decimals)}亿${suffix}`;
+  return `${(num / 10000).toFixed(decimals)}万${suffix}`;
 }
 
 /**

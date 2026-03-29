@@ -163,11 +163,13 @@ async function parseResponse<T>(response: Response): Promise<T> {
 // ---------- 对外暴露的 API 方法 ----------
 
 export const apiClient = {
-  post: <T>(url: string, body?: unknown): Promise<T> =>
+  post: <T>(url: string, body?: unknown, signal?: AbortSignal): Promise<T> =>
     request<T>(url, {
       method: 'POST',
       body: body !== undefined ? JSON.stringify(body) : undefined,
+      signal,
     }),
 
-  get: <T>(url: string): Promise<T> => request<T>(url, { method: 'GET' }),
+  get: <T>(url: string, signal?: AbortSignal): Promise<T> =>
+    request<T>(url, { method: 'GET', signal }),
 };

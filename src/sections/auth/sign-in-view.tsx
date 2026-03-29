@@ -1,6 +1,5 @@
 import type { CaptchaResponse } from 'src/api';
 
-import { useLocation } from 'react-router-dom';
 import { useRef, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
@@ -24,11 +23,7 @@ import { Iconify } from 'src/components/iconify';
 
 export function SignInView() {
   const router = useRouter();
-  const location = useLocation();
   const { signIn, loadProfile } = useAuth();
-
-  const fromPath =
-    (location.state as { from?: { pathname?: string } } | null)?.from?.pathname ?? '/';
 
   const [account, setAccount] = useState('');
   const [password, setPassword] = useState('');
@@ -100,7 +95,7 @@ export function SignInView() {
       });
       signIn(accessToken);
       await loadProfile();
-      router.push(fromPath);
+      router.push('/');
     } catch (err) {
       const msg = err instanceof Error ? err.message : '登录失败，请重试';
       setErrorMsg(msg);
@@ -108,17 +103,7 @@ export function SignInView() {
     } finally {
       setSubmitting(false);
     }
-  }, [
-    account,
-    password,
-    captchaCode,
-    captcha,
-    signIn,
-    loadProfile,
-    router,
-    fromPath,
-    fetchCaptcha,
-  ]);
+  }, [account, password, captchaCode, captcha, signIn, loadProfile, router, fetchCaptcha]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {

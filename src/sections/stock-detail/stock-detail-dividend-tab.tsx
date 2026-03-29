@@ -1,4 +1,4 @@
-import type { StockShareholdersData } from 'src/api/stock';
+import type { StockFinancingData, StockDividendFinancingData } from 'src/api/stock';
 
 import { useState, useEffect, useCallback } from 'react';
 
@@ -34,10 +34,16 @@ function num(v: unknown): string {
   return Number.isNaN(n) ? '-' : fNumber(n);
 }
 
+function date(v: unknown): string {
+  if (!v) return '-';
+  return String(v).slice(0, 10);
+}
+
 // ----------------------------------------------------------------------
 
 export function StockDetailDividendTab({ tsCode }: Props) {
-  const [data, setData] = useState<StockShareholdersData | null>(null);
+  const [divData, setDivData] = useState<StockDividendFinancingData | null>(null);
+  const [finData, setFinData] = useState<StockFinancingData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -46,10 +52,14 @@ export function StockDetailDividendTab({ tsCode }: Props) {
     setLoading(true);
     setError('');
     try {
-      const result = await stockDetailApi.shareholders(tsCode);
-      setData(result);
+      const [divResult, finResult] = await Promise.all([
+        stockDetailApi.dividendFinancing(tsCode),
+        stockDetailApi.financing(tsCode),
+      ]);
+      setDivData(divResult);
+      setFinData(finResult);
     } catch (err) {
-      setError(err instanceof Error ? err.message : '获取分红数据失败');
+      setError(err instanceof Error ? err.message : '获取分红融资数据失败');
     } finally {
       setLoading(false);
     }
@@ -75,19 +85,21 @@ export function StockDetailDividendTab({ tsCode }: Props) {
     );
   }
 
-  const dividendHistory = (data?.dividendHistory ?? []) as Record<string, unknown>[];
+  const dividends = divData?.dividends ?? [];
+  const allotments = divData?.allotments ?? [];
+  const financings = finData?.items ?? [];
 
   return (
     <Stack spacing={3}>
-      {/* 分红历史 */}
+      {/* 分红记录 */}
       <Card>
         <CardContent>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-            <Typography variant="h6">分红历史</Typography>
-            <Chip label={`共 ${dividendHistory.length} 条`} size="small" variant="outlined" />
+            <Typography variant="h6">分红记录</Typography>
+            <Chip label={`共 ${dividends.length} 条`} size="small" variant="outlined" />
           </Box>
 
-          {dividendHistory.length === 0 ? (
+          {dividends.length === 0 ? (
             <Box sx={{ py: 6, textAlign: 'center', color: 'text.secondary' }}>
               <Typography variant="body2">暂无分红记录</Typography>
             </Box>
@@ -96,38 +108,30 @@ export function StockDetailDividendTab({ tsCode }: Props) {
               <Table size="small">
                 <TableHead>
                   <TableRow>
-                    <TableCell>公告日期</TableCell>
-                    <TableCell>股权登记日</TableCell>
-                    <TableCell>除权除息日</TableCell>
-                    <TableCell align="right">每股股利(元)</TableCell>
-                    <TableCell align="right">每股转增(股)</TableCell>
+                    <TableCell>公告日</TableCell>
+                    <TableCell>报告期</TableCell>
+                    <TableCell align="right">每股现金分红(税后)(元)</TableCell>
                     <TableCell align="right">每股送股(股)</TableCell>
-                    <TableCell>实施方案</TableCell>
+                    <TableCell align="right">每股转增(股)</TableCell>
+                    <TableCell>除权除息日</TableCell>
+                    <TableCell>方案进度</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {dividendHistory.map((row, i) => (
+                  {dividends.map((row, i) => (
                     <TableRow key={i} hover>
-                      <TableCell>{str(row.annDate ?? row.announceDate)}</TableCell>
-                      <TableCell>{str(row.recordDate ?? row.stkhDate)}</TableCell>
-                      <TableCell>{str(row.exDate ?? row.exdivDate)}</TableCell>
-                      <TableCell align="right">
-                        {num(row.cashDiv ?? row.cashDivTax ?? row.divPerShare)}
-                      </TableCell>
-                      <TableCell align="right">
-                        {num(row.stkhBonus ?? row.capitalizeShareBonus)}
-                      </TableCell>
-                      <TableCell align="right">{num(row.stkhRation ?? row.giveSh)}</TableCell>
+                      <TableCell>{date(row.annDate)}</TableCell>
+                      <TableCell>{date(row.endDate)}</TableCell>
+                      <TableCell align="right">{num(row.cashDiv)}</TableCell>
+                      <TableCell align="right">{num(row.stkBoRate)}</TableCell>
+                      <TableCell align="right">{num(row.stkCoRate)}</TableCell>
+                      <TableCell>{date(row.exDate)}</TableCell>
                       <TableCell>
                         <Chip
-                          label={str(row.divProceStatus ?? row.impStatus ?? row.divProcStatus)}
+                          label={str(row.divProc)}
                           size="small"
                           variant="outlined"
-                          color={
-                            String(row.impStatus ?? row.divProcStatus ?? '').includes('实施')
-                              ? 'success'
-                              : 'default'
-                          }
+                          color={String(row.divProc ?? '').includes('实施') ? 'success' : 'default'}
                         />
                       </TableCell>
                     </TableRow>
@@ -139,17 +143,93 @@ export function StockDetailDividendTab({ tsCode }: Props) {
         </CardContent>
       </Card>
 
-      {/* 融资记录说明 */}
+      {/* 配股记录 */}
       <Card>
         <CardContent>
-          <Typography variant="h6" sx={{ mb: 1 }}>
-            融资记录
-          </Typography>
-          <Box sx={{ py: 4, textAlign: 'center', color: 'text.secondary' }}>
-            <Typography variant="body2">
-              融资历史（增发、配股、可转债等）接口待开发
-            </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+            <Typography variant="h6">配股记录</Typography>
+            <Chip label={`共 ${allotments.length} 条`} size="small" variant="outlined" />
           </Box>
+
+          {allotments.length === 0 ? (
+            <Box sx={{ py: 6, textAlign: 'center', color: 'text.secondary' }}>
+              <Typography variant="body2">暂无配股记录</Typography>
+            </Box>
+          ) : (
+            <TableContainer>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>公告日</TableCell>
+                    <TableCell>配股基准日</TableCell>
+                    <TableCell align="right">配股价格(元)</TableCell>
+                    <TableCell align="right">配股比例</TableCell>
+                    <TableCell align="right">配股数量(万股)</TableCell>
+                    <TableCell align="right">募集资金净额(元)</TableCell>
+                    <TableCell>上市日</TableCell>
+                    <TableCell>状态</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {allotments.map((row, i) => (
+                    <TableRow key={i} hover>
+                      <TableCell>{date(row.annDate)}</TableCell>
+                      <TableCell>{date(row.baseDate)}</TableCell>
+                      <TableCell align="right">{num(row.allotmentPrice)}</TableCell>
+                      <TableCell align="right">{num(row.allotmentRatio)}</TableCell>
+                      <TableCell align="right">{num(row.allotmentVol)}</TableCell>
+                      <TableCell align="right">{num(row.raiseFonds)}</TableCell>
+                      <TableCell>{date(row.marketDate)}</TableCell>
+                      <TableCell>{str(row.stateDesc)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* 融资记录 */}
+      <Card>
+        <CardContent>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+            <Typography variant="h6">融资记录</Typography>
+            <Chip label={`共 ${financings.length} 条`} size="small" variant="outlined" />
+          </Box>
+
+          {financings.length === 0 ? (
+            <Box sx={{ py: 6, textAlign: 'center', color: 'text.secondary' }}>
+              <Typography variant="body2">暂无融资记录</Typography>
+            </Box>
+          ) : (
+            <TableContainer>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>融资类型</TableCell>
+                    <TableCell>公告日</TableCell>
+                    <TableCell align="right">融资金额(元)</TableCell>
+                    <TableCell align="right">发行价(元)</TableCell>
+                    <TableCell align="right">发行股数(万股)</TableCell>
+                    <TableCell>状态</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {financings.map((row, i) => (
+                    <TableRow key={i} hover>
+                      <TableCell>{str(row.eventType)}</TableCell>
+                      <TableCell>{date(row.announceDate)}</TableCell>
+                      <TableCell align="right">{num(row.amount)}</TableCell>
+                      <TableCell align="right">{num(row.price)}</TableCell>
+                      <TableCell align="right">{num(row.shares)}</TableCell>
+                      <TableCell>{str(row.status)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
         </CardContent>
       </Card>
     </Stack>
