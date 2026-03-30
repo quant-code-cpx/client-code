@@ -1,4 +1,4 @@
-import type { TushareSyncPlan, TushareSyncMode, ManualSyncResult } from 'src/api/tushare-sync';
+import type { TushareSyncPlan, TushareSyncMode } from 'src/api/tushare-sync';
 
 import { useState, useEffect, useCallback } from 'react';
 
@@ -25,6 +25,7 @@ import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import { usePermission } from 'src/permission';
 import { tushareSyncApi } from 'src/api/tushare-sync';
 import { DashboardContent } from 'src/layouts/dashboard';
+import { useSyncNotification } from 'src/contexts/sync-notification-context';
 
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
@@ -70,9 +71,10 @@ export function TushareSyncView() {
   const [mode, setMode] = useState<TushareSyncMode>('incremental');
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
-  const [syncing, setSyncing] = useState(false);
-  const [syncResult, setSyncResult] = useState<ManualSyncResult | null>(null);
-  const [syncError, setSyncError] = useState('');
+  const [submitError, setSubmitError] = useState('');
+
+  // 通过 WebSocket 上下文获取同步状态与结果
+  const { isSyncing, lastSyncResult, lastSyncError, clearLastResult } = useSyncNotification();
 
   const fetchPlans = useCallback(async () => {
     setPlansLoading(true);
@@ -128,16 +130,13 @@ export function TushareSyncView() {
   // ── sync action ──────────────────────────────────────────────────────
   const handleSync = async () => {
     if (selected.size === 0) return;
-    setSyncing(true);
-    setSyncResult(null);
-    setSyncError('');
+    setSubmitError('');
+    clearLastResult();
     try {
-      const result = await tushareSyncApi.manualSync(mode, Array.from(selected));
-      setSyncResult(result);
+      // 后端 202 Accepted 立即返回，真实结果通过 WebSocket 推送
+      await tushareSyncApi.manualSync(mode, Array.from(selected));
     } catch (err) {
-      setSyncError(err instanceof Error ? err.message : '同步执行失败');
-    } finally {
-      setSyncing(false);
+      setSubmitError(err instanceof Error ? err.message : '提交同步请求失败');
     }
   };
 
@@ -208,27 +207,34 @@ export function TushareSyncView() {
         </Alert>
       )}
 
-      {syncError && (
-        <Alert severity="error" sx={{ mb: 3 }} onClose={() => setSyncError('')}>
-          {syncError}
+      {submitError && (
+        <Alert severity="error" sx={{ mb: 3 }} onClose={() => setSubmitError('')}>
+          {submitError}
         </Alert>
       )}
 
-      {syncResult && (
+      {lastSyncError && (
+        <Alert severity="error" sx={{ mb: 3 }} onClose={clearLastResult}>
+          同步任务异常：{lastSyncError.reason}
+        </Alert>
+      )}
+
+      {lastSyncResult && (
         <Alert
-          severity={syncResult.failedTasks.length > 0 ? 'warning' : 'success'}
+          severity={lastSyncResult.failedTasks.length > 0 ? 'warning' : 'success'}
           sx={{ mb: 3 }}
-          onClose={() => setSyncResult(null)}
+          onClose={clearLastResult}
         >
           <Typography variant="subtitle2" gutterBottom>
-            同步完成，耗时 {syncResult.elapsedSeconds.toFixed(1)} 秒
+            同步完成，耗时 {lastSyncResult.elapsedSeconds.toFixed(1)} 秒
           </Typography>
           <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
-            <span>✅ 成功：{syncResult.executedTasks.length} 个</span>
-            <span>⏭ 跳过：{syncResult.skippedTasks.length} 个</span>
-            {syncResult.failedTasks.length > 0 && (
+            <span>✅ 成功：{lastSyncResult.executedTasks.length} 个</span>
+            <span>⏭ 跳过：{lastSyncResult.skippedTasks.length} 个</span>
+            {lastSyncResult.failedTasks.length > 0 && (
               <span>
-                ❌ 失败：{syncResult.failedTasks.length} 个（{syncResult.failedTasks.join('、')}）
+                ❌ 失败：{lastSyncResult.failedTasks.length} 个（
+                {lastSyncResult.failedTasks.join('、')}）
               </span>
             )}
           </Box>
@@ -279,7 +285,7 @@ export function TushareSyncView() {
 
           <Box sx={{ flex: 1 }} />
 
-          {syncing && (
+          {isSyncing && (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <CircularProgress size={14} />
               <Typography variant="body2" sx={{ color: 'text.secondary' }}>
@@ -294,17 +300,17 @@ export function TushareSyncView() {
 
           <Button
             variant="contained"
-            disabled={!anySelected || syncing || plansLoading}
+            disabled={!anySelected || isSyncing || plansLoading}
             onClick={handleSync}
             startIcon={
-              syncing ? (
+              isSyncing ? (
                 <CircularProgress size={14} color="inherit" />
               ) : (
                 <Iconify icon="solar:restart-bold" />
               )
             }
           >
-            {syncing ? '同步中...' : '开始同步'}
+            {isSyncing ? '同步中...' : '开始同步'}
           </Button>
         </Toolbar>
 

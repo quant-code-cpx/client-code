@@ -6,6 +6,7 @@ import { usePathname } from 'src/routes/hooks';
 
 import { AuthProvider } from 'src/auth';
 import { ThemeProvider } from 'src/theme/theme-provider';
+import { SyncNotificationProvider } from 'src/contexts/sync-notification-context';
 
 // ----------------------------------------------------------------------
 
@@ -18,7 +19,9 @@ export default function App({ children }: AppProps) {
 
   return (
     <ThemeProvider>
-      <AuthProvider>{children}</AuthProvider>
+      <AuthProvider>
+        <SyncNotificationProvider>{children}</SyncNotificationProvider>
+      </AuthProvider>
     </ThemeProvider>
   );
 }

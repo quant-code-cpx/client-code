@@ -19,6 +19,8 @@ import ListItemButton from '@mui/material/ListItemButton';
 
 import { fToNow } from 'src/utils/format-time';
 
+import { useSyncNotification } from 'src/contexts/sync-notification-context';
+
 import { Iconify } from 'src/components/iconify';
 import { Scrollbar } from 'src/components/scrollbar';
 
@@ -34,14 +36,23 @@ type NotificationItemProps = {
   postedAt: string | number | null;
 };
 
-export type NotificationsPopoverProps = IconButtonProps & {
-  data?: NotificationItemProps[];
-};
+export type NotificationsPopoverProps = IconButtonProps;
 
-export function NotificationsPopover({ data = [], sx, ...other }: NotificationsPopoverProps) {
-  const [notifications, setNotifications] = useState(data);
+export function NotificationsPopover({ sx, ...other }: NotificationsPopoverProps) {
+  const { notifications, markAllRead, markNotificationRead } = useSyncNotification();
 
-  const totalUnRead = notifications.filter((item) => item.isUnRead === true).length;
+  // 将同步通知适配为通用 NotificationItemProps 格式
+  const items: NotificationItemProps[] = notifications.map((n) => ({
+    id: n.id,
+    type: n.type,
+    title: n.title,
+    description: n.description,
+    avatarUrl: n.avatarUrl,
+    isUnRead: n.isUnRead,
+    postedAt: n.postedAt,
+  }));
+
+  const totalUnRead = items.filter((item) => item.isUnRead).length;
 
   const [openPopover, setOpenPopover] = useState<HTMLButtonElement | null>(null);
 
@@ -54,13 +65,8 @@ export function NotificationsPopover({ data = [], sx, ...other }: NotificationsP
   }, []);
 
   const handleMarkAllAsRead = useCallback(() => {
-    const updatedNotifications = notifications.map((notification) => ({
-      ...notification,
-      isUnRead: false,
-    }));
-
-    setNotifications(updatedNotifications);
-  }, [notifications]);
+    markAllRead();
+  }, [markAllRead]);
 
   return (
     <>
@@ -120,31 +126,37 @@ export function NotificationsPopover({ data = [], sx, ...other }: NotificationsP
         <Divider sx={{ borderStyle: 'dashed' }} />
 
         <Scrollbar fillContent sx={{ minHeight: 240, maxHeight: { xs: 360, sm: 'none' } }}>
-          <List
-            disablePadding
-            subheader={
-              <ListSubheader disableSticky sx={{ py: 1, px: 2.5, typography: 'overline' }}>
-                New
-              </ListSubheader>
-            }
-          >
-            {notifications.slice(0, 2).map((notification) => (
-              <NotificationItem key={notification.id} notification={notification} />
-            ))}
-          </List>
-
-          <List
-            disablePadding
-            subheader={
-              <ListSubheader disableSticky sx={{ py: 1, px: 2.5, typography: 'overline' }}>
-                Before that
-              </ListSubheader>
-            }
-          >
-            {notifications.slice(2, 5).map((notification) => (
-              <NotificationItem key={notification.id} notification={notification} />
-            ))}
-          </List>
+          {items.length === 0 ? (
+            <Box
+              sx={{
+                py: 6,
+                display: 'flex',
+                alignItems: 'center',
+                flexDirection: 'column',
+                color: 'text.disabled',
+              }}
+            >
+              <Iconify icon="solar:bell-bing-bold-duotone" sx={{ fontSize: 48, mb: 1 }} />
+              <Typography variant="body2">暂无通知</Typography>
+            </Box>
+          ) : (
+            <List
+              disablePadding
+              subheader={
+                <ListSubheader disableSticky sx={{ py: 1, px: 2.5, typography: 'overline' }}>
+                  同步通知
+                </ListSubheader>
+              }
+            >
+              {items.map((notification) => (
+                <NotificationItem
+                  key={notification.id}
+                  notification={notification}
+                  onRead={markNotificationRead}
+                />
+              ))}
+            </List>
+          )}
         </Scrollbar>
 
         <Divider sx={{ borderStyle: 'dashed' }} />
@@ -161,11 +173,18 @@ export function NotificationsPopover({ data = [], sx, ...other }: NotificationsP
 
 // ----------------------------------------------------------------------
 
-function NotificationItem({ notification }: { notification: NotificationItemProps }) {
+function NotificationItem({
+  notification,
+  onRead,
+}: {
+  notification: NotificationItemProps;
+  onRead: (id: string) => void;
+}) {
   const { avatarUrl, title } = renderContent(notification);
 
   return (
     <ListItemButton
+      onClick={() => onRead(notification.id)}
       sx={{
         py: 1.5,
         px: 2.5,
@@ -212,6 +231,28 @@ function renderContent(notification: NotificationItemProps) {
     </Typography>
   );
 
+  if (notification.type === 'tushare-sync-completed') {
+    return {
+      avatarUrl: (
+        <Iconify
+          icon="solar:check-circle-bold"
+          sx={{ fontSize: 24, color: 'success.main' }}
+        />
+      ),
+      title,
+    };
+  }
+  if (notification.type === 'tushare-sync-failed') {
+    return {
+      avatarUrl: (
+        <Iconify
+          icon="solar:restart-bold"
+          sx={{ fontSize: 24, color: 'error.main' }}
+        />
+      ),
+      title,
+    };
+  }
   if (notification.type === 'order-placed') {
     return {
       avatarUrl: (
