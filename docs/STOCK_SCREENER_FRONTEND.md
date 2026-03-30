@@ -6,14 +6,14 @@
 
 ## 一、技术栈与约定
 
-| 技术           | 版本/说明                                                   |
-| -------------- | ----------------------------------------------------------- |
-| 框架           | React 18（Vite）                                            |
-| UI 库          | MUI v5（`@mui/material`），使用 `sx` prop 做样式            |
-| 图表           | ApexCharts（`react-apexcharts` / `apexcharts`）             |
-| API 客户端     | 项目内 `src/api/client.ts` 的 `apiClient.post()`            |
-| 布局容器       | `DashboardContent`（来自 `src/layouts/dashboard`）          |
-| 路由           | 需新注册 `/stock/screener` → `StockScreenerPage`            |
+| 技术       | 版本/说明                                          |
+| ---------- | -------------------------------------------------- |
+| 框架       | React 18（Vite）                                   |
+| UI 库      | MUI v5（`@mui/material`），使用 `sx` prop 做样式   |
+| 图表       | ApexCharts（`react-apexcharts` / `apexcharts`）    |
+| API 客户端 | 项目内 `src/api/client.ts` 的 `apiClient.post()`   |
+| 布局容器   | `DashboardContent`（来自 `src/layouts/dashboard`） |
+| 路由       | 需新注册 `/stock/screener` → `StockScreenerPage`   |
 
 ### 关键约定
 
@@ -158,27 +158,27 @@ src/sections/stock-screener/
 
 ```typescript
 // 筛选条件（对应后端 DTO 所有字段）
-const [filters, setFilters] = useState<ScreenerFilters>(DEFAULT_FILTERS)
+const [filters, setFilters] = useState<ScreenerFilters>(DEFAULT_FILTERS);
 
 // 分页
-const [page, setPage] = useState(0)  // MUI TablePagination 从 0 开始
-const [rowsPerPage, setRowsPerPage] = useState(20)
+const [page, setPage] = useState(0); // MUI TablePagination 从 0 开始
+const [rowsPerPage, setRowsPerPage] = useState(20);
 
 // 排序
-const [sortBy, setSortBy] = useState<string>('totalMv')
-const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc')
+const [sortBy, setSortBy] = useState<string>('totalMv');
+const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
 // 数据
-const [result, setResult] = useState<ScreenerResult | null>(null)
-const [loading, setLoading] = useState(false)
+const [result, setResult] = useState<ScreenerResult | null>(null);
+const [loading, setLoading] = useState(false);
 
 // 预设
-const [presets, setPresets] = useState<ScreenerPreset[]>([])
-const [activePreset, setActivePreset] = useState<string | null>(null)
+const [presets, setPresets] = useState<ScreenerPreset[]>([]);
+const [activePreset, setActivePreset] = useState<string | null>(null);
 
 // 辅助数据
-const [industries, setIndustries] = useState<{ name: string; count: number }[]>([])
-const [areas, setAreas] = useState<{ name: string; count: number }[]>([])
+const [industries, setIndustries] = useState<{ name: string; count: number }[]>([]);
+const [areas, setAreas] = useState<{ name: string; count: number }[]>([]);
 ```
 
 **初始化**：页面加载时并行请求预设列表、行业列表、地域列表，然后自动执行一次默认查询（无筛选条件，按市值降序）。
@@ -187,25 +187,26 @@ const [areas, setAreas] = useState<{ name: string; count: number }[]>([])
 
 ```typescript
 const doSearch = useCallback(async () => {
-  setLoading(true)
+  setLoading(true);
   try {
     const data = await fetchScreener({
       ...buildQueryFromFilters(filters),
-      page: page + 1,           // 后端从 1 开始
+      page: page + 1, // 后端从 1 开始
       pageSize: rowsPerPage,
       sortBy,
       sortOrder,
-    })
-    setResult(data)
+    });
+    setResult(data);
   } catch (e) {
     // 显示错误提示
   } finally {
-    setLoading(false)
+    setLoading(false);
   }
-}, [filters, page, rowsPerPage, sortBy, sortOrder])
+}, [filters, page, rowsPerPage, sortBy, sortOrder]);
 ```
 
 **触发时机**：
+
 - 点击"开始选股"按钮 → 调用 `doSearch()`，并重置 `page = 0`
 - 翻页 / 切换每页条数 → 自动触发 `doSearch()`
 - 点击表头排序 → 更新 `sortBy` / `sortOrder`，自动触发 `doSearch()`
@@ -219,10 +220,10 @@ const doSearch = useCallback(async () => {
 
 ```typescript
 interface ScreenerPresetBarProps {
-  presets: ScreenerPreset[]
-  activePreset: string | null
-  onSelect: (preset: ScreenerPreset) => void
-  onReset: () => void
+  presets: ScreenerPreset[];
+  activePreset: string | null;
+  onSelect: (preset: ScreenerPreset) => void;
+  onReset: () => void;
 }
 ```
 
@@ -242,12 +243,12 @@ interface ScreenerPresetBarProps {
 
 ```typescript
 interface ScreenerFilterPanelProps {
-  filters: ScreenerFilters
-  industries: { name: string; count: number }[]
-  areas: { name: string; count: number }[]
-  onChange: (newFilters: ScreenerFilters) => void
-  onSearch: () => void
-  onReset: () => void
+  filters: ScreenerFilters;
+  industries: { name: string; count: number }[];
+  areas: { name: string; count: number }[];
+  onChange: (newFilters: ScreenerFilters) => void;
+  onSearch: () => void;
+  onReset: () => void;
 }
 ```
 
@@ -312,14 +313,14 @@ interface ScreenerFilterPanelProps {
 
 ```typescript
 interface ScreenerFilterRangeInputProps {
-  label: string
-  minValue: number | undefined
-  maxValue: number | undefined
-  onMinChange: (v: number | undefined) => void
-  onMaxChange: (v: number | undefined) => void
-  unit?: string           // 如 '%', '亿', '万'
-  step?: number           // 步进值
-  placeholder?: [string, string]  // 如 ['不限', '不限']
+  label: string;
+  minValue: number | undefined;
+  maxValue: number | undefined;
+  onMinChange: (v: number | undefined) => void;
+  onMaxChange: (v: number | undefined) => void;
+  unit?: string; // 如 '%', '亿', '万'
+  step?: number; // 步进值
+  placeholder?: [string, string]; // 如 ['不限', '不限']
 }
 ```
 
@@ -342,11 +343,11 @@ interface ScreenerFilterRangeInputProps {
 
 ```typescript
 interface ScreenerResultToolbarProps {
-  total: number
-  loading: boolean
-  sortBy: string
-  sortOrder: 'asc' | 'desc'
-  onSortChange: (sortBy: string, order: 'asc' | 'desc') => void
+  total: number;
+  loading: boolean;
+  sortBy: string;
+  sortOrder: 'asc' | 'desc';
+  onSortChange: (sortBy: string, order: 'asc' | 'desc') => void;
 }
 ```
 
@@ -363,47 +364,47 @@ interface ScreenerResultToolbarProps {
 
 ```typescript
 interface ScreenerResultTableProps {
-  items: StockScreenerItem[]
-  total: number
-  page: number
-  rowsPerPage: number
-  loading: boolean
-  sortBy: string
-  sortOrder: 'asc' | 'desc'
-  onPageChange: (page: number) => void
-  onRowsPerPageChange: (size: number) => void
-  onSort: (field: string) => void
+  items: StockScreenerItem[];
+  total: number;
+  page: number;
+  rowsPerPage: number;
+  loading: boolean;
+  sortBy: string;
+  sortOrder: 'asc' | 'desc';
+  onPageChange: (page: number) => void;
+  onRowsPerPageChange: (size: number) => void;
+  onSort: (field: string) => void;
   /** 显示哪些可选列（根据用户筛选条件动态调整） */
-  visibleColumns: string[]
+  visibleColumns: string[];
 }
 ```
 
 **表头列定义**：
 
-| 列 ID           | 标签         | 默认显示 | 可排序 | 宽度  | 对齐  |
-| --------------- | ------------ | -------- | ------ | ----- | ----- |
-| name            | 股票名称/代码 | ✓        | ✗      | 180px | left  |
-| close           | 最新价       | ✓        | ✗      | 90px  | right |
-| pctChg          | 涨跌幅       | ✓        | ✓      | 90px  | right |
-| totalMv         | 总市值       | ✓        | ✓      | 100px | right |
-| peTtm           | PE TTM       | ✓        | ✓      | 80px  | right |
-| pb              | PB           | ✓        | ✓      | 80px  | right |
-| dvTtm           | 股息率       | ✓        | ✓      | 80px  | right |
-| turnoverRate    | 换手率       | ✓        | ✓      | 80px  | right |
-| roe             | ROE          | 条件触发 | ✓      | 80px  | right |
-| revenueYoy      | 营收增速     | 条件触发 | ✓      | 90px  | right |
-| netprofitYoy    | 净利增速     | 条件触发 | ✓      | 90px  | right |
-| grossMargin     | 毛利率       | 条件触发 | ✓      | 80px  | right |
-| netMargin       | 净利率       | 条件触发 | ✓      | 80px  | right |
-| debtToAssets    | 资产负债率   | 条件触发 | ✓      | 90px  | right |
-| currentRatio    | 流动比率     | 条件触发 | ✗      | 80px  | right |
-| quickRatio      | 速动比率     | 条件触发 | ✗      | 80px  | right |
-| ocfToNetprofit  | OCF/净利     | 条件触发 | ✗      | 90px  | right |
-| mainNetInflow5d | 5日主力净流入 | 条件触发 | ✓      | 120px | right |
-| mainNetInflow20d| 20日主力净流入| 条件触发 | ✗      | 120px | right |
-| industry        | 行业         | ✓        | ✗      | 90px  | left  |
-| market          | 板块         | ✓        | ✗      | 80px  | left  |
-| latestFinDate   | 财报期       | 条件触发 | ✗      | 100px | center|
+| 列 ID            | 标签           | 默认显示 | 可排序 | 宽度  | 对齐   |
+| ---------------- | -------------- | -------- | ------ | ----- | ------ |
+| name             | 股票名称/代码  | ✓        | ✗      | 180px | left   |
+| close            | 最新价         | ✓        | ✗      | 90px  | right  |
+| pctChg           | 涨跌幅         | ✓        | ✓      | 90px  | right  |
+| totalMv          | 总市值         | ✓        | ✓      | 100px | right  |
+| peTtm            | PE TTM         | ✓        | ✓      | 80px  | right  |
+| pb               | PB             | ✓        | ✓      | 80px  | right  |
+| dvTtm            | 股息率         | ✓        | ✓      | 80px  | right  |
+| turnoverRate     | 换手率         | ✓        | ✓      | 80px  | right  |
+| roe              | ROE            | 条件触发 | ✓      | 80px  | right  |
+| revenueYoy       | 营收增速       | 条件触发 | ✓      | 90px  | right  |
+| netprofitYoy     | 净利增速       | 条件触发 | ✓      | 90px  | right  |
+| grossMargin      | 毛利率         | 条件触发 | ✓      | 80px  | right  |
+| netMargin        | 净利率         | 条件触发 | ✓      | 80px  | right  |
+| debtToAssets     | 资产负债率     | 条件触发 | ✓      | 90px  | right  |
+| currentRatio     | 流动比率       | 条件触发 | ✗      | 80px  | right  |
+| quickRatio       | 速动比率       | 条件触发 | ✗      | 80px  | right  |
+| ocfToNetprofit   | OCF/净利       | 条件触发 | ✗      | 90px  | right  |
+| mainNetInflow5d  | 5日主力净流入  | 条件触发 | ✓      | 120px | right  |
+| mainNetInflow20d | 20日主力净流入 | 条件触发 | ✗      | 120px | right  |
+| industry         | 行业           | ✓        | ✗      | 90px  | left   |
+| market           | 板块           | ✓        | ✗      | 80px  | left   |
+| latestFinDate    | 财报期         | 条件触发 | ✗      | 100px | center |
 
 **"条件触发"显示逻辑**：当用户在筛选面板中使用了某维度的条件，或按该维度排序时，自动显示对应列。例如：用户设置了 `minRoe >= 10`，则 `roe` 列自动可见。此逻辑在 `StockScreenerView` 中计算 `visibleColumns` 后传入。
 
@@ -415,28 +416,28 @@ interface ScreenerResultTableProps {
 
 **每列格式化规则**：
 
-| 字段             | 格式化                                         |
-| ---------------- | ---------------------------------------------- |
-| name + tsCode    | 名称加粗，代码灰色小字在下方                   |
-| close            | 保留 2 位小数                                  |
-| pctChg           | ±N.NN%，红涨绿跌                              |
-| totalMv / circMv | ÷10000 转亿，保留 2 位 + "亿"后缀             |
-| peTtm / pb       | 保留 2 位小数，负值显示"亏损"（红色标记）       |
-| dvTtm            | 保留 2 位 + "%"                                |
-| turnoverRate     | 保留 2 位 + "%"                                |
-| roe              | 保留 2 位 + "%"，红涨绿跌规则                  |
-| revenueYoy       | ±N.NN%                                         |
-| netprofitYoy     | ±N.NN%                                         |
-| grossMargin      | N.NN%                                          |
-| netMargin        | ±N.NN%                                         |
-| debtToAssets     | N.NN%                                          |
-| currentRatio     | 保留 2 位                                      |
-| quickRatio       | 保留 2 位                                      |
-| ocfToNetprofit   | 保留 2 位                                      |
-| mainNetInflow5d  | 万元，红正绿负，绝对值>10000时转"亿"显示       |
-| mainNetInflow20d | 同上                                           |
-| latestFinDate    | YYYY-MM-DD                                     |
-| NULL 值          | 显示 "—"                                       |
+| 字段             | 格式化                                    |
+| ---------------- | ----------------------------------------- |
+| name + tsCode    | 名称加粗，代码灰色小字在下方              |
+| close            | 保留 2 位小数                             |
+| pctChg           | ±N.NN%，红涨绿跌                          |
+| totalMv / circMv | ÷10000 转亿，保留 2 位 + "亿"后缀         |
+| peTtm / pb       | 保留 2 位小数，负值显示"亏损"（红色标记） |
+| dvTtm            | 保留 2 位 + "%"                           |
+| turnoverRate     | 保留 2 位 + "%"                           |
+| roe              | 保留 2 位 + "%"，红涨绿跌规则             |
+| revenueYoy       | ±N.NN%                                    |
+| netprofitYoy     | ±N.NN%                                    |
+| grossMargin      | N.NN%                                     |
+| netMargin        | ±N.NN%                                    |
+| debtToAssets     | N.NN%                                     |
+| currentRatio     | 保留 2 位                                 |
+| quickRatio       | 保留 2 位                                 |
+| ocfToNetprofit   | 保留 2 位                                 |
+| mainNetInflow5d  | 万元，红正绿负，绝对值>10000时转"亿"显示  |
+| mainNetInflow20d | 同上                                      |
+| latestFinDate    | YYYY-MM-DD                                |
+| NULL 值          | 显示 "—"                                  |
 
 ---
 
@@ -445,126 +446,126 @@ interface ScreenerResultTableProps {
 在 `src/api/` 下新建 `screener.ts`（或追加到 `stock.ts`）：
 
 ```typescript
-import { apiClient } from './client'
+import { apiClient } from './client';
 
 // ─── 类型定义 ────────────────────────────────────────
 
 export type ScreenerFilters = {
   // 基本面
-  exchange?: string
-  market?: string
-  industry?: string
-  area?: string
-  isHs?: string
+  exchange?: string;
+  market?: string;
+  industry?: string;
+  area?: string;
+  isHs?: string;
   // 估值
-  minPeTtm?: number
-  maxPeTtm?: number
-  minPb?: number
-  maxPb?: number
-  minDvTtm?: number
-  minTotalMv?: number
-  maxTotalMv?: number
-  minCircMv?: number
-  maxCircMv?: number
+  minPeTtm?: number;
+  maxPeTtm?: number;
+  minPb?: number;
+  maxPb?: number;
+  minDvTtm?: number;
+  minTotalMv?: number;
+  maxTotalMv?: number;
+  minCircMv?: number;
+  maxCircMv?: number;
   // 行情
-  minPctChg?: number
-  maxPctChg?: number
-  minTurnoverRate?: number
-  maxTurnoverRate?: number
-  minAmount?: number
-  maxAmount?: number
+  minPctChg?: number;
+  maxPctChg?: number;
+  minTurnoverRate?: number;
+  maxTurnoverRate?: number;
+  minAmount?: number;
+  maxAmount?: number;
   // 成长
-  minRevenueYoy?: number
-  maxRevenueYoy?: number
-  minNetprofitYoy?: number
-  maxNetprofitYoy?: number
+  minRevenueYoy?: number;
+  maxRevenueYoy?: number;
+  minNetprofitYoy?: number;
+  maxNetprofitYoy?: number;
   // 盈利
-  minRoe?: number
-  maxRoe?: number
-  minGrossMargin?: number
-  maxGrossMargin?: number
-  minNetMargin?: number
-  maxNetMargin?: number
+  minRoe?: number;
+  maxRoe?: number;
+  minGrossMargin?: number;
+  maxGrossMargin?: number;
+  minNetMargin?: number;
+  maxNetMargin?: number;
   // 财务
-  maxDebtToAssets?: number
-  minCurrentRatio?: number
-  minQuickRatio?: number
+  maxDebtToAssets?: number;
+  minCurrentRatio?: number;
+  minQuickRatio?: number;
   // 现金流
-  minOcfToNetprofit?: number
+  minOcfToNetprofit?: number;
   // 资金
-  minMainNetInflow5d?: number
-  minMainNetInflow20d?: number
-}
+  minMainNetInflow5d?: number;
+  minMainNetInflow20d?: number;
+};
 
 export type ScreenerQuery = ScreenerFilters & {
-  page?: number
-  pageSize?: number
-  sortBy?: string
-  sortOrder?: 'asc' | 'desc'
-}
+  page?: number;
+  pageSize?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+};
 
 export type StockScreenerItem = {
-  tsCode: string
-  name: string | null
-  industry: string | null
-  market: string | null
-  listDate: string | null
-  close: number | null
-  pctChg: number | null
-  amount: number | null
-  turnoverRate: number | null
-  peTtm: number | null
-  pb: number | null
-  dvTtm: number | null
-  totalMv: number | null
-  circMv: number | null
-  revenueYoy: number | null
-  netprofitYoy: number | null
-  roe: number | null
-  grossMargin: number | null
-  netMargin: number | null
-  debtToAssets: number | null
-  currentRatio: number | null
-  quickRatio: number | null
-  ocfToNetprofit: number | null
-  mainNetInflow5d: number | null
-  mainNetInflow20d: number | null
-  latestFinDate: string | null
-}
+  tsCode: string;
+  name: string | null;
+  industry: string | null;
+  market: string | null;
+  listDate: string | null;
+  close: number | null;
+  pctChg: number | null;
+  amount: number | null;
+  turnoverRate: number | null;
+  peTtm: number | null;
+  pb: number | null;
+  dvTtm: number | null;
+  totalMv: number | null;
+  circMv: number | null;
+  revenueYoy: number | null;
+  netprofitYoy: number | null;
+  roe: number | null;
+  grossMargin: number | null;
+  netMargin: number | null;
+  debtToAssets: number | null;
+  currentRatio: number | null;
+  quickRatio: number | null;
+  ocfToNetprofit: number | null;
+  mainNetInflow5d: number | null;
+  mainNetInflow20d: number | null;
+  latestFinDate: string | null;
+};
 
 export type ScreenerResult = {
-  page: number
-  pageSize: number
-  total: number
-  items: StockScreenerItem[]
-}
+  page: number;
+  pageSize: number;
+  total: number;
+  items: StockScreenerItem[];
+};
 
 export type ScreenerPreset = {
-  id: string
-  name: string
-  description: string
-  filters: Partial<ScreenerFilters>
-}
+  id: string;
+  name: string;
+  description: string;
+  filters: Partial<ScreenerFilters>;
+};
 
-export type IndustryItem = { name: string; count: number }
-export type AreaItem = { name: string; count: number }
+export type IndustryItem = { name: string; count: number };
+export type AreaItem = { name: string; count: number };
 
 // ─── API 调用函数 ────────────────────────────────────
 
 export function fetchScreener(query: ScreenerQuery) {
-  return apiClient.post<ScreenerResult>('/api/stock/screener', query)
+  return apiClient.post<ScreenerResult>('/api/stock/screener', query);
 }
 
 export function fetchScreenerPresets() {
-  return apiClient.post<{ presets: ScreenerPreset[] }>('/api/stock/screener/presets', {})
+  return apiClient.post<{ presets: ScreenerPreset[] }>('/api/stock/screener/presets', {});
 }
 
 export function fetchIndustries() {
-  return apiClient.get<{ industries: IndustryItem[] }>('/api/stock/industries')
+  return apiClient.get<{ industries: IndustryItem[] }>('/api/stock/industries');
 }
 
 export function fetchAreas() {
-  return apiClient.get<{ areas: AreaItem[] }>('/api/stock/areas')
+  return apiClient.get<{ areas: AreaItem[] }>('/api/stock/areas');
 }
 ```
 
