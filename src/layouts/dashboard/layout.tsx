@@ -7,8 +7,6 @@ import Box from '@mui/material/Box';
 import Alert from '@mui/material/Alert';
 import { useTheme } from '@mui/material/styles';
 
-import { _notifications } from 'src/_mock';
-
 import { NavMobile, NavDesktop } from './nav';
 import { layoutClasses } from '../core/classes';
 import { _account } from '../nav-config-account';
@@ -86,7 +84,7 @@ export function DashboardLayout({
           <DarkModeButton />
 
           {/** @slot Notifications popover */}
-          <NotificationsPopover data={_notifications} />
+          <NotificationsPopover />
 
           {/** @slot Account drawer */}
           <AccountPopover data={_account} />

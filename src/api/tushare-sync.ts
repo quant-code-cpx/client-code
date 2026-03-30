@@ -28,16 +28,12 @@ export type TushareSyncPlan = {
   schedule: TushareSyncSchedule | null;
 };
 
-/** 手动同步执行结果（POST /api/tushare/admin/sync 返回） */
-export type ManualSyncResult = {
-  trigger: 'bootstrap' | 'schedule' | 'manual';
-  mode: TushareSyncMode;
-  executedTasks: string[];
-  skippedTasks: string[];
-  failedTasks: string[];
-  targetTradeDate: string | null;
-  /** 总耗时（秒） */
-  elapsedSeconds: number;
+/**
+ * 手动同步触发响应（POST /api/tushare/admin/sync 返回 202 Accepted）
+ * 实际同步结果通过 WebSocket 事件 tushare_sync_completed / tushare_sync_failed 返回
+ */
+export type ManualSyncAccepted = {
+  message: string;
 };
 
 // ----------------------------------------------------------------------
@@ -50,10 +46,10 @@ export const tushareSyncApi = {
     apiClient.get<TushareSyncPlan[]>('/api/tushare/admin/plans'),
 
   /**
-   * 手动执行同步
+   * 手动触发同步（异步，202 Accepted 立即返回，结果通过 WebSocket 推送）
    * @param mode      增量(incremental) 或 全量(full)
    * @param tasks     指定任务列表；不传则执行所有支持手动同步的任务
    */
-  manualSync: (mode: TushareSyncMode, tasks?: string[]): Promise<ManualSyncResult> =>
-    apiClient.post<ManualSyncResult>('/api/tushare/admin/sync', { mode, tasks }),
+  manualSync: (mode: TushareSyncMode, tasks?: string[]): Promise<ManualSyncAccepted> =>
+    apiClient.post<ManualSyncAccepted>('/api/tushare/admin/sync', { mode, tasks }),
 };
