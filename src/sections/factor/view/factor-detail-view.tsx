@@ -1,8 +1,8 @@
 import type { FactorDef } from 'src/api/factor';
 
 import dayjs from 'dayjs';
-import { useParams, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useCallback } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 
 import Tab from '@mui/material/Tab';
 import Box from '@mui/material/Box';
@@ -14,16 +14,17 @@ import Button from '@mui/material/Button';
 import Skeleton from '@mui/material/Skeleton';
 import Typography from '@mui/material/Typography';
 
-import { Iconify } from 'src/components/iconify';
 import { factorApi } from 'src/api/factor';
 import { DashboardContent } from 'src/layouts/dashboard';
 
+import { Iconify } from 'src/components/iconify';
+
 import { CATEGORY_LABELS } from '../factor-library-card';
-import { FactorDetailParamsPanel } from '../factor-detail-params-panel';
 import { FactorDetailIcChart } from '../factor-detail-ic-chart';
+import { FactorDetailDecayChart } from '../factor-detail-decay-chart';
+import { FactorDetailParamsPanel } from '../factor-detail-params-panel';
 import { FactorDetailQuantileChart } from '../factor-detail-quantile-chart';
 import { FactorDetailDistributionChart } from '../factor-detail-distribution-chart';
-import { FactorDetailDecayChart } from '../factor-detail-decay-chart';
 import { FactorDetailCrossSectionTable } from '../factor-detail-cross-section-table';
 
 // ----------------------------------------------------------------------
@@ -140,16 +141,19 @@ export function FactorDetailView() {
 
       {/* Tabs */}
       <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
-        <Tabs value={activeTab} onChange={(_, v) => setActiveTab(v)} variant="scrollable" scrollButtons="auto">
+        <Tabs
+          value={activeTab}
+          onChange={(_, v) => setActiveTab(v)}
+          variant="scrollable"
+          scrollButtons="auto"
+        >
           {TABS.map((tab) => (
             <Tab key={tab.value} value={tab.value} label={tab.label} />
           ))}
         </Tabs>
       </Box>
 
-      {activeTab === 0 && (
-        <FactorDetailIcChart factorName={factorName} params={committedParams} />
-      )}
+      {activeTab === 0 && <FactorDetailIcChart factorName={factorName} params={committedParams} />}
       {activeTab === 1 && (
         <FactorDetailQuantileChart factorName={factorName} params={committedParams} />
       )}
@@ -159,9 +163,7 @@ export function FactorDetailView() {
       {activeTab === 3 && (
         <FactorDetailDecayChart factorName={factorName} params={committedParams} />
       )}
-      {activeTab === 4 && (
-        <FactorDetailCrossSectionTable factorName={factorName} />
-      )}
+      {activeTab === 4 && <FactorDetailCrossSectionTable factorName={factorName} />}
 
       <Box sx={{ mt: 4, py: 2, textAlign: 'center' }}>
         <Typography variant="caption" sx={{ color: 'text.disabled' }}>

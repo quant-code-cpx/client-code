@@ -1,14 +1,13 @@
-import { useTheme } from '@mui/material/styles';
+import type { FactorCorrelationResult } from 'src/api/factor';
+
+import dayjs from 'dayjs';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import CardHeader from '@mui/material/CardHeader';
 import CardContent from '@mui/material/CardContent';
 
-import dayjs from 'dayjs';
-
 import { Chart, useChart } from 'src/components/chart';
-import type { FactorCorrelationResult } from 'src/api/factor';
 
 // ----------------------------------------------------------------------
 
@@ -17,13 +16,11 @@ type FactorCorrelationHeatmapProps = {
 };
 
 export function FactorCorrelationHeatmap({ result }: FactorCorrelationHeatmapProps) {
-  const theme = useTheme();
-
-  const series = result.factors.map((_, rowIdx) => ({
+  const series = result.factors.map((row, rowIdx) => ({
     name: result.factorLabels[rowIdx],
-    data: result.factors.map((_, colIdx) => ({
+    data: result.factors.map((col, colIdx) => ({
       x: result.factorLabels[colIdx],
-      y: Number(result.matrix[rowIdx][colIdx].toFixed(3)),
+      y: Number((result.matrix[rowIdx]?.[colIdx] ?? 0).toFixed(3)),
     })),
   }));
 
@@ -61,7 +58,12 @@ export function FactorCorrelationHeatmap({ result }: FactorCorrelationHeatmapPro
       />
       <CardContent>
         <Box sx={{ height: dynamicHeight }}>
-          <Chart type="heatmap" series={series} options={chartOptions} sx={{ height: dynamicHeight }} />
+          <Chart
+            type="heatmap"
+            series={series}
+            options={chartOptions}
+            sx={{ height: dynamicHeight }}
+          />
         </Box>
       </CardContent>
     </Card>

@@ -1,7 +1,12 @@
-import type { FactorCondition, FactorDef, FactorLibraryResult, FactorScreeningResult } from 'src/api/factor';
+import type {
+  FactorDef,
+  FactorCondition,
+  FactorLibraryResult,
+  FactorScreeningResult,
+} from 'src/api/factor';
 
 import dayjs from 'dayjs';
-import { useState, useEffect, useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -11,16 +16,16 @@ import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import Skeleton from '@mui/material/Skeleton';
 import TextField from '@mui/material/TextField';
-import CardContent from '@mui/material/CardContent';
 import InputLabel from '@mui/material/InputLabel';
 import Typography from '@mui/material/Typography';
+import CardContent from '@mui/material/CardContent';
 import FormControl from '@mui/material/FormControl';
 
 import { factorApi } from 'src/api/factor';
 import { DashboardContent } from 'src/layouts/dashboard';
 
-import { FactorScreeningConditions } from '../factor-screening-conditions';
 import { FactorScreeningTable } from '../factor-screening-table';
+import { FactorScreeningConditions } from '../factor-screening-conditions';
 
 // ----------------------------------------------------------------------
 
@@ -135,11 +140,7 @@ export function FactorScreeningView() {
 
             <FormControl size="small" sx={{ minWidth: 140 }}>
               <InputLabel>股票池</InputLabel>
-              <Select
-                label="股票池"
-                value={universe}
-                onChange={(e) => setUniverse(e.target.value)}
-              >
+              <Select label="股票池" value={universe} onChange={(e) => setUniverse(e.target.value)}>
                 {UNIVERSE_OPTIONS.map((opt) => (
                   <MenuItem key={opt.value} value={opt.value}>
                     {opt.label}

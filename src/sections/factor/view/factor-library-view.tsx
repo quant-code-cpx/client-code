@@ -1,6 +1,6 @@
-import type { FactorCategory, FactorDef, FactorLibraryResult } from 'src/api/factor';
+import type { FactorDef, FactorCategory, FactorLibraryResult } from 'src/api/factor';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
@@ -10,9 +10,10 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import InputAdornment from '@mui/material/InputAdornment';
 
-import { Iconify } from 'src/components/iconify';
 import { factorApi } from 'src/api/factor';
 import { DashboardContent } from 'src/layouts/dashboard';
+
+import { Iconify } from 'src/components/iconify';
 
 import { FactorLibraryCard } from '../factor-library-card';
 import { FactorLibraryCategoryTabs } from '../factor-library-category-tabs';
@@ -86,7 +87,7 @@ export function FactorLibraryView() {
       )}
 
       {loading ? (
-        <Grid container={true} spacing={3}>
+        <Grid container spacing={3}>
           {[...Array(12)].map((_, i) => (
             <Grid key={i} size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
               <Skeleton variant="rectangular" height={140} sx={{ borderRadius: 2 }} />
@@ -94,7 +95,7 @@ export function FactorLibraryView() {
           ))}
         </Grid>
       ) : (
-        <Grid container={true} spacing={3}>
+        <Grid container spacing={3}>
           {filteredFactors.map((factor) => (
             <Grid key={factor.id} size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
               <FactorLibraryCard factor={factor} />

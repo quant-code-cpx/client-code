@@ -167,9 +167,7 @@ export function SyncNotificationProvider({ children }: ProviderProps) {
   }, []);
 
   const markNotificationRead = useCallback((id: string) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, isUnRead: false } : n))
-    );
+    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isUnRead: false } : n)));
   }, []);
 
   const markAllRead = useCallback(() => {

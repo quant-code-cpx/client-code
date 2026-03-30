@@ -1,17 +1,19 @@
+import type { FactorDecayResult } from 'src/api/factor';
+
 import { useState, useEffect, useCallback } from 'react';
-import { useTheme } from '@mui/material/styles';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Alert from '@mui/material/Alert';
 import Skeleton from '@mui/material/Skeleton';
+import { useTheme } from '@mui/material/styles';
 import CardHeader from '@mui/material/CardHeader';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 
-import { Chart, useChart } from 'src/components/chart';
 import { factorApi } from 'src/api/factor';
-import type { FactorDecayResult } from 'src/api/factor';
+
+import { Chart, useChart } from 'src/components/chart';
 
 // ----------------------------------------------------------------------
 
@@ -118,7 +120,7 @@ export function FactorDetailDecayChart({ factorName, params }: FactorDetailDecay
     return (
       <Box sx={{ textAlign: 'center', py: 6 }}>
         <Typography variant="body2" color="text.secondary">
-          请设置参数后点击"开始分析"
+          请设置参数后点击&quot;开始分析&quot;
         </Typography>
       </Box>
     );
@@ -126,10 +128,7 @@ export function FactorDetailDecayChart({ factorName, params }: FactorDetailDecay
 
   return (
     <Card>
-      <CardHeader
-        title="因子衰减分析"
-        subheader="不同预测期的 IC 均值与 ICIR"
-      />
+      <CardHeader title="因子衰减分析" subheader="不同预测期的 IC 均值与 ICIR" />
       <CardContent>
         <Chart type="bar" series={series} options={chartOptions} sx={{ height: 360 }} />
       </CardContent>

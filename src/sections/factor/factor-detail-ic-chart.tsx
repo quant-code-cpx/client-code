@@ -1,5 +1,6 @@
+import type { FactorIcResult } from 'src/api/factor';
+
 import { useState, useEffect, useCallback } from 'react';
-import { useTheme } from '@mui/material/styles';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -7,13 +8,14 @@ import Grid from '@mui/material/Grid';
 import Alert from '@mui/material/Alert';
 import Paper from '@mui/material/Paper';
 import Skeleton from '@mui/material/Skeleton';
+import { useTheme } from '@mui/material/styles';
 import CardHeader from '@mui/material/CardHeader';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 
-import { Chart, useChart } from 'src/components/chart';
 import { factorApi } from 'src/api/factor';
-import type { FactorIcResult } from 'src/api/factor';
+
+import { Chart, useChart } from 'src/components/chart';
 
 // ----------------------------------------------------------------------
 
@@ -96,7 +98,7 @@ export function FactorDetailIcChart({ factorName, params }: FactorDetailIcChartP
     },
     dataLabels: { enabled: false },
     legend: { show: true },
-    tooltip: { shared: true, y: { formatter: (v: number) => v.toFixed(4) } },
+    tooltip: { shared: true, intersect: false, y: { formatter: (v: number) => v.toFixed(4) } },
   });
 
   const areaChartOptions = useChart({
@@ -142,7 +144,7 @@ export function FactorDetailIcChart({ factorName, params }: FactorDetailIcChartP
   if (loading) {
     return (
       <Box>
-        <Grid container={true} spacing={2} sx={{ mb: 3 }}>
+        <Grid container spacing={2} sx={{ mb: 3 }}>
           {[0, 1, 2, 3].map((i) => (
             <Grid key={i} size={{ xs: 12, sm: 6, md: 3 }}>
               <Skeleton variant="rectangular" height={80} sx={{ borderRadius: 2 }} />
@@ -163,7 +165,7 @@ export function FactorDetailIcChart({ factorName, params }: FactorDetailIcChartP
     return (
       <Box sx={{ textAlign: 'center', py: 6 }}>
         <Typography variant="body2" color="text.secondary">
-          请设置参数后点击"开始分析"
+          请设置参数后点击&quot;开始分析&quot;
         </Typography>
       </Box>
     );
@@ -172,7 +174,7 @@ export function FactorDetailIcChart({ factorName, params }: FactorDetailIcChartP
   return (
     <Box>
       {/* 统计卡片 */}
-      <Grid container={true} spacing={2} sx={{ mb: 3 }}>
+      <Grid container spacing={2} sx={{ mb: 3 }}>
         {summaryCards.map((card) => (
           <Grid key={card.label} size={{ xs: 12, sm: 6, md: 3 }}>
             <Paper sx={{ p: 2, textAlign: 'center' }}>
@@ -192,7 +194,10 @@ export function FactorDetailIcChart({ factorName, params }: FactorDetailIcChartP
 
       {/* IC 时序柱状图 */}
       <Card sx={{ mb: 3 }}>
-        <CardHeader title="IC 时序" subheader={`${result.icMethod === 'rank' ? 'Rank IC' : 'IC'} · 预测期 ${result.forwardDays} 日`} />
+        <CardHeader
+          title="IC 时序"
+          subheader={`${result.icMethod === 'rank' ? 'Rank IC' : 'IC'} · 预测期 ${result.forwardDays} 日`}
+        />
         <CardContent>
           <Chart
             type="bar"

@@ -1,5 +1,7 @@
+import type { FactorDistributionResult } from 'src/api/factor';
+
+import dayjs from 'dayjs';
 import { useState, useEffect, useCallback } from 'react';
-import { useTheme } from '@mui/material/styles';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -7,15 +9,14 @@ import Grid from '@mui/material/Grid';
 import Alert from '@mui/material/Alert';
 import Paper from '@mui/material/Paper';
 import Skeleton from '@mui/material/Skeleton';
+import { useTheme } from '@mui/material/styles';
 import CardHeader from '@mui/material/CardHeader';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 
-import dayjs from 'dayjs';
+import { factorApi } from 'src/api/factor';
 
 import { Chart, useChart } from 'src/components/chart';
-import { factorApi } from 'src/api/factor';
-import type { FactorDistributionResult } from 'src/api/factor';
 
 // ----------------------------------------------------------------------
 
@@ -85,21 +86,30 @@ export function FactorDetailDistributionChart({
     },
   });
 
-  const statsCards = result
+  const statsCards = result?.stats
     ? [
         { label: '有效数量', value: `${result.stats.count}` },
         { label: '缺失率', value: `${(result.stats.missingRate * 100).toFixed(2)}%` },
-        { label: '均值 / 中位数', value: `${result.stats.mean.toFixed(4)} / ${result.stats.median.toFixed(4)}` },
+        {
+          label: '均值 / 中位数',
+          value: `${result.stats.mean.toFixed(4)} / ${result.stats.median.toFixed(4)}`,
+        },
         { label: '标准差', value: result.stats.stdDev.toFixed(4) },
-        { label: '偏度 / 峰度', value: `${result.stats.skewness.toFixed(3)} / ${result.stats.kurtosis.toFixed(3)}` },
-        { label: '5% ~ 95% 区间', value: `${result.stats.q5.toFixed(4)} ~ ${result.stats.q95.toFixed(4)}` },
+        {
+          label: '偏度 / 峰度',
+          value: `${result.stats.skewness.toFixed(3)} / ${result.stats.kurtosis.toFixed(3)}`,
+        },
+        {
+          label: '5% ~ 95% 区间',
+          value: `${result.stats.q5.toFixed(4)} ~ ${result.stats.q95.toFixed(4)}`,
+        },
       ]
     : [];
 
   if (loading) {
     return (
       <Box>
-        <Grid container={true} spacing={2} sx={{ mb: 3 }}>
+        <Grid container spacing={2} sx={{ mb: 3 }}>
           {[0, 1, 2, 3, 4, 5].map((i) => (
             <Grid key={i} size={{ xs: 12, sm: 6, md: 4 }}>
               <Skeleton variant="rectangular" height={72} sx={{ borderRadius: 2 }} />
@@ -119,7 +129,7 @@ export function FactorDetailDistributionChart({
     return (
       <Box sx={{ textAlign: 'center', py: 6 }}>
         <Typography variant="body2" color="text.secondary">
-          请设置参数后点击"开始分析"
+          请设置参数后点击&quot;开始分析&quot;
         </Typography>
       </Box>
     );
@@ -128,7 +138,7 @@ export function FactorDetailDistributionChart({
   return (
     <Box>
       {/* 统计卡片 */}
-      <Grid container={true} spacing={2} sx={{ mb: 3 }}>
+      <Grid container spacing={2} sx={{ mb: 3 }}>
         {statsCards.map((card) => (
           <Grid key={card.label} size={{ xs: 12, sm: 6, md: 4 }}>
             <Paper sx={{ p: 2, textAlign: 'center' }}>

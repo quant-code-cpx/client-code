@@ -42,7 +42,11 @@ export function StockTableRow({ row }: StockTableRowProps) {
           href={`/stock/detail?code=${encodeURIComponent(row.tsCode)}`}
           variant="body2"
           fontWeight="fontWeightMedium"
-          sx={{ color: 'primary.main', textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}
+          sx={{
+            color: 'primary.main',
+            textDecoration: 'none',
+            '&:hover': { textDecoration: 'underline' },
+          }}
         >
           {row.name ?? '-'}
         </Typography>

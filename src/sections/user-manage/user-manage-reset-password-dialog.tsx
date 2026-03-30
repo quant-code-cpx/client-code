@@ -136,11 +136,7 @@ export function UserManageResetPasswordDialog({
                 input: {
                   endAdornment: (
                     <InputAdornment position="end">
-                      <IconButton
-                        size="small"
-                        edge="end"
-                        onClick={() => setShowNew((v) => !v)}
-                      >
+                      <IconButton size="small" edge="end" onClick={() => setShowNew((v) => !v)}>
                         <Iconify
                           icon={showNew ? 'solar:eye-closed-bold' : 'solar:eye-bold'}
                           width={20}
@@ -162,11 +158,7 @@ export function UserManageResetPasswordDialog({
                 input: {
                   endAdornment: (
                     <InputAdornment position="end">
-                      <IconButton
-                        size="small"
-                        edge="end"
-                        onClick={() => setShowConfirm((v) => !v)}
-                      >
+                      <IconButton size="small" edge="end" onClick={() => setShowConfirm((v) => !v)}>
                         <Iconify
                           icon={showConfirm ? 'solar:eye-closed-bold' : 'solar:eye-bold'}
                           width={20}

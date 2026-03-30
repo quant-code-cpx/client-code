@@ -42,16 +42,6 @@ export const navData = [
     ],
   },
   {
-    title: '用户管理',
-    path: '/user-manage',
-    icon: icon('ic-user'),
-  },
-  {
-    title: '数据同步',
-    path: '/tushare-sync',
-    icon: <Iconify icon="solar:restart-bold" width={24} />,
-  },
-  {
     title: '因子市场',
     path: '/factor',
     icon: <Iconify icon="solar:chart-bold" width={24} />,
@@ -72,5 +62,15 @@ export const navData = [
         icon: <Iconify icon="solar:filter-bold" width={24} />,
       },
     ],
+  },
+  {
+    title: '用户管理',
+    path: '/user-manage',
+    icon: icon('ic-user'),
+  },
+  {
+    title: '数据同步',
+    path: '/tushare-sync',
+    icon: <Iconify icon="solar:restart-bold" width={24} />,
   },
 ];

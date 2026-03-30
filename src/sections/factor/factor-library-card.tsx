@@ -1,13 +1,13 @@
-import type { FactorCategory, FactorDef } from 'src/api/factor';
+import type { FactorDef, FactorCategory } from 'src/api/factor';
 
-import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Chip from '@mui/material/Chip';
-import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
+import CardContent from '@mui/material/CardContent';
 import CardActionArea from '@mui/material/CardActionArea';
 
 // ----------------------------------------------------------------------
@@ -74,7 +74,13 @@ export function FactorLibraryCard({ factor }: FactorLibraryCardProps) {
             <Typography
               variant="body2"
               color="text.secondary"
-              sx={{ mt: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}
+              sx={{
+                mt: 1.5,
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden',
+              }}
             >
               {factor.description}
             </Typography>

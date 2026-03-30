@@ -12,8 +12,9 @@ import Typography from '@mui/material/Typography';
 import TableContainer from '@mui/material/TableContainer';
 import TablePagination from '@mui/material/TablePagination';
 
-import { Iconify } from 'src/components/iconify';
 import { RouterLink } from 'src/routes/components';
+
+import { Iconify } from 'src/components/iconify';
 
 // ----------------------------------------------------------------------
 
@@ -42,7 +43,7 @@ export function FactorScreeningTable({
       <Stack spacing={2} alignItems="center" justifyContent="center" sx={{ py: 10 }}>
         <Iconify icon="solar:filter-bold" width={48} sx={{ color: 'text.disabled' }} />
         <Typography variant="body2" color="text.secondary">
-          请添加筛选条件后点击"开始选股"
+          请添加筛选条件后点击&quot;开始选股&quot;
         </Typography>
       </Stack>
     );
@@ -73,7 +74,7 @@ export function FactorScreeningTable({
           </TableHead>
           <TableBody>
             {result.items.map((row, idx) => (
-              <TableRow key={row.tsCode} hover={true}>
+              <TableRow key={row.tsCode} hover>
                 <TableCell>{page * pageSize + idx + 1}</TableCell>
                 <TableCell>
                   <Link

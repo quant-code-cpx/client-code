@@ -1,3 +1,6 @@
+import type { FactorValuesResult } from 'src/api/factor';
+
+import dayjs from 'dayjs';
 import { useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
@@ -16,15 +19,12 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import TableContainer from '@mui/material/TableContainer';
-import TablePagination from '@mui/material/TablePagination';
 import LinearProgress from '@mui/material/LinearProgress';
-
-import dayjs from 'dayjs';
+import TablePagination from '@mui/material/TablePagination';
 
 import { RouterLink } from 'src/routes/components';
 
 import { factorApi } from 'src/api/factor';
-import type { FactorValuesResult } from 'src/api/factor';
 
 // ----------------------------------------------------------------------
 
@@ -141,7 +141,7 @@ export function FactorDetailCrossSectionTable({ factorName }: FactorDetailCrossS
               </TableHead>
               <TableBody>
                 {result?.items.map((row, idx) => (
-                  <TableRow key={row.tsCode} hover={true}>
+                  <TableRow key={row.tsCode} hover>
                     <TableCell>{page * PAGE_SIZE + idx + 1}</TableCell>
                     <TableCell>
                       <Link

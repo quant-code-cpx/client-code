@@ -1,7 +1,7 @@
-import type { FactorCorrelationResult, FactorLibraryResult } from 'src/api/factor';
+import type { FactorDef , FactorLibraryResult, FactorCorrelationResult } from 'src/api/factor';
 
 import dayjs from 'dayjs';
-import { useState, useEffect, useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -13,15 +13,14 @@ import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import Skeleton from '@mui/material/Skeleton';
 import TextField from '@mui/material/TextField';
-import CardContent from '@mui/material/CardContent';
 import InputLabel from '@mui/material/InputLabel';
 import Typography from '@mui/material/Typography';
+import CardContent from '@mui/material/CardContent';
 import FormControl from '@mui/material/FormControl';
 import Autocomplete from '@mui/material/Autocomplete';
 import LinearProgress from '@mui/material/LinearProgress';
 
 import { factorApi } from 'src/api/factor';
-import type { FactorDef } from 'src/api/factor';
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { FactorCorrelationHeatmap } from '../factor-correlation-heatmap';
@@ -107,7 +106,7 @@ export function FactorCorrelationView() {
             <Skeleton height={56} />
           ) : (
             <Autocomplete
-              multiple={true}
+              multiple
               value={selectedFactors}
               onChange={(_, newValue) => setSelectedFactors(newValue as string[])}
               options={allFactorNames}
@@ -147,11 +146,7 @@ export function FactorCorrelationView() {
 
             <FormControl size="small" sx={{ minWidth: 140 }}>
               <InputLabel>股票池</InputLabel>
-              <Select
-                label="股票池"
-                value={universe}
-                onChange={(e) => setUniverse(e.target.value)}
-              >
+              <Select label="股票池" value={universe} onChange={(e) => setUniverse(e.target.value)}>
                 {UNIVERSE_OPTIONS.map((opt) => (
                   <MenuItem key={opt.value} value={opt.value}>
                     {opt.label}
@@ -197,7 +192,7 @@ export function FactorCorrelationView() {
         !loading && (
           <Box sx={{ textAlign: 'center', py: 10 }}>
             <Typography variant="body2" color="text.secondary">
-              请选择因子后点击"计算相关性"
+              请选择因子后点击&quot;计算相关性&quot;
             </Typography>
           </Box>
         )

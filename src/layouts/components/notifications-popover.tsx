@@ -234,22 +234,14 @@ function renderContent(notification: NotificationItemProps) {
   if (notification.type === 'tushare-sync-completed') {
     return {
       avatarUrl: (
-        <Iconify
-          icon="solar:check-circle-bold"
-          sx={{ fontSize: 24, color: 'success.main' }}
-        />
+        <Iconify icon="solar:check-circle-bold" sx={{ fontSize: 24, color: 'success.main' }} />
       ),
       title,
     };
   }
   if (notification.type === 'tushare-sync-failed') {
     return {
-      avatarUrl: (
-        <Iconify
-          icon="solar:restart-bold"
-          sx={{ fontSize: 24, color: 'error.main' }}
-        />
-      ),
+      avatarUrl: <Iconify icon="solar:restart-bold" sx={{ fontSize: 24, color: 'error.main' }} />,
       title,
     };
   }

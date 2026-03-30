@@ -1,12 +1,12 @@
-import type { FactorCondition, FactorConditionOperator, FactorDef } from 'src/api/factor';
+import type { FactorDef, FactorCondition, FactorConditionOperator } from 'src/api/factor';
 
 import Box from '@mui/material/Box';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
 import IconButton from '@mui/material/IconButton';
-import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
+import FormControl from '@mui/material/FormControl';
 
 import { Iconify } from 'src/components/iconify';
 
@@ -132,12 +132,7 @@ export function FactorScreeningConditionRow({
       )}
 
       {/* 删除按钮 */}
-      <IconButton
-        size="small"
-        color="error"
-        onClick={() => onRemove(index)}
-        sx={{ mb: 0.5 }}
-      >
+      <IconButton size="small" color="error" onClick={() => onRemove(index)} sx={{ mb: 0.5 }}>
         <Iconify icon="eva:trash-2-outline" width={20} />
       </IconButton>
     </Box>

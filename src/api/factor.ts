@@ -187,7 +187,13 @@ export type FactorCorrelationResult = {
 // ─── 选股类型 ────────────────────────────────────────────────────
 
 export type FactorConditionOperator =
-  | 'gt' | 'gte' | 'lt' | 'lte' | 'between' | 'top_pct' | 'bottom_pct';
+  | 'gt'
+  | 'gte'
+  | 'lt'
+  | 'lte'
+  | 'between'
+  | 'top_pct'
+  | 'bottom_pct';
 
 export type FactorCondition = {
   factorName: string;
@@ -222,8 +228,11 @@ export const factorApi = {
     apiClient.post('/api/factor/library', params),
 
   /** 获取单个因子详情 */
-  detail: (factorName: string): Promise<FactorDef & { stats?: FactorValuesSummary & { latestDate: string; coverage: number } }> =>
-    apiClient.post('/api/factor/detail', { factorName }),
+  detail: (
+    factorName: string
+  ): Promise<
+    FactorDef & { stats?: FactorValuesSummary & { latestDate: string; coverage: number } }
+  > => apiClient.post('/api/factor/detail', { factorName }),
 
   /** 获取因子截面值（带分页） */
   values: (params: {
@@ -233,8 +242,7 @@ export const factorApi = {
     page?: number;
     pageSize?: number;
     sortOrder?: 'asc' | 'desc';
-  }): Promise<FactorValuesResult> =>
-    apiClient.post('/api/factor/values', params),
+  }): Promise<FactorValuesResult> => apiClient.post('/api/factor/values', params),
 
   /** IC 分析 */
   ic: (params: {
@@ -244,8 +252,7 @@ export const factorApi = {
     universe?: string;
     forwardDays?: number;
     icMethod?: 'rank' | 'normal';
-  }): Promise<FactorIcResult> =>
-    apiClient.post('/api/factor/analysis/ic', params),
+  }): Promise<FactorIcResult> => apiClient.post('/api/factor/analysis/ic', params),
 
   /** 分层回测 */
   quantile: (params: {
@@ -255,8 +262,7 @@ export const factorApi = {
     universe?: string;
     quantiles?: number;
     rebalanceDays?: number;
-  }): Promise<FactorQuantileResult> =>
-    apiClient.post('/api/factor/analysis/quantile', params),
+  }): Promise<FactorQuantileResult> => apiClient.post('/api/factor/analysis/quantile', params),
 
   /** 因子衰减分析 */
   decay: (params: {
@@ -265,8 +271,7 @@ export const factorApi = {
     endDate: string;
     universe?: string;
     periods?: number[];
-  }): Promise<FactorDecayResult> =>
-    apiClient.post('/api/factor/analysis/decay', params),
+  }): Promise<FactorDecayResult> => apiClient.post('/api/factor/analysis/decay', params),
 
   /** 因子分布统计 */
   distribution: (params: {
@@ -295,6 +300,5 @@ export const factorApi = {
     sortOrder?: 'asc' | 'desc';
     page?: number;
     pageSize?: number;
-  }): Promise<FactorScreeningResult> =>
-    apiClient.post('/api/factor/screening', params),
+  }): Promise<FactorScreeningResult> => apiClient.post('/api/factor/screening', params),
 };

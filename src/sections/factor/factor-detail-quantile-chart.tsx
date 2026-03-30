@@ -1,5 +1,6 @@
+import type { FactorQuantileResult } from 'src/api/factor';
+
 import { useState, useEffect, useCallback } from 'react';
-import { useTheme } from '@mui/material/styles';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -7,6 +8,7 @@ import Alert from '@mui/material/Alert';
 import Table from '@mui/material/Table';
 import Skeleton from '@mui/material/Skeleton';
 import TableRow from '@mui/material/TableRow';
+import { useTheme } from '@mui/material/styles';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
@@ -15,9 +17,9 @@ import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 import TableContainer from '@mui/material/TableContainer';
 
-import { Chart, useChart } from 'src/components/chart';
 import { factorApi } from 'src/api/factor';
-import type { FactorQuantileResult } from 'src/api/factor';
+
+import { Chart, useChart } from 'src/components/chart';
 
 // ----------------------------------------------------------------------
 
@@ -75,7 +77,10 @@ export function FactorDetailQuantileChart({ factorName, params }: FactorDetailQu
     ? [
         ...result.groups.map((g) => ({
           name: g.label,
-          data: g.series.map((d) => ({ x: d.tradeDate, y: Number((d.cumReturn * 100).toFixed(2)) })),
+          data: g.series.map((d) => ({
+            x: d.tradeDate,
+            y: Number((d.cumReturn * 100).toFixed(2)),
+          })),
         })),
         {
           name: '多空组合',
@@ -97,19 +102,11 @@ export function FactorDetailQuantileChart({ factorName, params }: FactorDetailQu
   const lineChartOptions = useChart({
     chart: { type: 'line', zoom: { enabled: true }, toolbar: { show: true } },
     stroke: {
-      width: result
-        ? [...result.groups.map(() => 2), 3, 2]
-        : [2],
-      dashArray: result
-        ? [...result.groups.map(() => 0), 0, 4]
-        : [0],
+      width: result ? [...result.groups.map(() => 2), 3, 2] : [2],
+      dashArray: result ? [...result.groups.map(() => 0), 0, 4] : [0],
     },
     colors: result
-      ? [
-          ...quantileColors.slice(0, result.groups.length),
-          '#111827',
-          theme.palette.text.disabled,
-        ]
+      ? [...quantileColors.slice(0, result.groups.length), '#111827', theme.palette.text.disabled]
       : [],
     xaxis: { type: 'category' },
     yaxis: { labels: { formatter: (v: number) => `${v.toFixed(1)}%` } },
@@ -163,7 +160,7 @@ export function FactorDetailQuantileChart({ factorName, params }: FactorDetailQu
     return (
       <Box sx={{ textAlign: 'center', py: 6 }}>
         <Typography variant="body2" color="text.secondary">
-          请设置参数后点击"开始分析"
+          请设置参数后点击&quot;开始分析&quot;
         </Typography>
       </Box>
     );
@@ -173,7 +170,10 @@ export function FactorDetailQuantileChart({ factorName, params }: FactorDetailQu
     <Box>
       {/* 统计表格 */}
       <Card sx={{ mb: 3 }}>
-        <CardHeader title="各组统计" subheader={`分 ${result.quantiles} 组 · 调仓周期 ${result.rebalanceDays} 日`} />
+        <CardHeader
+          title="各组统计"
+          subheader={`分 ${result.quantiles} 组 · 调仓周期 ${result.rebalanceDays} 日`}
+        />
         <CardContent sx={{ pt: 0 }}>
           <TableContainer>
             <Table size="small">
@@ -188,7 +188,7 @@ export function FactorDetailQuantileChart({ factorName, params }: FactorDetailQu
               </TableHead>
               <TableBody>
                 {result.groups.map((g) => (
-                  <TableRow key={g.group} hover={true}>
+                  <TableRow key={g.group} hover>
                     <TableCell>{g.label}</TableCell>
                     <TableCell
                       align="right"
