@@ -51,4 +51,26 @@ export const navData = [
     path: '/tushare-sync',
     icon: <Iconify icon="solar:restart-bold" width={24} />,
   },
+  {
+    title: '因子市场',
+    path: '/factor',
+    icon: <Iconify icon="solar:chart-bold" width={24} />,
+    children: [
+      {
+        title: '因子库',
+        path: '/factor/library',
+        icon: <Iconify icon="solar:library-bold" width={24} />,
+      },
+      {
+        title: '因子相关性',
+        path: '/factor/correlation',
+        icon: <Iconify icon="solar:chart-2-bold" width={24} />,
+      },
+      {
+        title: '因子选股',
+        path: '/factor/screening',
+        icon: <Iconify icon="solar:filter-bold" width={24} />,
+      },
+    ],
+  },
 ];
