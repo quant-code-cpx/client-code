@@ -23,6 +23,18 @@ export const navData = [
     title: '股票',
     path: '/stock',
     icon: icon('ic-cart'),
+    children: [
+      {
+        title: '股票列表',
+        path: '/stock',
+        icon: icon('ic-cart'),
+      },
+      {
+        title: '选股器',
+        path: '/stock/screener',
+        icon: <Iconify icon="solar:filter-bold" width={24} />,
+      },
+    ],
   },
   {
     title: '行情',

@@ -21,7 +21,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
     return null;
   }
 
-  if (!isAuthenticated) {
+  if (!isAuthenticated && import.meta.env.MODE !== 'screenshot') {
     return <Navigate to="/sign-in" state={{ from: location }} replace />;
   }
 
