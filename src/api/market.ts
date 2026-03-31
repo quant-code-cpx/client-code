@@ -141,3 +141,147 @@ export function fetchValuationTrend(query?: { period?: string }) {
     query ?? {}
   );
 }
+
+// ----------------------------------------------------------------------
+// 资金动态 类型定义
+// ----------------------------------------------------------------------
+
+export type MarketMoneyFlowDetail = {
+  tradeDate: string;
+  netAmount: number;
+  netAmountRate: number;
+  buyElgAmount: number;
+  buyElgAmountRate: number;
+  buyLgAmount: number;
+  buyLgAmountRate: number;
+  buyMdAmount: number;
+  buyMdAmountRate: number;
+  buySmAmount: number;
+  buySmAmountRate: number;
+  closeSh: number;
+  pctChangeSh: number;
+  closeSz: number;
+  pctChangeSz: number;
+};
+
+export type MoneyFlowTrendItem = {
+  tradeDate: string;
+  netAmount: number;
+  cumulativeNet: number;
+  buyElgAmount: number;
+  buyLgAmount: number;
+  buyMdAmount: number;
+  buySmAmount: number;
+};
+
+export type SectorFlowRankingItem = {
+  tsCode: string;
+  name: string;
+  pctChange: number;
+  close: number;
+  netAmount: number;
+  netAmountRate: number;
+  buyElgAmount: number;
+  buyLgAmount: number;
+  buyMdAmount: number;
+  buySmAmount: number;
+};
+
+export type SectorFlowTrendItem = {
+  tradeDate: string;
+  pctChange: number;
+  netAmount: number;
+  cumulativeNet: number;
+};
+
+export type HsgtTrendItem = {
+  tradeDate: string;
+  northMoney: number;
+  southMoney: number;
+  hgt: number;
+  sgt: number;
+  ggtSs: number;
+  ggtSz: number;
+  cumulativeNorth: number;
+  cumulativeSouth: number;
+};
+
+export type MainFlowRankingItem = {
+  tsCode: string;
+  name: string;
+  industry: string;
+  mainNetInflow: number;
+  elgNetInflow: number;
+  lgNetInflow: number;
+  pctChg: number;
+  amount: number;
+};
+
+export type StockFlowDetailItem = {
+  tradeDate: string;
+  mainNetInflow: number;
+  retailNetInflow: number;
+  buyElgAmount: number;
+  sellElgAmount: number;
+  buyLgAmount: number;
+  sellLgAmount: number;
+  buyMdAmount: number;
+  sellMdAmount: number;
+  buySmAmount: number;
+  sellSmAmount: number;
+  netMfAmount: number;
+};
+
+// ----------------------------------------------------------------------
+// 资金动态 API 调用函数
+// ----------------------------------------------------------------------
+
+export function fetchMoneyFlow(query?: { trade_date?: string }) {
+  return apiClient.post<MarketMoneyFlowDetail>('/api/market/money-flow', query ?? {});
+}
+
+export function fetchMoneyFlowTrend(query?: { trade_date?: string; days?: number }) {
+  return apiClient.post<{ data: MoneyFlowTrendItem[] }>('/api/market/money-flow-trend', query ?? {});
+}
+
+export function fetchSectorFlowRanking(query?: {
+  trade_date?: string;
+  content_type?: string;
+  sort_by?: string;
+  order?: string;
+  limit?: number;
+}) {
+  return apiClient.post<{ tradeDate: string; contentType: string; sectors: SectorFlowRankingItem[] }>(
+    '/api/market/sector-flow-ranking',
+    query ?? {}
+  );
+}
+
+export function fetchSectorFlowTrend(query: { ts_code: string; content_type?: string; days?: number }) {
+  return apiClient.post<{ tsCode: string; name: string; data: SectorFlowTrendItem[] }>(
+    '/api/market/sector-flow-trend',
+    query
+  );
+}
+
+export function fetchHsgtFlow(query?: { trade_date?: string; days?: number }) {
+  return apiClient.post<{ data: HsgtTrendItem[] }>('/api/market/hsgt-flow', query ?? {});
+}
+
+export function fetchHsgtTrend(query?: { period?: string }) {
+  return apiClient.post<{ period: string; data: HsgtTrendItem[] }>('/api/market/hsgt-trend', query ?? {});
+}
+
+export function fetchMainFlowRanking(query?: { trade_date?: string; order?: string; limit?: number }) {
+  return apiClient.post<{ tradeDate: string; data: MainFlowRankingItem[] }>(
+    '/api/market/main-flow-ranking',
+    query ?? {}
+  );
+}
+
+export function fetchStockFlowDetail(query: { ts_code: string; days?: number }) {
+  return apiClient.post<{ tsCode: string; name: string; data: StockFlowDetailItem[] }>(
+    '/api/market/stock-flow-detail',
+    query
+  );
+}
