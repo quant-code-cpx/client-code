@@ -98,7 +98,7 @@ export function StockDetailView() {
 
       <Box sx={{ pt: 3 }}>
         {activeTab === 'market' && <StockDetailMarketTab tsCode={tsCode} />}
-        {activeTab === 'analysis' && <StockDetailAnalysisTab />}
+        {activeTab === 'analysis' && <StockDetailAnalysisTab tsCode={tsCode} />}
         {activeTab === 'financials' && <StockDetailFinancialsTab tsCode={tsCode} />}
         {activeTab === 'company' && (
           <StockDetailCompanyTab overview={overview} loading={overviewLoading} />
