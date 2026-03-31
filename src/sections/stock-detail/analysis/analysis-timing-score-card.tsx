@@ -4,8 +4,8 @@ import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Grid from '@mui/material/Grid';
 import Chip from '@mui/material/Chip';
-import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
+import CardContent from '@mui/material/CardContent';
 
 import { Chart, useChart } from 'src/components/chart';
 

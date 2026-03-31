@@ -2,8 +2,8 @@ import type { MarginDailyItem } from 'src/api/stock';
 
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
-import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
+import CardContent from '@mui/material/CardContent';
 
 import { Chart, useChart } from 'src/components/chart';
 

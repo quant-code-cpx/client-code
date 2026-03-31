@@ -1,8 +1,8 @@
 import type { TechnicalDataPoint } from 'src/api/stock';
 
 import Card from '@mui/material/Card';
-import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
+import CardContent from '@mui/material/CardContent';
 
 import { Chart, useChart } from 'src/components/chart';
 

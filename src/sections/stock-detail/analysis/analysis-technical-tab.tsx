@@ -72,7 +72,7 @@ export function AnalysisTechnicalTab({ tsCode }: Props) {
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
         <ToggleButtonGroup
           value={period}
-          exclusive={true}
+          exclusive
           onChange={(_, v) => { if (v) setPeriod(v); }}
           size="small"
         >
@@ -83,7 +83,7 @@ export function AnalysisTechnicalTab({ tsCode }: Props) {
 
         <ToggleButtonGroup
           value={days}
-          exclusive={true}
+          exclusive
           onChange={(_, v) => { if (v) setDays(v); }}
           size="small"
         >

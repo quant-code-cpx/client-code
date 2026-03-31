@@ -5,8 +5,8 @@ import Card from '@mui/material/Card';
 import List from '@mui/material/List';
 import Chip from '@mui/material/Chip';
 import ListItem from '@mui/material/ListItem';
-import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
+import CardContent from '@mui/material/CardContent';
 
 // ----------------------------------------------------------------------
 
@@ -37,11 +37,11 @@ export function AnalysisTimingSignalTimeline({ signals }: Props) {
         {sorted.length === 0 ? (
           <Typography color="text.secondary" textAlign="center" py={4}>暂无信号数据</Typography>
         ) : (
-          <List disablePadding={true}>
+          <List disablePadding>
             {sorted.map((sig, i) => (
               <ListItem
                 key={i}
-                disablePadding={true}
+                disablePadding
                 sx={{ py: 1.5, borderBottom: i < sorted.length - 1 ? '1px solid' : 'none', borderColor: 'divider' }}
               >
                 <Box sx={{ width: '100%' }}>

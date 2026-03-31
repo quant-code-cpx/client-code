@@ -5,8 +5,8 @@ import { useState } from 'react';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
-import CardContent from '@mui/material/CardContent';
 import Typography from '@mui/material/Typography';
+import CardContent from '@mui/material/CardContent';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
@@ -267,7 +267,7 @@ export function AnalysisTechnicalIndicatorCard({ history }: Props) {
             <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>经典指标</Typography>
             <ToggleButtonGroup
               value={activeIndicator}
-              exclusive={true}
+              exclusive
               onChange={(_, v) => { if (v) setActiveIndicator(v); }}
               size="small"
               sx={{ flexWrap: 'wrap' }}
@@ -281,7 +281,7 @@ export function AnalysisTechnicalIndicatorCard({ history }: Props) {
             <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>扩展指标</Typography>
             <ToggleButtonGroup
               value={activeIndicator}
-              exclusive={true}
+              exclusive
               onChange={(_, v) => { if (v) setActiveIndicator(v); }}
               size="small"
               sx={{ flexWrap: 'wrap' }}

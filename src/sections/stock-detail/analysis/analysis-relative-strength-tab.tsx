@@ -70,7 +70,7 @@ export function AnalysisRelativeStrengthTab({ tsCode }: Props) {
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
         <ToggleButtonGroup
           value={benchmarkCode}
-          exclusive={true}
+          exclusive
           onChange={(_, v) => { if (v) setBenchmarkCode(v); }}
           size="small"
         >
@@ -81,7 +81,7 @@ export function AnalysisRelativeStrengthTab({ tsCode }: Props) {
 
         <ToggleButtonGroup
           value={days}
-          exclusive={true}
+          exclusive
           onChange={(_, v) => { if (v) setDays(v); }}
           size="small"
         >
