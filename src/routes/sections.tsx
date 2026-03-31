@@ -30,6 +30,7 @@ export const FactorLibraryPage = lazy(() => import('src/pages/factor-library'));
 export const FactorDetailPage = lazy(() => import('src/pages/factor-detail'));
 export const FactorCorrelationPage = lazy(() => import('src/pages/factor-correlation'));
 export const FactorScreeningPage = lazy(() => import('src/pages/factor-screening'));
+export const StockScreenerPage = lazy(() => import('src/pages/stock-screener'));
 
 const renderFallback = () => (
   <Box
@@ -70,6 +71,7 @@ export const routesSection: RouteObject[] = [
       { path: 'blog', element: <BlogPage /> },
       { path: 'stock', element: <StockPage /> },
       { path: 'stock/detail', element: <StockDetailPage /> },
+      { path: 'stock/screener', element: <StockScreenerPage /> },
       { path: 'market/overview', element: <MarketOverviewPage /> },
       { path: 'market/money-flow', element: <MarketMoneyFlowPage /> },
       { path: 'tushare-sync', element: <TushareSyncPage /> },
