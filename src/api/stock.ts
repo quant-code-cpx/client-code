@@ -310,6 +310,235 @@ export type StockFinancingData = {
   items: StockFinancingItem[];
 };
 
+// ========== 分析 Tab — 技术指标 ==========
+
+export type TechnicalDataPoint = {
+  tradeDate: string;
+  open: number | null;
+  high: number | null;
+  low: number | null;
+  close: number | null;
+  vol: number | null;
+  amount: number | null;
+  pctChg: number | null;
+  ma5: number | null;
+  ma10: number | null;
+  ma20: number | null;
+  ma60: number | null;
+  ma120: number | null;
+  ma250: number | null;
+  ema12: number | null;
+  ema26: number | null;
+  macdDif: number | null;
+  macdDea: number | null;
+  macdHist: number | null;
+  kdjK: number | null;
+  kdjD: number | null;
+  kdjJ: number | null;
+  rsi6: number | null;
+  rsi12: number | null;
+  rsi24: number | null;
+  bollUpper: number | null;
+  bollMid: number | null;
+  bollLower: number | null;
+  wr6: number | null;
+  wr10: number | null;
+  cci: number | null;
+  dmiPdi: number | null;
+  dmiMdi: number | null;
+  dmiAdx: number | null;
+  dmiAdxr: number | null;
+  trix: number | null;
+  trixMa: number | null;
+  dma: number | null;
+  dmaMa: number | null;
+  bias6: number | null;
+  bias12: number | null;
+  bias24: number | null;
+  obv: number | null;
+  obvMa: number | null;
+  vr: number | null;
+  emv: number | null;
+  emvMa: number | null;
+  roc: number | null;
+  rocMa: number | null;
+  psy: number | null;
+  psyMa: number | null;
+  br: number | null;
+  ar: number | null;
+  cr: number | null;
+  sar: number | null;
+  sarBullish: boolean | null;
+  volMa5: number | null;
+  volMa10: number | null;
+  volMa20: number | null;
+  volumeRatio: number | null;
+  atr14: number | null;
+  hv20: number | null;
+};
+
+export type MaStatusSummary = {
+  bullishAlign: boolean | null;
+  bearishAlign: boolean | null;
+  aboveMa20: boolean | null;
+  aboveMa60: boolean | null;
+  aboveMa250: boolean | null;
+  latestCross: string | null;
+};
+
+export type SignalSummary = {
+  macd: string | null;
+  kdj: string | null;
+  rsi: string | null;
+  boll: string | null;
+  wr: string | null;
+  cci: string | null;
+  dmi: string | null;
+  sar: string | null;
+  volumePrice: string | null;
+};
+
+export type StockTechnicalData = {
+  tsCode: string;
+  period: string;
+  dataDate: string | null;
+  maStatus: MaStatusSummary;
+  signals: SignalSummary;
+  history: TechnicalDataPoint[];
+};
+
+// ========== 分析 Tab — 择时信号 ==========
+
+export type TimingSignalItem = {
+  tradeDate: string;
+  type: string;
+  strength: number;
+  source: string;
+  description: string;
+  closePrice: number | null;
+};
+
+export type TimingScoreDetail = {
+  indicator: string;
+  signal: string;
+  score: number;
+  reason: string;
+};
+
+export type TimingScoreSummary = {
+  score: number;
+  rating: string;
+  bullishCount: number;
+  bearishCount: number;
+  neutralCount: number;
+  details: TimingScoreDetail[];
+};
+
+export type StockTimingSignalsData = {
+  tsCode: string;
+  scoreSummary: TimingScoreSummary;
+  signals: TimingSignalItem[];
+};
+
+// ========== 分析 Tab — 筹码分布 ==========
+
+export type ChipConcentration = {
+  range90Low: number | null;
+  range90High: number | null;
+  range70Low: number | null;
+  range70High: number | null;
+  score: number | null;
+  profitRatio: number | null;
+  avgCost: number | null;
+};
+
+export type ChipDistributionBin = {
+  priceLow: number;
+  priceHigh: number;
+  percent: number;
+  isProfit: boolean;
+};
+
+export type ChipKeyLevels = {
+  peakPrice: number | null;
+  resistanceHigh: number | null;
+  resistanceLow: number | null;
+  supportHigh: number | null;
+  supportLow: number | null;
+};
+
+export type ChipDistributionData = {
+  tsCode: string;
+  tradeDate: string;
+  currentPrice: number | null;
+  concentration: ChipConcentration;
+  distribution: ChipDistributionBin[];
+  keyLevels: ChipKeyLevels;
+  isEstimated: boolean;
+};
+
+// ========== 分析 Tab — 融资融券 ==========
+
+export type MarginDailyItem = {
+  tradeDate: string;
+  rzye: number | null;
+  rzmre: number | null;
+  rzche: number | null;
+  rzjmre: number | null;
+  rqye: number | null;
+  rqmcl: number | null;
+  rqchl: number | null;
+  rzrqye: number | null;
+  close: number | null;
+};
+
+export type MarginSummary = {
+  latestRzye: number | null;
+  latestRqye: number | null;
+  latestRzrqye: number | null;
+  rzNetBuy5d: number | null;
+  rzNetBuy20d: number | null;
+  rzye5dChgPct: number | null;
+  rzye20dChgPct: number | null;
+  trend: string;
+};
+
+export type StockMarginData = {
+  tsCode: string;
+  summary: MarginSummary;
+  history: MarginDailyItem[];
+  available: boolean;
+};
+
+// ========== 分析 Tab — 相对强弱 ==========
+
+export type RelativeStrengthPoint = {
+  tradeDate: string;
+  stockCumReturn: number;
+  benchmarkCumReturn: number;
+  excessReturn: number;
+  rsRatio: number;
+};
+
+export type RelativeStrengthSummary = {
+  stockTotalReturn: number | null;
+  benchmarkTotalReturn: number | null;
+  excessReturn: number | null;
+  excess20d: number | null;
+  annualizedVol: number | null;
+  maxDrawdown: number | null;
+  beta: number | null;
+  informationRatio: number | null;
+};
+
+export type StockRelativeStrengthData = {
+  tsCode: string;
+  benchmarkCode: string;
+  benchmarkName: string;
+  summary: RelativeStrengthSummary;
+  history: RelativeStrengthPoint[];
+};
+
 // ----------------------------------------------------------------------
 // 三大财务报表类型
 // ----------------------------------------------------------------------
@@ -439,4 +668,24 @@ export const stockDetailApi = {
       tsCode,
       periods,
     }),
+
+  /** 分析 - 技术指标 */
+  technicalIndicators: (tsCode: string, period?: string, days?: number): Promise<StockTechnicalData> =>
+    apiClient.post<StockTechnicalData>('/api/stock/detail/analysis/technical', { tsCode, period, days }),
+
+  /** 分析 - 择时信号 */
+  timingSignals: (tsCode: string, days?: number): Promise<StockTimingSignalsData> =>
+    apiClient.post<StockTimingSignalsData>('/api/stock/detail/analysis/timing-signals', { tsCode, days }),
+
+  /** 分析 - 筹码分布 */
+  chipDistribution: (tsCode: string, tradeDate?: string): Promise<ChipDistributionData> =>
+    apiClient.post<ChipDistributionData>('/api/stock/detail/analysis/chip-distribution', { tsCode, tradeDate }),
+
+  /** 分析 - 融资融券 */
+  marginData: (tsCode: string, days?: number): Promise<StockMarginData> =>
+    apiClient.post<StockMarginData>('/api/stock/detail/analysis/margin', { tsCode, days }),
+
+  /** 分析 - 相对强弱 */
+  relativeStrength: (tsCode: string, benchmarkCode?: string, days?: number): Promise<StockRelativeStrengthData> =>
+    apiClient.post<StockRelativeStrengthData>('/api/stock/detail/analysis/relative-strength', { tsCode, benchmarkCode, days }),
 };
