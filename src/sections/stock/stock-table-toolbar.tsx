@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
-import Menu from '@mui/material/Menu';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Select from '@mui/material/Select';
@@ -24,11 +23,15 @@ import type { StockFilters } from './types';
 type StockTableToolbarProps = {
   filters: StockFilters;
   onFilterChange: (changed: Partial<StockFilters>) => void;
+  onOpenScreener: () => void;
 };
 
-export function StockTableToolbar({ filters, onFilterChange }: StockTableToolbarProps) {
+export function StockTableToolbar({
+  filters,
+  onFilterChange,
+  onOpenScreener,
+}: StockTableToolbarProps) {
   const [localKeyword, setLocalKeyword] = useState(filters.keyword);
-  const [screenerAnchorEl, setScreenerAnchorEl] = useState<null | HTMLElement>(null);
 
   // 防抖：400ms 后才将关键词提交给父组件触发请求
   useEffect(() => {
@@ -122,20 +125,10 @@ export function StockTableToolbar({ filters, onFilterChange }: StockTableToolbar
         <Button
           variant="outlined"
           startIcon={<Iconify icon="ic:round-filter-list" />}
-          onClick={(e) => setScreenerAnchorEl(e.currentTarget)}
+          onClick={onOpenScreener}
         >
           选股器
         </Button>
-
-        <Menu
-          anchorEl={screenerAnchorEl}
-          open={Boolean(screenerAnchorEl)}
-          onClose={() => setScreenerAnchorEl(null)}
-        >
-          <MenuItem disabled sx={{ typography: 'body2', color: 'text.secondary' }}>
-            选股器功能即将上线
-          </MenuItem>
-        </Menu>
       </Toolbar>
 
       {activeChips.length > 0 && (

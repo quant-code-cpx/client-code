@@ -172,4 +172,14 @@ export const apiClient = {
 
   get: <T>(url: string, signal?: AbortSignal): Promise<T> =>
     request<T>(url, { method: 'GET', signal }),
+
+  put: <T>(url: string, body?: unknown, signal?: AbortSignal): Promise<T> =>
+    request<T>(url, {
+      method: 'PUT',
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+      signal,
+    }),
+
+  delete: <T>(url: string, signal?: AbortSignal): Promise<T> =>
+    request<T>(url, { method: 'DELETE', signal }),
 };

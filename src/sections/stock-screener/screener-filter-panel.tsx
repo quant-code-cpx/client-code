@@ -1,5 +1,7 @@
 import type { AreaItem, IndustryItem, ScreenerFilters } from 'src/api/screener';
 
+import { memo, useState, useEffect } from 'react';
+
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 import Button from '@mui/material/Button';
@@ -19,6 +21,48 @@ import { MARKET_OPTIONS, EXCHANGE_OPTIONS } from './constants';
 import { ScreenerFilterRangeInput } from './screener-filter-range-input';
 
 // ----------------------------------------------------------------------
+// 单个数字输入（本地 draft 状态，失焦时才提交父组件）
+// ----------------------------------------------------------------------
+
+type FilterNumberInputProps = {
+  label: string;
+  value: number | undefined;
+  onChange: (v: number | undefined) => void;
+  unit?: string;
+  step?: number;
+};
+
+function FilterNumberInput({ label, value, onChange, unit, step }: FilterNumberInputProps) {
+  const [local, setLocal] = useState(() => (value != null ? String(value) : ''));
+
+  useEffect(() => {
+    setLocal(value != null ? String(value) : '');
+  }, [value]);
+
+  const slotProps = unit
+    ? { input: { endAdornment: <InputAdornment position="end">{unit}</InputAdornment> } }
+    : undefined;
+
+  return (
+    <>
+      <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}>
+        {label}
+      </Typography>
+      <TextField
+        fullWidth
+        size="small"
+        type="number"
+        value={local}
+        placeholder="不限"
+        onChange={(e) => setLocal(e.target.value)}
+        onBlur={() => onChange(local === '' ? undefined : Number(local))}
+        slotProps={{ ...slotProps, ...(step != null ? { htmlInput: { step } } : {}) }}
+      />
+    </>
+  );
+}
+
+// ----------------------------------------------------------------------
 
 type ScreenerFilterPanelProps = {
   filters: ScreenerFilters;
@@ -31,7 +75,7 @@ type ScreenerFilterPanelProps = {
 
 // ----------------------------------------------------------------------
 
-export function ScreenerFilterPanel({
+export const ScreenerFilterPanel = memo(function ScreenerFilterPanel({
   filters,
   industries,
   areas,
@@ -67,7 +111,10 @@ export function ScreenerFilterPanel({
         </Typography>
         <Grid container spacing={2} sx={{ mb: 2 }}>
           <Grid size={{ xs: 6, sm: 4, md: 3 }}>
-            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}>
+            <Typography
+              variant="caption"
+              sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}
+            >
               交易所
             </Typography>
             <Select
@@ -85,7 +132,10 @@ export function ScreenerFilterPanel({
           </Grid>
 
           <Grid size={{ xs: 6, sm: 4, md: 3 }}>
-            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}>
+            <Typography
+              variant="caption"
+              sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}
+            >
               板块
             </Typography>
             <Select
@@ -103,7 +153,10 @@ export function ScreenerFilterPanel({
           </Grid>
 
           <Grid size={{ xs: 6, sm: 4, md: 3 }}>
-            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}>
+            <Typography
+              variant="caption"
+              sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}
+            >
               行业
             </Typography>
             <Autocomplete
@@ -119,7 +172,10 @@ export function ScreenerFilterPanel({
           </Grid>
 
           <Grid size={{ xs: 6, sm: 4, md: 3 }}>
-            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}>
+            <Typography
+              variant="caption"
+              sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}
+            >
               地域
             </Typography>
             <Autocomplete
@@ -161,17 +217,11 @@ export function ScreenerFilterPanel({
             />
           </Grid>
           <Grid size={{ xs: 6, sm: 4, md: 3 }}>
-            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}>
-              股息率 TTM ≥ (%)
-            </Typography>
-            <TextField
-              fullWidth
-              size="small"
-              type="number"
-              value={filters.minDvTtm ?? ''}
-              placeholder="不限"
-              onChange={(e) => set('minDvTtm', e.target.value ? Number(e.target.value) : undefined)}
-              slotProps={{ input: { endAdornment: <InputAdornment position="end">%</InputAdornment> } }}
+            <FilterNumberInput
+              label="股息率 TTM ≥ (%)"
+              value={filters.minDvTtm}
+              onChange={(v) => set('minDvTtm', v)}
+              unit="%"
             />
           </Grid>
           <Grid size={{ xs: 6, sm: 4, md: 3 }}>
@@ -233,31 +283,19 @@ export function ScreenerFilterPanel({
             />
           </Grid>
           <Grid size={{ xs: 6, sm: 4, md: 3 }}>
-            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}>
-              毛利率 ≥ (%)
-            </Typography>
-            <TextField
-              fullWidth
-              size="small"
-              type="number"
-              value={filters.minGrossMargin ?? ''}
-              placeholder="不限"
-              onChange={(e) => set('minGrossMargin', e.target.value ? Number(e.target.value) : undefined)}
-              slotProps={{ input: { endAdornment: <InputAdornment position="end">%</InputAdornment> } }}
+            <FilterNumberInput
+              label="毛利率 ≥ (%)"
+              value={filters.minGrossMargin}
+              onChange={(v) => set('minGrossMargin', v)}
+              unit="%"
             />
           </Grid>
           <Grid size={{ xs: 6, sm: 4, md: 3 }}>
-            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}>
-              净利率 ≥ (%)
-            </Typography>
-            <TextField
-              fullWidth
-              size="small"
-              type="number"
-              value={filters.minNetMargin ?? ''}
-              placeholder="不限"
-              onChange={(e) => set('minNetMargin', e.target.value ? Number(e.target.value) : undefined)}
-              slotProps={{ input: { endAdornment: <InputAdornment position="end">%</InputAdornment> } }}
+            <FilterNumberInput
+              label="净利率 ≥ (%)"
+              value={filters.minNetMargin}
+              onChange={(v) => set('minNetMargin', v)}
+              unit="%"
             />
           </Grid>
         </Grid>
@@ -268,56 +306,33 @@ export function ScreenerFilterPanel({
         </Typography>
         <Grid container spacing={2} sx={{ mb: 2 }}>
           <Grid size={{ xs: 6, sm: 4, md: 3 }}>
-            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}>
-              资产负债率 ≤ (%)
-            </Typography>
-            <TextField
-              fullWidth
-              size="small"
-              type="number"
-              value={filters.maxDebtToAssets ?? ''}
-              placeholder="不限"
-              onChange={(e) => set('maxDebtToAssets', e.target.value ? Number(e.target.value) : undefined)}
-              slotProps={{ input: { endAdornment: <InputAdornment position="end">%</InputAdornment> } }}
+            <FilterNumberInput
+              label="资产负债率 ≤ (%)"
+              value={filters.maxDebtToAssets}
+              onChange={(v) => set('maxDebtToAssets', v)}
+              unit="%"
             />
           </Grid>
           <Grid size={{ xs: 6, sm: 4, md: 3 }}>
-            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}>
-              流动比率 ≥
-            </Typography>
-            <TextField
-              fullWidth
-              size="small"
-              type="number"
-              value={filters.minCurrentRatio ?? ''}
-              placeholder="不限"
-              onChange={(e) => set('minCurrentRatio', e.target.value ? Number(e.target.value) : undefined)}
+            <FilterNumberInput
+              label="流动比率 ≥"
+              value={filters.minCurrentRatio}
+              onChange={(v) => set('minCurrentRatio', v)}
             />
           </Grid>
           <Grid size={{ xs: 6, sm: 4, md: 3 }}>
-            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}>
-              速动比率 ≥
-            </Typography>
-            <TextField
-              fullWidth
-              size="small"
-              type="number"
-              value={filters.minQuickRatio ?? ''}
-              placeholder="不限"
-              onChange={(e) => set('minQuickRatio', e.target.value ? Number(e.target.value) : undefined)}
+            <FilterNumberInput
+              label="速动比率 ≥"
+              value={filters.minQuickRatio}
+              onChange={(v) => set('minQuickRatio', v)}
             />
           </Grid>
           <Grid size={{ xs: 6, sm: 4, md: 3 }}>
-            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}>
-              经营现金流/净利润 ≥
-            </Typography>
-            <TextField
-              fullWidth
-              size="small"
-              type="number"
-              value={filters.minOcfToNetprofit ?? ''}
-              placeholder="不限"
-              onChange={(e) => set('minOcfToNetprofit', e.target.value ? Number(e.target.value) : undefined)}
+            <FilterNumberInput
+              label="经营现金流/净利润 ≥"
+              value={filters.minOcfToNetprofit}
+              onChange={(v) => set('minOcfToNetprofit', v)}
+              step={0.01}
             />
           </Grid>
         </Grid>
@@ -328,31 +343,19 @@ export function ScreenerFilterPanel({
         </Typography>
         <Grid container spacing={2} sx={{ mb: 2 }}>
           <Grid size={{ xs: 6, sm: 4, md: 3 }}>
-            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}>
-              近5日主力净流入 ≥ (万元)
-            </Typography>
-            <TextField
-              fullWidth
-              size="small"
-              type="number"
-              value={filters.minMainNetInflow5d ?? ''}
-              placeholder="不限"
-              onChange={(e) => set('minMainNetInflow5d', e.target.value ? Number(e.target.value) : undefined)}
-              slotProps={{ input: { endAdornment: <InputAdornment position="end">万</InputAdornment> } }}
+            <FilterNumberInput
+              label="近5日主力净流入 ≥ (万元)"
+              value={filters.minMainNetInflow5d}
+              onChange={(v) => set('minMainNetInflow5d', v)}
+              unit="万"
             />
           </Grid>
           <Grid size={{ xs: 6, sm: 4, md: 3 }}>
-            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}>
-              近20日主力净流入 ≥ (万元)
-            </Typography>
-            <TextField
-              fullWidth
-              size="small"
-              type="number"
-              value={filters.minMainNetInflow20d ?? ''}
-              placeholder="不限"
-              onChange={(e) => set('minMainNetInflow20d', e.target.value ? Number(e.target.value) : undefined)}
-              slotProps={{ input: { endAdornment: <InputAdornment position="end">万</InputAdornment> } }}
+            <FilterNumberInput
+              label="近20日主力净流入 ≥ (万元)"
+              value={filters.minMainNetInflow20d}
+              onChange={(v) => set('minMainNetInflow20d', v)}
+              unit="万"
             />
           </Grid>
         </Grid>
@@ -391,11 +394,16 @@ export function ScreenerFilterPanel({
           <Button variant="outlined" onClick={onReset}>
             重置条件
           </Button>
-          <Button variant="contained" color="primary" startIcon={<Iconify icon="eva:search-fill" />} onClick={onSearch}>
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<Iconify icon="eva:search-fill" />}
+            onClick={onSearch}
+          >
             开始选股
           </Button>
         </Box>
       </AccordionDetails>
     </Accordion>
   );
-}
+});

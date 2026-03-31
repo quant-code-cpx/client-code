@@ -21,6 +21,7 @@ import { Scrollbar } from 'src/components/scrollbar';
 
 import { StockTableRow } from '../stock-table-row';
 import { SORT_BY, HEAD_LABELS } from '../constants';
+import { ScreenerDialog } from '../screener-dialog';
 import { StockTableHead } from '../stock-table-head';
 import { StockTableToolbar } from '../stock-table-toolbar';
 
@@ -49,6 +50,7 @@ export function StockView() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [screenerOpen, setScreenerOpen] = useState(false);
 
   const fetchList = useCallback(async () => {
     setLoading(true);
@@ -101,7 +103,11 @@ export function StockView() {
       </Typography>
 
       <Card>
-        <StockTableToolbar filters={filters} onFilterChange={handleFilterChange} />
+        <StockTableToolbar
+          filters={filters}
+          onFilterChange={handleFilterChange}
+          onOpenScreener={() => setScreenerOpen(true)}
+        />
 
         {error && (
           <Alert severity="error" sx={{ mx: 2.5, mb: 2 }}>
@@ -150,6 +156,8 @@ export function StockView() {
           labelDisplayedRows={({ from, to, count }) => `${from}-${to} 共 ${count} 条`}
         />
       </Card>
+
+      <ScreenerDialog open={screenerOpen} onClose={() => setScreenerOpen(false)} />
     </DashboardContent>
   );
 }

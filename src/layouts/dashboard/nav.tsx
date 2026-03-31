@@ -163,7 +163,9 @@ function NavItemWithChildren({ item, pathname }: NavItemWithChildrenProps) {
       <Collapse in={open} timeout="auto">
         <List disablePadding sx={{ pl: 3.5 }}>
           {item.children?.map((child) => {
-            const isActived = pathname === child.path || pathname.startsWith(`${child.path}/`);
+            const isActived =
+              pathname === child.path ||
+              (child.path !== item.path && pathname.startsWith(`${child.path}/`));
 
             return (
               <ListItem disableGutters disablePadding key={child.title}>

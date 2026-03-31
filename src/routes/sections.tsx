@@ -1,8 +1,8 @@
 import type { RouteObject } from 'react-router';
 
 import { lazy, Suspense } from 'react';
-import { Outlet } from 'react-router-dom';
 import { varAlpha } from 'minimal-shared/utils';
+import { Outlet, Navigate } from 'react-router-dom';
 
 import Box from '@mui/material/Box';
 import LinearProgress, { linearProgressClasses } from '@mui/material/LinearProgress';
@@ -30,7 +30,6 @@ export const FactorLibraryPage = lazy(() => import('src/pages/factor-library'));
 export const FactorDetailPage = lazy(() => import('src/pages/factor-detail'));
 export const FactorCorrelationPage = lazy(() => import('src/pages/factor-correlation'));
 export const FactorScreeningPage = lazy(() => import('src/pages/factor-screening'));
-export const StockScreenerPage = lazy(() => import('src/pages/stock-screener'));
 
 const renderFallback = () => (
   <Box
@@ -71,7 +70,7 @@ export const routesSection: RouteObject[] = [
       { path: 'blog', element: <BlogPage /> },
       { path: 'stock', element: <StockPage /> },
       { path: 'stock/detail', element: <StockDetailPage /> },
-      { path: 'stock/screener', element: <StockScreenerPage /> },
+      { path: 'stock/screener', element: <Navigate to="/stock" replace /> },
       { path: 'market/overview', element: <MarketOverviewPage /> },
       { path: 'market/money-flow', element: <MarketMoneyFlowPage /> },
       { path: 'tushare-sync', element: <TushareSyncPage /> },

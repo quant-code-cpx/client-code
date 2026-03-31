@@ -123,3 +123,54 @@ export function fetchIndustries(): Promise<{ industries: IndustryItem[] }> {
 export function fetchAreas(): Promise<{ areas: AreaItem[] }> {
   return apiClient.get<{ areas: AreaItem[] }>('/api/stock/areas');
 }
+
+// ----------------------------------------------------------------------
+// 用户自定义策略
+// ----------------------------------------------------------------------
+
+export type ScreenerStrategy = {
+  id: number;
+  name: string;
+  description: string | null;
+  filters: Partial<ScreenerFilters>;
+  sortBy: string | null;
+  sortOrder: string | null;
+  type: 'user';
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ScreenerPresetWithType = ScreenerPreset & { type: 'builtin' };
+
+export type StrategyItem = ScreenerPresetWithType | ScreenerStrategy;
+
+export function fetchStrategies(): Promise<{ strategies: ScreenerStrategy[] }> {
+  return apiClient.get<{ strategies: ScreenerStrategy[] }>('/api/stock/screener/strategies');
+}
+
+export function createStrategy(data: {
+  name: string;
+  description?: string;
+  filters: Partial<ScreenerFilters>;
+  sortBy?: string;
+  sortOrder?: string;
+}): Promise<ScreenerStrategy> {
+  return apiClient.post<ScreenerStrategy>('/api/stock/screener/strategies', data);
+}
+
+export function updateStrategy(
+  id: number,
+  data: {
+    name?: string;
+    description?: string;
+    filters?: Partial<ScreenerFilters>;
+    sortBy?: string;
+    sortOrder?: string;
+  }
+): Promise<ScreenerStrategy> {
+  return apiClient.put<ScreenerStrategy>(`/api/stock/screener/strategies/${id}`, data);
+}
+
+export function deleteStrategy(id: number): Promise<{ message: string }> {
+  return apiClient.delete<{ message: string }>(`/api/stock/screener/strategies/${id}`);
+}

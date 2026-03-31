@@ -1,3 +1,5 @@
+import { useState, useEffect } from 'react';
+
 import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
@@ -28,15 +30,17 @@ export function ScreenerFilterRangeInput({
   step = 1,
   placeholder = ['不限', '不限'],
 }: ScreenerFilterRangeInputProps) {
-  const handleMin = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    onMinChange(val === '' ? undefined : Number(val));
-  };
+  const [localMin, setLocalMin] = useState(() => (minValue != null ? String(minValue) : ''));
+  const [localMax, setLocalMax] = useState(() => (maxValue != null ? String(maxValue) : ''));
 
-  const handleMax = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    onMaxChange(val === '' ? undefined : Number(val));
-  };
+  // 当父组件（预设加载、重置）修改该字段值时同步到本地
+  useEffect(() => {
+    setLocalMin(minValue != null ? String(minValue) : '');
+  }, [minValue]);
+
+  useEffect(() => {
+    setLocalMax(maxValue != null ? String(maxValue) : '');
+  }, [maxValue]);
 
   const slotProps = unit
     ? { input: { endAdornment: <InputAdornment position="end">{unit}</InputAdornment> } }
@@ -51,9 +55,10 @@ export function ScreenerFilterRangeInput({
         <TextField
           size="small"
           type="number"
-          value={minValue ?? ''}
+          value={localMin}
           placeholder={placeholder[0]}
-          onChange={handleMin}
+          onChange={(e) => setLocalMin(e.target.value)}
+          onBlur={() => onMinChange(localMin === '' ? undefined : Number(localMin))}
           slotProps={{ ...slotProps, htmlInput: { step } }}
           sx={{ flex: 1 }}
         />
@@ -63,9 +68,10 @@ export function ScreenerFilterRangeInput({
         <TextField
           size="small"
           type="number"
-          value={maxValue ?? ''}
+          value={localMax}
           placeholder={placeholder[1]}
-          onChange={handleMax}
+          onChange={(e) => setLocalMax(e.target.value)}
+          onBlur={() => onMaxChange(localMax === '' ? undefined : Number(localMax))}
           slotProps={{ ...slotProps, htmlInput: { step } }}
           sx={{ flex: 1 }}
         />
