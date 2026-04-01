@@ -727,33 +727,6 @@
   resolved "https://registry.npmjs.org/@socket.io/component-emitter/-/component-emitter-3.1.2.tgz"
   integrity sha512-9BCxFwvbGg/RsZK9tjXd8s4UcwR0MWeFQ1XEKIQVVvAGJyINdrqKMcTRyLoK8Rse1GjzLV9cwjWV1olXRWEXVA==
 
-"@svgdotjs/svg.draggable.js@^3.0.4":
-  version "3.0.6"
-  resolved "https://registry.npmjs.org/@svgdotjs/svg.draggable.js/-/svg.draggable.js-3.0.6.tgz"
-  integrity sha512-7iJFm9lL3C40HQcqzEfezK2l+dW2CpoVY3b77KQGqc8GXWa6LhhmX5Ckv7alQfUXBuZbjpICZ+Dvq1czlGx7gA==
-
-"@svgdotjs/svg.filter.js@^3.0.8":
-  version "3.0.9"
-  resolved "https://registry.npmjs.org/@svgdotjs/svg.filter.js/-/svg.filter.js-3.0.9.tgz"
-  integrity sha512-/69XMRCDoam2HgC4ldHIaDgeQf1ViHIsa0Ld4uWgiXtZ+E24DWHe/9Ib6kbNiZ7WRIdlVokUDR1Fg0kjIpkfbw==
-  dependencies:
-    "@svgdotjs/svg.js" "^3.2.4"
-
-"@svgdotjs/svg.js@^3.2.4":
-  version "3.2.4"
-  resolved "https://registry.npmjs.org/@svgdotjs/svg.js/-/svg.js-3.2.4.tgz"
-  integrity sha512-BjJ/7vWNowlX3Z8O4ywT58DqbNRyYlkk6Yz/D13aB7hGmfQTvGX4Tkgtm/ApYlu9M7lCQi15xUEidqMUmdMYwg==
-
-"@svgdotjs/svg.resize.js@^2.0.2":
-  version "2.0.5"
-  resolved "https://registry.npmjs.org/@svgdotjs/svg.resize.js/-/svg.resize.js-2.0.5.tgz"
-  integrity sha512-4heRW4B1QrJeENfi7326lUPYBCevj78FJs8kfeDxn5st0IYPIRXoTtOSYvTzFWgaWWXd3YCDE6ao4fmv91RthA==
-
-"@svgdotjs/svg.select.js@^4.0.1":
-  version "4.0.2"
-  resolved "https://registry.npmjs.org/@svgdotjs/svg.select.js/-/svg.select.js-4.0.2.tgz"
-  integrity sha512-5gWdrvoQX3keo03SCmgaBbD+kFftq0F/f2bzCbNnpkkvW6tk4rl4MakORzFuNjvXPWwB4az9GwuvVxQVnjaK2g==
-
 "@swc/core-darwin-arm64@1.11.16":
   version "1.11.16"
   resolved "https://registry.yarnpkg.com/@swc/core-darwin-arm64/-/core-darwin-arm64-1.11.16.tgz#3001aaed6ec20e97a75064f09a391f1f2d811614"
@@ -1061,11 +1034,6 @@
   dependencies:
     "@swc/core" "^1.11.11"
 
-"@yr/monotone-cubic-spline@^1.0.3":
-  version "1.0.3"
-  resolved "https://registry.npmjs.org/@yr/monotone-cubic-spline/-/monotone-cubic-spline-1.0.3.tgz"
-  integrity sha512-FQXkOta0XBSUPHndIKON2Y9JeQz5ZeMqLYZVVK93FliNBFm7LNMIZmY6FrMEB9XPcDbE2bekMbZD6kzDkxwYjA==
-
 acorn-jsx@^5.3.2:
   version "5.3.2"
   resolved "https://registry.npmjs.org/acorn-jsx/-/acorn-jsx-5.3.2.tgz"
@@ -1098,17 +1066,10 @@ ansi-styles@^4.1.0:
   dependencies:
     color-convert "^2.0.1"
 
-apexcharts@^4.5.0:
-  version "4.5.0"
-  resolved "https://registry.npmjs.org/apexcharts/-/apexcharts-4.5.0.tgz"
-  integrity sha512-E7ZkrVqPNBUWy/Rmg8DEIqHNBmElzICE/oxOX5Ekvs2ICQUOK/VkEkMH09JGJu+O/EA0NL31hxlmF+wrwrSLaQ==
-  dependencies:
-    "@svgdotjs/svg.draggable.js" "^3.0.4"
-    "@svgdotjs/svg.filter.js" "^3.0.8"
-    "@svgdotjs/svg.js" "^3.2.4"
-    "@svgdotjs/svg.resize.js" "^2.0.2"
-    "@svgdotjs/svg.select.js" "^4.0.1"
-    "@yr/monotone-cubic-spline" "^1.0.3"
+apexcharts@^5.10.4:
+  version "5.10.4"
+  resolved "https://registry.yarnpkg.com/apexcharts/-/apexcharts-5.10.4.tgz#79c9a05ab40b069f33873a1859de6cb0882ccf0e"
+  integrity sha512-gt0VUqZ2+mr25ScbUcKZgJr96jKYm4vjOcxEWCEh/E5F4dWqhyo3dBhPRvNNnkKiWxkMd2cBwj3ZYH3rK39fkA==
 
 argparse@^2.0.1:
   version "2.0.1"
