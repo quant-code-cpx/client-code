@@ -30,6 +30,9 @@ export const FactorLibraryPage = lazy(() => import('src/pages/factor-library'));
 export const FactorDetailPage = lazy(() => import('src/pages/factor-detail'));
 export const FactorCorrelationPage = lazy(() => import('src/pages/factor-correlation'));
 export const FactorScreeningPage = lazy(() => import('src/pages/factor-screening'));
+export const BacktestWorkbenchPage = lazy(() => import('src/pages/backtest-workbench'));
+export const BacktestRunListPage = lazy(() => import('src/pages/backtest-runs'));
+export const BacktestRunDetailPage = lazy(() => import('src/pages/backtest-run-detail'));
 
 const renderFallback = () => (
   <Box
@@ -78,6 +81,9 @@ export const routesSection: RouteObject[] = [
       { path: 'factor/detail/:name', element: <FactorDetailPage /> },
       { path: 'factor/correlation', element: <FactorCorrelationPage /> },
       { path: 'factor/screening', element: <FactorScreeningPage /> },
+      { path: 'backtest', element: <BacktestWorkbenchPage /> },
+      { path: 'backtest/runs', element: <BacktestRunListPage /> },
+      { path: 'backtest/runs/:runId', element: <BacktestRunDetailPage /> },
     ],
   },
   {
