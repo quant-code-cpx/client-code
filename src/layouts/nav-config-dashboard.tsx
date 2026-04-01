@@ -64,6 +64,23 @@ export const navData = [
     ],
   },
   {
+    title: '回测',
+    path: '/backtest',
+    icon: <Iconify icon="solar:playback-speed-bold" width={24} />,
+    children: [
+      {
+        title: '回测工作台',
+        path: '/backtest',
+        icon: <Iconify icon="solar:widget-bold" width={24} />,
+      },
+      {
+        title: '任务历史',
+        path: '/backtest/runs',
+        icon: <Iconify icon="solar:history-bold" width={24} />,
+      },
+    ],
+  },
+  {
     title: '用户管理',
     path: '/user-manage',
     icon: icon('ic-user'),
