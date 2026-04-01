@@ -2,6 +2,9 @@
   "compilerOptions": {
     /* Bundler */
     "baseUrl": ".",
+    "paths": {
+      "src/*": ["src/*"]
+    },
     "module": "ESNext",
     "jsx": "react-jsx",
     "allowJs": true,
@@ -24,9 +27,6 @@
   },
   "include": ["src"],
   "exclude": ["node_modules"],
-  "paths": {
-    "src/*": ["src/*"]
-  },
   "references": [
     {
       "path": "./tsconfig.node.json"

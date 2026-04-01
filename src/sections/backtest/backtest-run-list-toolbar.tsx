@@ -1,9 +1,9 @@
 import Box from '@mui/material/Box';
 import Select from '@mui/material/Select';
 import Button from '@mui/material/Button';
+import Toolbar from '@mui/material/Toolbar';
 import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
-import Toolbar from '@mui/material/Toolbar';
 import InputLabel from '@mui/material/InputLabel';
 import FormControl from '@mui/material/FormControl';
 import ToggleButton from '@mui/material/ToggleButton';
@@ -90,15 +90,21 @@ export function BacktestRunListToolbar({
 
       <ToggleButtonGroup
         value={filter.dateRange}
-        exclusive={true}
+        exclusive
         size="small"
         onChange={(_, v) => {
           if (v) set({ dateRange: v as '7d' | '30d' | 'all' });
         }}
       >
-        <ToggleButton value="7d" sx={{ px: 2 }}>近7天</ToggleButton>
-        <ToggleButton value="30d" sx={{ px: 2 }}>近30天</ToggleButton>
-        <ToggleButton value="all" sx={{ px: 2 }}>全部</ToggleButton>
+        <ToggleButton value="7d" sx={{ px: 2 }}>
+          近7天
+        </ToggleButton>
+        <ToggleButton value="30d" sx={{ px: 2 }}>
+          近30天
+        </ToggleButton>
+        <ToggleButton value="all" sx={{ px: 2 }}>
+          全部
+        </ToggleButton>
       </ToggleButtonGroup>
 
       <Box sx={{ flex: 1 }} />

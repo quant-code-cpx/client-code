@@ -1,6 +1,5 @@
 import type { BacktestRebalanceLogItem } from 'src/api/backtest';
 
-import Box from '@mui/material/Box';
 import Table from '@mui/material/Table';
 import TableRow from '@mui/material/TableRow';
 import TableBody from '@mui/material/TableBody';
@@ -38,7 +37,7 @@ export function BacktestRebalanceLogTable({ items, loading }: BacktestRebalanceL
 
           <TableBody>
             {items.map((item, idx) => (
-              <TableRow key={idx} hover={true}>
+              <TableRow key={idx} hover>
                 <TableCell>
                   <Typography variant="caption">{item.signalDate}</Typography>
                 </TableCell>

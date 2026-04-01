@@ -45,13 +45,15 @@ export function BacktestEquityChart({ points }: BacktestEquityChartProps) {
           净值曲线
         </Typography>
         {points.length === 0 ? (
-          <Box sx={{ height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Box
+            sx={{ height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          >
             <Typography variant="body2" sx={{ color: 'text.secondary' }}>
               暂无净值数据
             </Typography>
           </Box>
         ) : (
-          <Chart type="area" series={series} options={chartOptions} height={300} />
+          <Chart type="area" series={series} options={chartOptions} sx={{ height: 300 }} />
         )}
       </CardContent>
     </Card>

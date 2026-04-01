@@ -1,3 +1,5 @@
+import type { To, NavigateOptions } from 'react-router';
+
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router';
 
@@ -11,8 +13,9 @@ export function useRouter() {
       back: () => navigate(-1),
       forward: () => navigate(1),
       refresh: () => navigate(0),
-      push: (href: string) => navigate(href),
-      replace: (href: string) => navigate(href, { replace: true }),
+      push: (href: To, options?: NavigateOptions) => navigate(href, options),
+      replace: (href: To, options?: NavigateOptions) =>
+        navigate(href, { ...options, replace: true }),
     }),
     [navigate]
   );

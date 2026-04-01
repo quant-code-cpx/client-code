@@ -1,10 +1,9 @@
 import type { ValidateBacktestRunResponse } from 'src/api/backtest';
-import type { BacktestRunForm } from './types';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
-import Divider from '@mui/material/Divider';
 import Button from '@mui/material/Button';
+import Divider from '@mui/material/Divider';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -13,7 +12,14 @@ import { fNumber } from 'src/utils/format-number';
 
 import { Iconify } from 'src/components/iconify';
 
-import { BENCHMARK_OPTIONS, UNIVERSE_OPTIONS, REBALANCE_FREQUENCY_OPTIONS, STRATEGY_TYPE_LABEL } from './constants';
+import {
+  UNIVERSE_OPTIONS,
+  BENCHMARK_OPTIONS,
+  STRATEGY_TYPE_LABEL,
+  REBALANCE_FREQUENCY_OPTIONS,
+} from './constants';
+
+import type { BacktestRunForm } from './types';
 
 // ----------------------------------------------------------------------
 
@@ -79,17 +85,14 @@ export function BacktestSubmitSummary({
         <Divider />
         <SummaryRow label="初始资金" value={`¥ ${fNumber(form.initialCapital)}`} />
         <Divider />
-        <SummaryRow
-          label="手续费率"
-          value={`${(form.commissionRate * 10000).toFixed(1)} bps`}
-        />
+        <SummaryRow label="手续费率" value={`${(form.commissionRate * 10000).toFixed(1)} bps`} />
         <Divider />
         <SummaryRow label="滑点" value={`${form.slippageBps} bps`} />
 
         <Box sx={{ mt: 3, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
           <Button
             variant="outlined"
-            fullWidth={true}
+            fullWidth
             onClick={onValidate}
             disabled={validating || submitting}
             startIcon={
@@ -105,7 +108,7 @@ export function BacktestSubmitSummary({
 
           <Button
             variant="contained"
-            fullWidth={true}
+            fullWidth
             onClick={onSubmit}
             disabled={!canSubmit || submitting}
             startIcon={

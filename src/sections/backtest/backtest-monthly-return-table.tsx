@@ -1,9 +1,7 @@
 import type { BacktestEquityPoint } from 'src/api/backtest';
 
 import { useMemo } from 'react';
-import { useTheme } from '@mui/material/styles';
 
-import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Table from '@mui/material/Table';
 import TableRow from '@mui/material/TableRow';
@@ -18,7 +16,20 @@ import { Scrollbar } from 'src/components/scrollbar';
 
 // ----------------------------------------------------------------------
 
-const MONTH_LABELS = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
+const MONTH_LABELS = [
+  '1月',
+  '2月',
+  '3月',
+  '4月',
+  '5月',
+  '6月',
+  '7月',
+  '8月',
+  '9月',
+  '10月',
+  '11月',
+  '12月',
+];
 
 interface BacktestMonthlyReturnTableProps {
   points: BacktestEquityPoint[];
@@ -52,7 +63,6 @@ function buildMonthlyReturns(points: BacktestEquityPoint[]): MonthlyData {
 }
 
 export function BacktestMonthlyReturnTable({ points }: BacktestMonthlyReturnTableProps) {
-  const theme = useTheme();
   const monthlyData = useMemo(() => buildMonthlyReturns(points), [points]);
   const years = Object.keys(monthlyData).sort();
 
@@ -116,7 +126,8 @@ export function BacktestMonthlyReturnTable({ points }: BacktestMonthlyReturnTabl
                                 fontWeight: 600,
                               }}
                             >
-                              {val >= 0 ? '+' : ''}{(val * 100).toFixed(1)}%
+                              {val >= 0 ? '+' : ''}
+                              {(val * 100).toFixed(1)}%
                             </Typography>
                           ) : (
                             <Typography variant="caption" sx={{ color: 'text.disabled' }}>

@@ -2,8 +2,8 @@ import type { BacktestRunDetailResponse } from 'src/api/backtest';
 
 import Box from '@mui/material/Box';
 import Alert from '@mui/material/Alert';
-import LinearProgress from '@mui/material/LinearProgress';
 import Typography from '@mui/material/Typography';
+import LinearProgress from '@mui/material/LinearProgress';
 
 // ----------------------------------------------------------------------
 

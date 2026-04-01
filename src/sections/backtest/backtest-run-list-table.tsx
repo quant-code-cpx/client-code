@@ -90,7 +90,7 @@ export function BacktestRunListTable({
                     </TableRow>
                   ))
                 : items.map((item) => (
-                    <TableRow key={item.runId} hover={true}>
+                    <TableRow key={item.runId} hover>
                       <TableCell>
                         <Typography variant="body2" sx={{ fontWeight: 500 }}>
                           {item.name ?? '未命名'}

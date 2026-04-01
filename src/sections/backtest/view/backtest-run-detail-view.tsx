@@ -1,7 +1,7 @@
-import type { BacktestRunDetailResponse, BacktestEquityPoint, BacktestTradeItem, BacktestPositionItem, BacktestRebalanceLogItem } from 'src/api/backtest';
+import type { BacktestTradeItem, BacktestEquityPoint, BacktestPositionItem, BacktestRebalanceLogItem, BacktestRunDetailResponse } from 'src/api/backtest';
 
-import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
+import { useState, useEffect, useCallback } from 'react';
 
 import Tab from '@mui/material/Tab';
 import Box from '@mui/material/Box';
@@ -16,27 +16,27 @@ import CardContent from '@mui/material/CardContent';
 
 import { useRouter } from 'src/routes/hooks';
 
+import { DashboardContent } from 'src/layouts/dashboard';
 import {
+  cancelRun,
   getRunDetail,
   getRunEquity,
   getRunTrades,
   getRunPositions,
   getRunRebalanceLogs,
-  cancelRun,
 } from 'src/api/backtest';
-import { DashboardContent } from 'src/layouts/dashboard';
 
-import { BacktestDetailHeader } from '../backtest-detail-header';
-import { BacktestProgressBanner } from '../backtest-progress-banner';
+import { useBacktestJob } from '../hooks/use-backtest-job';
 import { BacktestMetricsGrid } from '../backtest-metrics-grid';
 import { BacktestEquityChart } from '../backtest-equity-chart';
-import { BacktestDrawdownChart } from '../backtest-drawdown-chart';
-import { BacktestMonthlyReturnTable } from '../backtest-monthly-return-table';
 import { BacktestTradesTable } from '../backtest-trades-table';
+import { BacktestDetailHeader } from '../backtest-detail-header';
+import { BacktestConfigDrawer } from '../backtest-config-drawer';
+import { BacktestDrawdownChart } from '../backtest-drawdown-chart';
+import { BacktestProgressBanner } from '../backtest-progress-banner';
 import { BacktestPositionsTable } from '../backtest-positions-table';
 import { BacktestRebalanceLogTable } from '../backtest-rebalance-log-table';
-import { BacktestConfigDrawer } from '../backtest-config-drawer';
-import { useBacktestJob } from '../hooks/use-backtest-job';
+import { BacktestMonthlyReturnTable } from '../backtest-monthly-return-table';
 
 // ----------------------------------------------------------------------
 

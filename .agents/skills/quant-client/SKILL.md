@@ -176,6 +176,14 @@ import { Iconify } from 'src/components/iconify';
 // Icon prefix conventions: solar:*, eva:*, mdi:*
 ```
 
+当遇到 icon 类的类型错误或缺失（例如编译/运行时提示某个 Iconify 图标不存在或类型不匹配）时，参考 https://docs.minimals.cc/icons/ 中的说明补充图标定义。具体做法：
+
+- 将缺失或自定义的 SVG body 添加到本地图标集合（`src/components/iconify/icon-sets.ts`）中，使用 `"前缀:名称"` 作为键（例如 `"solar:home-bold"`）。
+- 在 `src/components/iconify/register-icons.ts` 中确保已将对应集合通过 Iconify 的 `addCollection`/注册流程注册到运行时。
+- 优先在本地注册缺失图标并恢复原有图标名，不要通过替换为其它图标来规避问题，以保持 UI 语义一致。
+
+本项目通常把 Iconify 图标局部存放并集中注册，遵循以上步骤可以快速修正 icon 相关的类型/运行错误。
+
 ### SvgColor (for nav icons from public/assets)
 
 ```tsx

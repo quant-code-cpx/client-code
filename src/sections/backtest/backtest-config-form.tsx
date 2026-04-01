@@ -1,5 +1,3 @@
-import type { BacktestRunForm } from './types';
-
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Grid from '@mui/material/Grid';
@@ -12,18 +10,20 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import InputLabel from '@mui/material/InputLabel';
 import FormControl from '@mui/material/FormControl';
+import CardContent from '@mui/material/CardContent';
 import ToggleButton from '@mui/material/ToggleButton';
 import FormHelperText from '@mui/material/FormHelperText';
-import CardContent from '@mui/material/CardContent';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
 import {
-  BENCHMARK_OPTIONS,
   UNIVERSE_OPTIONS,
-  REBALANCE_FREQUENCY_OPTIONS,
+  BENCHMARK_OPTIONS,
   PRICE_MODE_OPTIONS,
+  REBALANCE_FREQUENCY_OPTIONS,
 } from './constants';
+
+import type { BacktestRunForm } from './types';
 
 // ----------------------------------------------------------------------
 
@@ -46,7 +46,7 @@ export function BacktestConfigForm({ form, onChange }: BacktestConfigFormProps) 
             <TextField
               label="回测名称"
               placeholder="例：沪深300 均线择时 2020-2024"
-              fullWidth={true}
+              fullWidth
               size="small"
               value={form.name}
               onChange={(e) => onChange({ name: e.target.value })}
@@ -58,7 +58,7 @@ export function BacktestConfigForm({ form, onChange }: BacktestConfigFormProps) 
             <TextField
               label="起始日期"
               type="date"
-              fullWidth={true}
+              fullWidth
               size="small"
               value={form.startDate}
               onChange={(e) => onChange({ startDate: e.target.value })}
@@ -70,7 +70,7 @@ export function BacktestConfigForm({ form, onChange }: BacktestConfigFormProps) 
             <TextField
               label="结束日期"
               type="date"
-              fullWidth={true}
+              fullWidth
               size="small"
               value={form.endDate}
               onChange={(e) => onChange({ endDate: e.target.value })}
@@ -82,7 +82,7 @@ export function BacktestConfigForm({ form, onChange }: BacktestConfigFormProps) 
             <TextField
               label="初始资金（元）"
               type="number"
-              fullWidth={true}
+              fullWidth
               size="small"
               value={form.initialCapital}
               onChange={(e) => onChange({ initialCapital: Number(e.target.value) })}
@@ -91,7 +91,7 @@ export function BacktestConfigForm({ form, onChange }: BacktestConfigFormProps) 
           </Grid>
 
           <Grid size={{ xs: 12, sm: 6 }}>
-            <FormControl fullWidth={true} size="small">
+            <FormControl fullWidth size="small">
               <InputLabel>基准指数</InputLabel>
               <Select
                 label="基准指数"
@@ -117,7 +117,7 @@ export function BacktestConfigForm({ form, onChange }: BacktestConfigFormProps) 
 
         <Grid container spacing={2}>
           <Grid size={{ xs: 12 }}>
-            <FormControl fullWidth={true} size="small">
+            <FormControl fullWidth size="small">
               <InputLabel>股票池范围</InputLabel>
               <Select
                 label="股票池范围"
@@ -149,7 +149,7 @@ export function BacktestConfigForm({ form, onChange }: BacktestConfigFormProps) 
             </Typography>
             <ToggleButtonGroup
               value={form.rebalanceFrequency}
-              exclusive={true}
+              exclusive
               size="small"
               onChange={(_, v) => {
                 if (v) onChange({ rebalanceFrequency: v as string });
@@ -169,7 +169,7 @@ export function BacktestConfigForm({ form, onChange }: BacktestConfigFormProps) 
             </Typography>
             <ToggleButtonGroup
               value={form.priceMode}
-              exclusive={true}
+              exclusive
               size="small"
               onChange={(_, v) => {
                 if (v) onChange({ priceMode: v as string });
@@ -216,7 +216,7 @@ export function BacktestConfigForm({ form, onChange }: BacktestConfigFormProps) 
             <TextField
               label="手续费率"
               type="number"
-              fullWidth={true}
+              fullWidth
               size="small"
               value={form.commissionRate}
               onChange={(e) => onChange({ commissionRate: Number(e.target.value) })}
@@ -229,7 +229,7 @@ export function BacktestConfigForm({ form, onChange }: BacktestConfigFormProps) 
             <TextField
               label="印花税率"
               type="number"
-              fullWidth={true}
+              fullWidth
               size="small"
               value={form.stampDutyRate}
               onChange={(e) => onChange({ stampDutyRate: Number(e.target.value) })}
@@ -242,7 +242,7 @@ export function BacktestConfigForm({ form, onChange }: BacktestConfigFormProps) 
             <TextField
               label="最低手续费（元）"
               type="number"
-              fullWidth={true}
+              fullWidth
               size="small"
               value={form.minCommission}
               onChange={(e) => onChange({ minCommission: Number(e.target.value) })}
@@ -283,7 +283,7 @@ export function BacktestConfigForm({ form, onChange }: BacktestConfigFormProps) 
             <TextField
               label="最大持仓数"
               type="number"
-              fullWidth={true}
+              fullWidth
               size="small"
               value={form.maxPositions}
               onChange={(e) => onChange({ maxPositions: Number(e.target.value) })}
@@ -311,7 +311,7 @@ export function BacktestConfigForm({ form, onChange }: BacktestConfigFormProps) 
             <TextField
               label="最小上市天数"
               type="number"
-              fullWidth={true}
+              fullWidth
               size="small"
               value={form.minDaysListed}
               onChange={(e) => onChange({ minDaysListed: Number(e.target.value) })}

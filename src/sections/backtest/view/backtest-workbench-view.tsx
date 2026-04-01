@@ -1,5 +1,4 @@
 import type { StrategyTemplate, ValidateBacktestRunResponse } from 'src/api/backtest';
-import type { BacktestRunForm } from '../types';
 
 import { useState, useEffect, useCallback } from 'react';
 
@@ -11,21 +10,23 @@ import Typography from '@mui/material/Typography';
 
 import { useRouter } from 'src/routes/hooks';
 
-import { getStrategyTemplates, validateRun, createRun } from 'src/api/backtest';
 import { DashboardContent } from 'src/layouts/dashboard';
+import { createRun, validateRun, getStrategyTemplates } from 'src/api/backtest';
 
-import { BacktestTemplateCards } from '../backtest-template-cards';
 import { BacktestConfigForm } from '../backtest-config-form';
-import { BacktestStrategyConfigPanel } from '../backtest-strategy-config-panel';
+import { BacktestTemplateCards } from '../backtest-template-cards';
 import { BacktestValidatePanel } from '../backtest-validate-panel';
 import { BacktestSubmitSummary } from '../backtest-submit-summary';
+import { BacktestStrategyConfigPanel } from '../backtest-strategy-config-panel';
 import {
   DEFAULT_FORM,
   DEFAULT_MA_CONFIG,
-  DEFAULT_SCREENING_CONFIG,
   DEFAULT_FACTOR_CONFIG,
+  DEFAULT_SCREENING_CONFIG,
   DEFAULT_CUSTOM_POOL_CONFIG,
 } from '../constants';
+
+import type { BacktestRunForm } from '../types';
 
 // ----------------------------------------------------------------------
 
@@ -34,6 +35,11 @@ const DEFAULT_STRATEGY_CONFIGS: Record<string, Record<string, unknown>> = {
   SCREENING_ROTATION: DEFAULT_SCREENING_CONFIG as unknown as Record<string, unknown>,
   FACTOR_RANKING: DEFAULT_FACTOR_CONFIG as unknown as Record<string, unknown>,
   CUSTOM_POOL_REBALANCE: DEFAULT_CUSTOM_POOL_CONFIG as unknown as Record<string, unknown>,
+};
+
+type BacktestWorkbenchState = Partial<BacktestRunForm> & {
+  templateId?: string;
+  strategyType?: string;
 };
 
 // ----------------------------------------------------------------------
@@ -57,10 +63,17 @@ export function BacktestWorkbenchView() {
 
   // Prefill form from router state (for "copy & re-run" scenario)
   useEffect(() => {
-    const state = window.history.state?.usr as Partial<BacktestRunForm & { templateId: string }>;
-    if (state?.strategyType) {
-      setSelectedTemplateId(state.templateId ?? 'SCREENING_ROTATION');
-      setForm((prev) => ({ ...prev, ...state }));
+    const state = window.history.state?.usr as BacktestWorkbenchState | undefined;
+    if (state?.strategyType || state?.templateId) {
+      const { templateId, strategyType, ...formState } = state;
+      const nextTemplateId = templateId ?? strategyType ?? 'SCREENING_ROTATION';
+
+      setSelectedTemplateId(nextTemplateId);
+      setForm((prev) => ({
+        ...prev,
+        strategyConfig: DEFAULT_STRATEGY_CONFIGS[nextTemplateId] ?? prev.strategyConfig,
+        ...formState,
+      }));
     }
   }, []);
 
@@ -73,17 +86,14 @@ export function BacktestWorkbenchView() {
       .finally(() => setLoadingTemplates(false));
   }, []);
 
-  const handleTemplateSelect = useCallback(
-    (templateId: string) => {
-      setSelectedTemplateId(templateId);
-      setValidation(null);
-      setForm((prev) => ({
-        ...prev,
-        strategyConfig: DEFAULT_STRATEGY_CONFIGS[templateId] ?? {},
-      }));
-    },
-    []
-  );
+  const handleTemplateSelect = useCallback((templateId: string) => {
+    setSelectedTemplateId(templateId);
+    setValidation(null);
+    setForm((prev) => ({
+      ...prev,
+      strategyConfig: DEFAULT_STRATEGY_CONFIGS[templateId] ?? {},
+    }));
+  }, []);
 
   const handleFormChange = useCallback((updates: Partial<BacktestRunForm>) => {
     setForm((prev) => ({ ...prev, ...updates }));
@@ -127,8 +137,7 @@ export function BacktestWorkbenchView() {
         endDate: form.endDate,
         benchmarkTsCode: form.benchmarkTsCode,
         universe: form.universe !== 'CUSTOM' ? form.universe : undefined,
-        customUniverseTsCodes:
-          form.universe === 'CUSTOM' ? form.customUniverseTsCodes : undefined,
+        customUniverseTsCodes: form.universe === 'CUSTOM' ? form.customUniverseTsCodes : undefined,
         initialCapital: form.initialCapital,
         rebalanceFrequency: form.rebalanceFrequency,
         priceMode: form.priceMode,
@@ -236,7 +245,9 @@ export function BacktestWorkbenchView() {
 
         {/* Right: validate + submit */}
         <Grid size={{ xs: 12, md: 5 }}>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, position: 'sticky', top: 80 }}>
+          <Box
+            sx={{ display: 'flex', flexDirection: 'column', gap: 3, position: 'sticky', top: 80 }}
+          >
             <BacktestValidatePanel validation={validation} loading={validating} />
             <BacktestSubmitSummary
               form={form}

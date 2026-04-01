@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useRef, useEffect } from 'react';
 
 import { getSocket } from 'src/lib/socket';
 
@@ -34,7 +34,7 @@ export function useBacktestJob(
   optionsRef.current = options;
 
   useEffect(() => {
-    if (!jobId) return;
+    if (!jobId) return undefined;
 
     const socket = getSocket();
     socket.connect();

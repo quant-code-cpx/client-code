@@ -5,7 +5,7 @@ import Grid from '@mui/material/Grid';
 import Divider from '@mui/material/Divider';
 import Typography from '@mui/material/Typography';
 
-import { BENCHMARK_OPTIONS, UNIVERSE_OPTIONS, REBALANCE_FREQUENCY_OPTIONS, PRICE_MODE_OPTIONS, STRATEGY_TYPE_LABEL } from './constants';
+import { UNIVERSE_OPTIONS, BENCHMARK_OPTIONS, PRICE_MODE_OPTIONS, STRATEGY_TYPE_LABEL, REBALANCE_FREQUENCY_OPTIONS } from './constants';
 
 // ----------------------------------------------------------------------
 

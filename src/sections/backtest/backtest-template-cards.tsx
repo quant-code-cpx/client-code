@@ -3,20 +3,20 @@ import type { StrategyTemplate } from 'src/api/backtest';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Grid from '@mui/material/Grid';
-import Chip from '@mui/material/Chip';
 import Typography from '@mui/material/Typography';
 import CardActionArea from '@mui/material/CardActionArea';
 
+import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
 
 // ----------------------------------------------------------------------
 
-const CATEGORY_ICONS: Record<string, string> = {
+const CATEGORY_ICONS = {
   TECHNICAL: 'solar:chart-bold',
   SCREENING: 'solar:filter-bold',
   FACTOR: 'solar:library-bold',
   CUSTOM: 'solar:widget-bold',
-};
+} as const;
 
 const CATEGORY_LABELS: Record<string, string> = {
   TECHNICAL: '技术',
@@ -48,24 +48,31 @@ export function BacktestTemplateCards({
               sx={{
                 height: '100%',
                 border: (theme) =>
-                  selected
-                    ? `2px solid ${theme.palette.primary.main}`
-                    : '2px solid transparent',
+                  selected ? `2px solid ${theme.palette.primary.main}` : '2px solid transparent',
                 boxShadow: selected ? 6 : 1,
                 transition: 'all 0.2s',
               }}
             >
               <CardActionArea
                 onClick={() => onSelect(tmpl.id)}
-                sx={{ p: 2.5, height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}
+                sx={{
+                  p: 2.5,
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'flex-start',
+                }}
               >
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
                   <Iconify
-                    icon={CATEGORY_ICONS[tmpl.category] ?? 'solar:widget-bold'}
+                    icon={CATEGORY_ICONS[tmpl.category]}
                     width={24}
                     sx={{ color: selected ? 'primary.main' : 'text.secondary' }}
                   />
-                  <Typography variant="subtitle2" sx={{ color: selected ? 'primary.main' : 'text.primary' }}>
+                  <Typography
+                    variant="subtitle2"
+                    sx={{ color: selected ? 'primary.main' : 'text.primary' }}
+                  >
                     {tmpl.name}
                   </Typography>
                 </Box>
@@ -77,12 +84,9 @@ export function BacktestTemplateCards({
                   {tmpl.description}
                 </Typography>
 
-                <Chip
-                  label={CATEGORY_LABELS[tmpl.category] ?? tmpl.category}
-                  size="small"
-                  variant="soft"
-                  color={selected ? 'primary' : 'default'}
-                />
+                <Label color={selected ? 'primary' : 'default'} variant="soft">
+                  {CATEGORY_LABELS[tmpl.category] ?? tmpl.category}
+                </Label>
               </CardActionArea>
             </Card>
           </Grid>

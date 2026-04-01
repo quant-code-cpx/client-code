@@ -1,5 +1,4 @@
 import type { BacktestRunListItem, BacktestRunListResponse } from 'src/api/backtest';
-import type { RunListFilter } from '../backtest-run-list-toolbar';
 
 import { useState, useEffect, useCallback } from 'react';
 
@@ -13,8 +12,10 @@ import { useRouter } from 'src/routes/hooks';
 import { listRuns } from 'src/api/backtest';
 import { DashboardContent } from 'src/layouts/dashboard';
 
-import { BacktestRunListToolbar } from '../backtest-run-list-toolbar';
 import { BacktestRunListTable } from '../backtest-run-list-table';
+import { BacktestRunListToolbar } from '../backtest-run-list-toolbar';
+
+import type { RunListFilter } from '../backtest-run-list-toolbar';
 
 // ----------------------------------------------------------------------
 

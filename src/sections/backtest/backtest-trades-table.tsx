@@ -1,7 +1,6 @@
 import type { BacktestTradeItem } from 'src/api/backtest';
 
 import Box from '@mui/material/Box';
-import Chip from '@mui/material/Chip';
 import Table from '@mui/material/Table';
 import TableRow from '@mui/material/TableRow';
 import TableBody from '@mui/material/TableBody';
@@ -13,6 +12,7 @@ import TablePagination from '@mui/material/TablePagination';
 
 import { fNumber } from 'src/utils/format-number';
 
+import { Label } from 'src/components/label';
 import { Scrollbar } from 'src/components/scrollbar';
 
 // ----------------------------------------------------------------------
@@ -56,7 +56,7 @@ export function BacktestTradesTable({
             </TableHead>
             <TableBody>
               {items.map((item, idx) => (
-                <TableRow key={idx} hover={true}>
+                <TableRow key={idx} hover>
                   <TableCell>
                     <Typography variant="caption">{item.tradeDate}</Typography>
                   </TableCell>
@@ -67,12 +67,9 @@ export function BacktestTradesTable({
                     <Typography variant="caption">{item.name ?? '-'}</Typography>
                   </TableCell>
                   <TableCell>
-                    <Chip
-                      label={item.side === 'BUY' ? '买入' : '卖出'}
-                      size="small"
-                      color={item.side === 'BUY' ? 'error' : 'success'}
-                      variant="soft"
-                    />
+                    <Label color={item.side === 'BUY' ? 'error' : 'success'} variant="soft">
+                      {item.side === 'BUY' ? '买入' : '卖出'}
+                    </Label>
                   </TableCell>
                   <TableCell align="right">
                     <Typography variant="caption">{item.price.toFixed(2)}</Typography>

@@ -1,34 +1,33 @@
-import type { BacktestRunForm, MaCrossConfig, ScreeningRotationConfig, FactorRankingConfig, CustomPoolConfig } from './types';
-
 import { useState, useEffect } from 'react';
 
-import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Grid from '@mui/material/Grid';
+import Table from '@mui/material/Table';
 import Select from '@mui/material/Select';
 import Switch from '@mui/material/Switch';
 import MenuItem from '@mui/material/MenuItem';
-import TextField from '@mui/material/TextField';
-import Typography from '@mui/material/Typography';
-import Autocomplete from '@mui/material/Autocomplete';
-import InputLabel from '@mui/material/InputLabel';
-import FormControl from '@mui/material/FormControl';
-import ToggleButton from '@mui/material/ToggleButton';
-import CardContent from '@mui/material/CardContent';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
-import Table from '@mui/material/Table';
 import TableRow from '@mui/material/TableRow';
+import TextField from '@mui/material/TextField';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
+import Typography from '@mui/material/Typography';
+import InputLabel from '@mui/material/InputLabel';
 import IconButton from '@mui/material/IconButton';
+import FormControl from '@mui/material/FormControl';
+import CardContent from '@mui/material/CardContent';
+import Autocomplete from '@mui/material/Autocomplete';
+import ToggleButton from '@mui/material/ToggleButton';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
 import { stockApi } from 'src/api/stock';
 
 import { Iconify } from 'src/components/iconify';
 
 import { RANK_BY_OPTIONS, WEIGHT_MODE_OPTIONS } from './constants';
+
+import type { MaCrossConfig, BacktestRunForm, CustomPoolConfig, FactorRankingConfig, ScreeningRotationConfig } from './types';
 
 // ----------------------------------------------------------------------
 
@@ -110,7 +109,7 @@ function MaCrossPanel({
         <TextField
           label="短均线周期"
           type="number"
-          fullWidth={true}
+          fullWidth
           size="small"
           value={config.shortPeriod}
           onChange={(e) => onChange({ ...config, shortPeriod: Number(e.target.value) })}
@@ -122,7 +121,7 @@ function MaCrossPanel({
         <TextField
           label="长均线周期"
           type="number"
-          fullWidth={true}
+          fullWidth
           size="small"
           value={config.longPeriod}
           onChange={(e) => onChange({ ...config, longPeriod: Number(e.target.value) })}
@@ -158,7 +157,7 @@ function ScreeningRotationPanel({
   return (
     <Grid container spacing={2}>
       <Grid size={{ xs: 12, sm: 6 }}>
-        <FormControl fullWidth={true} size="small">
+        <FormControl fullWidth size="small">
           <InputLabel>排序字段</InputLabel>
           <Select
             label="排序字段"
@@ -180,7 +179,7 @@ function ScreeningRotationPanel({
         </Typography>
         <ToggleButtonGroup
           value={config.rankOrder}
-          exclusive={true}
+          exclusive
           size="small"
           onChange={(_, v) => {
             if (v) onChange({ ...config, rankOrder: v as 'asc' | 'desc' });
@@ -195,7 +194,7 @@ function ScreeningRotationPanel({
         <TextField
           label="Top N"
           type="number"
-          fullWidth={true}
+          fullWidth
           size="small"
           value={config.topN}
           onChange={(e) => onChange({ ...config, topN: Number(e.target.value) })}
@@ -204,7 +203,7 @@ function ScreeningRotationPanel({
       </Grid>
 
       <Grid size={{ xs: 12, sm: 6 }}>
-        <FormControl fullWidth={true} size="small">
+        <FormControl fullWidth size="small">
           <InputLabel>权重模式</InputLabel>
           <Select
             label="权重模式"
@@ -232,7 +231,7 @@ function ScreeningRotationPanel({
         <TextField
           label="最小 ROE (%)"
           type="number"
-          fullWidth={true}
+          fullWidth
           size="small"
           value={config.minRoe ?? ''}
           onChange={(e) =>
@@ -245,7 +244,7 @@ function ScreeningRotationPanel({
         <TextField
           label="最大 PE(TTM)"
           type="number"
-          fullWidth={true}
+          fullWidth
           size="small"
           value={config.maxPe ?? ''}
           onChange={(e) =>
@@ -292,7 +291,7 @@ function FactorRankingPanel({
         </Typography>
         <ToggleButtonGroup
           value={config.rankOrder}
-          exclusive={true}
+          exclusive
           size="small"
           onChange={(_, v) => {
             if (v) onChange({ ...config, rankOrder: v as 'asc' | 'desc' });
@@ -307,7 +306,7 @@ function FactorRankingPanel({
         <TextField
           label="Top N"
           type="number"
-          fullWidth={true}
+          fullWidth
           size="small"
           value={config.topN}
           onChange={(e) => onChange({ ...config, topN: Number(e.target.value) })}
@@ -325,7 +324,7 @@ function FactorRankingPanel({
         <TextField
           label="最小市值（亿元）"
           type="number"
-          fullWidth={true}
+          fullWidth
           size="small"
           value={config.minMv ?? ''}
           onChange={(e) =>
@@ -338,7 +337,7 @@ function FactorRankingPanel({
         <TextField
           label="最小换手率 (%)"
           type="number"
-          fullWidth={true}
+          fullWidth
           size="small"
           value={config.minTurnoverRate ?? ''}
           onChange={(e) =>
@@ -354,7 +353,7 @@ function FactorRankingPanel({
         <TextField
           label="最大 PE(TTM)"
           type="number"
-          fullWidth={true}
+          fullWidth
           size="small"
           value={config.maxPe ?? ''}
           onChange={(e) =>
@@ -387,7 +386,7 @@ function CustomPoolPanel({
     <Grid container spacing={2}>
       <Grid size={{ xs: 12 }}>
         <Autocomplete
-          multiple={true}
+          multiple
           options={options}
           loading={loading}
           filterOptions={(x) => x}
@@ -418,7 +417,7 @@ function CustomPoolPanel({
         </Typography>
         <ToggleButtonGroup
           value={config.weightMode}
-          exclusive={true}
+          exclusive
           size="small"
           onChange={(_, v) => {
             if (v) onChange({ ...config, weightMode: v as 'equal' | 'custom' });

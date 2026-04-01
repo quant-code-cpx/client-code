@@ -1,6 +1,5 @@
 import type { BacktestPositionItem } from 'src/api/backtest';
 
-import Box from '@mui/material/Box';
 import Table from '@mui/material/Table';
 import TableRow from '@mui/material/TableRow';
 import TableBody from '@mui/material/TableBody';
@@ -44,7 +43,7 @@ export function BacktestPositionsTable({ items, loading }: BacktestPositionsTabl
               const pnlColor =
                 item.unrealizedPnl >= 0 ? 'error.main' : 'success.main';
               return (
-                <TableRow key={idx} hover={true}>
+                <TableRow key={idx} hover>
                   <TableCell>
                     <Typography variant="caption">{item.tsCode}</Typography>
                   </TableCell>

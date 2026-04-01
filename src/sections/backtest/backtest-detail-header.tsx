@@ -6,8 +6,8 @@ import Typography from '@mui/material/Typography';
 
 import { RouterLink } from 'src/routes/components';
 
-import { Iconify } from 'src/components/iconify';
 import { Label } from 'src/components/label';
+import { Iconify } from 'src/components/iconify';
 
 import { STATUS_COLOR, STATUS_LABEL, STRATEGY_TYPE_LABEL } from './constants';
 
