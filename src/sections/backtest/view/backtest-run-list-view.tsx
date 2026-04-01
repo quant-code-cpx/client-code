@@ -18,16 +18,6 @@ import { BacktestRunListTable } from '../backtest-run-list-table';
 
 // ----------------------------------------------------------------------
 
-function dateRangeSince(range: RunListFilter['dateRange']): string | undefined {
-  if (range === 'all') return undefined;
-  const days = range === '7d' ? 7 : 30;
-  const d = new Date();
-  d.setDate(d.getDate() - days);
-  return d.toISOString();
-}
-
-// ----------------------------------------------------------------------
-
 export function BacktestRunListView() {
   const router = useRouter();
 

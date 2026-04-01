@@ -35,9 +35,9 @@ interface BacktestRunListTableProps {
   onCopy: (item: BacktestRunListItem) => void;
 }
 
-function pctCell(value: number | null, invert?: boolean) {
+function pctCell(value: number | null, isNegativeGood?: boolean) {
   if (value == null) return <Typography variant="body2" sx={{ color: 'text.disabled' }}>-</Typography>;
-  const color = invert
+  const color = isNegativeGood
     ? value < 0 ? 'success.main' : 'error.main'
     : value >= 0 ? 'error.main' : 'success.main';
   return (
