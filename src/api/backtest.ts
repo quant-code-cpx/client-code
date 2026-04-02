@@ -207,7 +207,7 @@ export type BacktestRebalanceLogItem = {
 // ─── API 方法 ────────────────────────────────────
 
 export function getStrategyTemplates() {
-  return apiClient.get<GetStrategyTemplatesResponse>('/api/backtests/strategy-templates');
+  return apiClient.post<GetStrategyTemplatesResponse>('/api/backtests/strategy-templates');
 }
 
 export function validateRun(query: ValidateBacktestRunQuery) {
@@ -225,47 +225,42 @@ export function listRuns(query: {
   strategyType?: string;
   keyword?: string;
 }) {
-  const params = Object.fromEntries(
-    Object.entries(query).filter(([, v]) => v !== undefined && v !== '')
-  ) as Record<string, string>;
-  return apiClient.get<BacktestRunListResponse>(
-    `/api/backtests/runs?${new URLSearchParams(params).toString()}`
-  );
+  return apiClient.post<BacktestRunListResponse>('/api/backtests/runs/list', query);
 }
 
 export function getRunDetail(runId: string) {
-  return apiClient.get<BacktestRunDetailResponse>(`/api/backtests/runs/${runId}`);
+  return apiClient.post<BacktestRunDetailResponse>('/api/backtests/runs/detail', { runId });
 }
 
 export function getRunEquity(runId: string) {
-  return apiClient.get<{ points: BacktestEquityPoint[] }>(`/api/backtests/runs/${runId}/equity`);
+  return apiClient.post<{ points: BacktestEquityPoint[] }>('/api/backtests/runs/equity', { runId });
 }
 
 export function getRunTrades(runId: string, page = 1, pageSize = 50) {
-  return apiClient.get<{
+  return apiClient.post<{
     page: number;
     pageSize: number;
     total: number;
     items: BacktestTradeItem[];
-  }>(`/api/backtests/runs/${runId}/trades?page=${page}&pageSize=${pageSize}`);
+  }>('/api/backtests/runs/trades', { runId, page, pageSize });
 }
 
 export function getRunPositions(runId: string, tradeDate?: string) {
-  const suffix = tradeDate ? `?tradeDate=${tradeDate}` : '';
-  return apiClient.get<BacktestPositionResponse>(
-    `/api/backtests/runs/${runId}/positions${suffix}`
+  return apiClient.post<BacktestPositionResponse>(
+    '/api/backtests/runs/positions',
+    tradeDate ? { runId, tradeDate } : { runId }
   );
 }
 
 export function getRunRebalanceLogs(runId: string) {
-  return apiClient.get<{ items: BacktestRebalanceLogItem[] }>(
-    `/api/backtests/runs/${runId}/rebalance-logs`
+  return apiClient.post<{ items: BacktestRebalanceLogItem[] }>(
+    '/api/backtests/runs/rebalance-logs',
+    { runId }
   );
 }
 
 export function cancelRun(runId: string) {
-  return apiClient.post<{ runId: string; status: 'CANCELLED' }>(
-    `/api/backtests/runs/${runId}/cancel`,
-    {}
-  );
+  return apiClient.post<{ runId: string; status: 'CANCELLED' }>('/api/backtests/runs/cancel', {
+    runId,
+  });
 }

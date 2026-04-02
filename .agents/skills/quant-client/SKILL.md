@@ -398,6 +398,29 @@ The backend lives at `../server-code/src` relative to the client project root (`
 
 - **Feature modules**: `../server-code/src/apps/<feature>/` — e.g., `../server-code/src/apps/stock/` for all stock endpoints
 - **File types to search**: `*.controller.ts` for route definitions, `*.dto.ts` for request/response shapes, `*.service.ts` for business logic
+
+---
+
+## 文档管理约定
+
+### 1. 新增或修改 docs/ 文件时必须同步更新 docs/README.md
+
+- 在 `docs/` 任意子目录下新增文档后，必须同步在 `docs/README.md` 对应分类表格中新增一行，包含：文件链接、说明和状态标记。
+- 修改文档状态（如从「待实现」变为「已实现」）后，也要同步更新 `docs/README.md` 中对应条目的状态列。
+- 状态标记规范：✅ 已实现 / 🔧 待实现 / 📋 需求稿 / 🗓️ 规划中。
+- 删除文档时，同步从 `docs/README.md` 移除对应条目。
+
+### 2. docs/ 文件一律使用中文命名
+
+- 除 `README.md` 外，所有文档文件名必须使用中文。
+- 命名格式：`<模块名>-前端设计.md`（功能设计）。
+- 文档内容也应以中文撰写。
+
+### 3. 所有 API 请求统一使用 POST
+
+- 本项目所有后端接口均为 `POST`，前端 API 层（`src/api/`）调用时一律使用 `apiClient.post()`。
+- 查询参数通过请求 Body 传递，不使用 URL query string。
+- 资源 ID 通过 Body 传递，不拼入 URL 路径。
 - When on a GitHub / cloud environment (no local file access): search the same organization's **`server-code`** repository under its `src/` directory.
 
 ---
@@ -411,3 +434,13 @@ The backend lives at `../server-code/src` relative to the client project root (`
 - **Do not** use barrel imports from `@mui/material` — import from subpaths
 - **Do not** use `React.FC` type annotation — use plain function return types
 - **Do not** use `<Fragment>` when not needed
+
+---
+
+## 文档管理约定
+
+项目设计文档统一存放在 `docs/` 目录下：
+
+- **文件名使用中文**，格式为 `<模块名>-<文档类型>.md`（如 `首页仪表盘-前端设计.md`）
+- **每次新增或修改文档后，必须同步更新 `docs/readme.md`**，保持导航索引与实际文件一致
+- `docs/readme.md` 按"设计文档"和"规划与待办"两个分类列出所有文档及简要说明

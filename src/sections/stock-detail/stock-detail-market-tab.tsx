@@ -772,7 +772,7 @@ export function StockDetailMarketTab({ tsCode }: Props) {
       intersect: false,
       x: { formatter: (val: unknown) => fmtD(String(val)) },
       y: {
-        formatter: (val: number, opts: { seriesIndex: number }) => {
+        formatter: (val: number, opts?: { seriesIndex?: number }) => {
           const n = toSafeNumber(val);
           if (n == null) return '--';
           return opts?.seriesIndex === 1 ? fPctChg(n) : `${Math.round(n)}万元`;

@@ -1,48 +1,59 @@
-## Minimal UI ([Free version](https://free.minimals.cc/))
+# 量化研究前端
 
-![license](https://img.shields.io/badge/license-MIT-blue.svg)
+> **技术栈**：React 19 · TypeScript 5.8 · MUI v7 · Vite 6 · ApexCharts · Socket.IO
+> **基于**：Minimal UI Free Template
 
-![preview](public/assets/images/minimal-free-preview.jpg)
+---
 
-> Free React Admin Dashboard made with Material-UI components and React + Vite.js.
+## 快速开始
 
-## Pages
+```bash
+# 安装依赖
+pnpm install
 
-- [Dashboard](https://free.minimals.cc/)
-- [Users](https://free.minimals.cc/user)
-- [Products](https://free.minimals.cc/products)
-- [Blog](https://free.minimals.cc/blog)
-- [Sign in](https://free.minimals.cc/sign-in)
-- [Not found](https://free.minimals.cc/404)
+# 启动开发服务器
+pnpm dev
 
-## Quick start
+# 构建生产包
+pnpm build
+```
 
-- Clone the repo: `git clone https://github.com/minimal-ui-kit/material-kit-react.git`
-- Recommended: `Node.js v20.x`
-- **Install:** `npm i` or `yarn install`
-- **Start:** `npm run dev` or `yarn dev`
-- **Build:** `npm run build` or `yarn build`
-- Open browser: `http://localhost:3039`
+浏览器打开 `http://localhost:3039`
 
-## Upgrade to PRO Version
+---
 
-| Minimal Free                | [Minimal Pro](https://material-ui.com/store/items/minimal-dashboard/)                                   |
-| :-------------------------- | :------------------------------------------------------------------------------------------------------ |
-| **6** Pages                 | **70+** Pages                                                                                           |
-| **Partial** theme customize | **Fully** theme customize                                                                               |
-| -                           | **Next.js** version                                                                                     |
-| -                           | **TypeScript** version (Standard Plus and Extended license)                                             |
-| -                           | Design **Figma** file (Standard Plus and Extended license)                                              |
-| -                           | Authentication with **Amplify**, **Auth0**, **JWT**, **Firebase** and **Supabase**                      |
-| -                           | Light/dark mode, right-to-left, form validation... ([+more components](https://minimals.cc/components)) |
-| -                           | Complete users flows                                                                                    |
-| -                           | 1 year of free updates / 6 months of technical support                                                  |
-| -                           | Learn more: [Package & license](https://docs.minimals.cc/package)                                       |
+## 已实现功能模块
 
-## License
+| 模块             | 路由                      | 说明                               |
+| ---------------- | ------------------------- | ---------------------------------- |
+| 首页仪表盘       | `/`                       | Dashboard 布局、行情概览、快捷入口 |
+| 市场概览         | `/market/overview`        | 指数、情绪指标、板块、成交量       |
+| 资金动态         | `/market/money-flow`      | 市场/板块/个股级资金流向           |
+| 因子市场         | `/factor/*`               | 因子库、因子详情、相关性分析、选股 |
+| 回测工作台       | `/backtest/*`             | 策略回测、任务历史、报告详情       |
+| 股票列表 & 详情  | `/stock`, `/stock/detail` | 行情列表、个股多维度分析           |
+| 选股器           | `/stock` (对话框)         | 多维度筛选、排序、策略保存         |
+| Tushare 同步管理 | `/tushare-sync`           | 数据同步计划、缓存状态、质量检查   |
+| 用户管理         | `/user-manage`            | 用户 CRUD、状态管理                |
+| 认证             | `/sign-in`                | 登录、验证码、Token 管理           |
 
-Distributed under the [MIT](https://github.com/minimal-ui-kit/minimal.free/blob/main/LICENSE.md) license.
+---
 
-## Contact us
+## 🚨 待开发 — 后端已实现但前端缺失
 
-Email: support@minimals.cc
+以下功能后端 API 已全部就绪，前端尚未实现，按优先级排列：
+
+| 优先级 | 模块                    | 后端端点数 | 说明                                         |
+| ------ | ----------------------- | ---------- | -------------------------------------------- |
+| 🚨 高  | **自选股（Watchlist）** | 13         | 完整 CRUD、行情汇总、批量操作 — 核心用户功能 |
+| 🚨 高  | **研究笔记**            | 7          | CRUD + 标签 + 按股票查询 — 研究工作台核心    |
+| 🔶 中  | **策略草稿箱**          | 6          | 策略 CRUD + 提交回测 — 回测流程增强          |
+| 🔶 中  | **热力图**              | 1          | 市场涨跌幅分布热力图 — 市场概览增强          |
+| 🔶 中  | **指数数据**            | 3          | 指数列表/日线/成分股 — 市场数据补充          |
+| 🔷 低  | **选股条件订阅**        | 8          | 条件订阅 + 定期执行 + 日志 — 高级功能        |
+
+---
+
+## 文档
+
+详细设计文档与待办清单见 [docs/README.md](docs/README.md)。

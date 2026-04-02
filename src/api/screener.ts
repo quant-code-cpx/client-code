@@ -117,11 +117,11 @@ export function fetchScreenerPresets(): Promise<{ presets: ScreenerPreset[] }> {
 }
 
 export function fetchIndustries(): Promise<{ industries: IndustryItem[] }> {
-  return apiClient.get<{ industries: IndustryItem[] }>('/api/stock/industries');
+  return apiClient.post<{ industries: IndustryItem[] }>('/api/stock/industries');
 }
 
 export function fetchAreas(): Promise<{ areas: AreaItem[] }> {
-  return apiClient.get<{ areas: AreaItem[] }>('/api/stock/areas');
+  return apiClient.post<{ areas: AreaItem[] }>('/api/stock/areas');
 }
 
 // ----------------------------------------------------------------------
@@ -145,7 +145,7 @@ export type ScreenerPresetWithType = ScreenerPreset & { type: 'builtin' };
 export type StrategyItem = ScreenerPresetWithType | ScreenerStrategy;
 
 export function fetchStrategies(): Promise<{ strategies: ScreenerStrategy[] }> {
-  return apiClient.get<{ strategies: ScreenerStrategy[] }>('/api/stock/screener/strategies');
+  return apiClient.post<{ strategies: ScreenerStrategy[] }>('/api/stock/screener/strategies/list');
 }
 
 export function createStrategy(data: {
@@ -168,9 +168,9 @@ export function updateStrategy(
     sortOrder?: string;
   }
 ): Promise<ScreenerStrategy> {
-  return apiClient.put<ScreenerStrategy>(`/api/stock/screener/strategies/${id}`, data);
+  return apiClient.post<ScreenerStrategy>('/api/stock/screener/strategies/update', { id, ...data });
 }
 
 export function deleteStrategy(id: number): Promise<{ message: string }> {
-  return apiClient.delete<{ message: string }>(`/api/stock/screener/strategies/${id}`);
+  return apiClient.post<{ message: string }>('/api/stock/screener/strategies/delete', { id });
 }

@@ -43,7 +43,7 @@ export type ManualSyncAccepted = {
 export const tushareSyncApi = {
   /** 获取所有可用的同步任务计划（仅超级管理员） */
   getPlans: (): Promise<TushareSyncPlan[]> =>
-    apiClient.get<TushareSyncPlan[]>('/api/tushare/admin/plans'),
+    apiClient.post<TushareSyncPlan[]>('/api/tushare/admin/plans'),
 
   /**
    * 手动触发同步（异步，202 Accepted 立即返回，结果通过 WebSocket 推送）
