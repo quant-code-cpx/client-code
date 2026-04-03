@@ -33,6 +33,7 @@ export const FactorScreeningPage = lazy(() => import('src/pages/factor-screening
 export const BacktestWorkbenchPage = lazy(() => import('src/pages/backtest-workbench'));
 export const BacktestRunListPage = lazy(() => import('src/pages/backtest-runs'));
 export const BacktestRunDetailPage = lazy(() => import('src/pages/backtest-run-detail'));
+export const WatchlistPage = lazy(() => import('src/pages/watchlist'));
 
 const renderFallback = () => (
   <Box
@@ -84,6 +85,7 @@ export const routesSection: RouteObject[] = [
       { path: 'backtest', element: <BacktestWorkbenchPage /> },
       { path: 'backtest/runs', element: <BacktestRunListPage /> },
       { path: 'backtest/runs/:runId', element: <BacktestRunDetailPage /> },
+      { path: 'research/watchlist', element: <WatchlistPage /> },
     ],
   },
   {

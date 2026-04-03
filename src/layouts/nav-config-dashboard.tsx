@@ -25,6 +25,18 @@ export const navData = [
     icon: icon('ic-cart'),
   },
   {
+    title: '研究工作台',
+    path: '/research',
+    icon: <Iconify icon="solar:notebook-bold-duotone" width={24} />,
+    children: [
+      {
+        title: '自选股',
+        path: '/research/watchlist',
+        icon: <Iconify icon="solar:star-bold" width={24} />,
+      },
+    ],
+  },
+  {
     title: '行情',
     path: '/market',
     icon: icon('ic-analytics'),
