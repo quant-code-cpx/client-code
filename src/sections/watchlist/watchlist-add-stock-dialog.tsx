@@ -61,7 +61,7 @@ export function WatchlistAddStockDialog({
         tsCode: tsCode.trim().toUpperCase(),
         notes: notes.trim() || undefined,
         tags: tags.length > 0 ? tags : undefined,
-        targetPrice: parsedPrice != null && !Number.isNaN(parsedPrice) ? parsedPrice : undefined,
+        targetPrice: parsedPrice !== undefined && !Number.isNaN(parsedPrice) ? parsedPrice : undefined,
       });
       handleClose();
       onSuccess();

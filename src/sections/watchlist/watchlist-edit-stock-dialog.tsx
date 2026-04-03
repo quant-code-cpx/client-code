@@ -66,7 +66,7 @@ export function WatchlistEditStockDialog({
         stockId: stock.id,
         notes: notes.trim() || undefined,
         tags,
-        targetPrice: parsedPrice != null && !Number.isNaN(parsedPrice) ? parsedPrice : undefined,
+        targetPrice: !Number.isNaN(parsedPrice) ? parsedPrice : undefined,
       });
       handleClose();
       onSuccess(result);
