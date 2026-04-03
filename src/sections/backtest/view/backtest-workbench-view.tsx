@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 import Alert from '@mui/material/Alert';
+import Button from '@mui/material/Button';
 import Skeleton from '@mui/material/Skeleton';
 import Typography from '@mui/material/Typography';
 
@@ -13,7 +14,10 @@ import { useRouter } from 'src/routes/hooks';
 import { DashboardContent } from 'src/layouts/dashboard';
 import { createRun, validateRun, getStrategyTemplates } from 'src/api/backtest';
 
+import { Iconify } from 'src/components/iconify';
+
 import { BacktestConfigForm } from '../backtest-config-form';
+import { BacktestDraftDrawer } from '../backtest-draft-drawer';
 import { BacktestTemplateCards } from '../backtest-template-cards';
 import { BacktestValidatePanel } from '../backtest-validate-panel';
 import { BacktestSubmitSummary } from '../backtest-submit-summary';
@@ -60,6 +64,7 @@ export function BacktestWorkbenchView() {
   const [validating, setValidating] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+  const [draftDrawerOpen, setDraftDrawerOpen] = useState(false);
 
   // Prefill form from router state (for "copy & re-run" scenario)
   useEffect(() => {
@@ -161,11 +166,22 @@ export function BacktestWorkbenchView() {
   return (
     <DashboardContent>
       {/* Header */}
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h4">回测工作台</Typography>
-        <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
-          配置策略参数，校验数据完备性，提交回测任务
-        </Typography>
+      <Box sx={{ mb: 4, display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+        <Box sx={{ flex: 1 }}>
+          <Typography variant="h4">回测工作台</Typography>
+          <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
+            配置策略参数，校验数据完备性，提交回测任务
+          </Typography>
+        </Box>
+        <Button
+          variant="outlined"
+          size="small"
+          startIcon={<Iconify icon="solar:notebook-bookmark-bold" width={18} />}
+          onClick={() => setDraftDrawerOpen(true)}
+          sx={{ mt: 0.5, flexShrink: 0 }}
+        >
+          草稿
+        </Button>
       </Box>
 
       {error && (
@@ -261,6 +277,19 @@ export function BacktestWorkbenchView() {
           </Box>
         </Grid>
       </Grid>
+
+      <BacktestDraftDrawer
+        open={draftDrawerOpen}
+        onClose={() => setDraftDrawerOpen(false)}
+        currentConfig={{ ...form, strategyType: selectedTemplateId } as Record<string, unknown>}
+        onLoadDraft={(config, templateId) => {
+          const { strategyType: _st, ...formFields } = config;
+          setSelectedTemplateId(templateId);
+          setForm((prev) => ({ ...prev, ...(formFields as Partial<BacktestRunForm>) }));
+          setValidation(null);
+          setDraftDrawerOpen(false);
+        }}
+      />
     </DashboardContent>
   );
 }
