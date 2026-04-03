@@ -36,6 +36,10 @@ export const BacktestRunDetailPage = lazy(() => import('src/pages/backtest-run-d
 export const WatchlistPage = lazy(() => import('src/pages/watchlist'));
 export const ResearchNotesPage = lazy(() => import('src/pages/research-notes'));
 export const ResearchNoteDetailPage = lazy(() => import('src/pages/research-note-detail'));
+export const ScreenerSubscriptionPage = lazy(() => import('src/pages/screener-subscription'));
+export const ScreenerSubscriptionDetailPage = lazy(
+  () => import('src/pages/screener-subscription-detail')
+);
 
 const renderFallback = () => (
   <Box
@@ -90,6 +94,8 @@ export const routesSection: RouteObject[] = [
       { path: 'research/watchlist', element: <WatchlistPage /> },
       { path: 'research/notes', element: <ResearchNotesPage /> },
       { path: 'research/notes/:noteId', element: <ResearchNoteDetailPage /> },
+      { path: 'stock/subscription', element: <ScreenerSubscriptionPage /> },
+      { path: 'stock/subscription/:id', element: <ScreenerSubscriptionDetailPage /> },
     ],
   },
   {
