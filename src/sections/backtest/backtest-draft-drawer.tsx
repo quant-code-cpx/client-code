@@ -13,9 +13,10 @@ import Snackbar from '@mui/material/Snackbar';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 
-import { deleteDraft, getDraftById, getDrafts } from 'src/api/strategy-draft';
-import { Scrollbar } from 'src/components/scrollbar';
+import { getDrafts, deleteDraft, getDraftById } from 'src/api/strategy-draft';
+
 import { Iconify } from 'src/components/iconify';
+import { Scrollbar } from 'src/components/scrollbar';
 
 import { BacktestDraftListItem } from './backtest-draft-list-item';
 import { BacktestDraftSaveDialog } from './backtest-draft-save-dialog';
@@ -134,7 +135,7 @@ export function BacktestDraftDrawer({ open, onClose, currentConfig, onLoadDraft 
               </Typography>
             </Box>
           ) : (
-            <List disablePadding={true}>
+            <List disablePadding>
               {drafts.map((draft) => (
                 <BacktestDraftListItem
                   key={draft.id}
@@ -151,7 +152,7 @@ export function BacktestDraftDrawer({ open, onClose, currentConfig, onLoadDraft 
         <Divider />
         <Box sx={{ p: 2 }}>
           <Button
-            fullWidth={true}
+            fullWidth
             variant="contained"
             startIcon={<Iconify icon="solar:diskette-bold" width={16} />}
             onClick={() => setSaveDialogOpen(true)}

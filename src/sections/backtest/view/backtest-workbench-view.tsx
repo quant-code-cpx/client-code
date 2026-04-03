@@ -283,7 +283,8 @@ export function BacktestWorkbenchView() {
         onClose={() => setDraftDrawerOpen(false)}
         currentConfig={{ ...form, strategyType: selectedTemplateId } as Record<string, unknown>}
         onLoadDraft={(config, templateId) => {
-          const { strategyType: _st, ...formFields } = config;
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { strategyType: _strategyType, ...formFields } = config;
           setSelectedTemplateId(templateId);
           setForm((prev) => ({ ...prev, ...(formFields as Partial<BacktestRunForm>) }));
           setValidation(null);

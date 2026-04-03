@@ -40,7 +40,7 @@ export function BacktestDraftListItem({ draft, onLoad, onDelete }: Props) {
       >
         <ListItemText
           primary={
-            <Typography variant="body2" fontWeight="fontWeightMedium" noWrap={true}>
+            <Typography variant="body2" fontWeight="fontWeightMedium" noWrap>
               {draft.name}
             </Typography>
           }
@@ -55,7 +55,7 @@ export function BacktestDraftListItem({ draft, onLoad, onDelete }: Props) {
         <Button
           size="small"
           variant="outlined"
-          fullWidth={true}
+          fullWidth
           startIcon={<Iconify icon="solar:import-bold" width={14} />}
           onClick={onLoad}
         >

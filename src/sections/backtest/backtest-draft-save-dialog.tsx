@@ -4,10 +4,10 @@ import { useState } from 'react';
 
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
+import TextField from '@mui/material/TextField';
+import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
-import DialogTitle from '@mui/material/DialogTitle';
-import TextField from '@mui/material/TextField';
 
 import { createDraft } from 'src/api/strategy-draft';
 
@@ -50,12 +50,12 @@ export function BacktestDraftSaveDialog({ open, config, onClose, onSuccess }: Pr
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} fullWidth={true} maxWidth="xs">
+    <Dialog open={open} onClose={handleClose} fullWidth maxWidth="xs">
       <DialogTitle>保存为草稿</DialogTitle>
       <DialogContent>
         <TextField
-          autoFocus={true}
-          fullWidth={true}
+          autoFocus
+          fullWidth
           label="草稿名称"
           value={name}
           onChange={(e) => setName(e.target.value)}
