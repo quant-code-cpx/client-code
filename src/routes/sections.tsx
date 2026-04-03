@@ -40,6 +40,8 @@ export const ScreenerSubscriptionPage = lazy(() => import('src/pages/screener-su
 export const ScreenerSubscriptionDetailPage = lazy(
   () => import('src/pages/screener-subscription-detail')
 );
+export const StrategyListPage = lazy(() => import('src/pages/strategy'));
+export const StrategyDetailPage = lazy(() => import('src/pages/strategy-detail'));
 
 const renderFallback = () => (
   <Box
@@ -88,6 +90,8 @@ export const routesSection: RouteObject[] = [
       { path: 'factor/detail/:name', element: <FactorDetailPage /> },
       { path: 'factor/correlation', element: <FactorCorrelationPage /> },
       { path: 'factor/screening', element: <FactorScreeningPage /> },
+      { path: 'strategy', element: <StrategyListPage /> },
+      { path: 'strategy/:id', element: <StrategyDetailPage /> },
       { path: 'backtest', element: <BacktestWorkbenchPage /> },
       { path: 'backtest/runs', element: <BacktestRunListPage /> },
       { path: 'backtest/runs/:runId', element: <BacktestRunDetailPage /> },

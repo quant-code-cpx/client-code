@@ -93,6 +93,18 @@ export const navData = [
     ],
   },
   {
+    title: '策略管理',
+    path: '/strategy',
+    icon: <Iconify icon="solar:layers-bold" width={24} />,
+    children: [
+      {
+        title: '我的策略',
+        path: '/strategy',
+        icon: <Iconify icon="solar:document-bold" width={24} />,
+      },
+    ],
+  },
+  {
     title: '回测',
     path: '/backtest',
     icon: <Iconify icon="solar:playback-speed-bold" width={24} />,

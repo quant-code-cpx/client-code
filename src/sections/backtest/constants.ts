@@ -11,40 +11,38 @@ export const BENCHMARK_OPTIONS = [
 ];
 
 export const UNIVERSE_OPTIONS = [
-  { label: '全市场', value: 'ALL' },
+  { label: '全市场', value: 'ALL_A' },
   { label: '沪深300', value: 'HS300' },
-  { label: '中证500', value: 'ZZ500' },
-  { label: '中证1000', value: 'ZZ1000' },
-  { label: '上证50', value: 'SZ50' },
+  { label: '中证500', value: 'CSI500' },
+  { label: '中证1000', value: 'CSI1000' },
+  { label: '上证50', value: 'SSE50' },
   { label: '自定义股票池', value: 'CUSTOM' },
 ];
 
 export const REBALANCE_FREQUENCY_OPTIONS = [
-  { label: '日', value: 'daily' },
-  { label: '周', value: 'weekly' },
-  { label: '月', value: 'monthly' },
-  { label: '季', value: 'quarterly' },
+  { label: '日', value: 'DAILY' },
+  { label: '周', value: 'WEEKLY' },
+  { label: '月', value: 'MONTHLY' },
+  { label: '季', value: 'QUARTERLY' },
 ];
 
 export const PRICE_MODE_OPTIONS = [
-  { label: '次日开盘', value: 'next_open' },
-  { label: '次日收盘', value: 'next_close' },
+  { label: '次日开盘', value: 'NEXT_OPEN' },
+  { label: '次日收盘', value: 'NEXT_CLOSE' },
 ];
 
 export const RANK_BY_OPTIONS = [
-  { label: '市值', value: 'totalMv' },
+  { label: '总市值', value: 'totalMv' },
   { label: 'PE(TTM)', value: 'peTtm' },
   { label: 'PB', value: 'pb' },
-  { label: 'ROE', value: 'roe' },
-  { label: '营收增速', value: 'revenueGrowth' },
-  { label: '净利润增速', value: 'netProfitGrowth' },
+  { label: '股息率(TTM)', value: 'dvTtm' },
   { label: '换手率', value: 'turnoverRate' },
-  { label: '涨跌幅', value: 'pctChg' },
+  { label: '换手率(自由流通)', value: 'turnoverRateF' },
 ];
 
 export const WEIGHT_MODE_OPTIONS = [
-  { label: '等权', value: 'equal' },
-  { label: '排名加权', value: 'rank' },
+  { label: '等权', value: 'EQUAL' },
+  { label: '自定义权重', value: 'CUSTOM' },
 ];
 
 export const STATUS_OPTIONS = [
@@ -98,11 +96,11 @@ export const DEFAULT_FORM: BacktestRunForm = {
   benchmarkTsCode: '000300.SH',
   universe: 'HS300',
   customUniverseTsCodes: [],
-  rebalanceFrequency: 'monthly',
-  priceMode: 'next_open',
-  enableTradeConstraints: false,
+  rebalanceFrequency: 'MONTHLY',
+  priceMode: 'NEXT_OPEN',
+  enableTradeConstraints: true,
   commissionRate: 0.0003,
-  stampDutyRate: 0.001,
+  stampDutyRate: 0.0005,
   minCommission: 5,
   slippageBps: 5,
   maxPositions: 20,
@@ -113,16 +111,16 @@ export const DEFAULT_FORM: BacktestRunForm = {
 
 export const DEFAULT_MA_CONFIG = {
   tsCode: '',
-  shortPeriod: 5,
-  longPeriod: 20,
-  allowShort: false,
+  shortWindow: 5,
+  longWindow: 20,
+  allowFlat: false,
 };
 
 export const DEFAULT_SCREENING_CONFIG = {
   rankBy: 'totalMv',
   rankOrder: 'desc' as const,
   topN: 20,
-  weightMode: 'equal' as const,
+  minDaysListed: 60,
 };
 
 export const DEFAULT_FACTOR_CONFIG = {
@@ -133,6 +131,6 @@ export const DEFAULT_FACTOR_CONFIG = {
 
 export const DEFAULT_CUSTOM_POOL_CONFIG = {
   tsCodes: [] as string[],
-  weightMode: 'equal' as const,
-  weights: {} as Record<string, number>,
+  weightMode: 'EQUAL' as const,
+  customWeights: [] as Array<{ tsCode: string; weight: number }>,
 };

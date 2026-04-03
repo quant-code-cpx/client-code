@@ -105,6 +105,9 @@ export function BacktestWorkbenchView() {
     setValidation(null);
   }, []);
 
+  // Backend expects YYYYMMDD; form stores YYYY-MM-DD for date inputs
+  const toApiDate = (d: string) => d.replace(/-/g, '');
+
   const handleValidate = useCallback(async () => {
     setValidating(true);
     setError('');
@@ -112,8 +115,8 @@ export function BacktestWorkbenchView() {
       const res = await validateRun({
         strategyType: selectedTemplateId,
         strategyConfig: form.strategyConfig,
-        startDate: form.startDate,
-        endDate: form.endDate,
+        startDate: toApiDate(form.startDate),
+        endDate: toApiDate(form.endDate),
         benchmarkTsCode: form.benchmarkTsCode,
         universe: form.universe,
         initialCapital: form.initialCapital,
@@ -138,8 +141,8 @@ export function BacktestWorkbenchView() {
         name: form.name || undefined,
         strategyType: selectedTemplateId,
         strategyConfig: form.strategyConfig,
-        startDate: form.startDate,
-        endDate: form.endDate,
+        startDate: toApiDate(form.startDate),
+        endDate: toApiDate(form.endDate),
         benchmarkTsCode: form.benchmarkTsCode,
         universe: form.universe !== 'CUSTOM' ? form.universe : undefined,
         customUniverseTsCodes: form.universe === 'CUSTOM' ? form.customUniverseTsCodes : undefined,

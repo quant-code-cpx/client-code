@@ -25,9 +25,9 @@ export type BacktestRunForm = {
 // MA Cross strategy config
 export type MaCrossConfig = {
   tsCode: string;
-  shortPeriod: number;
-  longPeriod: number;
-  allowShort: boolean;
+  shortWindow: number;
+  longWindow: number;
+  allowFlat: boolean;
 };
 
 // Screening rotation strategy config
@@ -35,15 +35,7 @@ export type ScreeningRotationConfig = {
   rankBy: string;
   rankOrder: 'asc' | 'desc';
   topN: number;
-  weightMode: 'equal' | 'rank';
-  industry?: string;
-  minPe?: number;
-  maxPe?: number;
-  minPb?: number;
-  maxPb?: number;
-  minRoe?: number;
-  minMv?: number;
-  maxMv?: number;
+  minDaysListed?: number;
 };
 
 // Factor ranking strategy config
@@ -51,15 +43,17 @@ export type FactorRankingConfig = {
   factorName: string;
   rankOrder: 'asc' | 'desc';
   topN: number;
-  layers?: number;
-  minMv?: number;
-  minTurnoverRate?: number;
-  maxPe?: number;
+  minDaysListed?: number;
+  optionalFilters?: {
+    minTotalMv?: number;
+    minTurnoverRate?: number;
+    maxPeTtm?: number;
+  };
 };
 
 // Custom pool strategy config
 export type CustomPoolConfig = {
   tsCodes: string[];
-  weightMode: 'equal' | 'custom';
-  weights: Record<string, number>;
+  weightMode: 'EQUAL' | 'CUSTOM';
+  customWeights: Array<{ tsCode: string; weight: number }>;
 };
