@@ -33,6 +33,13 @@ export const FactorScreeningPage = lazy(() => import('src/pages/factor-screening
 export const BacktestWorkbenchPage = lazy(() => import('src/pages/backtest-workbench'));
 export const BacktestRunListPage = lazy(() => import('src/pages/backtest-runs'));
 export const BacktestRunDetailPage = lazy(() => import('src/pages/backtest-run-detail'));
+export const WatchlistPage = lazy(() => import('src/pages/watchlist'));
+export const ResearchNotesPage = lazy(() => import('src/pages/research-notes'));
+export const ResearchNoteDetailPage = lazy(() => import('src/pages/research-note-detail'));
+export const ScreenerSubscriptionPage = lazy(() => import('src/pages/screener-subscription'));
+export const ScreenerSubscriptionDetailPage = lazy(
+  () => import('src/pages/screener-subscription-detail')
+);
 
 const renderFallback = () => (
   <Box
@@ -84,6 +91,11 @@ export const routesSection: RouteObject[] = [
       { path: 'backtest', element: <BacktestWorkbenchPage /> },
       { path: 'backtest/runs', element: <BacktestRunListPage /> },
       { path: 'backtest/runs/:runId', element: <BacktestRunDetailPage /> },
+      { path: 'research/watchlist', element: <WatchlistPage /> },
+      { path: 'research/notes', element: <ResearchNotesPage /> },
+      { path: 'research/notes/:noteId', element: <ResearchNoteDetailPage /> },
+      { path: 'stock/subscription', element: <ScreenerSubscriptionPage /> },
+      { path: 'stock/subscription/:id', element: <ScreenerSubscriptionDetailPage /> },
     ],
   },
   {
