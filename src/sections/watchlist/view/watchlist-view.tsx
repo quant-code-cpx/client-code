@@ -8,21 +8,21 @@ import Button from '@mui/material/Button';
 import Skeleton from '@mui/material/Skeleton';
 import Typography from '@mui/material/Typography';
 
+import { DashboardContent } from 'src/layouts/dashboard';
 import {
   deleteWatchlist,
   getWatchlistStocks,
   getWatchlistOverview,
 } from 'src/api/watchlist';
-import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Iconify } from 'src/components/iconify';
 
+import { WatchlistEditDialog } from '../watchlist-edit-dialog';
 import { WatchlistDetailPanel } from '../watchlist-detail-panel';
 import { WatchlistCreateDialog } from '../watchlist-create-dialog';
-import { WatchlistEditDialog } from '../watchlist-edit-dialog';
+import { WatchlistOverviewCards } from '../watchlist-overview-cards';
 import { WatchlistAddStockDialog } from '../watchlist-add-stock-dialog';
 import { WatchlistBatchImportDialog } from '../watchlist-batch-import-dialog';
-import { WatchlistOverviewCards } from '../watchlist-overview-cards';
 
 // ----------------------------------------------------------------------
 

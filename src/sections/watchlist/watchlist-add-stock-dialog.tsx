@@ -73,7 +73,7 @@ export function WatchlistAddStockDialog({
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} fullWidth={true} maxWidth="sm">
+    <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
       <DialogTitle>添加股票</DialogTitle>
 
       <DialogContent>
@@ -82,8 +82,8 @@ export function WatchlistAddStockDialog({
 
           <TextField
             label="股票代码"
-            required={true}
-            autoFocus={true}
+            required
+            autoFocus
             placeholder="例：600519.SH"
             value={tsCode}
             onChange={(e) => setTsCode(e.target.value)}
@@ -92,7 +92,7 @@ export function WatchlistAddStockDialog({
 
           <TextField
             label="备注"
-            multiline={true}
+            multiline
             rows={2}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}

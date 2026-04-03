@@ -61,7 +61,7 @@ export function WatchlistCreateDialog({ open, onClose, onSuccess }: WatchlistCre
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} fullWidth={true} maxWidth="sm">
+    <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
       <DialogTitle>新建自选组</DialogTitle>
 
       <DialogContent>
@@ -70,8 +70,8 @@ export function WatchlistCreateDialog({ open, onClose, onSuccess }: WatchlistCre
 
           <TextField
             label="名称"
-            required={true}
-            autoFocus={true}
+            required
+            autoFocus
             value={name}
             onChange={(e) => setName(e.target.value.slice(0, 50))}
             helperText={`${name.length}/50`}
@@ -80,7 +80,7 @@ export function WatchlistCreateDialog({ open, onClose, onSuccess }: WatchlistCre
 
           <TextField
             label="描述"
-            multiline={true}
+            multiline
             rows={3}
             value={description}
             onChange={(e) => setDescription(e.target.value.slice(0, 200))}

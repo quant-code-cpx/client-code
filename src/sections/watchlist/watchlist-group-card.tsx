@@ -55,7 +55,7 @@ export function WatchlistGroupCard({
           <Typography
             variant="subtitle2"
             sx={{ fontWeight: 700, lineHeight: 1.3, pr: watchlist.isDefault ? 3 : 0 }}
-            noWrap={true}
+            noWrap
           >
             {watchlist.name}
           </Typography>

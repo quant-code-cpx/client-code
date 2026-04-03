@@ -67,7 +67,7 @@ export function WatchlistBatchImportDialog({
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} fullWidth={true} maxWidth="sm">
+    <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
       <DialogTitle>批量导入股票</DialogTitle>
 
       <DialogContent>
@@ -80,7 +80,7 @@ export function WatchlistBatchImportDialog({
 
           <TextField
             label="股票代码"
-            multiline={true}
+            multiline
             rows={6}
             placeholder={'600519.SH\n000858.SZ\n300750.SZ'}
             value={input}

@@ -78,7 +78,7 @@ export function WatchlistEditStockDialog({
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} fullWidth={true} maxWidth="sm">
+    <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
       <DialogTitle>编辑 {stock?.tsCode}</DialogTitle>
 
       <DialogContent>
@@ -87,7 +87,7 @@ export function WatchlistEditStockDialog({
 
           <TextField
             label="备注"
-            multiline={true}
+            multiline
             rows={3}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}

@@ -6,14 +6,14 @@ import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
 import Collapse from '@mui/material/Collapse';
 import Checkbox from '@mui/material/Checkbox';
-import IconButton from '@mui/material/IconButton';
 import TableRow from '@mui/material/TableRow';
 import TableCell from '@mui/material/TableCell';
+import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 
-import { fPctChg, fWanYi } from 'src/utils/format-number';
-
 import { RouterLink } from 'src/routes/components';
+
+import { fWanYi, fPctChg } from 'src/utils/format-number';
 
 import { Iconify } from 'src/components/iconify';
 
@@ -45,7 +45,7 @@ export function WatchlistStockTableRow({
 
   return (
     <>
-      <TableRow hover={true} selected={selected}>
+      <TableRow hover selected={selected}>
         <TableCell padding="checkbox">
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Checkbox
@@ -159,7 +159,7 @@ export function WatchlistStockTableRow({
       {hasDetail && (
         <TableRow>
           <TableCell colSpan={9} sx={{ py: 0, borderBottom: open ? undefined : 'none' }}>
-            <Collapse in={open} timeout="auto" unmountOnExit={true}>
+            <Collapse in={open} timeout="auto" unmountOnExit>
               <Box sx={{ py: 1.5, px: 1 }}>
                 {row.notes && (
                   <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}>

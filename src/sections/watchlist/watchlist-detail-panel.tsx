@@ -7,7 +7,7 @@ import Card from '@mui/material/Card';
 import Divider from '@mui/material/Divider';
 import Typography from '@mui/material/Typography';
 
-import { batchRemoveStocks, removeStock } from 'src/api/watchlist';
+import { removeStock, batchRemoveStocks } from 'src/api/watchlist';
 
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';

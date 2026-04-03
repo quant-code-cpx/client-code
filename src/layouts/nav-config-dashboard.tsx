@@ -34,6 +34,11 @@ export const navData = [
         path: '/research/watchlist',
         icon: <Iconify icon="solar:star-bold" width={24} />,
       },
+      {
+        title: '研究笔记',
+        path: '/research/notes',
+        icon: <Iconify icon="solar:document-text-bold" width={24} />,
+      },
     ],
   },
   {
