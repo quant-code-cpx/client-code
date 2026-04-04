@@ -131,7 +131,7 @@ export function AuditLogToolbar({
 
       <Button
         variant="contained"
-        startIcon={<Iconify icon="solar:magnifer-bold" />}
+        startIcon={<Iconify icon="solar:magnifier-bold" />}
         onClick={onSearch}
       >
         查询
