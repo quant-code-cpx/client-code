@@ -97,6 +97,68 @@ export interface UpdateUserStatusDto {
   status: 'ACTIVE' | 'DEACTIVATED';
 }
 
+/** 审计操作类型 */
+export type AuditAction =
+  | 'USER_CREATE'
+  | 'USER_DELETE'
+  | 'USER_UPDATE_STATUS'
+  | 'USER_UPDATE_INFO'
+  | 'USER_RESET_PASSWORD';
+
+/** 审计操作显示名称 */
+export const AUDIT_ACTION_LABEL: Record<AuditAction, string> = {
+  USER_CREATE: '创建用户',
+  USER_DELETE: '删除用户',
+  USER_UPDATE_STATUS: '修改状态',
+  USER_UPDATE_INFO: '更新信息',
+  USER_RESET_PASSWORD: '重置密码',
+};
+
+/** 修改密码 DTO */
+export interface ChangePasswordDto {
+  oldPassword: string;
+  newPassword: string;
+}
+
+/** 修改个人资料 DTO */
+export interface UpdateProfileDto {
+  nickname?: string;
+  email?: string;
+  wechat?: string;
+}
+
+/** 审计日志条目 */
+export interface AuditLogItem {
+  id: number;
+  operatorId: number;
+  operatorAccount: string;
+  action: AuditAction;
+  targetId: number | null;
+  targetAccount: string | null;
+  details: Record<string, unknown> | null;
+  ipAddress: string | null;
+  createdAt: string;
+}
+
+/** 审计日志查询参数 */
+export interface AuditLogQuery {
+  page?: number;
+  pageSize?: number;
+  operatorId?: number;
+  targetId?: number;
+  action?: AuditAction;
+  startDate?: string;
+  endDate?: string;
+}
+
+/** 审计日志分页结果 */
+export interface AuditLogResult {
+  total: number;
+  page: number;
+  pageSize: number;
+  items: AuditLogItem[];
+}
+
 // ----------------------------------------------------------------------
 // API 封装
 // ----------------------------------------------------------------------
@@ -131,4 +193,16 @@ export const userManageApi = {
 
   /** 删除用户（软删除） */
   delete: (id: number): Promise<void> => apiClient.post<void>('/api/user/delete', { id }),
+
+  /** 用户自助修改密码 */
+  changePassword: (dto: ChangePasswordDto): Promise<void> =>
+    apiClient.post<void>('/api/user/profile/change-password', dto),
+
+  /** 用户自助修改资料 */
+  updateProfile: (dto: UpdateProfileDto): Promise<UserProfile> =>
+    apiClient.post<UserProfile>('/api/user/profile/update', dto),
+
+  /** 查询管理员操作审计日志（ADMIN 及以上） */
+  getAuditLogs: (query: AuditLogQuery): Promise<AuditLogResult> =>
+    apiClient.post<AuditLogResult>('/api/user/audit-log/list', query),
 };

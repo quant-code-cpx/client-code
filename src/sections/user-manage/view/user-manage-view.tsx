@@ -8,8 +8,10 @@ import type {
 
 import { useRef, useState, useEffect, useCallback } from 'react';
 
+import Tab from '@mui/material/Tab';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
+import Tabs from '@mui/material/Tabs';
 import Alert from '@mui/material/Alert';
 import Table from '@mui/material/Table';
 import Button from '@mui/material/Button';
@@ -35,6 +37,7 @@ import { HasPermission, usePermission } from 'src/permission';
 import { Iconify } from 'src/components/iconify';
 import { Scrollbar } from 'src/components/scrollbar';
 
+import { AuditLogTab } from '../audit-log-tab';
 import { UserManageTableRow } from '../user-manage-table-row';
 import { UserManageFormDialog } from '../user-manage-form-dialog';
 import { UserManageTableToolbar } from '../user-manage-table-toolbar';
@@ -63,6 +66,9 @@ const TABLE_HEAD = [
 export function UserManageView() {
   const { hasMinRole } = usePermission();
   const isAdmin = hasMinRole('ADMIN');
+
+  // ---------- Tab ----------
+  const [currentTab, setCurrentTab] = useState(0);
 
   // ---------- 筛选 ----------
   const [filterAccount, setFilterAccount] = useState('');
@@ -258,112 +264,135 @@ export function UserManageView() {
           用户管理
         </Typography>
 
-        <HasPermission minRole="ADMIN">
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<Iconify icon="mingcute:add-line" />}
-            onClick={() => {
-              setFormMode('create');
-              setEditRow(null);
-              setFormOpen(true);
-            }}
-          >
-            新增用户
-          </Button>
-        </HasPermission>
+        {currentTab === 0 && (
+          <HasPermission minRole="ADMIN">
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<Iconify icon="mingcute:add-line" />}
+              onClick={() => {
+                setFormMode('create');
+                setEditRow(null);
+                setFormOpen(true);
+              }}
+            >
+              新增用户
+            </Button>
+          </HasPermission>
+        )}
       </Box>
 
-      <Card>
-        <UserManageTableToolbar
-          filterAccount={filterAccount}
-          filterStatus={filterStatus}
-          filterRole={filterRole}
-          onFilterAccount={handleFilterChange(setFilterAccount)}
-          onFilterStatus={handleFilterChange(setFilterStatus)}
-          onFilterRole={handleFilterChange(setFilterRole)}
+      <Tabs
+        value={currentTab}
+        onChange={(_, v) => setCurrentTab(v)}
+        sx={{ mb: 3 }}
+      >
+        <Tab
+          icon={<Iconify icon="solar:users-group-rounded-bold" />}
+          label="用户列表"
+          iconPosition="start"
         />
-
-        {listError && (
-          <Alert severity="error" sx={{ mx: 3, mb: 2 }} onClose={() => setListError('')}>
-            {listError}
-          </Alert>
-        )}
-
-        <Scrollbar>
-          <TableContainer sx={{ overflow: 'unset' }}>
-            <Table sx={{ minWidth: 900 }}>
-              <TableHead>
-                <TableRow>
-                  {TABLE_HEAD.map((col) => (
-                    <TableCell
-                      key={col.id}
-                      align={col.align ?? 'left'}
-                      sx={{ width: col.width, minWidth: col.minWidth }}
-                    >
-                      {col.id ? (
-                        <TableSortLabel hideSortIcon>{col.label}</TableSortLabel>
-                      ) : (
-                        col.label
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              </TableHead>
-
-              <TableBody>
-                {loading ? (
-                  <TableRow>
-                    <TableCell colSpan={TABLE_HEAD.length} align="center" sx={{ py: 6 }}>
-                      <CircularProgress size={32} />
-                    </TableCell>
-                  </TableRow>
-                ) : rows.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={TABLE_HEAD.length} align="center" sx={{ py: 6 }}>
-                      <Typography variant="body2" color="text.disabled">
-                        暂无数据
-                      </Typography>
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  rows.map((row) => (
-                    <UserManageTableRow
-                      key={row.id}
-                      row={row}
-                      onEdit={(r) => {
-                        setFormMode('edit');
-                        setEditRow(r);
-                        setFormOpen(true);
-                      }}
-                      onToggleStatus={handleToggleStatus}
-                      onResetPassword={handleResetPassword}
-                      onDelete={handleDelete}
-                    />
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        </Scrollbar>
-
-        <TablePagination
-          component="div"
-          page={page}
-          count={total}
-          rowsPerPage={pageSize}
-          rowsPerPageOptions={[10, 20, 50]}
-          onPageChange={(_, newPage) => setPage(newPage)}
-          onRowsPerPageChange={(e) => {
-            setPageSize(parseInt(e.target.value, 10));
-            setPage(0);
-          }}
-          labelRowsPerPage="每页行数："
-          labelDisplayedRows={({ from, to, count }) =>
-            `${from}–${to} 共 ${count !== -1 ? count : `超过 ${to}`} 条`
-          }
+        <Tab
+          icon={<Iconify icon="solar:document-text-bold" />}
+          label="审计日志"
+          iconPosition="start"
         />
-      </Card>
+      </Tabs>
+
+      {currentTab === 0 && (
+        <Card>
+          <UserManageTableToolbar
+            filterAccount={filterAccount}
+            filterStatus={filterStatus}
+            filterRole={filterRole}
+            onFilterAccount={handleFilterChange(setFilterAccount)}
+            onFilterStatus={handleFilterChange(setFilterStatus)}
+            onFilterRole={handleFilterChange(setFilterRole)}
+          />
+
+          {listError && (
+            <Alert severity="error" sx={{ mx: 3, mb: 2 }} onClose={() => setListError('')}>
+              {listError}
+            </Alert>
+          )}
+
+          <Scrollbar>
+            <TableContainer sx={{ overflow: 'unset' }}>
+              <Table sx={{ minWidth: 900 }}>
+                <TableHead>
+                  <TableRow>
+                    {TABLE_HEAD.map((col) => (
+                      <TableCell
+                        key={col.id}
+                        align={col.align ?? 'left'}
+                        sx={{ width: col.width, minWidth: col.minWidth }}
+                      >
+                        {col.id ? (
+                          <TableSortLabel hideSortIcon>{col.label}</TableSortLabel>
+                        ) : (
+                          col.label
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                </TableHead>
+
+                <TableBody>
+                  {loading ? (
+                    <TableRow>
+                      <TableCell colSpan={TABLE_HEAD.length} align="center" sx={{ py: 6 }}>
+                        <CircularProgress size={32} />
+                      </TableCell>
+                    </TableRow>
+                  ) : rows.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={TABLE_HEAD.length} align="center" sx={{ py: 6 }}>
+                        <Typography variant="body2" color="text.disabled">
+                          暂无数据
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    rows.map((row) => (
+                      <UserManageTableRow
+                        key={row.id}
+                        row={row}
+                        onEdit={(r) => {
+                          setFormMode('edit');
+                          setEditRow(r);
+                          setFormOpen(true);
+                        }}
+                        onToggleStatus={handleToggleStatus}
+                        onResetPassword={handleResetPassword}
+                        onDelete={handleDelete}
+                      />
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Scrollbar>
+
+          <TablePagination
+            component="div"
+            page={page}
+            count={total}
+            rowsPerPage={pageSize}
+            rowsPerPageOptions={[10, 20, 50]}
+            onPageChange={(_, newPage) => setPage(newPage)}
+            onRowsPerPageChange={(e) => {
+              setPageSize(parseInt(e.target.value, 10));
+              setPage(0);
+            }}
+            labelRowsPerPage="每页行数："
+            labelDisplayedRows={({ from, to, count }) =>
+              `${from}–${to} 共 ${count !== -1 ? count : `超过 ${to}`} 条`
+            }
+          />
+        </Card>
+      )}
+
+      {currentTab === 1 && <AuditLogTab />}
 
       {/* 创建 / 编辑对话框 */}
       <UserManageFormDialog

@@ -42,6 +42,7 @@ export const ScreenerSubscriptionDetailPage = lazy(
 );
 export const StrategyListPage = lazy(() => import('src/pages/strategy'));
 export const StrategyDetailPage = lazy(() => import('src/pages/strategy-detail'));
+export const ProfilePage = lazy(() => import('src/pages/profile'));
 
 const renderFallback = () => (
   <Box
@@ -100,6 +101,7 @@ export const routesSection: RouteObject[] = [
       { path: 'research/notes/:noteId', element: <ResearchNoteDetailPage /> },
       { path: 'stock/subscription', element: <ScreenerSubscriptionPage /> },
       { path: 'stock/subscription/:id', element: <ScreenerSubscriptionDetailPage /> },
+      { path: 'profile', element: <ProfilePage /> },
     ],
   },
   {
