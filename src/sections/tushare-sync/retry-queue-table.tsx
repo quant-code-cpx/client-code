@@ -1,5 +1,6 @@
 import type { RetryQueueItem } from 'src/api/tushare-sync';
 
+import Table from '@mui/material/Table';
 import Skeleton from '@mui/material/Skeleton';
 import TableRow from '@mui/material/TableRow';
 import TableBody from '@mui/material/TableBody';
@@ -7,7 +8,6 @@ import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
 import Typography from '@mui/material/Typography';
 import TableContainer from '@mui/material/TableContainer';
-import Table from '@mui/material/Table';
 
 import { fDateTime } from 'src/utils/format-time';
 
@@ -79,7 +79,7 @@ export function RetryQueueTable({ rows, loading }: Props) {
                   </TableRow>
                 ))
               : rows.map((row) => (
-                  <TableRow key={row.id} hover={true}>
+                  <TableRow key={row.id} hover>
                     <TableCell>
                       <Typography variant="body2" sx={{ fontWeight: 500 }}>
                         {row.task}

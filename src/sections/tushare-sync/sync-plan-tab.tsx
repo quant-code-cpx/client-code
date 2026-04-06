@@ -184,7 +184,7 @@ export function SyncPlanTab() {
           sx={{ mb: 3 }}
           onClose={clearLastResult}
         >
-          <Typography variant="subtitle2" gutterBottom={true}>
+          <Typography variant="subtitle2" gutterBottom>
             同步完成，耗时 {lastSyncResult.elapsedSeconds.toFixed(1)} 秒
           </Typography>
           <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
@@ -227,7 +227,7 @@ export function SyncPlanTab() {
             </Typography>
             <ToggleButtonGroup
               value={mode}
-              exclusive={true}
+              exclusive
               size="small"
               onChange={(_, v) => {
                 if (v) setMode(v as TushareSyncMode);
@@ -290,7 +290,7 @@ export function SyncPlanTab() {
                   </TableCell>
                   {TABLE_HEAD.map((col) => (
                     <TableCell key={col.id} align={col.align ?? 'left'} sx={{ width: col.width }}>
-                      <TableSortLabel hideSortIcon={true}>{col.label}</TableSortLabel>
+                      <TableSortLabel hideSortIcon>{col.label}</TableSortLabel>
                     </TableCell>
                   ))}
                 </TableRow>
@@ -351,7 +351,7 @@ export function SyncPlanTab() {
                             return (
                               <TableRow
                                 key={plan.task}
-                                hover={true}
+                                hover
                                 selected={isSelected}
                                 onClick={() => toggleTask(plan.task)}
                                 sx={{ cursor: 'pointer', opacity: dimmed ? 0.45 : 1 }}

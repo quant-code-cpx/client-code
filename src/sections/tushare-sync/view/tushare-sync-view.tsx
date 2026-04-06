@@ -22,9 +22,9 @@ const TABS = [
   { label: '同步计划', icon: 'solar:restart-bold' },
   { label: '同步日志', icon: 'solar:document-text-bold' },
   { label: '数据质量', icon: 'solar:shield-check-bold' },
-  { label: '缓存统计', icon: 'solar:server-bold' },
-  { label: '重试队列', icon: 'solar:refresh-circle-bold' },
-];
+  { label: '缓存统计', icon: 'solar:layers-bold' },
+  { label: '重试队列', icon: 'solar:refresh-bold' },
+] as const;
 
 // ----------------------------------------------------------------------
 

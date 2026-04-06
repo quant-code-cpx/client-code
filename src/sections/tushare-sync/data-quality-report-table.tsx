@@ -1,5 +1,6 @@
 import type { DataQualityCheckItem } from 'src/api/tushare-sync';
 
+import Table from '@mui/material/Table';
 import Skeleton from '@mui/material/Skeleton';
 import TableRow from '@mui/material/TableRow';
 import TableBody from '@mui/material/TableBody';
@@ -7,7 +8,6 @@ import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
 import Typography from '@mui/material/Typography';
 import TableContainer from '@mui/material/TableContainer';
-import Table from '@mui/material/Table';
 
 import { fDate } from 'src/utils/format-time';
 
@@ -31,6 +31,18 @@ const QUALITY_STATUS_LABEL: Record<string, string> = {
 const CHECK_TYPE_LABEL: Record<string, string> = {
   completeness: '完整性',
   timeliness: '及时性',
+  'cross-table': '跨表对账',
+};
+
+const CROSS_CHECK_LABEL: Record<string, string> = {
+  'C-01': 'C-01 日线↔每日指标',
+  'C-02': 'C-02 日线↔复权因子',
+  'C-03': 'C-03 日线↔涨跌停',
+  'C-04': 'C-04 日线↔停牌互斥',
+  'C-05': 'C-05 利润表↔资产负债表',
+  'C-06': 'C-06 利润表↔现金流量表',
+  'C-07': 'C-07 指数权重→基础信息',
+  'C-08': 'C-08 指数行情↔指数权重',
 };
 
 type Props = {
@@ -75,10 +87,12 @@ export function DataQualityReportTable({ rows, loading, days }: Props) {
                   </TableRow>
                 ))
               : rows.map((row) => (
-                  <TableRow key={row.id} hover={true}>
+                  <TableRow key={row.id} hover>
                     <TableCell>
                       <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                        {row.dataSet}
+                        {row.checkType === 'cross-table'
+                          ? (CROSS_CHECK_LABEL[row.dataSet] ?? row.dataSet)
+                          : row.dataSet}
                       </Typography>
                     </TableCell>
                     <TableCell>
@@ -87,10 +101,7 @@ export function DataQualityReportTable({ rows, loading, days }: Props) {
                       </Typography>
                     </TableCell>
                     <TableCell>
-                      <Label
-                        color={QUALITY_STATUS_COLOR[row.status] ?? 'default'}
-                        variant="soft"
-                      >
+                      <Label color={QUALITY_STATUS_COLOR[row.status] ?? 'default'} variant="soft">
                         {QUALITY_STATUS_LABEL[row.status] ?? row.status}
                       </Label>
                     </TableCell>
@@ -107,6 +118,18 @@ export function DataQualityReportTable({ rows, loading, days }: Props) {
                       >
                         {row.message ?? '—'}
                       </Typography>
+                      {row.checkType === 'completeness' &&
+                        (row.details as { suspendedCount?: number } | null)?.suspendedCount !=
+                          null &&
+                        (row.details as { suspendedCount?: number })!.suspendedCount! > 0 && (
+                          <Typography
+                            variant="caption"
+                            sx={{ color: 'text.disabled', display: 'block' }}
+                          >
+                            （另有 {(row.details as { suspendedCount: number }).suspendedCount}{' '}
+                            个停牌日正常缺失）
+                          </Typography>
+                        )}
                     </TableCell>
                     <TableCell>
                       <Typography variant="body2" sx={{ color: 'text.secondary' }}>

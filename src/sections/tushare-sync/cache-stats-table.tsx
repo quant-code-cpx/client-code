@@ -51,7 +51,7 @@ export function CacheStatsTable({ rows, loading }: Props) {
                   </TableRow>
                 ))
               : rows.map((row) => (
-                  <TableRow key={row.namespace} hover={true}>
+                  <TableRow key={row.namespace} hover>
                     <TableCell>
                       <Typography variant="body2" sx={{ fontWeight: 500 }}>
                         {row.namespace}

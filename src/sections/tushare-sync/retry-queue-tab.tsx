@@ -79,11 +79,7 @@ export function RetryQueueTab() {
   return (
     <Box sx={{ mt: 3 }}>
       {resetAlert && (
-        <Alert
-          severity="info"
-          sx={{ mb: 3 }}
-          onClose={() => setResetAlert('')}
-        >
+        <Alert severity="info" sx={{ mb: 3 }} onClose={() => setResetAlert('')}>
           {resetAlert}
         </Alert>
       )}
@@ -127,11 +123,7 @@ export function RetryQueueTab() {
               onClick={() => setConfirmOpen(true)}
               disabled={resetting}
               startIcon={
-                resetting ? (
-                  <CircularProgress size={14} />
-                ) : (
-                  <Iconify icon="solar:refresh-circle-bold" />
-                )
+                resetting ? <CircularProgress size={14} /> : <Iconify icon="solar:refresh-bold" />
               }
             >
               {resetting ? '重置中...' : '重置耗尽记录'}

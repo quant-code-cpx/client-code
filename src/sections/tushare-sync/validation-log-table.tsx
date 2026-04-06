@@ -67,7 +67,7 @@ export function ValidationLogTable({ rows, loading }: Props) {
                   </TableRow>
                 ))
               : rows.map((row) => (
-                  <TableRow key={row.id} hover={true}>
+                  <TableRow key={row.id} hover>
                     <TableCell>
                       <Typography variant="body2" sx={{ fontWeight: 500 }}>
                         {row.task}

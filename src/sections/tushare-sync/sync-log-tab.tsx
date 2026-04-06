@@ -1,4 +1,4 @@
-import type { SyncLogItem, SyncLogSummaryItem, TushareSyncStatus } from 'src/api/tushare-sync';
+import type { SyncLogItem, TushareSyncStatus, SyncLogSummaryItem } from 'src/api/tushare-sync';
 
 import { useState, useEffect, useCallback } from 'react';
 
@@ -243,7 +243,7 @@ export function SyncLogTab() {
                       </TableRow>
                     ))
                   : logs.map((log) => (
-                      <TableRow key={log.id} hover={true}>
+                      <TableRow key={log.id} hover>
                         <TableCell>
                           <Typography variant="body2" sx={{ fontWeight: 500 }}>
                             {log.task}

@@ -70,7 +70,7 @@ export function SyncLogSummaryTable({ rows, loading }: Props) {
                   </TableRow>
                 ))
               : rows.map((row) => (
-                  <TableRow key={row.task} hover={true}>
+                  <TableRow key={row.task} hover>
                     <TableCell>
                       <Typography variant="body2" sx={{ fontWeight: 500 }}>
                         {row.task}

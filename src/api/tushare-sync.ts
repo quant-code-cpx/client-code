@@ -110,11 +110,56 @@ export type DataQualityCheckItem = {
   id: number;
   checkDate: string;
   dataSet: string;
-  checkType: string;
+  checkType: 'completeness' | 'timeliness' | 'cross-table' | string;
   status: string;
   message: string | null;
   details: Record<string, unknown> | null;
   createdAt: string;
+};
+
+/** Phase 4: 质量检查聚合摘要 */
+export type QualityCheckSummary = {
+  checkedAt: string;
+  totalDataSets: number;
+  counts: { pass: number; warn: number; fail: number };
+  failures: Array<{ dataSet: string; checkType: string; message: string }>;
+  crossTableCounts: { pass: number; warn: number; fail: number };
+  autoRepairTriggered: boolean;
+  repairTaskCount: number;
+};
+
+/** Phase 4: 自动补数摘要 */
+export type RepairSummary = {
+  totalChecked: number;
+  repairTasks: number;
+  executed: number;
+  tasks: Array<{
+    dataSet: string;
+    repairType: 'resync-dates' | 'resync-dataset' | 'no-action';
+    missingDates?: string[];
+    sourceReport: {
+      dataSet: string;
+      checkType: string;
+      status: string;
+      message: string | null;
+    };
+  }>;
+};
+
+/** Phase 4: 补数队列状态 */
+export type RepairQueueStatus = {
+  pending: number;
+  retrying: number;
+  succeeded: number;
+  exhausted: number;
+};
+
+/** Phase 4: 数据质量健康状态 */
+export type QualityHealthStatus = {
+  status: 'healthy' | 'degraded' | 'unhealthy';
+  lastCheckAt: string | null;
+  failCount: number;
+  exhaustedRepairs: number;
 };
 
 export type DataGapsResult = {
@@ -192,6 +237,28 @@ export const tushareSyncApi = {
   /** 查询数据校验异常日志 */
   getValidationLogs: (task?: string, limit?: number): Promise<ValidationLogItem[]> =>
     apiClient.post<ValidationLogItem[]>('/api/tushare/admin/validation-logs', { task, limit }),
+
+  // ── Phase 3 / Phase 4 数据质量增强 ──
+
+  /** Phase 3: 手动触发跨表对账 */
+  runCrossTableCheck: (mode: 'recent' | 'full' = 'recent'): Promise<DataQualityCheckItem[]> =>
+    apiClient.post<DataQualityCheckItem[]>('/api/tushare/admin/quality/cross-check', { mode }),
+
+  /** Phase 4: 查询最近一轮质量检查摘要 */
+  getQualitySummary: (): Promise<QualityCheckSummary> =>
+    apiClient.post<QualityCheckSummary>('/api/tushare/admin/quality/summary', {}),
+
+  /** Phase 4: 手动触发自动补数 */
+  triggerAutoRepair: (): Promise<RepairSummary> =>
+    apiClient.post<RepairSummary>('/api/tushare/admin/quality/repair', {}),
+
+  /** Phase 4: 查询补数任务队列状态 */
+  getRepairQueueStatus: (): Promise<RepairQueueStatus> =>
+    apiClient.post<RepairQueueStatus>('/api/tushare/admin/quality/repair-status', {}),
+
+  /** Phase 4: 查询数据质量健康状态 */
+  getQualityHealth: (): Promise<QualityHealthStatus> =>
+    apiClient.post<QualityHealthStatus>('/api/tushare/admin/quality/health', {}),
 
   // ── 同步日志 ──
 

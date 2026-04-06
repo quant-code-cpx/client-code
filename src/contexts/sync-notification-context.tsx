@@ -1,4 +1,5 @@
 import type { Socket } from 'socket.io-client';
+import type { RepairSummary, QualityCheckSummary } from 'src/api/tushare-sync';
 
 import { useRef, useState, useEffect, useContext, useCallback, createContext } from 'react';
 
@@ -59,6 +60,8 @@ type SyncNotificationContextValue = {
   markAllRead: () => void;
   /** 清除最新同步结果（用于关闭结果 Alert 后复位） */
   clearLastResult: () => void;
+  /** Phase 4: 最新一轮数据质量检查摘要（WebSocket 推送或手动触发时更新） */
+  lastQualitySummary: QualityCheckSummary | null;
 };
 
 // ----------------------------------------------------------------------
@@ -94,6 +97,7 @@ export function SyncNotificationProvider({ children }: ProviderProps) {
   const [lastSyncResult, setLastSyncResult] = useState<SyncCompletedPayload | null>(null);
   const [lastSyncError, setLastSyncError] = useState<SyncFailedPayload | null>(null);
   const [notifications, setNotifications] = useState<SyncNotificationItem[]>([]);
+  const [lastQualitySummary, setLastQualitySummary] = useState<QualityCheckSummary | null>(null);
 
   // 保存 socket 引用，避免重复订阅
   const socketRef = useRef<Socket | null>(null);
@@ -158,10 +162,24 @@ export function SyncNotificationProvider({ children }: ProviderProps) {
     socket.on('tushare_sync_completed', handleCompleted);
     socket.on('tushare_sync_failed', handleFailed);
 
+    // ── Phase 4 新增事件 ──
+    const handleQualityCompleted = (summary: QualityCheckSummary) => {
+      setLastQualitySummary(summary);
+    };
+
+    const handleAutoRepairQueued = (_repair: RepairSummary) => {
+      // payload 由消费侧 DataQualityTab 使用，此处仅做存储触发
+    };
+
+    socket.on('data_quality_completed', handleQualityCompleted);
+    socket.on('auto_repair_queued', handleAutoRepairQueued);
+
     return () => {
       socket.off('tushare_sync_started', handleStarted);
       socket.off('tushare_sync_completed', handleCompleted);
       socket.off('tushare_sync_failed', handleFailed);
+      socket.off('data_quality_completed', handleQualityCompleted);
+      socket.off('auto_repair_queued', handleAutoRepairQueued);
       destroySocket();
     };
   }, []);
@@ -189,6 +207,7 @@ export function SyncNotificationProvider({ children }: ProviderProps) {
         markNotificationRead,
         markAllRead,
         clearLastResult,
+        lastQualitySummary,
       }}
     >
       {children}
