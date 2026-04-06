@@ -271,61 +271,382 @@ import { RouterLink } from 'src/routes/components';
 
 ## Code Style & ESLint Rules
 
-### Import Order (ENFORCED — perfectionist plugin)
+> All rules below are **enforced by ESLint** (`eslint.config.mjs`). Violations will cause lint errors or warnings. Always run `npm run lint` before committing.
+
+---
+
+### 1. Import Order (ERROR — `perfectionist/sort-imports`)
+
+Imports must follow this exact group order, with a **blank line between each group**:
 
 ```tsx
-// 1. CSS/styles
+// ── Group 1: style / CSS ──────────────────────────────────
 import 'src/global.css';
 
-// 2. type imports
-import type { User } from './types';
+// ── Group 2: side-effect imports ─────────────────────────
+import 'reflect-metadata';
 
-// 3. External packages
-import { useState } from 'react';
+// ── Group 3: type-only imports ───────────────────────────
+import type { FC } from 'react';
+import type { User } from 'src/types/user';
 
-// 4. MUI group
-import Box from '@mui/material/Box';
-import Typography from '@mui/material/Typography';
+// ── Group 4: external (builtins + npm packages) ───────────
+import { useState, useEffect } from 'react';
+import dayjs from 'dayjs';
 
-// 5. Project internals (hooks, utils, types, routes, sections, components)
-import { useRouter } from 'src/routes/hooks';
-import { Label } from 'src/components/label';
-```
-
-### JSX Rules
-
-```tsx
-// ✅ Self-close empty components
-<Box />
-
-// ❌ Not
-<Box></Box>
-
-// ✅ Explicit booleans
-<TextField disabled={true} />
-
-// ❌ Not
-<TextField disabled />
-
-// ✅ No empty Fragments
-return <Box>{content}</Box>;
-
-// ❌ Not
-return <><Box>{content}</Box></>;
-```
-
-### MUI Import Style
-
-Always import from the specific subpath (not the barrel import):
-
-```tsx
-// ✅ Correct (better tree-shaking)
+// ── Group 5: @mui/* ───────────────────────────────────────
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
-// ❌ Avoid
+// ── Group 6: src/routes/* ─────────────────────────────────
+import { paths } from 'src/routes/paths';
+import { useRouter } from 'src/routes/hooks';
+
+// ── Group 7: src/hooks/* ──────────────────────────────────
+import { useBoolean } from 'src/hooks/use-boolean';
+
+// ── Group 8: src/utils/* ──────────────────────────────────
+import { fDate } from 'src/utils/format-time';
+
+// ── Group 9: other src/* internals (src/api, src/config…) ─
+import { userApi } from 'src/api/user';
+import { CONFIG } from 'src/config-global';
+
+// ── Group 10: src/components/* ───────────────────────────
+import { Label } from 'src/components/label';
+import { Iconify } from 'src/components/iconify';
+
+// ── Group 11: src/sections/* ─────────────────────────────
+import { UserTableRow } from 'src/sections/user';
+
+// ── Group 12: src/auth/* ──────────────────────────────────
+import { useAuthContext } from 'src/auth/hooks';
+
+// ── Group 13: src/types/* ─────────────────────────────────
+import type { UserItem } from 'src/types/user';
+
+// ── Group 14: relative imports (parent / sibling / index) ─
+import { MyHelper } from '../utils';
+import type { MyProps } from './types';
+```
+
+Within each group, imports are sorted by **line length ascending**.
+
+**Named imports** within a single `import { … }` statement are also sorted by line length ascending:
+
+```tsx
+// ✅ Correct
+import { fDate, fToNow, fDateTime } from 'src/utils/format-time';
+
+// ❌ Wrong order
+import { fDateTime, fDate, fToNow } from 'src/utils/format-time';
+```
+
+---
+
+### 2. `import type` for type-only imports (WARN — `@typescript-eslint/consistent-type-imports`)
+
+Use `import type` whenever importing only TypeScript types/interfaces:
+
+```tsx
+// ✅ Correct
+import type { BoxProps } from '@mui/material/Box';
+import type { UserItem } from 'src/types/user';
+
+// ❌ Wrong — regular import used for a type
+import { BoxProps } from '@mui/material/Box';
+```
+
+---
+
+### 3. Newline after import block (ERROR — `import/newline-after-import`)
+
+There must be exactly one blank line between the last `import` statement and the first non-import code:
+
+```tsx
+// ✅ Correct
+import Box from '@mui/material/Box';
+
+export function MyComponent() { … }
+
+// ❌ Wrong — no blank line
+import Box from '@mui/material/Box';
+export function MyComponent() { … }
+```
+
+---
+
+### 4. MUI Import Style (enforced by import grouping)
+
+Always import from the specific subpath (better tree-shaking):
+
+```tsx
+// ✅ Correct
+import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
+import { useTheme } from '@mui/material/styles';
+
+// ❌ Avoid — barrel import
 import { Box, Stack, Typography } from '@mui/material';
+```
+
+---
+
+### 5. JSX — Self-closing components (ERROR — `react/self-closing-comp`)
+
+```tsx
+// ✅ Correct
+<Box />
+<Divider />
+
+// ❌ Wrong
+<Box></Box>
+```
+
+---
+
+### 6. JSX — Explicit boolean props (ERROR — `react/jsx-boolean-value`)
+
+```tsx
+// ✅ Correct
+<TextField disabled={true} />
+<Switch checked={false} />
+
+// ❌ Wrong — shorthand boolean
+<TextField disabled />
+```
+
+---
+
+### 7. JSX — No useless fragments (WARN — `react/jsx-no-useless-fragment`)
+
+```tsx
+// ✅ Correct — no wrapping fragment needed
+return <Box>{content}</Box>;
+
+// ❌ Wrong — unnecessary fragment
+return <><Box>{content}</Box></>;
+```
+
+Fragments are allowed when wrapping multiple siblings or inside expressions (e.g. `condition && <>{a}{b}</>`).
+
+---
+
+### 8. JSX — No unnecessary curly braces (ERROR — `react/jsx-curly-brace-presence`)
+
+Do not wrap string literals or non-dynamic values in curly braces in JSX props or children:
+
+```tsx
+// ✅ Correct
+<Typography variant="h4">Hello</Typography>
+<Box className="my-class" />
+
+// ❌ Wrong — unnecessary curly braces around string
+<Typography variant={"h4"}>{"Hello"}</Typography>
+<Box className={"my-class"} />
+```
+
+---
+
+### 9. Arrow function body style (ERROR — `arrow-body-style`)
+
+Omit curly braces and `return` for arrow functions that return a single expression:
+
+```tsx
+// ✅ Correct
+const double = (x: number) => x * 2;
+const getLabel = (item: Item) => item.label;
+const rows = items.map((item) => <Row key={item.id} item={item} />);
+
+// ❌ Wrong — unnecessary block body
+const double = (x: number) => { return x * 2; };
+const rows = items.map((item) => { return <Row key={item.id} item={item} />; });
+```
+
+Exception: when the function body contains multiple statements or side effects, the block body is required.
+
+---
+
+### 10. Object shorthand (WARN — `object-shorthand`)
+
+Use shorthand property and method syntax:
+
+```tsx
+// ✅ Correct
+const obj = { name, value, onClick };
+const api = { fetchUser() { … } };
+
+// ❌ Wrong
+const obj = { name: name, value: value, onClick: onClick };
+const api = { fetchUser: function() { … } };
+```
+
+---
+
+### 11. No useless renaming (WARN — `no-useless-rename`)
+
+Don't rename imports, exports, or destructured vars to the same name:
+
+```tsx
+// ✅ Correct
+import { foo } from './foo';
+const { bar } = obj;
+export { baz };
+
+// ❌ Wrong
+import { foo as foo } from './foo';
+const { bar: bar } = obj;
+export { baz as baz };
+```
+
+---
+
+### 12. No unused imports (WARN — `unused-imports/no-unused-imports`)
+
+Remove any import that is never referenced in the file:
+
+```tsx
+// ✅ Correct — all imports are used
+import Box from '@mui/material/Box';
+import { fDate } from 'src/utils/format-time';
+
+// ❌ Wrong — fDate imported but never used
+import Box from '@mui/material/Box';
+import { fDate } from 'src/utils/format-time';
+// (fDate never appears in the file)
+```
+
+---
+
+### 13. No unused variables (WARN — `@typescript-eslint/no-unused-vars`)
+
+Variables that are declared but never used trigger a warning (function arguments are excluded):
+
+```tsx
+// ✅ Correct
+const [open, setOpen] = useState(false);
+// both open and setOpen are used
+
+// ❌ Wrong — value declared but never read
+const unusedVar = computeSomething();
+```
+
+Prefix with `_` to intentionally suppress the warning: `const _unused = …`.
+
+---
+
+### 14. No variable shadowing (ERROR — `@typescript-eslint/no-shadow`)
+
+Do not declare a variable with the same name as one in an outer scope:
+
+```tsx
+// ✅ Correct — different names
+function outer() {
+  const userId = 1;
+  function inner(currentUserId: number) { … }
+}
+
+// ❌ Wrong — inner userId shadows outer userId
+function outer() {
+  const userId = 1;
+  function inner(userId: number) { … }  // shadows outer userId
+}
+```
+
+---
+
+### 15. Consistent return (ERROR — `consistent-return`)
+
+All code paths in a function must either always return a value or never return one:
+
+```tsx
+// ✅ Correct — always returns
+function getLabel(type: string): string {
+  if (type === 'a') return 'Alpha';
+  return 'Unknown';
+}
+
+// ✅ Correct — never returns (void)
+function logMessage(msg: string) {
+  console.log(msg);
+}
+
+// ❌ Wrong — some paths return, others don't
+function getLabel(type: string) {
+  if (type === 'a') return 'Alpha';
+  // missing return on other paths
+}
+```
+
+---
+
+### 16. Lines around directives (ERROR — `lines-around-directive`)
+
+`'use client'` and similar directives must have a blank line **before and after** them when they appear alongside other code:
+
+```tsx
+// ✅ Correct — blank line after the directive, before imports
+
+'use client';
+
+import { useState } from 'react';
+
+// ✅ Also correct — if preceding content exists, blank line before AND after
+// (In practice this rule fires when mixing directives with other statements.)
+```
+
+---
+
+### 17. No bitwise operators (ERROR — `no-bitwise`)
+
+Bitwise operators (`&`, `|`, `^`, `~`, `<<`, `>>`, `>>>`) are not allowed. Use logical operators instead:
+
+```tsx
+// ✅ Correct
+const isActive = status === 1 || status === 2;
+
+// ❌ Wrong
+const flags = a | b;
+```
+
+---
+
+### 18. Default case placement & requirement (`default-case-last` + `default-case`)
+
+Two rules work together here:
+
+- **`default-case-last`** (ERROR): the `default` clause must always be the **last** case in a `switch` statement.
+- **`default-case`** (ERROR): every `switch` statement must have a `default` case, **unless** you explicitly opt out with a `// no default` comment.
+
+```tsx
+// ✅ Correct — default last
+switch (status) {
+  case 'active':
+    return 'Active';
+  case 'banned':
+    return 'Banned';
+  default:
+    return 'Unknown';
+}
+
+// ❌ Wrong — default not last (violates default-case-last)
+switch (status) {
+  default:
+    return 'Unknown';
+  case 'active':
+    return 'Active';
+}
+
+// ✅ Correct — intentionally omitted default with opt-out comment
+switch (action.type) {
+  case 'INCREMENT':
+    return state + 1;
+  case 'DECREMENT':
+    return state - 1;
+  // no default
+}
 ```
 
 ---
@@ -434,6 +755,13 @@ The backend lives at `../server-code/src` relative to the client project root (`
 - **Do not** use barrel imports from `@mui/material` — import from subpaths
 - **Do not** use `React.FC` type annotation — use plain function return types
 - **Do not** use `<Fragment>` when not needed
+- **Do not** use `import { SomeType }` for type-only imports — use `import type { SomeType }`
+- **Do not** wrap string literals in JSX props/children with curly braces: `variant={"h4"}` → `variant="h4"`
+- **Do not** use shorthand boolean JSX props: `<Comp disabled />` → `<Comp disabled={true} />`
+- **Do not** leave unused imports in a file — remove them
+- **Do not** use block-body arrow functions when expression suffices: `(x) => { return x; }` → `(x) => x`
+- **Do not** shadow outer-scope variable names in nested functions or callbacks
+- **Do not** use `{ name: name }` object literals — use shorthand `{ name }`
 
 ---
 
