@@ -23,7 +23,8 @@ import { fetchSectorRanking, fetchSectorFlowRanking } from 'src/api/market';
 
 // ----------------------------------------------------------------------
 
-function pctColor(v: number): 'error.main' | 'success.main' | 'text.secondary' {
+function pctColor(v: number | null): 'error.main' | 'success.main' | 'text.secondary' {
+  if (v == null) return 'text.secondary';
   if (v > 0) return 'error.main';
   if (v < 0) return 'success.main';
   return 'text.secondary';
@@ -74,7 +75,7 @@ export function DashboardHotSectors() {
     setFlowError('');
 
     fetchSectorFlowRanking({
-      content_type: 'industry',
+      content_type: 'INDUSTRY',
       sort_by: 'net_amount',
       order: 'desc',
       limit: 10,
@@ -182,7 +183,7 @@ export function DashboardHotSectors() {
                         <TableCell align="right">
                           <Typography variant="caption" sx={{ color: pctColor(row.netAmount) }}>
                             {row.netAmount > 0 ? '+' : ''}
-                            {(row.netAmount / 10000).toFixed(2)}亿
+                            {(row.netAmount / 100000000).toFixed(2)}亿
                           </Typography>
                         </TableCell>
                       </TableRow>

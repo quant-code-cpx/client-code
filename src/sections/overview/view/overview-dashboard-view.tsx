@@ -39,25 +39,26 @@ export function OverviewDashboardView() {
           <DashboardChangeDistribution />
         </Grid>
 
-        {/* C: 资金流向 + 北向资金 + 热门板块 */}
-        <Grid size={{ xs: 12, md: 4 }}>
+        {/* C: 资金流向 + 北向资金 */}
+        <Grid size={{ xs: 12, md: 6 }}>
           <DashboardMoneyFlow />
         </Grid>
 
-        <Grid size={{ xs: 12, md: 4 }}>
+        <Grid size={{ xs: 12, md: 6 }}>
           <DashboardHsgtFlow />
         </Grid>
 
-        <Grid size={{ xs: 12, md: 4 }}>
-          <DashboardHotSectors />
-        </Grid>
-
-        {/* D: 主力排行 + 近期回测 */}
+        {/* D: 主力排行 + 热门板块 */}
         <Grid size={{ xs: 12, md: 7 }}>
           <DashboardMainFlowRanking />
         </Grid>
 
         <Grid size={{ xs: 12, md: 5 }}>
+          <DashboardHotSectors />
+        </Grid>
+
+        {/* E: 近期回测 */}
+        <Grid size={{ xs: 12 }}>
           <DashboardRecentBacktests />
         </Grid>
 

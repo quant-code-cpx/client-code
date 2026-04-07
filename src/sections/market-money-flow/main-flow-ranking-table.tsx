@@ -23,7 +23,8 @@ import { StockFlowDetailDialog } from './stock-flow-detail-dialog';
 
 // ----------------------------------------------------------------------
 
-function flowColor(value: number): 'error.main' | 'success.main' | 'text.secondary' {
+function flowColor(value: number | null): 'error.main' | 'success.main' | 'text.secondary' {
+  if (value == null) return 'text.secondary';
   if (value > 0) return 'error.main';
   if (value < 0) return 'success.main';
   return 'text.secondary';
@@ -247,7 +248,7 @@ export function MainFlowRankingTable({ tradeDate }: Props) {
         <StockFlowDetailDialog
           open
           tsCode={dialogStock.tsCode}
-          stockName={dialogStock.name}
+          stockName={dialogStock.name ?? dialogStock.tsCode}
           onClose={() => setDialogStock(null)}
         />
       )}

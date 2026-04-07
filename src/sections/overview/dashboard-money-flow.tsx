@@ -19,18 +19,20 @@ import { fetchMoneyFlow } from 'src/api/market';
 
 // ----------------------------------------------------------------------
 
-/** 万元 → 亿元 */
-function toYi(wan: number): string {
-  return `${(wan / 10000).toFixed(2)}亿`;
+/** 元 → 亿元，null 返回 '-' */
+function toYi(yuan: number | null): string {
+  if (yuan == null) return '-';
+  return `${(yuan / 100000000).toFixed(2)}亿`;
 }
 
-function flowColor(v: number): 'error.main' | 'success.main' | 'text.secondary' {
+function flowColor(v: number | null): 'error.main' | 'success.main' | 'text.secondary' {
+  if (v == null) return 'text.secondary';
   if (v > 0) return 'error.main';
   if (v < 0) return 'success.main';
   return 'text.secondary';
 }
 
-type RowProps = { label: string; amount: number; rate: number };
+type RowProps = { label: string; amount: number | null; rate: number | null };
 
 function FlowRow({ label, amount, rate }: RowProps) {
   const color = flowColor(amount);
@@ -47,7 +49,7 @@ function FlowRow({ label, amount, rate }: RowProps) {
         {label}
       </Typography>
       <Typography variant="body2" fontWeight="fontWeightMedium" sx={{ color }}>
-        {amount > 0 ? '+' : ''}
+        {amount != null && amount > 0 ? '+' : ''}
         {toYi(amount)}
       </Typography>
       <Typography variant="caption" sx={{ color }}>
@@ -121,7 +123,7 @@ export function DashboardMoneyFlow() {
                 px: 1.5,
                 mb: 1,
                 borderRadius: 1,
-                bgcolor: data.netAmount > 0 ? 'error.lighter' : 'success.lighter',
+                bgcolor: (data.netAmount ?? 0) > 0 ? 'error.lighter' : 'success.lighter',
               }}
             >
               <Typography variant="body2" fontWeight="fontWeightBold">
@@ -132,7 +134,7 @@ export function DashboardMoneyFlow() {
                 fontWeight="fontWeightBold"
                 sx={{ color: flowColor(data.netAmount) }}
               >
-                {data.netAmount > 0 ? '+' : ''}
+                {data.netAmount != null && data.netAmount > 0 ? '+' : ''}
                 {toYi(data.netAmount)}
               </Typography>
               <Typography variant="caption" sx={{ color: flowColor(data.netAmount) }}>

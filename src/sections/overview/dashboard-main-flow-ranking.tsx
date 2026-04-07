@@ -26,7 +26,8 @@ import { fetchMainFlowRanking } from 'src/api/market';
 
 // ----------------------------------------------------------------------
 
-function flowColor(v: number): 'error.main' | 'success.main' | 'text.secondary' {
+function flowColor(v: number | null): 'error.main' | 'success.main' | 'text.secondary' {
+  if (v == null) return 'text.secondary';
   if (v > 0) return 'error.main';
   if (v < 0) return 'success.main';
   return 'text.secondary';

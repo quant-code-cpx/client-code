@@ -33,7 +33,7 @@ function toYi(wan: number): number {
 type Props = {
   tsCode: string;
   sectorName: string;
-  contentType?: string;
+  contentType?: 'INDUSTRY' | 'CONCEPT' | 'REGION';
   days?: number;
   open: boolean;
 };
@@ -55,8 +55,7 @@ export function SectorFlowTrendChart({ tsCode, sectorName, contentType, days = 2
         if (!cancelled) setData(res?.data ?? []);
       })
       .catch((err: unknown) => {
-        if (!cancelled)
-          setError(err instanceof Error ? err.message : '加载板块资金趋势失败');
+        if (!cancelled) setError(err instanceof Error ? err.message : '加载板块资金趋势失败');
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -122,7 +121,11 @@ export function SectorFlowTrendChart({ tsCode, sectorName, contentType, days = 2
             {sectorName}板块资金流趋势
           </Typography>
 
-          {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+          {error && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {error}
+            </Alert>
+          )}
 
           {loading ? (
             <Skeleton variant="rectangular" height={280} />

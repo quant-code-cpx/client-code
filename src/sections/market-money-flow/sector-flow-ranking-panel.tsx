@@ -29,13 +29,13 @@ import { SectorFlowTrendChart } from './sector-flow-trend-chart';
 
 // ----------------------------------------------------------------------
 
-type ContentType = 'industry' | 'concept' | 'area';
+type ContentType = 'INDUSTRY' | 'CONCEPT' | 'REGION';
 type SortBy = 'net_amount' | 'pct_change' | 'buy_elg_amount';
 
 const CONTENT_TABS: Array<{ value: ContentType; label: string }> = [
-  { value: 'industry', label: '行业' },
-  { value: 'concept', label: '概念' },
-  { value: 'area', label: '地域' },
+  { value: 'INDUSTRY', label: '行业' },
+  { value: 'CONCEPT', label: '概念' },
+  { value: 'REGION', label: '地域' },
 ];
 
 const SORT_OPTIONS: Array<{ value: SortBy; label: string }> = [
@@ -150,7 +150,7 @@ export function SectorFlowRankingPanel({ tradeDate }: Props) {
   const [error, setError] = useState('');
   const [selectedSector, setSelectedSector] = useState<SectorFlowRankingItem | null>(null);
 
-  const contentType = CONTENT_TABS[contentTypeIndex]?.value ?? 'industry';
+  const contentType = CONTENT_TABS[contentTypeIndex]?.value ?? 'INDUSTRY';
 
   useEffect(() => {
     let cancelled = false;
@@ -169,8 +169,7 @@ export function SectorFlowRankingPanel({ tradeDate }: Props) {
         if (!cancelled) setSectors(res?.sectors ?? []);
       })
       .catch((err: unknown) => {
-        if (!cancelled)
-          setError(err instanceof Error ? err.message : '加载板块资金排行失败');
+        if (!cancelled) setError(err instanceof Error ? err.message : '加载板块资金排行失败');
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -219,17 +218,17 @@ export function SectorFlowRankingPanel({ tradeDate }: Props) {
             </ToggleButtonGroup>
           </Stack>
 
-          <Tabs
-            value={contentTypeIndex}
-            onChange={(_, v) => setContentTypeIndex(v)}
-            sx={{ mb: 2 }}
-          >
+          <Tabs value={contentTypeIndex} onChange={(_, v) => setContentTypeIndex(v)} sx={{ mb: 2 }}>
             {CONTENT_TABS.map((t) => (
               <Tab key={t.value} label={t.label} />
             ))}
           </Tabs>
 
-          {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+          {error && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              {error}
+            </Alert>
+          )}
 
           {loading ? (
             <Skeleton variant="rectangular" height={400} />

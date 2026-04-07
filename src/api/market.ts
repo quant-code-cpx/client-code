@@ -5,6 +5,7 @@ import { apiClient } from './client';
 // ----------------------------------------------------------------------
 
 export type MarketQueryBase = {
+  /** YYYYMMDD 格式，如 '20240101'；不传则后端自动取最新交易日 */
   trade_date?: string;
 };
 
@@ -98,7 +99,7 @@ export type ValuationTrendItem = {
 // API 调用函数
 // ----------------------------------------------------------------------
 
-export function fetchIndexQuote(query?: MarketQueryBase) {
+export function fetchIndexQuote(query?: MarketQueryBase & { ts_codes?: string[] }) {
   return apiClient.post<IndexQuoteItem[]>('/api/market/index-quote', query ?? {});
 }
 
@@ -118,9 +119,7 @@ export function fetchSentimentTrend(query?: MarketQueryBase & { days?: number })
   return apiClient.post<{ data: SentimentTrendItem[] }>('/api/market/sentiment-trend', query ?? {});
 }
 
-export function fetchSectorRanking(
-  query?: MarketQueryBase & { sort_by?: string; limit?: number }
-) {
+export function fetchSectorRanking(query?: MarketQueryBase & { sort_by?: string; limit?: number }) {
   return apiClient.post<{ tradeDate: string; sectors: SectorRankingItem[] }>(
     '/api/market/sector-ranking',
     query ?? {}
@@ -148,20 +147,20 @@ export function fetchValuationTrend(query?: { period?: string }) {
 
 export type MarketMoneyFlowDetail = {
   tradeDate: string;
-  netAmount: number;
-  netAmountRate: number;
-  buyElgAmount: number;
-  buyElgAmountRate: number;
-  buyLgAmount: number;
-  buyLgAmountRate: number;
-  buyMdAmount: number;
-  buyMdAmountRate: number;
-  buySmAmount: number;
-  buySmAmountRate: number;
-  closeSh: number;
-  pctChangeSh: number;
-  closeSz: number;
-  pctChangeSz: number;
+  netAmount: number | null;
+  netAmountRate: number | null;
+  buyElgAmount: number | null;
+  buyElgAmountRate: number | null;
+  buyLgAmount: number | null;
+  buyLgAmountRate: number | null;
+  buyMdAmount: number | null;
+  buyMdAmountRate: number | null;
+  buySmAmount: number | null;
+  buySmAmountRate: number | null;
+  closeSh: number | null;
+  pctChangeSh: number | null;
+  closeSz: number | null;
+  pctChangeSz: number | null;
 };
 
 export type MoneyFlowTrendItem = {
@@ -196,25 +195,25 @@ export type SectorFlowTrendItem = {
 
 export type HsgtTrendItem = {
   tradeDate: string;
-  northMoney: number;
-  southMoney: number;
-  hgt: number;
-  sgt: number;
-  ggtSs: number;
-  ggtSz: number;
-  cumulativeNorth: number;
-  cumulativeSouth: number;
+  northMoney: number | null;
+  southMoney: number | null;
+  hgt: number | null;
+  sgt: number | null;
+  ggtSs: number | null;
+  ggtSz: number | null;
+  cumulativeNorth?: number;
+  cumulativeSouth?: number;
 };
 
 export type MainFlowRankingItem = {
   tsCode: string;
-  name: string;
-  industry: string;
+  name: string | null;
+  industry: string | null;
   mainNetInflow: number;
   elgNetInflow: number;
   lgNetInflow: number;
-  pctChg: number;
-  amount: number;
+  pctChg: number | null;
+  amount: number | null;
 };
 
 export type StockFlowDetailItem = {
@@ -236,28 +235,42 @@ export type StockFlowDetailItem = {
 // 资金动态 API 调用函数
 // ----------------------------------------------------------------------
 
-export function fetchMoneyFlow(query?: { trade_date?: string }) {
-  return apiClient.post<MarketMoneyFlowDetail>('/api/market/money-flow', query ?? {});
+export async function fetchMoneyFlow(query?: {
+  trade_date?: string;
+}): Promise<MarketMoneyFlowDetail | null> {
+  const result = await apiClient.post<MarketMoneyFlowDetail[]>(
+    '/api/market/money-flow',
+    query ?? {}
+  );
+  return result?.[0] ?? null;
 }
 
 export function fetchMoneyFlowTrend(query?: { trade_date?: string; days?: number }) {
-  return apiClient.post<{ data: MoneyFlowTrendItem[] }>('/api/market/money-flow-trend', query ?? {});
-}
-
-export function fetchSectorFlowRanking(query?: {
-  trade_date?: string;
-  content_type?: string;
-  sort_by?: string;
-  order?: string;
-  limit?: number;
-}) {
-  return apiClient.post<{ tradeDate: string; contentType: string; sectors: SectorFlowRankingItem[] }>(
-    '/api/market/sector-flow-ranking',
+  return apiClient.post<{ data: MoneyFlowTrendItem[] }>(
+    '/api/market/money-flow-trend',
     query ?? {}
   );
 }
 
-export function fetchSectorFlowTrend(query: { ts_code: string; content_type?: string; days?: number }) {
+export function fetchSectorFlowRanking(query?: {
+  trade_date?: string;
+  content_type?: 'INDUSTRY' | 'CONCEPT' | 'REGION';
+  sort_by?: 'net_amount' | 'pct_change' | 'buy_elg_amount';
+  order?: 'asc' | 'desc';
+  limit?: number;
+}) {
+  return apiClient.post<{
+    tradeDate: string;
+    contentType: string;
+    sectors: SectorFlowRankingItem[];
+  }>('/api/market/sector-flow-ranking', query ?? {});
+}
+
+export function fetchSectorFlowTrend(query: {
+  ts_code: string;
+  content_type?: 'INDUSTRY' | 'CONCEPT' | 'REGION';
+  days?: number;
+}) {
   return apiClient.post<{ tsCode: string; name: string; data: SectorFlowTrendItem[] }>(
     '/api/market/sector-flow-trend',
     query
@@ -265,14 +278,24 @@ export function fetchSectorFlowTrend(query: { ts_code: string; content_type?: st
 }
 
 export function fetchHsgtFlow(query?: { trade_date?: string; days?: number }) {
-  return apiClient.post<{ data: HsgtTrendItem[] }>('/api/market/hsgt-flow', query ?? {});
+  return apiClient.post<{ tradeDate: string | null; history: HsgtTrendItem[] }>(
+    '/api/market/hsgt-flow',
+    query ?? {}
+  );
 }
 
 export function fetchHsgtTrend(query?: { period?: string }) {
-  return apiClient.post<{ period: string; data: HsgtTrendItem[] }>('/api/market/hsgt-trend', query ?? {});
+  return apiClient.post<{ period: string; data: HsgtTrendItem[] }>(
+    '/api/market/hsgt-trend',
+    query ?? {}
+  );
 }
 
-export function fetchMainFlowRanking(query?: { trade_date?: string; order?: string; limit?: number }) {
+export function fetchMainFlowRanking(query?: {
+  trade_date?: string;
+  order?: string;
+  limit?: number;
+}) {
   return apiClient.post<{ tradeDate: string; data: MainFlowRankingItem[] }>(
     '/api/market/main-flow-ranking',
     query ?? {}

@@ -427,7 +427,11 @@ import { Box, Stack, Typography } from '@mui/material';
 return <Box>{content}</Box>;
 
 // ❌ Wrong — unnecessary fragment
-return <><Box>{content}</Box></>;
+return (
+  <>
+    <Box>{content}</Box>
+  </>
+);
 ```
 
 Fragments are allowed when wrapping multiple siblings or inside expressions (e.g. `condition && <>{a}{b}</>`).
@@ -461,8 +465,12 @@ const getLabel = (item: Item) => item.label;
 const rows = items.map((item) => <Row key={item.id} item={item} />);
 
 // ❌ Wrong — unnecessary block body
-const double = (x: number) => { return x * 2; };
-const rows = items.map((item) => { return <Row key={item.id} item={item} />; });
+const double = (x: number) => {
+  return x * 2;
+};
+const rows = items.map((item) => {
+  return <Row key={item.id} item={item} />;
+});
 ```
 
 Exception: when the function body contains multiple statements or side effects, the block body is required.
@@ -762,6 +770,45 @@ The backend lives at `../server-code/src` relative to the client project root (`
 - **Do not** use block-body arrow functions when expression suffices: `(x) => { return x; }` → `(x) => x`
 - **Do not** shadow outer-scope variable names in nested functions or callbacks
 - **Do not** use `{ name: name }` object literals — use shorthand `{ name }`
+
+---
+
+## API 日期参数格式约定
+
+前后端所有涉及 `trade_date` 参数的接口，**统一使用 `YYYYMMDD` 格式**（8 位纯数字字符串），例如 `'20240101'`。
+
+- 后端 NestJS DTO 通过 `@Matches(/^\d{8}$/)` 校验，不符合格式会返回 400 参数校验失败
+- 前端 `MarketQueryBase.trade_date` 类型为 `string`，传参时必须确保 YYYYMMDD 格式
+- 不传 `trade_date` 时，后端自动取对应数据表的最新交易日
+- **禁止**使用 `YYYY-MM-DD`、ISO 8601 或其他格式作为 `trade_date` 参数
+
+### 枚举参数大小写约定
+
+后端 DTO 中使用 `@IsEnum` 校验的枚举值**均为大写**，前端传参必须匹配：
+
+| 参数                   | 合法值                                                 |
+| ---------------------- | ------------------------------------------------------ |
+| `content_type`         | `'INDUSTRY'` \| `'CONCEPT'` \| `'REGION'`              |
+| `sort_by` (sector)     | `'net_amount'` \| `'pct_change'` \| `'buy_elg_amount'` |
+| `order`                | `'asc'` \| `'desc'`                                    |
+| `period` (index-trend) | `'1m'` \| `'3m'` \| `'6m'` \| `'1y'` \| `'3y'`         |
+
+### API 响应空值处理
+
+后端返回的数值字段可能为 `null`（如非交易日、数据缺失等场景），前端类型必须标注 `| null` 并在渲染时做兜底：
+
+```tsx
+// ✅ 正确
+const color = flowColor(data.netAmount); // flowColor 接受 number | null
+{
+  toYi(data.someField);
+} // toYi 内部处理 null → '-'
+
+// ❌ 错误：假设字段永远非空
+{
+  data.someField.toFixed(2);
+} // 当 someField 为 null 时会崩溃
+```
 
 ---
 

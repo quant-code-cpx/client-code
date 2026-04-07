@@ -35,8 +35,8 @@ function fmtDate(d: string): string {
 }
 
 /** 百万元 → 亿元 */
-function toYi(v: number): number {
-  return +(v / 100).toFixed(2);
+function toYi(v: number | null | undefined): number {
+  return +((v ?? 0) / 100).toFixed(2);
 }
 
 // ----------------------------------------------------------------------
@@ -62,8 +62,7 @@ export function HsgtTrendChart({ tradeDate: _tradeDate }: Props) {
         if (!cancelled) setData(res?.data ?? []);
       })
       .catch((err: unknown) => {
-        if (!cancelled)
-          setError(err instanceof Error ? err.message : '加载沪深港通趋势失败');
+        if (!cancelled) setError(err instanceof Error ? err.message : '加载沪深港通趋势失败');
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -78,9 +77,7 @@ export function HsgtTrendChart({ tradeDate: _tradeDate }: Props) {
   const isNorth = tabIndex === 0;
 
   const dailyValues = data.map((d) => toYi(isNorth ? d.northMoney : d.southMoney));
-  const cumulativeValues = data.map((d) =>
-    toYi(isNorth ? d.cumulativeNorth : d.cumulativeSouth)
-  );
+  const cumulativeValues = data.map((d) => toYi(isNorth ? d.cumulativeNorth : d.cumulativeSouth));
 
   const chartOptions = useChart({
     chart: { type: 'line', stacked: false },
@@ -153,16 +150,16 @@ export function HsgtTrendChart({ tradeDate: _tradeDate }: Props) {
           </ToggleButtonGroup>
         </Stack>
 
-        <Tabs
-          value={tabIndex}
-          onChange={(_, v) => setTabIndex(v)}
-          sx={{ mb: 2 }}
-        >
+        <Tabs value={tabIndex} onChange={(_, v) => setTabIndex(v)} sx={{ mb: 2 }}>
           <Tab label="北向资金" />
           <Tab label="南向资金" />
         </Tabs>
 
-        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
 
         {loading ? (
           <Skeleton variant="rectangular" height={320} />

@@ -14,12 +14,14 @@ import { fetchHsgtFlow } from 'src/api/market';
 
 // ----------------------------------------------------------------------
 
-/** 百万元 → 亿元，保留 2 位小数 */
-function toYi(millionYuan: number): string {
+/** 百万元 → 亿元（tushare north_money 单位为百万元） */
+function toYi(millionYuan: number | null): string {
+  if (millionYuan == null) return '-';
   return (millionYuan / 100).toFixed(2);
 }
 
-function flowColor(value: number): 'error.main' | 'success.main' | 'text.secondary' {
+function flowColor(value: number | null): 'error.main' | 'success.main' | 'text.secondary' {
+  if (value == null) return 'text.secondary';
   if (value > 0) return 'error.main';
   if (value < 0) return 'success.main';
   return 'text.secondary';
@@ -29,7 +31,7 @@ function flowColor(value: number): 'error.main' | 'success.main' | 'text.seconda
 
 type SubItemProps = {
   label: string;
-  value: number;
+  value: number | null;
 };
 
 function SubItem({ label, value }: SubItemProps) {
@@ -40,7 +42,7 @@ function SubItem({ label, value }: SubItemProps) {
         {label}
       </Typography>
       <Typography variant="body2" fontWeight="fontWeightMedium" sx={{ color }}>
-        {value > 0 ? '+' : ''}
+        {value != null && value > 0 ? '+' : ''}
         {toYi(value)}亿
       </Typography>
     </Box>
@@ -65,11 +67,10 @@ export function HsgtSummaryCard({ tradeDate }: Props) {
 
     fetchHsgtFlow({ trade_date: tradeDate, days: 1 })
       .then((res) => {
-        if (!cancelled) setData(res?.data?.[0] ?? null);
+        if (!cancelled) setData(res?.history?.[0] ?? null);
       })
       .catch((err: unknown) => {
-        if (!cancelled)
-          setError(err instanceof Error ? err.message : '加载沪深港通数据失败');
+        if (!cancelled) setError(err instanceof Error ? err.message : '加载沪深港通数据失败');
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -87,7 +88,11 @@ export function HsgtSummaryCard({ tradeDate }: Props) {
           沪深港通资金
         </Typography>
 
-        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
 
         {loading ? (
           <>
@@ -114,7 +119,7 @@ export function HsgtSummaryCard({ tradeDate }: Props) {
               fontWeight="fontWeightBold"
               sx={{ color: flowColor(data.northMoney), mb: 1 }}
             >
-              {data.northMoney > 0 ? '+' : ''}
+              {(data.northMoney ?? 0) > 0 ? '+' : ''}
               {toYi(data.northMoney)}亿
             </Typography>
 
@@ -132,7 +137,7 @@ export function HsgtSummaryCard({ tradeDate }: Props) {
               fontWeight="fontWeightBold"
               sx={{ color: flowColor(data.southMoney), mb: 1 }}
             >
-              {data.southMoney > 0 ? '+' : ''}
+              {(data.southMoney ?? 0) > 0 ? '+' : ''}
               {toYi(data.southMoney)}亿
             </Typography>
 

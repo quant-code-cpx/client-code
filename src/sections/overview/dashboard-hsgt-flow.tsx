@@ -15,7 +15,7 @@ import { Chart, useChart } from 'src/components/chart';
 
 // ----------------------------------------------------------------------
 
-/** 百万元 → 亿元 */
+/** 百万元 → 亿元（tushare north_money 单位为百万元） */
 function toYi(v: number): number {
   return +(v / 100).toFixed(2);
 }
@@ -41,7 +41,7 @@ export function DashboardHsgtFlow() {
 
     fetchHsgtFlow({ days: 30 })
       .then((res) => {
-        if (!cancelled) setData(res?.data ?? []);
+        if (!cancelled) setData(res?.history ?? []);
       })
       .catch((err: unknown) => {
         if (!cancelled) setError(err instanceof Error ? err.message : '加载北向资金失败');
@@ -56,8 +56,15 @@ export function DashboardHsgtFlow() {
   }, []);
 
   const categories = data.map((d) => fmtDate(d.tradeDate));
-  const dailyValues = data.map((d) => toYi(d.northMoney));
-  const cumulativeValues = data.map((d) => toYi(d.cumulativeNorth));
+  const dailyValues = data.map((d) => toYi(d.northMoney ?? 0));
+
+  // hsgt-flow 端点不含累计字段，客户端自行计算
+  const cumulativeValues: number[] = [];
+  let cumSum = 0;
+  for (const d of data) {
+    cumSum += toYi(d.northMoney ?? 0);
+    cumulativeValues.push(+cumSum.toFixed(2));
+  }
 
   const chartOptions = useChart({
     chart: { type: 'line', stacked: false },

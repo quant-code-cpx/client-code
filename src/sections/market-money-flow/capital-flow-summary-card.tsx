@@ -17,12 +17,14 @@ import { fetchMoneyFlow } from 'src/api/market';
 
 // ----------------------------------------------------------------------
 
-/** 万元 → 亿元，保留 2 位小数 */
-function toYi(wan: number): string {
-  return (wan / 10000).toFixed(2);
+/** 元 → 亿元，保留 2 位小数 */
+function toYi(yuan: number | null): string {
+  if (yuan == null) return '-';
+  return (yuan / 100000000).toFixed(2);
 }
 
-function flowColor(value: number): 'error.main' | 'success.main' | 'text.secondary' {
+function flowColor(value: number | null): 'error.main' | 'success.main' | 'text.secondary' {
+  if (value == null) return 'text.secondary';
   if (value > 0) return 'error.main';
   if (value < 0) return 'success.main';
   return 'text.secondary';
@@ -32,8 +34,8 @@ function flowColor(value: number): 'error.main' | 'success.main' | 'text.seconda
 
 type MetricBlockProps = {
   label: string;
-  amount: number;
-  rate: number;
+  amount: number | null;
+  rate: number | null;
   large?: boolean;
 };
 
@@ -50,7 +52,7 @@ function MetricBlock({ label, amount, rate, large }: MetricBlockProps) {
         fontWeight="fontWeightBold"
         sx={{ color, lineHeight: 1.2 }}
       >
-        {amount > 0 ? '+' : ''}
+        {amount != null && amount > 0 ? '+' : ''}
         {toYi(amount)}亿
       </Typography>
       <Typography variant="caption" sx={{ color }}>
@@ -81,8 +83,7 @@ export function CapitalFlowSummaryCard({ tradeDate }: Props) {
         if (!cancelled) setData(res ?? null);
       })
       .catch((err: unknown) => {
-        if (!cancelled)
-          setError(err instanceof Error ? err.message : '加载大盘资金流数据失败');
+        if (!cancelled) setError(err instanceof Error ? err.message : '加载大盘资金流数据失败');
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -184,7 +185,7 @@ export function CapitalFlowSummaryCard({ tradeDate }: Props) {
                   component="span"
                   sx={{ color: flowColor(data.pctChangeSh), fontWeight: 'fontWeightMedium' }}
                 >
-                  {data.closeSh.toFixed(2)}
+                  {data.closeSh?.toFixed(2) ?? '-'}
                 </Box>
                 &nbsp;
                 <Box component="span" sx={{ color: flowColor(data.pctChangeSh) }}>
@@ -198,7 +199,7 @@ export function CapitalFlowSummaryCard({ tradeDate }: Props) {
                   component="span"
                   sx={{ color: flowColor(data.pctChangeSz), fontWeight: 'fontWeightMedium' }}
                 >
-                  {data.closeSz.toFixed(2)}
+                  {data.closeSz?.toFixed(2) ?? '-'}
                 </Box>
                 &nbsp;
                 <Box component="span" sx={{ color: flowColor(data.pctChangeSz) }}>
