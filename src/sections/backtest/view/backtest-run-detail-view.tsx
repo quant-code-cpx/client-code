@@ -194,7 +194,7 @@ export function BacktestRunDetailView() {
       setPositionDate(date);
       setLoadingPositions(true);
       try {
-        const res = await getRunPositions(runId, date || undefined);
+        const res = await getRunPositions(runId, date ? date.replace(/-/g, '') : undefined);
         setPositions(res.items ?? []);
       } catch {
         //
