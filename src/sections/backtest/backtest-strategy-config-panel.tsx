@@ -25,7 +25,7 @@ import { stockApi } from 'src/api/stock';
 
 import { Iconify } from 'src/components/iconify';
 
-import { RANK_BY_OPTIONS, WEIGHT_MODE_OPTIONS } from './constants';
+import { RANK_BY_OPTIONS } from './constants';
 
 import type {
   MaCrossConfig,

@@ -31,7 +31,7 @@ export function StrategyDeleteDialog({
         <DialogContentText>
           确定要删除策略 <strong>{strategy?.name}</strong> 吗？
           <br />
-          删除后不可恢复，关联的回测记录不会被删除。
+          删除后不可恢复，关联的回测记录也将被同步删除。
         </DialogContentText>
       </DialogContent>
       <DialogActions>

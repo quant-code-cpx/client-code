@@ -264,3 +264,241 @@ export function cancelRun(runId: string) {
     runId,
   });
 }
+
+// ─── Walk-Forward 类型 ────────────────────────────
+
+export type StrategyTypeValue =
+  | 'MA_CROSS_SINGLE'
+  | 'SCREENING_ROTATION'
+  | 'FACTOR_RANKING'
+  | 'CUSTOM_POOL_REBALANCE';
+
+export type ParamSearchSpaceItem = {
+  type: 'range' | 'enum';
+  min?: number;
+  max?: number;
+  step?: number;
+  values?: (string | number | boolean)[];
+};
+
+export type CreateWalkForwardRunQuery = {
+  name?: string;
+  baseStrategyType: StrategyTypeValue;
+  baseStrategyConfig: Record<string, unknown>;
+  paramSearchSpace: Record<string, ParamSearchSpaceItem>;
+  fullStartDate: string; // YYYYMMDD
+  fullEndDate: string; // YYYYMMDD
+  inSampleDays: number; // 60–2520
+  outOfSampleDays: number; // 20–504
+  stepDays: number; // 20–504
+  optimizeMetric?: string; // 默认 'sharpeRatio'
+  benchmarkTsCode?: string; // 默认 '000300.SH'
+  universe?: string; // 默认 'ALL_A'
+  initialCapital: number; // 最小 1000
+  rebalanceFrequency?: string; // 默认 'MONTHLY'
+};
+
+export type CreateWalkForwardRunResponse = {
+  wfRunId: string;
+  jobId: string;
+  status: string;
+};
+
+export type WalkForwardRunSummary = {
+  wfRunId: string;
+  name: string | null;
+  baseStrategyType: string;
+  status: string;
+  fullStartDate: string;
+  fullEndDate: string;
+  oosSharpeRatio: number | null;
+  oosAnnualizedReturn: number | null;
+  oosMaxDrawdown: number | null;
+  progress: number;
+  createdAt: string;
+  completedAt: string | null;
+};
+
+export type WalkForwardRunListResponse = {
+  page: number;
+  pageSize: number;
+  total: number;
+  items: WalkForwardRunSummary[];
+};
+
+export type WalkForwardWindow = {
+  windowIndex: number;
+  isStartDate: string;
+  isEndDate: string;
+  oosStartDate: string;
+  oosEndDate: string;
+  optimizedParams: Record<string, unknown> | null;
+  isReturn: number | null;
+  isSharpe: number | null;
+  oosReturn: number | null;
+  oosSharpe: number | null;
+  oosMaxDrawdown: number | null;
+};
+
+export type WalkForwardRunDetail = {
+  wfRunId: string;
+  jobId?: string;
+  name: string | null;
+  baseStrategyType: string;
+  status: string;
+  progress: number;
+  failedReason: string | null;
+  fullStartDate: string;
+  fullEndDate: string;
+  inSampleDays: number;
+  outOfSampleDays: number;
+  stepDays: number;
+  optimizeMetric: string;
+  windowCount: number | null;
+  completedWindows: number | null;
+  oosAnnualizedReturn: number | null;
+  oosSharpeRatio: number | null;
+  oosMaxDrawdown: number | null;
+  isOosReturnVsIs: number | null;
+  windows: WalkForwardWindow[];
+  createdAt: string;
+  completedAt: string | null;
+};
+
+export type WalkForwardEquityPoint = {
+  tradeDate: string;
+  nav: number;
+  windowIndex: number;
+};
+
+export type WalkForwardEquityResponse = {
+  points: WalkForwardEquityPoint[];
+};
+
+// ─── Walk-Forward API ─────────────────────────────
+
+export function createWalkForwardRun(query: CreateWalkForwardRunQuery) {
+  return apiClient.post<CreateWalkForwardRunResponse>('/api/backtests/walk-forward/runs', query);
+}
+
+export function listWalkForwardRuns(query: { page?: number; pageSize?: number }) {
+  return apiClient.post<WalkForwardRunListResponse>('/api/backtests/walk-forward/runs/list', query);
+}
+
+export function getWalkForwardRunDetail(wfRunId: string) {
+  return apiClient.post<WalkForwardRunDetail>('/api/backtests/walk-forward/runs/detail', {
+    wfRunId,
+  });
+}
+
+export function getWalkForwardEquity(wfRunId: string) {
+  return apiClient.post<WalkForwardEquityResponse>('/api/backtests/walk-forward/runs/equity', {
+    wfRunId,
+  });
+}
+
+// ─── 多策略对比类型 ────────────────────────────────
+
+export type ComparisonStrategyItem = {
+  label?: string;
+  strategyType: StrategyTypeValue;
+  strategyConfig: Record<string, unknown>;
+  rebalanceFrequency?: string;
+};
+
+export type CreateComparisonQuery = {
+  name?: string;
+  strategies: ComparisonStrategyItem[]; // 2–10 个策略
+  startDate: string; // YYYYMMDD
+  endDate: string;
+  benchmarkTsCode?: string;
+  universe?: string;
+  initialCapital: number;
+};
+
+export type CreateComparisonResponse = {
+  groupId: string;
+  jobId: string;
+  status: string;
+};
+
+export type ComparisonMetricsRow = {
+  runId: string;
+  label: string | null;
+  strategyType: string;
+  totalReturn: number | null;
+  annualizedReturn: number | null;
+  benchmarkReturn: number | null;
+  excessReturn: number | null;
+  maxDrawdown: number | null;
+  sharpeRatio: number | null;
+  sortinoRatio: number | null;
+  calmarRatio: number | null;
+  volatility: number | null;
+  alpha: number | null;
+  beta: number | null;
+  informationRatio: number | null;
+  winRate: number | null;
+  turnoverRate: number | null;
+  tradeCount: number | null;
+};
+
+export type ComparisonGroupDetail = {
+  groupId: string;
+  name: string | null;
+  status: string;
+  startDate: string;
+  endDate: string;
+  benchmarkTsCode: string;
+  metrics: ComparisonMetricsRow[];
+  createdAt: string;
+  completedAt: string | null;
+};
+
+export type ComparisonEquitySeries = {
+  runId: string;
+  label: string | null;
+  points: Array<{ tradeDate: string; nav: number }>;
+};
+
+export type ComparisonEquityResponse = {
+  series: ComparisonEquitySeries[];
+};
+
+// ─── 多策略对比 API ────────────────────────────────
+
+export function createComparison(query: CreateComparisonQuery) {
+  return apiClient.post<CreateComparisonResponse>('/api/backtests/comparisons', query);
+}
+
+export function getComparisonDetail(groupId: string) {
+  return apiClient.post<ComparisonGroupDetail>('/api/backtests/comparisons/detail', { groupId });
+}
+
+export function getComparisonEquity(groupId: string) {
+  return apiClient.post<ComparisonEquityResponse>('/api/backtests/comparisons/equity', { groupId });
+}
+
+// ─── 滚动窗口回测类型 ──────────────────────────────
+
+export type CreateRollingBacktestQuery = {
+  name?: string;
+  strategyType: StrategyTypeValue;
+  strategyConfig: Record<string, unknown>;
+  rollingParamSpace: Record<string, ParamSearchSpaceItem>;
+  startDate: string; // YYYYMMDD
+  endDate: string;
+  lookbackDays: number; // 最小 60
+  holdingPeriodDays: number; // 最小 20
+  optimizeMetric?: string;
+  benchmarkTsCode?: string;
+  universe?: string;
+  initialCapital: number;
+  rebalanceFrequency?: string;
+};
+
+// ─── 滚动窗口回测 API ─────────────────────────────
+
+export function createRollingBacktest(query: CreateRollingBacktestQuery) {
+  return apiClient.post<CreateWalkForwardRunResponse>('/api/backtests/rolling/runs', query);
+}

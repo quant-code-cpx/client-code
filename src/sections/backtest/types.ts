@@ -57,3 +57,63 @@ export type CustomPoolConfig = {
   weightMode: 'EQUAL' | 'CUSTOM';
   customWeights: Array<{ tsCode: string; weight: number }>;
 };
+
+// Walk-Forward / Rolling create form state
+export type ParamSearchSpaceItemLocal = {
+  type: 'range' | 'enum';
+  min?: number;
+  max?: number;
+  step?: number;
+  values?: (string | number | boolean)[];
+};
+
+export type CreateWalkForwardFormState = {
+  name: string;
+  baseStrategyType: string;
+  baseStrategyConfig: Record<string, unknown>;
+  paramSearchSpace: Record<string, ParamSearchSpaceItemLocal>;
+  fullStartDate: string;
+  fullEndDate: string;
+  inSampleDays: number;
+  outOfSampleDays: number;
+  stepDays: number;
+  optimizeMetric: string;
+  benchmarkTsCode: string;
+  universe: string;
+  initialCapital: number;
+  rebalanceFrequency: string;
+};
+
+export type CreateRollingFormState = {
+  name: string;
+  strategyType: string;
+  strategyConfig: Record<string, unknown>;
+  rollingParamSpace: Record<string, ParamSearchSpaceItemLocal>;
+  startDate: string;
+  endDate: string;
+  lookbackDays: number;
+  holdingPeriodDays: number;
+  optimizeMetric: string;
+  benchmarkTsCode: string;
+  universe: string;
+  initialCapital: number;
+  rebalanceFrequency: string;
+};
+
+// Comparison create form state
+export type ComparisonStrategyFormItem = {
+  label: string;
+  strategyType: string;
+  strategyConfig: Record<string, unknown>;
+  rebalanceFrequency: string;
+};
+
+export type CreateComparisonFormState = {
+  name: string;
+  strategies: ComparisonStrategyFormItem[];
+  startDate: string;
+  endDate: string;
+  benchmarkTsCode: string;
+  universe: string;
+  initialCapital: number;
+};

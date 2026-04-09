@@ -819,3 +819,27 @@ const color = flowColor(data.netAmount); // flowColor 接受 number | null
 - **文件名使用中文**，格式为 `<模块名>-<文档类型>.md`（如 `首页仪表盘-前端设计.md`）
 - **每次新增或修改文档后，必须同步更新 `docs/readme.md`**，保持导航索引与实际文件一致
 - `docs/readme.md` 按"设计文档"和"规划与待办"两个分类列出所有文档及简要说明
+
+---
+
+## 功能开发完成后的构建验证（必须执行）
+
+每次基于需求文档完成一个功能模块的开发后，**必须运行 `npm run build` 并修复全部报错**，才能认为任务完成。
+
+```bash
+npm run build
+```
+
+IDE 的 TypeScript 检查无法捕获所有错误，实际 `tsc && vite build` 流水线会额外发现：
+
+- **图标未注册**（TS2820）：使用了 `src/components/iconify/icon-sets.ts` 中不存在的图标名 → 在 `icon-sets.ts` 末尾追加对应的 SVG entry
+- **类型字段缺失**（TS2339）：视图中访问了 API 类型里未声明的字段 → 在 `src/api/*.ts` 对应类型中补充该字段
+- **ESLint 导入排序**（`perfectionist/sort-imports`）：新文件的 import 顺序不符合规范 → 批量自动修复：`npx eslint --fix src/sections/<模块>/`
+
+**流程**：
+
+1. 完成功能代码
+2. 运行 `npm run build`
+3. 若有报错，按上述类型逐一修复
+4. 重新运行 `npm run build`，确认 `✓ built in ...` 成功输出
+5. 任务完成

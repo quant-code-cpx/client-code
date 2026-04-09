@@ -6,6 +6,7 @@ import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
+import Divider from '@mui/material/Divider';
 import Skeleton from '@mui/material/Skeleton';
 import Typography from '@mui/material/Typography';
 
@@ -184,6 +185,31 @@ export function BacktestWorkbenchView() {
           sx={{ mt: 0.5, flexShrink: 0 }}
         >
           草稿
+        </Button>
+        <Divider
+          orientation="vertical"
+          flexItem
+          sx={{ mx: 0.5, alignSelf: 'center', height: 24 }}
+        />
+        <Button
+          variant="outlined"
+          size="small"
+          color="secondary"
+          startIcon={<Iconify icon="solar:shuffle-bold" width={18} />}
+          onClick={() => router.push('/backtest/walk-forward')}
+          sx={{ mt: 0.5, flexShrink: 0 }}
+        >
+          WF 验证
+        </Button>
+        <Button
+          variant="outlined"
+          size="small"
+          color="secondary"
+          startIcon={<Iconify icon="solar:copy-bold" width={18} />}
+          onClick={() => router.push('/backtest/comparison/create')}
+          sx={{ mt: 0.5, flexShrink: 0 }}
+        >
+          多策略对比
         </Button>
       </Box>
 

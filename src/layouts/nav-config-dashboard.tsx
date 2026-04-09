@@ -119,6 +119,16 @@ export const navData = [
         path: '/backtest/runs',
         icon: <Iconify icon="solar:history-bold" width={24} />,
       },
+      {
+        title: 'Walk-Forward 验证',
+        path: '/backtest/walk-forward',
+        icon: <Iconify icon="solar:shuffle-bold" width={24} />,
+      },
+      {
+        title: '多策略对比',
+        path: '/backtest/comparison/create',
+        icon: <Iconify icon="solar:copy-bold" width={24} />,
+      },
     ],
   },
   {

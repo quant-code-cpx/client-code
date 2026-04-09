@@ -134,3 +134,73 @@ export const DEFAULT_CUSTOM_POOL_CONFIG = {
   weightMode: 'EQUAL' as const,
   customWeights: [] as Array<{ tsCode: string; weight: number }>,
 };
+
+export const OPTIMIZE_METRIC_OPTIONS = [
+  { label: '夏普比率', value: 'sharpeRatio' },
+  { label: '年化收益', value: 'annualizedReturn' },
+  { label: 'Calmar 比率', value: 'calmarRatio' },
+  { label: '最大回撤 (最小化)', value: 'maxDrawdown' },
+];
+
+export const PARAM_SEARCH_TYPE_OPTIONS = [
+  { label: '区间搜索', value: 'range' },
+  { label: '枚举搜索', value: 'enum' },
+];
+
+export const DEFAULT_WF_FORM = {
+  name: '',
+  baseStrategyType: 'SCREENING_ROTATION' as string,
+  baseStrategyConfig: {} as Record<string, unknown>,
+  paramSearchSpace: {} as Record<
+    string,
+    {
+      type: 'range' | 'enum';
+      min?: number;
+      max?: number;
+      step?: number;
+      values?: (string | number | boolean)[];
+    }
+  >,
+  fullStartDate: '2018-01-01',
+  fullEndDate: '2024-12-31',
+  inSampleDays: 252,
+  outOfSampleDays: 63,
+  stepDays: 63,
+  optimizeMetric: 'sharpeRatio',
+  benchmarkTsCode: '000300.SH',
+  universe: 'HS300',
+  initialCapital: 1000000,
+  rebalanceFrequency: 'MONTHLY',
+};
+
+export const DEFAULT_ROLLING_FORM = {
+  name: '',
+  strategyType: 'SCREENING_ROTATION' as string,
+  strategyConfig: {} as Record<string, unknown>,
+  rollingParamSpace: {} as Record<
+    string,
+    {
+      type: 'range' | 'enum';
+      min?: number;
+      max?: number;
+      step?: number;
+      values?: (string | number | boolean)[];
+    }
+  >,
+  startDate: '2018-01-01',
+  endDate: '2024-12-31',
+  lookbackDays: 252,
+  holdingPeriodDays: 63,
+  optimizeMetric: 'sharpeRatio',
+  benchmarkTsCode: '000300.SH',
+  universe: 'HS300',
+  initialCapital: 1000000,
+  rebalanceFrequency: 'MONTHLY',
+};
+
+export const DEFAULT_COMPARISON_STRATEGY = {
+  label: '',
+  strategyType: 'SCREENING_ROTATION' as string,
+  strategyConfig: {} as Record<string, unknown>,
+  rebalanceFrequency: 'MONTHLY',
+};

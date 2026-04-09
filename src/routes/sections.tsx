@@ -43,6 +43,11 @@ export const ScreenerSubscriptionDetailPage = lazy(
 export const StrategyListPage = lazy(() => import('src/pages/strategy'));
 export const StrategyDetailPage = lazy(() => import('src/pages/strategy-detail'));
 export const ProfilePage = lazy(() => import('src/pages/profile'));
+export const WalkForwardListPage = lazy(() => import('src/pages/backtest-walk-forward'));
+export const WalkForwardCreatePage = lazy(() => import('src/pages/backtest-walk-forward-create'));
+export const WalkForwardDetailPage = lazy(() => import('src/pages/backtest-walk-forward-detail'));
+export const ComparisonCreatePage = lazy(() => import('src/pages/backtest-comparison-create'));
+export const ComparisonDetailPage = lazy(() => import('src/pages/backtest-comparison-detail'));
 
 const renderFallback = () => (
   <Box
@@ -96,6 +101,11 @@ export const routesSection: RouteObject[] = [
       { path: 'backtest', element: <BacktestWorkbenchPage /> },
       { path: 'backtest/runs', element: <BacktestRunListPage /> },
       { path: 'backtest/runs/:runId', element: <BacktestRunDetailPage /> },
+      { path: 'backtest/walk-forward', element: <WalkForwardListPage /> },
+      { path: 'backtest/walk-forward/create', element: <WalkForwardCreatePage /> },
+      { path: 'backtest/walk-forward/:wfRunId', element: <WalkForwardDetailPage /> },
+      { path: 'backtest/comparison/create', element: <ComparisonCreatePage /> },
+      { path: 'backtest/comparison/:groupId', element: <ComparisonDetailPage /> },
       { path: 'research/watchlist', element: <WatchlistPage /> },
       { path: 'research/notes', element: <ResearchNotesPage /> },
       { path: 'research/notes/:noteId', element: <ResearchNoteDetailPage /> },
