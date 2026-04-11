@@ -105,6 +105,11 @@ export const navData = [
     ],
   },
   {
+    title: '我的组合',
+    path: '/portfolio',
+    icon: <Iconify icon="solar:chart-bold" width={24} />,
+  },
+  {
     title: '回测',
     path: '/backtest',
     icon: <Iconify icon="solar:playback-speed-bold" width={24} />,
