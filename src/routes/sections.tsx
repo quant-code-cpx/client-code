@@ -48,6 +48,8 @@ export const WalkForwardCreatePage = lazy(() => import('src/pages/backtest-walk-
 export const WalkForwardDetailPage = lazy(() => import('src/pages/backtest-walk-forward-detail'));
 export const ComparisonCreatePage = lazy(() => import('src/pages/backtest-comparison-create'));
 export const ComparisonDetailPage = lazy(() => import('src/pages/backtest-comparison-detail'));
+export const PortfolioPage = lazy(() => import('src/pages/portfolio'));
+export const PortfolioDetailPage = lazy(() => import('src/pages/portfolio-detail'));
 
 const renderFallback = () => (
   <Box
@@ -112,6 +114,8 @@ export const routesSection: RouteObject[] = [
       { path: 'stock/subscription', element: <ScreenerSubscriptionPage /> },
       { path: 'stock/subscription/:id', element: <ScreenerSubscriptionDetailPage /> },
       { path: 'profile', element: <ProfilePage /> },
+      { path: 'portfolio', element: <PortfolioPage /> },
+      { path: 'portfolio/:id', element: <PortfolioDetailPage /> },
     ],
   },
   {
