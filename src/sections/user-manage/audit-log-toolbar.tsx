@@ -1,10 +1,13 @@
 import type { AuditAction } from 'src/api/user-manage';
 
+import dayjs from 'dayjs';
+
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
 import InputAdornment from '@mui/material/InputAdornment';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 import { AUDIT_ACTION_LABEL } from 'src/api/user-manage';
 
@@ -109,24 +112,26 @@ export function AuditLogToolbar({
         ))}
       </TextField>
 
-      <TextField
-        size="small"
+      <DatePicker
         label="开始日期"
-        type="date"
-        value={startDate}
-        onChange={(e) => onStartDate(e.target.value)}
-        sx={{ width: 160 }}
-        slotProps={{ inputLabel: { shrink: true } }}
+        value={startDate ? dayjs(startDate) : null}
+        onChange={(v) => onStartDate(v?.format('YYYY-MM-DD') ?? '')}
+        format="YYYY-MM-DD"
+        slotProps={{
+          textField: { size: 'small', sx: { minWidth: 190 } },
+          field: { clearable: true },
+        }}
       />
 
-      <TextField
-        size="small"
+      <DatePicker
         label="结束日期"
-        type="date"
-        value={endDate}
-        onChange={(e) => onEndDate(e.target.value)}
-        sx={{ width: 160 }}
-        slotProps={{ inputLabel: { shrink: true } }}
+        value={endDate ? dayjs(endDate) : null}
+        onChange={(v) => onEndDate(v?.format('YYYY-MM-DD') ?? '')}
+        format="YYYY-MM-DD"
+        slotProps={{
+          textField: { size: 'small', sx: { minWidth: 190 } },
+          field: { clearable: true },
+        }}
       />
 
       <Button

@@ -5,11 +5,11 @@ import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
-import TextField from '@mui/material/TextField';
 import InputLabel from '@mui/material/InputLabel';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 import FormControl from '@mui/material/FormControl';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 // ----------------------------------------------------------------------
 
@@ -54,26 +54,29 @@ export function FactorDetailParamsPanel({
         </Typography>
 
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="flex-end">
-          <TextField
+          <DatePicker
             label="起始日期"
-            type="date"
-            size="small"
-            value={toInputDate(value.startDate)}
-            onChange={(e) => onChange({ ...value, startDate: fromInputDate(e.target.value) })}
-            inputProps={{ max: toInputDate(value.endDate) }}
-            InputLabelProps={{ shrink: true }}
-            sx={{ minWidth: 160 }}
+            value={value.startDate ? dayjs(value.startDate, 'YYYYMMDD') : null}
+            onChange={(v) => onChange({ ...value, startDate: v?.format('YYYYMMDD') ?? '' })}
+            format="YYYY-MM-DD"
+            maxDate={value.endDate ? dayjs(value.endDate, 'YYYYMMDD') : undefined}
+            slotProps={{
+              textField: { size: 'small', sx: { minWidth: 190 } },
+              field: { clearable: true },
+            }}
           />
 
-          <TextField
+          <DatePicker
             label="结束日期"
-            type="date"
-            size="small"
-            value={toInputDate(value.endDate)}
-            onChange={(e) => onChange({ ...value, endDate: fromInputDate(e.target.value) })}
-            inputProps={{ min: toInputDate(value.startDate), max: dayjs().format('YYYY-MM-DD') }}
-            InputLabelProps={{ shrink: true }}
-            sx={{ minWidth: 160 }}
+            value={value.endDate ? dayjs(value.endDate, 'YYYYMMDD') : null}
+            onChange={(v) => onChange({ ...value, endDate: v?.format('YYYYMMDD') ?? '' })}
+            format="YYYY-MM-DD"
+            minDate={value.startDate ? dayjs(value.startDate, 'YYYYMMDD') : undefined}
+            maxDate={dayjs()}
+            slotProps={{
+              textField: { size: 'small', sx: { minWidth: 190 } },
+              field: { clearable: true },
+            }}
           />
 
           <FormControl size="small" sx={{ minWidth: 140 }}>

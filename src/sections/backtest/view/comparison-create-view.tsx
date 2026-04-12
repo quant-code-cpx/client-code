@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import { useState, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
@@ -13,6 +14,7 @@ import InputLabel from '@mui/material/InputLabel';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 import FormControl from '@mui/material/FormControl';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 import { useRouter } from 'src/routes/hooks';
 import { RouterLink } from 'src/routes/components';
@@ -190,23 +192,27 @@ export function ComparisonCreateView() {
                 />
 
                 <Box sx={{ display: 'flex', gap: 2 }}>
-                  <TextField
-                    fullWidth
-                    size="small"
+                  <DatePicker
                     label="开始日期"
-                    type="date"
-                    InputLabelProps={{ shrink: true }}
-                    value={form.startDate}
-                    onChange={(e) => setForm((prev) => ({ ...prev, startDate: e.target.value }))}
+                    value={form.startDate ? dayjs(form.startDate) : null}
+                    onChange={(v) => setForm((prev) => ({ ...prev, startDate: v?.format('YYYY-MM-DD') ?? '' }))}
+                    format="YYYY-MM-DD"
+                    sx={{ width: '100%' }}
+                    slotProps={{
+                      textField: { size: 'small' },
+                      field: { clearable: true },
+                    }}
                   />
-                  <TextField
-                    fullWidth
-                    size="small"
+                  <DatePicker
                     label="结束日期"
-                    type="date"
-                    InputLabelProps={{ shrink: true }}
-                    value={form.endDate}
-                    onChange={(e) => setForm((prev) => ({ ...prev, endDate: e.target.value }))}
+                    value={form.endDate ? dayjs(form.endDate) : null}
+                    onChange={(v) => setForm((prev) => ({ ...prev, endDate: v?.format('YYYY-MM-DD') ?? '' }))}
+                    format="YYYY-MM-DD"
+                    sx={{ width: '100%' }}
+                    slotProps={{
+                      textField: { size: 'small' },
+                      field: { clearable: true },
+                    }}
                   />
                 </Box>
 

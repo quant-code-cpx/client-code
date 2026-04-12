@@ -1,5 +1,6 @@
 import type { PatternMatch, PatternTemplate, PatternSearchResult } from 'src/api/pattern';
 
+import dayjs from 'dayjs';
 import { varAlpha } from 'minimal-shared/utils';
 import { useState, useEffect, useCallback } from 'react';
 
@@ -13,13 +14,13 @@ import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import Skeleton from '@mui/material/Skeleton';
 import { useTheme } from '@mui/material/styles';
-import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import InputLabel from '@mui/material/InputLabel';
 import CardContent from '@mui/material/CardContent';
 import FormControl from '@mui/material/FormControl';
 import ToggleButton from '@mui/material/ToggleButton';
 import LinearProgress from '@mui/material/LinearProgress';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
 import { searchPatterns, getPatternTemplates } from 'src/api/pattern';
@@ -273,23 +274,25 @@ export function AnalysisPatternTab({ tsCode }: Props) {
             搜索参数
           </Typography>
           <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'flex-end' }}>
-            <TextField
+            <DatePicker
               label="开始日期"
-              type="date"
-              size="small"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              slotProps={{ inputLabel: { shrink: true } }}
-              sx={{ width: 160 }}
+              value={startDate ? dayjs(startDate) : null}
+              onChange={(v) => setStartDate(v?.format('YYYY-MM-DD') ?? '')}
+              format="YYYY-MM-DD"
+              slotProps={{
+                textField: { size: 'small', sx: { minWidth: 190 } },
+                field: { clearable: true },
+              }}
             />
-            <TextField
+            <DatePicker
               label="结束日期"
-              type="date"
-              size="small"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              slotProps={{ inputLabel: { shrink: true } }}
-              sx={{ width: 160 }}
+              value={endDate ? dayjs(endDate) : null}
+              onChange={(v) => setEndDate(v?.format('YYYY-MM-DD') ?? '')}
+              format="YYYY-MM-DD"
+              slotProps={{
+                textField: { size: 'small', sx: { minWidth: 190 } },
+                field: { clearable: true },
+              }}
             />
             <FormControl size="small" sx={{ width: 120 }}>
               <InputLabel>返回条数</InputLabel>

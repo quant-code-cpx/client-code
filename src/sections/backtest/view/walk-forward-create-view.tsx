@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import { useState, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
@@ -13,6 +14,7 @@ import InputLabel from '@mui/material/InputLabel';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 import FormControl from '@mui/material/FormControl';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 import { useRouter } from 'src/routes/hooks';
 import { RouterLink } from 'src/routes/components';
@@ -228,25 +230,27 @@ export function WalkForwardCreateView() {
 
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 <Box sx={{ display: 'flex', gap: 2 }}>
-                  <TextField
-                    fullWidth
-                    size="small"
+                  <DatePicker
                     label="全量开始日期"
-                    type="date"
-                    InputLabelProps={{ shrink: true }}
-                    value={form.fullStartDate}
-                    onChange={(e) =>
-                      setForm((prev) => ({ ...prev, fullStartDate: e.target.value }))
-                    }
+                    value={form.fullStartDate ? dayjs(form.fullStartDate) : null}
+                    onChange={(v) => setForm((prev) => ({ ...prev, fullStartDate: v?.format('YYYY-MM-DD') ?? '' }))}
+                    format="YYYY-MM-DD"
+                    sx={{ width: '100%' }}
+                    slotProps={{
+                      textField: { size: 'small' },
+                      field: { clearable: true },
+                    }}
                   />
-                  <TextField
-                    fullWidth
-                    size="small"
+                  <DatePicker
                     label="全量结束日期"
-                    type="date"
-                    InputLabelProps={{ shrink: true }}
-                    value={form.fullEndDate}
-                    onChange={(e) => setForm((prev) => ({ ...prev, fullEndDate: e.target.value }))}
+                    value={form.fullEndDate ? dayjs(form.fullEndDate) : null}
+                    onChange={(v) => setForm((prev) => ({ ...prev, fullEndDate: v?.format('YYYY-MM-DD') ?? '' }))}
+                    format="YYYY-MM-DD"
+                    sx={{ width: '100%' }}
+                    slotProps={{
+                      textField: { size: 'small' },
+                      field: { clearable: true },
+                    }}
                   />
                 </Box>
 

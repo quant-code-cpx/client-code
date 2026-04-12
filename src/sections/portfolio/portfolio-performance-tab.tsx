@@ -1,5 +1,6 @@
 import type { PortfolioPerformanceResponse } from 'src/api/portfolio';
 
+import dayjs from 'dayjs';
 import { useState, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
@@ -11,6 +12,7 @@ import Skeleton from '@mui/material/Skeleton';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 import { getPerformance } from 'src/api/portfolio';
 
@@ -136,21 +138,25 @@ export function PortfolioPerformanceTab({ portfolioId }: PortfolioPerformanceTab
       <Card sx={{ mb: 3 }}>
         <CardContent>
           <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
-            <TextField
+            <DatePicker
               label="开始日期"
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              size="small"
-              slotProps={{ inputLabel: { shrink: true } }}
+              value={startDate ? dayjs(startDate) : null}
+              onChange={(v) => setStartDate(v?.format('YYYY-MM-DD') ?? '')}
+              format="YYYY-MM-DD"
+              slotProps={{
+                textField: { size: 'small', sx: { minWidth: 190 } },
+                field: { clearable: true },
+              }}
             />
-            <TextField
+            <DatePicker
               label="结束日期"
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              size="small"
-              slotProps={{ inputLabel: { shrink: true } }}
+              value={endDate ? dayjs(endDate) : null}
+              onChange={(v) => setEndDate(v?.format('YYYY-MM-DD') ?? '')}
+              format="YYYY-MM-DD"
+              slotProps={{
+                textField: { size: 'small', sx: { minWidth: 190 } },
+                field: { clearable: true },
+              }}
             />
             <TextField
               label="基准代码"

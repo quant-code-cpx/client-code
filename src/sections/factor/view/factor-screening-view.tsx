@@ -15,11 +15,11 @@ import Alert from '@mui/material/Alert';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import Skeleton from '@mui/material/Skeleton';
-import TextField from '@mui/material/TextField';
 import InputLabel from '@mui/material/InputLabel';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 import FormControl from '@mui/material/FormControl';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 import { factorApi } from 'src/api/factor';
 import { DashboardContent } from 'src/layouts/dashboard';
@@ -127,15 +127,16 @@ export function FactorScreeningView() {
             全局参数
           </Typography>
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} flexWrap="wrap">
-            <TextField
+            <DatePicker
               label="选股日期"
-              type="date"
-              size="small"
-              value={tradeDate}
-              onChange={(e) => setTradeDate(e.target.value)}
-              InputLabelProps={{ shrink: true }}
-              inputProps={{ max: dayjs().format('YYYY-MM-DD') }}
-              sx={{ minWidth: 160 }}
+              value={tradeDate ? dayjs(tradeDate) : null}
+              onChange={(v) => setTradeDate(v?.format('YYYY-MM-DD') ?? '')}
+              format="YYYY-MM-DD"
+              maxDate={dayjs()}
+              slotProps={{
+                textField: { size: 'small', sx: { minWidth: 190 } },
+                field: { clearable: true },
+              }}
             />
 
             <FormControl size="small" sx={{ minWidth: 140 }}>

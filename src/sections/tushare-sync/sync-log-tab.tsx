@@ -1,5 +1,6 @@
 import type { SyncLogItem, TushareSyncStatus, SyncLogSummaryItem } from 'src/api/tushare-sync';
 
+import dayjs from 'dayjs';
 import { useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
@@ -19,6 +20,7 @@ import Typography from '@mui/material/Typography';
 import InputLabel from '@mui/material/InputLabel';
 import FormControl from '@mui/material/FormControl';
 import TableContainer from '@mui/material/TableContainer';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import TablePagination from '@mui/material/TablePagination';
 
 import { fDateTime } from 'src/utils/format-time';
@@ -180,23 +182,25 @@ export function SyncLogTab() {
                 <MenuItem value="SKIPPED">跳过</MenuItem>
               </Select>
             </FormControl>
-            <TextField
-              size="small"
+            <DatePicker
               label="开始日期"
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              InputLabelProps={{ shrink: true }}
-              sx={{ minWidth: 160 }}
+              value={startDate ? dayjs(startDate) : null}
+              onChange={(v) => setStartDate(v?.format('YYYY-MM-DD') ?? '')}
+              format="YYYY-MM-DD"
+              slotProps={{
+                textField: { size: 'small', sx: { minWidth: 190 } },
+                field: { clearable: true },
+              }}
             />
-            <TextField
-              size="small"
+            <DatePicker
               label="结束日期"
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              InputLabelProps={{ shrink: true }}
-              sx={{ minWidth: 160 }}
+              value={endDate ? dayjs(endDate) : null}
+              onChange={(v) => setEndDate(v?.format('YYYY-MM-DD') ?? '')}
+              format="YYYY-MM-DD"
+              slotProps={{
+                textField: { size: 'small', sx: { minWidth: 190 } },
+                field: { clearable: true },
+              }}
             />
             <Button variant="contained" size="small" onClick={handleSearch}>
               查询

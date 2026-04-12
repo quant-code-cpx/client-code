@@ -19,6 +19,7 @@ import CardContent from '@mui/material/CardContent';
 import FormControl from '@mui/material/FormControl';
 import Autocomplete from '@mui/material/Autocomplete';
 import LinearProgress from '@mui/material/LinearProgress';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 import { factorApi } from 'src/api/factor';
 import { DashboardContent } from 'src/layouts/dashboard';
@@ -133,15 +134,16 @@ export function FactorCorrelationView() {
           )}
 
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="flex-end">
-            <TextField
+            <DatePicker
               label="分析日期"
-              type="date"
-              size="small"
-              value={tradeDate}
-              onChange={(e) => setTradeDate(e.target.value)}
-              InputLabelProps={{ shrink: true }}
-              inputProps={{ max: dayjs().format('YYYY-MM-DD') }}
-              sx={{ minWidth: 160 }}
+              value={tradeDate ? dayjs(tradeDate) : null}
+              onChange={(v) => setTradeDate(v?.format('YYYY-MM-DD') ?? '')}
+              format="YYYY-MM-DD"
+              maxDate={dayjs()}
+              slotProps={{
+                textField: { size: 'small', sx: { minWidth: 190 } },
+                field: { clearable: true },
+              }}
             />
 
             <FormControl size="small" sx={{ minWidth: 140 }}>

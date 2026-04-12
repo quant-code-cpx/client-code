@@ -15,11 +15,11 @@ import TableRow from '@mui/material/TableRow';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
-import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import TableContainer from '@mui/material/TableContainer';
 import LinearProgress from '@mui/material/LinearProgress';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import TablePagination from '@mui/material/TablePagination';
 
 import { RouterLink } from 'src/routes/components';
@@ -71,17 +71,18 @@ export function FactorDetailCrossSectionTable({ factorName }: FactorDetailCrossS
     <Card>
       <Box sx={{ p: 2 }}>
         <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
-          <TextField
+          <DatePicker
             label="交易日期"
-            type="date"
-            size="small"
-            value={tradeDate}
-            onChange={(e) => {
-              setTradeDate(e.target.value);
+            value={tradeDate ? dayjs(tradeDate) : null}
+            onChange={(v) => {
+              setTradeDate(v?.format('YYYY-MM-DD') ?? '');
               setPage(0);
             }}
-            InputLabelProps={{ shrink: true }}
-            sx={{ width: 160 }}
+            format="YYYY-MM-DD"
+            slotProps={{
+              textField: { size: 'small', sx: { minWidth: 190 } },
+              field: { clearable: true },
+            }}
           />
 
           <ButtonGroup size="small" variant="outlined">

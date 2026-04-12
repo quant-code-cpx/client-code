@@ -1,5 +1,6 @@
 import type { TradeLogItem, TradeLogSummaryResponse } from 'src/api/portfolio';
 
+import dayjs from 'dayjs';
 import { useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
@@ -12,7 +13,6 @@ import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import Skeleton from '@mui/material/Skeleton';
 import TableRow from '@mui/material/TableRow';
-import TextField from '@mui/material/TextField';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
@@ -22,6 +22,7 @@ import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 import FormControl from '@mui/material/FormControl';
 import TableContainer from '@mui/material/TableContainer';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 import { queryTradeLog, tradeLogSummary } from 'src/api/portfolio';
 
@@ -152,21 +153,25 @@ export function PortfolioTradeLogTab({ portfolioId }: PortfolioTradeLogTabProps)
       <Card sx={{ mb: 3 }}>
         <CardContent>
           <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
-            <TextField
+            <DatePicker
               label="开始日期"
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              size="small"
-              slotProps={{ inputLabel: { shrink: true } }}
+              value={startDate ? dayjs(startDate) : null}
+              onChange={(v) => setStartDate(v?.format('YYYY-MM-DD') ?? '')}
+              format="YYYY-MM-DD"
+              slotProps={{
+                textField: { size: 'small', sx: { minWidth: 190 } },
+                field: { clearable: true },
+              }}
             />
-            <TextField
+            <DatePicker
               label="结束日期"
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              size="small"
-              slotProps={{ inputLabel: { shrink: true } }}
+              value={endDate ? dayjs(endDate) : null}
+              onChange={(v) => setEndDate(v?.format('YYYY-MM-DD') ?? '')}
+              format="YYYY-MM-DD"
+              slotProps={{
+                textField: { size: 'small', sx: { minWidth: 190 } },
+                field: { clearable: true },
+              }}
             />
             <FormControl size="small" sx={{ minWidth: 120 }}>
               <InputLabel>操作类型</InputLabel>

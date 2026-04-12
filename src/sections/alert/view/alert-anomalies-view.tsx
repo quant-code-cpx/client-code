@@ -8,10 +8,10 @@ import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
-import TextField from '@mui/material/TextField';
 import InputLabel from '@mui/material/InputLabel';
 import Typography from '@mui/material/Typography';
 import FormControl from '@mui/material/FormControl';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 import { alertApi } from 'src/api/alert';
 import { getSocket } from 'src/lib/socket';
@@ -96,15 +96,16 @@ export function AlertAnomaliesView() {
       )}
 
       <Stack direction="row" spacing={2} sx={{ mb: 3 }}>
-        <TextField
+        <DatePicker
           label="交易日"
-          type="date"
-          size="small"
-          value={tradeDate}
-          onChange={(e) => handleDateChange(e.target.value)}
-          slotProps={{ inputLabel: { shrink: true } }}
-          inputProps={{ max: dayjs().format('YYYY-MM-DD') }}
-          sx={{ width: 180 }}
+          value={tradeDate ? dayjs(tradeDate) : null}
+          onChange={(v) => handleDateChange(v?.format('YYYY-MM-DD') ?? '')}
+          format="YYYY-MM-DD"
+          maxDate={dayjs()}
+          slotProps={{
+            textField: { size: 'small', sx: { minWidth: 190 } },
+            field: { clearable: true },
+          }}
         />
         <FormControl size="small" sx={{ minWidth: 160 }}>
           <InputLabel>异动类型</InputLabel>

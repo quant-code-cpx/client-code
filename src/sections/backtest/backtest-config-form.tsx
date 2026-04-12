@@ -1,3 +1,5 @@
+import dayjs from 'dayjs';
+
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Grid from '@mui/material/Grid';
@@ -13,6 +15,7 @@ import FormControl from '@mui/material/FormControl';
 import CardContent from '@mui/material/CardContent';
 import ToggleButton from '@mui/material/ToggleButton';
 import FormHelperText from '@mui/material/FormHelperText';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
@@ -55,26 +58,30 @@ export function BacktestConfigForm({ form, onChange }: BacktestConfigFormProps) 
           </Grid>
 
           <Grid size={{ xs: 12, sm: 6 }}>
-            <TextField
+            <DatePicker
               label="起始日期"
-              type="date"
-              fullWidth
-              size="small"
-              value={form.startDate}
-              onChange={(e) => onChange({ startDate: e.target.value })}
-              slotProps={{ inputLabel: { shrink: true } }}
+              value={form.startDate ? dayjs(form.startDate) : null}
+              onChange={(v) => onChange({ startDate: v?.format('YYYY-MM-DD') ?? '' })}
+              format="YYYY-MM-DD"
+              sx={{ width: '100%' }}
+              slotProps={{
+                textField: { size: 'small' },
+                field: { clearable: true },
+              }}
             />
           </Grid>
 
           <Grid size={{ xs: 12, sm: 6 }}>
-            <TextField
+            <DatePicker
               label="结束日期"
-              type="date"
-              fullWidth
-              size="small"
-              value={form.endDate}
-              onChange={(e) => onChange({ endDate: e.target.value })}
-              slotProps={{ inputLabel: { shrink: true } }}
+              value={form.endDate ? dayjs(form.endDate) : null}
+              onChange={(v) => onChange({ endDate: v?.format('YYYY-MM-DD') ?? '' })}
+              format="YYYY-MM-DD"
+              sx={{ width: '100%' }}
+              slotProps={{
+                textField: { size: 'small' },
+                field: { clearable: true },
+              }}
             />
           </Grid>
 

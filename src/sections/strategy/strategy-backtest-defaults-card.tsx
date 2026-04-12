@@ -1,5 +1,6 @@
 import type { Strategy } from 'src/api/strategy';
 
+import dayjs from 'dayjs';
 import { useState } from 'react';
 
 import Box from '@mui/material/Box';
@@ -13,6 +14,7 @@ import InputLabel from '@mui/material/InputLabel';
 import Typography from '@mui/material/Typography';
 import FormControl from '@mui/material/FormControl';
 import CardContent from '@mui/material/CardContent';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 import { fNumber } from 'src/utils/format-number';
 
@@ -146,21 +148,27 @@ export function StrategyBacktestDefaultsCard({
             {error && <Alert severity="error">{error}</Alert>}
 
             <Box sx={{ display: 'flex', gap: 2 }}>
-              <TextField
-                fullWidth
+              <DatePicker
                 label="开始日期"
-                type="date"
-                value={form.startDate}
-                onChange={(e) => set({ startDate: e.target.value })}
-                slotProps={{ inputLabel: { shrink: true } }}
+                value={form.startDate ? dayjs(form.startDate) : null}
+                onChange={(v) => set({ startDate: v?.format('YYYY-MM-DD') ?? '' })}
+                format="YYYY-MM-DD"
+                sx={{ width: '100%' }}
+                slotProps={{
+                  textField: {},
+                  field: { clearable: true },
+                }}
               />
-              <TextField
-                fullWidth
+              <DatePicker
                 label="结束日期"
-                type="date"
-                value={form.endDate}
-                onChange={(e) => set({ endDate: e.target.value })}
-                slotProps={{ inputLabel: { shrink: true } }}
+                value={form.endDate ? dayjs(form.endDate) : null}
+                onChange={(v) => set({ endDate: v?.format('YYYY-MM-DD') ?? '' })}
+                format="YYYY-MM-DD"
+                sx={{ width: '100%' }}
+                slotProps={{
+                  textField: {},
+                  field: { clearable: true },
+                }}
               />
             </Box>
 

@@ -393,7 +393,7 @@ const ChartRoot = styled('div')(({ theme }) => ({
   flexShrink: 0,
   overflow: 'hidden',
   position: 'relative',
-  borderRadius: theme.shape.borderRadius * 1.5,
+  borderRadius: Number(theme.shape.borderRadius) * 1.5,
 }));
 
 const ChartCanvas = styled('div')({

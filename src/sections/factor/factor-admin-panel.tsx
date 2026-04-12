@@ -1,5 +1,6 @@
 import type { PrecomputeStatusItem } from 'src/api/factor';
 
+import dayjs from 'dayjs';
 import { useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
@@ -16,6 +17,7 @@ import TableHead from '@mui/material/TableHead';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 import TableContainer from '@mui/material/TableContainer';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 import { adminBackfill, adminPrecompute, adminPrecomputeStatus } from 'src/api/factor';
 
@@ -178,21 +180,25 @@ export function FactorAdminPanel() {
             sx={{ mb: 2 }}
           />
           <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-            <TextField
+            <DatePicker
               label="开始日期"
-              type="date"
-              value={backfillStart}
-              onChange={(e) => setBackfillStart(e.target.value)}
-              size="small"
-              slotProps={{ inputLabel: { shrink: true } }}
+              value={backfillStart ? dayjs(backfillStart) : null}
+              onChange={(v) => setBackfillStart(v?.format('YYYY-MM-DD') ?? '')}
+              format="YYYY-MM-DD"
+              slotProps={{
+                textField: { size: 'small', sx: { minWidth: 190 } },
+                field: { clearable: true },
+              }}
             />
-            <TextField
+            <DatePicker
               label="结束日期"
-              type="date"
-              value={backfillEnd}
-              onChange={(e) => setBackfillEnd(e.target.value)}
-              size="small"
-              slotProps={{ inputLabel: { shrink: true } }}
+              value={backfillEnd ? dayjs(backfillEnd) : null}
+              onChange={(v) => setBackfillEnd(v?.format('YYYY-MM-DD') ?? '')}
+              format="YYYY-MM-DD"
+              slotProps={{
+                textField: { size: 'small', sx: { minWidth: 190 } },
+                field: { clearable: true },
+              }}
             />
             <Button variant="contained" onClick={handleBackfill} disabled={backfillLoading}>
               {backfillLoading ? '提交中...' : '触发回补'}

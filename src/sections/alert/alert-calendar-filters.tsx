@@ -1,9 +1,12 @@
 import type { EventType } from 'src/api/alert';
 
+import dayjs from 'dayjs';
+
 import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 // ----------------------------------------------------------------------
 
@@ -61,23 +64,25 @@ export function AlertCalendarFilters({
   return (
     <Stack spacing={2} sx={{ mb: 3 }}>
       <Stack direction="row" spacing={2} flexWrap="wrap">
-        <TextField
+        <DatePicker
           label="开始日期"
-          type="date"
-          size="small"
-          value={toInputDate(startDate)}
-          onChange={(e) => onStartDateChange(fromInputDate(e.target.value))}
-          slotProps={{ inputLabel: { shrink: true } }}
-          sx={{ width: 180 }}
+          value={startDate ? dayjs(startDate, 'YYYYMMDD') : null}
+          onChange={(v) => onStartDateChange(v?.format('YYYYMMDD') ?? '')}
+          format="YYYY-MM-DD"
+          slotProps={{
+            textField: { size: 'small', sx: { minWidth: 190 } },
+            field: { clearable: true },
+          }}
         />
-        <TextField
+        <DatePicker
           label="结束日期"
-          type="date"
-          size="small"
-          value={toInputDate(endDate)}
-          onChange={(e) => onEndDateChange(fromInputDate(e.target.value))}
-          slotProps={{ inputLabel: { shrink: true } }}
-          sx={{ width: 180 }}
+          value={endDate ? dayjs(endDate, 'YYYYMMDD') : null}
+          onChange={(v) => onEndDateChange(v?.format('YYYYMMDD') ?? '')}
+          format="YYYY-MM-DD"
+          slotProps={{
+            textField: { size: 'small', sx: { minWidth: 190 } },
+            field: { clearable: true },
+          }}
         />
         <TextField
           label="股票代码（可选）"

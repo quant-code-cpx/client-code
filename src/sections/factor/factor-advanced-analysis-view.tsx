@@ -30,6 +30,7 @@ import CardContent from '@mui/material/CardContent';
 import FormControl from '@mui/material/FormControl';
 import Autocomplete from '@mui/material/Autocomplete';
 import TableContainer from '@mui/material/TableContainer';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 import {
   factorApi,
@@ -134,13 +135,15 @@ function OrthogonalizePanel({ allFactors }: { allFactors: FactorDef[] }) {
             sx={{ mb: 2 }}
           />
           <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-            <TextField
+            <DatePicker
               label="分析日期"
-              type="date"
-              value={tradeDate}
-              onChange={(e) => setTradeDate(e.target.value)}
-              size="small"
-              slotProps={{ inputLabel: { shrink: true } }}
+              value={tradeDate ? dayjs(tradeDate) : null}
+              onChange={(v) => setTradeDate(v?.format('YYYY-MM-DD') ?? '')}
+              format="YYYY-MM-DD"
+              slotProps={{
+                textField: { size: 'small', sx: { minWidth: 190 } },
+                field: { clearable: true },
+              }}
             />
             <FormControl size="small" sx={{ minWidth: 160 }}>
               <InputLabel>正交方法</InputLabel>
@@ -291,21 +294,25 @@ function FamaMacBethPanel({ allFactors }: { allFactors: FactorDef[] }) {
             sx={{ mb: 2 }}
           />
           <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
-            <TextField
+            <DatePicker
               label="开始日期"
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              size="small"
-              slotProps={{ inputLabel: { shrink: true } }}
+              value={startDate ? dayjs(startDate) : null}
+              onChange={(v) => setStartDate(v?.format('YYYY-MM-DD') ?? '')}
+              format="YYYY-MM-DD"
+              slotProps={{
+                textField: { size: 'small', sx: { minWidth: 190 } },
+                field: { clearable: true },
+              }}
             />
-            <TextField
+            <DatePicker
               label="结束日期"
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              size="small"
-              slotProps={{ inputLabel: { shrink: true } }}
+              value={endDate ? dayjs(endDate) : null}
+              onChange={(v) => setEndDate(v?.format('YYYY-MM-DD') ?? '')}
+              format="YYYY-MM-DD"
+              slotProps={{
+                textField: { size: 'small', sx: { minWidth: 190 } },
+                field: { clearable: true },
+              }}
             />
             <TextField
               label="持有天数"

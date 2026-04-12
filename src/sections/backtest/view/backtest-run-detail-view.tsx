@@ -6,6 +6,7 @@ import type {
   BacktestRunDetailResponse,
 } from 'src/api/backtest';
 
+import dayjs from 'dayjs';
 import { useParams } from 'react-router-dom';
 import { useRef, useState, useEffect, useCallback } from 'react';
 
@@ -18,9 +19,9 @@ import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
 import Skeleton from '@mui/material/Skeleton';
 import Snackbar from '@mui/material/Snackbar';
-import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 import { useRouter } from 'src/routes/hooks';
 
@@ -379,13 +380,14 @@ export function BacktestRunDetailView() {
                   <Typography variant="body2" sx={{ color: 'text.secondary' }}>
                     快照日期：
                   </Typography>
-                  <TextField
-                    type="date"
-                    size="small"
-                    value={positionDate}
-                    onChange={(e) => handlePositionDateChange(e.target.value)}
-                    slotProps={{ inputLabel: { shrink: true } }}
-                    sx={{ width: 160 }}
+                  <DatePicker
+                    value={positionDate ? dayjs(positionDate) : null}
+                    onChange={(v) => handlePositionDateChange(v?.format('YYYY-MM-DD') ?? '')}
+                    format="YYYY-MM-DD"
+                    slotProps={{
+                      textField: { size: 'small', sx: { minWidth: 190 } },
+                      field: { clearable: true },
+                    }}
                   />
                   {positionDate && (
                     <Typography variant="caption" sx={{ color: 'text.secondary' }}>
