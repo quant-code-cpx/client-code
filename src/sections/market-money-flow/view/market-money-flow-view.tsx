@@ -10,6 +10,8 @@ import { DashboardContent } from 'src/layouts/dashboard';
 
 import { HsgtTrendChart } from '../hsgt-trend-chart';
 import { HsgtSummaryCard } from '../hsgt-summary-card';
+import { SectorFlowPanel } from '../sector-flow-panel';
+import { ConceptBoardPanel } from '../concept-board-panel';
 import { MainFlowRankingTable } from '../main-flow-ranking-table';
 import { CapitalFlowTrendChart } from '../capital-flow-trend-chart';
 import { CapitalFlowSummaryCard } from '../capital-flow-summary-card';
@@ -71,6 +73,16 @@ export function MarketMoneyFlowView() {
         {/* ── 主力资金 Top N（左右双表）── */}
         <Grid size={{ xs: 12 }}>
           <MainFlowRankingTable tradeDate={tradeDate || undefined} />
+        </Grid>
+
+        {/* ── 行业板块涨跌·资金流向 ── */}
+        <Grid size={{ xs: 12 }}>
+          <SectorFlowPanel tradeDate={tradeDate || undefined} />
+        </Grid>
+
+        {/* ── 概念板块 ── */}
+        <Grid size={{ xs: 12 }}>
+          <ConceptBoardPanel tradeDate={tradeDate || undefined} />
         </Grid>
       </Grid>
     </DashboardContent>

@@ -18,9 +18,15 @@ interface PortfolioDetailHeaderProps {
   detail: PortfolioDetail;
   onEdit: () => void;
   onDelete: () => void;
+  onGenerateReport?: () => void;
 }
 
-export function PortfolioDetailHeader({ detail, onEdit, onDelete }: PortfolioDetailHeaderProps) {
+export function PortfolioDetailHeader({
+  detail,
+  onEdit,
+  onDelete,
+  onGenerateReport,
+}: PortfolioDetailHeaderProps) {
   const router = useRouter();
   const { portfolio } = detail;
 
@@ -60,6 +66,17 @@ export function PortfolioDetailHeader({ detail, onEdit, onDelete }: PortfolioDet
           </Box>
         </Box>
         <Box sx={{ display: 'flex', gap: 1 }}>
+          {onGenerateReport && (
+            <Button
+              size="small"
+              variant="outlined"
+              color="primary"
+              onClick={onGenerateReport}
+              startIcon={<Iconify icon="solar:file-text-bold" />}
+            >
+              生成报告
+            </Button>
+          )}
           <IconButton onClick={onEdit}>
             <Iconify icon="solar:pen-bold" />
           </IconButton>

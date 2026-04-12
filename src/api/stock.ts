@@ -670,22 +670,161 @@ export const stockDetailApi = {
     }),
 
   /** 分析 - 技术指标 */
-  technicalIndicators: (tsCode: string, period?: string, days?: number): Promise<StockTechnicalData> =>
-    apiClient.post<StockTechnicalData>('/api/stock/detail/analysis/technical', { tsCode, period, days }),
+  technicalIndicators: (
+    tsCode: string,
+    period?: string,
+    days?: number
+  ): Promise<StockTechnicalData> =>
+    apiClient.post<StockTechnicalData>('/api/stock/detail/analysis/technical', {
+      tsCode,
+      period,
+      days,
+    }),
 
   /** 分析 - 择时信号 */
   timingSignals: (tsCode: string, days?: number): Promise<StockTimingSignalsData> =>
-    apiClient.post<StockTimingSignalsData>('/api/stock/detail/analysis/timing-signals', { tsCode, days }),
+    apiClient.post<StockTimingSignalsData>('/api/stock/detail/analysis/timing-signals', {
+      tsCode,
+      days,
+    }),
 
   /** 分析 - 筹码分布 */
   chipDistribution: (tsCode: string, tradeDate?: string): Promise<ChipDistributionData> =>
-    apiClient.post<ChipDistributionData>('/api/stock/detail/analysis/chip-distribution', { tsCode, tradeDate }),
+    apiClient.post<ChipDistributionData>('/api/stock/detail/analysis/chip-distribution', {
+      tsCode,
+      tradeDate,
+    }),
 
   /** 分析 - 融资融券 */
   marginData: (tsCode: string, days?: number): Promise<StockMarginData> =>
     apiClient.post<StockMarginData>('/api/stock/detail/analysis/margin', { tsCode, days }),
 
   /** 分析 - 相对强弱 */
-  relativeStrength: (tsCode: string, benchmarkCode?: string, days?: number): Promise<StockRelativeStrengthData> =>
-    apiClient.post<StockRelativeStrengthData>('/api/stock/detail/analysis/relative-strength', { tsCode, benchmarkCode, days }),
+  relativeStrength: (
+    tsCode: string,
+    benchmarkCode?: string,
+    days?: number
+  ): Promise<StockRelativeStrengthData> =>
+    apiClient.post<StockRelativeStrengthData>('/api/stock/detail/analysis/relative-strength', {
+      tsCode,
+      benchmarkCode,
+      days,
+    }),
+};
+
+// ─── 股票搜索 ──────────────────────────────────
+
+export type StockSearchItem = {
+  tsCode: string;
+  symbol: string;
+  name: string;
+  market: string | null;
+  industry: string | null;
+  listStatus: string | null;
+};
+
+export type StockSearchResult = {
+  items: StockSearchItem[];
+  total: number;
+};
+
+// ─── 主力资金流向 ──────────────────────────────────
+
+export type MainMoneyFlowItem = {
+  tradeDate: string;
+  close: number | null;
+  pctChg: number | null;
+  /** 主力净流入（万元） */
+  mainNetInflow: number | null;
+  /** 超大单净流入（万元） */
+  superLargeNetInflow: number | null;
+  /** 大单净流入（万元） */
+  largeNetInflow: number | null;
+  /** 主力净流入占比 */
+  mainNetInflowRate: number | null;
+};
+
+export type MainMoneyFlowSummary = {
+  /** 5日主力净流入累计 */
+  mainNetInflow5d: number | null;
+  /** 10日主力净流入累计 */
+  mainNetInflow10d: number | null;
+  /** 20日主力净流入累计 */
+  mainNetInflow20d: number | null;
+  /** 主力控盘度 */
+  controlDegree: string | null;
+  /** 趋势判断 */
+  trend: string | null;
+};
+
+export type StockMainMoneyFlowData = {
+  tsCode: string;
+  summary: MainMoneyFlowSummary;
+  history: MainMoneyFlowItem[];
+};
+
+// ─── 股本结构 ──────────────────────────────────
+
+export type ShareCapitalItem = {
+  endDate: string;
+  /** 总股本（万股） */
+  totalShare: number | null;
+  /** 流通股本（万股） */
+  floatShare: number | null;
+  /** 自由流通股本（万股） */
+  freeShare: number | null;
+  /** 限售股（万股） */
+  restrictedShare: number | null;
+  /** 总市值（万元） */
+  totalMv: number | null;
+  /** 流通市值（万元） */
+  circMv: number | null;
+};
+
+export type ShareCapitalChangeItem = {
+  annDate: string | null;
+  changeReason: string | null;
+  totalShareBefore: number | null;
+  totalShareAfter: number | null;
+  changeAmount: number | null;
+};
+
+export type StockShareCapitalData = {
+  tsCode: string;
+  latest: ShareCapitalItem | null;
+  history: ShareCapitalItem[];
+  changes: ShareCapitalChangeItem[];
+};
+
+// ─── 个股所属概念板块 ──────────────────────────────────
+
+export type StockConceptItem = {
+  conceptCode: string;
+  conceptName: string;
+  /** 概念板块当日涨跌幅 */
+  pctChange: number | null;
+  /** 概念板块成分股数 */
+  memberCount: number | null;
+};
+
+export type StockConceptsData = {
+  tsCode: string;
+  concepts: StockConceptItem[];
+};
+
+// ─── 扩展 stockApi / stockDetailApi ──────────────────────────────────
+
+export function searchStocks(query: { keyword: string; limit?: number }) {
+  return apiClient.post<StockSearchResult>('/api/stock/search', query);
+}
+
+export const stockDetailApiExtra = {
+  mainMoneyFlow: (tsCode: string, days?: number): Promise<StockMainMoneyFlowData> =>
+    apiClient.post<StockMainMoneyFlowData>('/api/stock/detail/main-money-flow', { tsCode, days }),
+
+  shareCapital: (tsCode: string): Promise<StockShareCapitalData> =>
+    apiClient.post<StockShareCapitalData>('/api/stock/detail/share-capital', { tsCode }),
+
+  concepts: (tsCode: string): Promise<StockConceptsData> =>
+    apiClient.post<StockConceptsData>('/api/stock/detail/concepts', { tsCode }),
 };

@@ -1,15 +1,23 @@
-import type { BacktestTradeItem, BacktestEquityPoint, BacktestPositionItem, BacktestRebalanceLogItem, BacktestRunDetailResponse } from 'src/api/backtest';
+import type {
+  BacktestTradeItem,
+  BacktestEquityPoint,
+  BacktestPositionItem,
+  BacktestRebalanceLogItem,
+  BacktestRunDetailResponse,
+} from 'src/api/backtest';
 
 import { useParams } from 'react-router-dom';
-import { useState, useEffect, useCallback } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 
 import Tab from '@mui/material/Tab';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Tabs from '@mui/material/Tabs';
 import Alert from '@mui/material/Alert';
+import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
 import Skeleton from '@mui/material/Skeleton';
+import Snackbar from '@mui/material/Snackbar';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
@@ -26,6 +34,10 @@ import {
   getRunRebalanceLogs,
 } from 'src/api/backtest';
 
+import { Iconify } from 'src/components/iconify';
+
+import { ReportGenerateDialog } from 'src/sections/report/report-generate-dialog';
+
 import { useBacktestJob } from '../hooks/use-backtest-job';
 import { BacktestMetricsGrid } from '../backtest-metrics-grid';
 import { BacktestEquityChart } from '../backtest-equity-chart';
@@ -37,16 +49,19 @@ import { BacktestProgressBanner } from '../backtest-progress-banner';
 import { BacktestPositionsTable } from '../backtest-positions-table';
 import { BacktestRebalanceLogTable } from '../backtest-rebalance-log-table';
 import { BacktestMonthlyReturnTable } from '../backtest-monthly-return-table';
+import { BacktestAdvancedAnalysisTab } from './backtest-advanced-analysis-tab';
+import { BacktestApplyPortfolioDialog } from '../backtest-apply-portfolio-dialog';
 
 // ----------------------------------------------------------------------
 
-type TabValue = 'trades' | 'positions' | 'logs' | 'config';
+type TabValue = 'trades' | 'positions' | 'logs' | 'config' | 'advanced';
 
 const TABS: Array<{ value: TabValue; label: string }> = [
   { value: 'trades', label: '交易明细' },
   { value: 'positions', label: '持仓快照' },
   { value: 'logs', label: '调仓日志' },
   { value: 'config', label: '运行配置' },
+  { value: 'advanced', label: '高级分析' },
 ];
 
 // ----------------------------------------------------------------------
@@ -73,9 +88,12 @@ export function BacktestRunDetailView() {
   const [loadingLogs, setLoadingLogs] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [error, setError] = useState('');
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
+  const [applyDialogOpen, setApplyDialogOpen] = useState(false);
+  const [applySnackbar, setApplySnackbar] = useState('');
 
-  // Track which tabs have been loaded
-  const [loadedTabs, setLoadedTabs] = useState<Set<TabValue>>(new Set());
+  // Track which tabs have been loaded (ref to avoid stale closures in effects)
+  const loadedTabsRef = useRef<Set<TabValue>>(new Set());
 
   // Load main detail + equity
   const loadDetail = useCallback(async () => {
@@ -112,40 +130,35 @@ export function BacktestRunDetailView() {
   // WebSocket subscription for running jobs
   useBacktestJob(detail?.jobId, {
     onProgress: (evt) => {
-      setDetail((prev) =>
-        prev ? { ...prev, progress: evt.progress } : prev
-      );
+      setDetail((prev) => (prev ? { ...prev, progress: evt.progress } : prev));
     },
     onCompleted: () => {
       // Reload everything once complete
       loadDetail();
     },
     onFailed: (evt) => {
-      setDetail((prev) =>
-        prev ? { ...prev, status: 'FAILED', failedReason: evt.reason } : prev
-      );
+      setDetail((prev) => (prev ? { ...prev, status: 'FAILED', failedReason: evt.reason } : prev));
     },
   });
 
   // Load trades when tab is first activated
   useEffect(() => {
-    if (tab === 'trades' && !loadedTabs.has('trades') && runId) {
+    if (tab === 'trades' && !loadedTabsRef.current.has('trades') && runId) {
       setLoadingTrades(true);
       getRunTrades(runId, tradesPage + 1, tradesPageSize)
         .then((res) => {
           setTrades(res.items ?? []);
           setTradesTotal(res.total);
-          setLoadedTabs((prev) => new Set(prev).add('trades'));
+          loadedTabsRef.current.add('trades');
         })
         .catch(() => {})
         .finally(() => setLoadingTrades(false));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tab, runId]);
+  }, [tab, runId, tradesPage, tradesPageSize]);
 
   // Reload trades on pagination change
   useEffect(() => {
-    if (!runId || !loadedTabs.has('trades')) return;
+    if (!runId || !loadedTabsRef.current.has('trades')) return;
     setLoadingTrades(true);
     getRunTrades(runId, tradesPage + 1, tradesPageSize)
       .then((res) => {
@@ -154,38 +167,35 @@ export function BacktestRunDetailView() {
       })
       .catch(() => {})
       .finally(() => setLoadingTrades(false));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tradesPage, tradesPageSize]);
+  }, [runId, tradesPage, tradesPageSize]);
 
   // Load positions when tab is first activated
   useEffect(() => {
-    if (tab === 'positions' && !loadedTabs.has('positions') && runId) {
+    if (tab === 'positions' && !loadedTabsRef.current.has('positions') && runId) {
       setLoadingPositions(true);
       getRunPositions(runId)
         .then((res) => {
           setPositions(res.items ?? []);
           setPositionDate(res.tradeDate ?? '');
-          setLoadedTabs((prev) => new Set(prev).add('positions'));
+          loadedTabsRef.current.add('positions');
         })
         .catch(() => {})
         .finally(() => setLoadingPositions(false));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab, runId]);
 
   // Load rebalance logs when tab is first activated
   useEffect(() => {
-    if (tab === 'logs' && !loadedTabs.has('logs') && runId) {
+    if (tab === 'logs' && !loadedTabsRef.current.has('logs') && runId) {
       setLoadingLogs(true);
       getRunRebalanceLogs(runId)
         .then((res) => {
           setRebalanceLogs(res.items ?? []);
-          setLoadedTabs((prev) => new Set(prev).add('logs'));
+          loadedTabsRef.current.add('logs');
         })
         .catch(() => {})
         .finally(() => setLoadingLogs(false));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab, runId]);
 
   const handlePositionDateChange = useCallback(
@@ -264,12 +274,29 @@ export function BacktestRunDetailView() {
   return (
     <DashboardContent>
       {/* Header */}
-      <BacktestDetailHeader
-        detail={detail}
-        onCancel={handleCancel}
-        onCopy={handleCopy}
-        cancelling={cancelling}
-      />
+      <Box
+        sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 2 }}
+      >
+        <Box sx={{ flex: 1 }}>
+          <BacktestDetailHeader
+            detail={detail}
+            onCancel={handleCancel}
+            onCopy={handleCopy}
+            cancelling={cancelling}
+            onGenerateReport={() => setReportDialogOpen(true)}
+          />
+        </Box>
+        {detail.status === 'COMPLETED' && (
+          <Button
+            variant="outlined"
+            startIcon={<Iconify icon="solar:import-bold" />}
+            onClick={() => setApplyDialogOpen(true)}
+            sx={{ mt: 1, whiteSpace: 'nowrap' }}
+          >
+            导入组合
+          </Button>
+        )}
+      </Box>
 
       {/* Progress banner */}
       {(detail.status === 'QUEUED' || detail.status === 'RUNNING') && (
@@ -381,9 +408,34 @@ export function BacktestRunDetailView() {
                 <BacktestConfigDrawer detail={detail} />
               </CardContent>
             )}
+
+            {/* Advanced Analysis */}
+            {tab === 'advanced' && runId && <BacktestAdvancedAnalysisTab runId={runId} />}
           </Card>
         </Box>
       )}
+
+      <ReportGenerateDialog
+        open={reportDialogOpen}
+        onClose={() => setReportDialogOpen(false)}
+        onGenerated={() => setReportDialogOpen(false)}
+        defaultType="BACKTEST"
+        defaultParams={{ runId: runId ?? '' }}
+      />
+
+      <BacktestApplyPortfolioDialog
+        open={applyDialogOpen}
+        onClose={() => setApplyDialogOpen(false)}
+        runId={runId ?? ''}
+        onSuccess={(_, name) => setApplySnackbar(`已成功导入组合「${name}」`)}
+      />
+
+      <Snackbar
+        open={Boolean(applySnackbar)}
+        autoHideDuration={4000}
+        onClose={() => setApplySnackbar('')}
+        message={applySnackbar}
+      />
     </DashboardContent>
   );
 }

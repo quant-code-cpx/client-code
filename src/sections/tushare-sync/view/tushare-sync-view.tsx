@@ -15,6 +15,7 @@ import { SyncPlanTab } from '../sync-plan-tab';
 import { CacheStatsTab } from '../cache-stats-tab';
 import { RetryQueueTab } from '../retry-queue-tab';
 import { DataQualityTab } from '../data-quality-tab';
+import { SyncStatusOverviewPanel } from '../sync-status-overview';
 
 // ----------------------------------------------------------------------
 
@@ -72,6 +73,9 @@ export function TushareSyncView() {
           数据同步
         </Typography>
       </Box>
+
+      {/* 状态总览 */}
+      <SyncStatusOverviewPanel />
 
       {/* Tabs */}
       <Tabs

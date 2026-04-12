@@ -302,3 +302,299 @@ export const factorApi = {
     pageSize?: number;
   }): Promise<FactorScreeningResult> => apiClient.post('/api/factor/screening', params),
 };
+
+// ─── 保存为策略 / 优化类型 ────────────────────────────────────
+
+export type SaveAsStrategyRequest = {
+  conditions: FactorCondition[];
+  universe?: string;
+  weightMethod?: 'equal_weight' | 'factor_weight';
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+  topN?: number;
+  initialCapital?: number;
+  rebalanceDays?: number;
+  commissionRate?: number;
+  slippageBps?: number;
+  benchmarkCode?: string;
+  name: string;
+  description?: string;
+  tags?: string[];
+};
+
+export type SaveAsStrategyResponse = {
+  strategyId: string;
+  strategyName: string;
+  version: number;
+  createdAt: string;
+};
+
+export type OptimizationMode = 'MVO' | 'MIN_VARIANCE' | 'RISK_PARITY' | 'MAX_DIVERSIFICATION';
+
+export type FactorOptimizationRequest = {
+  tsCodes: string[];
+  mode: OptimizationMode;
+  lookbackDays?: number;
+  riskAversionLambda?: number;
+  maxWeight?: number;
+  minWeight?: number;
+  enableLeverageConstraint?: boolean;
+};
+
+export type OptimizationWeightItem = {
+  tsCode: string;
+  stockName: string | null;
+  weight: number;
+};
+
+export type FactorOptimizationResponse = {
+  mode: OptimizationMode;
+  weights: OptimizationWeightItem[];
+  expectedReturn: number | null;
+  expectedVolatility: number | null;
+  sharpeRatio: number | null;
+};
+
+// ─── 保存为策略 / 优化 API ────────────────────────────────────
+
+export function saveFactorAsStrategy(dto: SaveAsStrategyRequest) {
+  return apiClient.post<SaveAsStrategyResponse>('/api/factor/backtest/save-as-strategy', dto);
+}
+
+export function optimizeFactorPortfolio(dto: FactorOptimizationRequest) {
+  return apiClient.post<FactorOptimizationResponse>('/api/factor/optimization', dto);
+}
+
+// ─── 自定义因子类型 ───────────────────────────────────────────
+
+export type CustomFactorCreateRequest = {
+  name: string;
+  label: string;
+  description?: string;
+  category: FactorCategory;
+  expression: string;
+};
+
+export type CustomFactorCreateResponse = {
+  id: string;
+  name: string;
+  label: string;
+  category: FactorCategory;
+  sourceType: FactorSourceType;
+  expression: string;
+  createdAt: string;
+};
+
+export type CustomFactorTestRequest = {
+  expression: string;
+  tradeDate?: string;
+  universe?: string;
+};
+
+export type CustomFactorTestResponse = {
+  expression: string;
+  tradeDate: string;
+  samples: Array<{ tsCode: string; name: string; value: number | null }>;
+  stats: { count: number; nonNull: number; mean: number | null; stdDev: number | null };
+};
+
+export type CustomFactorUpdateRequest = {
+  name: string;
+  label?: string;
+  description?: string;
+  category?: FactorCategory;
+  expression?: string;
+  autoPrecompute?: boolean;
+  isEnabled?: boolean;
+};
+
+export type CustomFactorPrecomputeResponse = {
+  factorId: string;
+  factorName: string;
+  status: string;
+  message: string;
+};
+
+// ─── 因子回测类型 ─────────────────────────────────────────────
+
+export type FactorBacktestSubmitRequest = {
+  conditions: FactorCondition[];
+  universe?: string;
+  startDate: string;
+  endDate: string;
+  initialCapital?: number;
+  rebalanceDays?: number;
+  weightMethod?: 'equal_weight' | 'factor_weight';
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+  topN?: number;
+  commissionRate?: number;
+  slippageBps?: number;
+  benchmarkCode?: string;
+  name?: string;
+};
+
+export type FactorBacktestSubmitResponse = {
+  runId: string;
+  factorName: string;
+  status: string;
+  createdAt: string;
+};
+
+export type FactorAttributionRequest = {
+  backtestId: string;
+  factorNames?: string[];
+};
+
+export type FactorAttributionItem = {
+  factorName: string;
+  factorLabel: string;
+  allocation: number;
+  selection: number;
+  interaction: number;
+  total: number;
+};
+
+export type FactorAttributionResponse = {
+  runId: string;
+  benchmarkTsCode: string;
+  totalExcess: number;
+  items: FactorAttributionItem[];
+};
+
+// ─── 高级分析类型 ─────────────────────────────────────────────
+
+export type OrthogonalizeRequest = {
+  factorNames: string[];
+  tradeDate: string;
+  universe?: string;
+  method?: 'gram_schmidt' | 'symmetric';
+};
+
+export type OrthogonalizeResult = {
+  tradeDate: string;
+  method: string;
+  factors: string[];
+  correlationBefore: number[][];
+  correlationAfter: number[][];
+};
+
+export type FamaMacBethRequest = {
+  factorNames: string[];
+  startDate: string;
+  endDate: string;
+  universe?: string;
+  forwardDays?: number;
+};
+
+export type FamaMacBethFactorResult = {
+  factorName: string;
+  factorLabel: string;
+  avgCoeff: number;
+  tStat: number;
+  pValue: number;
+  significant: boolean;
+};
+
+export type FamaMacBethResponse = {
+  startDate: string;
+  endDate: string;
+  forwardDays: number;
+  rSquaredMean: number;
+  factors: FamaMacBethFactorResult[];
+};
+
+// ─── Admin 类型 ───────────────────────────────────────────────
+
+export type AdminPrecomputeRequest = {
+  factorNames?: string[];
+  startDate?: string;
+  endDate?: string;
+};
+
+export type AdminPrecomputeResponse = {
+  jobId: string;
+  status: string;
+  factorCount: number;
+  message: string;
+};
+
+export type AdminBackfillRequest = {
+  factorNames: string[];
+  startDate: string;
+  endDate: string;
+};
+
+export type AdminBackfillResponse = {
+  jobId: string;
+  status: string;
+  message: string;
+};
+
+export type PrecomputeStatusItem = {
+  factorName: string;
+  factorLabel: string;
+  lastComputeDate: string | null;
+  rowCount: number;
+  status: string;
+};
+
+export type AdminPrecomputeStatusResponse = {
+  items: PrecomputeStatusItem[];
+};
+
+// ─── 自定义因子 API ───────────────────────────────────────────
+
+export function createCustomFactor(dto: CustomFactorCreateRequest) {
+  return apiClient.post<CustomFactorCreateResponse>('/api/factor/custom/create', dto);
+}
+
+export function testCustomExpression(dto: CustomFactorTestRequest) {
+  return apiClient.post<CustomFactorTestResponse>('/api/factor/custom/test', dto);
+}
+
+export function updateCustomFactor(dto: CustomFactorUpdateRequest) {
+  return apiClient.post<CustomFactorCreateResponse>('/api/factor/custom/update', dto);
+}
+
+export function deleteCustomFactor(query: { name: string }) {
+  return apiClient.post<{ message: string }>('/api/factor/custom/delete', query);
+}
+
+export function precomputeCustomFactor(query: { name: string }) {
+  return apiClient.post<CustomFactorPrecomputeResponse>('/api/factor/custom/precompute', query);
+}
+
+// ─── 因子回测 API ─────────────────────────────────────────────
+
+export function submitFactorBacktest(dto: FactorBacktestSubmitRequest) {
+  return apiClient.post<FactorBacktestSubmitResponse>('/api/factor/backtest/submit', dto);
+}
+
+export function getFactorAttribution(dto: FactorAttributionRequest) {
+  return apiClient.post<FactorAttributionResponse>('/api/factor/backtest/attribution', dto);
+}
+
+// ─── 高级分析 API ─────────────────────────────────────────────
+
+export function orthogonalizeFactors(dto: OrthogonalizeRequest) {
+  return apiClient.post<OrthogonalizeResult>('/api/factor/analysis/orthogonalize', dto);
+}
+
+export function famaMacBeth(dto: FamaMacBethRequest) {
+  return apiClient.post<FamaMacBethResponse>('/api/factor/analysis/fama-macbeth', dto);
+}
+
+// ─── Admin API ────────────────────────────────────────────────
+
+export function adminPrecompute(dto: AdminPrecomputeRequest) {
+  return apiClient.post<AdminPrecomputeResponse>('/api/factor/admin/precompute', dto);
+}
+
+export function adminBackfill(dto: AdminBackfillRequest) {
+  return apiClient.post<AdminBackfillResponse>('/api/factor/admin/backfill', dto);
+}
+
+export function adminPrecomputeStatus() {
+  return apiClient.post<AdminPrecomputeStatusResponse>('/api/factor/admin/precompute/status', {});
+}

@@ -50,6 +50,20 @@ export const ComparisonCreatePage = lazy(() => import('src/pages/backtest-compar
 export const ComparisonDetailPage = lazy(() => import('src/pages/backtest-comparison-detail'));
 export const PortfolioPage = lazy(() => import('src/pages/portfolio'));
 export const PortfolioDetailPage = lazy(() => import('src/pages/portfolio-detail'));
+export const AlertCalendarPage = lazy(() => import('src/pages/alert-calendar'));
+export const AlertPriceRulesPage = lazy(() => import('src/pages/alert-price-rules'));
+export const AlertAnomaliesPage = lazy(() => import('src/pages/alert-anomalies'));
+export const SignalLatestPage = lazy(() => import('src/pages/signal-latest'));
+export const SignalHistoryPage = lazy(() => import('src/pages/signal-history'));
+export const EventStudyPage = lazy(() => import('src/pages/event-study'));
+export const IndustryRotationPage = lazy(() => import('src/pages/industry-rotation'));
+export const MarketHeatmapPage = lazy(() => import('src/pages/market-heatmap'));
+export const ReportListPage = lazy(() => import('src/pages/report'));
+export const ReportDetailPage = lazy(() => import('src/pages/report-detail'));
+export const IndexDetailPage = lazy(() => import('src/pages/index-detail'));
+export const PatternPage = lazy(() => import('src/pages/pattern'));
+export const FactorAdvancedAnalysisPage = lazy(() => import('src/pages/factor-advanced-analysis'));
+export const FactorAdminPage = lazy(() => import('src/pages/factor-admin'));
 
 const renderFallback = () => (
   <Box
@@ -85,7 +99,6 @@ export const routesSection: RouteObject[] = [
     children: [
       { index: true, element: <DashboardPage /> },
       { path: 'user', element: <UserPage /> },
-      { path: 'user-manage', element: <UserManagePage /> },
       { path: 'products', element: <ProductsPage /> },
       { path: 'blog', element: <BlogPage /> },
       { path: 'stock', element: <StockPage /> },
@@ -93,11 +106,16 @@ export const routesSection: RouteObject[] = [
       { path: 'stock/screener', element: <Navigate to="/stock" replace /> },
       { path: 'market/overview', element: <MarketOverviewPage /> },
       { path: 'market/money-flow', element: <MarketMoneyFlowPage /> },
+      { path: 'market/industry-rotation', element: <IndustryRotationPage /> },
+      { path: 'market/heatmap', element: <MarketHeatmapPage /> },
+      { path: 'market/index', element: <IndexDetailPage /> },
       { path: 'tushare-sync', element: <TushareSyncPage /> },
       { path: 'factor/library', element: <FactorLibraryPage /> },
       { path: 'factor/detail/:name', element: <FactorDetailPage /> },
       { path: 'factor/correlation', element: <FactorCorrelationPage /> },
       { path: 'factor/screening', element: <FactorScreeningPage /> },
+      { path: 'factor/advanced-analysis', element: <FactorAdvancedAnalysisPage /> },
+      { path: 'factor/admin', element: <FactorAdminPage /> },
       { path: 'strategy', element: <StrategyListPage /> },
       { path: 'strategy/:id', element: <StrategyDetailPage /> },
       { path: 'backtest', element: <BacktestWorkbenchPage /> },
@@ -116,6 +134,26 @@ export const routesSection: RouteObject[] = [
       { path: 'profile', element: <ProfilePage /> },
       { path: 'portfolio', element: <PortfolioPage /> },
       { path: 'portfolio/:id', element: <PortfolioDetailPage /> },
+      { path: 'alert', element: <AlertCalendarPage /> },
+      { path: 'alert/price-rules', element: <AlertPriceRulesPage /> },
+      { path: 'alert/anomalies', element: <AlertAnomaliesPage /> },
+      { path: 'strategy/signal', element: <SignalLatestPage /> },
+      { path: 'strategy/signal/history', element: <SignalHistoryPage /> },
+      { path: 'research/event-study', element: <EventStudyPage /> },
+      { path: 'research/report', element: <ReportListPage /> },
+      { path: 'research/report/:id', element: <ReportDetailPage /> },
+      { path: 'stock/pattern', element: <PatternPage /> },
+      { path: 'admin/user-manage', element: <UserManagePage /> },
+      { path: 'admin/tushare-sync', element: <TushareSyncPage /> },
+      // ─── backward-compat redirects ───────────────────────
+      { path: 'signal', element: <Navigate to="/strategy/signal" replace /> },
+      { path: 'signal/history', element: <Navigate to="/strategy/signal/history" replace /> },
+      { path: 'event-study', element: <Navigate to="/research/event-study" replace /> },
+      { path: 'report', element: <Navigate to="/research/report" replace /> },
+      { path: 'report/:id', element: <Navigate to="/research/report/:id" replace /> },
+      { path: 'pattern', element: <Navigate to="/stock/pattern" replace /> },
+      { path: 'tushare-sync', element: <Navigate to="/admin/tushare-sync" replace /> },
+      { path: 'user-manage', element: <Navigate to="/admin/user-manage" replace /> },
     ],
   },
   {

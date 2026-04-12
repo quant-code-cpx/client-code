@@ -18,6 +18,7 @@ interface BacktestDetailHeaderProps {
   onCancel: () => void;
   onCopy: () => void;
   cancelling: boolean;
+  onGenerateReport?: () => void;
 }
 
 export function BacktestDetailHeader({
@@ -25,6 +26,7 @@ export function BacktestDetailHeader({
   onCancel,
   onCopy,
   cancelling,
+  onGenerateReport,
 }: BacktestDetailHeaderProps) {
   const canCancel = detail.status === 'QUEUED' || detail.status === 'RUNNING';
 
@@ -67,6 +69,18 @@ export function BacktestDetailHeader({
         >
           复制重跑
         </Button>
+
+        {detail.status === 'COMPLETED' && onGenerateReport && (
+          <Button
+            variant="contained"
+            color="primary"
+            size="small"
+            onClick={onGenerateReport}
+            startIcon={<Iconify icon="solar:file-text-bold" width={14} />}
+          >
+            生成报告
+          </Button>
+        )}
 
         {canCancel && (
           <Button

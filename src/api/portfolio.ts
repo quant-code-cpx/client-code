@@ -313,3 +313,219 @@ export function checkRisk(query: { portfolioId: string }) {
 export function getViolations(query: { portfolioId: string; limit?: number }) {
   return apiClient.post<ViolationRecord[]>('/api/portfolio/risk/violations', query);
 }
+
+// ─── 回测导入类型 ─────────────────────────────────
+
+export type ApplyMode = 'REPLACE' | 'MERGE';
+
+export type ApplyBacktestRequest = {
+  backtestRunId: string;
+  portfolioId?: string;
+  portfolioName?: string;
+  mode?: ApplyMode;
+};
+
+export type RebalanceAction = {
+  tsCode: string;
+  stockName: string;
+  action: 'BUY' | 'SELL' | 'ADJUST' | 'HOLD';
+  previousQuantity: number;
+  previousAvgCost: number;
+  targetQuantity: number;
+  targetAvgCost: number;
+  deltaQuantity: number;
+};
+
+export type ApplyBacktestSummary = {
+  added: number;
+  updated: number;
+  removed: number;
+  unchanged: number;
+  totalHoldings: number;
+};
+
+export type ApplyBacktestResponse = {
+  portfolioId: string;
+  portfolioName: string;
+  backtestRunId: string;
+  mode: ApplyMode;
+  snapshotDate: string;
+  changes: RebalanceAction[];
+  summary: ApplyBacktestSummary;
+};
+
+// ─── 调仓清单类型 ─────────────────────────────────
+
+export type OmitAction = 'SELL' | 'HOLD';
+
+export type TargetItem = {
+  tsCode: string;
+  targetWeight: number;
+};
+
+export type RebalancePlanRequest = {
+  portfolioId: string;
+  targets: TargetItem[];
+  omitUnspecified?: OmitAction;
+  totalValue?: number;
+  commissionRate?: number;
+  stampDutyRate?: number;
+  minCommission?: number;
+};
+
+export type RebalancePlanResponse = {
+  portfolioId: string;
+  totalValue: number;
+  priceDate: string;
+  actions: RebalanceAction[];
+  estimatedCost: number;
+  summary: ApplyBacktestSummary;
+};
+
+// ─── 绩效跟踪类型 ─────────────────────────────────
+
+export type PortfolioPerformanceRequest = {
+  portfolioId: string;
+  startDate?: string;
+  endDate?: string;
+  benchmarkTsCode?: string;
+};
+
+export type PerformanceDailyItem = {
+  date: string;
+  portfolioNav: number;
+  benchmarkNav: number;
+  dailyReturn: number;
+  benchmarkReturn: number;
+  excessReturn: number;
+};
+
+export type PortfolioPerformanceResponse = {
+  portfolioId: string;
+  startDate: string;
+  endDate: string;
+  benchmarkTsCode: string;
+  series: PerformanceDailyItem[];
+  metrics: {
+    totalReturn: number | null;
+    annualizedReturn: number | null;
+    benchmarkReturn: number | null;
+    excessReturn: number | null;
+    trackingError: number | null;
+    informationRatio: number | null;
+    maxDrawdown: number | null;
+    sharpeRatio: number | null;
+  };
+};
+
+// ─── 漂移检测类型 ─────────────────────────────────
+
+export type DriftType = 'MISSING_IN_PORTFOLIO' | 'EXTRA_IN_PORTFOLIO' | 'WEIGHT_DRIFT' | 'ALIGNED';
+
+export type DriftItem = {
+  tsCode: string;
+  stockName: string;
+  actualWeight: number | null;
+  targetWeight: number | null;
+  weightDiff: number | null;
+  driftType: DriftType;
+};
+
+export type IndustryDriftItem = {
+  industry: string;
+  actualWeight: number;
+  targetWeight: number;
+  diff: number;
+};
+
+export type DriftDetectionRequest = {
+  portfolioId: string;
+  strategyId?: string;
+  alertThreshold?: number;
+};
+
+export type DriftDetectionResponse = {
+  portfolioId: string;
+  strategyId: string;
+  tradeDate: string;
+  overallDrift: number;
+  isAlerting: boolean;
+  alertThreshold: number;
+  items: DriftItem[];
+  industryDrift: IndustryDriftItem[];
+};
+
+// ─── 交易日志类型 ─────────────────────────────────
+
+export type TradeLogQueryRequest = {
+  portfolioId: string;
+  startDate?: string;
+  endDate?: string;
+  tsCode?: string;
+  action?: string;
+  reason?: string;
+  page?: number;
+  pageSize?: number;
+};
+
+export type TradeLogSummaryRequest = {
+  portfolioId: string;
+  startDate?: string;
+  endDate?: string;
+};
+
+export type TradeLogItem = {
+  id: string;
+  portfolioId: string;
+  tsCode: string;
+  stockName: string | null;
+  action: string;
+  quantity: number;
+  price: number | null;
+  amount: number | null;
+  reason: string | null;
+  tradeDate: string;
+  createdAt: string;
+};
+
+export type TradeLogQueryResponse = {
+  page: number;
+  pageSize: number;
+  total: number;
+  items: TradeLogItem[];
+};
+
+export type TradeLogSummaryResponse = {
+  portfolioId: string;
+  totalTrades: number;
+  totalBuyAmount: number | null;
+  totalSellAmount: number | null;
+  byAction: Array<{ action: string; count: number; totalAmount: number | null }>;
+  byStock: Array<{ tsCode: string; stockName: string | null; count: number }>;
+};
+
+// ─── 新增 API 函数 ────────────────────────────────
+
+export function applyBacktest(dto: ApplyBacktestRequest) {
+  return apiClient.post<ApplyBacktestResponse>('/api/portfolio/apply-backtest', dto);
+}
+
+export function rebalancePlan(dto: RebalancePlanRequest) {
+  return apiClient.post<RebalancePlanResponse>('/api/portfolio/rebalance-plan', dto);
+}
+
+export function getPerformance(dto: PortfolioPerformanceRequest) {
+  return apiClient.post<PortfolioPerformanceResponse>('/api/portfolio/performance', dto);
+}
+
+export function detectDrift(dto: DriftDetectionRequest) {
+  return apiClient.post<DriftDetectionResponse>('/api/portfolio/drift-detection', dto);
+}
+
+export function queryTradeLog(dto: TradeLogQueryRequest) {
+  return apiClient.post<TradeLogQueryResponse>('/api/portfolio/trade-log', dto);
+}
+
+export function tradeLogSummary(dto: TradeLogSummaryRequest) {
+  return apiClient.post<TradeLogSummaryResponse>('/api/portfolio/trade-log/summary', dto);
+}

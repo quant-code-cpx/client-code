@@ -10,6 +10,7 @@ import { DashboardContent } from 'src/layouts/dashboard';
 
 import { MarketIndexCards } from '../market-index-cards';
 import { MarketVolumeChart } from '../market-volume-chart';
+import { MarketHeatmapChart } from '../market-heatmap-chart';
 import { MarketSentimentCard } from '../market-sentiment-card';
 import { MarketValuationCard } from '../market-valuation-card';
 import { MarketIndexTrendChart } from '../market-index-trend-chart';
@@ -81,6 +82,11 @@ export function MarketOverviewView() {
         </Grid>
         <Grid size={{ xs: 12, md: 8 }}>
           <MarketValuationTrendChart tradeDate={tradeDate || undefined} />
+        </Grid>
+
+        {/* ── 市场热力图 ── */}
+        <Grid size={{ xs: 12 }}>
+          <MarketHeatmapChart tradeDate={tradeDate || undefined} />
         </Grid>
       </Grid>
     </DashboardContent>

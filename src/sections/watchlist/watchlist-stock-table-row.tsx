@@ -1,6 +1,8 @@
 import type { WatchlistStock } from 'src/api/watchlist';
 
 import { useState } from 'react';
+import { CSS } from '@dnd-kit/utilities';
+import { useSortable } from '@dnd-kit/sortable';
 
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
@@ -36,6 +38,16 @@ export function WatchlistStockTableRow({
 }: WatchlistStockTableRowProps) {
   const [open, setOpen] = useState(false);
 
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: row.id,
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
   const hasDetail = !!(row.notes || (row.tags && row.tags.length > 0));
 
   const { quote } = row;
@@ -45,7 +57,12 @@ export function WatchlistStockTableRow({
 
   return (
     <>
-      <TableRow hover selected={selected}>
+      <TableRow ref={setNodeRef} style={style} hover selected={selected}>
+        {/* 拖拽手柄 */}
+        <TableCell sx={{ width: 36, px: 1, cursor: isDragging ? 'grabbing' : 'grab' }} {...attributes} {...listeners}>
+          <Iconify icon="solar:menu-dots-bold" sx={{ color: 'text.disabled', display: 'block' }} />
+        </TableCell>
+
         <TableCell padding="checkbox">
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Checkbox
@@ -158,7 +175,7 @@ export function WatchlistStockTableRow({
 
       {hasDetail && (
         <TableRow>
-          <TableCell colSpan={9} sx={{ py: 0, borderBottom: open ? undefined : 'none' }}>
+          <TableCell colSpan={10} sx={{ py: 0, borderBottom: open ? undefined : 'none' }}>
             <Collapse in={open} timeout="auto" unmountOnExit>
               <Box sx={{ py: 1.5, px: 1 }}>
                 {row.notes && (
@@ -181,3 +198,4 @@ export function WatchlistStockTableRow({
     </>
   );
 }
+

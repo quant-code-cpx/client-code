@@ -20,6 +20,7 @@ import { DashboardContent } from 'src/layouts/dashboard';
 import { Iconify } from 'src/components/iconify';
 
 import { CATEGORY_LABELS } from '../factor-library-card';
+import { FactorBacktestPanel } from '../factor-backtest-panel';
 import { FactorDetailIcChart } from '../factor-detail-ic-chart';
 import { FactorDetailDecayChart } from '../factor-detail-decay-chart';
 import { FactorDetailParamsPanel } from '../factor-detail-params-panel';
@@ -41,6 +42,7 @@ const TABS = [
   { label: '因子分布', value: 2 },
   { label: '因子衰减', value: 3 },
   { label: '截面排名', value: 4 },
+  { label: '因子回测', value: 5 },
 ];
 
 // ----------------------------------------------------------------------
@@ -78,9 +80,19 @@ export function FactorDetailView() {
   const handleAnalyze = useCallback(() => {
     setAnalysisLoading(true);
     setCommittedParams({ ...params });
-    // Reset loading state after a tick to allow children to re-fetch
-    setTimeout(() => setAnalysisLoading(false), 100);
   }, [params]);
+
+  // Reset analysisLoading after a tick to signal children to re-fetch.
+  // Using useEffect + cleanup avoids a stale timer if the component unmounts.
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    if (analysisLoading) {
+      timer = setTimeout(() => setAnalysisLoading(false), 100);
+    }
+    return () => {
+      if (timer !== undefined) clearTimeout(timer);
+    };
+  }, [analysisLoading]);
 
   if (!factorName) {
     return (
@@ -164,6 +176,7 @@ export function FactorDetailView() {
         <FactorDetailDecayChart factorName={factorName} params={committedParams} />
       )}
       {activeTab === 4 && <FactorDetailCrossSectionTable factorName={factorName} />}
+      {activeTab === 5 && <FactorBacktestPanel factorName={factorName} params={committedParams} />}
 
       <Box sx={{ mt: 4, py: 2, textAlign: 'center' }}>
         <Typography variant="caption" sx={{ color: 'text.disabled' }}>

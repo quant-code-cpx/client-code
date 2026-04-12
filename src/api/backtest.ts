@@ -502,3 +502,166 @@ export type CreateRollingBacktestQuery = {
 export function createRollingBacktest(query: CreateRollingBacktestQuery) {
   return apiClient.post<CreateWalkForwardRunResponse>('/api/backtests/rolling/runs', query);
 }
+
+// ─── 归因分析类型 ──────────────────────────────────
+
+export type BrinsonAttributionRequest = {
+  runId: string;
+  benchmarkTsCode?: string;
+  industryLevel?: 'L1' | 'L2';
+  granularity?: 'DAILY' | 'WEEKLY' | 'MONTHLY';
+};
+
+export type BrinsonIndustryDetail = {
+  industryCode: string;
+  industryName: string;
+  portfolioWeight: number;
+  benchmarkWeight: number;
+  portfolioReturn: number;
+  benchmarkReturn: number;
+  allocationEffect: number;
+  selectionEffect: number;
+  interactionEffect: number;
+  totalEffect: number;
+};
+
+export type BrinsonPeriodItem = {
+  periodLabel: string;
+  totalAllocationEffect: number;
+  totalSelectionEffect: number;
+  totalInteractionEffect: number;
+  totalActiveReturn: number;
+  industries: BrinsonIndustryDetail[];
+};
+
+export type BrinsonAttributionResponse = {
+  runId: string;
+  granularity: string;
+  industryLevel: string;
+  periods: BrinsonPeriodItem[];
+  cumulative: {
+    totalAllocationEffect: number;
+    totalSelectionEffect: number;
+    totalInteractionEffect: number;
+    totalActiveReturn: number;
+  };
+};
+
+// ─── 成本敏感性类型 ────────────────────────────────
+
+export type CostSensitivityRequest = {
+  runId: string;
+  commissionRates?: number[];
+  slippageBpsList?: number[];
+};
+
+export type CostSensitivityResultRow = {
+  commissionRate: number;
+  stampDutyRate: number;
+  slippageBps: number;
+  totalReturn: number | null;
+  annualizedReturn: number | null;
+  sharpeRatio: number | null;
+  maxDrawdown: number | null;
+  totalCost: number | null;
+};
+
+export type CostSensitivityResponse = {
+  runId: string;
+  baselineMetrics: Record<string, number | null>;
+  results: CostSensitivityResultRow[];
+};
+
+// ─── 参数敏感性类型 ────────────────────────────────
+
+export type ParamSensitivityRequest = {
+  runId: string;
+  paramX: { paramKey: string; label?: string; values: (string | number | boolean)[] };
+  paramY?: { paramKey: string; label?: string; values: (string | number | boolean)[] };
+  metric?: string;
+};
+
+export type ParamSensitivityCreateResponse = {
+  sweepId: string;
+  totalCombinations: number;
+  status: string;
+  metric: string;
+};
+
+export type ParamSensitivityResult = {
+  sweepId: string;
+  baseRunId: string;
+  status: string;
+  totalCombinations: number;
+  completedCount: number;
+  metric: string;
+  paramX: { paramKey: string; label?: string; values: (string | number | boolean)[] };
+  paramY?: { paramKey: string; label?: string; values: (string | number | boolean)[] };
+  heatmap: number[][];
+  best?: Record<string, unknown>;
+};
+
+// ─── 归因 / 成本 / 参数敏感性 API ─────────────────
+
+export function runAttribution(dto: BrinsonAttributionRequest) {
+  return apiClient.post<BrinsonAttributionResponse>('/api/backtests/runs/attribution', dto);
+}
+
+export function analyzeCostSensitivity(dto: CostSensitivityRequest) {
+  return apiClient.post<CostSensitivityResponse>('/api/backtests/runs/cost-sensitivity', dto);
+}
+
+export function createParamSensitivity(dto: ParamSensitivityRequest) {
+  return apiClient.post<ParamSensitivityCreateResponse>(
+    '/api/backtests/runs/param-sensitivity',
+    dto
+  );
+}
+
+export function getParamSensitivityResult(sweepId: string) {
+  return apiClient.post<ParamSensitivityResult>('/api/backtests/runs/param-sensitivity/result', {
+    sweepId,
+  });
+}
+
+// ─── 蒙特卡洛模拟类型 ──────────────────────────────
+
+export type MonteCarloRequest = {
+  runId: string;
+  numSimulations?: number;
+  seed?: number;
+};
+
+export type MonteCarloPathPoint = {
+  day: number;
+  median: number;
+  mean: number;
+  p5: number;
+  p25: number;
+  p75: number;
+  p95: number;
+};
+
+export type MonteCarloStats = {
+  expectedReturn: number;
+  expectedVolatility: number;
+  var95: number;
+  cvar95: number;
+  worstDrawdown: number;
+  bestReturn: number;
+  worstReturn: number;
+  probPositive: number;
+};
+
+export type MonteCarloResponse = {
+  runId: string;
+  simulations: number;
+  stats: MonteCarloStats;
+  paths: MonteCarloPathPoint[];
+};
+
+// ─── 蒙特卡洛模拟 API ─────────────────────────────
+
+export function runMonteCarlo(dto: MonteCarloRequest) {
+  return apiClient.post<MonteCarloResponse>('/api/backtests/runs/monte-carlo', dto);
+}

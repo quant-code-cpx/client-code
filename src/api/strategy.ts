@@ -118,3 +118,44 @@ export function runStrategy(data: RunStrategyRequest) {
 export function getStrategySchemas() {
   return apiClient.post<StrategySchemas>('/api/strategies/schemas', {});
 }
+
+// ─── 版本管理类型 ──────────────────────────────────
+
+export type StrategyVersionItem = {
+  version: number;
+  strategyConfig: Record<string, unknown>;
+  backtestDefaults: Record<string, unknown> | null;
+  changelog: string | null;
+  createdAt: string;
+  isCurrent: boolean;
+};
+
+export type ConfigDiffItem = {
+  path: string;
+  oldValue: unknown;
+  newValue: unknown;
+  changeType: 'ADDED' | 'REMOVED' | 'CHANGED';
+};
+
+export type CompareVersionsRequest = {
+  strategyId: string;
+  versionA: number;
+  versionB: number;
+};
+
+export type CompareVersionsResponse = {
+  strategyId: string;
+  versionA: StrategyVersionItem;
+  versionB: StrategyVersionItem;
+  configDiff: ConfigDiffItem[];
+};
+
+// ─── 版本管理 API ──────────────────────────────────
+
+export function listStrategyVersions(strategyId: string) {
+  return apiClient.post<StrategyVersionItem[]>('/api/strategies/versions', { strategyId });
+}
+
+export function compareStrategyVersions(dto: CompareVersionsRequest) {
+  return apiClient.post<CompareVersionsResponse>('/api/strategies/compare-versions', dto);
+}

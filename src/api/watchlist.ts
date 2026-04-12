@@ -50,11 +50,7 @@ export type WatchlistOverviewItem = Watchlist & {
 export function getWatchlists() {
   return apiClient.post<Watchlist[]>('/api/watchlist/list');
 }
-export function createWatchlist(data: {
-  name: string;
-  description?: string;
-  isDefault?: boolean;
-}) {
+export function createWatchlist(data: { name: string; description?: string; isDefault?: boolean }) {
   return apiClient.post<Watchlist>('/api/watchlist/create', data);
 }
 export function updateWatchlist(data: {
@@ -74,7 +70,7 @@ export function reorderWatchlists(items: Array<{ id: number; sortOrder: number }
 }
 export function getWatchlistStocks(watchlistId: number) {
   return apiClient.post<{ stocks: WatchlistStock[] }>('/api/watchlist/stocks/list', {
-    watchlistId,
+    id: watchlistId,
   });
 }
 export function addStock(data: {
@@ -84,16 +80,17 @@ export function addStock(data: {
   tags?: string[];
   targetPrice?: number;
 }) {
-  return apiClient.post<WatchlistStock>('/api/watchlist/stocks/add', data);
+  const { watchlistId, ...rest } = data;
+  return apiClient.post<WatchlistStock>('/api/watchlist/stocks', { id: watchlistId, ...rest });
 }
 export function batchAddStocks(data: {
   watchlistId: number;
   stocks: Array<{ tsCode: string; notes?: string; tags?: string[]; targetPrice?: number }>;
 }) {
-  return apiClient.post<{ added: number; skipped: number }>(
-    '/api/watchlist/stocks/batch-add',
-    data
-  );
+  return apiClient.post<{ added: number; skipped: number }>('/api/watchlist/stocks/batch', {
+    id: data.watchlistId,
+    stocks: data.stocks,
+  });
 }
 export function updateStock(data: {
   watchlistId: number;
@@ -102,22 +99,35 @@ export function updateStock(data: {
   tags?: string[];
   targetPrice?: number;
 }) {
-  return apiClient.post<WatchlistStock>('/api/watchlist/stocks/update', data);
+  const { watchlistId, ...rest } = data;
+  return apiClient.post<WatchlistStock>('/api/watchlist/stocks/update', {
+    id: watchlistId,
+    ...rest,
+  });
 }
 export function removeStock(watchlistId: number, stockId: number) {
-  return apiClient.post<{ message: string }>('/api/watchlist/stocks/remove', {
-    watchlistId,
+  return apiClient.post<{ message: string }>('/api/watchlist/stocks/delete', {
+    id: watchlistId,
     stockId,
   });
 }
 export function batchRemoveStocks(watchlistId: number, stockIds: number[]) {
-  return apiClient.post<{ message: string }>('/api/watchlist/stocks/batch-remove', {
-    watchlistId,
+  return apiClient.post<{ message: string }>('/api/watchlist/stocks/batch/delete', {
+    id: watchlistId,
     stockIds,
   });
 }
+export function reorderStocks(
+  watchlistId: number,
+  items: Array<{ id: number; sortOrder: number }>
+) {
+  return apiClient.post<{ message: string }>('/api/watchlist/stocks/reorder', {
+    id: watchlistId,
+    items,
+  });
+}
 export function getWatchlistSummary(watchlistId: number) {
-  return apiClient.post<WatchlistSummary>('/api/watchlist/summary', { watchlistId });
+  return apiClient.post<WatchlistSummary>('/api/watchlist/summary', { id: watchlistId });
 }
 export function getWatchlistOverview() {
   return apiClient.post<WatchlistOverviewItem[]>('/api/watchlist/overview');

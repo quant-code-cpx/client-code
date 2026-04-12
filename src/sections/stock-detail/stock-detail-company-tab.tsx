@@ -1,14 +1,20 @@
-import type { StockDetailOverviewData } from 'src/api/stock';
+import type { StockConceptItem, StockDetailOverviewData } from 'src/api/stock';
+
+import { useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
+import Chip from '@mui/material/Chip';
 import Divider from '@mui/material/Divider';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 
+import { stockDetailApiExtra } from 'src/api/stock';
+
 // ----------------------------------------------------------------------
 
 type Props = {
+  tsCode: string;
   overview: StockDetailOverviewData | null;
   loading: boolean;
 };
@@ -39,7 +45,22 @@ function InfoRow({ label, value }: InfoRowProps) {
 
 // ----------------------------------------------------------------------
 
-export function StockDetailCompanyTab({ overview, loading }: Props) {
+export function StockDetailCompanyTab({ tsCode, overview, loading }: Props) {
+  const [concepts, setConcepts] = useState<StockConceptItem[]>([]);
+
+  const fetchConcepts = useCallback(async () => {
+    if (!tsCode) return;
+    try {
+      const res = await stockDetailApiExtra.concepts(tsCode);
+      setConcepts(res.concepts ?? []);
+    } catch {
+      // ignore
+    }
+  }, [tsCode]);
+
+  useEffect(() => {
+    fetchConcepts();
+  }, [fetchConcepts]);
   const company = overview?.company;
   const basic = overview?.basic;
 
@@ -80,6 +101,35 @@ export function StockDetailCompanyTab({ overview, loading }: Props) {
           )}
         </CardContent>
       </Card>
+
+      {/* 所属概念板块 */}
+      {concepts.length > 0 && (
+        <Card sx={{ mb: 3 }}>
+          <CardContent>
+            <Typography variant="h6" sx={{ mb: 1.5 }}>
+              所属概念板块
+            </Typography>
+            <Divider sx={{ mb: 2 }} />
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+              {concepts.map((c) => (
+                <Chip
+                  key={c.conceptCode}
+                  label={c.conceptName}
+                  size="small"
+                  color={
+                    c.pctChange != null && c.pctChange > 0
+                      ? 'error'
+                      : c.pctChange != null && c.pctChange < 0
+                        ? 'success'
+                        : 'default'
+                  }
+                  variant="outlined"
+                />
+              ))}
+            </Box>
+          </CardContent>
+        </Card>
+      )}
 
       {/* 基本信息 */}
       <Card>

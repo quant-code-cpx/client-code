@@ -16,7 +16,9 @@ import { cloneStrategy, deleteStrategy, getStrategyDetail } from 'src/api/strate
 
 import { StrategyInfoCard } from '../strategy-info-card';
 import { StrategyConfigCard } from '../strategy-config-card';
+import { StrategySignalCard } from '../strategy-signal-card';
 import { StrategyCloneDialog } from '../strategy-clone-dialog';
+import { StrategyVersionCard } from '../strategy-version-card';
 import { StrategyDeleteDialog } from '../strategy-delete-dialog';
 import { StrategyDetailHeader } from '../strategy-detail-header';
 import { StrategyQuickRunPanel } from '../strategy-quick-run-panel';
@@ -121,8 +123,10 @@ export function StrategyDetailView() {
               {/* Right column */}
               <Grid size={{ xs: 12, md: 5 }}>
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                  <StrategySignalCard strategyId={strategy.id} strategyName={strategy.name} />
                   <StrategyQuickRunPanel strategy={strategy} />
                   <StrategyRunHistoryCard strategy={strategy} />
+                  <StrategyVersionCard strategyId={strategy.id} />
                 </Box>
               </Grid>
             </Grid>

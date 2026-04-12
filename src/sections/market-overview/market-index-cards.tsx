@@ -10,6 +10,8 @@ import Skeleton from '@mui/material/Skeleton';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 
+import { RouterLink } from 'src/routes/components';
+
 import { fPctChg, fQianYuan } from 'src/utils/format-number';
 
 import { fetchIndexQuote } from 'src/api/market';
@@ -40,7 +42,11 @@ function IndexCard({ item }: { item: IndexQuoteItem }) {
   else if (pct < 0) pctColor = 'success.main';
 
   return (
-    <Card>
+    <Card
+      component={RouterLink}
+      href={`/market/index?code=${item.tsCode}`}
+      sx={{ textDecoration: 'none', cursor: 'pointer', '&:hover': { boxShadow: 3 } }}
+    >
       <CardContent>
         <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}>
           {name}
@@ -55,9 +61,7 @@ function IndexCard({ item }: { item: IndexQuoteItem }) {
             {item.pctChg != null ? fPctChg(item.pctChg) : '-'}
           </Typography>
           <Typography variant="caption" sx={{ color: pctColor }}>
-            {item.change != null
-              ? `${item.change > 0 ? '+' : ''}${item.change.toFixed(2)}`
-              : '-'}
+            {item.change != null ? `${item.change > 0 ? '+' : ''}${item.change.toFixed(2)}` : '-'}
           </Typography>
         </Box>
 
@@ -99,8 +103,7 @@ export function MarketIndexCards({ tradeDate }: Props) {
         if (!cancelled) setData(res ?? []);
       })
       .catch((err: unknown) => {
-        if (!cancelled)
-          setError(err instanceof Error ? err.message : '加载指数行情失败');
+        if (!cancelled) setError(err instanceof Error ? err.message : '加载指数行情失败');
       })
       .finally(() => {
         if (!cancelled) setLoading(false);

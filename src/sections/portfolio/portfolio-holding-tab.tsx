@@ -17,6 +17,7 @@ import { Iconify } from 'src/components/iconify';
 import { HoldingAddDialog } from './holding-add-dialog';
 import { HoldingEditDialog } from './holding-edit-dialog';
 import { PortfolioHoldingTable } from './portfolio-holding-table';
+import { PortfolioRebalanceDialog } from './portfolio-rebalance-dialog';
 
 // ----------------------------------------------------------------------
 
@@ -29,6 +30,8 @@ interface PortfolioHoldingTabProps {
 export function PortfolioHoldingTab({ portfolioId, holdings, onRefresh }: PortfolioHoldingTabProps) {
   const [addOpen, setAddOpen] = useState(false);
   const [addSubmitting, setAddSubmitting] = useState(false);
+
+  const [rebalanceOpen, setRebalanceOpen] = useState(false);
 
   const [editHolding, setEditHolding] = useState<HoldingDetailItem | null>(null);
   const [editSubmitting, setEditSubmitting] = useState(false);
@@ -72,7 +75,14 @@ export function PortfolioHoldingTab({ portfolioId, holdings, onRefresh }: Portfo
 
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mb: 2 }}>
+        <Button
+          variant="outlined"
+          startIcon={<Iconify icon="solar:refresh-bold" />}
+          onClick={() => setRebalanceOpen(true)}
+        >
+          生成调仓计划
+        </Button>
         <Button
           variant="contained"
           startIcon={<Iconify icon="solar:add-circle-bold" />}
@@ -131,6 +141,12 @@ export function PortfolioHoldingTab({ portfolioId, holdings, onRefresh }: Portfo
           </Button>
         </DialogActions>
       </Dialog>
+
+      <PortfolioRebalanceDialog
+        open={rebalanceOpen}
+        onClose={() => setRebalanceOpen(false)}
+        portfolioId={portfolioId}
+      />
     </Box>
   );
 }

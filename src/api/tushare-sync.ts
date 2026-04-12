@@ -201,6 +201,30 @@ export type RetryQueueItem = {
 // API 封装
 // ----------------------------------------------------------------------
 
+/** 单个类别的同步状态汇总 */
+export type SyncCategoryStatus = {
+  category: TushareSyncCategory;
+  totalTasks: number;
+  successCount: number;
+  failedCount: number;
+  skippedCount: number;
+  lastSyncAt: string | null;
+  consecutiveFailures: number;
+};
+
+/** 同步状态总览 */
+export type SyncStatusOverview = {
+  generatedAt: string;
+  totalTasks: number;
+  healthStatus: 'healthy' | 'degraded' | 'unhealthy';
+  categories: SyncCategoryStatus[];
+  lastFullSyncAt: string | null;
+  lastIncrementalSyncAt: string | null;
+  failedTaskNames: string[];
+};
+
+// ----------------------------------------------------------------------
+
 export const tushareSyncApi = {
   /** 获取所有可用的同步任务计划（仅超级管理员） */
   getPlans: (): Promise<TushareSyncPlan[]> =>
@@ -289,4 +313,8 @@ export const tushareSyncApi = {
     apiClient.post<{ message: string; count: number }>('/api/tushare/admin/retry-queue/reset', {
       task,
     }),
+
+  /** 同步状态总览（运维监控） */
+  getSyncStatusOverview: (): Promise<SyncStatusOverview> =>
+    apiClient.post<SyncStatusOverview>('/api/tushare/admin/sync-status-overview', {}),
 };

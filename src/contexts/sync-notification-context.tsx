@@ -1,4 +1,5 @@
 import type { Socket } from 'socket.io-client';
+import type { ViolationItem } from 'src/api/portfolio';
 import type { RepairSummary, QualityCheckSummary } from 'src/api/tushare-sync';
 
 import { useRef, useState, useEffect, useContext, useCallback, createContext } from 'react';
@@ -31,16 +32,24 @@ export type SyncFailedPayload = {
   reason: string;
 };
 
+// 风控违规推送
+export type RiskViolationPayload = {
+  portfolioId: string;
+  portfolioName: string;
+  violations: ViolationItem[];
+  checkedAt: string;
+};
+
 // 通知列表条目类型，与 NotificationsPopover 保持一致
 export type SyncNotificationItem = {
   id: string;
-  type: 'tushare-sync-completed' | 'tushare-sync-failed';
+  type: 'tushare-sync-completed' | 'tushare-sync-failed' | 'risk-violation';
   title: string;
   description: string;
   avatarUrl: string | null;
   isUnRead: boolean;
   postedAt: number;
-  payload: SyncCompletedPayload | SyncFailedPayload;
+  payload: SyncCompletedPayload | SyncFailedPayload | RiskViolationPayload;
 };
 
 // ----------------------------------------------------------------------
@@ -174,12 +183,37 @@ export function SyncNotificationProvider({ children }: ProviderProps) {
     socket.on('data_quality_completed', handleQualityCompleted);
     socket.on('auto_repair_queued', handleAutoRepairQueued);
 
+    // ── 风控违规推送 ──
+    const handleRiskViolation = (payload: RiskViolationPayload) => {
+      const count = payload.violations.length;
+      const desc = payload.violations
+        .slice(0, 3)
+        .map((v) => v.message)
+        .join('；');
+
+      const item: SyncNotificationItem = {
+        id: generateId(),
+        type: 'risk-violation',
+        title: `组合「${payload.portfolioName}」触发 ${count} 条风控违规`,
+        description: count > 3 ? `${desc}…等 ${count} 条` : desc,
+        avatarUrl: null,
+        isUnRead: true,
+        postedAt: Date.now(),
+        payload,
+      };
+
+      setNotifications((prev) => [item, ...prev.slice(0, MAX_NOTIFICATIONS - 1)]);
+    };
+
+    socket.on('risk_violation', handleRiskViolation);
+
     return () => {
       socket.off('tushare_sync_started', handleStarted);
       socket.off('tushare_sync_completed', handleCompleted);
       socket.off('tushare_sync_failed', handleFailed);
       socket.off('data_quality_completed', handleQualityCompleted);
       socket.off('auto_repair_queued', handleAutoRepairQueued);
+      socket.off('risk_violation', handleRiskViolation);
       destroySocket();
     };
   }, []);

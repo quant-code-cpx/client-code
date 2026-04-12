@@ -43,7 +43,10 @@ export function WatchlistView() {
     setLoading(true);
     setError('');
     try {
-      const data = await getWatchlistOverview();
+      const rawData = await getWatchlistOverview();
+      const data: WatchlistOverviewItem[] = Array.isArray(rawData)
+        ? rawData
+        : ((rawData as any)?.items ?? []);
       setWatchlists(data);
       if (data.length > 0 && selectedId === null) {
         const defaultWl = data.find((w) => w.isDefault) ?? data[0];
@@ -117,6 +120,10 @@ export function WatchlistView() {
 
   const handleBatchRemoveStocks = (stockIds: number[]) => {
     setStocks((prev) => prev.filter((s) => !stockIds.includes(s.id)));
+  };
+
+  const handleReorderStocks = (reordered: WatchlistStock[]) => {
+    setStocks(reordered);
   };
 
   const handleStockRefresh = () => {
@@ -196,6 +203,7 @@ export function WatchlistView() {
           onUpdateStock={handleUpdateStock}
           onRemoveStock={handleRemoveStock}
           onBatchRemoveStocks={handleBatchRemoveStocks}
+          onReorderStocks={handleReorderStocks}
         />
       )}
 

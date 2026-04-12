@@ -57,8 +57,7 @@ export function MarketVolumeChart({ tradeDate }: Props) {
         if (!cancelled) setData(res?.data ?? []);
       })
       .catch((err: unknown) => {
-        if (!cancelled)
-          setError(err instanceof Error ? err.message : '加载市场成交额失败');
+        if (!cancelled) setError(err instanceof Error ? err.message : '加载市场成交额失败');
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -79,7 +78,7 @@ export function MarketVolumeChart({ tradeDate }: Props) {
     xaxis: { categories, labels: { rotate: -30 } },
     yaxis: {
       labels: {
-        formatter: (v: number) => `${v.toFixed(0)}亿`,
+        formatter: (v: number | null) => (v != null ? `${v.toFixed(0)}亿` : ''),
       },
     },
     tooltip: { shared: true, intersect: false },
@@ -99,7 +98,11 @@ export function MarketVolumeChart({ tradeDate }: Props) {
           市场成交额
         </Typography>
 
-        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
 
         {loading ? (
           <Skeleton variant="rectangular" height={280} />

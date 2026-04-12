@@ -180,6 +180,13 @@ export const apiClient = {
       signal,
     }),
 
+  patch: <T>(url: string, body?: unknown, signal?: AbortSignal): Promise<T> =>
+    request<T>(url, {
+      method: 'PATCH',
+      body: body !== undefined ? JSON.stringify(body) : undefined,
+      signal,
+    }),
+
   delete: <T>(url: string, signal?: AbortSignal): Promise<T> =>
     request<T>(url, { method: 'DELETE', signal }),
 };

@@ -14,7 +14,6 @@ import Drawer, { drawerClasses } from '@mui/material/Drawer';
 import { usePathname } from 'src/routes/hooks';
 import { RouterLink } from 'src/routes/components';
 
-import { Logo } from 'src/components/logo';
 import { Iconify } from 'src/components/iconify';
 import { Scrollbar } from 'src/components/scrollbar';
 
@@ -110,7 +109,10 @@ type NavItemWithChildrenProps = {
 };
 
 function NavItemWithChildren({ item, pathname }: NavItemWithChildrenProps) {
-  const isChildActive = item.children?.some((child) => pathname.startsWith(child.path)) ?? false;
+  const isChildActive =
+    item.children?.some((child) =>
+      child.exact ? pathname === child.path : pathname.startsWith(child.path)
+    ) ?? false;
   const [open, setOpen] = useState(isChildActive);
 
   useEffect(() => {
@@ -165,7 +167,7 @@ function NavItemWithChildren({ item, pathname }: NavItemWithChildrenProps) {
           {item.children?.map((child) => {
             const isActived =
               pathname === child.path ||
-              (child.path !== item.path && pathname.startsWith(`${child.path}/`));
+              (!child.exact && child.path !== item.path && pathname.startsWith(`${child.path}/`));
 
             return (
               <ListItem disableGutters disablePadding key={child.title}>
@@ -227,8 +229,6 @@ export function NavContent({ data, slots, sx }: NavContentProps) {
 
   return (
     <>
-      <Logo />
-
       {slots?.topArea}
 
       <Scrollbar fillContent>

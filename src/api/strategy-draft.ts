@@ -31,6 +31,6 @@ export function deleteDraft(id: number) {
 export function submitDraft(draftId: number, name?: string) {
   return apiClient.post<{ id: string; status: 'QUEUED'; jobId: string }>(
     '/api/strategy-draft/submit',
-    { draftId, name }
+    { id: draftId, name }
   );
 }

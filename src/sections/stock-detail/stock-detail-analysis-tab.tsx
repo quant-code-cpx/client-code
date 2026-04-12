@@ -8,7 +8,9 @@ import Stack from '@mui/material/Stack';
 import { AnalysisChipTab } from './analysis/analysis-chip-tab';
 import { AnalysisMarginTab } from './analysis/analysis-margin-tab';
 import { AnalysisTimingTab } from './analysis/analysis-timing-tab';
+import { AnalysisPatternTab } from './analysis/analysis-pattern-tab';
 import { AnalysisTechnicalTab } from './analysis/analysis-technical-tab';
+import { AnalysisMainMoneyFlowTab } from './analysis/analysis-main-money-flow-tab';
 import { AnalysisRelativeStrengthTab } from './analysis/analysis-relative-strength-tab';
 
 // ----------------------------------------------------------------------
@@ -19,8 +21,10 @@ const SUB_TABS = [
   { value: 'technical', label: '技术指标' },
   { value: 'timing', label: '择时信号' },
   { value: 'chip', label: '筹码分布' },
+  { value: 'mainMoneyFlow', label: '主力资金' },
   { value: 'margin', label: '融资融券' },
   { value: 'relativeStrength', label: '相对强弱' },
+  { value: 'pattern', label: '形态识别' },
 ];
 
 export function StockDetailAnalysisTab({ tsCode }: Props) {
@@ -45,8 +49,10 @@ export function StockDetailAnalysisTab({ tsCode }: Props) {
       {subTab === 'technical' && <AnalysisTechnicalTab tsCode={tsCode} />}
       {subTab === 'timing' && <AnalysisTimingTab tsCode={tsCode} />}
       {subTab === 'chip' && <AnalysisChipTab tsCode={tsCode} />}
+      {subTab === 'mainMoneyFlow' && <AnalysisMainMoneyFlowTab tsCode={tsCode} />}
       {subTab === 'margin' && <AnalysisMarginTab tsCode={tsCode} />}
       {subTab === 'relativeStrength' && <AnalysisRelativeStrengthTab tsCode={tsCode} />}
+      {subTab === 'pattern' && <AnalysisPatternTab tsCode={tsCode} />}
     </Stack>
   );
 }

@@ -7,11 +7,16 @@ import Tab from '@mui/material/Tab';
 import Box from '@mui/material/Box';
 import Tabs from '@mui/material/Tabs';
 import Alert from '@mui/material/Alert';
+import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
 import Typography from '@mui/material/Typography';
 
 import { stockDetailApi } from 'src/api/stock';
 import { DashboardContent } from 'src/layouts/dashboard';
+
+import { Iconify } from 'src/components/iconify';
+
+import { ReportGenerateDialog } from 'src/sections/report/report-generate-dialog';
 
 import { StockDetailHeader } from '../stock-detail-header';
 import { StockDetailMarketTab } from '../stock-detail-market-tab';
@@ -20,6 +25,7 @@ import { StockDetailDividendTab } from '../stock-detail-dividend-tab';
 import { StockDetailAnalysisTab } from '../stock-detail-analysis-tab';
 import { StockDetailFinancialsTab } from '../stock-detail-financials-tab';
 import { StockDetailShareholdersTab } from '../stock-detail-shareholders-tab';
+import { StockDetailShareCapitalTab } from '../stock-detail-share-capital-tab';
 
 // ----------------------------------------------------------------------
 
@@ -29,6 +35,7 @@ const TABS = [
   { value: 'analysis', label: '分析' },
   { value: 'financials', label: '财务' },
   { value: 'shareholders', label: '股本股东' },
+  { value: 'share-capital', label: '股本结构' },
   { value: 'dividend', label: '分红融资' },
 ];
 
@@ -42,6 +49,7 @@ export function StockDetailView() {
   const [overview, setOverview] = useState<StockDetailOverviewData | null>(null);
   const [overviewLoading, setOverviewLoading] = useState(false);
   const [overviewError, setOverviewError] = useState('');
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
 
   const fetchOverview = useCallback(async () => {
     if (!tsCode) return;
@@ -80,6 +88,17 @@ export function StockDetailView() {
       {/* 头部基础数据 */}
       <StockDetailHeader tsCode={tsCode} overview={overview} loading={overviewLoading} />
 
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: -1, mb: 1 }}>
+        <Button
+          size="small"
+          variant="outlined"
+          onClick={() => setReportDialogOpen(true)}
+          startIcon={<Iconify icon="solar:file-text-bold" width={14} />}
+        >
+          生成研报
+        </Button>
+      </Box>
+
       <Divider sx={{ mb: 0 }} />
 
       {/* Tabs */}
@@ -101,9 +120,10 @@ export function StockDetailView() {
         {activeTab === 'analysis' && <StockDetailAnalysisTab tsCode={tsCode} />}
         {activeTab === 'financials' && <StockDetailFinancialsTab tsCode={tsCode} />}
         {activeTab === 'company' && (
-          <StockDetailCompanyTab overview={overview} loading={overviewLoading} />
+          <StockDetailCompanyTab tsCode={tsCode} overview={overview} loading={overviewLoading} />
         )}
         {activeTab === 'shareholders' && <StockDetailShareholdersTab tsCode={tsCode} />}
+        {activeTab === 'share-capital' && <StockDetailShareCapitalTab tsCode={tsCode} />}
         {activeTab === 'dividend' && <StockDetailDividendTab tsCode={tsCode} />}
       </Box>
 
@@ -113,6 +133,14 @@ export function StockDetailView() {
           数据来源：Tushare · 仅供参考，不构成投资建议
         </Typography>
       </Box>
+
+      <ReportGenerateDialog
+        open={reportDialogOpen}
+        onClose={() => setReportDialogOpen(false)}
+        onGenerated={() => setReportDialogOpen(false)}
+        defaultType="STOCK"
+        defaultParams={{ tsCode }}
+      />
     </DashboardContent>
   );
 }

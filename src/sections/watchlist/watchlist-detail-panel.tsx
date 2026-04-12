@@ -7,7 +7,7 @@ import Card from '@mui/material/Card';
 import Divider from '@mui/material/Divider';
 import Typography from '@mui/material/Typography';
 
-import { removeStock, batchRemoveStocks } from 'src/api/watchlist';
+import { removeStock, reorderStocks, batchRemoveStocks } from 'src/api/watchlist';
 
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
@@ -29,6 +29,7 @@ type WatchlistDetailPanelProps = {
   onUpdateStock: (updated: WatchlistStock) => void;
   onRemoveStock: (stockId: number) => void;
   onBatchRemoveStocks: (stockIds: number[]) => void;
+  onReorderStocks: (reordered: WatchlistStock[]) => void;
 };
 
 export function WatchlistDetailPanel({
@@ -40,6 +41,7 @@ export function WatchlistDetailPanel({
   onUpdateStock,
   onRemoveStock,
   onBatchRemoveStocks,
+  onReorderStocks,
 }: WatchlistDetailPanelProps) {
   const [selectedStockIds, setSelectedStockIds] = useState<number[]>([]);
   const [search, setSearch] = useState('');
@@ -72,6 +74,18 @@ export function WatchlistDetailPanel({
     await batchRemoveStocks(watchlist.id, selectedStockIds);
     onBatchRemoveStocks(selectedStockIds);
     setSelectedStockIds([]);
+  };
+
+  const handleReorder = async (reordered: WatchlistStock[]) => {
+    const previous = [...stocks];
+    onReorderStocks(reordered); // 乐观更新
+    const items = reordered.map((s, index) => ({ id: s.id, sortOrder: index }));
+    try {
+      await reorderStocks(watchlist.id, items);
+    } catch (err) {
+      console.error('排序保存失败', err);
+      onReorderStocks(previous); // 回滚
+    }
   };
 
   return (
@@ -114,6 +128,7 @@ export function WatchlistDetailPanel({
         onSelect={handleSelect}
         onEdit={(row) => setEditStockDialogStock(row)}
         onRemove={handleRemoveStock}
+        onReorder={handleReorder}
       />
 
       <WatchlistEditStockDialog

@@ -16,15 +16,20 @@ import { useRouter } from 'src/routes/hooks';
 import { DashboardContent } from 'src/layouts/dashboard';
 import { deletePortfolio, updatePortfolio, getPortfolioDetail } from 'src/api/portfolio';
 
+import { ReportGenerateDialog } from 'src/sections/report/report-generate-dialog';
+
 import { DETAIL_TABS } from '../constants';
 import { PortfolioPnlTab } from '../portfolio-pnl-tab';
 import { PortfolioRiskTab } from '../portfolio-risk-tab';
+import { PortfolioDriftTab } from '../portfolio-drift-tab';
 import { PortfolioEditDialog } from '../portfolio-edit-dialog';
 import { PortfolioHoldingTab } from '../portfolio-holding-tab';
 import { PortfolioRiskRuleTab } from '../portfolio-risk-rule-tab';
+import { PortfolioTradeLogTab } from '../portfolio-trade-log-tab';
 import { PortfolioDeleteDialog } from '../portfolio-delete-dialog';
 import { PortfolioDetailHeader } from '../portfolio-detail-header';
 import { PortfolioSummaryCards } from '../portfolio-summary-cards';
+import { PortfolioPerformanceTab } from '../portfolio-performance-tab';
 
 // ----------------------------------------------------------------------
 
@@ -41,6 +46,7 @@ export function PortfolioDetailView() {
   const [editSubmitting, setEditSubmitting] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteSubmitting, setDeleteSubmitting] = useState(false);
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
 
   const fetchDetail = useCallback(async () => {
     if (!id) return;
@@ -116,6 +122,7 @@ export function PortfolioDetailView() {
         detail={detail}
         onEdit={() => setEditOpen(true)}
         onDelete={() => setDeleteOpen(true)}
+        onGenerateReport={() => setReportDialogOpen(true)}
       />
 
       <PortfolioSummaryCards summary={detail.summary} />
@@ -146,6 +153,17 @@ export function PortfolioDetailView() {
         <TabPanel value="rules" sx={{ p: 0 }}>
           {visitedTabs.current.has('rules') && <PortfolioRiskRuleTab portfolioId={id!} />}
         </TabPanel>
+        <TabPanel value="performance" sx={{ p: 0 }}>
+          {visitedTabs.current.has('performance') && (
+            <PortfolioPerformanceTab portfolioId={id!} />
+          )}
+        </TabPanel>
+        <TabPanel value="trade-log" sx={{ p: 0 }}>
+          {visitedTabs.current.has('trade-log') && <PortfolioTradeLogTab portfolioId={id!} />}
+        </TabPanel>
+        <TabPanel value="drift" sx={{ p: 0 }}>
+          {visitedTabs.current.has('drift') && <PortfolioDriftTab portfolioId={id!} />}
+        </TabPanel>
       </TabContext>
 
       <PortfolioEditDialog
@@ -162,6 +180,14 @@ export function PortfolioDetailView() {
         onClose={() => setDeleteOpen(false)}
         onConfirm={handleDelete}
         submitting={deleteSubmitting}
+      />
+
+      <ReportGenerateDialog
+        open={reportDialogOpen}
+        onClose={() => setReportDialogOpen(false)}
+        onGenerated={() => setReportDialogOpen(false)}
+        defaultType="PORTFOLIO"
+        defaultParams={{ portfolioId: id ?? '' }}
       />
     </DashboardContent>
   );
