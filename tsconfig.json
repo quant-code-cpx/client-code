@@ -12,6 +12,7 @@
 
     /* Build */
     "target": "ES2020",
+    "types": ["vitest/globals"],
     "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "moduleResolution": "bundler",
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
