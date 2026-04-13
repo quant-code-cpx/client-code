@@ -38,10 +38,10 @@ export function SignInView() {
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
-  const fetchCaptcha = useCallback(async () => {
+  const fetchCaptcha = useCallback(async (keepError = false) => {
     setCaptchaLoading(true);
     setCaptchaExpired(false);
-    setErrorMsg('');
+    if (!keepError) setErrorMsg('');
     if (expireTimerRef.current) clearTimeout(expireTimerRef.current);
     try {
       const data = await authApi.getCaptcha();
@@ -99,7 +99,7 @@ export function SignInView() {
     } catch (err) {
       const msg = err instanceof Error ? err.message : '登录失败，请重试';
       setErrorMsg(msg);
-      fetchCaptcha();
+      fetchCaptcha(true);
     } finally {
       setSubmitting(false);
     }
@@ -124,7 +124,7 @@ export function SignInView() {
       />
 
       <Box
-        onClick={fetchCaptcha}
+        onClick={() => fetchCaptcha()}
         title="点击刷新验证码"
         sx={{
           position: 'relative',

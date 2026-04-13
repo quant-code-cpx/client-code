@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import { act, render, screen, waitFor } from '@testing-library/react';
 
 import { useAuth } from 'src/auth';
+
 import { AuthProvider } from '../provider';
 
 // Mock the API layer so the provider can be tested in isolation.
@@ -25,12 +26,11 @@ vi.mock('src/api', () => {
   };
 });
 
-// Lazy imports AFTER vi.mock so Vitest can apply hoisting.
-// eslint-disable-next-line import/first
-import { authApi, tokenStorage, userManageApi } from 'src/api';
-
-// eslint-disable-next-line import/first
+ 
 import type { UserProfile } from 'src/api/user-manage';
+
+// Lazy imports AFTER vi.mock so Vitest can apply hoisting.
+import { authApi, tokenStorage, userManageApi } from 'src/api';
 
 // ----------------------------------------------------------------------
 
