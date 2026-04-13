@@ -1,4 +1,4 @@
-import { fWanYi, fNumber, fPctChg, fPercent, fWanYuan, fCurrency, fQianYuan, fRatePercent, fShortenNumber } from './format-number';
+import { fWanYi, fNumber, fPctChg, fPercent, fWanYuan, fCurrency, fQianYuan, fRatePercent, fShortenNumber } from '../format-number';
 
 // ----------------------------------------------------------------------
 

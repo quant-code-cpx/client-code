@@ -1,4 +1,4 @@
-import { tokenStorage } from './client';
+import { tokenStorage } from '../client';
 
 // ----------------------------------------------------------------------
 

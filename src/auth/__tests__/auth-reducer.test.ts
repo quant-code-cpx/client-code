@@ -1,8 +1,8 @@
 import type { UserProfile } from 'src/api/user-manage';
 
-import { authReducer } from './auth-reducer';
+import { authReducer } from '../auth-reducer';
 
-import type { AuthState } from './auth-reducer';
+import type { AuthState } from '../auth-reducer';
 
 // ----------------------------------------------------------------------
 

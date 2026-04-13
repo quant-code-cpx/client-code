@@ -1,4 +1,4 @@
-import { fDate, fToNow, fDateTime } from './format-time';
+import { fDate, fToNow, fDateTime } from '../format-time';
 
 // ----------------------------------------------------------------------
 
