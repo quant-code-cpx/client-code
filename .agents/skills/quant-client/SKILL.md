@@ -920,6 +920,62 @@ IDE 的 TypeScript 检查无法捕获所有错误，实际 `tsc && vite build` �
 
 ## 测试规范（必须遵守）
 
+### 测试用例设计原则（最高优先级）
+
+**测试用例必须基于业务逻辑进行设计，绝对不允许默认现有代码都是无 BUG 的代码，从而写一堆无意义的测试用例。** 此原则适用于所有测试（单元测试、组件测试、集成测试、E2E）。
+
+具体要求：
+
+1. **以业务行为为出发点**：每个测试用例必须对应一个真实的业务场景或规则，而非简单验证"代码能跑"。先理解被测模块的业务目的，再设计测试用例。
+2. **不信任现有实现**：编写测试时必须独立思考正确的业务行为是什么，不能直接看现有代码的输出来写断言。如果现有代码的行为与业务预期不符，测试应当体现正确的预期（测试失败 = 发现了 Bug）。
+3. **覆盖边界与异常路径**：除了 happy path，必须覆盖业务上有意义的边界值、错误输入、并发场景和异常流程。例如：
+   - 401 token 过期时的刷新/重试/登出流程
+   - 并发请求只触发一次 refresh（而非 N 次）
+   - `canManage('SUPER_ADMIN')` 对任何人（包括 SUPER_ADMIN 自身）都应返回 `false`
+   - `signOut` 即使 API 失败也必须清除本地状态
+   - API 参数命名（`code` vs `tsCode`）是否与后端 DTO 一致
+4. **禁止无意义测试**：以下类型的测试是被禁止的：
+   - 仅验证函数"不抛异常"而不检查返回值的正确性
+   - 仅验证 mock 被调用了而不检查调用参数是否正确
+   - 把现有代码的输出直接 copy 为期望值（snapshot-style，除非明确标注为回归测试）
+   - 测试内部实现细节（如检查 `useState` 被调用几次）而非外部可观测行为
+5. **测试即文档**：每个 `describe` / `it` 的描述应清晰表达业务含义，让不熟悉代码的人也能理解这个测试在验证什么业务规则。
+
+**示例 — ✅ 正确（基于业务逻辑）：**
+
+```ts
+// 业务规则：SUPER_ADMIN 账号受保护，任何人都不能对其进行管理操作
+it('SUPER_ADMIN CANNOT manage another SUPER_ADMIN', () => {
+  setRole('SUPER_ADMIN');
+  const { result } = renderHook(() => usePermission());
+  expect(result.current.canManage('SUPER_ADMIN')).toBe(false);
+});
+
+// 业务规则：signOut 即使 logout API 失败也必须清除本地状态
+it('signOut clears state even when authApi.logout throws', async () => {
+  vi.mocked(authApi.logout).mockRejectedValue(new Error('network error'));
+  // ... signOut 后断言 token 已清除、isAuthenticated 为 false
+});
+```
+
+**示例 — ❌ 禁止（无意义测试）：**
+
+```ts
+// 仅验证函数存在且不报错，完全没有检查业务行为
+it('should work', () => {
+  expect(() => formatNumber(123)).not.toThrow();
+});
+
+// 直接抄现有代码输出作为断言，没有独立思考正确结果
+it('returns correct value', () => {
+  // 开发者直接运行了 formatNumber(123) 得到 '123'，然后写下了这个断言
+  // 如果 formatNumber 有 bug（比如应该返回 '123.00'），这个测试永远不会发现
+  expect(formatNumber(123)).toBe('123');
+});
+```
+
+---
+
 ### 测试文件目录约定
 
 **测试文件必须放在与源文件同目录下的 `__tests__/` 子文件夹中，禁止与源文件同级放置。**
