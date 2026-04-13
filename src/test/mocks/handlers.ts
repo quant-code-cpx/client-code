@@ -55,7 +55,7 @@ export const handlers = [
     HttpResponse.json({ code: 0, data: { data: [] } })
   ),
 
-  http.post('/api/backtest/runs', () =>
+  http.post('/api/backtests/runs', () =>
     HttpResponse.json({
       code: 0,
       data: {
@@ -66,14 +66,14 @@ export const handlers = [
     })
   ),
 
-  http.post('/api/backtest/run-list', () =>
+  http.post('/api/backtests/runs/list', () =>
     HttpResponse.json({
       code: 0,
       data: { page: 1, pageSize: 10, total: 0, items: [] },
     })
   ),
 
-  http.post('/api/backtest/run-detail', () =>
+  http.post('/api/backtests/runs/detail', () =>
     HttpResponse.json({
       code: 0,
       data: {
