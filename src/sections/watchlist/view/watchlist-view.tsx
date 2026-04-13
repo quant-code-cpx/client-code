@@ -94,17 +94,26 @@ export function WatchlistView() {
 
   const handleEditSuccess = (updated: Watchlist) => {
     setWatchlists((prev) =>
-      prev.map((w) => (w.id === updated.id ? { ...w, ...updated } : w))
+      prev.map((w) => {
+        if (w.id === updated.id) return { ...w, ...updated };
+        // 如果编辑后的组变成了默认组，清除其他组的默认标记
+        if (updated.isDefault) return { ...w, isDefault: false };
+        return w;
+      })
     );
   };
 
   const handleDelete = async (watchlist: WatchlistOverviewItem) => {
     try {
       await deleteWatchlist(watchlist.id);
-      setWatchlists((prev) => prev.filter((w) => w.id !== watchlist.id));
-      if (selectedId === watchlist.id) {
-        setSelectedId(null);
-      }
+      setWatchlists((prev) => {
+        const remaining = prev.filter((w) => w.id !== watchlist.id);
+        if (selectedId === watchlist.id) {
+          // 自动选中剩余第一个，没有则置 null
+          setSelectedId(remaining.length > 0 ? remaining[0].id : null);
+        }
+        return remaining;
+      });
     } catch (err) {
       setError(err instanceof Error ? err.message : '删除失败');
     }
@@ -126,9 +135,19 @@ export function WatchlistView() {
     setStocks(reordered);
   };
 
-  const handleStockRefresh = () => {
+  const handleStockRefresh = (countDelta: number = 0) => {
     if (selectedId !== null) {
       loadStocks(selectedId);
+      // 乐观更新卡片上的股票计数（用于添加/批量导入/删除后的实时性）
+      if (countDelta !== 0) {
+        setWatchlists((prev) =>
+          prev.map((w) =>
+            w.id === selectedId
+              ? { ...w, _count: { stocks: Math.max(0, (w._count?.stocks ?? 0) + countDelta) } }
+              : w
+          )
+        );
+      }
     }
   };
 
@@ -230,7 +249,7 @@ export function WatchlistView() {
           onClose={() => setAddStockDialogOpen(false)}
           onSuccess={() => {
             setAddStockDialogOpen(false);
-            handleStockRefresh();
+            handleStockRefresh(1); // 添加 1 支股票，计数 +1
           }}
         />
       )}
@@ -240,9 +259,9 @@ export function WatchlistView() {
           open={batchImportDialogOpen}
           watchlistId={selectedId}
           onClose={() => setBatchImportDialogOpen(false)}
-          onSuccess={() => {
+          onSuccess={(result) => {
             setBatchImportDialogOpen(false);
-            handleStockRefresh();
+            handleStockRefresh(result.added); // 批量导入，计数 +added
           }}
         />
       )}

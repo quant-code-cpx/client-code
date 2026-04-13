@@ -33,7 +33,7 @@ export function WatchlistBatchImportDialog({
 
   const parsedCodes = useMemo(() => {
     const codes = input
-      .split(/[,\n]/)
+      .split(/[,\n\t]/)
       .map((s) => s.trim().toUpperCase())
       .filter(Boolean);
     return [...new Set(codes)];

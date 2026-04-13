@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
+import Alert from '@mui/material/Alert';
 import Divider from '@mui/material/Divider';
 import Typography from '@mui/material/Typography';
 
@@ -46,6 +47,7 @@ export function WatchlistDetailPanel({
   const [selectedStockIds, setSelectedStockIds] = useState<number[]>([]);
   const [search, setSearch] = useState('');
   const [editStockDialogStock, setEditStockDialogStock] = useState<WatchlistStock | null>(null);
+  const [operationError, setOperationError] = useState('');
 
   const filteredStocks = useMemo(() => {
     if (!search.trim()) return stocks;
@@ -64,16 +66,26 @@ export function WatchlistDetailPanel({
   };
 
   const handleRemoveStock = async (stockId: number) => {
-    await removeStock(watchlist.id, stockId);
-    setSelectedStockIds((prev) => prev.filter((x) => x !== stockId));
-    onRemoveStock(stockId);
+    setOperationError('');
+    try {
+      await removeStock(watchlist.id, stockId);
+      setSelectedStockIds((prev) => prev.filter((x) => x !== stockId));
+      onRemoveStock(stockId);
+    } catch (err) {
+      setOperationError(err instanceof Error ? err.message : '删除失败，请重试');
+    }
   };
 
   const handleBatchRemove = async () => {
     if (selectedStockIds.length === 0) return;
-    await batchRemoveStocks(watchlist.id, selectedStockIds);
-    onBatchRemoveStocks(selectedStockIds);
-    setSelectedStockIds([]);
+    setOperationError('');
+    try {
+      await batchRemoveStocks(watchlist.id, selectedStockIds);
+      onBatchRemoveStocks(selectedStockIds);
+      setSelectedStockIds([]);
+    } catch (err) {
+      setOperationError(err instanceof Error ? err.message : '批量删除失败，请重试');
+    }
   };
 
   const handleReorder = async (reordered: WatchlistStock[]) => {
@@ -108,6 +120,12 @@ export function WatchlistDetailPanel({
       </Box>
 
       <Divider />
+
+      {operationError && (
+        <Alert severity="error" onClose={() => setOperationError('')} sx={{ mx: 2, mt: 1 }}>
+          {operationError}
+        </Alert>
+      )}
 
       <WatchlistStockToolbar
         selectedCount={selectedStockIds.length}

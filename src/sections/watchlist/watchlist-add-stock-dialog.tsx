@@ -43,8 +43,14 @@ export function WatchlistAddStockDialog({
   };
 
   const handleSubmit = async () => {
-    if (!tsCode.trim()) {
+    const trimmedCode = tsCode.trim().toUpperCase();
+    if (!trimmedCode) {
       setError('请输入股票代码');
+      return;
+    }
+    // A 股代码格式校验：XXXXXX.SH 或 XXXXXX.SZ
+    if (!/^\d{6}\.(SH|SZ)$/.test(trimmedCode)) {
+      setError('股票代码格式不正确，请使用 XXXXXX.SH 或 XXXXXX.SZ 格式');
       return;
     }
     const tags = tagsInput
@@ -52,13 +58,18 @@ export function WatchlistAddStockDialog({
       .map((t) => t.trim())
       .filter(Boolean);
     const parsedPrice = targetPrice ? parseFloat(targetPrice) : undefined;
+    // 目标价不能为负数
+    if (parsedPrice !== undefined && !Number.isNaN(parsedPrice) && parsedPrice < 0) {
+      setError('目标价不能为负数');
+      return;
+    }
 
     setLoading(true);
     setError('');
     try {
       await addStock({
         watchlistId,
-        tsCode: tsCode.trim().toUpperCase(),
+        tsCode: trimmedCode,
         notes: notes.trim() || undefined,
         tags: tags.length > 0 ? tags : undefined,
         targetPrice: parsedPrice !== undefined && !Number.isNaN(parsedPrice) ? parsedPrice : undefined,

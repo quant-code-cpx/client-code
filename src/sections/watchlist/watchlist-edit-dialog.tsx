@@ -46,6 +46,12 @@ export function WatchlistEditDialog({
   }, [watchlist]);
 
   const handleClose = () => {
+    // 关闭时重置所有表单状态，避免下次打开时显示脏数据
+    if (watchlist) {
+      setName(watchlist.name);
+      setDescription(watchlist.description ?? '');
+      setIsDefault(watchlist.isDefault);
+    }
     setError('');
     onClose();
   };
