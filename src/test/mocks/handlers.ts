@@ -20,6 +20,19 @@ export const handlers = [
 
   http.post('/api/auth/logout', () => HttpResponse.json({ code: 0, data: null })),
 
+  http.post('/api/stock/search', () =>
+    HttpResponse.json({
+      code: 0,
+      data: {
+        total: 2,
+        items: [
+          { tsCode: '000001.SZ', symbol: '000001', name: '平安银行', market: 'SZ', industry: '银行', listStatus: 'L' },
+          { tsCode: '600036.SH', symbol: '600036', name: '招商银行', market: 'SH', industry: '银行', listStatus: 'L' },
+        ],
+      },
+    })
+  ),
+
   http.post('/api/stock/list', () =>
     HttpResponse.json({
       code: 0,
