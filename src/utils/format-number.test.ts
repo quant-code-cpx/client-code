@@ -22,6 +22,14 @@ describe('format-number', () => {
     it('formats string input', () => {
       expect(fNumber('9999')).toBe('9,999');
     });
+
+    it('handles Infinity', () => {
+      expect(fNumber(Infinity)).toBe('∞');
+    });
+
+    it('formats zero', () => {
+      expect(fNumber(0)).toBe('0');
+    });
   });
 
   // ---------- fCurrency ----------

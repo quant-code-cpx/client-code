@@ -1,42 +1,8 @@
-// 从 AuthProvider 中提取的 reducer 类型和逻辑的纯函数测试
-// 注：reducer 定义在 provider.tsx 中，这里直接复现其逻辑进行测试
-
 import type { UserProfile } from 'src/api/user-manage';
 
-// ----------------------------------------------------------------------
+import { authReducer } from './auth-reducer';
 
-type AuthState = {
-  accessToken: string | null;
-  userProfile: UserProfile | null;
-  isLoading: boolean;
-};
-
-type AuthAction =
-  | { type: 'AUTH_SUCCESS'; accessToken: string; userProfile: UserProfile | null }
-  | { type: 'AUTH_FAILURE' }
-  | { type: 'SIGN_IN'; accessToken: string }
-  | { type: 'SIGN_OUT' }
-  | { type: 'TOKEN_REFRESHED'; accessToken: string }
-  | { type: 'PROFILE_LOADED'; userProfile: UserProfile | null };
-
-function authReducer(state: AuthState, action: AuthAction): AuthState {
-  switch (action.type) {
-    case 'AUTH_SUCCESS':
-      return { accessToken: action.accessToken, userProfile: action.userProfile, isLoading: false };
-    case 'AUTH_FAILURE':
-      return { accessToken: null, userProfile: null, isLoading: false };
-    case 'SIGN_IN':
-      return { ...state, accessToken: action.accessToken };
-    case 'SIGN_OUT':
-      return { ...state, accessToken: null, userProfile: null };
-    case 'TOKEN_REFRESHED':
-      return { ...state, accessToken: action.accessToken };
-    case 'PROFILE_LOADED':
-      return { ...state, userProfile: action.userProfile };
-    default:
-      return state;
-  }
-}
+import type { AuthState } from './auth-reducer';
 
 // ----------------------------------------------------------------------
 

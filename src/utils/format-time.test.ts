@@ -28,6 +28,11 @@ describe('format-time', () => {
       const result = fDate('2025-01-15T10:30:00.000Z', 'YYYY-MM-DD');
       expect(result).toBe('2025-01-15');
     });
+
+    it('returns "Invalid date" for invalid string input', () => {
+      expect(fDate('not-a-date')).toBe('Invalid date');
+      expect(fDate('abc123')).toBe('Invalid date');
+    });
   });
 
   // ---------- fDateTime ----------

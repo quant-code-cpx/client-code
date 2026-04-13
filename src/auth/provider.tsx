@@ -1,10 +1,9 @@
-import type { UserProfile } from 'src/api/user-manage';
-
 import { useRef, useMemo, useEffect, useReducer, useCallback } from 'react';
 
 import { authApi, tokenStorage, userManageApi, setAuthCallbacks } from 'src/api';
 
 import { AuthContext } from './context';
+import { authReducer } from './auth-reducer';
 
 import type { AuthContextValue } from './context';
 
@@ -18,41 +17,6 @@ const BROADCAST_CHANNEL_NAME = 'quant-auth';
 type AuthProviderProps = {
   children: React.ReactNode;
 };
-
-// ----------------------------------------------------------------------
-
-type AuthState = {
-  accessToken: string | null;
-  userProfile: UserProfile | null;
-  isLoading: boolean;
-};
-
-type AuthAction =
-  | { type: 'AUTH_SUCCESS'; accessToken: string; userProfile: UserProfile | null }
-  | { type: 'AUTH_FAILURE' }
-  | { type: 'SIGN_IN'; accessToken: string }
-  | { type: 'SIGN_OUT' }
-  | { type: 'TOKEN_REFRESHED'; accessToken: string }
-  | { type: 'PROFILE_LOADED'; userProfile: UserProfile | null };
-
-function authReducer(state: AuthState, action: AuthAction): AuthState {
-  switch (action.type) {
-    case 'AUTH_SUCCESS':
-      return { accessToken: action.accessToken, userProfile: action.userProfile, isLoading: false };
-    case 'AUTH_FAILURE':
-      return { accessToken: null, userProfile: null, isLoading: false };
-    case 'SIGN_IN':
-      return { ...state, accessToken: action.accessToken };
-    case 'SIGN_OUT':
-      return { ...state, accessToken: null, userProfile: null };
-    case 'TOKEN_REFRESHED':
-      return { ...state, accessToken: action.accessToken };
-    case 'PROFILE_LOADED':
-      return { ...state, userProfile: action.userProfile };
-    default:
-      return state;
-  }
-}
 
 // ----------------------------------------------------------------------
 
