@@ -43,7 +43,7 @@ docs/
 | [测试框架与计划-前端设计](design/测试框架与计划-前端设计.md)           | Vitest + RTL 测试框架搭建、分阶段测试计划、Mock 策略、覆盖率目标                 | 🔧 待实现 |
 | [测试Phase2-组件测试-详细设计](design/测试Phase2-组件测试-详细设计.md) | Phase 2 组件单元测试（Chart、Label、Iconify、Scrollbar、SignIn 等）详细设计      | ✅ 已实现 |
 | [测试Phase3-集成测试-详细设计](design/测试Phase3-集成测试-详细设计.md) | Phase 3 集成测试（AuthGuard、ErrorBoundary、SyncNotification、路由结构）详细设计 | 🔧 待实现 |
-| [测试Phase4-E2E测试-详细设计](design/测试Phase4-E2E测试-详细设计.md)   | Phase 4 E2E 测试（Playwright，5 条核心用户流程）详细设计                         | 🔧 待实现 |
+| [测试Phase4-E2E测试-详细设计](design/测试Phase4-E2E测试-详细设计.md)   | Phase 4 E2E 测试（Playwright，5 条核心用户流程）详细设计                         | ✅ 已实现 |
 
 ---
 

@@ -36,3 +36,8 @@ build
 tsconfig.tsbuildinfo
 .ncurc.js
 knip.jsonc
+
+# Playwright E2E artifacts
+e2e/.auth/*.json
+playwright-report/
+test-results/
