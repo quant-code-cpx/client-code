@@ -1,7 +1,7 @@
 import type { ReactElement } from 'react';
 
-import { renderHook } from '@testing-library/react';
 import { Navigate } from 'react-router-dom';
+import { renderHook } from '@testing-library/react';
 
 import { AuthGuard } from 'src/routes/components';
 import { useRouter } from 'src/routes/hooks/use-router';

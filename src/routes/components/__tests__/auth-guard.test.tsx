@@ -4,13 +4,15 @@ import { act, useState } from 'react';
 import { render, screen } from '@testing-library/react';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 
-import { AuthContext } from 'src/auth/context';
 import { AuthGuard } from 'src/routes/components/auth-guard';
+
 import {
-  createAuthenticatedContext,
   createLoadingContext,
+  createAuthenticatedContext,
   createUnauthenticatedContext,
 } from 'src/test/factories/auth-context';
+
+import { AuthContext } from 'src/auth/context';
 
 // ----------------------------------------------------------------------
 

@@ -3,6 +3,7 @@ import { render, screen } from '@testing-library/react';
 import { ThemeProvider } from '@mui/material/styles';
 
 import { ErrorBoundary } from 'src/routes/components/error-boundary';
+
 import { createTheme } from 'src/theme/create-theme';
 
 // ----------------------------------------------------------------------
