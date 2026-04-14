@@ -52,9 +52,14 @@ export function DashboardSentimentCard() {
   return (
     <Card sx={{ height: '100%' }}>
       <CardContent>
-        <Typography variant="h6" sx={{ mb: 2 }}>
-          市场情绪
-        </Typography>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+          <Typography variant="h6">市场情绪</Typography>
+          {data?.tradeDate && (
+            <Typography variant="caption" sx={{ color: 'text.disabled' }}>
+              {data.tradeDate}
+            </Typography>
+          )}
+        </Stack>
 
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
