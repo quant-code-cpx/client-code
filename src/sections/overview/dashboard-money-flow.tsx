@@ -93,8 +93,8 @@ export function DashboardMoneyFlow() {
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
           <Typography variant="h6">资金流向</Typography>
           {data != null && (
-            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-              净额（亿）
+            <Typography variant="caption" sx={{ color: 'text.disabled' }}>
+              {data.tradeDate}&nbsp;·&nbsp;净额（亿）
             </Typography>
           )}
         </Box>
