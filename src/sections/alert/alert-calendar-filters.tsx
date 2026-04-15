@@ -1,5 +1,4 @@
 import type { EventType } from 'src/api/alert';
-import type { StockSearchItem } from 'src/api/stock';
 
 import dayjs from 'dayjs';
 
@@ -8,7 +7,7 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
-import { StockSearchAutocomplete } from 'src/components/stock-search-autocomplete';
+import { stockItemFromCode, StockSearchAutocomplete } from 'src/components/stock-search-autocomplete';
 
 // ----------------------------------------------------------------------
 
@@ -53,9 +52,7 @@ export function AlertCalendarFilters({
   };
 
   // Build a minimal StockSearchItem from the tsCode string for controlled value
-  const stockValue: StockSearchItem | null = tsCode
-    ? { tsCode, symbol: '', name: '', market: null, industry: null, listStatus: null }
-    : null;
+  const stockValue = stockItemFromCode(tsCode);
 
   return (
     <Stack spacing={2} sx={{ mb: 3 }}>

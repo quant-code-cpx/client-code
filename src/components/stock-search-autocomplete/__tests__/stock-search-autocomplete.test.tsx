@@ -49,7 +49,7 @@ describe('StockSearchAutocomplete', () => {
   });
 
   it('disabled 属性禁用输入框', () => {
-    renderWithProviders(<StockSearchAutocomplete onChange={vi.fn()} disabled={true} />);
+    renderWithProviders(<StockSearchAutocomplete onChange={vi.fn()} disabled />);
     const input = screen.getByRole('combobox');
     expect(input).toBeDisabled();
   });

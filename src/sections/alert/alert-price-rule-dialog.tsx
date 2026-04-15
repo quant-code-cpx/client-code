@@ -25,7 +25,7 @@ import { alertApi } from 'src/api/alert';
 import { getWatchlists } from 'src/api/watchlist';
 import { listPortfolios } from 'src/api/portfolio';
 
-import { StockSearchAutocomplete } from 'src/components/stock-search-autocomplete';
+import { stockItemFromCode, StockSearchAutocomplete } from 'src/components/stock-search-autocomplete';
 
 // ----------------------------------------------------------------------
 
@@ -85,9 +85,7 @@ export function AlertPriceRuleDialog({ open, rule, onClose, onSaved }: Props) {
   useEffect(() => {
     if (open) {
       if (rule) {
-        setSelectedStock(
-          rule.tsCode ? { tsCode: rule.tsCode, symbol: '', name: '', market: null, industry: null, listStatus: null } : null
-        );
+        setSelectedStock(stockItemFromCode(rule.tsCode));
         setRuleType(rule.ruleType);
         setThreshold(rule.threshold !== null ? String(rule.threshold) : '');
         setMemo(rule.memo ?? '');

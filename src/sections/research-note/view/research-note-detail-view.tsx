@@ -27,7 +27,7 @@ import { DashboardContent } from 'src/layouts/dashboard';
 import { createNote, deleteNote, updateNote, getNoteById } from 'src/api/research-note';
 
 import { Iconify } from 'src/components/iconify';
-import { StockSearchAutocomplete } from 'src/components/stock-search-autocomplete';
+import { stockItemFromCode, StockSearchAutocomplete } from 'src/components/stock-search-autocomplete';
 
 import { ResearchNoteEditor } from '../research-note-editor';
 import { ResearchNotePreview } from '../research-note-preview';
@@ -70,11 +70,7 @@ export function ResearchNoteDetailView() {
       .then((note) => {
         setTitle(note.title);
         setContent(note.content);
-        setSelectedStock(
-          note.tsCode
-            ? { tsCode: note.tsCode, symbol: '', name: '', market: null, industry: null, listStatus: null }
-            : null
-        );
+        setSelectedStock(stockItemFromCode(note.tsCode));
         setTags(note.tags);
         setIsPinned(note.isPinned);
       })
