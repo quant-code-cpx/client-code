@@ -74,22 +74,18 @@ function TaskItem({ item, selected, onChange, sx, ...other }: TaskItemProps) {
 
   const handleMarkComplete = () => {
     menuActions.onClose();
-    console.info('MARK COMPLETE', item.id);
   };
 
   const handleShare = () => {
     menuActions.onClose();
-    console.info('SHARE', item.id);
   };
 
   const handleEdit = () => {
     menuActions.onClose();
-    console.info('EDIT', item.id);
   };
 
   const handleDelete = () => {
     menuActions.onClose();
-    console.info('DELETE', item.id);
   };
 
   return (

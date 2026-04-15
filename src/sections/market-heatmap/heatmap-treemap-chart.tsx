@@ -115,19 +115,6 @@ export function HeatmapTreemapChart({ tradeDate, groupBy, sizeBy }: Props) {
       type: 'treemap',
       toolbar: { show: false },
       animations: { enabled: false },
-      events: {
-        dataPointSelection: (_e: unknown, _chart: unknown, opts: any) => {
-          const { seriesIndex, dataPointIndex, w } = opts as ApexChartCtx;
-          const point = w.config.series[seriesIndex]?.data[dataPointIndex];
-          if (point) {
-            const stock = stocksRef.current.find((s) => s.name === point.x);
-            if (stock) {
-              // Emit for parent to handle if needed — currently just logs
-              console.log('Selected:', stock.tsCode, stock.name);
-            }
-          }
-        },
-      },
     },
     plotOptions: {
       treemap: {
