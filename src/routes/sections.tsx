@@ -15,11 +15,8 @@ import { AuthGuard } from './components';
 // ----------------------------------------------------------------------
 
 export const DashboardPage = lazy(() => import('src/pages/dashboard'));
-export const BlogPage = lazy(() => import('src/pages/blog'));
-export const UserPage = lazy(() => import('src/pages/user'));
 export const UserManagePage = lazy(() => import('src/pages/user-manage'));
 export const SignInPage = lazy(() => import('src/pages/sign-in'));
-export const ProductsPage = lazy(() => import('src/pages/products'));
 export const Page404 = lazy(() => import('src/pages/page-not-found'));
 export const StockPage = lazy(() => import('src/pages/stock'));
 export const StockDetailPage = lazy(() => import('src/pages/stock-detail'));
@@ -98,9 +95,6 @@ export const routesSection: RouteObject[] = [
     ),
     children: [
       { index: true, element: <DashboardPage /> },
-      { path: 'user', element: <UserPage /> },
-      { path: 'products', element: <ProductsPage /> },
-      { path: 'blog', element: <BlogPage /> },
       { path: 'stock', element: <StockPage /> },
       { path: 'stock/detail', element: <StockDetailPage /> },
       { path: 'stock/screener', element: <Navigate to="/stock" replace /> },

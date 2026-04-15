@@ -68,5 +68,5 @@ export function getUserTags() {
 }
 
 export function getStockNotes(tsCode: string) {
-  return apiClient.post<ResearchNote[]>('/api/research-note/by-stock', { tsCode });
+  return apiClient.post<ResearchNote[]>('/api/research-note/stock', { tsCode });
 }
