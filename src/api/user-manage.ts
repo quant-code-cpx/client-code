@@ -45,6 +45,8 @@ export interface UserListQuery {
   account?: string;
   status?: UserStatus;
   role?: UserRole;
+  sortBy?: 'createdAt' | 'updatedAt' | 'lastLoginAt' | 'account';
+  sortOrder?: 'asc' | 'desc';
 }
 
 /** 分页结果 */
@@ -62,6 +64,10 @@ export interface CreateUserDto {
   role?: UserRole;
   /** 初始密码（至少8位） */
   password: string;
+  /** 回测任务数量限制（-1 为不限） */
+  backtestQuota?: number;
+  /** 监控股票数量限制（-1 为不限） */
+  watchlistLimit?: number;
 }
 
 /** 创建用户响应（含初始密码，仅本次返回） */

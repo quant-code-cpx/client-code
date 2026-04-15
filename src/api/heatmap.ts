@@ -42,7 +42,11 @@ export type HeatmapSnapshotTriggerResult = {
 // ── API Functions ─────────────────────────────────────────────
 
 /** 获取市场热力图数据（涨跌幅分布） */
-export function fetchHeatmapData(query?: { trade_date?: string }) {
+export function fetchHeatmapData(query?: {
+  trade_date?: string;
+  group_by?: 'industry' | 'index' | 'concept';
+  index_code?: string;
+}) {
   return apiClient.post<HeatmapDataResult>('/api/heatmap/data', query ?? {});
 }
 
@@ -52,6 +56,6 @@ export function triggerHeatmapSnapshot(query?: { trade_date?: string }) {
 }
 
 /** 查询指定日期热力图快照（缓存/实时降级） */
-export function fetchHeatmapSnapshotHistory(query: { trade_date: string }) {
+export function fetchHeatmapSnapshotHistory(query: { trade_date: string; group_by?: string }) {
   return apiClient.post<HeatmapDataResult>('/api/heatmap/snapshot/history', query);
 }

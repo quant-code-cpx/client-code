@@ -366,8 +366,8 @@ export function fetchRotationHeatmap(query?: { trade_date?: string; periods?: st
 
 export function fetchMomentumRanking(query?: {
   trade_date?: string;
-  method?: string;
-  weights?: Record<string, number>;
+  method?: 'weighted' | 'simple';
+  weights?: number[];
   limit?: number;
   order?: 'asc' | 'desc';
 }) {
@@ -446,7 +446,7 @@ export type RotationDetailResult = {
 export function fetchReturnComparison(query?: {
   trade_date?: string;
   periods?: string[];
-  sort_period?: string;
+  sort_period?: number;
   order?: 'asc' | 'desc';
 }) {
   return apiClient.post<ReturnComparisonResult>(
@@ -465,7 +465,12 @@ export function fetchFlowAnalysis(query?: {
   return apiClient.post<FlowAnalysisResult>('/api/industry-rotation/flow-analysis', query ?? {});
 }
 
-export function fetchSectorValuation(query?: { trade_date?: string }) {
+export function fetchSectorValuation(query?: {
+  trade_date?: string;
+  industry?: string;
+  sort_by?: 'pe_ttm' | 'pb' | 'pe_percentile_1y' | 'pb_percentile_1y';
+  order?: 'asc' | 'desc';
+}) {
   return apiClient.post<SectorValuationResult>('/api/industry-rotation/valuation', query ?? {});
 }
 
@@ -520,7 +525,11 @@ export type HeatmapSnapshotHistoryResult = HeatmapDataResult & {
   fromCache: boolean;
 };
 
-export function fetchHeatmapData(query?: { trade_date?: string }) {
+export function fetchHeatmapData(query?: {
+  trade_date?: string;
+  group_by?: 'industry' | 'index' | 'concept';
+  index_code?: string;
+}) {
   return apiClient.post<HeatmapDataResult>('/api/heatmap/data', query ?? {});
 }
 
@@ -528,7 +537,7 @@ export function triggerHeatmapSnapshot(query?: { trade_date?: string }) {
   return apiClient.post<HeatmapSnapshotTriggerResult>('/api/heatmap/snapshot/trigger', query ?? {});
 }
 
-export function fetchHeatmapSnapshotHistory(query: { trade_date: string }) {
+export function fetchHeatmapSnapshotHistory(query: { trade_date: string; group_by?: string }) {
   return apiClient.post<HeatmapSnapshotHistoryResult>('/api/heatmap/snapshot/history', query);
 }
 
