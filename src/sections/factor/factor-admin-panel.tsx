@@ -60,7 +60,8 @@ export function FactorAdminPanel() {
     setPrecomputeLoading(true);
     setPrecomputeMsg('');
     try {
-      const res = await adminPrecompute({});
+      const tradeDate = dayjs().format('YYYYMMDD');
+      const res = await adminPrecompute({ tradeDate });
       setPrecomputeMsg(`任务已提交：${res.message}（Job ID: ${res.jobId}）`);
       fetchStatus();
     } catch {

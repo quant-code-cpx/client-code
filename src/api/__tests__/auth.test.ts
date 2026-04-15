@@ -7,7 +7,7 @@ vi.mock('src/api/client', () => ({
   },
 }));
 
-// eslint-disable-next-line import/first
+ 
 import { apiClient } from 'src/api/client';
 
 // ----------------------------------------------------------------------

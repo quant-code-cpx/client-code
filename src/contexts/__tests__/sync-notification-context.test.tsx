@@ -1,14 +1,14 @@
 import { act, renderHook } from '@testing-library/react';
 
 import {
-  SyncNotificationProvider,
   useSyncNotification,
+  SyncNotificationProvider,
 } from 'src/contexts/sync-notification-context';
 import {
-  createRiskViolationPayload,
-  createSyncCompletedPayload,
   createSyncFailedPayload,
   createSyncStartedPayload,
+  createRiskViolationPayload,
+  createSyncCompletedPayload,
 } from 'src/test/factories/sync-events';
 
 // ----------------------------------------------------------------------

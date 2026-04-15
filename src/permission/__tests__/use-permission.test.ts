@@ -10,7 +10,7 @@ vi.mock('src/auth', () => ({
 }));
 
 // Import AFTER vi.mock so Vitest can hoist the mock correctly.
-// eslint-disable-next-line import/first
+ 
 import { useAuth } from 'src/auth';
 
 // ----------------------------------------------------------------------

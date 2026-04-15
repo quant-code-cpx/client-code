@@ -87,7 +87,7 @@ export function FactorAdvancedAnalysisView() {
 function OrthogonalizePanel({ allFactors }: { allFactors: FactorDef[] }) {
   const [selected, setSelected] = useState<string[]>([]);
   const [tradeDate, setTradeDate] = useState(dayjs().format('YYYY-MM-DD'));
-  const [method, setMethod] = useState<'gram_schmidt' | 'symmetric'>('gram_schmidt');
+  const [method, setMethod] = useState<'regression' | 'symmetric'>('regression');
   const [result, setResult] = useState<OrthogonalizeResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -150,9 +150,9 @@ function OrthogonalizePanel({ allFactors }: { allFactors: FactorDef[] }) {
               <Select
                 value={method}
                 label="正交方法"
-                onChange={(e) => setMethod(e.target.value as 'gram_schmidt' | 'symmetric')}
+                onChange={(e) => setMethod(e.target.value as 'regression' | 'symmetric')}
               >
-                <MenuItem value="gram_schmidt">Gram-Schmidt</MenuItem>
+                <MenuItem value="regression">回归正交</MenuItem>
                 <MenuItem value="symmetric">对称正交</MenuItem>
               </Select>
             </FormControl>

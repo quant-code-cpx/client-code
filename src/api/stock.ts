@@ -54,8 +54,34 @@ export type StockListQuery = {
   market?: string;
   /** 沪深港通：N / H / S */
   isHs?: string;
-  /** 排序字段，对应后端 StockSortBy 枚举值 */
-  sortBy?: string;
+  /** 最小总市值（元） */
+  minTotalMv?: number;
+  /** 最大总市值（元） */
+  maxTotalMv?: number;
+  /** 最小市盈率（TTM） */
+  minPeTtm?: number;
+  /** 最大市盈率（TTM） */
+  maxPeTtm?: number;
+  /** 最小市净率 */
+  minPb?: number;
+  /** 最大市净率 */
+  maxPb?: number;
+  /** 最小股息率（TTM） */
+  minDvTtm?: number;
+  /** 最小成交额（元） */
+  minAmount?: number;
+  /** 最大成交额（元） */
+  maxAmount?: number;
+  /** 最小换手率 */
+  minTurnoverRate?: number;
+  /** 最大换手率 */
+  maxTurnoverRate?: number;
+  /** 最小涨跌幅 */
+  minPctChg?: number;
+  /** 最大涨跌幅 */
+  maxPctChg?: number;
+  /** 排序字段 */
+  sortBy?: 'totalMv' | 'pctChg' | 'turnoverRate' | 'amount' | 'peTtm' | 'pb' | 'dvTtm' | 'listDate';
   sortOrder?: 'asc' | 'desc';
 };
 

@@ -4,6 +4,7 @@ import type {
   CustomFactorCreateRequest,
 } from 'src/api/factor';
 
+import dayjs from 'dayjs';
 import { useState } from 'react';
 
 import Box from '@mui/material/Box';
@@ -76,7 +77,7 @@ export function FactorCustomDialog({ open, onClose, onSuccess, editFactor }: Fac
     setTestError('');
     setTestResult(null);
     try {
-      const res = await testCustomExpression({ expression });
+      const res = await testCustomExpression({ expression, tradeDate: dayjs().format('YYYYMMDD') });
       setTestResult(res);
     } catch {
       setTestError('试算失败，请检查表达式语法');

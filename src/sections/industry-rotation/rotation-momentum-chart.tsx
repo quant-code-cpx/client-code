@@ -42,7 +42,7 @@ export function RotationMomentumChart({ tradeDate, period, onSectorClick }: Prop
     setLoading(true);
     setError('');
 
-    fetchMomentumRanking({ trade_date: tradeDate, method: period, limit: limit === 0 ? undefined : limit })
+    fetchMomentumRanking({ trade_date: tradeDate, limit: limit === 0 ? undefined : limit })
       .then((res) => {
         if (!cancelled) setRankings(res?.rankings ?? []);
       })

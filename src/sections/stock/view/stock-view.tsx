@@ -43,7 +43,7 @@ export function StockView() {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(20);
   const [order, setOrder] = useState<'asc' | 'desc'>('desc');
-  const [orderBy, setOrderBy] = useState<string>(SORT_BY.TOTAL_MV);
+  const [orderBy, setOrderBy] = useState<typeof SORT_BY[keyof typeof SORT_BY]>(SORT_BY.TOTAL_MV);
   const [filters, setFilters] = useState<StockFilters>(DEFAULT_FILTERS);
 
   const [rows, setRows] = useState<StockListItem[]>([]);
@@ -85,7 +85,7 @@ export function StockView() {
     (id: string) => {
       const isAsc = orderBy === id && order === 'asc';
       setOrder(isAsc ? 'desc' : 'asc');
-      setOrderBy(id);
+      setOrderBy(id as typeof SORT_BY[keyof typeof SORT_BY]);
       setPage(0);
     },
     [order, orderBy]

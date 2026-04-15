@@ -1,4 +1,4 @@
-import { apiClient, setAuthCallbacks, tokenStorage } from '../client';
+import { apiClient, tokenStorage, setAuthCallbacks } from '../client';
 
 // ----------------------------------------------------------------------
 // Helpers

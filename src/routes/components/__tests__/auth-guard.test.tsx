@@ -2,7 +2,7 @@ import type { AuthContextValue } from 'src/auth/context';
 
 import { act, useState } from 'react';
 import { render, screen } from '@testing-library/react';
-import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
+import { Route, Routes, useLocation, MemoryRouter } from 'react-router-dom';
 
 import { AuthGuard } from 'src/routes/components/auth-guard';
 

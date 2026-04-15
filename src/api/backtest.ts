@@ -79,6 +79,8 @@ export type CreateBacktestRunQuery = {
   maxWeightPerStock?: number;
   minDaysListed?: number;
   enableTradeConstraints?: boolean;
+  enableT1Restriction?: boolean;
+  partialFillEnabled?: boolean;
 };
 
 export type CreateBacktestRunResponse = {

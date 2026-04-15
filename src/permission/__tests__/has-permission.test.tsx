@@ -7,10 +7,9 @@ vi.mock('src/auth', () => ({
   useAuth: vi.fn(),
 }));
 
-// eslint-disable-next-line import/first
+ 
 import type { UserRole } from 'src/api/user-manage';
 
-// eslint-disable-next-line import/first
 import { useAuth } from 'src/auth';
 
 // ----------------------------------------------------------------------

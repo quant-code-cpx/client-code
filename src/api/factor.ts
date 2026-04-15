@@ -224,7 +224,7 @@ export type FactorScreeningResult = {
 
 export const factorApi = {
   /** 获取因子库（按分类分组） */
-  library: (params: { enabledOnly?: boolean } = {}): Promise<FactorLibraryResult> =>
+  library: (params: { category?: FactorCategory; enabledOnly?: boolean } = {}): Promise<FactorLibraryResult> =>
     apiClient.post('/api/factor/library', params),
 
   /** 获取单个因子详情 */
@@ -373,6 +373,7 @@ export type CustomFactorCreateRequest = {
   description?: string;
   category: FactorCategory;
   expression: string;
+  autoPrecompute?: boolean;
 };
 
 export type CustomFactorCreateResponse = {
@@ -387,7 +388,7 @@ export type CustomFactorCreateResponse = {
 
 export type CustomFactorTestRequest = {
   expression: string;
-  tradeDate?: string;
+  tradeDate: string;
   universe?: string;
 };
 
@@ -468,7 +469,7 @@ export type OrthogonalizeRequest = {
   factorNames: string[];
   tradeDate: string;
   universe?: string;
-  method?: 'gram_schmidt' | 'symmetric';
+  method?: 'regression' | 'symmetric';
 };
 
 export type OrthogonalizeResult = {
@@ -508,8 +509,8 @@ export type FamaMacBethResponse = {
 
 export type AdminPrecomputeRequest = {
   factorNames?: string[];
-  startDate?: string;
-  endDate?: string;
+  /** 目标交易日 YYYYMMDD（必填） */
+  tradeDate: string;
 };
 
 export type AdminPrecomputeResponse = {
@@ -523,6 +524,8 @@ export type AdminBackfillRequest = {
   factorNames: string[];
   startDate: string;
   endDate: string;
+  /** 跳过已存在快照数据的日期（默认 true） */
+  skipExisting?: boolean;
 };
 
 export type AdminBackfillResponse = {
