@@ -45,6 +45,7 @@ docs/
 | [测试Phase3-集成测试-详细设计](design/测试Phase3-集成测试-详细设计.md) | Phase 3 集成测试（AuthGuard、ErrorBoundary、SyncNotification、路由结构）详细设计 | 🔧 待实现 |
 | [测试Phase4-E2E测试-详细设计](design/测试Phase4-E2E测试-详细设计.md)   | Phase 4 E2E 测试（Playwright，5 条核心用户流程）详细设计                         | ✅ 已实现 |
 | [接口联调校验-规划](design/接口联调校验-规划.md)                       | 基于 swagger.json 的前后端接口出入参逐模块校验规划（21 模块 / 242 端点）         | 🔧 待实现 |
+| [市场热力图重构-前端设计](design/市场热力图重构-前端设计.md)           | 热力图前端适配后端实际API（数据契约对齐 + 客户端聚合）                           | 🔧 待实现 |
 
 ---
 
