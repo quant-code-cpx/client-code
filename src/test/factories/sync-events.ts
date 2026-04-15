@@ -1,9 +1,9 @@
 import type { ViolationItem } from 'src/api/portfolio';
 import type {
-  RiskViolationPayload,
-  SyncCompletedPayload,
   SyncFailedPayload,
   SyncStartedPayload,
+  RiskViolationPayload,
+  SyncCompletedPayload,
 } from 'src/contexts/sync-notification-context';
 
 // ----------------------------------------------------------------------

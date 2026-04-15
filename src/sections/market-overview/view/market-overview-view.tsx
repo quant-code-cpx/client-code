@@ -1,6 +1,5 @@
 import type { Dayjs } from 'dayjs';
 
-import dayjs from 'dayjs';
 import { useState } from 'react';
 
 import Box from '@mui/material/Box';
