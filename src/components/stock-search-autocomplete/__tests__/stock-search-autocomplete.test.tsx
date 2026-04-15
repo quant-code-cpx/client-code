@@ -43,6 +43,17 @@ describe('StockSearchAutocomplete', () => {
     expect(container.firstChild).toBeInTheDocument();
   });
 
+  it('label 属性正确渲染到输入框', () => {
+    renderWithProviders(<StockSearchAutocomplete onChange={vi.fn()} label="股票代码" />);
+    expect(screen.getByLabelText('股票代码')).toBeInTheDocument();
+  });
+
+  it('disabled 属性禁用输入框', () => {
+    renderWithProviders(<StockSearchAutocomplete onChange={vi.fn()} disabled={true} />);
+    const input = screen.getByRole('combobox');
+    expect(input).toBeDisabled();
+  });
+
   describe('搜索与防抖', () => {
     it('输入内容后立即不触发 API，等待 300ms 后触发', async () => {
       mockSearchStocks.mockResolvedValue({ items: [], total: 0 });
