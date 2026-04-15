@@ -1,3 +1,5 @@
+import type { StockSearchItem } from 'src/api/stock';
+
 import { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 
@@ -25,6 +27,7 @@ import { DashboardContent } from 'src/layouts/dashboard';
 import { createNote, deleteNote, updateNote, getNoteById } from 'src/api/research-note';
 
 import { Iconify } from 'src/components/iconify';
+import { StockSearchAutocomplete } from 'src/components/stock-search-autocomplete';
 
 import { ResearchNoteEditor } from '../research-note-editor';
 import { ResearchNotePreview } from '../research-note-preview';
@@ -41,7 +44,7 @@ export function ResearchNoteDetailView() {
 
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [tsCode, setTsCode] = useState('');
+  const [selectedStock, setSelectedStock] = useState<StockSearchItem | null>(null);
   const [tags, setTags] = useState<string[]>([]);
   const [isPinned, setIsPinned] = useState(false);
   const [mode, setMode] = useState<ContentMode>(isNew ? 'edit' : 'preview');
@@ -67,7 +70,11 @@ export function ResearchNoteDetailView() {
       .then((note) => {
         setTitle(note.title);
         setContent(note.content);
-        setTsCode(note.tsCode ?? '');
+        setSelectedStock(
+          note.tsCode
+            ? { tsCode: note.tsCode, symbol: '', name: '', market: null, industry: null, listStatus: null }
+            : null
+        );
         setTags(note.tags);
         setIsPinned(note.isPinned);
       })
@@ -90,7 +97,7 @@ export function ResearchNoteDetailView() {
         const note = await createNote({
           title: title.trim(),
           content,
-          tsCode: tsCode.trim() || undefined,
+          tsCode: selectedStock?.tsCode || undefined,
           tags,
           isPinned,
         });
@@ -100,7 +107,7 @@ export function ResearchNoteDetailView() {
           id: Number(noteId),
           title: title.trim(),
           content,
-          tsCode: tsCode.trim() || null,
+          tsCode: selectedStock?.tsCode || null,
           tags,
           isPinned,
         });
@@ -190,12 +197,11 @@ export function ResearchNoteDetailView() {
           placeholder="笔记标题"
         />
 
-        <TextField
+        <StockSearchAutocomplete
           label="关联股票（可选）"
-          value={tsCode}
-          onChange={(e) => setTsCode(e.target.value)}
-          placeholder="例如：000001.SZ"
-          sx={{ maxWidth: 280 }}
+          value={selectedStock}
+          onChange={(item) => setSelectedStock(item)}
+          sx={{ maxWidth: 320 }}
         />
 
         <Box>

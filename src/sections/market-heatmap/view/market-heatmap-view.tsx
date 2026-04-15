@@ -1,10 +1,12 @@
+import type { Dayjs } from 'dayjs';
+
 import { useState, useEffect, useCallback } from 'react';
 
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
-import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import ToggleButton from '@mui/material/ToggleButton';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
 import { DashboardContent } from 'src/layouts/dashboard';
@@ -21,9 +23,11 @@ type GroupBy = 'industry' | 'market';
 type SizeBy = 'totalMv' | 'circMv' | 'amount';
 
 export function MarketHeatmapView() {
-  const [tradeDate, setTradeDate] = useState('');
+  const [tradeDate, setTradeDate] = useState<Dayjs | null>(null);
   const [groupBy, setGroupBy] = useState<GroupBy>('industry');
   const [sizeBy, setSizeBy] = useState<SizeBy>('totalMv');
+
+  const tradeDateStr = tradeDate ? tradeDate.format('YYYYMMDD') : undefined;
 
   const [heatmapData, setHeatmapData] = useState<HeatmapDataResult | null>(null);
   const [loading, setLoading] = useState(false);
@@ -34,7 +38,7 @@ export function MarketHeatmapView() {
       setLoading(true);
       setError('');
       try {
-        const result = await fetchHeatmapData({ trade_date: tradeDate || undefined });
+        const result = await fetchHeatmapData({ trade_date: tradeDateStr });
         setHeatmapData(result);
       } catch {
         setError('热力图数据加载失败');
@@ -43,7 +47,7 @@ export function MarketHeatmapView() {
       }
     };
     load();
-  }, [tradeDate]);
+  }, [tradeDateStr]);
 
   const handleGroupByChange = useCallback(
     (_e: React.MouseEvent<HTMLElement>, v: GroupBy | null) => {
@@ -68,13 +72,15 @@ export function MarketHeatmapView() {
         <Typography variant="h4">市场热力图</Typography>
 
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="center">
-          <TextField
-            size="small"
+          <DatePicker
             label="交易日期"
-            placeholder="YYYYMMDD（空=最新）"
             value={tradeDate}
-            onChange={(e) => setTradeDate(e.target.value)}
-            sx={{ width: 190 }}
+            onChange={(newVal) => setTradeDate(newVal)}
+            format="YYYY-MM-DD"
+            slotProps={{
+              textField: { size: 'small', sx: { width: 190 } },
+              field: { clearable: true },
+            }}
           />
 
           <ToggleButtonGroup size="small" exclusive value={groupBy} onChange={handleGroupByChange}>

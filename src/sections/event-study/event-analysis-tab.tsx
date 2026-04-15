@@ -1,3 +1,5 @@
+import type { Dayjs } from 'dayjs';
+import type { StockSearchItem } from 'src/api/stock';
 import type { EventType, EventTypeItem, EventAnalyzeResult } from 'src/api/event-study';
 
 import { useState } from 'react';
@@ -11,13 +13,15 @@ import Button from '@mui/material/Button';
 import Select from '@mui/material/Select';
 import Slider from '@mui/material/Slider';
 import MenuItem from '@mui/material/MenuItem';
-import TextField from '@mui/material/TextField';
 import InputLabel from '@mui/material/InputLabel';
 import Typography from '@mui/material/Typography';
 import FormControl from '@mui/material/FormControl';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import CircularProgress from '@mui/material/CircularProgress';
 
 import { analyzeEvent } from 'src/api/event-study';
+
+import { StockSearchAutocomplete } from 'src/components/stock-search-autocomplete';
 
 import { BENCHMARK_OPTIONS } from './constants';
 import { EventAnalysisChart } from './event-analysis-chart';
@@ -32,9 +36,9 @@ type Props = {
 
 export function EventAnalysisTab({ eventTypes }: Props) {
   const [eventType, setEventType] = useState<EventType | ''>('');
-  const [tsCode, setTsCode] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [selectedStock, setSelectedStock] = useState<StockSearchItem | null>(null);
+  const [startDate, setStartDate] = useState<Dayjs | null>(null);
+  const [endDate, setEndDate] = useState<Dayjs | null>(null);
   const [preDays, setPreDays] = useState(5);
   const [postDays, setPostDays] = useState(20);
   const [benchmarkCode, setBenchmarkCode] = useState('000300.SH');
@@ -49,9 +53,9 @@ export function EventAnalysisTab({ eventTypes }: Props) {
     try {
       const data = await analyzeEvent({
         eventType,
-        tsCode: tsCode || undefined,
-        startDate: startDate || undefined,
-        endDate: endDate || undefined,
+        tsCode: selectedStock?.tsCode || undefined,
+        startDate: startDate ? startDate.format('YYYYMMDD') : undefined,
+        endDate: endDate ? endDate.format('YYYYMMDD') : undefined,
         preDays,
         postDays,
         benchmarkCode,
@@ -90,35 +94,37 @@ export function EventAnalysisTab({ eventTypes }: Props) {
           </Grid>
 
           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-            <TextField
-              fullWidth
-              size="small"
+            <StockSearchAutocomplete
               label="股票代码（可选）"
-              placeholder="如 000001.SZ"
-              value={tsCode}
-              onChange={(e) => setTsCode(e.target.value)}
+              value={selectedStock}
+              onChange={(item) => setSelectedStock(item)}
+              fullWidth
             />
           </Grid>
 
           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-            <TextField
-              fullWidth
-              size="small"
+            <DatePicker
               label="开始日期"
-              placeholder="YYYYMMDD"
               value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
+              onChange={(newVal) => setStartDate(newVal)}
+              format="YYYY-MM-DD"
+              slotProps={{
+                textField: { size: 'small', fullWidth: true },
+                field: { clearable: true },
+              }}
             />
           </Grid>
 
           <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-            <TextField
-              fullWidth
-              size="small"
+            <DatePicker
               label="结束日期"
-              placeholder="YYYYMMDD"
               value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
+              onChange={(newVal) => setEndDate(newVal)}
+              format="YYYY-MM-DD"
+              slotProps={{
+                textField: { size: 'small', fullWidth: true },
+                field: { clearable: true },
+              }}
             />
           </Grid>
 
