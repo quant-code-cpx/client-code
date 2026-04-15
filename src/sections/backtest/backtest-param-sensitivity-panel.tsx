@@ -54,11 +54,6 @@ interface BacktestParamSensitivityPanelProps {
   runId: string;
 }
 
-function fPct(v: number | null) {
-  if (v == null) return '--';
-  return `${(v * 100).toFixed(2)}%`;
-}
-
 function fNum(v: number | null, d = 2) {
   if (v == null) return '--';
   return v.toFixed(d);
@@ -175,9 +170,9 @@ export function BacktestParamSensitivityPanel({ runId }: BacktestParamSensitivit
   // Extract result props
   const paramXKey = result?.paramX?.paramKey ?? '';
   const paramYKey = result?.paramY?.paramKey ?? '';
-  const paramXValues = result?.paramX?.values ?? [];
-  const paramYValues = result?.paramY?.values ?? [];
-  const heatmap = result?.heatmap ?? [];
+  const paramXValues = useMemo(() => result?.paramX?.values ?? [], [result]);
+  const paramYValues = useMemo(() => result?.paramY?.values ?? [], [result]);
+  const heatmap = useMemo(() => result?.heatmap ?? [], [result]);
   const isTwoParam = !!result?.paramY;
 
   const heatmapSeries = useMemo(

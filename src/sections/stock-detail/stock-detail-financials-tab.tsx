@@ -19,6 +19,7 @@ import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 import TableContainer from '@mui/material/TableContainer';
 
+import { fmtTradeDate } from 'src/utils/format-time';
 import { fPctChg, fNumber, fPercent } from 'src/utils/format-number';
 
 import { stockDetailApi } from 'src/api/stock';
@@ -34,10 +35,7 @@ type SubTab = 'ratios' | 'income' | 'balance' | 'cashflow';
 /** Format period date (ISO datetime or YYYYMMDD) → YYYY-MM-DD */
 function fmtPeriod(d: unknown): string {
   if (!d) return '-';
-  const s = String(d);
-  if (s.includes('T')) return s.slice(0, 10);
-  if (s.length === 8) return `${s.slice(0, 4)}-${s.slice(4, 6)}-${s.slice(6, 8)}`;
-  return s.slice(0, 10);
+  return fmtTradeDate(String(d));
 }
 
 /**

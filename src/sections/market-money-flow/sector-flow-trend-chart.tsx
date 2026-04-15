@@ -10,18 +10,13 @@ import Skeleton from '@mui/material/Skeleton';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 
+import { fmtTradeDate as fmtDate } from 'src/utils/format-time';
+
 import { fetchSectorFlowTrend } from 'src/api/market';
 
 import { Chart, useChart } from 'src/components/chart';
 
 // ----------------------------------------------------------------------
-
-function fmtDate(d: string): string {
-  if (!d) return d;
-  if (d.length === 8) return `${d.slice(0, 4)}-${d.slice(4, 6)}-${d.slice(6, 8)}`;
-  if (d.includes('T')) return d.slice(0, 10);
-  return d;
-}
 
 /** 万元 → 亿元 */
 function toYi(wan: number): number {

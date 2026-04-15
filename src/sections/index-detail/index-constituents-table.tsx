@@ -206,9 +206,9 @@ export function IndexConstituentsTable({ tsCode, onDataLoaded }: Props) {
                 <TableBody>
                   {filtered.map((c, idx) => {
                     const pctColor =
-                      c.pctChg > 0
+                      (c.pctChg ?? 0) > 0
                         ? 'error.main'
-                        : c.pctChg < 0
+                        : (c.pctChg ?? 0) < 0
                           ? 'success.main'
                           : 'text.secondary';
                     return (
@@ -231,11 +231,11 @@ export function IndexConstituentsTable({ tsCode, onDataLoaded }: Props) {
                         </TableCell>
                         <TableCell align="right">
                           <Typography variant="caption" sx={{ fontWeight: 600 }}>
-                            {c.weight.toFixed(2)}
+                            {(c.weight ?? 0).toFixed(2)}
                           </Typography>
                         </TableCell>
                         <TableCell align="right">
-                          <Typography variant="caption">{c.close.toFixed(2)}</Typography>
+                          <Typography variant="caption">{(c.close ?? 0).toFixed(2)}</Typography>
                         </TableCell>
                         <TableCell align="right">
                           <Typography variant="caption" sx={{ color: pctColor, fontWeight: 600 }}>

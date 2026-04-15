@@ -10,6 +10,8 @@ import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 import Autocomplete from '@mui/material/Autocomplete';
 
+import { fmtTradeDate as fmtDate } from 'src/utils/format-time';
+
 import { fetchReturnComparison, type ReturnComparisonResult } from 'src/api/market';
 
 import { Chart, useChart } from 'src/components/chart';
@@ -18,20 +20,39 @@ import { Chart, useChart } from 'src/components/chart';
 
 // Common A-share industry sectors for autocomplete suggestions
 const DEFAULT_SECTOR_OPTIONS = [
-  '银行', '非银金融', '电力设备', '计算机', '医药生物', '食品饮料', '汽车', '机械设备',
-  '建筑材料', '建筑装饰', '农林牧渔', '钢铁', '有色金属', '化工', '煤炭', '石油石化',
-  '通信', '传媒', '电子', '纺织服装', '家用电器', '商贸零售', '国防军工', '轻工制造',
-  '美容护理', '房地产', '公用事业', '交通运输', '环保', '综合',
+  '银行',
+  '非银金融',
+  '电力设备',
+  '计算机',
+  '医药生物',
+  '食品饮料',
+  '汽车',
+  '机械设备',
+  '建筑材料',
+  '建筑装饰',
+  '农林牧渔',
+  '钢铁',
+  '有色金属',
+  '化工',
+  '煤炭',
+  '石油石化',
+  '通信',
+  '传媒',
+  '电子',
+  '纺织服装',
+  '家用电器',
+  '商贸零售',
+  '国防军工',
+  '轻工制造',
+  '美容护理',
+  '房地产',
+  '公用事业',
+  '交通运输',
+  '环保',
+  '综合',
 ];
 
 const MAX_SECTORS = 6;
-
-function fmtDate(d: string): string {
-  if (!d) return d;
-  if (d.length === 8) return `${d.slice(0, 4)}-${d.slice(4, 6)}-${d.slice(6, 8)}`;
-  if (d.includes('T')) return d.slice(0, 10);
-  return d;
-}
 
 // ----------------------------------------------------------------------
 
@@ -94,9 +115,7 @@ export function RotationReturnComparisonChart({ tradeDate, period }: Props) {
   const series = benchmarkSeries ? [benchmarkSeries, ...sectorSeries] : sectorSeries;
 
   // Build stroke config: benchmark is dashed, sectors are solid
-  const strokeDash = series.map((s, i) =>
-    s.name === data?.benchmark?.name ? 4 : 0
-  );
+  const strokeDash = series.map((s, i) => (s.name === data?.benchmark?.name ? 4 : 0));
   const strokeWidths = series.map(() => 2);
 
   const chartOptions = useChart({
@@ -177,7 +196,9 @@ export function RotationReturnComparisonChart({ tradeDate, period }: Props) {
         {loading ? (
           <Skeleton variant="rectangular" height={320} />
         ) : series.length === 0 ? (
-          <Box sx={{ height: 320, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Box
+            sx={{ height: 320, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          >
             <Typography color="text.disabled">暂无数据</Typography>
           </Box>
         ) : (

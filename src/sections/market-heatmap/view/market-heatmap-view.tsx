@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
@@ -8,6 +8,7 @@ import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
 import { DashboardContent } from 'src/layouts/dashboard';
+import { fetchHeatmapData, type HeatmapDataResult } from 'src/api/market';
 
 import { HeatmapTreemapChart } from '../heatmap-treemap-chart';
 import { HeatmapSnapshotPanel } from '../heatmap-snapshot-panel';
@@ -23,6 +24,26 @@ export function MarketHeatmapView() {
   const [tradeDate, setTradeDate] = useState('');
   const [groupBy, setGroupBy] = useState<GroupBy>('industry');
   const [sizeBy, setSizeBy] = useState<SizeBy>('totalMv');
+
+  const [heatmapData, setHeatmapData] = useState<HeatmapDataResult | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+      setError('');
+      try {
+        const result = await fetchHeatmapData({ trade_date: tradeDate || undefined });
+        setHeatmapData(result);
+      } catch {
+        setError('热力图数据加载失败');
+      } finally {
+        setLoading(false);
+      }
+    };
+    load();
+  }, [tradeDate]);
 
   const handleGroupByChange = useCallback(
     (_e: React.MouseEvent<HTMLElement>, v: GroupBy | null) => {
@@ -72,18 +93,24 @@ export function MarketHeatmapView() {
       <Grid container spacing={3}>
         <Grid size={{ xs: 12 }}>
           <HeatmapTreemapChart
-            tradeDate={tradeDate || undefined}
+            data={heatmapData}
+            loading={loading}
+            error={error}
             groupBy={groupBy}
             sizeBy={sizeBy}
           />
         </Grid>
 
         <Grid size={{ xs: 12, md: 7 }}>
-          <HeatmapSectorBarChart tradeDate={tradeDate || undefined} />
+          <HeatmapSectorBarChart
+            sectors={heatmapData?.sectors ?? []}
+            loading={loading}
+            error={error}
+          />
         </Grid>
 
         <Grid size={{ xs: 12, md: 5 }}>
-          <HeatmapDistributionChart tradeDate={tradeDate || undefined} />
+          <HeatmapDistributionChart data={heatmapData} loading={loading} error={error} />
         </Grid>
 
         <Grid size={{ xs: 12 }}>

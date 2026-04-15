@@ -11,6 +11,8 @@ import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 
+import { fmtTradeDate } from 'src/utils/format-time';
+
 import { DashboardContent } from 'src/layouts/dashboard';
 import { getLatestSignals, listSignalActivations } from 'src/api/signal';
 
@@ -85,12 +87,7 @@ export function SignalLatestView() {
     fetchLatestSignals();
   }, [fetchLatestSignals]);
 
-  const formatDate = (dateStr: string) => {
-    if (dateStr.length === 8) {
-      return `${dateStr.slice(0, 4)}-${dateStr.slice(4, 6)}-${dateStr.slice(6, 8)}`;
-    }
-    return dateStr;
-  };
+  const formatDate = fmtTradeDate;
 
   return (
     <DashboardContent>

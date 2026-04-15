@@ -14,6 +14,8 @@ import CardContent from '@mui/material/CardContent';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
+import { fmtTradeDate as fmtDate } from 'src/utils/format-time';
+
 import { fetchHsgtTrend } from 'src/api/market';
 
 import { Chart, useChart } from 'src/components/chart';
@@ -26,13 +28,6 @@ const PERIODS: Array<{ value: string; label: string }> = [
   { value: '6m', label: '6M' },
   { value: '1y', label: '1Y' },
 ];
-
-function fmtDate(d: string): string {
-  if (!d) return d;
-  if (d.length === 8) return `${d.slice(0, 4)}-${d.slice(4, 6)}-${d.slice(6, 8)}`;
-  if (d.includes('T')) return d.slice(0, 10);
-  return d;
-}
 
 /** 百万元 → 亿元 */
 function toYi(v: number | null | undefined): number {

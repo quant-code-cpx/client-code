@@ -5,16 +5,11 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 
+import { fmtTradeDate as fmtD } from 'src/utils/format-time';
+
 import { Chart, useChart } from 'src/components/chart';
 
 // ----------------------------------------------------------------------
-
-function fmtD(d: string): string {
-  if (!d) return d;
-  if (d.length === 8) return `${d.slice(0, 4)}-${d.slice(4, 6)}-${d.slice(6, 8)}`;
-  if (d.includes('T')) return d.slice(0, 10);
-  return d;
-}
 
 type Props = {
   history: RelativeStrengthPoint[];
@@ -71,7 +66,9 @@ export function AnalysisRelativeStrengthChart({ history, benchmarkName }: Props)
     return (
       <Card>
         <CardContent>
-          <Typography color="text.secondary" textAlign="center" py={4}>暂无数据</Typography>
+          <Typography color="text.secondary" textAlign="center" py={4}>
+            暂无数据
+          </Typography>
         </CardContent>
       </Card>
     );
@@ -80,14 +77,25 @@ export function AnalysisRelativeStrengthChart({ history, benchmarkName }: Props)
   return (
     <Card>
       <CardContent>
-        <Typography variant="subtitle1" sx={{ mb: 2 }}>相对强弱对比</Typography>
+        <Typography variant="subtitle1" sx={{ mb: 2 }}>
+          相对强弱对比
+        </Typography>
         <Stack spacing={3}>
           <Stack spacing={1}>
-            <Typography variant="body2" color="text.secondary">累计收益对比</Typography>
-            <Chart type="line" series={cumulativeSeries} options={cumulativeOptions} sx={{ height: 250 }} />
+            <Typography variant="body2" color="text.secondary">
+              累计收益对比
+            </Typography>
+            <Chart
+              type="line"
+              series={cumulativeSeries}
+              options={cumulativeOptions}
+              sx={{ height: 250 }}
+            />
           </Stack>
           <Stack spacing={1}>
-            <Typography variant="body2" color="text.secondary">超额收益趋势</Typography>
+            <Typography variant="body2" color="text.secondary">
+              超额收益趋势
+            </Typography>
             <Chart type="area" series={excessSeries} options={excessOptions} sx={{ height: 250 }} />
           </Stack>
         </Stack>

@@ -53,7 +53,7 @@ export function SectorFlowPanel({ tradeDate }: Props) {
     } finally {
       setLoading(false);
     }
-  }, [tradeDate, sortBy, order]);
+  }, [tradeDate]);
 
   useEffect(() => {
     fetchData();

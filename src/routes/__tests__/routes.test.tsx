@@ -17,6 +17,7 @@ vi.mock('src/layouts/dashboard', () => ({
 // Mock useNavigate so useRouter tests need no router context
 const { mockNavigate } = vi.hoisted(() => ({ mockNavigate: vi.fn() }));
 vi.mock('react-router', async (importOriginal) => {
+  // eslint-disable-next-line @typescript-eslint/consistent-type-imports
   const actual = await importOriginal<typeof import('react-router')>();
   return { ...actual, useNavigate: () => mockNavigate };
 });

@@ -54,11 +54,11 @@ export type IndexConstituentItem = {
   tsCode: string;
   name: string;
   industry: string;
-  weight: number;
-  close: number;
-  pctChg: number;
-  totalMv: number;
-  circMv: number;
+  weight: number | null;
+  close: number | null;
+  pctChg: number | null;
+  totalMv: number | null;
+  circMv: number | null;
 };
 
 export type IndexConstituentResult = {

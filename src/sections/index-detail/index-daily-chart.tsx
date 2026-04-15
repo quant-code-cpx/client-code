@@ -14,6 +14,8 @@ import CardContent from '@mui/material/CardContent';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
+import { fmtTradeDate as fmtDate } from 'src/utils/format-time';
+
 import { fetchIndexDaily } from 'src/api/index-detail';
 
 import { Chart, useChart } from 'src/components/chart';
@@ -26,13 +28,6 @@ const PERIOD_OPTIONS = [
   { value: 250, label: '1年' },
   { value: 500, label: '2年' },
 ];
-
-function fmtDate(d: string): string {
-  if (!d) return d;
-  if (d.length === 8) return `${d.slice(0, 4)}-${d.slice(4, 6)}-${d.slice(6, 8)}`;
-  if (d.includes('T')) return d.slice(0, 10);
-  return d;
-}
 
 // ----------------------------------------------------------------------
 

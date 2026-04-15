@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
@@ -10,7 +10,10 @@ import Typography from '@mui/material/Typography';
 
 import { useRouter } from 'src/routes/hooks';
 
+import { fmtTradeDate } from 'src/utils/format-time';
+
 import { useAuth } from 'src/auth';
+import { fetchSentiment } from 'src/api/market';
 import { DashboardContent } from 'src/layouts/dashboard';
 import { usePermission } from 'src/permission/use-permission';
 
@@ -56,6 +59,14 @@ export function OverviewDashboardView() {
   const [refreshKey, setRefreshKey] = useState(0);
   const handleRefresh = useCallback(() => setRefreshKey((k) => k + 1), []);
 
+  const [latestTradeDate, setLatestTradeDate] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchSentiment()
+      .then((res) => setLatestTradeDate(res.tradeDate ?? null))
+      .catch(() => setLatestTradeDate(null));
+  }, [refreshKey]);
+
   const displayName = userProfile?.nickname || userProfile?.account || '';
 
   return (
@@ -79,6 +90,14 @@ export function OverviewDashboardView() {
           <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
             市场快报 · 一站式查看今日行情、资金与策略动态
           </Typography>
+          {latestTradeDate && (
+            <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mt: 0.5 }}>
+              <Iconify icon="solar:calendar-bold" width={14} sx={{ color: 'text.disabled' }} />
+              <Typography variant="caption" sx={{ color: 'text.disabled' }}>
+                数据截止&nbsp;{fmtTradeDate(latestTradeDate)}
+              </Typography>
+            </Stack>
+          )}
         </Box>
 
         <Stack direction="row" spacing={1} alignItems="center" sx={{ flexWrap: 'wrap' }}>

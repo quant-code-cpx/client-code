@@ -1,7 +1,5 @@
 import type { HeatmapDataResult } from 'src/api/market';
 
-import { useState, useEffect } from 'react';
-
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
@@ -15,15 +13,15 @@ import TableHead from '@mui/material/TableHead';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 
-import { fetchHeatmapData } from 'src/api/market';
-
 import { Label } from 'src/components/label';
 import { Chart, useChart } from 'src/components/chart';
 
 // ----------------------------------------------------------------------
 
 type Props = {
-  tradeDate?: string;
+  data: HeatmapDataResult | null;
+  loading: boolean;
+  error: string;
 };
 
 type Segment = {
@@ -63,27 +61,7 @@ function buildSegments(dist: HeatmapDataResult['distribution']): Segment[] {
   ];
 }
 
-export function HeatmapDistributionChart({ tradeDate }: Props) {
-  const [data, setData] = useState<HeatmapDataResult | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      setError('');
-      try {
-        const result = await fetchHeatmapData({ trade_date: tradeDate });
-        setData(result);
-      } catch {
-        setError('涨跌分布数据加载失败');
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, [tradeDate]);
-
+export function HeatmapDistributionChart({ data, loading, error }: Props) {
   const dist = data?.distribution;
   const segments: Segment[] = dist ? buildSegments(dist) : [];
   const totalStocks = segments.reduce((acc, s) => acc + s.count, 0);

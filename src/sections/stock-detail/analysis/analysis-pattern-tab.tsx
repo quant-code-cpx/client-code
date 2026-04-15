@@ -23,6 +23,8 @@ import LinearProgress from '@mui/material/LinearProgress';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
+import { fmtTradeDate } from 'src/utils/format-time';
+
 import { searchPatterns, getPatternTemplates } from 'src/api/pattern';
 
 import { Label } from 'src/components/label';
@@ -109,8 +111,7 @@ function TemplateCard({
 
 function MatchCard({ match }: { match: PatternMatch }) {
   const pct = Math.round(match.similarity * 100);
-  const fmtDate = (d: string) =>
-    d.length === 8 ? `${d.slice(0, 4)}-${d.slice(4, 6)}-${d.slice(6, 8)}` : d;
+  const fmtDate = fmtTradeDate;
 
   return (
     <Card variant="outlined">

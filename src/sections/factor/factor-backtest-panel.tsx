@@ -100,16 +100,7 @@ export function FactorBacktestPanel({ factorName, params }: FactorBacktestPanelP
     } finally {
       setAttrLoading(false);
     }
-  }, [
-    factorName,
-    params.startDate,
-    params.endDate,
-    universe,
-    quantiles,
-    rebalanceDays,
-    topN,
-    weightMethod,
-  ]);
+  }, [factorName, params.startDate, params.endDate, universe, rebalanceDays, topN, weightMethod]);
 
   const handleSaveAsStrategy = useCallback(async () => {
     if (!strategyName.trim()) return;

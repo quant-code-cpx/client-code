@@ -4,6 +4,8 @@ import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Typography from '@mui/material/Typography';
 
+import { fmtTradeDate } from 'src/utils/format-time';
+
 import { Label } from 'src/components/label';
 
 // ----------------------------------------------------------------------
@@ -19,10 +21,7 @@ export function SignalActivationCard({ activation, selected, onClick }: Props) {
 
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return '—';
-    if (dateStr.length === 8) {
-      return `${dateStr.slice(4, 6)}/${dateStr.slice(6, 8)}`;
-    }
-    return dateStr.slice(0, 10);
+    return fmtTradeDate(dateStr, 'MM/DD');
   };
 
   return (

@@ -15,6 +15,8 @@ import Typography from '@mui/material/Typography';
 
 import { useRouter } from 'src/routes/hooks';
 
+import { fmtTradeDate } from 'src/utils/format-time';
+
 import { listPortfolios } from 'src/api/portfolio';
 import { activateSignal, deactivateSignal, listSignalActivations } from 'src/api/signal';
 
@@ -119,10 +121,7 @@ export function StrategySignalCard({ strategyId, strategyName }: Props) {
 
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return '—';
-    if (dateStr.length === 8) {
-      return `${dateStr.slice(0, 4)}-${dateStr.slice(4, 6)}-${dateStr.slice(6, 8)}`;
-    }
-    return dateStr.slice(0, 10);
+    return fmtTradeDate(dateStr);
   };
 
   return (

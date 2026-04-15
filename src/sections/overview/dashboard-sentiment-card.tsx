@@ -9,7 +9,6 @@ import Stack from '@mui/material/Stack';
 import Skeleton from '@mui/material/Skeleton';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
-import LinearProgress from '@mui/material/LinearProgress';
 
 import { fetchSentiment } from 'src/api/market';
 
@@ -48,18 +47,15 @@ export function DashboardSentimentCard() {
   const flatCount = data?.flat ?? 0;
   const total = riseCount + fallCount + flatCount;
   const risePercent = total > 0 ? Math.round((riseCount / total) * 100) : 0;
+  const flatPercent = total > 0 ? Math.round((flatCount / total) * 100) : 0;
+  const fallPercent = total > 0 ? 100 - risePercent - flatPercent : 0;
 
   return (
     <Card sx={{ height: '100%' }}>
       <CardContent>
-        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
-          <Typography variant="h6">市场情绪</Typography>
-          {data?.tradeDate && (
-            <Typography variant="caption" sx={{ color: 'text.disabled' }}>
-              {data.tradeDate}
-            </Typography>
-          )}
-        </Stack>
+        <Typography variant="h6" sx={{ mb: 2 }}>
+          市场情绪
+        </Typography>
 
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
@@ -116,24 +112,44 @@ export function DashboardSentimentCard() {
               </Box>
             </Stack>
 
-            {/* 红绿比例条 */}
+            {/* 涨/平/跌三段比例条 */}
             <Box sx={{ mb: 1.5 }}>
-              <LinearProgress
-                variant="determinate"
-                value={risePercent}
+              <Box
                 sx={{
+                  display: 'flex',
                   height: 10,
                   borderRadius: 5,
-                  bgcolor: 'success.lighter',
-                  '& .MuiLinearProgress-bar': { bgcolor: 'error.main', borderRadius: 5 },
+                  overflow: 'hidden',
+                  bgcolor: 'divider',
                 }}
-              />
+              >
+                <Box
+                  sx={{ width: `${risePercent}%`, bgcolor: 'error.main', transition: 'width 0.4s' }}
+                />
+                <Box
+                  sx={{
+                    width: `${flatPercent}%`,
+                    bgcolor: 'text.disabled',
+                    transition: 'width 0.4s',
+                  }}
+                />
+                <Box
+                  sx={{
+                    width: `${fallPercent}%`,
+                    bgcolor: 'success.main',
+                    transition: 'width 0.4s',
+                  }}
+                />
+              </Box>
               <Stack direction="row" justifyContent="space-between" sx={{ mt: 0.5 }}>
                 <Typography variant="caption" sx={{ color: 'error.main' }}>
                   {risePercent}% 上涨
                 </Typography>
+                <Typography variant="caption" sx={{ color: 'text.disabled' }}>
+                  {flatPercent}% 平盘
+                </Typography>
                 <Typography variant="caption" sx={{ color: 'success.main' }}>
-                  {100 - risePercent}% 下跌
+                  {fallPercent}% 下跌
                 </Typography>
               </Stack>
             </Box>

@@ -14,6 +14,7 @@ const { mockUseRouteError } = vi.hoisted(() => ({
 
 // Keep the real isRouteErrorResponse; only mock useRouteError
 vi.mock('react-router', async (importOriginal) => {
+  // eslint-disable-next-line @typescript-eslint/consistent-type-imports
   const actual = await importOriginal<typeof import('react-router')>();
   return { ...actual, useRouteError: () => mockUseRouteError() };
 });

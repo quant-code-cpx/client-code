@@ -47,13 +47,18 @@ export function DashboardChangeDistribution() {
   const distribution = data?.distribution ?? [];
 
   const barColors = distribution.map((d) => {
+    // Overflow-down label, e.g. "<-10%" or "≤-10%"
+    if (d.label.startsWith('<') && d.label.includes('-')) return theme.palette.success.main;
+    // Standard negative bracket
     if (/^-\d/.test(d.label)) return theme.palette.success.main;
+    // Flat bracket
     if (d.label === '0~1') return theme.palette.text.disabled;
+    // Overflow-up label, e.g. ">10%" or "≥10%", and all positive brackets
     return theme.palette.error.main;
   });
 
   const chartOptions = useChart({
-    chart: { type: 'bar' },
+    chart: { type: 'bar', selection: { enabled: false } },
     plotOptions: {
       bar: { distributed: true, borderRadius: 2, columnWidth: '90%' },
     },
@@ -63,7 +68,7 @@ export function DashboardChangeDistribution() {
       categories: distribution.map((d) => d.label),
       labels: { rotate: -45, style: { fontSize: '10px' } },
     },
-    tooltip: { shared: false, intersect: true },
+    tooltip: { shared: false, intersect: false },
   });
 
   const series = [{ name: '家数', data: distribution.map((d) => d.count) }];
@@ -106,7 +111,12 @@ export function DashboardChangeDistribution() {
             <Typography variant="body2">暂无数据</Typography>
           </Box>
         ) : (
-          <Chart type="bar" series={series} options={chartOptions} sx={{ height: 220 }} />
+          <Chart
+            type="bar"
+            series={series}
+            options={chartOptions}
+            sx={{ height: 220, '& svg': { outline: 'none' } }}
+          />
         )}
       </CardContent>
     </Card>

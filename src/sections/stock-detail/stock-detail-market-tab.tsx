@@ -1,5 +1,6 @@
 import type { StockChartItem, StockMoneyFlowData, StockTodayFlowData } from 'src/api/stock';
 
+import dayjs from 'dayjs';
 import { useRef, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
@@ -22,6 +23,7 @@ import TableContainer from '@mui/material/TableContainer';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
 import { fPctChg, fWanYuan } from 'src/utils/format-number';
+import { fmtTradeDate as fmtD } from 'src/utils/format-time';
 
 import { stockDetailApi } from 'src/api/stock';
 
@@ -32,18 +34,6 @@ declare global {
   interface Window {
     ApexCharts?: { exec(chartId: string, fn: string, ...args: unknown[]): unknown };
   }
-}
-
-/**
- * Format trade-date string to YYYY-MM-DD.
- * Handles: YYYYMMDD (8 chars), YYYY-MM-DD, and ISO datetime (2025-12-24T00:00:00.000Z).
- */
-function fmtD(d: string): string {
-  if (!d) return d;
-  if (d.length === 8) return `${d.slice(0, 4)}-${d.slice(4, 6)}-${d.slice(6, 8)}`;
-  // ISO datetime: take the date part before 'T'
-  if (d.includes('T')) return d.slice(0, 10);
-  return d;
 }
 
 /** Safe wrapper for ApexCharts.exec (chart may not be mounted yet) */
@@ -341,9 +331,7 @@ export function StockDetailMarketTab({ tsCode }: Props) {
     try {
       // endDate = 最旧一条数据日期的前一天（YYYYMMDD 格式）
       const oldest = items[0].tradeDate;
-      const d = new Date(`${oldest.slice(0, 4)}-${oldest.slice(4, 6)}-${oldest.slice(6, 8)}`);
-      d.setDate(d.getDate() - 1);
-      const endDate = d.toISOString().slice(0, 10).replace(/-/g, '');
+      const endDate = dayjs(oldest, 'YYYYMMDD').subtract(1, 'day').format('YYYYMMDD');
 
       const data = await stockDetailApi.chart({ tsCode, period, adjustType, limit: 100, endDate });
       if (!data.items.length) {

@@ -37,15 +37,15 @@ main.tsx → app.tsx (ThemeProvider + RouterProvider)
 
 ## File Naming & Directory Conventions
 
-| File type           | Convention                        | Example                         |
-| ------------------- | --------------------------------- | ------------------------------- |
-| React components    | kebab-case `.tsx`                 | `user-table-row.tsx`            |
-| Type definitions    | `types.ts` per component folder   | `label/types.ts`                |
-| CSS class name maps | `classes.ts` per component folder | `label/classes.ts`              |
-| Barrel exports      | `index.ts` per folder             | `label/index.ts`                |
-| Hooks               | `use-*.ts`                        | `use-chart.ts`, `use-router.ts` |
-| Utils               | kebab-case `.ts`                  | `format-time.ts`                |
-| Navigation configs  | `nav-config-*.tsx` in `layouts/`  | `nav-config-dashboard.tsx`      |
+| File type           | Convention                                     | Example                                 |
+| ------------------- | ---------------------------------------------- | --------------------------------------- |
+| React components    | kebab-case `.tsx`                              | `user-table-row.tsx`                    |
+| Type definitions    | `types.ts` per component folder                | `label/types.ts`                        |
+| CSS class name maps | `classes.ts` per component folder              | `label/classes.ts`                      |
+| Barrel exports      | `index.ts` per folder                          | `label/index.ts`                        |
+| Hooks               | `use-*.ts`                                     | `use-chart.ts`, `use-router.ts`         |
+| Utils               | kebab-case `.ts`                               | `format-time.ts`                        |
+| Navigation configs  | `nav-config-*.tsx` in `layouts/`               | `nav-config-dashboard.tsx`              |
 | **Test files**      | `__tests__/<模块名>.test.{ts,tsx}` in same dir | `utils/__tests__/format-number.test.ts` |
 
 ---
@@ -858,7 +858,7 @@ const color = flowColor(data.netAmount); // flowColor 接受 number | null
    - `src/pages/<feature>.tsx` — 薄页面容器
    - `src/routes/sections.tsx` — 注册懒加载路由
    - `src/layouts/nav-config-dashboard.tsx` — 添加导航项
-3. 代码完成后，**必须运行 `npm run build` 并修复全部报错**（见下方「构建验证」章节）。
+3. 代码完成后，**按「代码修改后验证流程」章节的步骤逐一验证并修复所有问题**。
 4. 构建通过后，立即进入阶段三。
 
 ---
@@ -894,16 +894,41 @@ const color = flowColor(data.netAmount); // flowColor 接受 number | null
 
 ---
 
-## 功能开发完成后的构建验证（必须执行）
+## 代码修改后验证流程（必须执行，顺序不可颠倒）
 
-每次基于需求文档完成一个功能模块的开发后，**必须运行 `npm run build` 并修复全部报错**，才能认为任务完成。
+**每次修改或新增 `.ts` / `.tsx` 文件后，必须按以下顺序验证，全部通过才能认为任务完成：**
+
+### 第一步：ESLint（以此为准）
 
 ```bash
-npm run build
+node_modules/.bin/eslint "src/**/*.{ts,tsx}"
 ```
 
-IDE 的 TypeScript 检查无法捕获所有错误，实际 `tsc && vite build` 流水线会额外发现：
+退出码 `0` 且无任何输出 = 干净。可自动修复部分问题：
 
+```bash
+node_modules/.bin/eslint --fix "src/**/*.{ts,tsx}"
+```
+
+常见 ESLint 警告及修复方式（项目实际遇到的问题）：
+
+| 警告                                                                  | 修复方式                                                                                                                      |
+| --------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `@typescript-eslint/no-unused-vars`                                   | 删除未用变量/函数，或用 `_` 前缀标记有意忽略                                                                                  |
+| `unused-imports/no-unused-imports`                                    | 删除对应 import 语句（包括级联删除：删函数后其 import 可能也变成无用 import）                                                 |
+| `react-hooks/exhaustive-deps` — unnecessary dep                       | 从 `useCallback`/`useMemo` 的 deps 数组中删除未在函数体内使用的变量                                                           |
+| `react-hooks/exhaustive-deps` — change every render                   | 将 `result?.xxx ?? []` 等每次渲染都会产生新引用的表达式提取为独立的 `useMemo`                                                 |
+| `@typescript-eslint/consistent-type-imports`（测试文件 vi.mock 内部） | 在 `importOriginal<typeof import('...')>()` 上方添加 `// eslint-disable-next-line @typescript-eslint/consistent-type-imports` |
+
+### 第二步：yarn build（以此为最终权威）
+
+```bash
+yarn build
+```
+
+IDE 的 TypeScript 检查无法捕获所有错误，`tsc && vite build` 流水线额外发现：
+
+- **`null` 未保护**（TS18047）：将 API 类型字段改为 `| null` 后，所有用该字段做算术（`-`、`+`、`.toFixed()`、sort comparator）的地方必须同步加 `?? 0` 兜底
 - **图标未注册**（TS2820）：使用了 `src/components/iconify/icon-sets.ts` 中不存在的图标名 → 在 `icon-sets.ts` 末尾追加对应的 SVG entry
 - **类型字段缺失**（TS2339）：视图中访问了 API 类型里未声明的字段 → 在 `src/api/*.ts` 对应类型中补充该字段
 - **ESLint 导入排序**（`perfectionist/sort-imports`）：新文件的 import 顺序不符合规范 → 批量自动修复：`npx eslint --fix src/sections/<模块>/`
@@ -911,9 +936,9 @@ IDE 的 TypeScript 检查无法捕获所有错误，实际 `tsc && vite build` �
 **流程**：
 
 1. 完成功能代码
-2. 运行 `npm run build`
-3. 若有报错，按上述类型逐一修复
-4. 重新运行 `npm run build`，确认 `✓ built in ...` 成功输出
+2. 运行 `node_modules/.bin/eslint "src/**/*.{ts,tsx}"` → 修复全部警告
+3. 运行 `yarn build` → 修复全部报错
+4. 重新运行 `yarn build`，确认 `✓ built in ...` 成功输出
 5. 任务完成
 
 ---
@@ -1003,10 +1028,10 @@ src/
 
 **命名规则：**
 
-| 测试类型 | 文件名格式 | 示例 |
-| -------- | ---------- | ---- |
-| 单元测试 | `<模块名>.test.ts` | `format-number.test.ts` |
-| 组件测试 | `<组件名>.test.tsx` | `label.test.tsx` |
+| 测试类型 | 文件名格式          | 示例                    |
+| -------- | ------------------- | ----------------------- |
+| 单元测试 | `<模块名>.test.ts`  | `format-number.test.ts` |
+| 组件测试 | `<组件名>.test.tsx` | `label.test.tsx`        |
 
 测试文件内 import 源文件时使用**相对路径 `../`**（因为 `__tests__/` 是子目录）：
 

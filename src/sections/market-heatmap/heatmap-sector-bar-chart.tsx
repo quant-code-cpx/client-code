@@ -1,6 +1,6 @@
 import type { HeatmapSectorSummary } from 'src/api/market';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
@@ -11,8 +11,6 @@ import CardContent from '@mui/material/CardContent';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
-import { fetchHeatmapData } from 'src/api/market';
-
 import { Chart, useChart } from 'src/components/chart';
 
 // ----------------------------------------------------------------------
@@ -20,31 +18,14 @@ import { Chart, useChart } from 'src/components/chart';
 type Mode = 'pct' | 'count';
 
 type Props = {
-  tradeDate?: string;
+  sectors: HeatmapSectorSummary[];
+  loading: boolean;
+  error: string;
 };
 
-export function HeatmapSectorBarChart({ tradeDate }: Props) {
+export function HeatmapSectorBarChart({ sectors, loading, error }: Props) {
   const theme = useTheme();
-  const [sectors, setSectors] = useState<HeatmapSectorSummary[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   const [mode, setMode] = useState<Mode>('pct');
-
-  useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      setError('');
-      try {
-        const result = await fetchHeatmapData({ trade_date: tradeDate });
-        setSectors(result.sectors ?? []);
-      } catch {
-        setError('行业涨跌数据加载失败');
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, [tradeDate]);
 
   // --- pct mode: sorted by pctChg desc ---
   const sortedByPct = [...sectors].sort((a, b) => b.pctChg - a.pctChg);
@@ -66,7 +47,6 @@ export function HeatmapSectorBarChart({ tradeDate }: Props) {
     xaxis: {
       categories: sortedByPct.map((s) => s.industry),
       labels: {
-         
         formatter: (v: any) => `${Number(v).toFixed(1)}%`,
       },
     },

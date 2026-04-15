@@ -9,6 +9,8 @@ import Skeleton from '@mui/material/Skeleton';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 
+import { fmtTradeDate } from 'src/utils/format-time';
+
 import { fetchHsgtFlow } from 'src/api/market';
 
 import { Chart, useChart } from 'src/components/chart';
@@ -21,10 +23,7 @@ function toYi(v: number): number {
 }
 
 function fmtDate(d: string): string {
-  if (!d) return d;
-  if (d.length === 8) return `${d.slice(4, 6)}-${d.slice(6, 8)}`;
-  if (d.includes('T')) return d.slice(5, 10);
-  return d.slice(5, 10);
+  return fmtTradeDate(d, 'MM-DD');
 }
 
 // ----------------------------------------------------------------------

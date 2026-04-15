@@ -5,16 +5,11 @@ import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 
+import { fmtTradeDate as fmtD } from 'src/utils/format-time';
+
 import { Chart, useChart } from 'src/components/chart';
 
 // ----------------------------------------------------------------------
-
-function fmtD(d: string): string {
-  if (!d) return d;
-  if (d.length === 8) return `${d.slice(0, 4)}-${d.slice(4, 6)}-${d.slice(6, 8)}`;
-  if (d.includes('T')) return d.slice(0, 10);
-  return d;
-}
 
 type Props = { history: MarginDailyItem[] };
 
@@ -23,7 +18,10 @@ function RzyeTrendChart({ history }: Props) {
     {
       name: '融资余额',
       type: 'area',
-      data: history.map((d) => ({ x: fmtD(d.tradeDate), y: d.rzye != null ? d.rzye / 10000 : null })),
+      data: history.map((d) => ({
+        x: fmtD(d.tradeDate),
+        y: d.rzye != null ? d.rzye / 10000 : null,
+      })),
     },
     {
       name: '收盘价',
@@ -60,7 +58,9 @@ function RzyeTrendChart({ history }: Props) {
 
   return (
     <Stack spacing={1}>
-      <Typography variant="body2" color="text.secondary">融资余额趋势</Typography>
+      <Typography variant="body2" color="text.secondary">
+        融资余额趋势
+      </Typography>
       <Chart type="area" series={seriesRzye} options={options} sx={{ height: 220 }} />
     </Stack>
   );
@@ -101,7 +101,9 @@ function RzjmreChart({ history }: Props) {
 
   return (
     <Stack spacing={1}>
-      <Typography variant="body2" color="text.secondary">融资净买入</Typography>
+      <Typography variant="body2" color="text.secondary">
+        融资净买入
+      </Typography>
       <Chart type="bar" series={series} options={options} sx={{ height: 200 }} />
     </Stack>
   );
@@ -111,7 +113,10 @@ function RqyeChart({ history }: Props) {
   const series = [
     {
       name: '融券余额',
-      data: history.map((d) => ({ x: fmtD(d.tradeDate), y: d.rqye != null ? d.rqye / 10000 : null })),
+      data: history.map((d) => ({
+        x: fmtD(d.tradeDate),
+        y: d.rqye != null ? d.rqye / 10000 : null,
+      })),
     },
   ];
 
@@ -133,7 +138,9 @@ function RqyeChart({ history }: Props) {
 
   return (
     <Stack spacing={1}>
-      <Typography variant="body2" color="text.secondary">融券余额趋势</Typography>
+      <Typography variant="body2" color="text.secondary">
+        融券余额趋势
+      </Typography>
       <Chart type="line" series={series} options={options} sx={{ height: 200 }} />
     </Stack>
   );
@@ -144,7 +151,9 @@ export function AnalysisMarginChart({ history }: Props) {
     return (
       <Card>
         <CardContent>
-          <Typography color="text.secondary" textAlign="center" py={4}>暂无融资融券历史数据</Typography>
+          <Typography color="text.secondary" textAlign="center" py={4}>
+            暂无融资融券历史数据
+          </Typography>
         </CardContent>
       </Card>
     );
@@ -153,7 +162,9 @@ export function AnalysisMarginChart({ history }: Props) {
   return (
     <Card>
       <CardContent>
-        <Typography variant="subtitle1" sx={{ mb: 2 }}>融资融券趋势</Typography>
+        <Typography variant="subtitle1" sx={{ mb: 2 }}>
+          融资融券趋势
+        </Typography>
         <Stack spacing={3}>
           <RzyeTrendChart history={history} />
           <RzjmreChart history={history} />

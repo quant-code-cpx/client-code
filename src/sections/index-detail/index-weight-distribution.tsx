@@ -27,13 +27,13 @@ export function IndexWeightDistribution({ constituents }: Props) {
   const { pieLabels, pieSeries } = useMemo(() => {
     if (!constituents.length) return { pieLabels: [] as string[], pieSeries: [] as number[] };
 
-    const sorted = [...constituents].sort((a, b) => b.weight - a.weight);
+    const sorted = [...constituents].sort((a, b) => (b.weight ?? 0) - (a.weight ?? 0));
     const top10 = sorted.slice(0, 10);
     const rest = sorted.slice(10);
-    const restTotal = rest.reduce((acc, c) => acc + c.weight, 0);
+    const restTotal = rest.reduce((acc, c) => acc + (c.weight ?? 0), 0);
 
     const labels = top10.map((c) => c.name);
-    const series = top10.map((c) => Number(c.weight.toFixed(2)));
+    const series = top10.map((c) => Number((c.weight ?? 0).toFixed(2)));
 
     if (restTotal > 0) {
       labels.push('其他');
@@ -51,7 +51,7 @@ export function IndexWeightDistribution({ constituents }: Props) {
     constituents.forEach((c) => {
       const key = c.industry || '未知';
       const prev = map.get(key) ?? { weight: 0, count: 0 };
-      map.set(key, { weight: prev.weight + c.weight, count: prev.count + 1 });
+      map.set(key, { weight: prev.weight + (c.weight ?? 0), count: prev.count + 1 });
     });
 
     return [...map.entries()]

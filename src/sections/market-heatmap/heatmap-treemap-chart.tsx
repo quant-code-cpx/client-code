@@ -1,6 +1,6 @@
 import type { HeatmapStockItem, HeatmapDataResult } from 'src/api/market';
 
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useEffect } from 'react';
 
 import Card from '@mui/material/Card';
 import Chip from '@mui/material/Chip';
@@ -10,8 +10,6 @@ import { useTheme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 
-import { fetchHeatmapData } from 'src/api/market';
-
 import { Chart, useChart } from 'src/components/chart';
 
 // ----------------------------------------------------------------------
@@ -20,7 +18,9 @@ type SizeBy = 'totalMv' | 'circMv' | 'amount';
 type GroupBy = 'industry' | 'market';
 
 type Props = {
-  tradeDate?: string;
+  data: HeatmapDataResult | null;
+  loading: boolean;
+  error: string;
   groupBy: GroupBy;
   sizeBy: SizeBy;
 };
@@ -45,30 +45,14 @@ type ApexChartCtx = {
   w: { config: { series: Array<{ data: Array<{ x: string }> }> } };
 };
 
-export function HeatmapTreemapChart({ tradeDate, groupBy, sizeBy }: Props) {
+export function HeatmapTreemapChart({ data, loading, error, groupBy, sizeBy }: Props) {
   const theme = useTheme();
-  const [data, setData] = useState<HeatmapDataResult | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
   // keep a ref to all stocks so custom tooltip can look up pctChg/close/amount
   const stocksRef = useRef<HeatmapStockItem[]>([]);
 
   useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      setError('');
-      try {
-        const result = await fetchHeatmapData({ trade_date: tradeDate });
-        setData(result);
-        stocksRef.current = result.stocks;
-      } catch {
-        setError('热力图数据加载失败');
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, [tradeDate]);
+    stocksRef.current = data?.stocks ?? [];
+  }, [data]);
 
   // Build series for ApexCharts treemap
   const series = (() => {

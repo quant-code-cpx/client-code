@@ -18,12 +18,7 @@ import { AnalysisTechnicalIndicatorCard } from './analysis-technical-indicator-c
 
 // ----------------------------------------------------------------------
 
-export function fmtD(d: string): string {
-  if (!d) return d;
-  if (d.length === 8) return `${d.slice(0, 4)}-${d.slice(4, 6)}-${d.slice(6, 8)}`;
-  if (d.includes('T')) return d.slice(0, 10);
-  return d;
-}
+export { fmtTradeDate as fmtD } from 'src/utils/format-time';
 
 type Props = { tsCode: string };
 
@@ -73,7 +68,9 @@ export function AnalysisTechnicalTab({ tsCode }: Props) {
         <ToggleButtonGroup
           value={period}
           exclusive
-          onChange={(_, v) => { if (v) setPeriod(v); }}
+          onChange={(_, v) => {
+            if (v) setPeriod(v);
+          }}
           size="small"
         >
           <ToggleButton value="D">日线</ToggleButton>
@@ -84,7 +81,9 @@ export function AnalysisTechnicalTab({ tsCode }: Props) {
         <ToggleButtonGroup
           value={days}
           exclusive
-          onChange={(_, v) => { if (v) setDays(v); }}
+          onChange={(_, v) => {
+            if (v) setDays(v);
+          }}
           size="small"
         >
           <ToggleButton value={60}>60日</ToggleButton>

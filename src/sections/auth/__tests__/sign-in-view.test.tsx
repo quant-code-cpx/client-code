@@ -203,6 +203,7 @@ describe('SignInView', () => {
 
   describe('表单提交', () => {
     async function fillAndSubmit(
+      // eslint-disable-next-line @typescript-eslint/consistent-type-imports
       user: ReturnType<(typeof import('@testing-library/user-event'))['default']['setup']>
     ) {
       await waitFor(() => expect(mockGetCaptcha).toHaveBeenCalled());

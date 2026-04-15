@@ -42,10 +42,6 @@ export function FactorDetailParamsPanel({
   onAnalyze,
   loading,
 }: FactorDetailParamsPanelProps) {
-  // Convert YYYYMMDD <-> YYYY-MM-DD for HTML date input
-  const toInputDate = (d: string) => dayjs(d, 'YYYYMMDD').format('YYYY-MM-DD');
-  const fromInputDate = (d: string) => dayjs(d).format('YYYYMMDD');
-
   return (
     <Card sx={{ mb: 3 }}>
       <CardContent>

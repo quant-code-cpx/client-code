@@ -32,17 +32,6 @@ type Props = {
   onTsCodeChange: (v: string | undefined) => void;
 };
 
-/** 将 YYYYMMDD ↔ yyyy-MM-dd */
-function toInputDate(yyyymmdd: string): string {
-  if (yyyymmdd.length === 8) {
-    return `${yyyymmdd.slice(0, 4)}-${yyyymmdd.slice(4, 6)}-${yyyymmdd.slice(6, 8)}`;
-  }
-  return yyyymmdd;
-}
-function fromInputDate(input: string): string {
-  return input.replace(/-/g, '');
-}
-
 export function AlertCalendarFilters({
   startDate,
   endDate,

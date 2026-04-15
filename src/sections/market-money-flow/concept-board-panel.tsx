@@ -266,7 +266,7 @@ export function ConceptBoardPanel({ tradeDate }: Props) {
     } finally {
       setLoading(false);
     }
-  }, [tradeDate, keyword]);
+  }, [keyword]);
 
   useEffect(() => {
     fetchData();

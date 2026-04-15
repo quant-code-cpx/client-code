@@ -10,6 +10,8 @@ import Typography from '@mui/material/Typography';
 import LinearProgress from '@mui/material/LinearProgress';
 import TableContainer from '@mui/material/TableContainer';
 
+import { fmtTradeDate } from 'src/utils/format-time';
+
 import { Label } from 'src/components/label';
 
 // ----------------------------------------------------------------------
@@ -19,12 +21,7 @@ type Props = {
 };
 
 export function SignalHistoryGroup({ group }: Props) {
-  const formatDate = (dateStr: string) => {
-    if (dateStr.length === 8) {
-      return `${dateStr.slice(0, 4)}-${dateStr.slice(4, 6)}-${dateStr.slice(6, 8)}`;
-    }
-    return dateStr;
-  };
+  const formatDate = fmtTradeDate;
 
   const actionColorMap = {
     BUY: 'success' as const,

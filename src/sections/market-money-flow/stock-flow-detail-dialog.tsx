@@ -11,19 +11,14 @@ import Typography from '@mui/material/Typography';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogContent from '@mui/material/DialogContent';
 
+import { fmtTradeDate as fmtDate } from 'src/utils/format-time';
+
 import { fetchStockFlowDetail } from 'src/api/market';
 
 import { Iconify } from 'src/components/iconify';
 import { Chart, useChart } from 'src/components/chart';
 
 // ----------------------------------------------------------------------
-
-function fmtDate(d: string): string {
-  if (!d) return d;
-  if (d.length === 8) return `${d.slice(0, 4)}-${d.slice(4, 6)}-${d.slice(6, 8)}`;
-  if (d.includes('T')) return d.slice(0, 10);
-  return d;
-}
 
 /** 千元 → 万元 */
 function toWan(qianYuan: number): number {
@@ -56,8 +51,7 @@ export function StockFlowDetailDialog({ open, tsCode, stockName, onClose }: Prop
         if (!cancelled) setData(res?.data ?? []);
       })
       .catch((err: unknown) => {
-        if (!cancelled)
-          setError(err instanceof Error ? err.message : '加载个股资金明细失败');
+        if (!cancelled) setError(err instanceof Error ? err.message : '加载个股资金明细失败');
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -116,7 +110,11 @@ export function StockFlowDetailDialog({ open, tsCode, stockName, onClose }: Prop
       </DialogTitle>
 
       <DialogContent>
-        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
 
         {loading ? (
           <Skeleton variant="rectangular" height={320} />

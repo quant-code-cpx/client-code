@@ -10,18 +10,13 @@ import { useTheme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 
+import { fmtTradeDate as fmtDate } from 'src/utils/format-time';
+
 import { fetchSentimentTrend } from 'src/api/market';
 
 import { Chart, useChart } from 'src/components/chart';
 
 // ----------------------------------------------------------------------
-
-function fmtDate(d: string): string {
-  if (!d) return d;
-  if (d.length === 8) return `${d.slice(0, 4)}-${d.slice(4, 6)}-${d.slice(6, 8)}`;
-  if (d.includes('T')) return d.slice(0, 10);
-  return d;
-}
 
 // ----------------------------------------------------------------------
 
@@ -45,8 +40,7 @@ export function MarketSentimentTrendChart({ tradeDate }: Props) {
         if (!cancelled) setData(res?.data ?? []);
       })
       .catch((err: unknown) => {
-        if (!cancelled)
-          setError(err instanceof Error ? err.message : '加载涨跌家数趋势失败');
+        if (!cancelled) setError(err instanceof Error ? err.message : '加载涨跌家数趋势失败');
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -82,7 +76,11 @@ export function MarketSentimentTrendChart({ tradeDate }: Props) {
           涨跌家数趋势
         </Typography>
 
-        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
 
         {loading ? (
           <Skeleton variant="rectangular" height={280} />

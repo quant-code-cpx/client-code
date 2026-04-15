@@ -21,6 +21,8 @@ import TableContainer from '@mui/material/TableContainer';
 
 import { useRouter } from 'src/routes/hooks';
 
+import { fmtTradeDate as fmtDate } from 'src/utils/format-time';
+
 import { fetchRotationDetail, type RotationDetailResult } from 'src/api/market';
 
 import { Iconify } from 'src/components/iconify';
@@ -28,13 +30,6 @@ import { Scrollbar } from 'src/components/scrollbar';
 import { Chart, useChart } from 'src/components/chart';
 
 // ----------------------------------------------------------------------
-
-function fmtDate(d: string): string {
-  if (!d) return d;
-  if (d.length === 8) return `${d.slice(0, 4)}-${d.slice(4, 6)}-${d.slice(6, 8)}`;
-  if (d.includes('T')) return d.slice(0, 10);
-  return d;
-}
 
 function toYi(wan: number): number {
   return +(wan / 10000).toFixed(2);

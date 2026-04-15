@@ -14,6 +14,8 @@ import CardContent from '@mui/material/CardContent';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
+import { fmtTradeDate as fmtDate } from 'src/utils/format-time';
+
 import { fetchIndexTrend } from 'src/api/market';
 
 import { Chart, useChart } from 'src/components/chart';
@@ -38,13 +40,6 @@ const PERIODS: Array<{ value: NonNullable<IndexTrendQuery['period']>; label: str
 ];
 
 // ----------------------------------------------------------------------
-
-function fmtDate(d: string): string {
-  if (!d) return d;
-  if (d.length === 8) return `${d.slice(0, 4)}-${d.slice(4, 6)}-${d.slice(6, 8)}`;
-  if (d.includes('T')) return d.slice(0, 10);
-  return d;
-}
 
 // ----------------------------------------------------------------------
 
@@ -71,8 +66,7 @@ export function MarketIndexTrendChart({ tradeDate: _tradeDate }: Props) {
         if (!cancelled) setData(res?.data ?? []);
       })
       .catch((err: unknown) => {
-        if (!cancelled)
-          setError(err instanceof Error ? err.message : '加载指数走势失败');
+        if (!cancelled) setError(err instanceof Error ? err.message : '加载指数走势失败');
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -141,7 +135,11 @@ export function MarketIndexTrendChart({ tradeDate: _tradeDate }: Props) {
           ))}
         </Tabs>
 
-        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
 
         {loading ? (
           <Skeleton variant="rectangular" height={320} />
