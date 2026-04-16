@@ -108,8 +108,9 @@ export function computeDistribution(items: HeatmapItem[]): HeatmapDistribution {
     else if (pct < -0.1) downCount += 1;
     else flatCount += 1;
 
-    // Map pct to bucket index: floor(pct + 10), clamped to [0, 20]
-    const idx = Math.max(0, Math.min(20, Math.floor(pct + 10)));
+  // Map pct to bucket index: floor(pct + 10), clamped to [0, 20]
+  // +10 shifts the [-10, +10] range to [0, 20]; clamp handles outliers beyond ±10%
+  const idx = Math.max(0, Math.min(20, Math.floor(pct + 10)));
     buckets[idx] += 1;
   }
 

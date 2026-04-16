@@ -33,6 +33,10 @@ type ApexChartCtx = {
   w: { config: { series: Array<{ data: Array<{ x: string }> }> } };
 };
 
+function getStockDisplayName(item: HeatmapItem): string {
+  return item.name ?? item.tsCode;
+}
+
 function formatLabel(pctChg: number | null): string {
   const v = pctChg ?? 0;
   return `${v >= 0 ? '+' : ''}${v.toFixed(1)}%`;
@@ -64,7 +68,7 @@ export function HeatmapTreemapChart({ items, distribution, loading, error, group
       return Object.entries(grouped).map(([grp, stocks]) => ({
         name: grp,
         data: stocks.map((s) => ({
-          x: s.name ?? s.tsCode,
+          x: getStockDisplayName(s),
           y: Math.max(s[sizeBy] ?? 1, 1),
           fillColor: getHeatmapColor(s.pctChg),
         })),
@@ -76,7 +80,7 @@ export function HeatmapTreemapChart({ items, distribution, loading, error, group
       {
         name: '成分股',
         data: sorted.map((s) => ({
-          x: s.name ?? s.tsCode,
+          x: getStockDisplayName(s),
           y: Math.max(s[sizeBy] ?? 1, 1),
           fillColor: getHeatmapColor(s.pctChg),
         })),
@@ -100,7 +104,7 @@ export function HeatmapTreemapChart({ items, distribution, loading, error, group
       enabled: true,
       style: { fontSize: '11px', fontWeight: 500, colors: ['#fff'] },
       formatter(text: string) {
-        const item = itemsRef.current.find((s) => (s.name ?? s.tsCode) === text);
+        const item = itemsRef.current.find((s) => getStockDisplayName(s) === text);
         if (!item) return text;
         return [text, formatLabel(item.pctChg)];
       },
@@ -110,14 +114,14 @@ export function HeatmapTreemapChart({ items, distribution, loading, error, group
       custom({ seriesIndex, dataPointIndex, w }: ApexChartCtx) {
         const point = w.config.series[seriesIndex]?.data[dataPointIndex];
         if (!point) return '';
-        const item = itemsRef.current.find((s) => (s.name ?? s.tsCode) === point.x);
+        const item = itemsRef.current.find((s) => getStockDisplayName(s) === point.x);
         if (!item) return `<div style="padding:8px"><b>${point.x}</b></div>`;
         const pnlColor = (item.pctChg ?? 0) >= 0 ? '#F44336' : '#2E7D32';
         const amtBillion = ((item.amount ?? 0) / 100000).toFixed(2);
         const group = item.groupName ?? item.industry ?? '-';
         return `
           <div style="padding:10px 14px;font-size:13px;line-height:1.8">
-            <b style="font-size:14px">${item.name ?? item.tsCode}</b>
+            <b style="font-size:14px">${getStockDisplayName(item)}</b>
             <span style="color:#9e9e9e;font-size:11px"> ${item.tsCode}</span><br/>
             <span style="color:#9e9e9e">分组：</span>${group}<br/>
             <span style="color:${pnlColor};font-weight:600">${formatLabel(item.pctChg)}</span><br/>
