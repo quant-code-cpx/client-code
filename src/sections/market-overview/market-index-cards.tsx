@@ -12,9 +12,11 @@ import CardContent from '@mui/material/CardContent';
 
 import { RouterLink } from 'src/routes/components';
 
-import { fPctChg, fQianYuan } from 'src/utils/format-number';
+import { fQianYuan } from 'src/utils/format-number';
 
 import { fetchIndexQuote } from 'src/api/market';
+
+import { ColoredNumber } from 'src/components/colored-number';
 
 // ----------------------------------------------------------------------
 
@@ -35,11 +37,6 @@ type Props = {
 
 function IndexCard({ item }: { item: IndexQuoteItem }) {
   const name = INDEX_NAME_MAP[item.tsCode] ?? item.tsCode;
-  const pct = item.pctChg ?? 0;
-
-  let pctColor: 'error.main' | 'success.main' | 'text.secondary' = 'text.secondary';
-  if (pct > 0) pctColor = 'error.main';
-  else if (pct < 0) pctColor = 'success.main';
 
   return (
     <Card
@@ -57,12 +54,13 @@ function IndexCard({ item }: { item: IndexQuoteItem }) {
         </Typography>
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
-          <Typography variant="body2" fontWeight="fontWeightMedium" sx={{ color: pctColor }}>
-            {item.pctChg != null ? fPctChg(item.pctChg) : '-'}
-          </Typography>
-          <Typography variant="caption" sx={{ color: pctColor }}>
-            {item.change != null ? `${item.change > 0 ? '+' : ''}${item.change.toFixed(2)}` : '-'}
-          </Typography>
+          <ColoredNumber
+            value={item.pctChg}
+            format="percent"
+            variant="body2"
+            sx={{ fontWeight: 'fontWeightMedium' }}
+          />
+          <ColoredNumber value={item.change} format="change" variant="caption" />
         </Box>
 
         <Typography variant="caption" sx={{ color: 'text.secondary', mt: 0.5, display: 'block' }}>

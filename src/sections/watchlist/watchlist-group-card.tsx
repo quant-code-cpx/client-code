@@ -9,9 +9,8 @@ import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import CardActionArea from '@mui/material/CardActionArea';
 
-import { fPctChg } from 'src/utils/format-number';
-
 import { Iconify } from 'src/components/iconify';
+import { ColoredNumber } from 'src/components/colored-number';
 
 // ----------------------------------------------------------------------
 
@@ -32,10 +31,6 @@ export function WatchlistGroupCard({
 }: WatchlistGroupCardProps) {
   const [hovered, setHovered] = useState(false);
   const { summary } = watchlist;
-
-  const avgPctChg = summary?.avgPctChg ?? 0;
-  const pctChgColor =
-    avgPctChg > 0 ? 'error.main' : avgPctChg < 0 ? 'success.main' : 'text.secondary';
 
   return (
     <Card
@@ -96,9 +91,12 @@ export function WatchlistGroupCard({
         )}
 
         {summary && (
-          <Typography variant="body2" sx={{ mt: 0.5, color: pctChgColor, fontWeight: 600 }}>
-            {fPctChg(summary.avgPctChg)}
-          </Typography>
+          <ColoredNumber
+            value={summary.avgPctChg}
+            format="percent"
+            variant="body2"
+            sx={{ mt: 0.5, fontWeight: 600 }}
+          />
         )}
       </CardActionArea>
 
