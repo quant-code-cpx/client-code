@@ -13,19 +13,29 @@ import { searchStocks } from 'src/api/stock';
 
 // ----------------------------------------------------------------------
 
+/** Create a minimal StockSearchItem from just a tsCode string (for controlled value hydration). */
+export function stockItemFromCode(tsCode: string | null | undefined): StockSearchItem | null {
+  if (!tsCode) return null;
+  return { tsCode, symbol: '', name: '', market: null, industry: null, listStatus: null };
+}
+
 type Props = {
   onChange: (item: StockSearchItem | null) => void;
   value?: StockSearchItem | null;
+  label?: string;
   placeholder?: string;
   fullWidth?: boolean;
+  disabled?: boolean;
   sx?: SxProps;
 };
 
 export function StockSearchAutocomplete({
   onChange,
   value = null,
+  label,
   placeholder = '输入股票代码或名称...',
   fullWidth = false,
+  disabled = false,
   sx,
 }: Props) {
   const [options, setOptions] = useState<StockSearchItem[]>([]);
@@ -77,6 +87,7 @@ export function StockSearchAutocomplete({
       onChange={(_, newValue) => onChange(newValue)}
       options={options}
       loading={loading}
+      disabled={disabled}
       filterOptions={(x) => x}
       getOptionLabel={(option) => `${option.tsCode} ${option.name}`}
       isOptionEqualToValue={(option, val) => option.tsCode === val.tsCode}
@@ -86,6 +97,7 @@ export function StockSearchAutocomplete({
         <TextField
           {...params}
           size="small"
+          label={label}
           placeholder={placeholder}
           slotProps={{
             input: {

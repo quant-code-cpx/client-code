@@ -1,4 +1,5 @@
 import type { Watchlist } from 'src/api/watchlist';
+import type { StockSearchItem } from 'src/api/stock';
 import type { PortfolioListItem } from 'src/api/portfolio';
 import type { PriceAlertRule, PriceAlertRuleType, CreatePriceRuleBody } from 'src/api/alert';
 
@@ -23,6 +24,8 @@ import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import { alertApi } from 'src/api/alert';
 import { getWatchlists } from 'src/api/watchlist';
 import { listPortfolios } from 'src/api/portfolio';
+
+import { stockItemFromCode, StockSearchAutocomplete } from 'src/components/stock-search-autocomplete';
 
 // ----------------------------------------------------------------------
 
@@ -56,7 +59,7 @@ export function AlertPriceRuleDialog({ open, rule, onClose, onSaved }: Props) {
   const isEdit = !!rule;
 
   const [sourceMode, setSourceMode] = useState<SourceMode>('stock');
-  const [tsCode, setTsCode] = useState('');
+  const [selectedStock, setSelectedStock] = useState<StockSearchItem | null>(null);
   const [watchlistId, setWatchlistId] = useState<number | ''>('');
   const [portfolioId, setPortfolioId] = useState<string>('');
   const [ruleType, setRuleType] = useState<PriceAlertRuleType>('PCT_CHANGE_UP');
@@ -82,7 +85,7 @@ export function AlertPriceRuleDialog({ open, rule, onClose, onSaved }: Props) {
   useEffect(() => {
     if (open) {
       if (rule) {
-        setTsCode(rule.tsCode ?? '');
+        setSelectedStock(stockItemFromCode(rule.tsCode));
         setRuleType(rule.ruleType);
         setThreshold(rule.threshold !== null ? String(rule.threshold) : '');
         setMemo(rule.memo ?? '');
@@ -98,7 +101,7 @@ export function AlertPriceRuleDialog({ open, rule, onClose, onSaved }: Props) {
         }
       } else {
         setSourceMode('stock');
-        setTsCode('');
+        setSelectedStock(null);
         setWatchlistId('');
         setPortfolioId('');
         setRuleType('PCT_CHANGE_UP');
@@ -112,8 +115,8 @@ export function AlertPriceRuleDialog({ open, rule, onClose, onSaved }: Props) {
   const needsThreshold = !NO_THRESHOLD_TYPES.includes(ruleType);
 
   const handleSubmit = async () => {
-    if (sourceMode === 'stock' && !tsCode.trim()) {
-      setError('请输入股票代码');
+    if (sourceMode === 'stock' && !selectedStock) {
+      setError('请选择股票');
       return;
     }
     if (sourceMode === 'watchlist' && !watchlistId) {
@@ -139,7 +142,7 @@ export function AlertPriceRuleDialog({ open, rule, onClose, onSaved }: Props) {
       };
 
       if (sourceMode === 'stock') {
-        body.tsCode = tsCode.trim().toUpperCase();
+        body.tsCode = selectedStock!.tsCode;
       } else if (sourceMode === 'watchlist') {
         body.watchlistId = watchlistId as number;
       } else {
@@ -148,7 +151,7 @@ export function AlertPriceRuleDialog({ open, rule, onClose, onSaved }: Props) {
 
       if (isEdit && rule) {
         await alertApi.updatePriceRule(rule.id, {
-          tsCode: sourceMode === 'stock' ? tsCode.trim().toUpperCase() : undefined,
+          tsCode: sourceMode === 'stock' ? selectedStock!.tsCode : undefined,
           ruleType: body.ruleType,
           threshold: needsThreshold ? Number(threshold) : null,
           memo: body.memo,
@@ -190,12 +193,11 @@ export function AlertPriceRuleDialog({ open, rule, onClose, onSaved }: Props) {
           )}
 
           {sourceMode === 'stock' && (
-            <TextField
+            <StockSearchAutocomplete
               label="股票代码"
-              required
-              value={tsCode}
-              onChange={(e) => setTsCode(e.target.value)}
-              placeholder="如 000001.SZ"
+              value={selectedStock}
+              onChange={(item) => setSelectedStock(item)}
+              fullWidth
               disabled={submitting}
             />
           )}

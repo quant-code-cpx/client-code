@@ -1,1 +1,1 @@
-export { StockSearchAutocomplete } from './stock-search-autocomplete';
+export { stockItemFromCode, StockSearchAutocomplete } from './stock-search-autocomplete';

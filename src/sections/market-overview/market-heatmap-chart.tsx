@@ -1,3 +1,4 @@
+import type { Dayjs } from 'dayjs';
 import type { HeatmapDataResult, HeatmapIndustryItem } from 'src/api/heatmap';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -8,10 +9,10 @@ import Chip from '@mui/material/Chip';
 import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import Skeleton from '@mui/material/Skeleton';
-import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 import ToggleButton from '@mui/material/ToggleButton';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
 import { fetchHeatmapData, fetchHeatmapSnapshotHistory } from 'src/api/heatmap';
@@ -157,10 +158,12 @@ type Props = {
 
 export function MarketHeatmapChart({ tradeDate }: Props) {
   const [viewMode, setViewMode] = useState<ViewMode>('live');
-  const [snapshotDate, setSnapshotDate] = useState('');
+  const [snapshotDate, setSnapshotDate] = useState<Dayjs | null>(null);
   const [data, setData] = useState<HeatmapDataResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  const snapshotDateStr = snapshotDate ? snapshotDate.format('YYYYMMDD') : '';
 
   const load = useCallback(
     (mode: ViewMode, date: string) => {
@@ -192,9 +195,9 @@ export function MarketHeatmapChart({ tradeDate }: Props) {
   );
 
   useEffect(() => {
-    const cleanup = load(viewMode, snapshotDate);
+    const cleanup = load(viewMode, snapshotDateStr);
     return cleanup;
-  }, [load, viewMode, snapshotDate, tradeDate]);
+  }, [load, viewMode, snapshotDateStr, tradeDate]);
 
   const handleViewModeChange = useCallback(
     (_: React.MouseEvent<HTMLElement>, val: ViewMode | null) => {
@@ -243,12 +246,15 @@ export function MarketHeatmapChart({ tradeDate }: Props) {
             </ToggleButtonGroup>
 
             {viewMode === 'snapshot' && (
-              <TextField
-                size="small"
-                label="日期（YYYYMMDD）"
+              <DatePicker
+                label="快照日期"
                 value={snapshotDate}
-                onChange={(e) => setSnapshotDate(e.target.value)}
-                sx={{ width: 170 }}
+                onChange={(newVal) => setSnapshotDate(newVal)}
+                format="YYYY-MM-DD"
+                slotProps={{
+                  textField: { size: 'small', sx: { width: 190 } },
+                  field: { clearable: true },
+                }}
               />
             )}
           </Stack>
