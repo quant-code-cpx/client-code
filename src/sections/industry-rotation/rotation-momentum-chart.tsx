@@ -127,10 +127,13 @@ export function RotationMomentumChart({ tradeDate, period, onSectorClick }: Prop
         const rankColor =
           item.rankChange > 0 ? '#22C55E' : item.rankChange < 0 ? '#FF5630' : '#919EAB';
         const arrow = item.rankChange > 0 ? '↑' : item.rankChange < 0 ? '↓' : '—';
+        const amountStr =
+          item.amount != null ? `成交额：${(item.amount / 10000).toFixed(2)} 亿<br/>` : '';
         return [
           '<div style="padding:8px 12px;font-size:13px;">',
           `<b>${item.name}</b><br/>`,
           `动量值：<span style="color:${item.momentum >= 0 ? '#FF5630' : '#22C55E'}">${sign}${item.momentum.toFixed(2)}%</span><br/>`,
+          amountStr,
           `当前排名：${item.rank} <span style="color:${rankColor}">${arrow} ${Math.abs(item.rankChange)}</span><br/>`,
           `上期排名：${item.prevRank}`,
           '</div>',

@@ -396,6 +396,8 @@ export type MomentumRankingItem = {
   rank: number;
   prevRank: number;
   rankChange: number;
+  /** 成交额（万元） */
+  amount?: number;
 };
 
 export type MomentumRankingResult = {
@@ -642,4 +644,23 @@ export type DailyInfoResult = {
 
 export function fetchDailyInfo(query?: MarketQueryBase) {
   return apiClient.post<DailyInfoResult>('/api/market/daily-info', query ?? {});
+}
+
+// ── 板块日线 (ths_daily) ──────────────────────────────────
+
+export type SectorDailyItem = {
+  tsCode: string;
+  name: string;
+  tradeDate: string;
+  open: number;
+  close: number;
+  high: number;
+  low: number;
+  pctChg: number;
+  vol: number;
+  amount: number;
+};
+
+export function fetchSectorDaily(query?: { trade_date?: string; sector_type?: string }) {
+  return apiClient.post<SectorDailyItem[]>('/api/market/sector-daily', query ?? {});
 }

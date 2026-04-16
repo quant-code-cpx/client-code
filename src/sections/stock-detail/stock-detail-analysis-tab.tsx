@@ -10,6 +10,7 @@ import { AnalysisMarginTab } from './analysis/analysis-margin-tab';
 import { AnalysisTimingTab } from './analysis/analysis-timing-tab';
 import { AnalysisPatternTab } from './analysis/analysis-pattern-tab';
 import { AnalysisTechnicalTab } from './analysis/analysis-technical-tab';
+import { AnalysisInstitutionalTab } from './analysis/analysis-institutional-tab';
 import { AnalysisMainMoneyFlowTab } from './analysis/analysis-main-money-flow-tab';
 import { AnalysisRelativeStrengthTab } from './analysis/analysis-relative-strength-tab';
 
@@ -25,6 +26,7 @@ const SUB_TABS = [
   { value: 'margin', label: '融资融券' },
   { value: 'relativeStrength', label: '相对强弱' },
   { value: 'pattern', label: '形态识别' },
+  { value: 'institutional', label: '机构持仓' },
 ];
 
 export function StockDetailAnalysisTab({ tsCode }: Props) {
@@ -53,6 +55,7 @@ export function StockDetailAnalysisTab({ tsCode }: Props) {
       {subTab === 'margin' && <AnalysisMarginTab tsCode={tsCode} />}
       {subTab === 'relativeStrength' && <AnalysisRelativeStrengthTab tsCode={tsCode} />}
       {subTab === 'pattern' && <AnalysisPatternTab tsCode={tsCode} />}
+      {subTab === 'institutional' && <AnalysisInstitutionalTab tsCode={tsCode} />}
     </Stack>
   );
 }

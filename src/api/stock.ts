@@ -857,6 +857,30 @@ export type StockConceptsData = {
   concepts: StockConceptItem[];
 };
 
+// ========== 分钟级 K 线 ==========
+
+export type MinuteKlineFreq = '1min' | '5min' | '15min' | '30min' | '60min';
+
+export type MinuteKlineQuery = {
+  ts_code: string;
+  freq: MinuteKlineFreq;
+  trade_date?: string;
+};
+
+export type MinuteKlineItem = {
+  datetime: string;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  vol: number;
+  amount: number;
+};
+
+export function fetchMinuteKline(query: MinuteKlineQuery) {
+  return apiClient.post<MinuteKlineItem[]>('/api/stock/minute-kline', query);
+}
+
 // ─── 扩展 stockApi / stockDetailApi ──────────────────────────────────
 
 export function searchStocks(query: { keyword: string; limit?: number }) {
