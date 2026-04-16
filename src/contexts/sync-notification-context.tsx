@@ -86,6 +86,9 @@ export function useSyncNotification(): SyncNotificationContextValue {
 // ----------------------------------------------------------------------
 
 // 最多保留的通知条数
+// NOTE: 重连时 socket.ts 的 replay 机制会重新触发已缓存的事件，
+// 这些 replayed 事件会经由相同的 handler 正常处理，确保状态一致。
+// 由于每条通知使用 generateId() 生成唯一 id，replay 不会产生重复通知。
 const MAX_NOTIFICATIONS = 50;
 
 let _notifCounter = 0;

@@ -4,7 +4,14 @@ import { apiClient } from './client';
 // 类型定义
 // ----------------------------------------------------------------------
 
-export type EventType = 'DISCLOSURE' | 'FLOAT' | 'DIVIDEND' | 'FORECAST';
+export type EventType =
+  | 'DISCLOSURE'
+  | 'FLOAT'
+  | 'DIVIDEND'
+  | 'FORECAST'
+  | 'IPO'
+  | 'CONVERTIBLE'
+  | 'SHAREHOLDER';
 
 export type CalendarEvent = {
   date: string;

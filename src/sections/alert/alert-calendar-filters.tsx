@@ -14,12 +14,15 @@ import { stockItemFromCode, StockSearchAutocomplete } from 'src/components/stock
 const EVENT_TYPE_OPTIONS: Array<{
   value: EventType;
   label: string;
-  color: 'info' | 'warning' | 'success' | 'error';
+  color: 'primary' | 'secondary' | 'info' | 'warning' | 'success' | 'error';
 }> = [
-  { value: 'DISCLOSURE', label: '财报披露', color: 'info' },
+  { value: 'DISCLOSURE', label: '财报披露', color: 'primary' },
   { value: 'FLOAT', label: '限售解禁', color: 'warning' },
   { value: 'DIVIDEND', label: '除权除息', color: 'success' },
-  { value: 'FORECAST', label: '业绩预告', color: 'error' },
+  { value: 'FORECAST', label: '业绩预告', color: 'info' },
+  { value: 'IPO', label: '新股发行', color: 'secondary' },
+  { value: 'CONVERTIBLE', label: '可转债发行', color: 'secondary' },
+  { value: 'SHAREHOLDER', label: '股东增减持', color: 'error' },
 ];
 
 type Props = {

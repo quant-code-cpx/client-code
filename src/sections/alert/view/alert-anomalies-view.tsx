@@ -17,6 +17,8 @@ import { alertApi } from 'src/api/alert';
 import { getSocket } from 'src/lib/socket';
 import { DashboardContent } from 'src/layouts/dashboard';
 
+import { ExportButton } from 'src/components/export-button';
+
 import { AlertScanButton } from '../alert-scan-button';
 import { AlertAnomalyStats } from '../alert-anomaly-stats';
 import { AlertAnomalyTable } from '../alert-anomaly-table';
@@ -86,7 +88,10 @@ export function AlertAnomaliesView() {
     <DashboardContent maxWidth="xl">
       <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
         <Typography variant="h4">异动监控</Typography>
-        <AlertScanButton type="anomaly" onScanned={fetchAnomalies} />
+        <Stack direction="row" spacing={1} alignItems="center">
+          <ExportButton source="alert_anomalies" />
+          <AlertScanButton type="anomaly" onScanned={fetchAnomalies} />
+        </Stack>
       </Stack>
 
       {error && (
