@@ -16,6 +16,7 @@ import { MarketHeatmapChart } from '../market-heatmap-chart';
 import { MarketSentimentCard } from '../market-sentiment-card';
 import { MarketValuationCard } from '../market-valuation-card';
 import { MarketIndexTrendChart } from '../market-index-trend-chart';
+import { MarketDailySnapshotCard } from '../market-daily-snapshot-card';
 import { MarketSectorRankingChart } from '../market-sector-ranking-chart';
 import { MarketValuationTrendChart } from '../market-valuation-trend-chart';
 import { MarketSentimentTrendChart } from '../market-sentiment-trend-chart';
@@ -59,6 +60,11 @@ export function MarketOverviewView() {
       </Stack>
 
       <Grid container spacing={3}>
+        {/* ── 当日全景快照 ── */}
+        <Grid size={{ xs: 12 }}>
+          <MarketDailySnapshotCard tradeDate={tradeDateStr} />
+        </Grid>
+
         {/* ── 指数卡片 ── */}
         <MarketIndexCards tradeDate={tradeDateStr} />
 
