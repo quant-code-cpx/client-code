@@ -165,8 +165,11 @@ export function HeatmapScatterChart({
                 ${topInflows
                   .slice(0, 5)
                   .map(
-                    (s, i) =>
-                      `<div>${i + 1}. ${s.name} <span style="color:#F44336">+${((s.mainNetInflow ?? 0) / 10000).toFixed(2)}亿</span></div>`
+                    (s, i) => {
+                      const inflowYi = toYi(s.mainNetInflow ?? 0);
+                      const inflowColor = inflowYi >= 0 ? '#F44336' : '#4CAF50';
+                      return `<div>${i + 1}. ${s.name} <span style="color:${inflowColor}">${inflowYi >= 0 ? '+' : ''}${inflowYi.toFixed(2)}亿</span></div>`;
+                    }
                   )
                   .join('')}
               </div>

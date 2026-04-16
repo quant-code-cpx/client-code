@@ -119,7 +119,7 @@ export function HeatmapSectorDetailDialog({ open, onClose, sector, stocks, stock
                       {fmtPct(s.pctChg)}
                     </TableCell>
                     <TableCell align="right">
-                      {((s.amount ?? 0) / 100000).toFixed(2)}
+                      {toYi((s.amount ?? 0) / 10)}
                     </TableCell>
                   </TableRow>
                 ))}
