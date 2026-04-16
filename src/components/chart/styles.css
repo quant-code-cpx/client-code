@@ -1,5 +1,13 @@
 .apexcharts-canvas {
   /**
+  * Remove browser default focus outline on SVG and child elements
+  */
+  &:focus,
+  svg:focus,
+  & *:focus {
+    outline: none;
+  }
+  /**
   * Tooltip
   */
   .apexcharts-tooltip {
