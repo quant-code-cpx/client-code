@@ -1,5 +1,5 @@
-import type { HeatmapItem, HeatmapDistribution, HeatmapSectorSummary } from 'src/api/heatmap';
 import type { Dayjs } from 'dayjs';
+import type { HeatmapItem, HeatmapDistribution, HeatmapSectorSummary } from 'src/api/heatmap';
 
 import { useState, useEffect, useCallback } from 'react';
 

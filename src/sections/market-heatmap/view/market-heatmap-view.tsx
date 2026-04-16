@@ -1,7 +1,7 @@
+import type { Dayjs } from 'dayjs';
 import type { HeatmapItem, HeatmapDistribution, HeatmapSectorSummary } from 'src/api/heatmap';
 
 import { useMemo, useState, useEffect, useCallback } from 'react';
-import type { Dayjs } from 'dayjs';
 
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
@@ -41,7 +41,7 @@ const GROUP_OPTIONS: GroupConfig[] = [
 
 export function MarketHeatmapView() {
   const [tradeDate, setTradeDate] = useState<Dayjs | null>(null);
-  const [groupBy, setGroupBy] = useState<GroupBy>('industry');
+  const [groupBy, setGroupBy] = useState<GroupByOption>('industry');
   const [sizeBy, setSizeBy] = useState<SizeBy>('totalMv');
 
   const tradeDateStr = tradeDate ? tradeDate.format('YYYYMMDD') : undefined;
@@ -60,7 +60,7 @@ export function MarketHeatmapView() {
       setError('');
       try {
         const result = await fetchHeatmapData({
-          trade_date: tradeDate || undefined,
+          trade_date: tradeDateStr,
           group_by: cfg.groupBy,
           index_code: cfg.indexCode,
         });
@@ -72,7 +72,7 @@ export function MarketHeatmapView() {
       }
     };
     load();
-  }, [tradeDate, groupBy]);
+  }, [tradeDateStr, groupBy]);
 
   const handleGroupByChange = useCallback(
     (_e: React.MouseEvent<HTMLElement>, v: GroupByOption | null) => {

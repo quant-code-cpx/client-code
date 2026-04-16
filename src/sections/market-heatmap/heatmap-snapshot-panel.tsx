@@ -1,5 +1,5 @@
-import type { HeatmapSnapshotHistoryResult } from 'src/api/heatmap';
 import type { Dayjs } from 'dayjs';
+import type { HeatmapSnapshotHistoryResult } from 'src/api/heatmap';
 
 import { useState } from 'react';
 
