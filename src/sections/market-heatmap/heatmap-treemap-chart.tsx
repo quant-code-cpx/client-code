@@ -1,6 +1,6 @@
-import type { HeatmapStockItem, HeatmapDataResult } from 'src/api/market';
+import type { HeatmapItem, HeatmapDistribution } from 'src/api/heatmap';
 
-import { useRef, useEffect } from 'react';
+import { useRef, useMemo, useEffect } from 'react';
 
 import Card from '@mui/material/Card';
 import Chip from '@mui/material/Chip';
@@ -12,32 +12,20 @@ import CardContent from '@mui/material/CardContent';
 
 import { Chart, useChart } from 'src/components/chart';
 
+import { getHeatmapColor } from './utils';
+
 // ----------------------------------------------------------------------
 
-type SizeBy = 'totalMv' | 'circMv' | 'amount';
-type GroupBy = 'industry' | 'market';
+type SizeBy = 'totalMv' | 'amount';
 
 type Props = {
-  data: HeatmapDataResult | null;
+  items: HeatmapItem[];
+  distribution: HeatmapDistribution | null;
   loading: boolean;
   error: string;
-  groupBy: GroupBy;
+  groupBy: string;
   sizeBy: SizeBy;
 };
-
-function getHeatmapColor(pctChg: number): string {
-  if (pctChg <= -7) return '#00695C';
-  if (pctChg <= -3) return '#2E7D32';
-  if (pctChg <= -0.5) return '#66BB6A';
-  if (pctChg < 0.5) return '#757575';
-  if (pctChg < 3) return '#EF9A9A';
-  if (pctChg < 7) return '#F44336';
-  return '#B71C1C';
-}
-
-function formatLabel(pctChg: number): string {
-  return `${pctChg >= 0 ? '+' : ''}${pctChg.toFixed(1)}%`;
-}
 
 type ApexChartCtx = {
   seriesIndex: number;
@@ -45,54 +33,60 @@ type ApexChartCtx = {
   w: { config: { series: Array<{ data: Array<{ x: string }> }> } };
 };
 
-export function HeatmapTreemapChart({ data, loading, error, groupBy, sizeBy }: Props) {
+function getStockDisplayName(item: HeatmapItem): string {
+  return item.name ?? item.tsCode;
+}
+
+function formatLabel(pctChg: number | null): string {
+  const v = pctChg ?? 0;
+  return `${v >= 0 ? '+' : ''}${v.toFixed(1)}%`;
+}
+
+export function HeatmapTreemapChart({ items, distribution, loading, error, groupBy, sizeBy }: Props) {
   const theme = useTheme();
-  // keep a ref to all stocks so custom tooltip can look up pctChg/close/amount
-  const stocksRef = useRef<HeatmapStockItem[]>([]);
+  const itemsRef = useRef<HeatmapItem[]>([]);
 
   useEffect(() => {
-    stocksRef.current = data?.stocks ?? [];
-  }, [data]);
+    itemsRef.current = items;
+  }, [items]);
 
-  // Build series for ApexCharts treemap
-  const series = (() => {
-    if (!data?.stocks?.length) return [];
+  const series = useMemo(() => {
+    if (!items.length) return [];
 
-    // Sort by sizeBy desc, take top 300 to keep performance reasonable
-    const topStocks = [...data.stocks]
+    // Sort by sizeBy desc, take top 300 for performance
+    const sorted = [...items]
       .sort((a, b) => (b[sizeBy] ?? 0) - (a[sizeBy] ?? 0))
       .slice(0, 300);
 
     if (groupBy === 'industry') {
-      // Group by industry
-      const grouped: Record<string, HeatmapStockItem[]> = {};
-      for (const s of topStocks) {
-        const key = s.industry || '其他';
+      const grouped: Record<string, HeatmapItem[]> = {};
+      for (const s of sorted) {
+        const key = s.groupName ?? s.industry ?? '其他';
         if (!grouped[key]) grouped[key] = [];
         grouped[key].push(s);
       }
-      return Object.entries(grouped).map(([industry, stocks]) => ({
-        name: industry,
+      return Object.entries(grouped).map(([grp, stocks]) => ({
+        name: grp,
         data: stocks.map((s) => ({
-          x: s.name,
+          x: getStockDisplayName(s),
           y: Math.max(s[sizeBy] ?? 1, 1),
           fillColor: getHeatmapColor(s.pctChg),
         })),
       }));
     }
 
-    // Flat: single series
+    // Index mode: single series
     return [
       {
-        name: '全市场',
-        data: topStocks.map((s) => ({
-          x: s.name,
+        name: '成分股',
+        data: sorted.map((s) => ({
+          x: getStockDisplayName(s),
           y: Math.max(s[sizeBy] ?? 1, 1),
           fillColor: getHeatmapColor(s.pctChg),
         })),
       },
     ];
-  })();
+  }, [items, groupBy, sizeBy]);
 
   const chartOptions = useChart({
     chart: {
@@ -109,11 +103,10 @@ export function HeatmapTreemapChart({ data, loading, error, groupBy, sizeBy }: P
     dataLabels: {
       enabled: true,
       style: { fontSize: '11px', fontWeight: 500, colors: ['#fff'] },
-
-      formatter(text: string, _op: any) {
-        const stock = stocksRef.current.find((s) => s.name === text);
-        if (!stock) return text;
-        return [text, formatLabel(stock.pctChg)];
+      formatter(text: string) {
+        const item = itemsRef.current.find((s) => getStockDisplayName(s) === text);
+        if (!item) return text;
+        return [text, formatLabel(item.pctChg)];
       },
       offsetY: -4,
     },
@@ -121,66 +114,56 @@ export function HeatmapTreemapChart({ data, loading, error, groupBy, sizeBy }: P
       custom({ seriesIndex, dataPointIndex, w }: ApexChartCtx) {
         const point = w.config.series[seriesIndex]?.data[dataPointIndex];
         if (!point) return '';
-        const stock = stocksRef.current.find((s) => s.name === point.x);
-        if (!stock) return `<div style="padding:8px"><b>${point.x}</b></div>`;
-        const pnlColor = stock.pctChg >= 0 ? '#F44336' : '#2E7D32';
-        const amtBillion = (stock.amount / 100000).toFixed(2);
+        const item = itemsRef.current.find((s) => getStockDisplayName(s) === point.x);
+        if (!item) return `<div style="padding:8px"><b>${point.x}</b></div>`;
+        const pnlColor = (item.pctChg ?? 0) >= 0 ? '#F44336' : '#2E7D32';
+        const amtBillion = ((item.amount ?? 0) / 100000).toFixed(2);
+        const group = item.groupName ?? item.industry ?? '-';
         return `
           <div style="padding:10px 14px;font-size:13px;line-height:1.8">
-            <b style="font-size:14px">${stock.name}</b> <span style="color:#9e9e9e;font-size:11px">${stock.tsCode}</span><br/>
-            <span style="color:#9e9e9e">行业：</span>${stock.industry}<br/>
-            <span style="color:#9e9e9e">收盘价：</span>${stock.close.toFixed(2)}<br/>
-            <span style="color:${pnlColor};font-weight:600">${formatLabel(stock.pctChg)}</span><br/>
+            <b style="font-size:14px">${getStockDisplayName(item)}</b>
+            <span style="color:#9e9e9e;font-size:11px"> ${item.tsCode}</span><br/>
+            <span style="color:#9e9e9e">分组：</span>${group}<br/>
+            <span style="color:${pnlColor};font-weight:600">${formatLabel(item.pctChg)}</span><br/>
             <span style="color:#9e9e9e">成交额：</span>${amtBillion} 亿
           </div>`;
       },
     },
     legend: { show: false },
-    // colors required by useChart but overridden per-point via fillColor
     colors: [theme.palette.primary.main],
   });
-
-  // Summary chips
-  const dist = data?.distribution;
 
   return (
     <Card>
       <CardContent>
         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.5 }}>
-          <Typography variant="h6">
-            市场热力图
-            {data?.tradeDate && (
-              <Typography component="span" variant="body2" color="text.secondary" sx={{ ml: 1 }}>
-                {data.tradeDate}
-              </Typography>
-            )}
-          </Typography>
+          <Typography variant="h6">市场热力图</Typography>
 
-          {dist && (
+          {distribution && (
             <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
               <Chip
                 size="small"
-                label={`涨停 ${dist.limitUp}`}
+                label={`涨停 ${distribution.limitUp}`}
                 sx={{ bgcolor: '#B71C1C', color: '#fff', fontWeight: 700, fontSize: 11 }}
               />
               <Chip
                 size="small"
-                label={`上涨 ${dist.upCount}`}
+                label={`上涨 ${distribution.upCount}`}
                 sx={{ bgcolor: '#F44336', color: '#fff', fontWeight: 700, fontSize: 11 }}
               />
               <Chip
                 size="small"
-                label={`平盘 ${dist.flatCount}`}
+                label={`平盘 ${distribution.flatCount}`}
                 sx={{ bgcolor: '#757575', color: '#fff', fontWeight: 700, fontSize: 11 }}
               />
               <Chip
                 size="small"
-                label={`下跌 ${dist.downCount}`}
+                label={`下跌 ${distribution.downCount}`}
                 sx={{ bgcolor: '#2E7D32', color: '#fff', fontWeight: 700, fontSize: 11 }}
               />
               <Chip
                 size="small"
-                label={`跌停 ${dist.limitDown}`}
+                label={`跌停 ${distribution.limitDown}`}
                 sx={{ bgcolor: '#00695C', color: '#fff', fontWeight: 700, fontSize: 11 }}
               />
             </Stack>

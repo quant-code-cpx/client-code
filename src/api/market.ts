@@ -478,69 +478,6 @@ export function fetchRotationDetail(query: { industry: string; days?: number }) 
   return apiClient.post<RotationDetailResult>('/api/industry-rotation/detail', query);
 }
 
-// ---------- Heatmap 市场热力图 ----------
-
-export type HeatmapStockItem = {
-  tsCode: string;
-  name: string;
-  industry: string;
-  pctChg: number;
-  totalMv: number;
-  circMv: number;
-  amount: number;
-  close: number;
-};
-
-export type HeatmapSectorSummary = {
-  industry: string;
-  pctChg: number;
-  upCount: number;
-  downCount: number;
-  flatCount: number;
-  totalAmount: number;
-};
-
-export type HeatmapDataResult = {
-  tradeDate: string;
-  stocks: HeatmapStockItem[];
-  sectors: HeatmapSectorSummary[];
-  distribution: {
-    limitUp: number;
-    limitDown: number;
-    upCount: number;
-    downCount: number;
-    flatCount: number;
-    ranges: Array<{ range: string; count: number }>;
-  };
-};
-
-export type HeatmapSnapshotTriggerResult = {
-  success: boolean;
-  message: string;
-  tradeDate: string;
-};
-
-export type HeatmapSnapshotHistoryResult = HeatmapDataResult & {
-  snapshotTime: string;
-  fromCache: boolean;
-};
-
-export function fetchHeatmapData(query?: {
-  trade_date?: string;
-  group_by?: 'industry' | 'index' | 'concept';
-  index_code?: string;
-}) {
-  return apiClient.post<HeatmapDataResult>('/api/heatmap/data', query ?? {});
-}
-
-export function triggerHeatmapSnapshot(query?: { trade_date?: string }) {
-  return apiClient.post<HeatmapSnapshotTriggerResult>('/api/heatmap/snapshot/trigger', query ?? {});
-}
-
-export function fetchHeatmapSnapshotHistory(query: { trade_date: string; group_by?: string }) {
-  return apiClient.post<HeatmapSnapshotHistoryResult>('/api/heatmap/snapshot/history', query);
-}
-
 // ─── 行业板块资金流向 ──────────────────────────────────
 
 export type SectorFlowItem = {

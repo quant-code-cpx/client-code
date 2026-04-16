@@ -1,4 +1,4 @@
-import type { HeatmapSectorSummary } from 'src/api/market';
+import type { HeatmapSectorSummary } from 'src/api/heatmap';
 
 import { useState } from 'react';
 
@@ -27,8 +27,8 @@ export function HeatmapSectorBarChart({ sectors, loading, error }: Props) {
   const theme = useTheme();
   const [mode, setMode] = useState<Mode>('pct');
 
-  // --- pct mode: sorted by pctChg desc ---
-  const sortedByPct = [...sectors].sort((a, b) => b.pctChg - a.pctChg);
+  // --- pct mode: sorted by avgPctChg desc ---
+  const sortedByPct = [...sectors].sort((a, b) => b.avgPctChg - a.avgPctChg);
 
   const pctOptions = useChart({
     chart: { type: 'bar', toolbar: { show: false } },
@@ -45,9 +45,9 @@ export function HeatmapSectorBarChart({ sectors, loading, error }: Props) {
       },
     },
     xaxis: {
-      categories: sortedByPct.map((s) => s.industry),
+      categories: sortedByPct.map((s) => s.groupName),
       labels: {
-        formatter: (v: any) => `${Number(v).toFixed(1)}%`,
+        formatter: (v: string) => `${Number(v).toFixed(1)}%`,
       },
     },
     yaxis: {
@@ -60,7 +60,7 @@ export function HeatmapSectorBarChart({ sectors, loading, error }: Props) {
     grid: { xaxis: { lines: { show: true } } },
   });
 
-  const pctSeries = [{ name: '涨跌幅', data: sortedByPct.map((s) => +s.pctChg.toFixed(2)) }];
+  const pctSeries = [{ name: '涨跌幅', data: sortedByPct.map((s) => +s.avgPctChg.toFixed(2)) }];
 
   // --- count mode: sorted by (upCount - downCount) desc ---
   const sortedByCount = [...sectors].sort(
@@ -73,7 +73,7 @@ export function HeatmapSectorBarChart({ sectors, loading, error }: Props) {
       bar: { horizontal: true, barHeight: '65%' },
     },
     colors: [theme.palette.error.main, theme.palette.success.main, theme.palette.grey[500]],
-    xaxis: { categories: sortedByCount.map((s) => s.industry) },
+    xaxis: { categories: sortedByCount.map((s) => s.groupName) },
     yaxis: { labels: { style: { fontSize: '11px' } } },
     legend: { position: 'top' },
     dataLabels: { enabled: false },

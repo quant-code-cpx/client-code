@@ -1,5 +1,5 @@
 import type { Dayjs } from 'dayjs';
-import type { HeatmapDataResult, HeatmapIndustryItem } from 'src/api/heatmap';
+import type { HeatmapItem, HeatmapDistribution, HeatmapSectorSummary } from 'src/api/heatmap';
 
 import { useState, useEffect, useCallback } from 'react';
 
@@ -19,6 +19,8 @@ import { fetchHeatmapData, fetchHeatmapSnapshotHistory } from 'src/api/heatmap';
 
 import { Chart, useChart } from 'src/components/chart';
 
+import { aggregateSectors, computeDistribution } from 'src/sections/market-heatmap/utils';
+
 // ── Color scale ranges (A-shares: red = up, green = down) ─────
 
 const PCT_RANGES = [
@@ -34,35 +36,41 @@ const PCT_RANGES = [
 // ── Stats chips ───────────────────────────────────────────────
 
 type StatsChipsProps = {
-  stats: HeatmapDataResult['stats'];
+  dist: HeatmapDistribution;
+  total: number;
 };
 
-function StatsChips({ stats }: StatsChipsProps) {
+function StatsChips({ dist, total }: StatsChipsProps) {
   return (
     <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
       <Chip
-        label={`涨停 ${stats.limitUp}`}
+        label={`涨停 ${dist.limitUp}`}
         size="small"
         sx={{ bgcolor: '#7A0000', color: '#fff', fontWeight: 700 }}
       />
       <Chip
-        label={`上涨 ${stats.risers}`}
+        label={`上涨 ${dist.upCount}`}
         size="small"
         sx={{ bgcolor: 'error.light', color: '#fff', fontWeight: 700 }}
       />
-      <Chip label={`平盘 ${stats.flat}`} size="small" variant="outlined" sx={{ fontWeight: 700 }} />
       <Chip
-        label={`下跌 ${stats.fallers}`}
+        label={`平盘 ${dist.flatCount}`}
+        size="small"
+        variant="outlined"
+        sx={{ fontWeight: 700 }}
+      />
+      <Chip
+        label={`下跌 ${dist.downCount}`}
         size="small"
         sx={{ bgcolor: 'success.light', color: '#fff', fontWeight: 700 }}
       />
       <Chip
-        label={`跌停 ${stats.limitDown}`}
+        label={`跌停 ${dist.limitDown}`}
         size="small"
         sx={{ bgcolor: '#003300', color: '#fff', fontWeight: 700 }}
       />
       <Chip
-        label={`共 ${stats.total} 只`}
+        label={`共 ${total} 只`}
         size="small"
         variant="outlined"
         sx={{ color: 'text.secondary' }}
@@ -74,15 +82,15 @@ function StatsChips({ stats }: StatsChipsProps) {
 // ── Treemap chart ─────────────────────────────────────────────
 
 type HeatmapTreemapProps = {
-  industries: HeatmapIndustryItem[];
+  sectors: HeatmapSectorSummary[];
 };
 
-function HeatmapTreemap({ industries }: HeatmapTreemapProps) {
+function HeatmapTreemap({ sectors }: HeatmapTreemapProps) {
   const series = [
     {
-      data: industries.map((ind) => ({
-        x: ind.industryName,
-        y: Math.round(ind.pctChgAvg * 100) / 100,
+      data: sectors.map((s) => ({
+        x: s.groupName,
+        y: Math.round(s.avgPctChg * 100) / 100,
       })),
     },
   ];
@@ -98,7 +106,6 @@ function HeatmapTreemap({ industries }: HeatmapTreemapProps) {
     dataLabels: {
       enabled: true,
       style: { fontSize: '12px', fontWeight: '600' },
-
       formatter: (_val: unknown, opts: any) => {
         const item = (
           opts?.w?.config?.series?.[opts.seriesIndex] as
@@ -120,14 +127,14 @@ function HeatmapTreemap({ industries }: HeatmapTreemapProps) {
         dataPointIndex: number;
         w: { config: { series: Array<{ data: Array<{ x: string; y: number }> }> } };
       }) => {
-        const ind = industries[dataPointIndex];
-        if (!ind) return '';
-        const sign = ind.pctChgAvg > 0 ? '+' : '';
+        const sec = sectors[dataPointIndex];
+        if (!sec) return '';
+        const sign = sec.avgPctChg > 0 ? '+' : '';
         return [
           '<div style="padding:8px 12px;font-size:13px;">',
-          `<b>${ind.industryName}</b><br/>`,
-          `平均涨跌：<span style="color:${ind.pctChgAvg >= 0 ? '#FF5630' : '#22C55E'}">${sign}${ind.pctChgAvg.toFixed(2)}%</span><br/>`,
-          `上涨：${ind.risers} 只 / 下跌：${ind.fallers} 只 / 共 ${ind.stockCount} 只`,
+          `<b>${sec.groupName}</b><br/>`,
+          `平均涨跌：<span style="color:${sec.avgPctChg >= 0 ? '#FF5630' : '#22C55E'}">${sign}${sec.avgPctChg.toFixed(2)}%</span><br/>`,
+          `上涨：${sec.upCount} 只 / 下跌：${sec.downCount} 只 / 共 ${sec.stockCount} 只`,
           '</div>',
         ].join('');
       },
@@ -135,7 +142,7 @@ function HeatmapTreemap({ industries }: HeatmapTreemapProps) {
     legend: { show: false },
   });
 
-  if (industries.length === 0) {
+  if (sectors.length === 0) {
     return (
       <Box sx={{ height: 400, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
@@ -159,7 +166,7 @@ type Props = {
 export function MarketHeatmapChart({ tradeDate }: Props) {
   const [viewMode, setViewMode] = useState<ViewMode>('live');
   const [snapshotDate, setSnapshotDate] = useState<Dayjs | null>(null);
-  const [data, setData] = useState<HeatmapDataResult | null>(null);
+  const [items, setItems] = useState<HeatmapItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -173,12 +180,12 @@ export function MarketHeatmapChart({ tradeDate }: Props) {
 
       const req =
         mode === 'snapshot' && date
-          ? fetchHeatmapSnapshotHistory({ trade_date: date })
+          ? fetchHeatmapSnapshotHistory({ trade_date: date }).then((res) => res.items)
           : fetchHeatmapData({ trade_date: tradeDate });
 
       req
         .then((res) => {
-          if (!cancelled) setData(res);
+          if (!cancelled) setItems(res);
         })
         .catch((err: unknown) => {
           if (!cancelled) setError(err instanceof Error ? err.message : '加载热力图数据失败');
@@ -206,10 +213,12 @@ export function MarketHeatmapChart({ tradeDate }: Props) {
     []
   );
 
+  const sectors = aggregateSectors(items);
+  const distribution = computeDistribution(items);
+
   return (
     <Card>
       <CardContent sx={{ p: 3 }}>
-        {/* Header */}
         <Stack
           direction={{ xs: 'column', sm: 'row' }}
           alignItems={{ sm: 'center' }}
@@ -219,15 +228,6 @@ export function MarketHeatmapChart({ tradeDate }: Props) {
         >
           <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
             市场热力图
-            {data?.tradeDate && (
-              <Typography
-                component="span"
-                variant="caption"
-                sx={{ ml: 1, color: 'text.secondary' }}
-              >
-                {data.tradeDate}
-              </Typography>
-            )}
           </Typography>
 
           <Stack direction="row" spacing={1.5} alignItems="center">
@@ -260,25 +260,22 @@ export function MarketHeatmapChart({ tradeDate }: Props) {
           </Stack>
         </Stack>
 
-        {/* Stats */}
-        {data?.stats && !loading && (
+        {items.length > 0 && !loading && (
           <Box sx={{ mb: 2 }}>
-            <StatsChips stats={data.stats} />
+            <StatsChips dist={distribution} total={items.length} />
           </Box>
         )}
 
-        {/* Error */}
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
             {error}
           </Alert>
         )}
 
-        {/* Treemap */}
         {loading ? (
           <Skeleton variant="rectangular" height={460} sx={{ borderRadius: 1 }} />
         ) : (
-          <HeatmapTreemap industries={data?.industries ?? []} />
+          <HeatmapTreemap sectors={sectors} />
         )}
       </CardContent>
     </Card>
