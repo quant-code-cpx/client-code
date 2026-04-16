@@ -83,6 +83,47 @@ export function aggregateSectors(items: HeatmapItem[]): HeatmapSectorSummary[] {
   return result;
 }
 
+// ── Scatter chart helpers ──────────────────────────────────────
+
+/**
+ * 根据行业资金净流入额返回气泡颜色。
+ * 净流入 → 红色系（深浅表示量级）
+ * 净流出 → 绿色系（深浅表示量级）
+ * 接近零 → 灰色
+ *
+ * @param netAmount 净流入金额（万元）
+ * @returns 十六进制颜色值
+ */
+export function getScatterColor(netAmount: number): string {
+  const yi = (netAmount ?? 0) / 10000;
+
+  if (Math.abs(yi) < 0.5) return '#9E9E9E';
+
+  if (yi > 0) {
+    if (yi >= 20) return '#B71C1C';
+    if (yi >= 10) return '#D32F2F';
+    if (yi >= 5) return '#F44336';
+    if (yi >= 2) return '#EF5350';
+    return '#EF9A9A';
+  }
+
+  const absYi = Math.abs(yi);
+  if (absYi >= 20) return '#1B5E20';
+  if (absYi >= 10) return '#2E7D32';
+  if (absYi >= 5) return '#4CAF50';
+  if (absYi >= 2) return '#66BB6A';
+  return '#A5D6A7';
+}
+
+/**
+ * 万元转亿元，保留指定小数位
+ */
+export function toYi(wan: number | null | undefined, decimals = 2): number {
+  return +((wan ?? 0) / 10000).toFixed(decimals);
+}
+
+// ── Distribution ──────────────────────────────────────────────
+
 /**
  * 从扁平 HeatmapItem[] 计算涨跌幅分布。
  * 以 1% 为步长生成 [-10, 10] 区间桶（共 21 个），
