@@ -138,3 +138,37 @@ export const alertApi = {
 
   scanAnomalies: () => apiClient.post<AnomalyScanResult>('/api/alert/anomalies/scan'),
 };
+
+// ── 涨跌停明细 (limit_list_d) ─────────────────────────────────
+
+export type LimitListItem = {
+  tradeDate: string;
+  tsCode: string;
+  stockName: string;
+  /** UP = 涨停, DOWN = 跌停 */
+  limitType: 'UP' | 'DOWN';
+  close: number;
+  pctChg: number;
+  /** 封单量（手） */
+  sealVolume: number;
+  /** 封单额（万元） */
+  sealAmount: number;
+  /** 连板天数（仅涨停有效） */
+  consecutiveDays: number;
+  /** 首次封板时间 */
+  firstSealTime: string | null;
+  /** 最后封板时间 */
+  lastSealTime: string | null;
+  /** 封板次数（开板回封计数） */
+  sealCount: number;
+};
+
+export type LimitListQuery = {
+  trade_date?: string;
+  limit_type?: 'UP' | 'DOWN';
+  min_consecutive?: number;
+};
+
+export function fetchLimitList(query?: LimitListQuery) {
+  return apiClient.post<LimitListItem[]>('/api/alert/limit-list', query ?? {});
+}

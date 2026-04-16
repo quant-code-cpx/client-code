@@ -476,6 +476,10 @@ export type ChipConcentration = {
   score: number | null;
   profitRatio: number | null;
   avgCost: number | null;
+  /** 90% 筹码集中度 */
+  concentration90: number | null;
+  /** 70% 筹码集中度 */
+  concentration70: number | null;
 };
 
 export type ChipDistributionBin = {

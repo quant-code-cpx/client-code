@@ -124,6 +124,11 @@ export const navData = [
         path: '/alert/anomalies',
         icon: <Iconify icon="solar:graph-up-bold" width={24} />,
       },
+      {
+        title: '涨跌停明细',
+        path: '/alert/limit-list',
+        icon: <Iconify icon="solar:fire-bold" width={24} />,
+      },
     ],
   },
   // ─── 量化 ────────────────────────────────────────────────
