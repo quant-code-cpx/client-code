@@ -12,6 +12,9 @@ import TableContainer from '@mui/material/TableContainer';
 
 import { fCurrency } from 'src/utils/format-number';
 
+import { TableEmptyRow } from 'src/components/empty-content';
+import { ColoredNumber } from 'src/components/colored-number';
+
 // ----------------------------------------------------------------------
 
 interface PortfolioHoldingTableProps {
@@ -39,16 +42,7 @@ export function PortfolioHoldingTable({ holdings, onEdit, onDelete }: PortfolioH
         </TableHead>
         <TableBody>
           {holdings.map((holding) => {
-            const pnlColor =
-              holding.pnlPct === null
-                ? undefined
-                : holding.pnlPct >= 0
-                  ? 'success.main'
-                  : 'error.main';
-            const pnlText =
-              holding.pnlPct === null
-                ? '-'
-                : `${holding.pnlPct >= 0 ? '+' : ''}${(holding.pnlPct * 100).toFixed(2)}%`;
+            const pnlPct = holding.pnlPct === null ? null : holding.pnlPct * 100;
             const weightText =
               holding.weight === null ? '-' : `${(holding.weight * 100).toFixed(2)}%`;
 
@@ -69,9 +63,7 @@ export function PortfolioHoldingTable({ holdings, onEdit, onDelete }: PortfolioH
                   {holding.marketValue === null ? '-' : fCurrency(holding.marketValue)}
                 </TableCell>
                 <TableCell align="right">
-                  <Typography variant="body2" sx={{ color: pnlColor }}>
-                    {pnlText}
-                  </Typography>
+                  <ColoredNumber value={pnlPct} format="percent" />
                 </TableCell>
                 <TableCell align="right">{weightText}</TableCell>
                 <TableCell align="center">
@@ -85,13 +77,7 @@ export function PortfolioHoldingTable({ holdings, onEdit, onDelete }: PortfolioH
               </TableRow>
             );
           })}
-          {holdings.length === 0 && (
-            <TableRow>
-              <TableCell colSpan={9} align="center" sx={{ py: 4, color: 'text.secondary' }}>
-                暂无持仓数据
-              </TableCell>
-            </TableRow>
-          )}
+          {holdings.length === 0 && <TableEmptyRow colSpan={9} message="暂无持仓数据" />}
         </TableBody>
       </Table>
     </TableContainer>

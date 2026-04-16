@@ -10,6 +10,7 @@ import TablePagination from '@mui/material/TablePagination';
 import CircularProgress from '@mui/material/CircularProgress';
 
 import { Scrollbar } from 'src/components/scrollbar';
+import { TableEmptyRow } from 'src/components/empty-content';
 
 import { SCREENER_HEAD_CELLS } from './constants';
 import { ScreenerResultTableRow } from './screener-result-table-row';
@@ -75,11 +76,7 @@ export function ScreenerResultTable({
                   </TableCell>
                 </TableRow>
               ) : items.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={headCells.length} align="center" sx={{ py: 5, color: 'text.secondary' }}>
-                    暂无数据
-                  </TableCell>
-                </TableRow>
+                <TableEmptyRow colSpan={headCells.length} />
               ) : (
                 items.map((row) => (
                   <ScreenerResultTableRow

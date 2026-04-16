@@ -6,13 +6,13 @@ import Card from '@mui/material/Card';
 import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
-import Typography from '@mui/material/Typography';
 
 import { alertApi } from 'src/api/alert';
 import { getSocket } from 'src/lib/socket';
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Iconify } from 'src/components/iconify';
+import { PageHeader } from 'src/components/page-header';
 
 import { useAuth } from 'src/auth/context';
 
@@ -79,22 +79,25 @@ export function AlertPriceRulesView() {
 
   return (
     <DashboardContent maxWidth="xl">
-      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
-        <Typography variant="h4">价格预警规则</Typography>
-        <Stack direction="row" spacing={1}>
-          <AlertScanButton type="price" onScanned={fetchRules} />
-          <Button
-            variant="contained"
-            startIcon={<Iconify icon="solar:add-circle-bold" />}
-            onClick={() => {
-              setEditingRule(null);
-              setDialogOpen(true);
-            }}
-          >
-            新建规则
-          </Button>
-        </Stack>
-      </Stack>
+      <PageHeader
+        title="价格预警规则"
+        action={
+          <Stack direction="row" spacing={1}>
+            <AlertScanButton type="price" onScanned={fetchRules} />
+            <Button
+              variant="contained"
+              startIcon={<Iconify icon="solar:add-circle-bold" />}
+              onClick={() => {
+                setEditingRule(null);
+                setDialogOpen(true);
+              }}
+            >
+              新建规则
+            </Button>
+          </Stack>
+        }
+        sx={{ mb: 3 }}
+      />
 
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>

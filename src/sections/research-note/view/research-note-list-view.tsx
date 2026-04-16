@@ -16,6 +16,7 @@ import { DashboardContent } from 'src/layouts/dashboard';
 import { listNotes, getUserTags } from 'src/api/research-note';
 
 import { Iconify } from 'src/components/iconify';
+import { PageHeader } from 'src/components/page-header';
 
 import { ResearchNoteCard } from '../research-note-card';
 import { ResearchNoteListToolbar } from '../research-note-list-toolbar';
@@ -95,19 +96,20 @@ export function ResearchNoteListView() {
 
   return (
     <DashboardContent>
-      <Box sx={{ mb: 4, display: 'flex', alignItems: 'center' }}>
-        <Typography variant="h4" sx={{ flexGrow: 1 }}>
-          研究笔记
-        </Typography>
-        <Button
-          variant="contained"
-          component={RouterLink}
-          href="/research/notes/new"
-          startIcon={<Iconify icon="solar:add-circle-bold" />}
-        >
-          新建笔记
-        </Button>
-      </Box>
+      <PageHeader
+        title="研究笔记"
+        action={
+          <Button
+            variant="contained"
+            component={RouterLink}
+            href="/research/notes/new"
+            startIcon={<Iconify icon="solar:add-circle-bold" />}
+          >
+            新建笔记
+          </Button>
+        }
+        sx={{ mb: 4 }}
+      />
 
       {error && (
         <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError('')}>

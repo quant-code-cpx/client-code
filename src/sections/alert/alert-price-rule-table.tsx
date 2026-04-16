@@ -5,8 +5,6 @@ import { useState } from 'react';
 
 import Box from '@mui/material/Box';
 import Table from '@mui/material/Table';
-import Button from '@mui/material/Button';
-import Dialog from '@mui/material/Dialog';
 import Tooltip from '@mui/material/Tooltip';
 import Skeleton from '@mui/material/Skeleton';
 import TableRow from '@mui/material/TableRow';
@@ -15,9 +13,6 @@ import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
 import TableContainer from '@mui/material/TableContainer';
 import DialogContentText from '@mui/material/DialogContentText';
 
@@ -25,6 +20,8 @@ import { RouterLink } from 'src/routes/components';
 
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
+import { EmptyContent } from 'src/components/empty-content';
+import { ConfirmDialog } from 'src/components/confirm-dialog';
 
 // ----------------------------------------------------------------------
 
@@ -70,12 +67,7 @@ export function AlertPriceRuleTable({ rules, loading, onEdit, onDelete, onToggle
 
   if (rules.length === 0) {
     return (
-      <Box sx={{ py: 6, textAlign: 'center', color: 'text.secondary' }}>
-        <Typography variant="body1">暂无预警规则</Typography>
-        <Typography variant="body2" sx={{ mt: 0.5 }}>
-          点击&ldquo;新建规则&rdquo;开始设置价格预警
-        </Typography>
-      </Box>
+      <EmptyContent title="暂无预警规则" description="点击「新建规则」开始设置价格预警" />
     );
   }
 
@@ -173,29 +165,23 @@ export function AlertPriceRuleTable({ rules, loading, onEdit, onDelete, onToggle
       </TableContainer>
 
       {/* 删除确认弹窗 */}
-      <Dialog open={!!deleteTarget} onClose={() => setDeleteTarget(null)} maxWidth="xs" fullWidth>
-        <DialogTitle>删除预警规则</DialogTitle>
-        <DialogContent>
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="删除预警规则"
+        content={
           <DialogContentText>
             确定删除股票 <strong>{deleteTarget?.tsCode}</strong> 的
             <strong>「{deleteTarget ? RULE_TYPE_CONFIG[deleteTarget.ruleType].text : ''}」</strong>
             规则？删除后无法恢复。
           </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDeleteTarget(null)}>取消</Button>
-          <Button
-            color="error"
-            variant="contained"
-            onClick={() => {
-              if (deleteTarget) onDelete(deleteTarget.id);
-              setDeleteTarget(null);
-            }}
-          >
-            删除
-          </Button>
-        </DialogActions>
-      </Dialog>
+        }
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={() => {
+          if (deleteTarget) onDelete(deleteTarget.id);
+          setDeleteTarget(null);
+        }}
+        confirmLabel="删除"
+      />
     </>
   );
 }

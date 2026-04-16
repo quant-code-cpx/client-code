@@ -2,7 +2,6 @@ import type { PortfolioListItem, CreatePortfolioRequest, UpdatePortfolioRequest 
 
 import { useState, useEffect, useCallback } from 'react';
 
-import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
@@ -15,6 +14,7 @@ import { DashboardContent } from 'src/layouts/dashboard';
 import { listPortfolios, deletePortfolio, createPortfolio, updatePortfolio } from 'src/api/portfolio';
 
 import { Iconify } from 'src/components/iconify';
+import { PageHeader } from 'src/components/page-header';
 
 import { PortfolioCard } from '../portfolio-card';
 import { PortfolioEditDialog } from '../portfolio-edit-dialog';
@@ -91,16 +91,19 @@ export function PortfolioListView() {
 
   return (
     <DashboardContent>
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
-        <Typography variant="h4">我的组合</Typography>
-        <Button
-          variant="contained"
-          startIcon={<Iconify icon="solar:add-circle-bold" />}
-          onClick={() => setCreateOpen(true)}
-        >
-          新建组合
-        </Button>
-      </Box>
+      <PageHeader
+        title="我的组合"
+        action={
+          <Button
+            variant="contained"
+            startIcon={<Iconify icon="solar:add-circle-bold" />}
+            onClick={() => setCreateOpen(true)}
+          >
+            新建组合
+          </Button>
+        }
+        sx={{ mb: 3 }}
+      />
 
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
