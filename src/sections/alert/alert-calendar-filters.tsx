@@ -4,9 +4,10 @@ import dayjs from 'dayjs';
 
 import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
-import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+
+import { stockItemFromCode, StockSearchAutocomplete } from 'src/components/stock-search-autocomplete';
 
 // ----------------------------------------------------------------------
 
@@ -50,6 +51,9 @@ export function AlertCalendarFilters({
     }
   };
 
+  // Build a minimal StockSearchItem from the tsCode string for controlled value
+  const stockValue = stockItemFromCode(tsCode);
+
   return (
     <Stack spacing={2} sx={{ mb: 3 }}>
       <Stack direction="row" spacing={2} flexWrap="wrap">
@@ -73,13 +77,11 @@ export function AlertCalendarFilters({
             field: { clearable: true },
           }}
         />
-        <TextField
+        <StockSearchAutocomplete
           label="股票代码（可选）"
-          size="small"
-          value={tsCode ?? ''}
-          onChange={(e) => onTsCodeChange(e.target.value || undefined)}
-          placeholder="如 000001.SZ"
-          sx={{ width: 200 }}
+          value={stockValue}
+          onChange={(item) => onTsCodeChange(item?.tsCode || undefined)}
+          sx={{ width: 250 }}
         />
       </Stack>
 

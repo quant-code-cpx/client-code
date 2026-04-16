@@ -1,12 +1,13 @@
 import type { HeatmapItem, HeatmapDistribution, HeatmapSectorSummary } from 'src/api/heatmap';
 
 import { useMemo, useState, useEffect, useCallback } from 'react';
+import type { Dayjs } from 'dayjs';
 
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
-import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import ToggleButton from '@mui/material/ToggleButton';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
 import { fetchHeatmapData } from 'src/api/heatmap';
@@ -39,9 +40,11 @@ const GROUP_OPTIONS: GroupConfig[] = [
 ];
 
 export function MarketHeatmapView() {
-  const [tradeDate, setTradeDate] = useState('');
-  const [groupBy, setGroupBy] = useState<GroupByOption>('industry');
+  const [tradeDate, setTradeDate] = useState<Dayjs | null>(null);
+  const [groupBy, setGroupBy] = useState<GroupBy>('industry');
   const [sizeBy, setSizeBy] = useState<SizeBy>('totalMv');
+
+  const tradeDateStr = tradeDate ? tradeDate.format('YYYYMMDD') : undefined;
 
   const [items, setItems] = useState<HeatmapItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -99,13 +102,15 @@ export function MarketHeatmapView() {
         <Typography variant="h4">市场热力图</Typography>
 
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="center">
-          <TextField
-            size="small"
+          <DatePicker
             label="交易日期"
-            placeholder="YYYYMMDD（空=最新）"
             value={tradeDate}
-            onChange={(e) => setTradeDate(e.target.value)}
-            sx={{ width: 190 }}
+            onChange={(newVal) => setTradeDate(newVal)}
+            format="YYYY-MM-DD"
+            slotProps={{
+              textField: { size: 'small', sx: { width: 190 } },
+              field: { clearable: true },
+            }}
           />
 
           <ToggleButtonGroup size="small" exclusive value={groupBy} onChange={handleGroupByChange}>

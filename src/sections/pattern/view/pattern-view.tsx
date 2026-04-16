@@ -1,3 +1,4 @@
+import type { StockSearchItem } from 'src/api/stock';
 import type { PatternMatch, PatternTemplate, PatternSearchResult } from 'src/api/pattern';
 
 import dayjs from 'dayjs';
@@ -31,6 +32,7 @@ import { searchBySeries, searchPatterns, getPatternTemplates } from 'src/api/pat
 
 import { Label } from 'src/components/label';
 import { Chart, useChart } from 'src/components/chart';
+import { StockSearchAutocomplete } from 'src/components/stock-search-autocomplete';
 
 // ----------------------------------------------------------------------
 
@@ -107,7 +109,7 @@ function MatchCard({ match }: { match: PatternMatch }) {
 // ----------------------------------------------------------------------
 
 function ModeAPanel({ templates }: { templates: PatternTemplate[] }) {
-  const [tsCode, setTsCode] = useState('');
+  const [selectedStock, setSelectedStock] = useState<StockSearchItem | null>(null);
   const [selectedPatternId, setSelectedPatternId] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -125,7 +127,7 @@ function ModeAPanel({ templates }: { templates: PatternTemplate[] }) {
     setResult(null);
     try {
       const data = await searchPatterns({
-        tsCode: tsCode.trim() || '000001.SZ', // fallback for demo; server can handle empty tsCode
+        tsCode: selectedStock?.tsCode || '000001.SZ', // fallback for demo; server can handle empty tsCode
         startDate,
         endDate,
         algorithm: selectedPatternId as 'NED' | 'DTW',
@@ -137,7 +139,7 @@ function ModeAPanel({ templates }: { templates: PatternTemplate[] }) {
     } finally {
       setLoading(false);
     }
-  }, [canSearch, tsCode, startDate, endDate, selectedPatternId, topN]);
+  }, [canSearch, selectedStock, startDate, endDate, selectedPatternId, topN]);
 
   return (
     <Stack spacing={3}>
@@ -147,13 +149,11 @@ function ModeAPanel({ templates }: { templates: PatternTemplate[] }) {
             搜索参数
           </Typography>
           <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'flex-end' }}>
-            <TextField
+            <StockSearchAutocomplete
               label="股票代码（可选）"
-              size="small"
-              value={tsCode}
-              onChange={(e) => setTsCode(e.target.value)}
-              placeholder="e.g. 000001.SZ"
-              sx={{ width: 180 }}
+              value={selectedStock}
+              onChange={(item) => setSelectedStock(item)}
+              sx={{ width: 220 }}
             />
             <FormControl size="small" sx={{ width: 200 }}>
               <InputLabel>形态模板</InputLabel>

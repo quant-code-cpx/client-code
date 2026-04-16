@@ -1,4 +1,5 @@
 import type { HeatmapSnapshotHistoryResult } from 'src/api/heatmap';
+import type { Dayjs } from 'dayjs';
 
 import { useState } from 'react';
 
@@ -9,12 +10,12 @@ import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import Divider from '@mui/material/Divider';
-import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import DialogContentText from '@mui/material/DialogContentText';
 
 import { useAuth } from 'src/auth';
@@ -36,7 +37,7 @@ export function HeatmapSnapshotPanel() {
 // ── Inner implementation (only rendered for admins) ──────────────────────────
 
 function SnapshotPanelInner() {
-  const [snapshotDate, setSnapshotDate] = useState('');
+  const [snapshotDate, setSnapshotDate] = useState<Dayjs | null>(null);
   const [triggerResult, setTriggerResult] = useState<{
     success: boolean;
     message: string;
@@ -46,13 +47,15 @@ function SnapshotPanelInner() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [queryError, setQueryError] = useState('');
 
+  const snapshotDateStr = snapshotDate ? snapshotDate.format('YYYYMMDD') : '';
+
   const handleTriggerConfirm = async () => {
     setConfirmOpen(false);
     setLoading(true);
     setTriggerResult(null);
     try {
       const res = await triggerHeatmapSnapshot(
-        snapshotDate ? { trade_date: snapshotDate } : undefined
+        snapshotDateStr ? { trade_date: snapshotDateStr } : undefined
       );
       setTriggerResult({
         success: res.totalRecords > 0,
@@ -69,15 +72,15 @@ function SnapshotPanelInner() {
   };
 
   const handleQuery = async () => {
-    if (!snapshotDate.trim()) {
-      setQueryError('请输入要查询的交易日期');
+    if (!snapshotDateStr) {
+      setQueryError('请选择要查询的交易日期');
       return;
     }
     setQueryError('');
     setSnapshotData(null);
     setLoading(true);
     try {
-      const res = await fetchHeatmapSnapshotHistory({ trade_date: snapshotDate.trim() });
+      const res = await fetchHeatmapSnapshotHistory({ trade_date: snapshotDateStr });
       setSnapshotData(res);
     } catch (err) {
       setQueryError(err instanceof Error ? err.message : '查询失败，请检查日期是否有效');
@@ -98,18 +101,23 @@ function SnapshotPanelInner() {
           </Stack>
 
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems="flex-start">
-            <TextField
-              size="small"
+            <DatePicker
               label="目标交易日期"
-              placeholder="YYYYMMDD（空=最新）"
               value={snapshotDate}
-              onChange={(e) => {
-                setSnapshotDate(e.target.value);
+              onChange={(newVal) => {
+                setSnapshotDate(newVal);
                 setQueryError('');
               }}
-              sx={{ width: 200 }}
-              error={!!queryError}
-              helperText={queryError || ' '}
+              format="YYYY-MM-DD"
+              slotProps={{
+                textField: {
+                  size: 'small',
+                  sx: { width: 200 },
+                  error: !!queryError,
+                  helperText: queryError || ' ',
+                },
+                field: { clearable: true },
+              }}
             />
 
             <Button
@@ -169,8 +177,8 @@ function SnapshotPanelInner() {
         <DialogTitle>确认触发快照聚合</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            {snapshotDate
-              ? `确定要为 ${snapshotDate} 触发热力图快照聚合吗？`
+            {snapshotDateStr
+              ? `确定要为 ${snapshotDateStr} 触发热力图快照聚合吗？`
               : '确定要为最新交易日触发热力图快照聚合吗？'}
           </DialogContentText>
         </DialogContent>

@@ -1,3 +1,5 @@
+import type { StockSearchItem } from 'src/api/stock';
+
 import { useState } from 'react';
 
 import Box from '@mui/material/Box';
@@ -10,6 +12,8 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 
 import { addStock } from 'src/api/watchlist';
+
+import { StockSearchAutocomplete } from 'src/components/stock-search-autocomplete';
 
 // ----------------------------------------------------------------------
 
@@ -26,7 +30,7 @@ export function WatchlistAddStockDialog({
   onClose,
   onSuccess,
 }: WatchlistAddStockDialogProps) {
-  const [tsCode, setTsCode] = useState('');
+  const [selectedStock, setSelectedStock] = useState<StockSearchItem | null>(null);
   const [notes, setNotes] = useState('');
   const [tagsInput, setTagsInput] = useState('');
   const [targetPrice, setTargetPrice] = useState('');
@@ -34,7 +38,7 @@ export function WatchlistAddStockDialog({
   const [error, setError] = useState('');
 
   const handleClose = () => {
-    setTsCode('');
+    setSelectedStock(null);
     setNotes('');
     setTagsInput('');
     setTargetPrice('');
@@ -43,8 +47,8 @@ export function WatchlistAddStockDialog({
   };
 
   const handleSubmit = async () => {
-    if (!tsCode.trim()) {
-      setError('请输入股票代码');
+    if (!selectedStock) {
+      setError('请选择股票');
       return;
     }
     const tags = tagsInput
@@ -58,7 +62,7 @@ export function WatchlistAddStockDialog({
     try {
       await addStock({
         watchlistId,
-        tsCode: tsCode.trim().toUpperCase(),
+        tsCode: selectedStock.tsCode,
         notes: notes.trim() || undefined,
         tags: tags.length > 0 ? tags : undefined,
         targetPrice: parsedPrice !== undefined && !Number.isNaN(parsedPrice) ? parsedPrice : undefined,
@@ -80,13 +84,11 @@ export function WatchlistAddStockDialog({
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
           {error && <Alert severity="error">{error}</Alert>}
 
-          <TextField
+          <StockSearchAutocomplete
             label="股票代码"
-            required
-            autoFocus
-            placeholder="例：600519.SH"
-            value={tsCode}
-            onChange={(e) => setTsCode(e.target.value)}
+            value={selectedStock}
+            onChange={(item) => setSelectedStock(item)}
+            fullWidth
             disabled={loading}
           />
 

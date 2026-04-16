@@ -1,3 +1,4 @@
+import type { StockSearchItem } from 'src/api/stock';
 import type { PortfolioPerformanceResponse } from 'src/api/portfolio';
 
 import dayjs from 'dayjs';
@@ -9,7 +10,6 @@ import Grid from '@mui/material/Grid';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Skeleton from '@mui/material/Skeleton';
-import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
@@ -17,6 +17,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { getPerformance } from 'src/api/portfolio';
 
 import { Chart, useChart } from 'src/components/chart';
+import { StockSearchAutocomplete } from 'src/components/stock-search-autocomplete';
 
 // ----------------------------------------------------------------------
 
@@ -75,7 +76,14 @@ interface PortfolioPerformanceTabProps {
 export function PortfolioPerformanceTab({ portfolioId }: PortfolioPerformanceTabProps) {
   const [startDate, setStartDate] = useState(defaultStartDate);
   const [endDate, setEndDate] = useState(defaultEndDate);
-  const [benchmark, setBenchmark] = useState('000300.SH');
+  const [benchmark, setBenchmark] = useState<StockSearchItem | null>({
+    tsCode: '000300.SH',
+    symbol: '000300',
+    name: '沪深300',
+    market: null,
+    industry: null,
+    listStatus: null,
+  });
   const [data, setData] = useState<PortfolioPerformanceResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -88,7 +96,7 @@ export function PortfolioPerformanceTab({ portfolioId }: PortfolioPerformanceTab
         portfolioId,
         startDate: toApiDate(startDate),
         endDate: toApiDate(endDate),
-        benchmarkTsCode: benchmark || undefined,
+        benchmarkTsCode: benchmark?.tsCode || undefined,
       });
       setData(res);
     } catch {
@@ -119,7 +127,7 @@ export function PortfolioPerformanceTab({ portfolioId }: PortfolioPerformanceTab
 
   const series = [
     { name: '组合净值', data: navData },
-    { name: `基准净值 (${data?.benchmarkTsCode ?? benchmark})`, data: bchData },
+    { name: `基准净值 (${data?.benchmarkTsCode ?? benchmark?.tsCode ?? ''})`, data: bchData },
   ];
 
   const metrics = [
@@ -158,12 +166,11 @@ export function PortfolioPerformanceTab({ portfolioId }: PortfolioPerformanceTab
                 field: { clearable: true },
               }}
             />
-            <TextField
+            <StockSearchAutocomplete
               label="基准代码"
               value={benchmark}
-              onChange={(e) => setBenchmark(e.target.value)}
-              size="small"
-              placeholder="000300.SH"
+              onChange={(item) => setBenchmark(item)}
+              sx={{ minWidth: 220 }}
             />
             <Button variant="outlined" onClick={fetchData} disabled={loading}>
               查询

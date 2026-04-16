@@ -1,3 +1,4 @@
+import type { StockSearchItem } from 'src/api/stock';
 import type { SignalHistoryResult } from 'src/api/event-study';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -9,7 +10,6 @@ import Stack from '@mui/material/Stack';
 import Table from '@mui/material/Table';
 import Button from '@mui/material/Button';
 import TableRow from '@mui/material/TableRow';
-import TextField from '@mui/material/TextField';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
@@ -21,13 +21,14 @@ import CircularProgress from '@mui/material/CircularProgress';
 import { querySignals } from 'src/api/event-study';
 
 import { Label } from 'src/components/label';
+import { StockSearchAutocomplete } from 'src/components/stock-search-autocomplete';
 
 import { EVENT_TYPE_LABELS, SIGNAL_TYPE_CONFIG } from './constants';
 
 // ----------------------------------------------------------------------
 
 export function SignalHistoryTab() {
-  const [tsCode, setTsCode] = useState('');
+  const [selectedStock, setSelectedStock] = useState<StockSearchItem | null>(null);
   const [filterTsCode, setFilterTsCode] = useState('');
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(50);
@@ -57,9 +58,10 @@ export function SignalHistoryTab() {
   }, [fetchSignals, pageSize]);
 
   const handleQuery = () => {
+    const code = selectedStock?.tsCode ?? '';
     setPage(0);
-    setFilterTsCode(tsCode);
-    fetchSignals(0, pageSize, tsCode);
+    setFilterTsCode(code);
+    fetchSignals(0, pageSize, code);
   };
 
   const handlePageChange = (_: unknown, newPage: number) => {
@@ -82,13 +84,11 @@ export function SignalHistoryTab() {
       {/* 筛选栏 */}
       <Card sx={{ p: 3 }}>
         <Stack direction="row" spacing={2} alignItems="center">
-          <TextField
-            size="small"
+          <StockSearchAutocomplete
             label="股票代码"
-            placeholder="如 000001.SZ"
-            value={tsCode}
-            onChange={(e) => setTsCode(e.target.value)}
-            sx={{ minWidth: 200 }}
+            value={selectedStock}
+            onChange={(item) => setSelectedStock(item)}
+            sx={{ minWidth: 250 }}
           />
           <Button variant="contained" onClick={handleQuery}>
             查询
