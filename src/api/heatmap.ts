@@ -1,53 +1,66 @@
 import { apiClient } from './client';
 
-// ── Types ─────────────────────────────────────────────────────
+// ── 后端原始响应类型（与后端 HeatmapItemDto 精确对齐）────────
 
-export type HeatmapStockItem = {
+/** 热力图单个股票节点（对应后端 HeatmapItemDto） */
+export type HeatmapItem = {
   tsCode: string;
-  name: string;
-  pctChg: number;
-  circulationMv: number | null;
+  name: string | null;
+  groupName: string | null;
+  industry: string | null;
+  pctChg: number | null;
+  totalMv: number | null;
+  amount: number | null;
 };
 
-export type HeatmapIndustryItem = {
-  industryCode: string | null;
-  industryName: string;
-  pctChgAvg: number;
+/** 快照历史响应（对应后端 HeatmapHistoryResponse） */
+export type HeatmapSnapshotHistoryResult = {
+  tradeDate: string;
+  groupBy: string;
   stockCount: number;
-  risers: number;
-  fallers: number;
-  stocks?: HeatmapStockItem[];
+  isFromSnapshot: boolean;
+  items: HeatmapItem[];
 };
 
-export type HeatmapStats = {
-  total: number;
-  limitUp: number;
-  risers: number;
-  flat: number;
-  fallers: number;
-  limitDown: number;
-};
-
-export type HeatmapDataResult = {
-  tradeDate: string;
-  industries: HeatmapIndustryItem[];
-  stats: HeatmapStats;
-};
-
+/** 快照触发响应 */
 export type HeatmapSnapshotTriggerResult = {
-  triggered: boolean;
   tradeDate: string;
+  totalRecords: number;
 };
 
-// ── API Functions ─────────────────────────────────────────────
+// ── 前端衍生类型（客户端聚合计算）──────────────────────────
 
-/** 获取市场热力图数据（涨跌幅分布） */
+/** 行业聚合摘要（由 aggregateSectors 从 HeatmapItem[] 计算） */
+export type HeatmapSectorSummary = {
+  groupName: string;
+  avgPctChg: number;
+  stockCount: number;
+  upCount: number;
+  downCount: number;
+  flatCount: number;
+  totalAmount: number;
+  totalMv: number;
+};
+
+/** 涨跌分布统计（由 computeDistribution 从 HeatmapItem[] 计算） */
+export type HeatmapDistribution = {
+  limitUp: number;
+  limitDown: number;
+  upCount: number;
+  downCount: number;
+  flatCount: number;
+  ranges: Array<{ range: string; count: number }>;
+};
+
+// ── API 函数 ────────────────────────────────────────────────
+
+/** 获取市场热力图数据，后端返回扁平 HeatmapItem[] */
 export function fetchHeatmapData(query?: {
   trade_date?: string;
   group_by?: 'industry' | 'index' | 'concept';
   index_code?: string;
 }) {
-  return apiClient.post<HeatmapDataResult>('/api/heatmap/data', query ?? {});
+  return apiClient.post<HeatmapItem[]>('/api/heatmap/data', query ?? {});
 }
 
 /** 手动触发热力图快照聚合（仅管理员） */
@@ -55,7 +68,7 @@ export function triggerHeatmapSnapshot(query?: { trade_date?: string }) {
   return apiClient.post<HeatmapSnapshotTriggerResult>('/api/heatmap/snapshot/trigger', query ?? {});
 }
 
-/** 查询指定日期热力图快照（缓存/实时降级） */
+/** 查询指定日期热力图快照（优先读缓存，自动降级实时计算） */
 export function fetchHeatmapSnapshotHistory(query: { trade_date: string; group_by?: string }) {
-  return apiClient.post<HeatmapDataResult>('/api/heatmap/snapshot/history', query);
+  return apiClient.post<HeatmapSnapshotHistoryResult>('/api/heatmap/snapshot/history', query);
 }

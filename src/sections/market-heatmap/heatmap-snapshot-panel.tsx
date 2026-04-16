@@ -1,3 +1,5 @@
+import type { HeatmapSnapshotHistoryResult } from 'src/api/heatmap';
+
 import { useState } from 'react';
 
 import Box from '@mui/material/Box';
@@ -16,11 +18,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 
 import { useAuth } from 'src/auth';
-import {
-  triggerHeatmapSnapshot,
-  fetchHeatmapSnapshotHistory,
-  type HeatmapSnapshotHistoryResult,
-} from 'src/api/market';
+import { triggerHeatmapSnapshot, fetchHeatmapSnapshotHistory } from 'src/api/heatmap';
 
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
@@ -30,13 +28,12 @@ import { Iconify } from 'src/components/iconify';
 export function HeatmapSnapshotPanel() {
   const { role } = useAuth();
 
-  // Admin-only: ADMIN or SUPER_ADMIN
   if (role !== 'ADMIN' && role !== 'SUPER_ADMIN') return null;
 
   return <SnapshotPanelInner />;
 }
 
-// ── Inner implementation (only rendered for admins) ───────────────────────────
+// ── Inner implementation (only rendered for admins) ──────────────────────────
 
 function SnapshotPanelInner() {
   const [snapshotDate, setSnapshotDate] = useState('');
@@ -57,7 +54,10 @@ function SnapshotPanelInner() {
       const res = await triggerHeatmapSnapshot(
         snapshotDate ? { trade_date: snapshotDate } : undefined
       );
-      setTriggerResult({ success: res.success, message: res.message });
+      setTriggerResult({
+        success: res.totalRecords > 0,
+        message: `快照聚合完成，共聚合 ${res.totalRecords} 条记录（交易日：${res.tradeDate}）`,
+      });
     } catch (err) {
       setTriggerResult({
         success: false,
@@ -90,7 +90,6 @@ function SnapshotPanelInner() {
     <>
       <Card>
         <CardContent>
-          {/* 标题行 */}
           <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
             <Typography variant="h6">快照管理</Typography>
             <Label color="error" variant="soft">
@@ -98,7 +97,6 @@ function SnapshotPanelInner() {
             </Label>
           </Stack>
 
-          {/* 操作栏 */}
           <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5} alignItems="flex-start">
             <TextField
               size="small"
@@ -136,7 +134,6 @@ function SnapshotPanelInner() {
             </Button>
           </Stack>
 
-          {/* 触发结果 */}
           {triggerResult && (
             <Alert
               severity={triggerResult.success ? 'success' : 'error'}
@@ -147,7 +144,6 @@ function SnapshotPanelInner() {
             </Alert>
           )}
 
-          {/* 快照查询结果 */}
           {snapshotData && (
             <>
               <Divider sx={{ my: 2 }} />
@@ -157,24 +153,18 @@ function SnapshotPanelInner() {
 
               <Stack direction="row" flexWrap="wrap" spacing={2} useFlexGap>
                 <InfoItem label="交易日期" value={snapshotData.tradeDate} />
-                <InfoItem label="快照生成时间" value={snapshotData.snapshotTime ?? '-'} />
-                <InfoItem label="缓存命中" value={snapshotData.fromCache === true ? '是' : '否'} />
-                <InfoItem label="股票总数" value={String(snapshotData.stocks?.length ?? 0)} />
-                {snapshotData.distribution && (
-                  <>
-                    <InfoItem label="上涨" value={String(snapshotData.distribution.upCount)} />
-                    <InfoItem label="下跌" value={String(snapshotData.distribution.downCount)} />
-                    <InfoItem label="涨停" value={String(snapshotData.distribution.limitUp)} />
-                    <InfoItem label="跌停" value={String(snapshotData.distribution.limitDown)} />
-                  </>
-                )}
+                <InfoItem label="分组维度" value={snapshotData.groupBy} />
+                <InfoItem
+                  label="数据来源"
+                  value={snapshotData.isFromSnapshot ? '快照缓存' : '实时计算'}
+                />
+                <InfoItem label="股票总数" value={String(snapshotData.stockCount)} />
               </Stack>
             </>
           )}
         </CardContent>
       </Card>
 
-      {/* 确认对话框 */}
       <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)} maxWidth="xs" fullWidth>
         <DialogTitle>确认触发快照聚合</DialogTitle>
         <DialogContent>

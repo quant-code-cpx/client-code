@@ -1,4 +1,4 @@
-import type { HeatmapDataResult } from 'src/api/market';
+import type { HeatmapDistribution } from 'src/api/heatmap';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -19,7 +19,7 @@ import { Chart, useChart } from 'src/components/chart';
 // ----------------------------------------------------------------------
 
 type Props = {
-  data: HeatmapDataResult | null;
+  distribution: HeatmapDistribution | null;
   loading: boolean;
   error: string;
 };
@@ -31,18 +31,11 @@ type Segment = {
 };
 
 function parseRangeMin(range: string): number {
-  // range like "-10~-9", "0~1", "9~10"
   const part = range.split('~')[0];
   return Number(part);
 }
 
-function buildSegments(dist: HeatmapDataResult['distribution']): Segment[] {
-  // Aggregate ranges into 5 buckets
-  const rangeMap: Record<string, number> = {};
-  for (const r of dist.ranges) {
-    rangeMap[r.range] = r.count;
-  }
-
+function buildSegments(dist: HeatmapDistribution): Segment[] {
   function sumBucket(minInclusive: number, maxExclusive: number) {
     return dist.ranges
       .filter((r) => {
@@ -61,9 +54,8 @@ function buildSegments(dist: HeatmapDataResult['distribution']): Segment[] {
   ];
 }
 
-export function HeatmapDistributionChart({ data, loading, error }: Props) {
-  const dist = data?.distribution;
-  const segments: Segment[] = dist ? buildSegments(dist) : [];
+export function HeatmapDistributionChart({ distribution, loading, error }: Props) {
+  const segments: Segment[] = distribution ? buildSegments(distribution) : [];
   const totalStocks = segments.reduce((acc, s) => acc + s.count, 0);
 
   const donutOptions = useChart({
@@ -107,23 +99,22 @@ export function HeatmapDistributionChart({ data, loading, error }: Props) {
           涨跌幅分布
         </Typography>
 
-        {/* Summary badges */}
-        {dist && (
+        {distribution && (
           <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mb: 2 }}>
             <Label sx={{ bgcolor: '#B71C1C', color: '#fff', fontWeight: 700, fontSize: 11 }}>
-              涨停 {dist.limitUp}
+              涨停 {distribution.limitUp}
             </Label>
             <Label sx={{ bgcolor: '#F44336', color: '#fff', fontWeight: 700, fontSize: 11 }}>
-              上涨 {dist.upCount}
+              上涨 {distribution.upCount}
             </Label>
             <Label sx={{ bgcolor: '#9E9E9E', color: '#fff', fontWeight: 700, fontSize: 11 }}>
-              平盘 {dist.flatCount}
+              平盘 {distribution.flatCount}
             </Label>
             <Label sx={{ bgcolor: '#2E7D32', color: '#fff', fontWeight: 700, fontSize: 11 }}>
-              下跌 {dist.downCount}
+              下跌 {distribution.downCount}
             </Label>
             <Label sx={{ bgcolor: '#00695C', color: '#fff', fontWeight: 700, fontSize: 11 }}>
-              跌停 {dist.limitDown}
+              跌停 {distribution.limitDown}
             </Label>
           </Stack>
         )}
@@ -145,8 +136,7 @@ export function HeatmapDistributionChart({ data, loading, error }: Props) {
           />
         )}
 
-        {/* Detailed range breakdown */}
-        {!loading && !error && dist && dist.ranges.length > 0 && (
+        {!loading && !error && distribution && distribution.ranges.length > 0 && (
           <>
             <Divider sx={{ my: 2 }} />
             <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>
@@ -162,7 +152,7 @@ export function HeatmapDistributionChart({ data, loading, error }: Props) {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {[...dist.ranges]
+                  {[...distribution.ranges]
                     .sort((a, b) => parseRangeMin(b.range) - parseRangeMin(a.range))
                     .map((r) => {
                       const pct =
@@ -194,7 +184,7 @@ export function HeatmapDistributionChart({ data, loading, error }: Props) {
           </>
         )}
 
-        {!loading && !error && !dist && (
+        {!loading && !error && !distribution && (
           <Typography color="text.disabled" sx={{ py: 4, textAlign: 'center' }}>
             暂无数据
           </Typography>
