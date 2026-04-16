@@ -54,9 +54,9 @@ export type StockListQuery = {
   market?: string;
   /** 沪深港通：N / H / S */
   isHs?: string;
-  /** 最小总市值（元） */
+  /** 最小总市值（万元） */
   minTotalMv?: number;
-  /** 最大总市值（元） */
+  /** 最大总市值（万元） */
   maxTotalMv?: number;
   /** 最小市盈率（TTM） */
   minPeTtm?: number;
@@ -68,9 +68,9 @@ export type StockListQuery = {
   maxPb?: number;
   /** 最小股息率（TTM） */
   minDvTtm?: number;
-  /** 最小成交额（元） */
+  /** 最小成交额（千元） */
   minAmount?: number;
-  /** 最大成交额（元） */
+  /** 最大成交额（千元） */
   maxAmount?: number;
   /** 最小换手率 */
   minTurnoverRate?: number;
@@ -507,24 +507,39 @@ export type ChipDistributionData = {
 
 export type MarginDailyItem = {
   tradeDate: string;
+  /** 融资余额（元） */
   rzye: number | null;
+  /** 融资买入额（元） */
   rzmre: number | null;
+  /** 融资偿还额（元） */
   rzche: number | null;
+  /** 融资净买入（元） */
   rzjmre: number | null;
+  /** 融券余额（元） */
   rqye: number | null;
+  /** 融券卖出量（股） */
   rqmcl: number | null;
+  /** 融券偿还量（股） */
   rqchl: number | null;
+  /** 融资融券余额合计（元） */
   rzrqye: number | null;
   close: number | null;
 };
 
 export type MarginSummary = {
+  /** 最新融资余额（元） */
   latestRzye: number | null;
+  /** 最新融券余额（元） */
   latestRqye: number | null;
+  /** 最新两融余额（元） */
   latestRzrqye: number | null;
+  /** 5日融资净买入累计（元） */
   rzNetBuy5d: number | null;
+  /** 20日融资净买入累计（元） */
   rzNetBuy20d: number | null;
+  /** 融资余额5日变化率(%) */
   rzye5dChgPct: number | null;
+  /** 融资余额20日变化率(%) */
   rzye20dChgPct: number | null;
   trend: string;
 };

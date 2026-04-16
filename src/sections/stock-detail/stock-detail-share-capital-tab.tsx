@@ -79,7 +79,7 @@ export function StockDetailShareCapitalTab({ tsCode }: Props) {
     chart: { type: 'donut' },
     labels: ['流通股本', '限售股份'],
     legend: { position: 'bottom' },
-    tooltip: { y: { formatter: (v: number) => fWanYuan(v) + ' 万股' } },
+    tooltip: { y: { formatter: (v: number) => `${fWanYuan(v)}股` } },
   });
 
   const pieSeries = latest ? [latest.floatShare ?? 0, latest.restrictedShare ?? 0] : [];
@@ -103,7 +103,8 @@ export function StockDetailShareCapitalTab({ tsCode }: Props) {
     return <Alert severity="error">{error}</Alert>;
   }
 
-  const fmt = (v: number | null | undefined) => (v != null ? fWanYuan(v) + ' 万' : '-');
+  const fmtShare = (v: number | null | undefined) => (v != null ? `${fWanYuan(v)}股` : '-');
+  const fmtValue = (v: number | null | undefined) => (v != null ? fWanYuan(v) : '-');
 
   return (
     <Stack spacing={3}>
@@ -111,22 +112,22 @@ export function StockDetailShareCapitalTab({ tsCode }: Props) {
       {latest && (
         <Grid container spacing={2}>
           <Grid size={{ xs: 6, sm: 4, md: 2 }}>
-            <StatCard label="总股本" value={fmt(latest.totalShare)} />
+            <StatCard label="总股本" value={fmtShare(latest.totalShare)} />
           </Grid>
           <Grid size={{ xs: 6, sm: 4, md: 2 }}>
-            <StatCard label="流通股本" value={fmt(latest.floatShare)} />
+            <StatCard label="流通股本" value={fmtShare(latest.floatShare)} />
           </Grid>
           <Grid size={{ xs: 6, sm: 4, md: 2 }}>
-            <StatCard label="自由流通" value={fmt(latest.freeShare)} />
+            <StatCard label="自由流通" value={fmtShare(latest.freeShare)} />
           </Grid>
           <Grid size={{ xs: 6, sm: 4, md: 2 }}>
-            <StatCard label="限售股份" value={fmt(latest.restrictedShare)} />
+            <StatCard label="限售股份" value={fmtShare(latest.restrictedShare)} />
           </Grid>
           <Grid size={{ xs: 6, sm: 4, md: 2 }}>
-            <StatCard label="总市值" value={fmt(latest.totalMv)} />
+            <StatCard label="总市值" value={fmtValue(latest.totalMv)} />
           </Grid>
           <Grid size={{ xs: 6, sm: 4, md: 2 }}>
-            <StatCard label="流通市值" value={fmt(latest.circMv)} />
+            <StatCard label="流通市值" value={fmtValue(latest.circMv)} />
           </Grid>
         </Grid>
       )}

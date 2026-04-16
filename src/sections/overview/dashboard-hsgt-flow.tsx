@@ -17,11 +17,6 @@ import { Chart, useChart } from 'src/components/chart';
 
 // ----------------------------------------------------------------------
 
-/** 百万元 → 亿元（tushare north_money 单位为百万元） */
-function toYi(v: number): number {
-  return +(v / 100).toFixed(2);
-}
-
 function fmtDate(d: string): string {
   return fmtTradeDate(d, 'MM-DD');
 }
@@ -55,13 +50,14 @@ export function DashboardHsgtFlow() {
   }, []);
 
   const categories = data.map((d) => fmtDate(d.tradeDate));
-  const dailyValues = data.map((d) => toYi(d.northMoney ?? 0));
+  // 后端 northMoney 单位为百万元，前端转为亿元展示
+  const dailyValues = data.map((d) => +((d.northMoney ?? 0) / 100).toFixed(2));
 
   // hsgt-flow 端点不含累计字段，客户端自行计算
   const cumulativeValues: number[] = [];
   let cumSum = 0;
   for (const d of data) {
-    cumSum += toYi(d.northMoney ?? 0);
+    cumSum += (d.northMoney ?? 0) / 100;
     cumulativeValues.push(+cumSum.toFixed(2));
   }
 
@@ -83,7 +79,7 @@ export function DashboardHsgtFlow() {
     xaxis: { categories, labels: { rotate: -30, style: { fontSize: '10px' } } },
     yaxis: [
       {
-        title: { text: '每日净买(亿)' },
+        title: { text: '每日流入(亿)' },
         labels: { formatter: (v: number) => `${v.toFixed(0)}` },
       },
       {
@@ -97,8 +93,8 @@ export function DashboardHsgtFlow() {
   });
 
   const series = [
-    { name: '每日净买入', type: 'bar', data: dailyValues },
-    { name: '累计净买入', type: 'line', data: cumulativeValues },
+    { name: '每日北向资金', type: 'bar', data: dailyValues },
+    { name: '累计北向资金', type: 'line', data: cumulativeValues },
   ];
 
   return (

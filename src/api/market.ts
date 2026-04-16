@@ -16,7 +16,9 @@ export type IndexQuoteItem = {
   preClose: number | null;
   change: number | null;
   pctChg: number | null;
+  /** 成交量（手） */
   vol: number | null;
+  /** 成交额（千元） */
   amount: number | null;
 };
 
@@ -29,7 +31,9 @@ export type IndexTrendItem = {
   tradeDate: string;
   close: number;
   pctChg: number;
+  /** 成交量（手） */
   vol: number;
+  /** 成交额（千元） */
   amount: number;
 };
 
@@ -76,8 +80,11 @@ export type SectorRankingItem = {
 
 export type VolumeOverviewItem = {
   tradeDate: string;
+  /** 全A股合计成交额（亿元） */
   totalAmount: number;
+  /** 上证指数成交额（亿元） */
   shAmount: number;
+  /** 深证成指成交额（亿元） */
   szAmount: number;
 };
 
@@ -147,14 +154,19 @@ export function fetchValuationTrend(query?: { period?: string }) {
 
 export type MarketMoneyFlowDetail = {
   tradeDate: string;
+  /** 净流入额（元） */
   netAmount: number | null;
   netAmountRate: number | null;
+  /** 超大单净流入（元） */
   buyElgAmount: number | null;
   buyElgAmountRate: number | null;
+  /** 大单净流入（元） */
   buyLgAmount: number | null;
   buyLgAmountRate: number | null;
+  /** 中单净流入（元） */
   buyMdAmount: number | null;
   buyMdAmountRate: number | null;
+  /** 小单净流入（元） */
   buySmAmount: number | null;
   buySmAmountRate: number | null;
   closeSh: number | null;
@@ -165,43 +177,67 @@ export type MarketMoneyFlowDetail = {
 
 export type MoneyFlowTrendItem = {
   tradeDate: string;
+  /** 当日净流入（元） */
   netAmount: number;
+  /** 累计净流入（元） */
   cumulativeNet: number;
+  /** 超大单净流入（元） */
   buyElgAmount: number;
+  /** 大单净流入（元） */
   buyLgAmount: number;
+  /** 中单净流入（元） */
   buyMdAmount: number;
+  /** 小单净流入（元） */
   buySmAmount: number;
 };
 
 export type SectorFlowRankingItem = {
   tsCode: string;
   name: string;
+  /** 板块涨跌幅 % */
   pctChange: number;
   close: number;
+  /** 净流入（元） */
   netAmount: number;
+  /** 净流入率 % */
   netAmountRate: number;
+  /** 超大单净流入（元） */
   buyElgAmount: number;
+  /** 大单净流入（元） */
   buyLgAmount: number;
+  /** 中单净流入（元） */
   buyMdAmount: number;
+  /** 小单净流入（元） */
   buySmAmount: number;
 };
 
 export type SectorFlowTrendItem = {
   tradeDate: string;
+  /** 板块涨跌幅 % */
   pctChange: number;
+  /** 当日净流入（元） */
   netAmount: number;
+  /** 累计净流入（元） */
   cumulativeNet: number;
 };
 
 export type HsgtTrendItem = {
   tradeDate: string;
+  /** 北向当日净买入（百万元） */
   northMoney: number | null;
+  /** 南向当日净买入（百万元） */
   southMoney: number | null;
+  /** 沪股通（百万元） */
   hgt: number | null;
+  /** 深股通（百万元） */
   sgt: number | null;
+  /** 港股通（上海）百万元 */
   ggtSs: number | null;
+  /** 港股通（深圳）百万元 */
   ggtSz: number | null;
+  /** 累计北向净买入（百万元） */
   cumulativeNorth?: number;
+  /** 累计南向净买入（百万元） */
   cumulativeSouth?: number;
 };
 
@@ -209,25 +245,41 @@ export type MainFlowRankingItem = {
   tsCode: string;
   name: string | null;
   industry: string | null;
+  /** 主力净流入（万元） */
   mainNetInflow: number;
+  /** 超大单净流入（万元） */
   elgNetInflow: number;
+  /** 大单净流入（万元） */
   lgNetInflow: number;
+  /** 当日涨跌幅 % */
   pctChg: number | null;
+  /** 当日成交额（千元） */
   amount: number | null;
 };
 
 export type StockFlowDetailItem = {
   tradeDate: string;
+  /** 主力净流入（万元） */
   mainNetInflow: number;
+  /** 散户净流入（万元） */
   retailNetInflow: number;
+  /** 特大单买入（万元） */
   buyElgAmount: number;
+  /** 特大单卖出（万元） */
   sellElgAmount: number;
+  /** 大单买入（万元） */
   buyLgAmount: number;
+  /** 大单卖出（万元） */
   sellLgAmount: number;
+  /** 中单买入（万元） */
   buyMdAmount: number;
+  /** 中单卖出（万元） */
   sellMdAmount: number;
+  /** 小单买入（万元） */
   buySmAmount: number;
+  /** 小单卖出（万元） */
   sellSmAmount: number;
+  /** 总净流入（万元） */
   netMfAmount: number;
 };
 

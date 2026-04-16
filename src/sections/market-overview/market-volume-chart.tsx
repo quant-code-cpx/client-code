@@ -17,9 +17,9 @@ import { Chart, useChart } from 'src/components/chart';
 
 // ----------------------------------------------------------------------
 
-/** 将千元单位转为亿元 */
-function toYi(v: number): number {
-  return +(v / 100000).toFixed(2);
+/** 后端 VolumeOverviewItemDto 已返回亿元单位，仅保留小数精度 */
+function roundYi(v: number): number {
+  return +v.toFixed(2);
 }
 
 /** 简单 N 日 SMA */
@@ -64,7 +64,7 @@ export function MarketVolumeChart({ tradeDate }: Props) {
   }, [tradeDate]);
 
   const categories = data.map((d) => fmtDate(d.tradeDate));
-  const amounts = data.map((d) => toYi(d.totalAmount));
+  const amounts = data.map((d) => roundYi(d.totalAmount));
   const ma20 = sma(amounts, 20);
 
   const chartOptions = useChart({

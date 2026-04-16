@@ -8,8 +8,11 @@ export type HeatmapItem = {
   name: string | null;
   groupName: string | null;
   industry: string | null;
+  /** 当日涨跌幅（%） */
   pctChg: number | null;
+  /** 总市值（万元） */
   totalMv: number | null;
+  /** 当日成交额（千元） */
   amount: number | null;
 };
 
