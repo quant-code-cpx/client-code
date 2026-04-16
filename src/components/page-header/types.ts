@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import type { Theme , SxProps } from '@mui/material/styles';
+import type { Theme, SxProps } from '@mui/material/styles';
 import type { TypographyProps } from '@mui/material/Typography';
 
 // ----------------------------------------------------------------------
