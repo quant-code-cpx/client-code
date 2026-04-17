@@ -1,6 +1,6 @@
 import type { HeatmapItem, HeatmapDistribution } from 'src/api/heatmap';
 
-import { useRef, useMemo, useEffect } from 'react';
+import { useRef, useMemo, useState, useEffect } from 'react';
 
 import Card from '@mui/material/Card';
 import Chip from '@mui/material/Chip';
@@ -9,6 +9,8 @@ import Skeleton from '@mui/material/Skeleton';
 import { useTheme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
+import ToggleButton from '@mui/material/ToggleButton';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
 import { Chart, useChart } from 'src/components/chart';
 
@@ -17,6 +19,8 @@ import { getHeatmapColor } from './utils';
 // ----------------------------------------------------------------------
 
 type SizeBy = 'totalMv' | 'amount';
+
+type DisplayCount = 100 | 200 | 300;
 
 type Props = {
   items: HeatmapItem[];
@@ -45,6 +49,7 @@ function formatLabel(pctChg: number | null): string {
 export function HeatmapTreemapChart({ items, distribution, loading, error, groupBy, sizeBy }: Props) {
   const theme = useTheme();
   const itemsRef = useRef<HeatmapItem[]>([]);
+  const [displayCount, setDisplayCount] = useState<DisplayCount>(200);
 
   useEffect(() => {
     itemsRef.current = items;
@@ -53,10 +58,10 @@ export function HeatmapTreemapChart({ items, distribution, loading, error, group
   const series = useMemo(() => {
     if (!items.length) return [];
 
-    // Sort by sizeBy desc, take top 300 for performance
+    // Sort by sizeBy desc, limit by displayCount for performance
     const sorted = [...items]
       .sort((a, b) => (b[sizeBy] ?? 0) - (a[sizeBy] ?? 0))
-      .slice(0, 300);
+      .slice(0, displayCount);
 
     if (groupBy === 'industry') {
       const grouped: Record<string, HeatmapItem[]> = {};
@@ -86,7 +91,7 @@ export function HeatmapTreemapChart({ items, distribution, loading, error, group
         })),
       },
     ];
-  }, [items, groupBy, sizeBy]);
+  }, [items, groupBy, sizeBy, displayCount]);
 
   const chartOptions = useChart({
     chart: {
@@ -98,6 +103,11 @@ export function HeatmapTreemapChart({ items, distribution, loading, error, group
       treemap: {
         distributed: true,
         enableShades: false,
+      },
+    },
+    states: {
+      hover: {
+        filter: { type: 'lighten' },
       },
     },
     dataLabels: {
@@ -137,7 +147,19 @@ export function HeatmapTreemapChart({ items, distribution, loading, error, group
     <Card>
       <CardContent>
         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1.5 }}>
-          <Typography variant="h6">市场热力图</Typography>
+          <Stack direction="row" alignItems="center" spacing={2}>
+            <Typography variant="h6">市场热力图</Typography>
+            <ToggleButtonGroup
+              size="small"
+              exclusive
+              value={displayCount}
+              onChange={(_e, v) => { if (v) setDisplayCount(v as DisplayCount); }}
+            >
+              <ToggleButton value={100}>100</ToggleButton>
+              <ToggleButton value={200}>200</ToggleButton>
+              <ToggleButton value={300}>300</ToggleButton>
+            </ToggleButtonGroup>
+          </Stack>
 
           {distribution && (
             <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
