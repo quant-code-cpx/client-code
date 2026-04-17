@@ -20,6 +20,7 @@ import { MenuButton } from '../components/menu-button';
 import { ThemePopover } from '../components/theme-popover';
 import { AccountPopover } from '../components/account-popover';
 import { DarkModeButton } from '../components/dark-mode-button';
+import { WsStatusIndicator } from '../components/ws-status-indicator';
 import { NotificationsPopover } from '../components/notifications-popover';
 
 import type { MainSectionProps } from '../core/main-section';
@@ -74,6 +75,9 @@ export function DashboardLayout({
       ),
       rightArea: (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 0, sm: 0.75 } }}>
+          {/** @slot WebSocket status */}
+          <WsStatusIndicator />
+
           {/** @slot Searchbar */}
           <Searchbar />
 

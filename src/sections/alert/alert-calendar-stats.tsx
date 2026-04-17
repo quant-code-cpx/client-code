@@ -19,14 +19,17 @@ type StatConfig = {
   type: EventType;
   label: string;
   icon: IconifyName;
-  color: 'info' | 'warning' | 'success' | 'error';
+  color: 'primary' | 'secondary' | 'info' | 'warning' | 'success' | 'error';
 };
 
 const STAT_CONFIG: StatConfig[] = [
-  { type: 'DISCLOSURE', label: '财报披露', icon: 'solar:document-text-bold', color: 'info' },
+  { type: 'DISCLOSURE', label: '财报披露', icon: 'solar:document-text-bold', color: 'primary' },
   { type: 'FLOAT', label: '限售解禁', icon: 'solar:lock-bold', color: 'warning' },
   { type: 'DIVIDEND', label: '除权除息', icon: 'solar:wallet-bold', color: 'success' },
-  { type: 'FORECAST', label: '业绩预告', icon: 'solar:chart-bold', color: 'error' },
+  { type: 'FORECAST', label: '业绩预告', icon: 'solar:chart-bold', color: 'info' },
+  { type: 'IPO', label: '新股发行', icon: 'solar:graph-up-bold', color: 'secondary' },
+  { type: 'CONVERTIBLE', label: '可转债发行', icon: 'solar:shuffle-bold', color: 'secondary' },
+  { type: 'SHAREHOLDER', label: '股东增减持', icon: 'solar:users-group-rounded-bold', color: 'error' },
 ];
 
 type Props = {
@@ -42,7 +45,7 @@ export function AlertCalendarStats({ events, loading }: Props) {
   if (loading) {
     return (
       <Grid container spacing={2} sx={{ mb: 3 }}>
-        {[0, 1, 2, 3].map((i) => (
+        {STAT_CONFIG.map((_, i) => (
           <Grid key={i} size={{ xs: 6, md: 3 }}>
             <Skeleton variant="rounded" height={100} />
           </Grid>

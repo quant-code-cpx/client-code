@@ -15,6 +15,7 @@ import TablePagination from '@mui/material/TablePagination';
 import { RouterLink } from 'src/routes/components';
 
 import { Iconify } from 'src/components/iconify';
+import { ExportButton } from 'src/components/export-button';
 
 // ----------------------------------------------------------------------
 
@@ -51,10 +52,11 @@ export function FactorScreeningTable({
 
   return (
     <Box>
-      <Box sx={{ px: 2, py: 1.5 }}>
+      <Box sx={{ px: 2, py: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Typography variant="body2" color="text.secondary">
           共筛选出 <strong>{result.total}</strong> 只股票
         </Typography>
+        <ExportButton source="factor_values" />
       </Box>
 
       <TableContainer>

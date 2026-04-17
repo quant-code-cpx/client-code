@@ -1,3 +1,4 @@
+import type { ApexOptions } from 'apexcharts';
 import type { ChipDistributionBin } from 'src/api/stock';
 
 import Card from '@mui/material/Card';
@@ -8,12 +9,15 @@ import { Chart, useChart } from 'src/components/chart';
 
 // ----------------------------------------------------------------------
 
+type XAxisAnnotation = NonNullable<NonNullable<ApexOptions['annotations']>['xaxis']>[number];
+
 type Props = {
   distribution: ChipDistributionBin[];
   currentPrice: number | null;
+  avgCost?: number | null;
 };
 
-export function AnalysisChipDistributionChart({ distribution, currentPrice }: Props) {
+export function AnalysisChipDistributionChart({ distribution, currentPrice, avgCost }: Props) {
   const bins = [...distribution].sort((a, b) => a.priceLow - b.priceLow);
 
   const series = [
@@ -23,9 +27,14 @@ export function AnalysisChipDistributionChart({ distribution, currentPrice }: Pr
     },
   ];
 
-  const annotations = currentPrice != null
-    ? { xaxis: [{ x: currentPrice, borderColor: '#FF9800', label: { text: `当前价 ${currentPrice.toFixed(2)}`, style: { color: '#fff', background: '#FF9800' } } }] }
-    : {};
+  const xaxisAnnotations: XAxisAnnotation[] = [];
+  if (currentPrice != null) {
+    xaxisAnnotations.push({ x: currentPrice, borderColor: '#FF9800', label: { text: `当前价 ${currentPrice.toFixed(2)}`, style: { color: '#fff', background: '#FF9800' } } });
+  }
+  if (avgCost != null) {
+    xaxisAnnotations.push({ x: avgCost, borderColor: '#7E57C2', label: { text: `平均成本 ${avgCost.toFixed(2)}`, style: { color: '#fff', background: '#7E57C2' } } });
+  }
+  const annotations: ApexOptions['annotations'] = xaxisAnnotations.length > 0 ? { xaxis: xaxisAnnotations } : {};
 
   const chartOptions = useChart({
     chart: { type: 'bar' },

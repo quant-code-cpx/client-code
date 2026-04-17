@@ -476,6 +476,10 @@ export type ChipConcentration = {
   score: number | null;
   profitRatio: number | null;
   avgCost: number | null;
+  /** 90% 筹码集中度 */
+  concentration90: number | null;
+  /** 70% 筹码集中度 */
+  concentration70: number | null;
 };
 
 export type ChipDistributionBin = {
@@ -852,6 +856,30 @@ export type StockConceptsData = {
   tsCode: string;
   concepts: StockConceptItem[];
 };
+
+// ========== 分钟级 K 线 ==========
+
+export type MinuteKlineFreq = '1min' | '5min' | '15min' | '30min' | '60min';
+
+export type MinuteKlineQuery = {
+  ts_code: string;
+  freq: MinuteKlineFreq;
+  trade_date?: string;
+};
+
+export type MinuteKlineItem = {
+  datetime: string;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  vol: number;
+  amount: number;
+};
+
+export function fetchMinuteKline(query: MinuteKlineQuery) {
+  return apiClient.post<MinuteKlineItem[]>('/api/stock/minute-kline', query);
+}
 
 // ─── 扩展 stockApi / stockDetailApi ──────────────────────────────────
 

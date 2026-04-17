@@ -57,12 +57,17 @@ export function AnalysisChipTab({ tsCode }: Props) {
 
   return (
     <Stack spacing={3}>
-      {data.isEstimated && (
+      {data.isEstimated ? (
         <Alert severity="warning">⚠️ 数据为估算值，仅供参考</Alert>
+      ) : (
+        <Alert severity="success" icon={false}>
+          数据来源：Tushare 官方
+        </Alert>
       )}
       <AnalysisChipDistributionChart
         distribution={data.distribution}
         currentPrice={data.currentPrice}
+        avgCost={data.concentration.avgCost}
       />
       <AnalysisChipSummaryCard
         concentration={data.concentration}

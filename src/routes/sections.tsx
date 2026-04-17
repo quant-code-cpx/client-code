@@ -50,6 +50,7 @@ export const PortfolioDetailPage = lazy(() => import('src/pages/portfolio-detail
 export const AlertCalendarPage = lazy(() => import('src/pages/alert-calendar'));
 export const AlertPriceRulesPage = lazy(() => import('src/pages/alert-price-rules'));
 export const AlertAnomaliesPage = lazy(() => import('src/pages/alert-anomalies'));
+export const AlertLimitListPage = lazy(() => import('src/pages/alert-limit-list'));
 export const SignalLatestPage = lazy(() => import('src/pages/signal-latest'));
 export const SignalHistoryPage = lazy(() => import('src/pages/signal-history'));
 export const EventStudyPage = lazy(() => import('src/pages/event-study'));
@@ -131,6 +132,7 @@ export const routesSection: RouteObject[] = [
       { path: 'alert', element: <AlertCalendarPage /> },
       { path: 'alert/price-rules', element: <AlertPriceRulesPage /> },
       { path: 'alert/anomalies', element: <AlertAnomaliesPage /> },
+      { path: 'alert/limit-list', element: <AlertLimitListPage /> },
       { path: 'strategy/signal', element: <SignalLatestPage /> },
       { path: 'strategy/signal/history', element: <SignalHistoryPage /> },
       { path: 'research/event-study', element: <EventStudyPage /> },

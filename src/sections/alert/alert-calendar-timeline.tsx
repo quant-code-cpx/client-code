@@ -16,14 +16,17 @@ import { Label } from 'src/components/label';
 
 type EventTypeConfig = {
   label: string;
-  color: 'info' | 'warning' | 'success' | 'error';
+  color: 'primary' | 'secondary' | 'info' | 'warning' | 'success' | 'error';
 };
 
 const EVENT_TYPE_CONFIG: Record<EventType, EventTypeConfig> = {
-  DISCLOSURE: { label: '财报披露', color: 'info' },
+  DISCLOSURE: { label: '财报披露', color: 'primary' },
   FLOAT: { label: '限售解禁', color: 'warning' },
   DIVIDEND: { label: '除权除息', color: 'success' },
-  FORECAST: { label: '业绩预告', color: 'error' },
+  FORECAST: { label: '业绩预告', color: 'info' },
+  IPO: { label: '新股发行', color: 'secondary' },
+  CONVERTIBLE: { label: '可转债发行', color: 'secondary' },
+  SHAREHOLDER: { label: '股东增减持', color: 'error' },
 };
 
 const WEEKDAY_ZH = ['日', '一', '二', '三', '四', '五', '六'];

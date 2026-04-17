@@ -396,6 +396,8 @@ export type MomentumRankingItem = {
   rank: number;
   prevRank: number;
   rankChange: number;
+  /** 成交额（万元） */
+  amount?: number;
 };
 
 export type MomentumRankingResult = {
@@ -614,4 +616,51 @@ export function fetchConceptList(query?: { keyword?: string; page?: number; page
 
 export function fetchConceptMembers(query: { tsCode: string; page?: number; pageSize?: number }) {
   return apiClient.post<ConceptMembersResult>('/api/market/concept/members', query);
+}
+
+// ── 每日全景 (daily_info) ─────────────────────────────────────
+
+export type DailyInfoResult = {
+  tradeDate: string;
+  /** 全市场成交额（亿元） */
+  totalAmount: number;
+  /** 全市场平均换手率 */
+  avgTurnover: number;
+  /** 涨停家数 */
+  limitUpCount: number;
+  /** 跌停家数 */
+  limitDownCount: number;
+  /** 涨停封板率 */
+  limitUpSealRate: number;
+  /** 连板股数量 */
+  continuousLimitCount: number;
+  /** 上涨家数 */
+  riseCount: number;
+  /** 下跌家数 */
+  fallCount: number;
+  /** 平盘家数 */
+  flatCount: number;
+};
+
+export function fetchDailyInfo(query?: MarketQueryBase) {
+  return apiClient.post<DailyInfoResult>('/api/market/daily-info', query ?? {});
+}
+
+// ── 板块日线 (ths_daily) ──────────────────────────────────
+
+export type SectorDailyItem = {
+  tsCode: string;
+  name: string;
+  tradeDate: string;
+  open: number;
+  close: number;
+  high: number;
+  low: number;
+  pctChg: number;
+  vol: number;
+  amount: number;
+};
+
+export function fetchSectorDaily(query?: { trade_date?: string; sector_type?: string }) {
+  return apiClient.post<SectorDailyItem[]>('/api/market/sector-daily', query ?? {});
 }

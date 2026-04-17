@@ -2,10 +2,12 @@ import type { BacktestEquityPoint } from 'src/api/backtest';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
+import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 
 import { Chart, useChart } from 'src/components/chart';
+import { ExportButton } from 'src/components/export-button';
 
 // ----------------------------------------------------------------------
 
@@ -41,9 +43,12 @@ export function BacktestEquityChart({ points }: BacktestEquityChartProps) {
   return (
     <Card>
       <CardContent sx={{ p: 3 }}>
-        <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
-          净值曲线
-        </Typography>
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+            净值曲线
+          </Typography>
+          <ExportButton source="backtest_nav" />
+        </Stack>
         {points.length === 0 ? (
           <Box
             sx={{ height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}

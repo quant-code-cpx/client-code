@@ -7,6 +7,7 @@ import LinearProgress from '@mui/material/LinearProgress';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
 import { Iconify } from 'src/components/iconify';
+import { ExportButton } from 'src/components/export-button';
 
 import { SORT_OPTIONS } from './constants';
 
@@ -51,6 +52,7 @@ export function ScreenerResultToolbar({
         </Typography>
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <ExportButton source="screener_results" />
           <Typography variant="body2" sx={{ color: 'text.secondary', flexShrink: 0 }}>
             排序：
           </Typography>

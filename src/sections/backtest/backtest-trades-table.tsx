@@ -14,6 +14,7 @@ import { fNumber } from 'src/utils/format-number';
 
 import { Label } from 'src/components/label';
 import { Scrollbar } from 'src/components/scrollbar';
+import { ExportButton } from 'src/components/export-button';
 
 // ----------------------------------------------------------------------
 
@@ -38,6 +39,9 @@ export function BacktestTradesTable({
 }: BacktestTradesTableProps) {
   return (
     <Box>
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', px: 2, py: 1 }}>
+        <ExportButton source="backtest_trades" />
+      </Box>
       <Scrollbar>
         <TableContainer>
           <Table size="small" sx={{ minWidth: 900 }}>

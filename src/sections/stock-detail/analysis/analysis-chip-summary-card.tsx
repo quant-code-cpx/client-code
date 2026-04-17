@@ -27,7 +27,7 @@ type Props = {
 };
 
 export function AnalysisChipSummaryCard({ concentration, keyLevels, currentPrice }: Props) {
-  const { profitRatio, avgCost, range70Low, range70High, range90Low, range90High, score } = concentration;
+  const { profitRatio, avgCost, range70Low, range70High, range90Low, range90High, score, concentration90, concentration70 } = concentration;
   const { peakPrice, resistanceHigh, resistanceLow, supportHigh, supportLow } = keyLevels;
 
   return (
@@ -55,6 +55,12 @@ export function AnalysisChipSummaryCard({ concentration, keyLevels, currentPrice
           </Grid>
           <Grid size={{ xs: 6, sm: 4, md: 2 }}>
             <StatItem label="集中度评分" value={score != null ? `${score}/100` : '--'} />
+          </Grid>
+          <Grid size={{ xs: 6, sm: 4, md: 2 }}>
+            <StatItem label="90%集中度" value={concentration90 != null ? `${concentration90.toFixed(2)}%` : '--'} />
+          </Grid>
+          <Grid size={{ xs: 6, sm: 4, md: 2 }}>
+            <StatItem label="70%集中度" value={concentration70 != null ? `${concentration70.toFixed(2)}%` : '--'} />
           </Grid>
           <Grid size={{ xs: 6, sm: 4, md: 2 }}>
             <StatItem label="主力成本" value={peakPrice != null ? `¥${peakPrice.toFixed(2)}` : '--'} />

@@ -288,3 +288,61 @@ export function getReportDetail(params: { reportId: string }) {
 export function deleteReport(params: { reportId: string }) {
   return apiClient.post<{ deleted: true }>('/api/report/delete', params);
 }
+
+// ── Scheduled Reports ─────────────────────────────────────────
+
+export type ReportScheduleFrequency = 'DAILY' | 'WEEKLY' | 'MONTHLY';
+
+export type ReportSchedule = {
+  id: string;
+  userId: number;
+  type: ReportType;
+  title: string;
+  params: Record<string, unknown>;
+  format: ReportFormat;
+  frequency: ReportScheduleFrequency;
+  /** cron 表达式，如 "0 18 * * 1-5" (工作日 18:00) */
+  cronExpression: string;
+  enabled: boolean;
+  lastRunAt: string | null;
+  nextRunAt: string | null;
+  createdAt: string;
+};
+
+export type CreateScheduleBody = {
+  type: ReportType;
+  title: string;
+  params: Record<string, unknown>;
+  format: ReportFormat;
+  frequency: ReportScheduleFrequency;
+  cronExpression?: string;
+};
+
+export type UpdateScheduleBody = Partial<CreateScheduleBody> & {
+  enabled?: boolean;
+};
+
+/** 查询定时报告列表 */
+export function listSchedules() {
+  return apiClient.post<ReportSchedule[]>('/api/report/schedules/list', {});
+}
+
+/** 创建定时报告 */
+export function createSchedule(body: CreateScheduleBody) {
+  return apiClient.post<ReportSchedule>('/api/report/schedules', body);
+}
+
+/** 更新定时报告 */
+export function updateSchedule(id: string, body: UpdateScheduleBody) {
+  return apiClient.post<ReportSchedule>('/api/report/schedules/update', { id, ...body });
+}
+
+/** 删除定时报告 */
+export function deleteSchedule(id: string) {
+  return apiClient.post<{ deleted: true }>('/api/report/schedules/delete', { id });
+}
+
+/** 立即运行一次 */
+export function runScheduleNow(id: string) {
+  return apiClient.post<Report>('/api/report/schedules/run-now', { id });
+}
