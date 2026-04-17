@@ -37,10 +37,10 @@ function renderDetail(anomaly: MarketAnomaly) {
     case 'LARGE_NET_INFLOW':
       return (
         <>
-          <Row label="主力买入" value={`${(Number(d.buyElgAmount) / 1e8).toFixed(2)} 亿元`} />
-          <Row label="主力卖出" value={`${(Number(d.sellElgAmount) / 1e8).toFixed(2)} 亿元`} />
-          <Row label="净流入" value={`${(Number(d.netElg) / 1e8).toFixed(2)} 亿元`} />
-          <Row label="成交额" value={`${(Number(d.amount) / 1e8).toFixed(2)} 亿元`} />
+          <Row label="主力买入" value={`${(Number(d.buyElgAmount) / 1e4).toFixed(2)} 亿元`} />
+          <Row label="主力卖出" value={`${(Number(d.sellElgAmount) / 1e4).toFixed(2)} 亿元`} />
+          <Row label="净流入" value={`${(Number(d.netElg) / 1e4).toFixed(2)} 亿元`} />
+          <Row label="成交额" value={`${(Number(d.amount) / 1e5).toFixed(2)} 亿元`} />
         </>
       );
     default:

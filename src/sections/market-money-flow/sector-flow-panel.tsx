@@ -47,7 +47,7 @@ export function SectorFlowPanel({ tradeDate }: Props) {
       const result = await fetchSectorFlow({
         trade_date: tradeDate || undefined,
       });
-      setData(result.sectors ?? []);
+      setData(result.industry ?? []);
     } catch (err) {
       setError(err instanceof Error ? err.message : '获取行业板块资金流向失败');
     } finally {
@@ -171,7 +171,7 @@ export function SectorFlowPanel({ tradeDate }: Props) {
                                 : 'text.secondary',
                         }}
                       >
-                        {fWanYuan(row.netAmount)}
+                        {fWanYuan(row.netAmount / 10000)}
                       </Box>
                     </TableCell>
                     <TableCell align="right">

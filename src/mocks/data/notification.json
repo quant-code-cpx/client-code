@@ -1,0 +1,46 @@
+{
+  "list": {
+    "code": 0,
+    "data": {
+      "page": 1,
+      "pageSize": 20,
+      "total": 0,
+      "unreadCount": 0,
+      "items": []
+    },
+    "message": ""
+  },
+  "unreadCount": {
+    "code": 0,
+    "data": {
+      "unreadCount": 0
+    },
+    "message": ""
+  },
+  "preferences": {
+    "code": 0,
+    "data": [
+      {
+        "type": "PRICE_ALERT",
+        "enabled": true
+      },
+      {
+        "type": "MARKET_ANOMALY",
+        "enabled": true
+      },
+      {
+        "type": "SCREENER_ALERT",
+        "enabled": true
+      },
+      {
+        "type": "SIGNAL_TRIGGERED",
+        "enabled": true
+      },
+      {
+        "type": "SYSTEM",
+        "enabled": true
+      }
+    ],
+    "message": ""
+  }
+}

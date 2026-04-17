@@ -1,8 +1,4 @@
-import type {
-  HeatmapItem,
-  HeatmapDistribution,
-  HeatmapSectorSummary,
-} from 'src/api/heatmap';
+import type { HeatmapItem, HeatmapDistribution, HeatmapSectorSummary } from 'src/api/heatmap';
 
 // ── Color mapping ──────────────────────────────────────────────
 
@@ -27,15 +23,18 @@ export function getHeatmapColor(pctChg: number | null): string {
  * 结果按 avgPctChg 降序排列。
  */
 export function aggregateSectors(items: HeatmapItem[]): HeatmapSectorSummary[] {
-  const map = new Map<string, {
-    pctChgSum: number;
-    stockCount: number;
-    upCount: number;
-    downCount: number;
-    flatCount: number;
-    totalAmount: number;
-    totalMv: number;
-  }>();
+  const map = new Map<
+    string,
+    {
+      pctChgSum: number;
+      stockCount: number;
+      upCount: number;
+      downCount: number;
+      flatCount: number;
+      totalAmount: number;
+      totalMv: number;
+    }
+  >();
 
   for (const item of items) {
     const key = item.groupName ?? item.industry ?? '其他';
@@ -91,11 +90,11 @@ export function aggregateSectors(items: HeatmapItem[]): HeatmapSectorSummary[] {
  * 净流出 → 绿色系（深浅表示量级）
  * 接近零 → 灰色
  *
- * @param netAmount 净流入金额（万元）
+ * @param netAmount 净流入金额（元，来自 /api/market/sector-flow 的 SectorFlowItemDto）
  * @returns 十六进制颜色值
  */
 export function getScatterColor(netAmount: number): string {
-  const yi = (netAmount ?? 0) / 10000;
+  const yi = (netAmount ?? 0) / 100_000_000;
 
   if (Math.abs(yi) < 0.5) return '#9E9E9E';
 
@@ -120,6 +119,14 @@ export function getScatterColor(netAmount: number): string {
  */
 export function toYi(wan: number | null | undefined, decimals = 2): number {
   return +((wan ?? 0) / 10000).toFixed(decimals);
+}
+
+/**
+ * 元转亿元，保留指定小数位
+ * 适用于 /api/market/sector-flow 的 netAmount 等字段（单位：元）
+ */
+export function yuanToYi(yuan: number | null | undefined, decimals = 2): number {
+  return +((yuan ?? 0) / 100_000_000).toFixed(decimals);
 }
 
 // ── Distribution ──────────────────────────────────────────────
@@ -149,9 +156,9 @@ export function computeDistribution(items: HeatmapItem[]): HeatmapDistribution {
     else if (pct < -0.1) downCount += 1;
     else flatCount += 1;
 
-  // Map pct to bucket index: floor(pct + 10), clamped to [0, 20]
-  // +10 shifts the [-10, +10] range to [0, 20]; clamp handles outliers beyond ±10%
-  const idx = Math.max(0, Math.min(20, Math.floor(pct + 10)));
+    // Map pct to bucket index: floor(pct + 10), clamped to [0, 20]
+    // +10 shifts the [-10, +10] range to [0, 20]; clamp handles outliers beyond ±10%
+    const idx = Math.max(0, Math.min(20, Math.floor(pct + 10)));
     buckets[idx] += 1;
   }
 

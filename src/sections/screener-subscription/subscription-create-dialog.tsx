@@ -95,8 +95,8 @@ export function SubscriptionCreateDialog({
               ...(maxPeTtm ? { maxPeTtm: Number(maxPeTtm) } : {}),
               ...(minRoe ? { minRoe: Number(minRoe) } : {}),
               ...(minRevenueYoy ? { minRevenueYoy: Number(minRevenueYoy) } : {}),
-              ...(minTotalMv ? { minTotalMv: Number(minTotalMv) } : {}),
-              ...(maxTotalMv ? { maxTotalMv: Number(maxTotalMv) } : {}),
+              ...(minTotalMv ? { minTotalMv: Number(minTotalMv) * 10000 } : {}),
+              ...(maxTotalMv ? { maxTotalMv: Number(maxTotalMv) * 10000 } : {}),
             }
           : undefined;
 
@@ -134,13 +134,18 @@ export function SubscriptionCreateDialog({
           />
 
           <Box>
-            <Typography variant="caption" sx={{ color: 'text.secondary', mb: 0.5, display: 'block' }}>
+            <Typography
+              variant="caption"
+              sx={{ color: 'text.secondary', mb: 0.5, display: 'block' }}
+            >
               执行频率
             </Typography>
             <ToggleButtonGroup
               exclusive
               value={frequency}
-              onChange={(_, val) => { if (val) setFrequency(val); }}
+              onChange={(_, val) => {
+                if (val) setFrequency(val);
+              }}
               size="small"
             >
               <ToggleButton value="DAILY">每日</ToggleButton>
@@ -161,7 +166,9 @@ export function SubscriptionCreateDialog({
               value={strategyId}
               onChange={(e) => setStrategyId(e.target.value === '' ? '' : Number(e.target.value))}
               disabled={loading || strategiesLoading}
-              helperText={strategiesLoading ? '加载中...' : strategies.length === 0 ? '暂无已保存策略' : ''}
+              helperText={
+                strategiesLoading ? '加载中...' : strategies.length === 0 ? '暂无已保存策略' : ''
+              }
             >
               {strategies.map((s) => (
                 <MenuItem key={s.id} value={s.id}>

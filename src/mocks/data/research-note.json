@@ -1,0 +1,19 @@
+{
+  "list": {
+    "code": 0,
+    "data": {
+      "notes": [],
+      "total": 0,
+      "page": 1,
+      "pageSize": 20
+    },
+    "message": ""
+  },
+  "tags": {
+    "code": 0,
+    "data": {
+      "tags": []
+    },
+    "message": ""
+  }
+}

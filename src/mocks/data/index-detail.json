@@ -1,0 +1,2178 @@
+{
+  "list": {
+    "code": 0,
+    "data": [
+      {
+        "tsCode": "000300.SH",
+        "name": "沪深300"
+      },
+      {
+        "tsCode": "000016.SH",
+        "name": "上证50"
+      },
+      {
+        "tsCode": "000903.SH",
+        "name": "000903.SH"
+      },
+      {
+        "tsCode": "000905.SH",
+        "name": "中证500"
+      },
+      {
+        "tsCode": "000852.SH",
+        "name": "中证1000"
+      },
+      {
+        "tsCode": "932000.CSI",
+        "name": "932000.CSI"
+      },
+      {
+        "tsCode": "000985.SH",
+        "name": "000985.SH"
+      },
+      {
+        "tsCode": "000001.SH",
+        "name": "上证指数"
+      },
+      {
+        "tsCode": "000010.SH",
+        "name": "000010.SH"
+      },
+      {
+        "tsCode": "000688.SH",
+        "name": "000688.SH"
+      },
+      {
+        "tsCode": "000698.SH",
+        "name": "000698.SH"
+      },
+      {
+        "tsCode": "399001.SZ",
+        "name": "深证成指"
+      },
+      {
+        "tsCode": "399107.SZ",
+        "name": "399107.SZ"
+      },
+      {
+        "tsCode": "399330.SZ",
+        "name": "399330.SZ"
+      },
+      {
+        "tsCode": "399006.SZ",
+        "name": "创业板指"
+      },
+      {
+        "tsCode": "399673.SZ",
+        "name": "399673.SZ"
+      },
+      {
+        "tsCode": "399005.SZ",
+        "name": "399005.SZ"
+      },
+      {
+        "tsCode": "899050.BJ",
+        "name": "899050.BJ"
+      }
+    ],
+    "message": ""
+  },
+  "daily": {
+    "code": 0,
+    "data": {
+      "tsCode": "000001.SH",
+      "name": "上证指数",
+      "data": [
+        {
+          "tradeDate": "2026-03-16",
+          "open": 4092.2491,
+          "high": 4096.1333,
+          "low": 4048.0866,
+          "close": 4084.7858,
+          "preClose": 4095.4485,
+          "change": -10.6627,
+          "pctChg": -0.2604,
+          "vol": 732227098,
+          "amount": 1037223834
+        },
+        {
+          "tradeDate": "2026-03-17",
+          "open": 4086.2953,
+          "high": 4108.4,
+          "low": 4049.5801,
+          "close": 4049.9073,
+          "preClose": 4084.7858,
+          "change": -34.8785,
+          "pctChg": -0.8539,
+          "vol": 678771224,
+          "amount": 951228129.3
+        },
+        {
+          "tradeDate": "2026-03-18",
+          "open": 4053.3052,
+          "high": 4065.3734,
+          "low": 4023.0295,
+          "close": 4062.9844,
+          "preClose": 4049.9073,
+          "change": 13.0771,
+          "pctChg": 0.3229,
+          "vol": 623873102,
+          "amount": 876327491.4
+        },
+        {
+          "tradeDate": "2026-03-19",
+          "open": 4028.542,
+          "high": 4042.0221,
+          "low": 3994.1651,
+          "close": 4006.5523,
+          "preClose": 4062.9844,
+          "change": -56.4321,
+          "pctChg": -1.3889,
+          "vol": 667255422,
+          "amount": 935264956.1
+        },
+        {
+          "tradeDate": "2026-03-20",
+          "open": 4004.5732,
+          "high": 4022.7033,
+          "low": 3955.7113,
+          "close": 3957.0527,
+          "preClose": 4006.5523,
+          "change": -49.4996,
+          "pctChg": -1.2355,
+          "vol": 666798387,
+          "amount": 964863108.6
+        },
+        {
+          "tradeDate": "2026-03-23",
+          "open": 3904.9513,
+          "high": 3906.622,
+          "low": 3794.6844,
+          "close": 3813.2829,
+          "preClose": 3957.0527,
+          "change": -143.7698,
+          "pctChg": -3.6333,
+          "vol": 804738850,
+          "amount": 1086248286
+        },
+        {
+          "tradeDate": "2026-03-24",
+          "open": 3849.6312,
+          "high": 3881.4236,
+          "low": 3807.9937,
+          "close": 3881.2797,
+          "preClose": 3813.2829,
+          "change": 67.9968,
+          "pctChg": 1.7832,
+          "vol": 680622039,
+          "amount": 931418842.7
+        },
+        {
+          "tradeDate": "2026-03-25",
+          "open": 3892.269,
+          "high": 3933.0613,
+          "low": 3891.8159,
+          "close": 3931.8375,
+          "preClose": 3881.2797,
+          "change": 50.5578,
+          "pctChg": 1.3026,
+          "vol": 688343626,
+          "amount": 967854261.2
+        },
+        {
+          "tradeDate": "2026-03-26",
+          "open": 3924.9621,
+          "high": 3937.1041,
+          "low": 3880.5729,
+          "close": 3889.0835,
+          "preClose": 3931.8375,
+          "change": -42.754,
+          "pctChg": -1.0874,
+          "vol": 615973981,
+          "amount": 848361335.1
+        },
+        {
+          "tradeDate": "2026-03-27",
+          "open": 3852.0936,
+          "high": 3924.1075,
+          "low": 3852.0936,
+          "close": 3913.7238,
+          "preClose": 3889.0835,
+          "change": 24.6403,
+          "pctChg": 0.6336,
+          "vol": 561342963,
+          "amount": 799696430.9
+        },
+        {
+          "tradeDate": "2026-03-30",
+          "open": 3884.2769,
+          "high": 3924.2893,
+          "low": 3872.7756,
+          "close": 3923.2869,
+          "preClose": 3913.7238,
+          "change": 9.5631,
+          "pctChg": 0.2443,
+          "vol": 595589479,
+          "amount": 839822434.7
+        },
+        {
+          "tradeDate": "2026-03-31",
+          "open": 3924.067,
+          "high": 3948.8107,
+          "low": 3891.8605,
+          "close": 3891.8605,
+          "preClose": 3923.2869,
+          "change": -31.4264,
+          "pctChg": -0.801,
+          "vol": 606704983,
+          "amount": 891945339.6
+        },
+        {
+          "tradeDate": "2026-04-01",
+          "open": 3939.5658,
+          "high": 3955.943,
+          "low": 3929.9213,
+          "close": 3948.5521,
+          "preClose": 3891.8605,
+          "change": 56.6916,
+          "pctChg": 1.4567,
+          "vol": 564611598,
+          "amount": 897278213.9
+        },
+        {
+          "tradeDate": "2026-04-02",
+          "open": 3940.7989,
+          "high": 3952.5761,
+          "low": 3900.1164,
+          "close": 3919.2852,
+          "preClose": 3948.5521,
+          "change": -29.2669,
+          "pctChg": -0.7412,
+          "vol": 544212835,
+          "amount": 811896567
+        },
+        {
+          "tradeDate": "2026-04-03",
+          "open": 3927.5923,
+          "high": 3929.5285,
+          "low": 3871.3004,
+          "close": 3880.0967,
+          "preClose": 3919.2852,
+          "change": -39.1885,
+          "pctChg": -0.9999,
+          "vol": 492699082,
+          "amount": 713830332.1
+        },
+        {
+          "tradeDate": "2026-04-07",
+          "open": 3884.1505,
+          "high": 3902.6065,
+          "low": 3875.6843,
+          "close": 3890.1645,
+          "preClose": 3880.0967,
+          "change": 10.0678,
+          "pctChg": 0.2595,
+          "vol": 473615076,
+          "amount": 723905837.3
+        },
+        {
+          "tradeDate": "2026-04-08",
+          "open": 3930.2507,
+          "high": 3994.9975,
+          "low": 3926.2489,
+          "close": 3994.9975,
+          "preClose": 3890.1645,
+          "change": 104.833,
+          "pctChg": 2.6948,
+          "vol": 644135352,
+          "amount": 1074211701.3
+        },
+        {
+          "tradeDate": "2026-04-09",
+          "open": 3967.6296,
+          "high": 3979.1271,
+          "low": 3955.2458,
+          "close": 3966.1712,
+          "preClose": 3994.9975,
+          "change": -28.8263,
+          "pctChg": -0.7216,
+          "vol": 541569801,
+          "amount": 902481840.1
+        },
+        {
+          "tradeDate": "2026-04-10",
+          "open": 3985.464,
+          "high": 4011.0243,
+          "low": 3979.814,
+          "close": 3986.2247,
+          "preClose": 3966.1712,
+          "change": 20.0535,
+          "pctChg": 0.5056,
+          "vol": 546415541,
+          "amount": 955664107.2
+        },
+        {
+          "tradeDate": "2026-04-13",
+          "open": 3971.1985,
+          "high": 3991.2622,
+          "low": 3966.1981,
+          "close": 3988.558,
+          "preClose": 3986.2247,
+          "change": 2.3333,
+          "pctChg": 0.0585,
+          "vol": 545781768,
+          "amount": 919436481.8
+        },
+        {
+          "tradeDate": "2026-04-14",
+          "open": 4006.7267,
+          "high": 4026.6256,
+          "low": 3992.4071,
+          "close": 4026.6256,
+          "preClose": 3988.558,
+          "change": 38.0676,
+          "pctChg": 0.9544,
+          "vol": 570259003,
+          "amount": 998435132
+        },
+        {
+          "tradeDate": "2026-04-15",
+          "open": 4039.4711,
+          "high": 4050.6208,
+          "low": 4020.9039,
+          "close": 4027.2095,
+          "preClose": 4026.6256,
+          "change": 0.5839,
+          "pctChg": 0.0145,
+          "vol": 569458589,
+          "amount": 1028851871.5
+        },
+        {
+          "tradeDate": "2026-04-16",
+          "open": 4030.1378,
+          "high": 4057.8314,
+          "low": 4028.9086,
+          "close": 4055.5468,
+          "preClose": 4027.2095,
+          "change": 28.3373,
+          "pctChg": 0.7036,
+          "vol": 545876967,
+          "amount": 976565489.7
+        }
+      ]
+    },
+    "message": ""
+  },
+  "constituents": {
+    "code": 0,
+    "data": {
+      "indexCode": "000300.SH",
+      "indexName": "沪深300",
+      "tradeDate": "20260401",
+      "total": 300,
+      "constituents": [
+        {
+          "conCode": "300750.SZ",
+          "name": "宁德时代",
+          "weight": 4.3419,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600519.SH",
+          "name": "贵州茅台",
+          "weight": 3.6979,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "300308.SZ",
+          "name": "中际旭创",
+          "weight": 2.7062,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601318.SH",
+          "name": "中国平安",
+          "weight": 2.5098,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601899.SH",
+          "name": "紫金矿业",
+          "weight": 2.2762,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600036.SH",
+          "name": "招商银行",
+          "weight": 1.9945,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "300502.SZ",
+          "name": "新易盛",
+          "weight": 1.8527,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "000333.SZ",
+          "name": "美的集团",
+          "weight": 1.5311,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600900.SH",
+          "name": "长江电力",
+          "weight": 1.3308,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601166.SH",
+          "name": "兴业银行",
+          "weight": 1.2956,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "002594.SZ",
+          "name": "比亚迪",
+          "weight": 1.1286,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600276.SH",
+          "name": "恒瑞医药",
+          "weight": 1.0432,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "002475.SZ",
+          "name": "立讯精密",
+          "weight": 1.0396,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "603259.SH",
+          "name": "药明康德",
+          "weight": 1.039,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601398.SH",
+          "name": "工商银行",
+          "weight": 0.9924,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "300059.SZ",
+          "name": "东方财富",
+          "weight": 0.9818,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600030.SH",
+          "name": "中信证券",
+          "weight": 0.9681,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "688256.SH",
+          "name": "寒武纪",
+          "weight": 0.8971,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601138.SH",
+          "name": "工业富联",
+          "weight": 0.857,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "688041.SH",
+          "name": "海光信息",
+          "weight": 0.8289,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "000858.SZ",
+          "name": "五粮液",
+          "weight": 0.8199,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "300274.SZ",
+          "name": "阳光电源",
+          "weight": 0.7896,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "002371.SZ",
+          "name": "北方华创",
+          "weight": 0.7894,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "688981.SH",
+          "name": "中芯国际",
+          "weight": 0.7795,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601288.SH",
+          "name": "农业银行",
+          "weight": 0.7779,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601211.SH",
+          "name": "国泰海通",
+          "weight": 0.7727,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601328.SH",
+          "name": "交通银行",
+          "weight": 0.7567,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "000651.SZ",
+          "name": "格力电器",
+          "weight": 0.6895,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "603986.SH",
+          "name": "兆易创新",
+          "weight": 0.6892,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600887.SH",
+          "name": "伊利股份",
+          "weight": 0.674,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601088.SH",
+          "name": "中国神华",
+          "weight": 0.6737,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "603993.SH",
+          "name": "洛阳钼业",
+          "weight": 0.6444,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600919.SH",
+          "name": "江苏银行",
+          "weight": 0.6428,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "300476.SZ",
+          "name": "胜宏科技",
+          "weight": 0.634,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600309.SH",
+          "name": "万华化学",
+          "weight": 0.6299,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "300394.SZ",
+          "name": "天孚通信",
+          "weight": 0.6292,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601816.SH",
+          "name": "京沪高铁",
+          "weight": 0.6035,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "688008.SH",
+          "name": "澜起科技",
+          "weight": 0.6023,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "000725.SZ",
+          "name": "京东方Ａ",
+          "weight": 0.5959,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600150.SH",
+          "name": "中国船舶",
+          "weight": 0.5674,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "002384.SZ",
+          "name": "东山精密",
+          "weight": 0.5655,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "688012.SH",
+          "name": "中微公司",
+          "weight": 0.5561,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "000338.SZ",
+          "name": "潍柴动力",
+          "weight": 0.5545,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601857.SH",
+          "name": "中国石油",
+          "weight": 0.5536,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600000.SH",
+          "name": "浦发银行",
+          "weight": 0.5521,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600089.SH",
+          "name": "特变电工",
+          "weight": 0.5476,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601601.SH",
+          "name": "中国太保",
+          "weight": 0.5306,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "002028.SZ",
+          "name": "思源电气",
+          "weight": 0.5267,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "300124.SZ",
+          "name": "汇川技术",
+          "weight": 0.5217,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600111.SH",
+          "name": "北方稀土",
+          "weight": 0.4965,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600031.SH",
+          "name": "三一重工",
+          "weight": 0.4873,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "603019.SH",
+          "name": "中科曙光",
+          "weight": 0.476,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "002714.SZ",
+          "name": "牧原股份",
+          "weight": 0.4664,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "000792.SZ",
+          "name": "盐湖股份",
+          "weight": 0.4655,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "002415.SZ",
+          "name": "海康威视",
+          "weight": 0.4557,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "002230.SZ",
+          "name": "科大讯飞",
+          "weight": 0.4398,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601012.SH",
+          "name": "隆基绿能",
+          "weight": 0.4389,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "000001.SZ",
+          "name": "平安银行",
+          "weight": 0.4378,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "002463.SZ",
+          "name": "沪电股份",
+          "weight": 0.432,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601688.SH",
+          "name": "华泰证券",
+          "weight": 0.4306,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "000063.SZ",
+          "name": "中兴通讯",
+          "weight": 0.4302,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600406.SH",
+          "name": "国电南瑞",
+          "weight": 0.4294,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601668.SH",
+          "name": "中国建筑",
+          "weight": 0.4197,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "002142.SZ",
+          "name": "宁波银行",
+          "weight": 0.4093,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "300760.SZ",
+          "name": "迈瑞医疗",
+          "weight": 0.407,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "000425.SZ",
+          "name": "徐工机械",
+          "weight": 0.4003,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601225.SH",
+          "name": "陕西煤业",
+          "weight": 0.3983,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601229.SH",
+          "name": "上海银行",
+          "weight": 0.3981,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "002050.SZ",
+          "name": "三花智控",
+          "weight": 0.3949,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601919.SH",
+          "name": "中远海控",
+          "weight": 0.3873,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600016.SH",
+          "name": "民生银行",
+          "weight": 0.3797,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600660.SH",
+          "name": "福耀玻璃",
+          "weight": 0.3759,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600938.SH",
+          "name": "中国海油",
+          "weight": 0.374,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601600.SH",
+          "name": "中国铝业",
+          "weight": 0.3708,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "603799.SH",
+          "name": "华友钴业",
+          "weight": 0.3701,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "002352.SZ",
+          "name": "顺丰控股",
+          "weight": 0.3699,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "000100.SZ",
+          "name": "TCL科技",
+          "weight": 0.3636,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601728.SH",
+          "name": "中国电信",
+          "weight": 0.3575,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "300498.SZ",
+          "name": "温氏股份",
+          "weight": 0.3539,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "002460.SZ",
+          "name": "赣锋锂业",
+          "weight": 0.3534,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600028.SH",
+          "name": "中国石化",
+          "weight": 0.3473,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600926.SH",
+          "name": "杭州银行",
+          "weight": 0.3444,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600941.SH",
+          "name": "中国移动",
+          "weight": 0.3429,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601988.SH",
+          "name": "中国银行",
+          "weight": 0.3401,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600690.SH",
+          "name": "海尔智家",
+          "weight": 0.3308,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "603501.SH",
+          "name": "豪威集团",
+          "weight": 0.3291,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601169.SH",
+          "name": "北京银行",
+          "weight": 0.3288,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601939.SH",
+          "name": "建设银行",
+          "weight": 0.324,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600522.SH",
+          "name": "中天科技",
+          "weight": 0.3222,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600489.SH",
+          "name": "中金黄金",
+          "weight": 0.3208,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "000568.SZ",
+          "name": "泸州老窖",
+          "weight": 0.3165,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "300014.SZ",
+          "name": "亿纬锂能",
+          "weight": 0.3152,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601766.SH",
+          "name": "中国中车",
+          "weight": 0.3126,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601127.SH",
+          "name": "赛力斯",
+          "weight": 0.3033,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600547.SH",
+          "name": "山东黄金",
+          "weight": 0.3008,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601985.SH",
+          "name": "中国核电",
+          "weight": 0.298,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "300408.SZ",
+          "name": "三环集团",
+          "weight": 0.296,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600809.SH",
+          "name": "山西汾酒",
+          "weight": 0.2851,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601009.SH",
+          "name": "南京银行",
+          "weight": 0.2837,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600050.SH",
+          "name": "中国联通",
+          "weight": 0.2834,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601888.SH",
+          "name": "中国中免",
+          "weight": 0.2821,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "603288.SH",
+          "name": "海天味业",
+          "weight": 0.2819,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "300442.SZ",
+          "name": "润泽科技",
+          "weight": 0.2796,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600104.SH",
+          "name": "上汽集团",
+          "weight": 0.2758,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600183.SH",
+          "name": "生益科技",
+          "weight": 0.2708,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "002027.SZ",
+          "name": "分众传媒",
+          "weight": 0.27,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "000807.SZ",
+          "name": "云铝股份",
+          "weight": 0.2679,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "300033.SZ",
+          "name": "同花顺",
+          "weight": 0.266,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600893.SH",
+          "name": "航发动力",
+          "weight": 0.2645,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "002709.SZ",
+          "name": "天赐材料",
+          "weight": 0.2636,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "000408.SZ",
+          "name": "藏格矿业",
+          "weight": 0.2611,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601006.SH",
+          "name": "大秦铁路",
+          "weight": 0.2607,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600989.SH",
+          "name": "宝丰能源",
+          "weight": 0.256,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600176.SH",
+          "name": "中国巨石",
+          "weight": 0.2499,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601628.SH",
+          "name": "中国人寿",
+          "weight": 0.2496,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "002916.SZ",
+          "name": "深南电路",
+          "weight": 0.2493,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "000977.SZ",
+          "name": "浪潮信息",
+          "weight": 0.2433,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600905.SH",
+          "name": "三峡能源",
+          "weight": 0.2418,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600010.SH",
+          "name": "包钢股份",
+          "weight": 0.241,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601818.SH",
+          "name": "光大银行",
+          "weight": 0.2404,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "002625.SZ",
+          "name": "光启技术",
+          "weight": 0.2382,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600999.SH",
+          "name": "招商证券",
+          "weight": 0.2367,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601872.SH",
+          "name": "招商轮船",
+          "weight": 0.2353,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "002466.SZ",
+          "name": "天齐锂业",
+          "weight": 0.232,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "300433.SZ",
+          "name": "蓝思科技",
+          "weight": 0.2308,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "688271.SH",
+          "name": "联影医疗",
+          "weight": 0.2295,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "002241.SZ",
+          "name": "歌尔股份",
+          "weight": 0.229,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600584.SH",
+          "name": "长电科技",
+          "weight": 0.2288,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600019.SH",
+          "name": "宝钢股份",
+          "weight": 0.2285,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601658.SH",
+          "name": "邮储银行",
+          "weight": 0.228,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "688111.SH",
+          "name": "金山办公",
+          "weight": 0.2274,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600585.SH",
+          "name": "海螺水泥",
+          "weight": 0.2264,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601390.SH",
+          "name": "中国中铁",
+          "weight": 0.2254,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601100.SH",
+          "name": "恒立液压",
+          "weight": 0.2214,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "000776.SZ",
+          "name": "广发证券",
+          "weight": 0.2202,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600426.SH",
+          "name": "华鲁恒升",
+          "weight": 0.2195,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601825.SH",
+          "name": "沪农商行",
+          "weight": 0.2143,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "002001.SZ",
+          "name": "新和成",
+          "weight": 0.2135,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601336.SH",
+          "name": "新华保险",
+          "weight": 0.2106,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "000975.SZ",
+          "name": "山金国际",
+          "weight": 0.2064,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601689.SH",
+          "name": "拓普集团",
+          "weight": 0.2063,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "000938.SZ",
+          "name": "紫光股份",
+          "weight": 0.2049,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601669.SH",
+          "name": "中国电建",
+          "weight": 0.2022,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "000625.SZ",
+          "name": "长安汽车",
+          "weight": 0.2015,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "000538.SZ",
+          "name": "云南白药",
+          "weight": 0.2006,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600066.SH",
+          "name": "宇通客车",
+          "weight": 0.2002,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "000630.SZ",
+          "name": "铜陵有色",
+          "weight": 0.1947,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600958.SH",
+          "name": "东方证券",
+          "weight": 0.1938,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "002600.SZ",
+          "name": "领益智造",
+          "weight": 0.1916,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600160.SH",
+          "name": "巨化股份",
+          "weight": 0.1905,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600015.SH",
+          "name": "华夏银行",
+          "weight": 0.1901,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600346.SH",
+          "name": "恒力石化",
+          "weight": 0.1897,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600875.SH",
+          "name": "东方电气",
+          "weight": 0.189,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600362.SH",
+          "name": "江西铜业",
+          "weight": 0.1871,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600436.SH",
+          "name": "片仔癀",
+          "weight": 0.1868,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "605117.SH",
+          "name": "德业股份",
+          "weight": 0.1867,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "002049.SZ",
+          "name": "紫光国微",
+          "weight": 0.1854,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "002648.SZ",
+          "name": "卫星化学",
+          "weight": 0.1841,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "300015.SZ",
+          "name": "爱尔眼科",
+          "weight": 0.1828,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601916.SH",
+          "name": "浙商银行",
+          "weight": 0.1825,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600438.SH",
+          "name": "通威股份",
+          "weight": 0.1824,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "300418.SZ",
+          "name": "昆仑万维",
+          "weight": 0.1821,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "000157.SZ",
+          "name": "中联重科",
+          "weight": 0.1787,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601998.SH",
+          "name": "中信银行",
+          "weight": 0.178,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "605499.SH",
+          "name": "东鹏饮料",
+          "weight": 0.1771,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601838.SH",
+          "name": "成都银行",
+          "weight": 0.1764,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "002179.SZ",
+          "name": "中航光电",
+          "weight": 0.1754,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600795.SH",
+          "name": "国电电力",
+          "weight": 0.1754,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600219.SH",
+          "name": "南山铝业",
+          "weight": 0.174,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "000166.SZ",
+          "name": "申万宏源",
+          "weight": 0.1729,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600048.SH",
+          "name": "保利发展",
+          "weight": 0.1712,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "002311.SZ",
+          "name": "海大集团",
+          "weight": 0.171,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600760.SH",
+          "name": "中航沈飞",
+          "weight": 0.1687,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601377.SH",
+          "name": "兴业证券",
+          "weight": 0.1661,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "002422.SZ",
+          "name": "科伦药业",
+          "weight": 0.1638,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600026.SH",
+          "name": "中远海能",
+          "weight": 0.1596,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600570.SH",
+          "name": "恒生电子",
+          "weight": 0.1585,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "002074.SZ",
+          "name": "国轩高科",
+          "weight": 0.1575,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600115.SH",
+          "name": "中国东航",
+          "weight": 0.1564,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601995.SH",
+          "name": "中金公司",
+          "weight": 0.1547,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601360.SH",
+          "name": "三六零",
+          "weight": 0.1534,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601868.SH",
+          "name": "中国能建",
+          "weight": 0.1533,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601077.SH",
+          "name": "渝农商行",
+          "weight": 0.1516,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "002938.SZ",
+          "name": "鹏鼎控股",
+          "weight": 0.1509,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "002493.SZ",
+          "name": "荣盛石化",
+          "weight": 0.1495,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600415.SH",
+          "name": "小商品城",
+          "weight": 0.1473,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600482.SH",
+          "name": "中国动力",
+          "weight": 0.1472,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601058.SH",
+          "name": "赛轮轮胎",
+          "weight": 0.1468,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "300803.SZ",
+          "name": "指南针",
+          "weight": 0.1456,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "603296.SH",
+          "name": "华勤技术",
+          "weight": 0.1449,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "003816.SZ",
+          "name": "中国广核",
+          "weight": 0.1439,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601877.SH",
+          "name": "正泰电器",
+          "weight": 0.1429,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600009.SH",
+          "name": "上海机场",
+          "weight": 0.1416,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "002736.SZ",
+          "name": "国信证券",
+          "weight": 0.1415,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600233.SH",
+          "name": "圆通速递",
+          "weight": 0.1406,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600196.SH",
+          "name": "复星医药",
+          "weight": 0.1392,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "000768.SZ",
+          "name": "中航西飞",
+          "weight": 0.1391,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600188.SH",
+          "name": "兖矿能源",
+          "weight": 0.1376,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600886.SH",
+          "name": "国投电力",
+          "weight": 0.1361,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "002236.SZ",
+          "name": "大华股份",
+          "weight": 0.1358,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "688126.SH",
+          "name": "沪硅产业",
+          "weight": 0.1338,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601117.SH",
+          "name": "中国化学",
+          "weight": 0.1332,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601186.SH",
+          "name": "中国铁建",
+          "weight": 0.1313,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "603893.SH",
+          "name": "瑞芯微",
+          "weight": 0.1303,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "002920.SZ",
+          "name": "德赛西威",
+          "weight": 0.1295,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600029.SH",
+          "name": "南方航空",
+          "weight": 0.1294,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "000963.SZ",
+          "name": "华东医药",
+          "weight": 0.129,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600372.SH",
+          "name": "中航机载",
+          "weight": 0.128,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601898.SH",
+          "name": "中煤能源",
+          "weight": 0.1278,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "300759.SZ",
+          "name": "康龙化成",
+          "weight": 0.1271,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "688036.SH",
+          "name": "传音控股",
+          "weight": 0.127,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "002252.SZ",
+          "name": "上海莱士",
+          "weight": 0.127,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600741.SH",
+          "name": "华域汽车",
+          "weight": 0.1264,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600011.SH",
+          "name": "华能国际",
+          "weight": 0.1257,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "002304.SZ",
+          "name": "洋河股份",
+          "weight": 0.1252,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "300661.SZ",
+          "name": "圣邦股份",
+          "weight": 0.1234,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "300782.SZ",
+          "name": "卓胜微",
+          "weight": 0.1229,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "001979.SZ",
+          "name": "招商蛇口",
+          "weight": 0.1227,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600460.SH",
+          "name": "士兰微",
+          "weight": 0.1225,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601788.SH",
+          "name": "光大证券",
+          "weight": 0.1224,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "300347.SZ",
+          "name": "泰格医药",
+          "weight": 0.1192,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "002601.SZ",
+          "name": "龙佰集团",
+          "weight": 0.1188,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "000895.SZ",
+          "name": "双汇发展",
+          "weight": 0.1182,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "000301.SZ",
+          "name": "东方盛虹",
+          "weight": 0.1165,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "000661.SZ",
+          "name": "长春高新",
+          "weight": 0.1165,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600674.SH",
+          "name": "川投能源",
+          "weight": 0.1164,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601901.SH",
+          "name": "方正证券",
+          "weight": 0.1146,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601066.SH",
+          "name": "中信建投",
+          "weight": 0.114,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601881.SH",
+          "name": "中国银河",
+          "weight": 0.1131,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "300316.SZ",
+          "name": "晶盛机电",
+          "weight": 0.1122,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601698.SH",
+          "name": "中国卫通",
+          "weight": 0.1116,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "000002.SZ",
+          "name": "万科Ａ",
+          "weight": 0.1113,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "688223.SH",
+          "name": "晶科能源",
+          "weight": 0.1105,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601800.SH",
+          "name": "中国交建",
+          "weight": 0.11,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "688047.SH",
+          "name": "龙芯中科",
+          "weight": 0.1082,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601878.SH",
+          "name": "浙商证券",
+          "weight": 0.1079,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "000786.SZ",
+          "name": "北新建材",
+          "weight": 0.1076,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601111.SH",
+          "name": "中国国航",
+          "weight": 0.1068,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "688506.SH",
+          "name": "百利天恒",
+          "weight": 0.1046,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601633.SH",
+          "name": "长城汽车",
+          "weight": 0.1042,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "000617.SZ",
+          "name": "中油资本",
+          "weight": 0.1012,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "688169.SH",
+          "name": "石头科技",
+          "weight": 0.1011,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600039.SH",
+          "name": "四川路桥",
+          "weight": 0.0999,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600588.SH",
+          "name": "用友网络",
+          "weight": 0.0983,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "688396.SH",
+          "name": "华润微",
+          "weight": 0.0982,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601319.SH",
+          "name": "中国人保",
+          "weight": 0.0968,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "301236.SZ",
+          "name": "软通动力",
+          "weight": 0.0961,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601021.SH",
+          "name": "春秋航空",
+          "weight": 0.0945,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "300866.SZ",
+          "name": "安克创新",
+          "weight": 0.0943,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "300251.SZ",
+          "name": "光线传媒",
+          "weight": 0.0915,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600600.SH",
+          "name": "青岛啤酒",
+          "weight": 0.0908,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "002459.SZ",
+          "name": "晶澳科技",
+          "weight": 0.0906,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600023.SH",
+          "name": "浙能电力",
+          "weight": 0.089,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601618.SH",
+          "name": "中国中冶",
+          "weight": 0.087,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600515.SH",
+          "name": "海南机场",
+          "weight": 0.0846,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "603369.SH",
+          "name": "今世缘",
+          "weight": 0.0824,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600803.SH",
+          "name": "新奥股份",
+          "weight": 0.0824,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "001965.SZ",
+          "name": "招商公路",
+          "weight": 0.081,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600845.SH",
+          "name": "宝信软件",
+          "weight": 0.0806,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "302132.SZ",
+          "name": "中航成飞",
+          "weight": 0.0802,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600085.SH",
+          "name": "同仁堂",
+          "weight": 0.0795,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "300832.SZ",
+          "name": "新产业",
+          "weight": 0.0792,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "688472.SH",
+          "name": "阿特斯",
+          "weight": 0.0791,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600918.SH",
+          "name": "中泰证券",
+          "weight": 0.0784,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601607.SH",
+          "name": "上海医药",
+          "weight": 0.0777,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "300122.SZ",
+          "name": "智飞生物",
+          "weight": 0.0776,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "000999.SZ",
+          "name": "华润三九",
+          "weight": 0.0765,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "000983.SZ",
+          "name": "山西焦煤",
+          "weight": 0.0762,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600027.SH",
+          "name": "华电国际",
+          "weight": 0.0758,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "000876.SZ",
+          "name": "新希望",
+          "weight": 0.075,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600025.SH",
+          "name": "华能水电",
+          "weight": 0.0743,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600930.SH",
+          "name": "华电新能",
+          "weight": 0.0737,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "301269.SZ",
+          "name": "华大九天",
+          "weight": 0.0734,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "300896.SZ",
+          "name": "爱美客",
+          "weight": 0.0732,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600061.SH",
+          "name": "国投资本",
+          "weight": 0.0726,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "000596.SZ",
+          "name": "古井贡酒",
+          "weight": 0.0708,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "300999.SZ",
+          "name": "金龙鱼",
+          "weight": 0.0696,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "000708.SZ",
+          "name": "中信特钢",
+          "weight": 0.0676,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "300628.SZ",
+          "name": "亿联网络",
+          "weight": 0.0675,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601059.SH",
+          "name": "信达证券",
+          "weight": 0.065,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601238.SH",
+          "name": "广汽集团",
+          "weight": 0.0649,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601018.SH",
+          "name": "宁波港",
+          "weight": 0.0639,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "300413.SZ",
+          "name": "芒果超媒",
+          "weight": 0.0636,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "603392.SH",
+          "name": "万泰生物",
+          "weight": 0.0619,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600161.SH",
+          "name": "天坛生物",
+          "weight": 0.0615,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "603260.SH",
+          "name": "合盛硅业",
+          "weight": 0.0588,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601456.SH",
+          "name": "国联民生",
+          "weight": 0.0581,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "688009.SH",
+          "name": "中国通号",
+          "weight": 0.0572,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600018.SH",
+          "name": "上港集团",
+          "weight": 0.057,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "688082.SH",
+          "name": "盛美上海",
+          "weight": 0.0564,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "688187.SH",
+          "name": "时代电气",
+          "weight": 0.0547,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "688303.SH",
+          "name": "大全能源",
+          "weight": 0.0547,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "603195.SH",
+          "name": "公牛集团",
+          "weight": 0.046,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601236.SH",
+          "name": "红塔证券",
+          "weight": 0.044,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601808.SH",
+          "name": "中海油服",
+          "weight": 0.0372,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601136.SH",
+          "name": "首创证券",
+          "weight": 0.0361,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "300979.SZ",
+          "name": "华利集团",
+          "weight": 0.0315,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "601298.SH",
+          "name": "青岛港",
+          "weight": 0.0248,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "600377.SH",
+          "name": "宁沪高速",
+          "weight": 0.0238,
+          "tradeDate": "20260401"
+        },
+        {
+          "conCode": "001391.SZ",
+          "name": "国货航",
+          "weight": 0.021,
+          "tradeDate": "20260401"
+        }
+      ]
+    },
+    "message": ""
+  }
+}

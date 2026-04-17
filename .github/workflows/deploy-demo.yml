@@ -1,0 +1,66 @@
+# Deploy demo site to GitHub Pages
+#
+# Builds the app with VITE_DEMO_MODE=true (MSW mock data, no backend required)
+# and deploys to https://quant-code-cpx.github.io/client-code/
+#
+# Triggers:
+#   - Push to main branch
+#   - Manual dispatch (workflow_dispatch)
+
+name: Deploy Demo
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Only allow one deployment at a time
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build Demo
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: yarn
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Build with demo mode
+        run: yarn build
+        env:
+          VITE_DEMO_MODE: 'true'
+
+      - name: Copy index.html to 404.html (SPA routing)
+        run: cp dist/index.html dist/404.html
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

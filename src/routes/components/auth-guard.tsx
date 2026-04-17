@@ -21,7 +21,11 @@ export function AuthGuard({ children }: AuthGuardProps) {
     return null;
   }
 
-  if (!isAuthenticated && import.meta.env.MODE !== 'screenshot') {
+  if (
+    !isAuthenticated &&
+    import.meta.env.MODE !== 'screenshot' &&
+    import.meta.env.VITE_DEMO_MODE !== 'true'
+  ) {
     return <Navigate to="/sign-in" state={{ from: location }} replace />;
   }
 

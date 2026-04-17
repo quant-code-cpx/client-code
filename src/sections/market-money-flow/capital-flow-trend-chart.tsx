@@ -27,9 +27,9 @@ const DAY_OPTIONS: Array<{ value: number; label: string }> = [
   { value: 60, label: '60日' },
 ];
 
-/** 万元 → 亿元 */
-function toYi(wan: number): number {
-  return +(wan / 10000).toFixed(2);
+/** 元 → 亿元 */
+function toYi(yuan: number): number {
+  return +(yuan / 1e8).toFixed(2);
 }
 
 // ----------------------------------------------------------------------

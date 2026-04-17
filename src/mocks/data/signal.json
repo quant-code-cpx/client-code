@@ -1,0 +1,23 @@
+{
+  "activations": {
+    "code": 0,
+    "data": [],
+    "message": ""
+  },
+  "latest": {
+    "code": 0,
+    "data": [],
+    "message": ""
+  },
+  "history": {
+    "code": 0,
+    "data": {
+      "strategyId": "any",
+      "total": 0,
+      "page": 1,
+      "pageSize": 20,
+      "groups": []
+    },
+    "message": ""
+  }
+}

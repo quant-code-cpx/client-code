@@ -64,7 +64,7 @@ export function RotationHeatmapChart({ tradeDate, period, onSectorClick }: Props
         y:
           colorMode === 'pctChange'
             ? Math.round(s.pctChange * 100) / 100
-            : Math.round(s.netAmount / 10000) / 100,
+            : Math.round(s.netAmount / 1e6) / 100,
       })),
     },
   ];
@@ -94,7 +94,6 @@ export function RotationHeatmapChart({ tradeDate, period, onSectorClick }: Props
       type: 'treemap',
       toolbar: { show: false },
       events: {
-         
         dataPointSelection: (_event: unknown, _chartCtx: unknown, config: any) => {
           const name = sectors[(config as { dataPointIndex: number })?.dataPointIndex]?.name;
           if (name && onSectorClick) onSectorClick(name);
@@ -112,7 +111,7 @@ export function RotationHeatmapChart({ tradeDate, period, onSectorClick }: Props
     dataLabels: {
       enabled: true,
       style: { fontSize: '12px', fontWeight: '600' },
-       
+
       formatter: (_val: unknown, opts: any) => {
         const item = (
           opts?.w?.config?.series?.[opts.seriesIndex] as
@@ -142,7 +141,7 @@ export function RotationHeatmapChart({ tradeDate, period, onSectorClick }: Props
         const sector = sectors[dataPointIndex];
         if (!sector) return '';
         const amount = (sector.amount / 10000).toFixed(1);
-        const netAmount = (sector.netAmount / 10000).toFixed(1);
+        const netAmount = (sector.netAmount / 1e8).toFixed(1);
         const sign = sector.pctChange > 0 ? '+' : '';
         return [
           '<div style="padding:8px 12px;font-size:13px;">',

@@ -541,7 +541,7 @@ export type SectorFlowItem = {
   close: number;
   /** 成交额（万元） */
   amount: number;
-  /** 净流入额（万元） */
+  /** 净流入额（元，来自 moneyflow_ind_dc） */
   netAmount: number;
   /** 净流入占比 */
   netAmountRate: number;
@@ -556,8 +556,13 @@ export type SectorFlowItem = {
 };
 
 export type SectorFlowResult = {
-  tradeDate: string;
-  sectors: SectorFlowItem[];
+  tradeDate: string | null;
+  /** 行业板块列表 */
+  industry: SectorFlowItem[];
+  /** 概念板块列表 */
+  concept: SectorFlowItem[];
+  /** 地域板块列表 */
+  region: SectorFlowItem[];
 };
 
 // ─── 概念板块 ──────────────────────────────────

@@ -1,0 +1,12 @@
+{
+  "list": {
+    "code": 0,
+    "data": {
+      "items": [],
+      "total": 0,
+      "page": 1,
+      "pageSize": 20
+    },
+    "message": ""
+  }
+}

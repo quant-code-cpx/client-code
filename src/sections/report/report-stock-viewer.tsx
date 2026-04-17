@@ -20,6 +20,16 @@ import { fNumber, fWanYuan } from 'src/utils/format-number';
 import { Scrollbar } from 'src/components/scrollbar';
 import { Chart, useChart } from 'src/components/chart';
 
+/** Format raw yuan amount into 亿/万/元 scale */
+function fYuanAmt(value: number | null | undefined): string {
+  if (value == null) return '-';
+  const abs = Math.abs(value);
+  if (abs >= 1e8) return `${(value / 1e8).toFixed(2)}亿`;
+  if (abs >= 1e4) return `${(value / 1e4).toFixed(2)}万`;
+  if (abs === 0) return '0';
+  return value.toFixed(2);
+}
+
 // ─── Overview info cards ──────────────────────────────────────
 
 type InfoRowProps = { label: string; value: string };
@@ -91,8 +101,8 @@ function FinancialTable({ rows }: FinancialTableProps) {
               <TableHead>
                 <TableRow>
                   <TableCell>报告期</TableCell>
-                  <TableCell align="right">营收（万元）</TableCell>
-                  <TableCell align="right">净利润（万元）</TableCell>
+                  <TableCell align="right">营收</TableCell>
+                  <TableCell align="right">净利润</TableCell>
                   <TableCell align="right">ROE (%)</TableCell>
                   <TableCell align="right">EPS（元）</TableCell>
                   <TableCell align="right">每股净资产</TableCell>
@@ -106,9 +116,7 @@ function FinancialTable({ rows }: FinancialTableProps) {
                       <Typography variant="caption">{r.period}</Typography>
                     </TableCell>
                     <TableCell align="right">
-                      <Typography variant="caption">
-                        {r.revenue != null ? fNumber(Math.round(r.revenue)) : '-'}
-                      </Typography>
+                      <Typography variant="caption">{fYuanAmt(r.revenue)}</Typography>
                     </TableCell>
                     <TableCell align="right">
                       <Typography
@@ -119,7 +127,7 @@ function FinancialTable({ rows }: FinancialTableProps) {
                           fontWeight: 600,
                         }}
                       >
-                        {r.netProfit != null ? fNumber(Math.round(r.netProfit)) : '-'}
+                        {fYuanAmt(r.netProfit)}
                       </Typography>
                     </TableCell>
                     <TableCell align="right">

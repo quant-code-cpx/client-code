@@ -51,8 +51,8 @@ export function SubscriptionEditDialog({
     setMaxPeTtm(f.maxPeTtm != null ? String(f.maxPeTtm) : '');
     setMinRoe(f.minRoe != null ? String(f.minRoe) : '');
     setMinRevenueYoy(f.minRevenueYoy != null ? String(f.minRevenueYoy) : '');
-    setMinTotalMv(f.minTotalMv != null ? String(f.minTotalMv) : '');
-    setMaxTotalMv(f.maxTotalMv != null ? String(f.maxTotalMv) : '');
+    setMinTotalMv(f.minTotalMv != null ? String(f.minTotalMv / 10000) : '');
+    setMaxTotalMv(f.maxTotalMv != null ? String(f.maxTotalMv / 10000) : '');
   }, [subscription]);
 
   const handleClose = () => {
@@ -74,8 +74,8 @@ export function SubscriptionEditDialog({
         ...(maxPeTtm ? { maxPeTtm: Number(maxPeTtm) } : {}),
         ...(minRoe ? { minRoe: Number(minRoe) } : {}),
         ...(minRevenueYoy ? { minRevenueYoy: Number(minRevenueYoy) } : {}),
-        ...(minTotalMv ? { minTotalMv: Number(minTotalMv) } : {}),
-        ...(maxTotalMv ? { maxTotalMv: Number(maxTotalMv) } : {}),
+        ...(minTotalMv ? { minTotalMv: Number(minTotalMv) * 10000 } : {}),
+        ...(maxTotalMv ? { maxTotalMv: Number(maxTotalMv) * 10000 } : {}),
       };
       const result = await updateSubscription({
         id: subscription.id,
@@ -111,13 +111,18 @@ export function SubscriptionEditDialog({
           />
 
           <Box>
-            <Typography variant="caption" sx={{ color: 'text.secondary', mb: 0.5, display: 'block' }}>
+            <Typography
+              variant="caption"
+              sx={{ color: 'text.secondary', mb: 0.5, display: 'block' }}
+            >
               执行频率
             </Typography>
             <ToggleButtonGroup
               exclusive
               value={frequency}
-              onChange={(_, val) => { if (val) setFrequency(val); }}
+              onChange={(_, val) => {
+                if (val) setFrequency(val);
+              }}
               size="small"
             >
               <ToggleButton value="DAILY">每日</ToggleButton>

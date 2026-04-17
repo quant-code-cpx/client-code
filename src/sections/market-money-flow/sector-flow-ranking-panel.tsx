@@ -50,9 +50,9 @@ function flowColor(value: number): 'error.main' | 'success.main' | 'text.seconda
   return 'text.secondary';
 }
 
-/** 万元 → 亿元，保留 2 位小数 */
-function toYiStr(wan: number): string {
-  return `${(wan / 10000).toFixed(2)}亿`;
+/** 元 → 亿元，保留 2 位小数 */
+function toYiStr(yuan: number): string {
+  return `${(yuan / 1e8).toFixed(2)}亿`;
 }
 
 // ----------------------------------------------------------------------

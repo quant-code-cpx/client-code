@@ -53,6 +53,7 @@ export function MarketHeatmapView() {
   const tradeDateStr = tradeDate ? tradeDate.format('YYYYMMDD') : undefined;
 
   // ── 热力图（TreeMap + 下方统计图）数据 ───────
+  // 仅在 treemap 模式下加载 5000 股数据，避免散点图模式下浪费
   const [items, setItems] = useState<HeatmapItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -76,6 +77,22 @@ export function MarketHeatmapView() {
   const sectors: HeatmapSectorSummary[] = useMemo(() => aggregateSectors(items), [items]);
   const distribution: HeatmapDistribution = useMemo(() => computeDistribution(items), [items]);
 
+  // 散点图模式下，从 SectorFlowItem[] 构建行业统计（代替 5000 股聚合结果）
+  const scatterSectors: HeatmapSectorSummary[] = useMemo(
+    () =>
+      sectorFlows.map((s) => ({
+        groupName: s.name,
+        avgPctChg: s.pctChange ?? 0,
+        stockCount: (s.upCount ?? 0) + (s.downCount ?? 0),
+        upCount: s.upCount ?? 0,
+        downCount: s.downCount ?? 0,
+        flatCount: 0,
+        totalAmount: s.amount ?? 0,
+        totalMv: 0,
+      })),
+    [sectorFlows]
+  );
+
   // 涨幅 Top N 按行业分组（从 HeatmapItem[]）
   const topGainersByGroup = useMemo(() => {
     const map: Record<string, Array<{ name: string; tsCode: string; pctChg: number }>> = {};
@@ -97,10 +114,7 @@ export function MarketHeatmapView() {
 
   // 资金流入 Top N 按行业分组（从 MainFlowRankingItem[]）
   const topInflowByGroup = useMemo(() => {
-    const map: Record<
-      string,
-      Array<{ name: string; tsCode: string; mainNetInflow: number }>
-    > = {};
+    const map: Record<string, Array<{ name: string; tsCode: string; mainNetInflow: number }>> = {};
     for (const item of mainFlowRanking) {
       const group = item.industry ?? '其他';
       if (!map[group]) map[group] = [];
@@ -117,8 +131,10 @@ export function MarketHeatmapView() {
     return map;
   }, [mainFlowRanking]);
 
-  // ── 数据加载：热力图（始终加载，下方统计图依赖） ──
+  // ── 数据加载：热力图（仅 treemap 模式需要） ──
   useEffect(() => {
+    if (viewMode !== 'treemap') return undefined;
+
     const cfg = GROUP_OPTIONS.find((o) => o.value === groupBy)!;
     let cancelled = false;
     setLoading(true);
@@ -142,7 +158,7 @@ export function MarketHeatmapView() {
     return () => {
       cancelled = true;
     };
-  }, [tradeDateStr, groupBy]);
+  }, [viewMode, tradeDateStr, groupBy]);
 
   // ── 数据加载：散点图数据 ──────────────────────
   useEffect(() => {
@@ -152,24 +168,27 @@ export function MarketHeatmapView() {
     setScatterLoading(true);
     setScatterError('');
 
+    // 散点图只请求 Top 30 行业/概念/地域，减少气泡数量，提升可读性和渲染性能
     Promise.all([
       fetchSectorFlow({
         trade_date: tradeDateStr,
         content_type: contentType,
+        limit: 30,
       }),
       fetchMainFlowRanking({
         trade_date: tradeDateStr,
-        limit: 200,
+        limit: 100,
       }),
     ])
       .then(([flowRes, rankRes]) => {
         if (cancelled) return;
-        setSectorFlows(flowRes?.sectors ?? []);
+        // 后端按 contentType 分字段返回：industry / concept / region
+        const flowKey = contentType.toLowerCase() as 'industry' | 'concept' | 'region';
+        setSectorFlows(flowRes?.[flowKey] ?? []);
         setMainFlowRanking(rankRes?.data ?? []);
       })
       .catch((err: unknown) => {
-        if (!cancelled)
-          setScatterError(err instanceof Error ? err.message : '散点图数据加载失败');
+        if (!cancelled) setScatterError(err instanceof Error ? err.message : '散点图数据加载失败');
       })
       .finally(() => {
         if (!cancelled) setScatterLoading(false);
@@ -202,12 +221,9 @@ export function MarketHeatmapView() {
     []
   );
 
-  const handleSizeByChange = useCallback(
-    (_e: React.MouseEvent<HTMLElement>, v: SizeBy | null) => {
-      if (v) setSizeBy(v);
-    },
-    []
-  );
+  const handleSizeByChange = useCallback((_e: React.MouseEvent<HTMLElement>, v: SizeBy | null) => {
+    if (v) setSizeBy(v);
+  }, []);
 
   const handleSectorClick = useCallback((sector: SectorFlowItem) => {
     setDetailSector(sector);
@@ -219,19 +235,12 @@ export function MarketHeatmapView() {
   // ── 弹窗数据：按行业筛选个股 ─────────────────
   const detailStocks = useMemo(
     () =>
-      detailSector
-        ? items.filter(
-            (s) => (s.groupName ?? s.industry) === detailSector.name
-          )
-        : [],
+      detailSector ? items.filter((s) => (s.groupName ?? s.industry) === detailSector.name) : [],
     [items, detailSector]
   );
 
   const detailStockFlows = useMemo(
-    () =>
-      detailSector
-        ? mainFlowRanking.filter((s) => s.industry === detailSector.name)
-        : [],
+    () => (detailSector ? mainFlowRanking.filter((s) => s.industry === detailSector.name) : []),
     [mainFlowRanking, detailSector]
   );
 
@@ -246,7 +255,13 @@ export function MarketHeatmapView() {
       >
         <Typography variant="h4">市场热力图</Typography>
 
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="center" flexWrap="wrap" useFlexGap>
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          spacing={2}
+          alignItems="center"
+          flexWrap="wrap"
+          useFlexGap
+        >
           <DatePicker
             label="交易日期"
             value={tradeDate}
@@ -259,7 +274,12 @@ export function MarketHeatmapView() {
           />
 
           {/* 视图切换 */}
-          <ToggleButtonGroup size="small" exclusive value={viewMode} onChange={handleViewModeChange}>
+          <ToggleButtonGroup
+            size="small"
+            exclusive
+            value={viewMode}
+            onChange={handleViewModeChange}
+          >
             <ToggleButton value="scatter">散点图</ToggleButton>
             <ToggleButton value="treemap">TreeMap</ToggleButton>
           </ToggleButtonGroup>
@@ -334,14 +354,18 @@ export function MarketHeatmapView() {
 
         {/* 下方统计图 — 始终显示 */}
         <Grid size={{ xs: 12, md: 7 }}>
-          <HeatmapSectorBarChart sectors={sectors} loading={loading} error={error} />
+          <HeatmapSectorBarChart
+            sectors={viewMode === 'scatter' ? scatterSectors : sectors}
+            loading={viewMode === 'scatter' ? scatterLoading : loading}
+            error={viewMode === 'scatter' ? scatterError : error}
+          />
         </Grid>
 
         <Grid size={{ xs: 12, md: 5 }}>
           <HeatmapDistributionChart
-            distribution={items.length > 0 ? distribution : null}
-            loading={loading}
-            error={error}
+            distribution={viewMode === 'treemap' && items.length > 0 ? distribution : null}
+            loading={viewMode === 'treemap' ? loading : false}
+            error={viewMode === 'treemap' ? error : ''}
           />
         </Grid>
 

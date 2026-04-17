@@ -1,0 +1,4021 @@
+{
+  "library": {
+    "code": 0,
+    "data": {
+      "categories": [
+        {
+          "category": "VALUATION",
+          "label": "估值因子",
+          "factors": [
+            {
+              "id": "cmnvyd1o20000q94f0ulrhdqq",
+              "name": "pe_ttm",
+              "label": "市盈率TTM",
+              "description": "过去12个月滚动市盈率（Price / EPS_TTM）",
+              "category": "VALUATION",
+              "sourceType": "FIELD_REF",
+              "isBuiltin": true,
+              "isEnabled": true,
+              "sortOrder": 10
+            },
+            {
+              "id": "cmnvyd1og0001q94fokan36aa",
+              "name": "pb",
+              "label": "市净率",
+              "description": "市净率（Price / Book Value per Share）",
+              "category": "VALUATION",
+              "sourceType": "FIELD_REF",
+              "isBuiltin": true,
+              "isEnabled": true,
+              "sortOrder": 11
+            },
+            {
+              "id": "cmnvyd1oi0002q94fu4s9hleq",
+              "name": "ps_ttm",
+              "label": "市销率TTM",
+              "description": "过去12个月滚动市销率（Price / Revenue per Share TTM）",
+              "category": "VALUATION",
+              "sourceType": "FIELD_REF",
+              "isBuiltin": true,
+              "isEnabled": true,
+              "sortOrder": 12
+            },
+            {
+              "id": "cmnvyd1oi0003q94fw20dwoni",
+              "name": "dv_ttm",
+              "label": "股息率TTM",
+              "description": "过去12个月滚动股息率（Dividend / Price）",
+              "category": "VALUATION",
+              "sourceType": "FIELD_REF",
+              "isBuiltin": true,
+              "isEnabled": true,
+              "sortOrder": 13
+            },
+            {
+              "id": "cmnvyd1oj0004q94f8kblp5py",
+              "name": "ep",
+              "label": "盈利收益率",
+              "description": "盈利收益率（1 / PE_TTM），PE_TTM ≤ 0 时为 null",
+              "category": "VALUATION",
+              "sourceType": "DERIVED",
+              "isBuiltin": true,
+              "isEnabled": true,
+              "sortOrder": 14
+            },
+            {
+              "id": "cmnvyd1ok0005q94f4do65l7n",
+              "name": "bp",
+              "label": "账面市值比",
+              "description": "账面市值比（1 / PB），PB ≤ 0 时为 null",
+              "category": "VALUATION",
+              "sourceType": "DERIVED",
+              "isBuiltin": true,
+              "isEnabled": true,
+              "sortOrder": 15
+            }
+          ]
+        },
+        {
+          "category": "SIZE",
+          "label": "规模因子",
+          "factors": [
+            {
+              "id": "cmnvyd1ol0006q94f1b3roajx",
+              "name": "ln_market_cap",
+              "label": "对数总市值",
+              "description": "总市值的自然对数（LN(total_mv * 10000)，单位转为元后取对数）",
+              "category": "SIZE",
+              "sourceType": "DERIVED",
+              "isBuiltin": true,
+              "isEnabled": true,
+              "sortOrder": 20
+            },
+            {
+              "id": "cmnvyd1om0007q94fue41ywlk",
+              "name": "ln_circ_mv",
+              "label": "对数流通市值",
+              "description": "流通市值的自然对数（LN(circ_mv * 10000)）",
+              "category": "SIZE",
+              "sourceType": "DERIVED",
+              "isBuiltin": true,
+              "isEnabled": true,
+              "sortOrder": 21
+            }
+          ]
+        },
+        {
+          "category": "MOMENTUM",
+          "label": "动量因子",
+          "factors": [
+            {
+              "id": "cmnvyd1on0008q94f2ybv33u6",
+              "name": "ret_5d",
+              "label": "5日收益率",
+              "description": "过去5个交易日的后复权累计收益率",
+              "category": "MOMENTUM",
+              "sourceType": "DERIVED",
+              "isBuiltin": true,
+              "isEnabled": true,
+              "sortOrder": 30
+            },
+            {
+              "id": "cmnvyd1op0009q94fpdnr4vmp",
+              "name": "ret_20d",
+              "label": "20日收益率",
+              "description": "过去20个交易日的后复权累计收益率",
+              "category": "MOMENTUM",
+              "sourceType": "DERIVED",
+              "isBuiltin": true,
+              "isEnabled": true,
+              "sortOrder": 31
+            },
+            {
+              "id": "cmnvyd1oq000aq94fxsx3u8md",
+              "name": "ret_60d",
+              "label": "60日收益率",
+              "description": "过去60个交易日的后复权累计收益率",
+              "category": "MOMENTUM",
+              "sourceType": "DERIVED",
+              "isBuiltin": true,
+              "isEnabled": true,
+              "sortOrder": 32
+            },
+            {
+              "id": "cmnvyd1or000bq94fuc7ds1p9",
+              "name": "ret_120d",
+              "label": "半年动量",
+              "description": "过去120个交易日的后复权累计收益率",
+              "category": "MOMENTUM",
+              "sourceType": "DERIVED",
+              "isBuiltin": true,
+              "isEnabled": true,
+              "sortOrder": 33
+            },
+            {
+              "id": "cmnvyd1os000cq94f5srjjco0",
+              "name": "ret_250d",
+              "label": "年动量",
+              "description": "过去250个交易日的后复权累计收益率",
+              "category": "MOMENTUM",
+              "sourceType": "DERIVED",
+              "isBuiltin": true,
+              "isEnabled": true,
+              "sortOrder": 34
+            }
+          ]
+        },
+        {
+          "category": "VOLATILITY",
+          "label": "波动率因子",
+          "factors": [
+            {
+              "id": "cmnvyd1ot000dq94f53i5sc2j",
+              "name": "volatility_20d",
+              "label": "20日波动率",
+              "description": "最近20个交易日日收益率样本标准差（年化，乘以√252）",
+              "category": "VOLATILITY",
+              "sourceType": "DERIVED",
+              "isBuiltin": true,
+              "isEnabled": true,
+              "sortOrder": 40
+            },
+            {
+              "id": "cmnvyd1ou000eq94fzpkz6th3",
+              "name": "volatility_60d",
+              "label": "60日波动率",
+              "description": "最近60个交易日日收益率样本标准差（年化，乘以√252）",
+              "category": "VOLATILITY",
+              "sourceType": "DERIVED",
+              "isBuiltin": true,
+              "isEnabled": true,
+              "sortOrder": 41
+            },
+            {
+              "id": "cmnvyd1ov000fq94flku2zu6j",
+              "name": "amplitude_20d",
+              "label": "20日平均振幅",
+              "description": "最近20日（high - low）/ pre_close 的均值",
+              "category": "VOLATILITY",
+              "sourceType": "DERIVED",
+              "isBuiltin": true,
+              "isEnabled": true,
+              "sortOrder": 42
+            }
+          ]
+        },
+        {
+          "category": "LIQUIDITY",
+          "label": "流动性因子",
+          "factors": [
+            {
+              "id": "cmnvyd1ow000gq94ftca84mdd",
+              "name": "turnover_rate_f",
+              "label": "自由流通换手率",
+              "description": "以自由流通股本为基础计算的换手率（%）",
+              "category": "LIQUIDITY",
+              "sourceType": "FIELD_REF",
+              "isBuiltin": true,
+              "isEnabled": true,
+              "sortOrder": 50
+            },
+            {
+              "id": "cmnvyd1ox000hq94f4kpflqq6",
+              "name": "volume_ratio",
+              "label": "量比",
+              "description": "现量（手）/ 均量（手），均量为近5日平均每分钟成交量",
+              "category": "LIQUIDITY",
+              "sourceType": "FIELD_REF",
+              "isBuiltin": true,
+              "isEnabled": true,
+              "sortOrder": 51
+            },
+            {
+              "id": "cmnvyd1oy000iq94fd8nv7ba2",
+              "name": "avg_amount_20d",
+              "label": "20日平均成交额",
+              "description": "最近20个交易日日成交额的均值（万元）",
+              "category": "LIQUIDITY",
+              "sourceType": "DERIVED",
+              "isBuiltin": true,
+              "isEnabled": true,
+              "sortOrder": 52
+            },
+            {
+              "id": "cmnvyd1oz000jq94fh8zbhp33",
+              "name": "ln_avg_amount_20d",
+              "label": "对数20日平均成交额",
+              "description": "20日平均成交额的自然对数",
+              "category": "LIQUIDITY",
+              "sourceType": "DERIVED",
+              "isBuiltin": true,
+              "isEnabled": true,
+              "sortOrder": 53
+            }
+          ]
+        },
+        {
+          "category": "QUALITY",
+          "label": "质量因子",
+          "factors": [
+            {
+              "id": "cmnvyd1p0000kq94fzq06n6s9",
+              "name": "roe",
+              "label": "净资产收益率",
+              "description": "净资产收益率（ROE，最新已公告报告期，Point-in-Time）",
+              "category": "QUALITY",
+              "sourceType": "FIELD_REF",
+              "isBuiltin": true,
+              "isEnabled": true,
+              "sortOrder": 60
+            },
+            {
+              "id": "cmnvyd1p1000lq94f1oia2293",
+              "name": "roe_dt",
+              "label": "扣非ROE",
+              "description": "扣除非经常性损益后的净资产收益率（最新已公告报告期）",
+              "category": "QUALITY",
+              "sourceType": "FIELD_REF",
+              "isBuiltin": true,
+              "isEnabled": true,
+              "sortOrder": 61
+            },
+            {
+              "id": "cmnvyd1p2000mq94f6mo8dc60",
+              "name": "roa",
+              "label": "总资产收益率",
+              "description": "总资产收益率（ROA，最新已公告报告期）",
+              "category": "QUALITY",
+              "sourceType": "FIELD_REF",
+              "isBuiltin": true,
+              "isEnabled": true,
+              "sortOrder": 62
+            },
+            {
+              "id": "cmnvyd1p3000nq94fp1wcndtt",
+              "name": "gross_profit_margin",
+              "label": "毛利率",
+              "description": "销售毛利率（最新已公告报告期）",
+              "category": "QUALITY",
+              "sourceType": "FIELD_REF",
+              "isBuiltin": true,
+              "isEnabled": true,
+              "sortOrder": 63
+            },
+            {
+              "id": "cmnvyd1p4000oq94f8o9d7qek",
+              "name": "net_profit_margin",
+              "label": "净利率",
+              "description": "销售净利率（最新已公告报告期）",
+              "category": "QUALITY",
+              "sourceType": "FIELD_REF",
+              "isBuiltin": true,
+              "isEnabled": true,
+              "sortOrder": 64
+            }
+          ]
+        },
+        {
+          "category": "GROWTH",
+          "label": "成长因子",
+          "factors": [
+            {
+              "id": "cmnvyd1p5000pq94f7tp6lr5b",
+              "name": "revenue_yoy",
+              "label": "营收同比增长",
+              "description": "营业收入同比增长率（%，最新已公告报告期）",
+              "category": "GROWTH",
+              "sourceType": "FIELD_REF",
+              "isBuiltin": true,
+              "isEnabled": true,
+              "sortOrder": 70
+            },
+            {
+              "id": "cmnvyd1p6000qq94fiqoohf3o",
+              "name": "net_profit_yoy",
+              "label": "净利润同比增长",
+              "description": "净利润同比增长率（%，最新已公告报告期）",
+              "category": "GROWTH",
+              "sourceType": "FIELD_REF",
+              "isBuiltin": true,
+              "isEnabled": true,
+              "sortOrder": 71
+            }
+          ]
+        },
+        {
+          "category": "CAPITAL_FLOW",
+          "label": "资金流因子",
+          "factors": [
+            {
+              "id": "cmnvyd1p7000rq94f1hiqfdqr",
+              "name": "net_mf_amount",
+              "label": "净流入金额",
+              "description": "当日全市场净流入金额（万元），正数为净流入，负数为净流出",
+              "category": "CAPITAL_FLOW",
+              "sourceType": "FIELD_REF",
+              "isBuiltin": true,
+              "isEnabled": true,
+              "sortOrder": 80
+            },
+            {
+              "id": "cmnvyd1p7000sq94fuu0phnt3",
+              "name": "main_net_inflow",
+              "label": "主力净流入",
+              "description": "大单+超大单净流入金额（买入 - 卖出，万元）",
+              "category": "CAPITAL_FLOW",
+              "sourceType": "DERIVED",
+              "isBuiltin": true,
+              "isEnabled": true,
+              "sortOrder": 81
+            },
+            {
+              "id": "cmnvyd1p8000tq94frec6y4ym",
+              "name": "main_net_inflow_pct",
+              "label": "主力净流入占比",
+              "description": "主力净流入金额占总成交额的比例",
+              "category": "CAPITAL_FLOW",
+              "sourceType": "DERIVED",
+              "isBuiltin": true,
+              "isEnabled": true,
+              "sortOrder": 82
+            }
+          ]
+        },
+        {
+          "category": "LEVERAGE",
+          "label": "杠杆因子",
+          "factors": [
+            {
+              "id": "cmnvyd1p9000uq94fuzpd474f",
+              "name": "debt_to_assets",
+              "label": "资产负债率",
+              "description": "资产负债率（总负债 / 总资产，%，最新已公告报告期）",
+              "category": "LEVERAGE",
+              "sourceType": "FIELD_REF",
+              "isBuiltin": true,
+              "isEnabled": true,
+              "sortOrder": 90
+            },
+            {
+              "id": "cmnvyd1pa000vq94fpoclfp43",
+              "name": "current_ratio",
+              "label": "流动比率",
+              "description": "流动资产 / 流动负债（最新已公告报告期）",
+              "category": "LEVERAGE",
+              "sourceType": "FIELD_REF",
+              "isBuiltin": true,
+              "isEnabled": true,
+              "sortOrder": 91
+            },
+            {
+              "id": "cmnvyd1pa000wq94f84hymino",
+              "name": "quick_ratio",
+              "label": "速动比率",
+              "description": "（流动资产 - 存货）/ 流动负债（最新已公告报告期）",
+              "category": "LEVERAGE",
+              "sourceType": "FIELD_REF",
+              "isBuiltin": true,
+              "isEnabled": true,
+              "sortOrder": 92
+            }
+          ]
+        }
+      ]
+    },
+    "message": ""
+  },
+  "detail": {
+    "code": 0,
+    "data": {
+      "id": "cmnvyd1o20000q94f0ulrhdqq",
+      "name": "pe_ttm",
+      "label": "市盈率TTM",
+      "description": "过去12个月滚动市盈率（Price / EPS_TTM）",
+      "category": "VALUATION",
+      "sourceType": "FIELD_REF",
+      "sourceTable": "DailyBasic",
+      "sourceField": "pe_ttm",
+      "expression": null,
+      "params": null,
+      "isBuiltin": true,
+      "isEnabled": true,
+      "sortOrder": 10,
+      "createdAt": "2026-04-12T16:02:50.931Z",
+      "updatedAt": "2026-04-17T17:01:49.545Z"
+    },
+    "message": ""
+  },
+  "values": {
+    "code": 0,
+    "data": {
+      "factorName": "pe_ttm",
+      "tradeDate": "20260417",
+      "universe": null,
+      "total": 3960,
+      "page": 1,
+      "pageSize": 50,
+      "items": [
+        {
+          "tsCode": "688027.SH",
+          "name": "国盾量子",
+          "industry": "通信设备",
+          "value": 11474.0033,
+          "percentile": 1
+        },
+        {
+          "tsCode": "603858.SH",
+          "name": "步长制药",
+          "industry": "中成药",
+          "value": 10586.4144,
+          "percentile": 0.9997
+        },
+        {
+          "tsCode": "300499.SZ",
+          "name": "高澜股份",
+          "industry": "专用机械",
+          "value": 8324.9893,
+          "percentile": 0.9995
+        },
+        {
+          "tsCode": "301248.SZ",
+          "name": "杰创智能",
+          "industry": "软件服务",
+          "value": 7284.4092,
+          "percentile": 0.9992
+        },
+        {
+          "tsCode": "603516.SH",
+          "name": "淳中科技",
+          "industry": "IT设备",
+          "value": 5927.7985,
+          "percentile": 0.999
+        },
+        {
+          "tsCode": "301217.SZ",
+          "name": "铜冠铜箔",
+          "industry": "元器件",
+          "value": 5838.9023,
+          "percentile": 0.9987
+        },
+        {
+          "tsCode": "002491.SZ",
+          "name": "通鼎互联",
+          "industry": "通信设备",
+          "value": 4971.4712,
+          "percentile": 0.9985
+        },
+        {
+          "tsCode": "600328.SH",
+          "name": "中盐化工",
+          "industry": "化工原料",
+          "value": 4740.9631,
+          "percentile": 0.9982
+        },
+        {
+          "tsCode": "000593.SZ",
+          "name": "德龙汇能",
+          "industry": "供气供热",
+          "value": 4518.6196,
+          "percentile": 0.998
+        },
+        {
+          "tsCode": "001331.SZ",
+          "name": "胜通能源",
+          "industry": "供气供热",
+          "value": 4331.2062,
+          "percentile": 0.9977
+        },
+        {
+          "tsCode": "920207.BJ",
+          "name": "众诚科技",
+          "industry": "软件服务",
+          "value": 3720.2745,
+          "percentile": 0.9975
+        },
+        {
+          "tsCode": "300277.SZ",
+          "name": "汽轮科技",
+          "industry": "机械基件",
+          "value": 3323.104,
+          "percentile": 0.9972
+        },
+        {
+          "tsCode": "301368.SZ",
+          "name": "丰立智能",
+          "industry": "机械基件",
+          "value": 3195.8984,
+          "percentile": 0.997
+        },
+        {
+          "tsCode": "301070.SZ",
+          "name": "开勒股份",
+          "industry": "机械基件",
+          "value": 3135.488,
+          "percentile": 0.9967
+        },
+        {
+          "tsCode": "688048.SH",
+          "name": "长光华芯",
+          "industry": "半导体",
+          "value": 2961.7768,
+          "percentile": 0.9965
+        },
+        {
+          "tsCode": "600118.SH",
+          "name": "中国卫星",
+          "industry": "航空",
+          "value": 2857.7266,
+          "percentile": 0.9962
+        },
+        {
+          "tsCode": "002235.SZ",
+          "name": "安妮股份",
+          "industry": "造纸",
+          "value": 2635.2976,
+          "percentile": 0.996
+        },
+        {
+          "tsCode": "301067.SZ",
+          "name": "显盈科技",
+          "industry": "元器件",
+          "value": 2498.94,
+          "percentile": 0.9957
+        },
+        {
+          "tsCode": "001236.SZ",
+          "name": "弘业期货",
+          "industry": "多元金融",
+          "value": 2349.8947,
+          "percentile": 0.9955
+        },
+        {
+          "tsCode": "301558.SZ",
+          "name": "三态股份",
+          "industry": "互联网",
+          "value": 2033.3475,
+          "percentile": 0.9952
+        },
+        {
+          "tsCode": "300342.SZ",
+          "name": "天银机电",
+          "industry": "家用电器",
+          "value": 1897.6727,
+          "percentile": 0.9949
+        },
+        {
+          "tsCode": "600698.SH",
+          "name": "湖南天雁",
+          "industry": "汽车配件",
+          "value": 1857.9321,
+          "percentile": 0.9947
+        },
+        {
+          "tsCode": "002792.SZ",
+          "name": "通宇通讯",
+          "industry": "通信设备",
+          "value": 1761.9458,
+          "percentile": 0.9944
+        },
+        {
+          "tsCode": "002544.SZ",
+          "name": "普天科技",
+          "industry": "通信设备",
+          "value": 1755.4645,
+          "percentile": 0.9942
+        },
+        {
+          "tsCode": "688568.SH",
+          "name": "中科星图",
+          "industry": "软件服务",
+          "value": 1705.4788,
+          "percentile": 0.9939
+        },
+        {
+          "tsCode": "301005.SZ",
+          "name": "超捷股份",
+          "industry": "汽车配件",
+          "value": 1664.3842,
+          "percentile": 0.9937
+        },
+        {
+          "tsCode": "600616.SH",
+          "name": "金枫酒业",
+          "industry": "红黄酒",
+          "value": 1642.714,
+          "percentile": 0.9934
+        },
+        {
+          "tsCode": "002527.SZ",
+          "name": "新时达",
+          "industry": "电器仪表",
+          "value": 1605.9682,
+          "percentile": 0.9932
+        },
+        {
+          "tsCode": "688593.SH",
+          "name": "新相微",
+          "industry": "半导体",
+          "value": 1599.3345,
+          "percentile": 0.9929
+        },
+        {
+          "tsCode": "688353.SH",
+          "name": "华盛锂电",
+          "industry": "化工原料",
+          "value": 1501.9258,
+          "percentile": 0.9927
+        },
+        {
+          "tsCode": "301136.SZ",
+          "name": "招标股份",
+          "industry": "建筑工程",
+          "value": 1472.7349,
+          "percentile": 0.9924
+        },
+        {
+          "tsCode": "605188.SH",
+          "name": "国光连锁",
+          "industry": "超市连锁",
+          "value": 1470.1379,
+          "percentile": 0.9922
+        },
+        {
+          "tsCode": "600518.SH",
+          "name": "康美药业",
+          "industry": "中成药",
+          "value": 1454.3232,
+          "percentile": 0.9919
+        },
+        {
+          "tsCode": "603026.SH",
+          "name": "石大胜华",
+          "industry": "化工原料",
+          "value": 1435.1275,
+          "percentile": 0.9917
+        },
+        {
+          "tsCode": "688585.SH",
+          "name": "上纬新材",
+          "industry": "化工原料",
+          "value": 1347.5627,
+          "percentile": 0.9914
+        },
+        {
+          "tsCode": "002490.SZ",
+          "name": "山东墨龙",
+          "industry": "化工机械",
+          "value": 1344.8093,
+          "percentile": 0.9912
+        },
+        {
+          "tsCode": "003040.SZ",
+          "name": "楚天龙",
+          "industry": "通信设备",
+          "value": 1263.654,
+          "percentile": 0.9909
+        },
+        {
+          "tsCode": "301511.SZ",
+          "name": "德福科技",
+          "industry": "电气设备",
+          "value": 1238.7497,
+          "percentile": 0.9907
+        },
+        {
+          "tsCode": "600330.SH",
+          "name": "天通股份",
+          "industry": "专用机械",
+          "value": 1227.8434,
+          "percentile": 0.9904
+        },
+        {
+          "tsCode": "600127.SH",
+          "name": "金健米业",
+          "industry": "农业综合",
+          "value": 1187.3618,
+          "percentile": 0.9901
+        },
+        {
+          "tsCode": "600775.SH",
+          "name": "南京熊猫",
+          "industry": "通信设备",
+          "value": 1147.0124,
+          "percentile": 0.9899
+        },
+        {
+          "tsCode": "603023.SH",
+          "name": "威帝股份",
+          "industry": "汽车配件",
+          "value": 1127.3326,
+          "percentile": 0.9896
+        },
+        {
+          "tsCode": "688361.SH",
+          "name": "中科飞测",
+          "industry": "半导体",
+          "value": 1075.1403,
+          "percentile": 0.9894
+        },
+        {
+          "tsCode": "002342.SZ",
+          "name": "巨力索具",
+          "industry": "机械基件",
+          "value": 1049.3923,
+          "percentile": 0.9891
+        },
+        {
+          "tsCode": "300672.SZ",
+          "name": "国科微",
+          "industry": "半导体",
+          "value": 1049.0966,
+          "percentile": 0.9889
+        },
+        {
+          "tsCode": "600877.SH",
+          "name": "电科芯片",
+          "industry": "半导体",
+          "value": 1044.7317,
+          "percentile": 0.9886
+        },
+        {
+          "tsCode": "300970.SZ",
+          "name": "华绿生物",
+          "industry": "种植业",
+          "value": 1037.3554,
+          "percentile": 0.9884
+        },
+        {
+          "tsCode": "002796.SZ",
+          "name": "世嘉科技",
+          "industry": "通信设备",
+          "value": 1033.7226,
+          "percentile": 0.9881
+        },
+        {
+          "tsCode": "300386.SZ",
+          "name": "飞天诚信",
+          "industry": "IT设备",
+          "value": 1029.8425,
+          "percentile": 0.9879
+        },
+        {
+          "tsCode": "300220.SZ",
+          "name": "金运激光",
+          "industry": "专用机械",
+          "value": 1023.3605,
+          "percentile": 0.9876
+        }
+      ],
+      "summary": {
+        "count": 5297,
+        "missing": 1337,
+        "mean": 125.26469262626246,
+        "median": 47.261700000000005,
+        "stdDev": 419.5742025599492,
+        "min": 4.1273,
+        "max": 11474.0033,
+        "q25": 25.35395,
+        "q75": 103.9631
+      }
+    },
+    "message": ""
+  },
+  "ic": {
+    "code": 0,
+    "data": {
+      "factorName": "pe_ttm",
+      "forwardDays": 5,
+      "icMethod": "rank",
+      "startDate": "20250417",
+      "endDate": "20260417",
+      "summary": {
+        "icMean": -0.02406,
+        "icStd": 0.140383,
+        "icIr": -0.1714,
+        "icPositiveRate": 0.416,
+        "icAboveThreshold": 0.8992,
+        "tStat": -2.6441
+      },
+      "series": [
+        {
+          "tradeDate": "20250417",
+          "ic": -0.090865,
+          "stockCount": 3961
+        },
+        {
+          "tradeDate": "20250418",
+          "ic": -0.079541,
+          "stockCount": 3962
+        },
+        {
+          "tradeDate": "20250421",
+          "ic": -0.200807,
+          "stockCount": 3954
+        },
+        {
+          "tradeDate": "20250422",
+          "ic": -0.06704,
+          "stockCount": 3952
+        },
+        {
+          "tradeDate": "20250423",
+          "ic": 0.043169,
+          "stockCount": 3947
+        },
+        {
+          "tradeDate": "20250424",
+          "ic": 0.280358,
+          "stockCount": 3938
+        },
+        {
+          "tradeDate": "20250425",
+          "ic": 0.316661,
+          "stockCount": 3945
+        },
+        {
+          "tradeDate": "20250428",
+          "ic": 0.36288,
+          "stockCount": 3941
+        },
+        {
+          "tradeDate": "20250429",
+          "ic": 0.228585,
+          "stockCount": 3912
+        },
+        {
+          "tradeDate": "20250430",
+          "ic": 0.165048,
+          "stockCount": 3886
+        },
+        {
+          "tradeDate": "20250506",
+          "ic": -0.141491,
+          "stockCount": 3888
+        },
+        {
+          "tradeDate": "20250507",
+          "ic": -0.144381,
+          "stockCount": 3891
+        },
+        {
+          "tradeDate": "20250508",
+          "ic": -0.278216,
+          "stockCount": 3894
+        },
+        {
+          "tradeDate": "20250509",
+          "ic": -0.113757,
+          "stockCount": 3894
+        },
+        {
+          "tradeDate": "20250512",
+          "ic": -0.118262,
+          "stockCount": 3890
+        },
+        {
+          "tradeDate": "20250513",
+          "ic": 0.021933,
+          "stockCount": 3892
+        },
+        {
+          "tradeDate": "20250514",
+          "ic": -0.064026,
+          "stockCount": 3891
+        },
+        {
+          "tradeDate": "20250515",
+          "ic": -0.079859,
+          "stockCount": 3890
+        },
+        {
+          "tradeDate": "20250516",
+          "ic": -0.172288,
+          "stockCount": 3891
+        },
+        {
+          "tradeDate": "20250519",
+          "ic": -0.125428,
+          "stockCount": 3887
+        },
+        {
+          "tradeDate": "20250520",
+          "ic": -0.146472,
+          "stockCount": 3888
+        },
+        {
+          "tradeDate": "20250521",
+          "ic": -0.125079,
+          "stockCount": 3892
+        },
+        {
+          "tradeDate": "20250522",
+          "ic": 0.081478,
+          "stockCount": 3892
+        },
+        {
+          "tradeDate": "20250523",
+          "ic": 0.030593,
+          "stockCount": 3893
+        },
+        {
+          "tradeDate": "20250526",
+          "ic": -0.040495,
+          "stockCount": 3897
+        },
+        {
+          "tradeDate": "20250527",
+          "ic": -0.038765,
+          "stockCount": 3900
+        },
+        {
+          "tradeDate": "20250528",
+          "ic": 0.143758,
+          "stockCount": 3898
+        },
+        {
+          "tradeDate": "20250529",
+          "ic": -0.024145,
+          "stockCount": 3897
+        },
+        {
+          "tradeDate": "20250530",
+          "ic": 0.177809,
+          "stockCount": 3894
+        },
+        {
+          "tradeDate": "20250603",
+          "ic": 0.025992,
+          "stockCount": 3897
+        },
+        {
+          "tradeDate": "20250604",
+          "ic": -0.012167,
+          "stockCount": 3899
+        },
+        {
+          "tradeDate": "20250605",
+          "ic": -0.08795,
+          "stockCount": 3901
+        },
+        {
+          "tradeDate": "20250606",
+          "ic": -0.148067,
+          "stockCount": 3900
+        },
+        {
+          "tradeDate": "20250609",
+          "ic": -0.118669,
+          "stockCount": 3902
+        },
+        {
+          "tradeDate": "20250610",
+          "ic": -0.072668,
+          "stockCount": 3905
+        },
+        {
+          "tradeDate": "20250611",
+          "ic": -0.057642,
+          "stockCount": 3910
+        },
+        {
+          "tradeDate": "20250612",
+          "ic": -0.12787,
+          "stockCount": 3910
+        },
+        {
+          "tradeDate": "20250613",
+          "ic": -0.133917,
+          "stockCount": 3909
+        },
+        {
+          "tradeDate": "20250616",
+          "ic": -0.091377,
+          "stockCount": 3909
+        },
+        {
+          "tradeDate": "20250617",
+          "ic": 0.041076,
+          "stockCount": 3910
+        },
+        {
+          "tradeDate": "20250618",
+          "ic": 0.101595,
+          "stockCount": 3912
+        },
+        {
+          "tradeDate": "20250619",
+          "ic": 0.1934,
+          "stockCount": 3912
+        },
+        {
+          "tradeDate": "20250620",
+          "ic": 0.280683,
+          "stockCount": 3912
+        },
+        {
+          "tradeDate": "20250623",
+          "ic": 0.257452,
+          "stockCount": 3911
+        },
+        {
+          "tradeDate": "20250624",
+          "ic": 0.140939,
+          "stockCount": 3912
+        },
+        {
+          "tradeDate": "20250625",
+          "ic": -0.064239,
+          "stockCount": 3911
+        },
+        {
+          "tradeDate": "20250626",
+          "ic": -0.084634,
+          "stockCount": 3911
+        },
+        {
+          "tradeDate": "20250627",
+          "ic": -0.233064,
+          "stockCount": 3910
+        },
+        {
+          "tradeDate": "20250630",
+          "ic": -0.301109,
+          "stockCount": 3911
+        },
+        {
+          "tradeDate": "20250701",
+          "ic": -0.204309,
+          "stockCount": 3909
+        },
+        {
+          "tradeDate": "20250702",
+          "ic": -0.103647,
+          "stockCount": 3910
+        },
+        {
+          "tradeDate": "20250703",
+          "ic": -0.158646,
+          "stockCount": 3910
+        },
+        {
+          "tradeDate": "20250704",
+          "ic": 0.008411,
+          "stockCount": 3910
+        },
+        {
+          "tradeDate": "20250707",
+          "ic": -0.026343,
+          "stockCount": 3907
+        },
+        {
+          "tradeDate": "20250708",
+          "ic": -0.086997,
+          "stockCount": 3907
+        },
+        {
+          "tradeDate": "20250709",
+          "ic": -0.017877,
+          "stockCount": 3909
+        },
+        {
+          "tradeDate": "20250710",
+          "ic": 0.141107,
+          "stockCount": 3910
+        },
+        {
+          "tradeDate": "20250711",
+          "ic": 0.055121,
+          "stockCount": 3910
+        },
+        {
+          "tradeDate": "20250714",
+          "ic": 0.037438,
+          "stockCount": 3913
+        },
+        {
+          "tradeDate": "20250715",
+          "ic": -0.078038,
+          "stockCount": 3914
+        },
+        {
+          "tradeDate": "20250716",
+          "ic": -0.140313,
+          "stockCount": 3916
+        },
+        {
+          "tradeDate": "20250717",
+          "ic": -0.160987,
+          "stockCount": 3918
+        },
+        {
+          "tradeDate": "20250718",
+          "ic": -0.096477,
+          "stockCount": 3920
+        },
+        {
+          "tradeDate": "20250721",
+          "ic": 0.016929,
+          "stockCount": 3920
+        },
+        {
+          "tradeDate": "20250722",
+          "ic": 0.169793,
+          "stockCount": 3921
+        },
+        {
+          "tradeDate": "20250723",
+          "ic": 0.114961,
+          "stockCount": 3920
+        },
+        {
+          "tradeDate": "20250724",
+          "ic": 0.126453,
+          "stockCount": 3918
+        },
+        {
+          "tradeDate": "20250725",
+          "ic": 0.062745,
+          "stockCount": 3918
+        },
+        {
+          "tradeDate": "20250728",
+          "ic": 0.053113,
+          "stockCount": 3918
+        },
+        {
+          "tradeDate": "20250729",
+          "ic": 0.016487,
+          "stockCount": 3920
+        },
+        {
+          "tradeDate": "20250730",
+          "ic": 0.157462,
+          "stockCount": 3920
+        },
+        {
+          "tradeDate": "20250731",
+          "ic": 0.096715,
+          "stockCount": 3920
+        },
+        {
+          "tradeDate": "20250801",
+          "ic": 0.007404,
+          "stockCount": 3919
+        },
+        {
+          "tradeDate": "20250804",
+          "ic": 0.055136,
+          "stockCount": 3920
+        },
+        {
+          "tradeDate": "20250805",
+          "ic": -0.00121,
+          "stockCount": 3919
+        },
+        {
+          "tradeDate": "20250806",
+          "ic": -0.040189,
+          "stockCount": 3916
+        },
+        {
+          "tradeDate": "20250807",
+          "ic": -0.1298,
+          "stockCount": 3917
+        },
+        {
+          "tradeDate": "20250808",
+          "ic": 0.034758,
+          "stockCount": 3919
+        },
+        {
+          "tradeDate": "20250811",
+          "ic": 0.08812,
+          "stockCount": 3919
+        },
+        {
+          "tradeDate": "20250812",
+          "ic": 0.194488,
+          "stockCount": 3923
+        },
+        {
+          "tradeDate": "20250813",
+          "ic": 0.147859,
+          "stockCount": 3919
+        },
+        {
+          "tradeDate": "20250814",
+          "ic": 0.154051,
+          "stockCount": 3921
+        },
+        {
+          "tradeDate": "20250815",
+          "ic": 0.136193,
+          "stockCount": 3921
+        },
+        {
+          "tradeDate": "20250818",
+          "ic": -0.026227,
+          "stockCount": 3917
+        },
+        {
+          "tradeDate": "20250819",
+          "ic": -0.114918,
+          "stockCount": 3919
+        },
+        {
+          "tradeDate": "20250820",
+          "ic": -0.132855,
+          "stockCount": 3920
+        },
+        {
+          "tradeDate": "20250821",
+          "ic": -0.001433,
+          "stockCount": 3918
+        },
+        {
+          "tradeDate": "20250822",
+          "ic": -0.093307,
+          "stockCount": 3910
+        },
+        {
+          "tradeDate": "20250825",
+          "ic": -0.038967,
+          "stockCount": 3903
+        },
+        {
+          "tradeDate": "20250826",
+          "ic": -0.094761,
+          "stockCount": 3903
+        },
+        {
+          "tradeDate": "20250827",
+          "ic": -0.155701,
+          "stockCount": 3882
+        },
+        {
+          "tradeDate": "20250828",
+          "ic": -0.25909,
+          "stockCount": 3871
+        },
+        {
+          "tradeDate": "20250829",
+          "ic": -0.152152,
+          "stockCount": 3859
+        },
+        {
+          "tradeDate": "20250901",
+          "ic": -0.203051,
+          "stockCount": 3852
+        },
+        {
+          "tradeDate": "20250902",
+          "ic": -0.214794,
+          "stockCount": 3854
+        },
+        {
+          "tradeDate": "20250903",
+          "ic": -0.085991,
+          "stockCount": 3855
+        },
+        {
+          "tradeDate": "20250904",
+          "ic": 0.118317,
+          "stockCount": 3855
+        },
+        {
+          "tradeDate": "20250905",
+          "ic": 0.037799,
+          "stockCount": 3855
+        },
+        {
+          "tradeDate": "20250908",
+          "ic": 0.051996,
+          "stockCount": 3855
+        },
+        {
+          "tradeDate": "20250909",
+          "ic": 0.266274,
+          "stockCount": 3855
+        },
+        {
+          "tradeDate": "20250910",
+          "ic": 0.189099,
+          "stockCount": 3857
+        },
+        {
+          "tradeDate": "20250911",
+          "ic": 0.132393,
+          "stockCount": 3856
+        },
+        {
+          "tradeDate": "20250912",
+          "ic": 0.016423,
+          "stockCount": 3856
+        },
+        {
+          "tradeDate": "20250915",
+          "ic": 0.07236,
+          "stockCount": 3857
+        },
+        {
+          "tradeDate": "20250916",
+          "ic": -0.138915,
+          "stockCount": 3857
+        },
+        {
+          "tradeDate": "20250917",
+          "ic": -0.072349,
+          "stockCount": 3858
+        },
+        {
+          "tradeDate": "20250918",
+          "ic": -0.092572,
+          "stockCount": 3857
+        },
+        {
+          "tradeDate": "20250919",
+          "ic": -0.135912,
+          "stockCount": 3856
+        },
+        {
+          "tradeDate": "20250922",
+          "ic": -0.215577,
+          "stockCount": 3855
+        },
+        {
+          "tradeDate": "20250923",
+          "ic": -0.039235,
+          "stockCount": 3856
+        },
+        {
+          "tradeDate": "20250924",
+          "ic": -0.12046,
+          "stockCount": 3856
+        },
+        {
+          "tradeDate": "20250925",
+          "ic": -0.257696,
+          "stockCount": 3857
+        },
+        {
+          "tradeDate": "20250926",
+          "ic": -0.11926,
+          "stockCount": 3859
+        },
+        {
+          "tradeDate": "20250929",
+          "ic": -0.237713,
+          "stockCount": 3859
+        },
+        {
+          "tradeDate": "20250930",
+          "ic": -0.2572,
+          "stockCount": 3859
+        },
+        {
+          "tradeDate": "20251009",
+          "ic": -0.277909,
+          "stockCount": 3862
+        },
+        {
+          "tradeDate": "20251010",
+          "ic": -0.236266,
+          "stockCount": 3862
+        },
+        {
+          "tradeDate": "20251013",
+          "ic": -0.226167,
+          "stockCount": 3864
+        },
+        {
+          "tradeDate": "20251014",
+          "ic": -0.028361,
+          "stockCount": 3865
+        },
+        {
+          "tradeDate": "20251015",
+          "ic": -0.071485,
+          "stockCount": 3867
+        },
+        {
+          "tradeDate": "20251016",
+          "ic": -0.05868,
+          "stockCount": 3868
+        },
+        {
+          "tradeDate": "20251017",
+          "ic": 0.171609,
+          "stockCount": 3868
+        },
+        {
+          "tradeDate": "20251020",
+          "ic": 0.095918,
+          "stockCount": 3866
+        },
+        {
+          "tradeDate": "20251021",
+          "ic": 0.097971,
+          "stockCount": 3866
+        },
+        {
+          "tradeDate": "20251022",
+          "ic": 0.06634,
+          "stockCount": 3865
+        },
+        {
+          "tradeDate": "20251023",
+          "ic": 0.051781,
+          "stockCount": 3868
+        },
+        {
+          "tradeDate": "20251024",
+          "ic": 0.000784,
+          "stockCount": 3869
+        },
+        {
+          "tradeDate": "20251027",
+          "ic": 0.001484,
+          "stockCount": 3867
+        },
+        {
+          "tradeDate": "20251028",
+          "ic": -0.089142,
+          "stockCount": 3858
+        },
+        {
+          "tradeDate": "20251029",
+          "ic": -0.089696,
+          "stockCount": 3848
+        },
+        {
+          "tradeDate": "20251030",
+          "ic": -0.061255,
+          "stockCount": 3843
+        },
+        {
+          "tradeDate": "20251031",
+          "ic": -0.166629,
+          "stockCount": 3838
+        },
+        {
+          "tradeDate": "20251103",
+          "ic": -0.200988,
+          "stockCount": 3838
+        },
+        {
+          "tradeDate": "20251104",
+          "ic": -0.164579,
+          "stockCount": 3841
+        },
+        {
+          "tradeDate": "20251105",
+          "ic": -0.199654,
+          "stockCount": 3841
+        },
+        {
+          "tradeDate": "20251106",
+          "ic": -0.129378,
+          "stockCount": 3841
+        },
+        {
+          "tradeDate": "20251107",
+          "ic": -0.083184,
+          "stockCount": 3841
+        },
+        {
+          "tradeDate": "20251110",
+          "ic": 0.070352,
+          "stockCount": 3842
+        },
+        {
+          "tradeDate": "20251111",
+          "ic": 0.099911,
+          "stockCount": 3842
+        },
+        {
+          "tradeDate": "20251112",
+          "ic": 0.041207,
+          "stockCount": 3845
+        },
+        {
+          "tradeDate": "20251113",
+          "ic": -0.036054,
+          "stockCount": 3844
+        },
+        {
+          "tradeDate": "20251114",
+          "ic": -0.112305,
+          "stockCount": 3844
+        },
+        {
+          "tradeDate": "20251117",
+          "ic": -0.092035,
+          "stockCount": 3841
+        },
+        {
+          "tradeDate": "20251118",
+          "ic": -0.070866,
+          "stockCount": 3840
+        },
+        {
+          "tradeDate": "20251119",
+          "ic": 0.001785,
+          "stockCount": 3838
+        },
+        {
+          "tradeDate": "20251120",
+          "ic": 0.048707,
+          "stockCount": 3842
+        },
+        {
+          "tradeDate": "20251121",
+          "ic": 0.229771,
+          "stockCount": 3841
+        },
+        {
+          "tradeDate": "20251124",
+          "ic": 0.069091,
+          "stockCount": 3845
+        },
+        {
+          "tradeDate": "20251125",
+          "ic": -0.072814,
+          "stockCount": 3845
+        },
+        {
+          "tradeDate": "20251126",
+          "ic": -0.156976,
+          "stockCount": 3846
+        },
+        {
+          "tradeDate": "20251127",
+          "ic": -0.183553,
+          "stockCount": 3846
+        },
+        {
+          "tradeDate": "20251128",
+          "ic": -0.159629,
+          "stockCount": 3844
+        },
+        {
+          "tradeDate": "20251201",
+          "ic": -0.039739,
+          "stockCount": 3846
+        },
+        {
+          "tradeDate": "20251202",
+          "ic": 0.059126,
+          "stockCount": 3850
+        },
+        {
+          "tradeDate": "20251203",
+          "ic": 0.142098,
+          "stockCount": 3848
+        },
+        {
+          "tradeDate": "20251204",
+          "ic": 0.10801,
+          "stockCount": 3850
+        },
+        {
+          "tradeDate": "20251205",
+          "ic": 0.032239,
+          "stockCount": 3850
+        },
+        {
+          "tradeDate": "20251208",
+          "ic": -0.155259,
+          "stockCount": 3849
+        },
+        {
+          "tradeDate": "20251209",
+          "ic": -0.209809,
+          "stockCount": 3851
+        },
+        {
+          "tradeDate": "20251210",
+          "ic": -0.196382,
+          "stockCount": 3853
+        },
+        {
+          "tradeDate": "20251211",
+          "ic": -0.15973,
+          "stockCount": 3853
+        },
+        {
+          "tradeDate": "20251212",
+          "ic": -0.148817,
+          "stockCount": 3851
+        },
+        {
+          "tradeDate": "20251215",
+          "ic": -0.014141,
+          "stockCount": 3851
+        },
+        {
+          "tradeDate": "20251216",
+          "ic": -0.01753,
+          "stockCount": 3853
+        },
+        {
+          "tradeDate": "20251217",
+          "ic": 0.096414,
+          "stockCount": 3853
+        },
+        {
+          "tradeDate": "20251218",
+          "ic": 0.185878,
+          "stockCount": 3854
+        },
+        {
+          "tradeDate": "20251219",
+          "ic": 0.126197,
+          "stockCount": 3857
+        },
+        {
+          "tradeDate": "20251222",
+          "ic": 0.115728,
+          "stockCount": 3855
+        },
+        {
+          "tradeDate": "20251223",
+          "ic": 0.107545,
+          "stockCount": 3853
+        },
+        {
+          "tradeDate": "20251224",
+          "ic": 0.024788,
+          "stockCount": 3853
+        },
+        {
+          "tradeDate": "20251225",
+          "ic": 0.068818,
+          "stockCount": 3853
+        },
+        {
+          "tradeDate": "20251226",
+          "ic": 0.096946,
+          "stockCount": 3854
+        },
+        {
+          "tradeDate": "20251229",
+          "ic": 0.103717,
+          "stockCount": 3855
+        },
+        {
+          "tradeDate": "20251230",
+          "ic": 0.202517,
+          "stockCount": 3855
+        },
+        {
+          "tradeDate": "20251231",
+          "ic": 0.242875,
+          "stockCount": 3856
+        },
+        {
+          "tradeDate": "20260105",
+          "ic": 0.3116,
+          "stockCount": 3858
+        },
+        {
+          "tradeDate": "20260106",
+          "ic": 0.177976,
+          "stockCount": 3856
+        },
+        {
+          "tradeDate": "20260107",
+          "ic": 0.188646,
+          "stockCount": 3856
+        },
+        {
+          "tradeDate": "20260108",
+          "ic": 0.077077,
+          "stockCount": 3856
+        },
+        {
+          "tradeDate": "20260109",
+          "ic": 0.077887,
+          "stockCount": 3856
+        },
+        {
+          "tradeDate": "20260112",
+          "ic": -0.136477,
+          "stockCount": 3858
+        },
+        {
+          "tradeDate": "20260113",
+          "ic": -0.159672,
+          "stockCount": 3859
+        },
+        {
+          "tradeDate": "20260114",
+          "ic": -0.148214,
+          "stockCount": 3859
+        },
+        {
+          "tradeDate": "20260115",
+          "ic": -0.084121,
+          "stockCount": 3859
+        },
+        {
+          "tradeDate": "20260116",
+          "ic": -0.046273,
+          "stockCount": 3860
+        },
+        {
+          "tradeDate": "20260119",
+          "ic": -0.138808,
+          "stockCount": 3862
+        },
+        {
+          "tradeDate": "20260120",
+          "ic": 0.101691,
+          "stockCount": 3867
+        },
+        {
+          "tradeDate": "20260121",
+          "ic": -0.060349,
+          "stockCount": 3868
+        },
+        {
+          "tradeDate": "20260122",
+          "ic": -0.186936,
+          "stockCount": 3868
+        },
+        {
+          "tradeDate": "20260123",
+          "ic": -0.245813,
+          "stockCount": 3866
+        },
+        {
+          "tradeDate": "20260126",
+          "ic": -0.104974,
+          "stockCount": 3867
+        },
+        {
+          "tradeDate": "20260127",
+          "ic": -0.090812,
+          "stockCount": 3868
+        },
+        {
+          "tradeDate": "20260128",
+          "ic": -0.110606,
+          "stockCount": 3868
+        },
+        {
+          "tradeDate": "20260129",
+          "ic": -0.081586,
+          "stockCount": 3867
+        },
+        {
+          "tradeDate": "20260130",
+          "ic": -0.073801,
+          "stockCount": 3865
+        },
+        {
+          "tradeDate": "20260202",
+          "ic": 0.033177,
+          "stockCount": 3866
+        },
+        {
+          "tradeDate": "20260203",
+          "ic": -0.125895,
+          "stockCount": 3869
+        },
+        {
+          "tradeDate": "20260204",
+          "ic": -0.062387,
+          "stockCount": 3869
+        },
+        {
+          "tradeDate": "20260205",
+          "ic": 0.062595,
+          "stockCount": 3871
+        },
+        {
+          "tradeDate": "20260206",
+          "ic": 0.132579,
+          "stockCount": 3869
+        },
+        {
+          "tradeDate": "20260209",
+          "ic": -0.006876,
+          "stockCount": 3871
+        },
+        {
+          "tradeDate": "20260210",
+          "ic": 0.02488,
+          "stockCount": 3871
+        },
+        {
+          "tradeDate": "20260211",
+          "ic": 0.119387,
+          "stockCount": 3871
+        },
+        {
+          "tradeDate": "20260212",
+          "ic": 0.077509,
+          "stockCount": 3872
+        },
+        {
+          "tradeDate": "20260213",
+          "ic": -0.088631,
+          "stockCount": 3873
+        },
+        {
+          "tradeDate": "20260224",
+          "ic": -0.242742,
+          "stockCount": 3880
+        },
+        {
+          "tradeDate": "20260225",
+          "ic": -0.201945,
+          "stockCount": 3880
+        },
+        {
+          "tradeDate": "20260226",
+          "ic": -0.194635,
+          "stockCount": 3880
+        },
+        {
+          "tradeDate": "20260227",
+          "ic": -0.218332,
+          "stockCount": 3887
+        },
+        {
+          "tradeDate": "20260302",
+          "ic": -0.11881,
+          "stockCount": 3904
+        },
+        {
+          "tradeDate": "20260303",
+          "ic": 0.216077,
+          "stockCount": 3903
+        },
+        {
+          "tradeDate": "20260304",
+          "ic": 0.052701,
+          "stockCount": 3906
+        },
+        {
+          "tradeDate": "20260305",
+          "ic": -0.121605,
+          "stockCount": 3906
+        },
+        {
+          "tradeDate": "20260306",
+          "ic": -0.208214,
+          "stockCount": 3908
+        },
+        {
+          "tradeDate": "20260309",
+          "ic": -0.132197,
+          "stockCount": 3908
+        },
+        {
+          "tradeDate": "20260310",
+          "ic": -0.332539,
+          "stockCount": 3909
+        },
+        {
+          "tradeDate": "20260311",
+          "ic": -0.173255,
+          "stockCount": 3908
+        },
+        {
+          "tradeDate": "20260312",
+          "ic": -0.107684,
+          "stockCount": 3909
+        },
+        {
+          "tradeDate": "20260313",
+          "ic": -0.12288,
+          "stockCount": 3909
+        },
+        {
+          "tradeDate": "20260316",
+          "ic": -0.247724,
+          "stockCount": 3912
+        },
+        {
+          "tradeDate": "20260317",
+          "ic": -0.061258,
+          "stockCount": 3910
+        },
+        {
+          "tradeDate": "20260318",
+          "ic": -0.162458,
+          "stockCount": 3913
+        },
+        {
+          "tradeDate": "20260319",
+          "ic": -0.185932,
+          "stockCount": 3910
+        },
+        {
+          "tradeDate": "20260320",
+          "ic": -0.004103,
+          "stockCount": 3911
+        },
+        {
+          "tradeDate": "20260323",
+          "ic": 0.072189,
+          "stockCount": 3915
+        },
+        {
+          "tradeDate": "20260324",
+          "ic": -0.067534,
+          "stockCount": 3913
+        },
+        {
+          "tradeDate": "20260325",
+          "ic": -0.053228,
+          "stockCount": 3913
+        },
+        {
+          "tradeDate": "20260326",
+          "ic": -0.084309,
+          "stockCount": 3915
+        },
+        {
+          "tradeDate": "20260327",
+          "ic": -0.143786,
+          "stockCount": 3915
+        },
+        {
+          "tradeDate": "20260330",
+          "ic": -0.096414,
+          "stockCount": 3922
+        },
+        {
+          "tradeDate": "20260331",
+          "ic": 0.165422,
+          "stockCount": 3928
+        },
+        {
+          "tradeDate": "20260401",
+          "ic": 0.107698,
+          "stockCount": 3930
+        },
+        {
+          "tradeDate": "20260402",
+          "ic": 0.210915,
+          "stockCount": 3932
+        },
+        {
+          "tradeDate": "20260403",
+          "ic": 0.268844,
+          "stockCount": 3936
+        },
+        {
+          "tradeDate": "20260407",
+          "ic": 0.232953,
+          "stockCount": 3942
+        },
+        {
+          "tradeDate": "20260408",
+          "ic": 0.038298,
+          "stockCount": 3942
+        },
+        {
+          "tradeDate": "20260409",
+          "ic": 0.132423,
+          "stockCount": 3945
+        },
+        {
+          "tradeDate": "20260410",
+          "ic": 0.210832,
+          "stockCount": 3944
+        }
+      ]
+    },
+    "message": ""
+  },
+  "quantile": {
+    "code": 0,
+    "data": {
+      "factorName": "pe_ttm",
+      "quantiles": 5,
+      "rebalanceDays": 5,
+      "startDate": "20250417",
+      "endDate": "20260417",
+      "groups": [
+        {
+          "group": "Q1",
+          "label": "因子值最小组",
+          "totalReturn": 0.316701,
+          "annualizedReturn": 0.330187,
+          "maxDrawdown": -0.056247,
+          "sharpeRatio": 5.6895,
+          "series": [
+            {
+              "tradeDate": "20250417",
+              "cumReturn": 0
+            },
+            {
+              "tradeDate": "20250424",
+              "cumReturn": 0.017947
+            },
+            {
+              "tradeDate": "20250506",
+              "cumReturn": 0.021199
+            },
+            {
+              "tradeDate": "20250513",
+              "cumReturn": 0.044402
+            },
+            {
+              "tradeDate": "20250520",
+              "cumReturn": 0.053506
+            },
+            {
+              "tradeDate": "20250527",
+              "cumReturn": 0.040215
+            },
+            {
+              "tradeDate": "20250604",
+              "cumReturn": 0.060183
+            },
+            {
+              "tradeDate": "20250611",
+              "cumReturn": 0.0719
+            },
+            {
+              "tradeDate": "20250618",
+              "cumReturn": 0.058525
+            },
+            {
+              "tradeDate": "20250625",
+              "cumReturn": 0.071523
+            },
+            {
+              "tradeDate": "20250702",
+              "cumReturn": 0.08666
+            },
+            {
+              "tradeDate": "20250709",
+              "cumReturn": 0.104403
+            },
+            {
+              "tradeDate": "20250716",
+              "cumReturn": 0.114113
+            },
+            {
+              "tradeDate": "20250723",
+              "cumReturn": 0.147723
+            },
+            {
+              "tradeDate": "20250730",
+              "cumReturn": 0.150442
+            },
+            {
+              "tradeDate": "20250806",
+              "cumReturn": 0.157775
+            },
+            {
+              "tradeDate": "20250813",
+              "cumReturn": 0.178348
+            },
+            {
+              "tradeDate": "20250820",
+              "cumReturn": 0.198466
+            },
+            {
+              "tradeDate": "20250827",
+              "cumReturn": 0.196737
+            },
+            {
+              "tradeDate": "20250903",
+              "cumReturn": 0.183315
+            },
+            {
+              "tradeDate": "20250910",
+              "cumReturn": 0.20801
+            },
+            {
+              "tradeDate": "20250917",
+              "cumReturn": 0.220435
+            },
+            {
+              "tradeDate": "20250924",
+              "cumReturn": 0.204806
+            },
+            {
+              "tradeDate": "20251009",
+              "cumReturn": 0.224081
+            },
+            {
+              "tradeDate": "20251016",
+              "cumReturn": 0.235466
+            },
+            {
+              "tradeDate": "20251023",
+              "cumReturn": 0.246028
+            },
+            {
+              "tradeDate": "20251030",
+              "cumReturn": 0.24555
+            },
+            {
+              "tradeDate": "20251106",
+              "cumReturn": 0.270907
+            },
+            {
+              "tradeDate": "20251113",
+              "cumReturn": 0.295604
+            },
+            {
+              "tradeDate": "20251120",
+              "cumReturn": 0.2556
+            },
+            {
+              "tradeDate": "20251127",
+              "cumReturn": 0.235387
+            },
+            {
+              "tradeDate": "20251204",
+              "cumReturn": 0.247214
+            },
+            {
+              "tradeDate": "20251211",
+              "cumReturn": 0.235683
+            },
+            {
+              "tradeDate": "20251218",
+              "cumReturn": 0.244511
+            },
+            {
+              "tradeDate": "20251225",
+              "cumReturn": 0.270854
+            },
+            {
+              "tradeDate": "20260105",
+              "cumReturn": 0.275592
+            },
+            {
+              "tradeDate": "20260112",
+              "cumReturn": 0.308228
+            },
+            {
+              "tradeDate": "20260119",
+              "cumReturn": 0.319274
+            },
+            {
+              "tradeDate": "20260126",
+              "cumReturn": 0.345174
+            },
+            {
+              "tradeDate": "20260202",
+              "cumReturn": 0.304132
+            },
+            {
+              "tradeDate": "20260209",
+              "cumReturn": 0.344286
+            },
+            {
+              "tradeDate": "20260224",
+              "cumReturn": 0.345263
+            },
+            {
+              "tradeDate": "20260303",
+              "cumReturn": 0.344912
+            },
+            {
+              "tradeDate": "20260310",
+              "cumReturn": 0.357058
+            },
+            {
+              "tradeDate": "20260317",
+              "cumReturn": 0.348575
+            },
+            {
+              "tradeDate": "20260324",
+              "cumReturn": 0.280727
+            },
+            {
+              "tradeDate": "20260331",
+              "cumReturn": 0.2933
+            },
+            {
+              "tradeDate": "20260408",
+              "cumReturn": 0.316949
+            },
+            {
+              "tradeDate": "20260415",
+              "cumReturn": 0.313995
+            },
+            {
+              "tradeDate": "20260417",
+              "cumReturn": 0.316701
+            }
+          ]
+        },
+        {
+          "group": "Q2",
+          "label": "Q2",
+          "totalReturn": 0.417953,
+          "annualizedReturn": 0.436412,
+          "maxDrawdown": -0.0915,
+          "sharpeRatio": 5.5159,
+          "series": [
+            {
+              "tradeDate": "20250417",
+              "cumReturn": 0
+            },
+            {
+              "tradeDate": "20250424",
+              "cumReturn": 0.026664
+            },
+            {
+              "tradeDate": "20250506",
+              "cumReturn": 0.051291
+            },
+            {
+              "tradeDate": "20250513",
+              "cumReturn": 0.068618
+            },
+            {
+              "tradeDate": "20250520",
+              "cumReturn": 0.088915
+            },
+            {
+              "tradeDate": "20250527",
+              "cumReturn": 0.071726
+            },
+            {
+              "tradeDate": "20250604",
+              "cumReturn": 0.09341
+            },
+            {
+              "tradeDate": "20250611",
+              "cumReturn": 0.106189
+            },
+            {
+              "tradeDate": "20250618",
+              "cumReturn": 0.094715
+            },
+            {
+              "tradeDate": "20250625",
+              "cumReturn": 0.114438
+            },
+            {
+              "tradeDate": "20250702",
+              "cumReturn": 0.133144
+            },
+            {
+              "tradeDate": "20250709",
+              "cumReturn": 0.148292
+            },
+            {
+              "tradeDate": "20250716",
+              "cumReturn": 0.164181
+            },
+            {
+              "tradeDate": "20250723",
+              "cumReturn": 0.192738
+            },
+            {
+              "tradeDate": "20250730",
+              "cumReturn": 0.209317
+            },
+            {
+              "tradeDate": "20250806",
+              "cumReturn": 0.230877
+            },
+            {
+              "tradeDate": "20250813",
+              "cumReturn": 0.261022
+            },
+            {
+              "tradeDate": "20250820",
+              "cumReturn": 0.298499
+            },
+            {
+              "tradeDate": "20250827",
+              "cumReturn": 0.289939
+            },
+            {
+              "tradeDate": "20250903",
+              "cumReturn": 0.27051
+            },
+            {
+              "tradeDate": "20250910",
+              "cumReturn": 0.299301
+            },
+            {
+              "tradeDate": "20250917",
+              "cumReturn": 0.330049
+            },
+            {
+              "tradeDate": "20250924",
+              "cumReturn": 0.311478
+            },
+            {
+              "tradeDate": "20251009",
+              "cumReturn": 0.325548
+            },
+            {
+              "tradeDate": "20251016",
+              "cumReturn": 0.312816
+            },
+            {
+              "tradeDate": "20251023",
+              "cumReturn": 0.315724
+            },
+            {
+              "tradeDate": "20251030",
+              "cumReturn": 0.333026
+            },
+            {
+              "tradeDate": "20251106",
+              "cumReturn": 0.354151
+            },
+            {
+              "tradeDate": "20251113",
+              "cumReturn": 0.367851
+            },
+            {
+              "tradeDate": "20251120",
+              "cumReturn": 0.313024
+            },
+            {
+              "tradeDate": "20251127",
+              "cumReturn": 0.296405
+            },
+            {
+              "tradeDate": "20251204",
+              "cumReturn": 0.298975
+            },
+            {
+              "tradeDate": "20251211",
+              "cumReturn": 0.30093
+            },
+            {
+              "tradeDate": "20251218",
+              "cumReturn": 0.301111
+            },
+            {
+              "tradeDate": "20251225",
+              "cumReturn": 0.347435
+            },
+            {
+              "tradeDate": "20260105",
+              "cumReturn": 0.359427
+            },
+            {
+              "tradeDate": "20260112",
+              "cumReturn": 0.420591
+            },
+            {
+              "tradeDate": "20260119",
+              "cumReturn": 0.444791
+            },
+            {
+              "tradeDate": "20260126",
+              "cumReturn": 0.470022
+            },
+            {
+              "tradeDate": "20260202",
+              "cumReturn": 0.407046
+            },
+            {
+              "tradeDate": "20260209",
+              "cumReturn": 0.45111
+            },
+            {
+              "tradeDate": "20260224",
+              "cumReturn": 0.464758
+            },
+            {
+              "tradeDate": "20260303",
+              "cumReturn": 0.432034
+            },
+            {
+              "tradeDate": "20260310",
+              "cumReturn": 0.465236
+            },
+            {
+              "tradeDate": "20260317",
+              "cumReturn": 0.421632
+            },
+            {
+              "tradeDate": "20260324",
+              "cumReturn": 0.335515
+            },
+            {
+              "tradeDate": "20260331",
+              "cumReturn": 0.346884
+            },
+            {
+              "tradeDate": "20260408",
+              "cumReturn": 0.391249
+            },
+            {
+              "tradeDate": "20260415",
+              "cumReturn": 0.398157
+            },
+            {
+              "tradeDate": "20260417",
+              "cumReturn": 0.417953
+            }
+          ]
+        },
+        {
+          "group": "Q3",
+          "label": "Q3",
+          "totalReturn": 0.441628,
+          "annualizedReturn": 0.461291,
+          "maxDrawdown": -0.104601,
+          "sharpeRatio": 5.0936,
+          "series": [
+            {
+              "tradeDate": "20250417",
+              "cumReturn": 0
+            },
+            {
+              "tradeDate": "20250424",
+              "cumReturn": 0.020667
+            },
+            {
+              "tradeDate": "20250506",
+              "cumReturn": 0.059805
+            },
+            {
+              "tradeDate": "20250513",
+              "cumReturn": 0.078332
+            },
+            {
+              "tradeDate": "20250520",
+              "cumReturn": 0.096148
+            },
+            {
+              "tradeDate": "20250527",
+              "cumReturn": 0.074438
+            },
+            {
+              "tradeDate": "20250604",
+              "cumReturn": 0.094537
+            },
+            {
+              "tradeDate": "20250611",
+              "cumReturn": 0.109329
+            },
+            {
+              "tradeDate": "20250618",
+              "cumReturn": 0.099103
+            },
+            {
+              "tradeDate": "20250625",
+              "cumReturn": 0.124965
+            },
+            {
+              "tradeDate": "20250702",
+              "cumReturn": 0.140996
+            },
+            {
+              "tradeDate": "20250709",
+              "cumReturn": 0.155653
+            },
+            {
+              "tradeDate": "20250716",
+              "cumReturn": 0.168892
+            },
+            {
+              "tradeDate": "20250723",
+              "cumReturn": 0.198735
+            },
+            {
+              "tradeDate": "20250730",
+              "cumReturn": 0.214753
+            },
+            {
+              "tradeDate": "20250806",
+              "cumReturn": 0.244849
+            },
+            {
+              "tradeDate": "20250813",
+              "cumReturn": 0.274973
+            },
+            {
+              "tradeDate": "20250820",
+              "cumReturn": 0.31908
+            },
+            {
+              "tradeDate": "20250827",
+              "cumReturn": 0.302251
+            },
+            {
+              "tradeDate": "20250903",
+              "cumReturn": 0.28054
+            },
+            {
+              "tradeDate": "20250910",
+              "cumReturn": 0.309665
+            },
+            {
+              "tradeDate": "20250917",
+              "cumReturn": 0.355384
+            },
+            {
+              "tradeDate": "20250924",
+              "cumReturn": 0.343595
+            },
+            {
+              "tradeDate": "20251009",
+              "cumReturn": 0.3533
+            },
+            {
+              "tradeDate": "20251016",
+              "cumReturn": 0.328565
+            },
+            {
+              "tradeDate": "20251023",
+              "cumReturn": 0.326725
+            },
+            {
+              "tradeDate": "20251030",
+              "cumReturn": 0.340165
+            },
+            {
+              "tradeDate": "20251106",
+              "cumReturn": 0.361432
+            },
+            {
+              "tradeDate": "20251113",
+              "cumReturn": 0.367346
+            },
+            {
+              "tradeDate": "20251120",
+              "cumReturn": 0.315533
+            },
+            {
+              "tradeDate": "20251127",
+              "cumReturn": 0.298576
+            },
+            {
+              "tradeDate": "20251204",
+              "cumReturn": 0.298729
+            },
+            {
+              "tradeDate": "20251211",
+              "cumReturn": 0.304997
+            },
+            {
+              "tradeDate": "20251218",
+              "cumReturn": 0.301371
+            },
+            {
+              "tradeDate": "20251225",
+              "cumReturn": 0.357213
+            },
+            {
+              "tradeDate": "20260105",
+              "cumReturn": 0.375468
+            },
+            {
+              "tradeDate": "20260112",
+              "cumReturn": 0.459545
+            },
+            {
+              "tradeDate": "20260119",
+              "cumReturn": 0.481921
+            },
+            {
+              "tradeDate": "20260126",
+              "cumReturn": 0.500343
+            },
+            {
+              "tradeDate": "20260202",
+              "cumReturn": 0.432504
+            },
+            {
+              "tradeDate": "20260209",
+              "cumReturn": 0.480866
+            },
+            {
+              "tradeDate": "20260224",
+              "cumReturn": 0.49391
+            },
+            {
+              "tradeDate": "20260303",
+              "cumReturn": 0.446607
+            },
+            {
+              "tradeDate": "20260310",
+              "cumReturn": 0.49128
+            },
+            {
+              "tradeDate": "20260317",
+              "cumReturn": 0.430722
+            },
+            {
+              "tradeDate": "20260324",
+              "cumReturn": 0.343406
+            },
+            {
+              "tradeDate": "20260331",
+              "cumReturn": 0.346555
+            },
+            {
+              "tradeDate": "20260408",
+              "cumReturn": 0.397744
+            },
+            {
+              "tradeDate": "20260415",
+              "cumReturn": 0.409108
+            },
+            {
+              "tradeDate": "20260417",
+              "cumReturn": 0.441628
+            }
+          ]
+        },
+        {
+          "group": "Q4",
+          "label": "Q4",
+          "totalReturn": 0.514119,
+          "annualizedReturn": 0.537562,
+          "maxDrawdown": -0.097356,
+          "sharpeRatio": 5.4512,
+          "series": [
+            {
+              "tradeDate": "20250417",
+              "cumReturn": 0
+            },
+            {
+              "tradeDate": "20250424",
+              "cumReturn": 0.013193
+            },
+            {
+              "tradeDate": "20250506",
+              "cumReturn": 0.055633
+            },
+            {
+              "tradeDate": "20250513",
+              "cumReturn": 0.073657
+            },
+            {
+              "tradeDate": "20250520",
+              "cumReturn": 0.091754
+            },
+            {
+              "tradeDate": "20250527",
+              "cumReturn": 0.067402
+            },
+            {
+              "tradeDate": "20250604",
+              "cumReturn": 0.087031
+            },
+            {
+              "tradeDate": "20250611",
+              "cumReturn": 0.104695
+            },
+            {
+              "tradeDate": "20250618",
+              "cumReturn": 0.092833
+            },
+            {
+              "tradeDate": "20250625",
+              "cumReturn": 0.118698
+            },
+            {
+              "tradeDate": "20250702",
+              "cumReturn": 0.130326
+            },
+            {
+              "tradeDate": "20250709",
+              "cumReturn": 0.14589
+            },
+            {
+              "tradeDate": "20250716",
+              "cumReturn": 0.161683
+            },
+            {
+              "tradeDate": "20250723",
+              "cumReturn": 0.186081
+            },
+            {
+              "tradeDate": "20250730",
+              "cumReturn": 0.207797
+            },
+            {
+              "tradeDate": "20250806",
+              "cumReturn": 0.243957
+            },
+            {
+              "tradeDate": "20250813",
+              "cumReturn": 0.270858
+            },
+            {
+              "tradeDate": "20250820",
+              "cumReturn": 0.320321
+            },
+            {
+              "tradeDate": "20250827",
+              "cumReturn": 0.315983
+            },
+            {
+              "tradeDate": "20250903",
+              "cumReturn": 0.285592
+            },
+            {
+              "tradeDate": "20250910",
+              "cumReturn": 0.306595
+            },
+            {
+              "tradeDate": "20250917",
+              "cumReturn": 0.353908
+            },
+            {
+              "tradeDate": "20250924",
+              "cumReturn": 0.33946
+            },
+            {
+              "tradeDate": "20251009",
+              "cumReturn": 0.346406
+            },
+            {
+              "tradeDate": "20251016",
+              "cumReturn": 0.309541
+            },
+            {
+              "tradeDate": "20251023",
+              "cumReturn": 0.314524
+            },
+            {
+              "tradeDate": "20251030",
+              "cumReturn": 0.334152
+            },
+            {
+              "tradeDate": "20251106",
+              "cumReturn": 0.353524
+            },
+            {
+              "tradeDate": "20251113",
+              "cumReturn": 0.359777
+            },
+            {
+              "tradeDate": "20251120",
+              "cumReturn": 0.304718
+            },
+            {
+              "tradeDate": "20251127",
+              "cumReturn": 0.290792
+            },
+            {
+              "tradeDate": "20251204",
+              "cumReturn": 0.291196
+            },
+            {
+              "tradeDate": "20251211",
+              "cumReturn": 0.306246
+            },
+            {
+              "tradeDate": "20251218",
+              "cumReturn": 0.299449
+            },
+            {
+              "tradeDate": "20251225",
+              "cumReturn": 0.353815
+            },
+            {
+              "tradeDate": "20260105",
+              "cumReturn": 0.378585
+            },
+            {
+              "tradeDate": "20260112",
+              "cumReturn": 0.487396
+            },
+            {
+              "tradeDate": "20260119",
+              "cumReturn": 0.494289
+            },
+            {
+              "tradeDate": "20260126",
+              "cumReturn": 0.516933
+            },
+            {
+              "tradeDate": "20260202",
+              "cumReturn": 0.45689
+            },
+            {
+              "tradeDate": "20260209",
+              "cumReturn": 0.509416
+            },
+            {
+              "tradeDate": "20260224",
+              "cumReturn": 0.518291
+            },
+            {
+              "tradeDate": "20260303",
+              "cumReturn": 0.475894
+            },
+            {
+              "tradeDate": "20260310",
+              "cumReturn": 0.536073
+            },
+            {
+              "tradeDate": "20260317",
+              "cumReturn": 0.464821
+            },
+            {
+              "tradeDate": "20260324",
+              "cumReturn": 0.386527
+            },
+            {
+              "tradeDate": "20260331",
+              "cumReturn": 0.397246
+            },
+            {
+              "tradeDate": "20260408",
+              "cumReturn": 0.456824
+            },
+            {
+              "tradeDate": "20260415",
+              "cumReturn": 0.473212
+            },
+            {
+              "tradeDate": "20260417",
+              "cumReturn": 0.514119
+            }
+          ]
+        },
+        {
+          "group": "Q5",
+          "label": "因子值最大组",
+          "totalReturn": 0.414632,
+          "annualizedReturn": 0.432923,
+          "maxDrawdown": -0.11081,
+          "sharpeRatio": 4.4421,
+          "series": [
+            {
+              "tradeDate": "20250417",
+              "cumReturn": 0
+            },
+            {
+              "tradeDate": "20250424",
+              "cumReturn": 0.011184
+            },
+            {
+              "tradeDate": "20250506",
+              "cumReturn": 0.05736
+            },
+            {
+              "tradeDate": "20250513",
+              "cumReturn": 0.072869
+            },
+            {
+              "tradeDate": "20250520",
+              "cumReturn": 0.092861
+            },
+            {
+              "tradeDate": "20250527",
+              "cumReturn": 0.07072
+            },
+            {
+              "tradeDate": "20250604",
+              "cumReturn": 0.093734
+            },
+            {
+              "tradeDate": "20250611",
+              "cumReturn": 0.111161
+            },
+            {
+              "tradeDate": "20250618",
+              "cumReturn": 0.099708
+            },
+            {
+              "tradeDate": "20250625",
+              "cumReturn": 0.12377
+            },
+            {
+              "tradeDate": "20250702",
+              "cumReturn": 0.138879
+            },
+            {
+              "tradeDate": "20250709",
+              "cumReturn": 0.147163
+            },
+            {
+              "tradeDate": "20250716",
+              "cumReturn": 0.157541
+            },
+            {
+              "tradeDate": "20250723",
+              "cumReturn": 0.177564
+            },
+            {
+              "tradeDate": "20250730",
+              "cumReturn": 0.202739
+            },
+            {
+              "tradeDate": "20250806",
+              "cumReturn": 0.236818
+            },
+            {
+              "tradeDate": "20250813",
+              "cumReturn": 0.265081
+            },
+            {
+              "tradeDate": "20250820",
+              "cumReturn": 0.314772
+            },
+            {
+              "tradeDate": "20250827",
+              "cumReturn": 0.297641
+            },
+            {
+              "tradeDate": "20250903",
+              "cumReturn": 0.268678
+            },
+            {
+              "tradeDate": "20250910",
+              "cumReturn": 0.283817
+            },
+            {
+              "tradeDate": "20250917",
+              "cumReturn": 0.336796
+            },
+            {
+              "tradeDate": "20250924",
+              "cumReturn": 0.317784
+            },
+            {
+              "tradeDate": "20251009",
+              "cumReturn": 0.313519
+            },
+            {
+              "tradeDate": "20251016",
+              "cumReturn": 0.278141
+            },
+            {
+              "tradeDate": "20251023",
+              "cumReturn": 0.277976
+            },
+            {
+              "tradeDate": "20251030",
+              "cumReturn": 0.291218
+            },
+            {
+              "tradeDate": "20251106",
+              "cumReturn": 0.307061
+            },
+            {
+              "tradeDate": "20251113",
+              "cumReturn": 0.316659
+            },
+            {
+              "tradeDate": "20251120",
+              "cumReturn": 0.272237
+            },
+            {
+              "tradeDate": "20251127",
+              "cumReturn": 0.264591
+            },
+            {
+              "tradeDate": "20251204",
+              "cumReturn": 0.258304
+            },
+            {
+              "tradeDate": "20251211",
+              "cumReturn": 0.274411
+            },
+            {
+              "tradeDate": "20251218",
+              "cumReturn": 0.270033
+            },
+            {
+              "tradeDate": "20251225",
+              "cumReturn": 0.330388
+            },
+            {
+              "tradeDate": "20260105",
+              "cumReturn": 0.352849
+            },
+            {
+              "tradeDate": "20260112",
+              "cumReturn": 0.467914
+            },
+            {
+              "tradeDate": "20260119",
+              "cumReturn": 0.445511
+            },
+            {
+              "tradeDate": "20260126",
+              "cumReturn": 0.454415
+            },
+            {
+              "tradeDate": "20260202",
+              "cumReturn": 0.398488
+            },
+            {
+              "tradeDate": "20260209",
+              "cumReturn": 0.446043
+            },
+            {
+              "tradeDate": "20260224",
+              "cumReturn": 0.449531
+            },
+            {
+              "tradeDate": "20260303",
+              "cumReturn": 0.398323
+            },
+            {
+              "tradeDate": "20260310",
+              "cumReturn": 0.44883
+            },
+            {
+              "tradeDate": "20260317",
+              "cumReturn": 0.378684
+            },
+            {
+              "tradeDate": "20260324",
+              "cumReturn": 0.305255
+            },
+            {
+              "tradeDate": "20260331",
+              "cumReturn": 0.307939
+            },
+            {
+              "tradeDate": "20260408",
+              "cumReturn": 0.366106
+            },
+            {
+              "tradeDate": "20260415",
+              "cumReturn": 0.378651
+            },
+            {
+              "tradeDate": "20260417",
+              "cumReturn": 0.414632
+            }
+          ]
+        }
+      ],
+      "longShort": {
+        "totalReturn": 0.076429,
+        "annualizedReturn": 0.079369,
+        "maxDrawdown": -0.098259,
+        "sharpeRatio": 1.3709,
+        "series": [
+          {
+            "tradeDate": "20250417",
+            "cumReturn": 0
+          },
+          {
+            "tradeDate": "20250424",
+            "cumReturn": -0.006762
+          },
+          {
+            "tradeDate": "20250506",
+            "cumReturn": 0.035421
+          },
+          {
+            "tradeDate": "20250513",
+            "cumReturn": 0.027082
+          },
+          {
+            "tradeDate": "20250520",
+            "cumReturn": 0.037268
+          },
+          {
+            "tradeDate": "20250527",
+            "cumReturn": 0.029339
+          },
+          {
+            "tradeDate": "20250604",
+            "cumReturn": 0.031705
+          },
+          {
+            "tradeDate": "20250611",
+            "cumReturn": 0.036742
+          },
+          {
+            "tradeDate": "20250618",
+            "cumReturn": 0.038993
+          },
+          {
+            "tradeDate": "20250625",
+            "cumReturn": 0.048968
+          },
+          {
+            "tradeDate": "20250702",
+            "cumReturn": 0.048253
+          },
+          {
+            "tradeDate": "20250709",
+            "cumReturn": 0.038762
+          },
+          {
+            "tradeDate": "20250716",
+            "cumReturn": 0.039026
+          },
+          {
+            "tradeDate": "20250723",
+            "cumReturn": 0.025654
+          },
+          {
+            "tradeDate": "20250730",
+            "cumReturn": 0.045151
+          },
+          {
+            "tradeDate": "20250806",
+            "cumReturn": 0.068102
+          },
+          {
+            "tradeDate": "20250813",
+            "cumReturn": 0.073531
+          },
+          {
+            "tradeDate": "20250820",
+            "cumReturn": 0.097369
+          },
+          {
+            "tradeDate": "20250827",
+            "cumReturn": 0.084654
+          },
+          {
+            "tradeDate": "20250903",
+            "cumReturn": 0.07261
+          },
+          {
+            "tradeDate": "20250910",
+            "cumReturn": 0.063025
+          },
+          {
+            "tradeDate": "20250917",
+            "cumReturn": 0.095959
+          },
+          {
+            "tradeDate": "20250924",
+            "cumReturn": 0.094407
+          },
+          {
+            "tradeDate": "20251009",
+            "cumReturn": 0.073357
+          },
+          {
+            "tradeDate": "20251016",
+            "cumReturn": 0.034464
+          },
+          {
+            "tradeDate": "20251023",
+            "cumReturn": 0.025486
+          },
+          {
+            "tradeDate": "20251030",
+            "cumReturn": 0.036505
+          },
+          {
+            "tradeDate": "20251106",
+            "cumReturn": 0.028122
+          },
+          {
+            "tradeDate": "20251113",
+            "cumReturn": 0.015693
+          },
+          {
+            "tradeDate": "20251120",
+            "cumReturn": 0.012787
+          },
+          {
+            "tradeDate": "20251127",
+            "cumReturn": 0.023004
+          },
+          {
+            "tradeDate": "20251204",
+            "cumReturn": 0.008124
+          },
+          {
+            "tradeDate": "20251211",
+            "cumReturn": 0.030349
+          },
+          {
+            "tradeDate": "20251218",
+            "cumReturn": 0.019448
+          },
+          {
+            "tradeDate": "20251225",
+            "cumReturn": 0.046316
+          },
+          {
+            "tradeDate": "20260105",
+            "cumReturn": 0.06008
+          },
+          {
+            "tradeDate": "20260112",
+            "cumReturn": 0.123121
+          },
+          {
+            "tradeDate": "20260119",
+            "cumReturn": 0.096498
+          },
+          {
+            "tradeDate": "20260126",
+            "cumReturn": 0.081726
+          },
+          {
+            "tradeDate": "20260202",
+            "cumReturn": 0.073134
+          },
+          {
+            "tradeDate": "20260209",
+            "cumReturn": 0.076583
+          },
+          {
+            "tradeDate": "20260224",
+            "cumReturn": 0.078397
+          },
+          {
+            "tradeDate": "20260303",
+            "cumReturn": 0.040582
+          },
+          {
+            "tradeDate": "20260310",
+            "cumReturn": 0.06877
+          },
+          {
+            "tradeDate": "20260317",
+            "cumReturn": 0.023706
+          },
+          {
+            "tradeDate": "20260324",
+            "cumReturn": 0.020686
+          },
+          {
+            "tradeDate": "20260331",
+            "cumReturn": 0.012764
+          },
+          {
+            "tradeDate": "20260408",
+            "cumReturn": 0.039285
+          },
+          {
+            "tradeDate": "20260415",
+            "cumReturn": 0.05116
+          },
+          {
+            "tradeDate": "20260417",
+            "cumReturn": 0.076429
+          }
+        ]
+      },
+      "benchmark": {
+        "totalReturn": 0.421424,
+        "series": [
+          {
+            "tradeDate": "20250417",
+            "cumReturn": 0
+          },
+          {
+            "tradeDate": "20250424",
+            "cumReturn": 0.017928
+          },
+          {
+            "tradeDate": "20250506",
+            "cumReturn": 0.049093
+          },
+          {
+            "tradeDate": "20250513",
+            "cumReturn": 0.067643
+          },
+          {
+            "tradeDate": "20250520",
+            "cumReturn": 0.084666
+          },
+          {
+            "tradeDate": "20250527",
+            "cumReturn": 0.064975
+          },
+          {
+            "tradeDate": "20250604",
+            "cumReturn": 0.085853
+          },
+          {
+            "tradeDate": "20250611",
+            "cumReturn": 0.100716
+          },
+          {
+            "tradeDate": "20250618",
+            "cumReturn": 0.089024
+          },
+          {
+            "tradeDate": "20250625",
+            "cumReturn": 0.110669
+          },
+          {
+            "tradeDate": "20250702",
+            "cumReturn": 0.125997
+          },
+          {
+            "tradeDate": "20250709",
+            "cumReturn": 0.140312
+          },
+          {
+            "tradeDate": "20250716",
+            "cumReturn": 0.153291
+          },
+          {
+            "tradeDate": "20250723",
+            "cumReturn": 0.180627
+          },
+          {
+            "tradeDate": "20250730",
+            "cumReturn": 0.197
+          },
+          {
+            "tradeDate": "20250806",
+            "cumReturn": 0.222684
+          },
+          {
+            "tradeDate": "20250813",
+            "cumReturn": 0.249812
+          },
+          {
+            "tradeDate": "20250820",
+            "cumReturn": 0.289712
+          },
+          {
+            "tradeDate": "20250827",
+            "cumReturn": 0.280137
+          },
+          {
+            "tradeDate": "20250903",
+            "cumReturn": 0.257508
+          },
+          {
+            "tradeDate": "20250910",
+            "cumReturn": 0.281282
+          },
+          {
+            "tradeDate": "20250917",
+            "cumReturn": 0.318786
+          },
+          {
+            "tradeDate": "20250924",
+            "cumReturn": 0.302863
+          },
+          {
+            "tradeDate": "20251009",
+            "cumReturn": 0.31221
+          },
+          {
+            "tradeDate": "20251016",
+            "cumReturn": 0.293067
+          },
+          {
+            "tradeDate": "20251023",
+            "cumReturn": 0.296443
+          },
+          {
+            "tradeDate": "20251030",
+            "cumReturn": 0.308939
+          },
+          {
+            "tradeDate": "20251106",
+            "cumReturn": 0.329581
+          },
+          {
+            "tradeDate": "20251113",
+            "cumReturn": 0.341774
+          },
+          {
+            "tradeDate": "20251120",
+            "cumReturn": 0.292647
+          },
+          {
+            "tradeDate": "20251127",
+            "cumReturn": 0.277573
+          },
+          {
+            "tradeDate": "20251204",
+            "cumReturn": 0.279359
+          },
+          {
+            "tradeDate": "20251211",
+            "cumReturn": 0.28488
+          },
+          {
+            "tradeDate": "20251218",
+            "cumReturn": 0.283818
+          },
+          {
+            "tradeDate": "20251225",
+            "cumReturn": 0.332363
+          },
+          {
+            "tradeDate": "20260105",
+            "cumReturn": 0.348688
+          },
+          {
+            "tradeDate": "20260112",
+            "cumReturn": 0.428446
+          },
+          {
+            "tradeDate": "20260119",
+            "cumReturn": 0.437037
+          },
+          {
+            "tradeDate": "20260126",
+            "cumReturn": 0.457385
+          },
+          {
+            "tradeDate": "20260202",
+            "cumReturn": 0.400081
+          },
+          {
+            "tradeDate": "20260209",
+            "cumReturn": 0.446543
+          },
+          {
+            "tradeDate": "20260224",
+            "cumReturn": 0.454417
+          },
+          {
+            "tradeDate": "20260303",
+            "cumReturn": 0.42022
+          },
+          {
+            "tradeDate": "20260310",
+            "cumReturn": 0.459996
+          },
+          {
+            "tradeDate": "20260317",
+            "cumReturn": 0.409942
+          },
+          {
+            "tradeDate": "20260324",
+            "cumReturn": 0.331376
+          },
+          {
+            "tradeDate": "20260331",
+            "cumReturn": 0.339487
+          },
+          {
+            "tradeDate": "20260408",
+            "cumReturn": 0.386734
+          },
+          {
+            "tradeDate": "20260415",
+            "cumReturn": 0.395414
+          },
+          {
+            "tradeDate": "20260417",
+            "cumReturn": 0.421424
+          }
+        ]
+      }
+    },
+    "message": ""
+  },
+  "decay": {
+    "code": 0,
+    "data": {
+      "factorName": "pe_ttm",
+      "results": [
+        {
+          "period": 1,
+          "icMean": -0.021023,
+          "icIr": -0.1254,
+          "icPositiveRate": 0.4587
+        },
+        {
+          "period": 3,
+          "icMean": -0.02358,
+          "icIr": -0.1573,
+          "icPositiveRate": 0.4333
+        },
+        {
+          "period": 5,
+          "icMean": -0.02406,
+          "icIr": -0.1714,
+          "icPositiveRate": 0.416
+        },
+        {
+          "period": 10,
+          "icMean": -0.025187,
+          "icIr": -0.1955,
+          "icPositiveRate": 0.4464
+        },
+        {
+          "period": 20,
+          "icMean": -0.03576,
+          "icIr": -0.3097,
+          "icPositiveRate": 0.3453
+        }
+      ]
+    },
+    "message": ""
+  },
+  "distribution": {
+    "code": 0,
+    "data": {
+      "factorName": "pe_ttm",
+      "tradeDate": "20260417",
+      "stats": {
+        "count": 3960,
+        "missing": 1337,
+        "missingRate": 0.2524,
+        "mean": 125.2647,
+        "median": 47.2617,
+        "stdDev": 419.5742,
+        "skewness": 15.6899,
+        "kurtosis": 326.0396,
+        "min": 4.1273,
+        "max": 11474.0033,
+        "q5": 12.5171,
+        "q25": 25.3552,
+        "q75": 103.9664,
+        "q95": 397.6822
+      },
+      "histogram": [
+        {
+          "binStart": 4.1273,
+          "binEnd": 233.5248,
+          "count": 3564
+        },
+        {
+          "binStart": 233.5248,
+          "binEnd": 462.9223,
+          "count": 232
+        },
+        {
+          "binStart": 462.9223,
+          "binEnd": 692.3199,
+          "count": 80
+        },
+        {
+          "binStart": 692.3199,
+          "binEnd": 921.7174,
+          "count": 27
+        },
+        {
+          "binStart": 921.7174,
+          "binEnd": 1151.1149,
+          "count": 17
+        },
+        {
+          "binStart": 1151.1149,
+          "binEnd": 1380.5124,
+          "count": 6
+        },
+        {
+          "binStart": 1380.5124,
+          "binEnd": 1609.9099,
+          "count": 7
+        },
+        {
+          "binStart": 1609.9099,
+          "binEnd": 1839.3075,
+          "count": 5
+        },
+        {
+          "binStart": 1839.3075,
+          "binEnd": 2068.705,
+          "count": 3
+        },
+        {
+          "binStart": 2068.705,
+          "binEnd": 2298.1025,
+          "count": 0
+        },
+        {
+          "binStart": 2298.1025,
+          "binEnd": 2527.5,
+          "count": 2
+        },
+        {
+          "binStart": 2527.5,
+          "binEnd": 2756.8975,
+          "count": 1
+        },
+        {
+          "binStart": 2756.8975,
+          "binEnd": 2986.2951,
+          "count": 2
+        },
+        {
+          "binStart": 2986.2951,
+          "binEnd": 3215.6926,
+          "count": 2
+        },
+        {
+          "binStart": 3215.6926,
+          "binEnd": 3445.0901,
+          "count": 1
+        },
+        {
+          "binStart": 3445.0901,
+          "binEnd": 3674.4876,
+          "count": 0
+        },
+        {
+          "binStart": 3674.4876,
+          "binEnd": 3903.8851,
+          "count": 1
+        },
+        {
+          "binStart": 3903.8851,
+          "binEnd": 4133.2827,
+          "count": 0
+        },
+        {
+          "binStart": 4133.2827,
+          "binEnd": 4362.6802,
+          "count": 1
+        },
+        {
+          "binStart": 4362.6802,
+          "binEnd": 4592.0777,
+          "count": 1
+        },
+        {
+          "binStart": 4592.0777,
+          "binEnd": 4821.4752,
+          "count": 1
+        },
+        {
+          "binStart": 4821.4752,
+          "binEnd": 5050.8727,
+          "count": 1
+        },
+        {
+          "binStart": 5050.8727,
+          "binEnd": 5280.2703,
+          "count": 0
+        },
+        {
+          "binStart": 5280.2703,
+          "binEnd": 5509.6678,
+          "count": 0
+        },
+        {
+          "binStart": 5509.6678,
+          "binEnd": 5739.0653,
+          "count": 0
+        },
+        {
+          "binStart": 5739.0653,
+          "binEnd": 5968.4628,
+          "count": 2
+        },
+        {
+          "binStart": 5968.4628,
+          "binEnd": 6197.8603,
+          "count": 0
+        },
+        {
+          "binStart": 6197.8603,
+          "binEnd": 6427.2579,
+          "count": 0
+        },
+        {
+          "binStart": 6427.2579,
+          "binEnd": 6656.6554,
+          "count": 0
+        },
+        {
+          "binStart": 6656.6554,
+          "binEnd": 6886.0529,
+          "count": 0
+        },
+        {
+          "binStart": 6886.0529,
+          "binEnd": 7115.4504,
+          "count": 0
+        },
+        {
+          "binStart": 7115.4504,
+          "binEnd": 7344.8479,
+          "count": 1
+        },
+        {
+          "binStart": 7344.8479,
+          "binEnd": 7574.2455,
+          "count": 0
+        },
+        {
+          "binStart": 7574.2455,
+          "binEnd": 7803.643,
+          "count": 0
+        },
+        {
+          "binStart": 7803.643,
+          "binEnd": 8033.0405,
+          "count": 0
+        },
+        {
+          "binStart": 8033.0405,
+          "binEnd": 8262.438,
+          "count": 0
+        },
+        {
+          "binStart": 8262.438,
+          "binEnd": 8491.8355,
+          "count": 1
+        },
+        {
+          "binStart": 8491.8355,
+          "binEnd": 8721.2331,
+          "count": 0
+        },
+        {
+          "binStart": 8721.2331,
+          "binEnd": 8950.6306,
+          "count": 0
+        },
+        {
+          "binStart": 8950.6306,
+          "binEnd": 9180.0281,
+          "count": 0
+        },
+        {
+          "binStart": 9180.0281,
+          "binEnd": 9409.4256,
+          "count": 0
+        },
+        {
+          "binStart": 9409.4256,
+          "binEnd": 9638.8231,
+          "count": 0
+        },
+        {
+          "binStart": 9638.8231,
+          "binEnd": 9868.2207,
+          "count": 0
+        },
+        {
+          "binStart": 9868.2207,
+          "binEnd": 10097.6182,
+          "count": 0
+        },
+        {
+          "binStart": 10097.6182,
+          "binEnd": 10327.0157,
+          "count": 0
+        },
+        {
+          "binStart": 10327.0157,
+          "binEnd": 10556.4132,
+          "count": 0
+        },
+        {
+          "binStart": 10556.4132,
+          "binEnd": 10785.8107,
+          "count": 1
+        },
+        {
+          "binStart": 10785.8107,
+          "binEnd": 11015.2083,
+          "count": 0
+        },
+        {
+          "binStart": 11015.2083,
+          "binEnd": 11244.6058,
+          "count": 0
+        },
+        {
+          "binStart": 11244.6058,
+          "binEnd": 11474.0033,
+          "count": 1
+        }
+      ]
+    },
+    "message": ""
+  },
+  "correlation": {
+    "code": 0,
+    "data": {
+      "tradeDate": "20260417",
+      "method": "spearman",
+      "factors": [
+        "pe_ttm",
+        "pb"
+      ],
+      "matrix": [
+        [
+          1,
+          0.534
+        ],
+        [
+          0.534,
+          1
+        ]
+      ]
+    },
+    "message": ""
+  },
+  "screening": {
+    "code": 0,
+    "data": {
+      "tradeDate": "20260417",
+      "universe": null,
+      "conditionCount": 1,
+      "total": 2068,
+      "page": 1,
+      "pageSize": 20,
+      "items": [
+        {
+          "tsCode": "000001.SZ",
+          "name": "平安银行",
+          "industry": "银行",
+          "factors": {
+            "pe_ttm": 5.0116
+          }
+        },
+        {
+          "tsCode": "000019.SZ",
+          "name": "深粮控股",
+          "industry": "农业综合",
+          "factors": {
+            "pe_ttm": 26.9409
+          }
+        },
+        {
+          "tsCode": "000021.SZ",
+          "name": "深科技",
+          "industry": "元器件",
+          "factors": {
+            "pe_ttm": 44.4802
+          }
+        },
+        {
+          "tsCode": "001872.SZ",
+          "name": "招商港口",
+          "industry": "港口",
+          "factors": {
+            "pe_ttm": 11.5339
+          }
+        },
+        {
+          "tsCode": "000025.SZ",
+          "name": "特力Ａ",
+          "industry": "综合类",
+          "factors": {
+            "pe_ttm": 45.8411
+          }
+        },
+        {
+          "tsCode": "000027.SZ",
+          "name": "深圳能源",
+          "industry": "火力发电",
+          "factors": {
+            "pe_ttm": 15.109
+          }
+        },
+        {
+          "tsCode": "000028.SZ",
+          "name": "国药一致",
+          "industry": "医药商业",
+          "factors": {
+            "pe_ttm": 12.7636
+          }
+        },
+        {
+          "tsCode": "000030.SZ",
+          "name": "富奥股份",
+          "industry": "汽车配件",
+          "factors": {
+            "pe_ttm": 14.0739
+          }
+        },
+        {
+          "tsCode": "000037.SZ",
+          "name": "深南电A",
+          "industry": "火力发电",
+          "factors": {
+            "pe_ttm": 41.4348
+          }
+        },
+        {
+          "tsCode": "001914.SZ",
+          "name": "招商积余",
+          "industry": "房产服务",
+          "factors": {
+            "pe_ttm": 16.2104
+          }
+        },
+        {
+          "tsCode": "000049.SZ",
+          "name": "德赛电池",
+          "industry": "电气设备",
+          "factors": {
+            "pe_ttm": 25.6321
+          }
+        },
+        {
+          "tsCode": "000060.SZ",
+          "name": "中金岭南",
+          "industry": "铅锌",
+          "factors": {
+            "pe_ttm": 26.6886
+          }
+        },
+        {
+          "tsCode": "000061.SZ",
+          "name": "农产品",
+          "industry": "农业综合",
+          "factors": {
+            "pe_ttm": 40.3838
+          }
+        },
+        {
+          "tsCode": "000063.SZ",
+          "name": "中兴通讯",
+          "industry": "通信设备",
+          "factors": {
+            "pe_ttm": 30.0837
+          }
+        },
+        {
+          "tsCode": "000065.SZ",
+          "name": "北方国际",
+          "industry": "建筑工程",
+          "factors": {
+            "pe_ttm": 22.7211
+          }
+        },
+        {
+          "tsCode": "000088.SZ",
+          "name": "盐田港",
+          "industry": "港口",
+          "factors": {
+            "pe_ttm": 16.3986
+          }
+        },
+        {
+          "tsCode": "000089.SZ",
+          "name": "深圳机场",
+          "industry": "机场",
+          "factors": {
+            "pe_ttm": 24.0081
+          }
+        },
+        {
+          "tsCode": "000090.SZ",
+          "name": "天健集团",
+          "industry": "建筑工程",
+          "factors": {
+            "pe_ttm": 21.9047
+          }
+        },
+        {
+          "tsCode": "000096.SZ",
+          "name": "广聚能源",
+          "industry": "石油贸易",
+          "factors": {
+            "pe_ttm": 44.4141
+          }
+        },
+        {
+          "tsCode": "000099.SZ",
+          "name": "中信海直",
+          "industry": "空运",
+          "factors": {
+            "pe_ttm": 46.0432
+          }
+        }
+      ]
+    },
+    "message": ""
+  }
+}

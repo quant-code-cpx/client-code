@@ -1,0 +1,58 @@
+{
+  "eventTypes": {
+    "code": 0,
+    "data": [
+      {
+        "type": "FORECAST",
+        "label": "业绩预告",
+        "description": "业绩预告公告日前后超额收益"
+      },
+      {
+        "type": "DIVIDEND_EX",
+        "label": "分红除权",
+        "description": "除权除息日前后超额收益"
+      },
+      {
+        "type": "HOLDER_INCREASE",
+        "label": "股东增持",
+        "description": "股东增持公告日前后超额收益"
+      },
+      {
+        "type": "HOLDER_DECREASE",
+        "label": "股东减持",
+        "description": "股东减持公告日前后超额收益"
+      },
+      {
+        "type": "SHARE_FLOAT",
+        "label": "限售解禁",
+        "description": "限售股解禁日前后超额收益"
+      },
+      {
+        "type": "REPURCHASE",
+        "label": "股票回购",
+        "description": "回购公告日前后超额收益"
+      },
+      {
+        "type": "AUDIT_QUALIFIED",
+        "label": "非标审计",
+        "description": "非无保留意见审计结果公告后超额收益"
+      },
+      {
+        "type": "DISCLOSURE",
+        "label": "财报披露",
+        "description": "财报实际披露日前后超额收益"
+      }
+    ],
+    "message": ""
+  },
+  "signalRules": {
+    "code": 0,
+    "data": {
+      "items": [],
+      "total": 0,
+      "page": 1,
+      "pageSize": 20
+    },
+    "message": ""
+  }
+}

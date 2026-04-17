@@ -1,0 +1,92 @@
+{
+  "list": {
+    "code": 0,
+    "data": [
+      {
+        "id": "cmo077nh6000yq9gt4rvr4n4g",
+        "name": "are you ok?",
+        "description": null,
+        "initialCash": "1000000",
+        "createdAt": "2026-04-15T15:21:40.507Z",
+        "updatedAt": "2026-04-15T15:21:40.507Z",
+        "holdingCount": 1
+      }
+    ],
+    "message": ""
+  },
+  "detail": {
+    "__error": true,
+    "status": 500,
+    "url": "/api/portfolio/detail",
+    "body": "{\"code\":500,\"data\":null,\"message\":\"\\nInvalid `this.prisma.portfolio.findUnique()` invocation in\\n/app/src/apps/portfolio/portfolio.service.ts:201:51\\n\\n  198 \\n  199 /** 验证 portfolioId 归属当前用户，不属于则抛出 403/404 */\\n  200 async assertOwner(portfolioId: string, userId: number) {\\n→ 201   const portfolio = await this.prisma.portfolio.findUnique({\\n          where: {\\n            id: undefined,\\n        ?   AND?: PortfolioWhereInput | PortfolioWhereInput[],\\n        ?   OR?: PortfolioWhereInput[],\\n        ?   NOT?: PortfolioWhereInput | PortfolioWhereInput[],\\n        ?   userId?: IntFilter | Int,\\n        ?   name?: StringFilter | String,\\n        ?   description?: StringNullableFilter | String | Null,\\n        ?   initialCash?: DecimalFilter | Decimal,\\n        ?   createdAt?: DateTimeFilter | DateTime,\\n        ?   updatedAt?: DateTimeFilter | DateTime,\\n        ?   user?: UserScalarRelationFilter | UserWhereInput,\\n        ?   holdings?: PortfolioHoldingListRelationFilter,\\n        ?   riskRules?: PortfolioRiskRuleListRelationFilter,\\n        ?   violations?: RiskViolationLogListRelationFilter,\\n        ?   tradeLogs?: PortfolioTradeLogListRelationFilter,\\n        ?   alertRules?: PriceAlertRuleListRelationFilter\\n          }\\n        })\\n\\nArgument `where` of type PortfolioWhereUniqueInput needs at least one of `id` arguments. Available options are marked with ?.\"}"
+  },
+  "pnlToday": {
+    "code": 0,
+    "data": {
+      "tradeDate": "2026-04-17T00:00:00.000Z",
+      "todayPnl": 53806.61911117919,
+      "todayPnlPct": 0.051123,
+      "byHolding": [
+        {
+          "tsCode": "300308.SZ",
+          "stockName": "中际旭创",
+          "pctChg": 5.1123,
+          "todayPnl": 53806.61911117919
+        }
+      ]
+    },
+    "message": ""
+  },
+  "pnlHistory": {
+    "__error": true,
+    "status": 400,
+    "url": "/api/portfolio/pnl/history",
+    "body": "{\"code\":9001,\"data\":{\"details\":[\"日期格式错误，应为 YYYYMMDD\",\"startDate must be a string\",\"日期格式错误，应为 YYYYMMDD\",\"endDate must be a string\"]},\"message\":\"请求参数校验失败\"}"
+  },
+  "riskIndustry": {
+    "__error": true,
+    "status": 500,
+    "url": "/api/portfolio/risk/industry",
+    "body": "{\"code\":500,\"data\":null,\"message\":\"\\nInvalid `prisma.$queryRawUnsafe()` invocation:\\n\\n\\nRaw query failed. Code: `42703`. Message: `column h.ts_code does not exist`\"}"
+  },
+  "riskPosition": {
+    "__error": true,
+    "status": 500,
+    "url": "/api/portfolio/risk/position",
+    "body": "{\"code\":500,\"data\":null,\"message\":\"\\nInvalid `prisma.$queryRawUnsafe()` invocation:\\n\\n\\nRaw query failed. Code: `42703`. Message: `column h.ts_code does not exist`\"}"
+  },
+  "riskMarketCap": {
+    "__error": true,
+    "status": 500,
+    "url": "/api/portfolio/risk/market-cap",
+    "body": "{\"code\":500,\"data\":null,\"message\":\"\\nInvalid `prisma.$queryRawUnsafe()` invocation:\\n\\n\\nRaw query failed. Code: `42703`. Message: `column h.ts_code does not exist`\"}"
+  },
+  "riskBeta": {
+    "code": 0,
+    "data": {
+      "tradeDate": "20260417",
+      "benchmarkCode": "399300.SZ",
+      "portfolioBeta": null,
+      "holdings": [
+        {
+          "tsCode": "300308.SZ",
+          "stockName": "中际旭创",
+          "beta": null,
+          "dataPoints": 0
+        }
+      ]
+    },
+    "message": ""
+  },
+  "riskRules": {
+    "code": 0,
+    "data": [],
+    "message": ""
+  },
+  "driftDetection": {
+    "__error": true,
+    "status": 400,
+    "url": "/api/portfolio/drift-detection",
+    "body": "{\"code\":400,\"data\":null,\"message\":\"组合未关联策略信号，请先激活策略并关联组合，或手动指定 strategyId\"}"
+  }
+}

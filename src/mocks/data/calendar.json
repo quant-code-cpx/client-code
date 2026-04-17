@@ -1,0 +1,1292 @@
+{
+  "upcoming": {
+    "code": 0,
+    "data": [
+      {
+        "date": "20260417",
+        "type": "SHARE_FLOAT",
+        "tsCode": "603120.SH",
+        "summary": "肯特催化 限售解禁 666667.00万股",
+        "payload": {
+          "floatShare": 666667,
+          "floatRatio": 0.7375,
+          "holderName": "诸暨利锦投资管理有限公司",
+          "shareType": "首发原始股"
+        },
+        "name": "肯特催化"
+      },
+      {
+        "date": "20260417",
+        "type": "SHARE_FLOAT",
+        "tsCode": "603120.SH",
+        "summary": "肯特催化 限售解禁 666667.00万股",
+        "payload": {
+          "floatShare": 666667,
+          "floatRatio": 0.7375,
+          "holderName": "杭州城锦股权投资合伙企业(有限合伙)",
+          "shareType": "首发原始股"
+        },
+        "name": "肯特催化"
+      },
+      {
+        "date": "20260417",
+        "type": "SHARE_FLOAT",
+        "tsCode": "603120.SH",
+        "summary": "肯特催化 限售解禁 2666667.00万股",
+        "payload": {
+          "floatShare": 2666667,
+          "floatRatio": 2.9499,
+          "holderName": "宁波和丰创业投资有限公司",
+          "shareType": "首发原始股"
+        },
+        "name": "肯特催化"
+      },
+      {
+        "date": "20260417",
+        "type": "SHARE_FLOAT",
+        "tsCode": "603120.SH",
+        "summary": "肯特催化 限售解禁 1666667.00万股",
+        "payload": {
+          "floatShare": 1666667,
+          "floatRatio": 1.8437,
+          "holderName": "嘉兴崇山投资合伙企业(有限合伙)",
+          "shareType": "首发原始股"
+        },
+        "name": "肯特催化"
+      },
+      {
+        "date": "20260417",
+        "type": "SHARE_FLOAT",
+        "tsCode": "603120.SH",
+        "summary": "肯特催化 限售解禁 3383332.00万股",
+        "payload": {
+          "floatShare": 3383332,
+          "floatRatio": 3.7426,
+          "holderName": "嘉兴附加值青山投资合伙企业(有限合伙)",
+          "shareType": "首发原始股"
+        },
+        "name": "肯特催化"
+      },
+      {
+        "date": "20260417",
+        "type": "SHARE_FLOAT",
+        "tsCode": "603120.SH",
+        "summary": "肯特催化 限售解禁 2940000.00万股",
+        "payload": {
+          "floatShare": 2940000,
+          "floatRatio": 3.2522,
+          "holderName": "江苏毅达成果创新创业投资基金(有限合伙)",
+          "shareType": "首发原始股"
+        },
+        "name": "肯特催化"
+      },
+      {
+        "date": "20260417",
+        "type": "SHARE_FLOAT",
+        "tsCode": "603120.SH",
+        "summary": "肯特催化 限售解禁 3310000.00万股",
+        "payload": {
+          "floatShare": 3310000,
+          "floatRatio": 3.6615,
+          "holderName": "黄山高新毅达新安江专精特新创业投资基金(有限合伙)",
+          "shareType": "首发原始股"
+        },
+        "name": "肯特催化"
+      },
+      {
+        "date": "20260417",
+        "type": "SHARE_FLOAT",
+        "tsCode": "301662.SZ",
+        "summary": "宏工科技 限售解禁 233600.00万股",
+        "payload": {
+          "floatShare": 233600,
+          "floatRatio": 0.292,
+          "holderName": "湖南宏智三号实业投资合伙企业(有限合伙)",
+          "shareType": "首发原始股"
+        },
+        "name": "宏工科技"
+      },
+      {
+        "date": "20260417",
+        "type": "SHARE_FLOAT",
+        "tsCode": "301662.SZ",
+        "summary": "宏工科技 限售解禁 327900.00万股",
+        "payload": {
+          "floatShare": 327900,
+          "floatRatio": 0.4099,
+          "holderName": "湖南宏智肆号实业投资合伙企业(有限合伙)",
+          "shareType": "首发原始股"
+        },
+        "name": "宏工科技"
+      },
+      {
+        "date": "20260417",
+        "type": "SHARE_FLOAT",
+        "tsCode": "301662.SZ",
+        "summary": "宏工科技 限售解禁 413550.00万股",
+        "payload": {
+          "floatShare": 413550,
+          "floatRatio": 0.5169,
+          "holderName": "湖南宏智二号实业投资合伙企业(有限合伙)",
+          "shareType": "首发原始股"
+        },
+        "name": "宏工科技"
+      },
+      {
+        "date": "20260417",
+        "type": "SHARE_FLOAT",
+        "tsCode": "301662.SZ",
+        "summary": "宏工科技 限售解禁 436280.00万股",
+        "payload": {
+          "floatShare": 436280,
+          "floatRatio": 0.5454,
+          "holderName": "湖南宏智一号实业投资合伙企业(有限合伙)",
+          "shareType": "首发原始股"
+        },
+        "name": "宏工科技"
+      },
+      {
+        "date": "20260417",
+        "type": "SHARE_FLOAT",
+        "tsCode": "301662.SZ",
+        "summary": "宏工科技 限售解禁 556935.00万股",
+        "payload": {
+          "floatShare": 556935,
+          "floatRatio": 0.7,
+          "holderName": "深圳鸿鹄寰宇投资企业(有限合伙)",
+          "shareType": "首发原始股"
+        },
+        "name": "宏工科技"
+      },
+      {
+        "date": "20260417",
+        "type": "SHARE_FLOAT",
+        "tsCode": "301662.SZ",
+        "summary": "宏工科技 限售解禁 1113860.00万股",
+        "payload": {
+          "floatShare": 1113860,
+          "floatRatio": 1.39,
+          "holderName": "深圳健和成至创业投资合伙企业(有限合伙)",
+          "shareType": "首发原始股"
+        },
+        "name": "宏工科技"
+      },
+      {
+        "date": "20260417",
+        "type": "SHARE_FLOAT",
+        "tsCode": "301662.SZ",
+        "summary": "宏工科技 限售解禁 1500000.00万股",
+        "payload": {
+          "floatShare": 1500000,
+          "floatRatio": 1.88,
+          "holderName": "广东粤科振粤一号股权投资合伙企业(有限合伙)",
+          "shareType": "首发原始股"
+        },
+        "name": "宏工科技"
+      },
+      {
+        "date": "20260417",
+        "type": "SHARE_FLOAT",
+        "tsCode": "301662.SZ",
+        "summary": "宏工科技 限售解禁 2250000.00万股",
+        "payload": {
+          "floatShare": 2250000,
+          "floatRatio": 2.81,
+          "holderName": "广东粤科东城创业投资合伙企业(有限合伙)",
+          "shareType": "首发原始股"
+        },
+        "name": "宏工科技"
+      },
+      {
+        "date": "20260417",
+        "type": "SHARE_FLOAT",
+        "tsCode": "301662.SZ",
+        "summary": "宏工科技 限售解禁 3920991.00万股",
+        "payload": {
+          "floatShare": 3920991,
+          "floatRatio": 4.9,
+          "holderName": "东莞市博英实业投资合伙企业(有限合伙)",
+          "shareType": "首发原始股"
+        },
+        "name": "宏工科技"
+      },
+      {
+        "date": "20260417",
+        "type": "SHARE_FLOAT",
+        "tsCode": "301662.SZ",
+        "summary": "宏工科技 限售解禁 1146616.00万股",
+        "payload": {
+          "floatShare": 1146616,
+          "floatRatio": 1.4333,
+          "holderName": "兴证资管鑫众宏工科技1号员工战略配售集合资产管理计划",
+          "shareType": "首发战略配售股份"
+        },
+        "name": "宏工科技"
+      },
+      {
+        "date": "20260417",
+        "type": "SHARE_FLOAT",
+        "tsCode": "301662.SZ",
+        "summary": "宏工科技 限售解禁 646616.00万股",
+        "payload": {
+          "floatShare": 646616,
+          "floatRatio": 0.8083,
+          "holderName": "兴证资管鑫众宏工科技2号员工战略配售集合资产管理计划",
+          "shareType": "首发战略配售股份"
+        },
+        "name": "宏工科技"
+      },
+      {
+        "date": "20260417",
+        "type": "SHARE_FLOAT",
+        "tsCode": "301662.SZ",
+        "summary": "宏工科技 限售解禁 902255.00万股",
+        "payload": {
+          "floatShare": 902255,
+          "floatRatio": 1.1278,
+          "holderName": "广东广祺柒号股权投资合伙企业(有限合伙)",
+          "shareType": "首发战略配售股份"
+        },
+        "name": "宏工科技"
+      },
+      {
+        "date": "20260417",
+        "type": "SHARE_FLOAT",
+        "tsCode": "301662.SZ",
+        "summary": "宏工科技 限售解禁 676691.00万股",
+        "payload": {
+          "floatShare": 676691,
+          "floatRatio": 0.8459,
+          "holderName": "深圳市前海弘盛创业投资服务有限公司",
+          "shareType": "首发战略配售股份"
+        },
+        "name": "宏工科技"
+      },
+      {
+        "date": "20260417",
+        "type": "SHARE_FLOAT",
+        "tsCode": "688433.SH",
+        "summary": "华曙高科 限售解禁 165963600.00万股",
+        "payload": {
+          "floatShare": 165963600,
+          "floatRatio": 40.0715,
+          "holderName": "湖南美纳科技有限公司",
+          "shareType": "首发原始股"
+        },
+        "name": "华曙高科"
+      },
+      {
+        "date": "20260417",
+        "type": "SHARE_FLOAT",
+        "tsCode": "688433.SH",
+        "summary": "华曙高科 限售解禁 46100880.00万股",
+        "payload": {
+          "floatShare": 46100880,
+          "floatRatio": 11.1309,
+          "holderName": "侯银华",
+          "shareType": "首发原始股"
+        },
+        "name": "华曙高科"
+      },
+      {
+        "date": "20260417",
+        "type": "SHARE_FLOAT",
+        "tsCode": "601026.SH",
+        "summary": "道生天合 限售解禁 373.00万股",
+        "payload": {
+          "floatShare": 373,
+          "floatRatio": 0.0001,
+          "holderName": "金鹰主题优势混合型证券投资基金",
+          "shareType": "首发股"
+        },
+        "name": "道生天合"
+      },
+      {
+        "date": "20260417",
+        "type": "SHARE_FLOAT",
+        "tsCode": "601026.SH",
+        "summary": "道生天合 限售解禁 245.00万股",
+        "payload": {
+          "floatShare": 245,
+          "floatRatio": 0,
+          "holderName": "新华安享多裕定期开放灵活配置混合型证券投资基金",
+          "shareType": "首发股"
+        },
+        "name": "道生天合"
+      },
+      {
+        "date": "20260417",
+        "type": "SHARE_FLOAT",
+        "tsCode": "601026.SH",
+        "summary": "道生天合 限售解禁 451.00万股",
+        "payload": {
+          "floatShare": 451,
+          "floatRatio": 0.0001,
+          "holderName": "大成策略回报混合型证券投资基金",
+          "shareType": "首发股"
+        },
+        "name": "道生天合"
+      },
+      {
+        "date": "20260417",
+        "type": "SHARE_FLOAT",
+        "tsCode": "601026.SH",
+        "summary": "道生天合 限售解禁 451.00万股",
+        "payload": {
+          "floatShare": 451,
+          "floatRatio": 0.0001,
+          "holderName": "银河产业动力混合型证券投资基金",
+          "shareType": "首发股"
+        },
+        "name": "道生天合"
+      },
+      {
+        "date": "20260417",
+        "type": "SHARE_FLOAT",
+        "tsCode": "601026.SH",
+        "summary": "道生天合 限售解禁 426.00万股",
+        "payload": {
+          "floatShare": 426,
+          "floatRatio": 0.0001,
+          "holderName": "骏泽致城21号私募证券投资基金",
+          "shareType": "首发股"
+        },
+        "name": "道生天合"
+      },
+      {
+        "date": "20260417",
+        "type": "SHARE_FLOAT",
+        "tsCode": "601026.SH",
+        "summary": "道生天合 限售解禁 317.00万股",
+        "payload": {
+          "floatShare": 317,
+          "floatRatio": 0,
+          "holderName": "太平洋卓越财富量化精选股票型产品",
+          "shareType": "首发股"
+        },
+        "name": "道生天合"
+      },
+      {
+        "date": "20260417",
+        "type": "SHARE_FLOAT",
+        "tsCode": "601026.SH",
+        "summary": "道生天合 限售解禁 451.00万股",
+        "payload": {
+          "floatShare": 451,
+          "floatRatio": 0.0001,
+          "holderName": "中意人寿保险有限公司-中意投连增长",
+          "shareType": "首发股"
+        },
+        "name": "道生天合"
+      },
+      {
+        "date": "20260417",
+        "type": "SHARE_FLOAT",
+        "tsCode": "601026.SH",
+        "summary": "道生天合 限售解禁 437.00万股",
+        "payload": {
+          "floatShare": 437,
+          "floatRatio": 0.0001,
+          "holderName": "国投瑞银精选收益灵活配置混合型证券投资基金",
+          "shareType": "首发股"
+        },
+        "name": "道生天合"
+      },
+      {
+        "date": "20260417",
+        "type": "SHARE_FLOAT",
+        "tsCode": "601026.SH",
+        "summary": "道生天合 限售解禁 430.00万股",
+        "payload": {
+          "floatShare": 430,
+          "floatRatio": 0.0001,
+          "holderName": "致远稳健八十九号私募证券投资基金",
+          "shareType": "首发股"
+        },
+        "name": "道生天合"
+      },
+      {
+        "date": "20260417",
+        "type": "SHARE_FLOAT",
+        "tsCode": "601026.SH",
+        "summary": "道生天合 限售解禁 451.00万股",
+        "payload": {
+          "floatShare": 451,
+          "floatRatio": 0.0001,
+          "holderName": "景顺长城远见成长混合型证券投资基金",
+          "shareType": "首发股"
+        },
+        "name": "道生天合"
+      },
+      {
+        "date": "20260417",
+        "type": "SHARE_FLOAT",
+        "tsCode": "601026.SH",
+        "summary": "道生天合 限售解禁 430.00万股",
+        "payload": {
+          "floatShare": 430,
+          "floatRatio": 0.0001,
+          "holderName": "致远A500指数增强定制1号私募证券投资基金",
+          "shareType": "首发股"
+        },
+        "name": "道生天合"
+      },
+      {
+        "date": "20260417",
+        "type": "SHARE_FLOAT",
+        "tsCode": "601026.SH",
+        "summary": "道生天合 限售解禁 183.00万股",
+        "payload": {
+          "floatShare": 183,
+          "floatRatio": 0,
+          "holderName": "民生加银沪深300交易型开放式指数证券投资基金",
+          "shareType": "首发股"
+        },
+        "name": "道生天合"
+      },
+      {
+        "date": "20260417",
+        "type": "SHARE_FLOAT",
+        "tsCode": "601026.SH",
+        "summary": "道生天合 限售解禁 902.00万股",
+        "payload": {
+          "floatShare": 902,
+          "floatRatio": 0.0001,
+          "holderName": "国网江苏省电力有限公司(国网B)企业年金计划",
+          "shareType": "首发股"
+        },
+        "name": "道生天合"
+      },
+      {
+        "date": "20260417",
+        "type": "SHARE_FLOAT",
+        "tsCode": "601026.SH",
+        "summary": "道生天合 限售解禁 430.00万股",
+        "payload": {
+          "floatShare": 430,
+          "floatRatio": 0.0001,
+          "holderName": "徐丹红",
+          "shareType": "首发股"
+        },
+        "name": "道生天合"
+      },
+      {
+        "date": "20260417",
+        "type": "SHARE_FLOAT",
+        "tsCode": "601026.SH",
+        "summary": "道生天合 限售解禁 451.00万股",
+        "payload": {
+          "floatShare": 451,
+          "floatRatio": 0.0001,
+          "holderName": "中国太平洋人寿保险股份有限公司-分红-个人分红",
+          "shareType": "首发股"
+        },
+        "name": "道生天合"
+      },
+      {
+        "date": "20260417",
+        "type": "SHARE_FLOAT",
+        "tsCode": "601026.SH",
+        "summary": "道生天合 限售解禁 451.00万股",
+        "payload": {
+          "floatShare": 451,
+          "floatRatio": 0.0001,
+          "holderName": "贵州省烟草公司贵阳市公司企业年金计划易方达组合",
+          "shareType": "首发股"
+        },
+        "name": "道生天合"
+      },
+      {
+        "date": "20260417",
+        "type": "SHARE_FLOAT",
+        "tsCode": "601026.SH",
+        "summary": "道生天合 限售解禁 451.00万股",
+        "payload": {
+          "floatShare": 451,
+          "floatRatio": 0.0001,
+          "holderName": "工银瑞信沪深300交易型开放式指数证券投资基金",
+          "shareType": "首发股"
+        },
+        "name": "道生天合"
+      },
+      {
+        "date": "20260417",
+        "type": "SHARE_FLOAT",
+        "tsCode": "601026.SH",
+        "summary": "道生天合 限售解禁 451.00万股",
+        "payload": {
+          "floatShare": 451,
+          "floatRatio": 0.0001,
+          "holderName": "中意资产-新回报28号资产管理产品",
+          "shareType": "首发股"
+        },
+        "name": "道生天合"
+      },
+      {
+        "date": "20260417",
+        "type": "SHARE_FLOAT",
+        "tsCode": "601026.SH",
+        "summary": "道生天合 限售解禁 451.00万股",
+        "payload": {
+          "floatShare": 451,
+          "floatRatio": 0.0001,
+          "holderName": "博道惠泰优选混合型证券投资基金",
+          "shareType": "首发股"
+        },
+        "name": "道生天合"
+      },
+      {
+        "date": "20260417",
+        "type": "SHARE_FLOAT",
+        "tsCode": "601026.SH",
+        "summary": "道生天合 限售解禁 451.00万股",
+        "payload": {
+          "floatShare": 451,
+          "floatRatio": 0.0001,
+          "holderName": "基本养老保险基金一九零六组合",
+          "shareType": "首发股"
+        },
+        "name": "道生天合"
+      },
+      {
+        "date": "20260417",
+        "type": "SHARE_FLOAT",
+        "tsCode": "601026.SH",
+        "summary": "道生天合 限售解禁 451.00万股",
+        "payload": {
+          "floatShare": 451,
+          "floatRatio": 0.0001,
+          "holderName": "华夏新能源车龙头混合型发起式证券投资基金",
+          "shareType": "首发股"
+        },
+        "name": "道生天合"
+      },
+      {
+        "date": "20260417",
+        "type": "SHARE_FLOAT",
+        "tsCode": "601026.SH",
+        "summary": "道生天合 限售解禁 451.00万股",
+        "payload": {
+          "floatShare": 451,
+          "floatRatio": 0.0001,
+          "holderName": "华夏科技前沿6个月定期开放混合型证券投资基金",
+          "shareType": "首发股"
+        },
+        "name": "道生天合"
+      },
+      {
+        "date": "20260417",
+        "type": "SHARE_FLOAT",
+        "tsCode": "601026.SH",
+        "summary": "道生天合 限售解禁 356.00万股",
+        "payload": {
+          "floatShare": 356,
+          "floatRatio": 0.0001,
+          "holderName": "圆信永丰汇利混合型证券投资基金(LOF)",
+          "shareType": "首发股"
+        },
+        "name": "道生天合"
+      },
+      {
+        "date": "20260417",
+        "type": "SHARE_FLOAT",
+        "tsCode": "601026.SH",
+        "summary": "道生天合 限售解禁 451.00万股",
+        "payload": {
+          "floatShare": 451,
+          "floatRatio": 0.0001,
+          "holderName": "四川省贰号职业年金计划人保组合",
+          "shareType": "首发股"
+        },
+        "name": "道生天合"
+      },
+      {
+        "date": "20260417",
+        "type": "SHARE_FLOAT",
+        "tsCode": "601026.SH",
+        "summary": "道生天合 限售解禁 451.00万股",
+        "payload": {
+          "floatShare": 451,
+          "floatRatio": 0.0001,
+          "holderName": "招商国证生物医药指数证券投资基金",
+          "shareType": "首发股"
+        },
+        "name": "道生天合"
+      },
+      {
+        "date": "20260417",
+        "type": "SHARE_FLOAT",
+        "tsCode": "601026.SH",
+        "summary": "道生天合 限售解禁 430.00万股",
+        "payload": {
+          "floatShare": 430,
+          "floatRatio": 0.0001,
+          "holderName": "汪冬越",
+          "shareType": "首发股"
+        },
+        "name": "道生天合"
+      },
+      {
+        "date": "20260417",
+        "type": "SHARE_FLOAT",
+        "tsCode": "601026.SH",
+        "summary": "道生天合 限售解禁 451.00万股",
+        "payload": {
+          "floatShare": 451,
+          "floatRatio": 0.0001,
+          "holderName": "富国长期成长混合型证券投资基金",
+          "shareType": "首发股"
+        },
+        "name": "道生天合"
+      },
+      {
+        "date": "20260417",
+        "type": "SHARE_FLOAT",
+        "tsCode": "601026.SH",
+        "summary": "道生天合 限售解禁 451.00万股",
+        "payload": {
+          "floatShare": 451,
+          "floatRatio": 0.0001,
+          "holderName": "浦银安盛中证光伏产业交易型开放式指数证券投资基金",
+          "shareType": "首发股"
+        },
+        "name": "道生天合"
+      }
+    ],
+    "message": ""
+  },
+  "range": {
+    "code": 0,
+    "data": [
+      {
+        "date": "20260317",
+        "type": "SHARE_FLOAT",
+        "tsCode": "920445.BJ",
+        "summary": "龙竹科技 限售解禁 182078.00万股",
+        "payload": {
+          "floatShare": 182078,
+          "floatRatio": 0.12,
+          "holderName": "钟志强",
+          "shareType": "首发原始股"
+        },
+        "name": "龙竹科技"
+      },
+      {
+        "date": "20260317",
+        "type": "SHARE_FLOAT",
+        "tsCode": "920445.BJ",
+        "summary": "龙竹科技 限售解禁 254267.00万股",
+        "payload": {
+          "floatShare": 254267,
+          "floatRatio": 0.17,
+          "holderName": "沈坚英",
+          "shareType": "首发原始股"
+        },
+        "name": "龙竹科技"
+      },
+      {
+        "date": "20260317",
+        "type": "SHARE_FLOAT",
+        "tsCode": "920139.BJ",
+        "summary": "华岭股份 限售解禁 1607566.00万股",
+        "payload": {
+          "floatShare": 1607566,
+          "floatRatio": 0.6,
+          "holderName": "叶守银",
+          "shareType": "首发原始股"
+        },
+        "name": "华岭股份"
+      },
+      {
+        "date": "20260317",
+        "type": "SHARE_FLOAT",
+        "tsCode": "920570.BJ",
+        "summary": "坤博精工 限售解禁 862046.00万股",
+        "payload": {
+          "floatShare": 862046,
+          "floatRatio": 1.7183,
+          "holderName": "汪书文",
+          "shareType": "首发原始股"
+        },
+        "name": "坤博精工"
+      },
+      {
+        "date": "20260317",
+        "type": "SHARE_FLOAT",
+        "tsCode": "300375.SZ",
+        "summary": "鹏翎股份 限售解禁 90584415.00万股",
+        "payload": {
+          "floatShare": 90584415,
+          "floatRatio": 11.9919,
+          "holderName": "王志方",
+          "shareType": "定增股份"
+        },
+        "name": "鹏翎股份"
+      },
+      {
+        "date": "20260317",
+        "type": "SHARE_FLOAT",
+        "tsCode": "300293.SZ",
+        "summary": "蓝英装备 限售解禁 58102189.00万股",
+        "payload": {
+          "floatShare": 58102189,
+          "floatRatio": 20.7259,
+          "holderName": "郭洪生",
+          "shareType": "定增股份"
+        },
+        "name": "蓝英装备"
+      },
+      {
+        "date": "20260317",
+        "type": "SHARE_FLOAT",
+        "tsCode": "301439.SZ",
+        "summary": "泓淋电力 限售解禁 205854885.00万股",
+        "payload": {
+          "floatShare": 205854885,
+          "floatRatio": 52.9051,
+          "holderName": "威海市明博线缆科技有限公司",
+          "shareType": "首发原始股"
+        },
+        "name": "泓淋电力"
+      },
+      {
+        "date": "20260317",
+        "type": "DISCLOSURE",
+        "tsCode": "300765.SZ",
+        "summary": "新诺威 财报披露",
+        "payload": {
+          "endDate": "20251231",
+          "preDate": "20260317",
+          "modifyDate": null
+        },
+        "name": "新诺威"
+      },
+      {
+        "date": "20260317",
+        "type": "DISCLOSURE",
+        "tsCode": "300857.SZ",
+        "summary": "协创数据 财报披露",
+        "payload": {
+          "endDate": "20251231",
+          "preDate": "20260317",
+          "modifyDate": null
+        },
+        "name": "协创数据"
+      },
+      {
+        "date": "20260317",
+        "type": "DISCLOSURE",
+        "tsCode": "000099.SZ",
+        "summary": "中信海直 财报披露",
+        "payload": {
+          "endDate": "20251231",
+          "preDate": "20260317",
+          "modifyDate": null
+        },
+        "name": "中信海直"
+      },
+      {
+        "date": "20260317",
+        "type": "DISCLOSURE",
+        "tsCode": "920186.BJ",
+        "summary": "财报披露",
+        "payload": {
+          "endDate": "20251231",
+          "preDate": "20260317",
+          "modifyDate": null
+        }
+      },
+      {
+        "date": "20260317",
+        "type": "DISCLOSURE",
+        "tsCode": "002282.SZ",
+        "summary": "博深股份 财报披露",
+        "payload": {
+          "endDate": "20251231",
+          "preDate": "20260317",
+          "modifyDate": null
+        },
+        "name": "博深股份"
+      },
+      {
+        "date": "20260317",
+        "type": "DISCLOSURE",
+        "tsCode": "002879.SZ",
+        "summary": "长缆科技 财报披露",
+        "payload": {
+          "endDate": "20251231",
+          "preDate": "20260317",
+          "modifyDate": null
+        },
+        "name": "长缆科技"
+      },
+      {
+        "date": "20260317",
+        "type": "DISCLOSURE",
+        "tsCode": "688615.SH",
+        "summary": "合合信息 财报披露",
+        "payload": {
+          "endDate": "20251231",
+          "preDate": "20260317",
+          "modifyDate": null
+        },
+        "name": "合合信息"
+      },
+      {
+        "date": "20260317",
+        "type": "DISCLOSURE",
+        "tsCode": "600282.SH",
+        "summary": "南钢股份 财报披露",
+        "payload": {
+          "endDate": "20251231",
+          "preDate": "20260317",
+          "modifyDate": null
+        },
+        "name": "南钢股份"
+      },
+      {
+        "date": "20260317",
+        "type": "DISCLOSURE",
+        "tsCode": "300774.SZ",
+        "summary": "倍杰特 财报披露",
+        "payload": {
+          "endDate": "20251231",
+          "preDate": "20260317",
+          "modifyDate": "20260404"
+        },
+        "name": "倍杰特"
+      },
+      {
+        "date": "20260317",
+        "type": "DISCLOSURE",
+        "tsCode": "920476.BJ",
+        "summary": "海能技术 财报披露",
+        "payload": {
+          "endDate": "20251231",
+          "preDate": "20260317",
+          "modifyDate": null
+        },
+        "name": "海能技术"
+      },
+      {
+        "date": "20260317",
+        "type": "DISCLOSURE",
+        "tsCode": "688586.SH",
+        "summary": "江航装备 财报披露",
+        "payload": {
+          "endDate": "20251231",
+          "preDate": "20260317",
+          "modifyDate": null
+        },
+        "name": "江航装备"
+      },
+      {
+        "date": "20260317",
+        "type": "DISCLOSURE",
+        "tsCode": "300788.SZ",
+        "summary": "中信出版 财报披露",
+        "payload": {
+          "endDate": "20251231",
+          "preDate": "20260317",
+          "modifyDate": null
+        },
+        "name": "中信出版"
+      },
+      {
+        "date": "20260317",
+        "type": "DISCLOSURE",
+        "tsCode": "001979.SZ",
+        "summary": "招商蛇口 财报披露",
+        "payload": {
+          "endDate": "20251231",
+          "preDate": "20260317",
+          "modifyDate": null
+        },
+        "name": "招商蛇口"
+      },
+      {
+        "date": "20260317",
+        "type": "DISCLOSURE",
+        "tsCode": "688297.SH",
+        "summary": "中无人机 财报披露",
+        "payload": {
+          "endDate": "20251231",
+          "preDate": "20260317",
+          "modifyDate": null
+        },
+        "name": "中无人机"
+      },
+      {
+        "date": "20260317",
+        "type": "DISCLOSURE",
+        "tsCode": "600871.SH",
+        "summary": "石化油服 财报披露",
+        "payload": {
+          "endDate": "20251231",
+          "preDate": "20260317",
+          "modifyDate": "20260331"
+        },
+        "name": "石化油服"
+      },
+      {
+        "date": "20260317",
+        "type": "DISCLOSURE",
+        "tsCode": "600237.SH",
+        "summary": "铜峰电子 财报披露",
+        "payload": {
+          "endDate": "20251231",
+          "preDate": "20260317",
+          "modifyDate": null
+        },
+        "name": "铜峰电子"
+      },
+      {
+        "date": "20260317",
+        "type": "DISCLOSURE",
+        "tsCode": "688127.SH",
+        "summary": "蓝特光学 财报披露",
+        "payload": {
+          "endDate": "20251231",
+          "preDate": "20260317",
+          "modifyDate": null
+        },
+        "name": "蓝特光学"
+      },
+      {
+        "date": "20260317",
+        "type": "DISCLOSURE",
+        "tsCode": "603333.SH",
+        "summary": "尚纬股份 财报披露",
+        "payload": {
+          "endDate": "20251231",
+          "preDate": "20260317",
+          "modifyDate": null
+        },
+        "name": "尚纬股份"
+      },
+      {
+        "date": "20260317",
+        "type": "DISCLOSURE",
+        "tsCode": "001210.SZ",
+        "summary": "金房能源 财报披露",
+        "payload": {
+          "endDate": "20251231",
+          "preDate": "20260317",
+          "modifyDate": null
+        },
+        "name": "金房能源"
+      },
+      {
+        "date": "20260317",
+        "type": "DISCLOSURE",
+        "tsCode": "300222.SZ",
+        "summary": "科大智能 财报披露",
+        "payload": {
+          "endDate": "20251231",
+          "preDate": "20260317",
+          "modifyDate": null
+        },
+        "name": "科大智能"
+      },
+      {
+        "date": "20260317",
+        "type": "DISCLOSURE",
+        "tsCode": "000708.SZ",
+        "summary": "中信特钢 财报披露",
+        "payload": {
+          "endDate": "20251231",
+          "preDate": "20260317",
+          "modifyDate": null
+        },
+        "name": "中信特钢"
+      },
+      {
+        "date": "20260318",
+        "type": "SHARE_FLOAT",
+        "tsCode": "920876.BJ",
+        "summary": "慧为智能 限售解禁 78875.00万股",
+        "payload": {
+          "floatShare": 78875,
+          "floatRatio": 0.12,
+          "holderName": "王静",
+          "shareType": "首发原始股"
+        },
+        "name": "慧为智能"
+      },
+      {
+        "date": "20260318",
+        "type": "SHARE_FLOAT",
+        "tsCode": "920876.BJ",
+        "summary": "慧为智能 限售解禁 479668.00万股",
+        "payload": {
+          "floatShare": 479668,
+          "floatRatio": 0.75,
+          "holderName": "李晓辉",
+          "shareType": "首发原始股"
+        },
+        "name": "慧为智能"
+      },
+      {
+        "date": "20260318",
+        "type": "SHARE_FLOAT",
+        "tsCode": "920876.BJ",
+        "summary": "慧为智能 限售解禁 8039.00万股",
+        "payload": {
+          "floatShare": 8039,
+          "floatRatio": 0.01,
+          "holderName": "邵明",
+          "shareType": "首发原始股"
+        },
+        "name": "慧为智能"
+      },
+      {
+        "date": "20260318",
+        "type": "SHARE_FLOAT",
+        "tsCode": "920876.BJ",
+        "summary": "慧为智能 限售解禁 44349.00万股",
+        "payload": {
+          "floatShare": 44349,
+          "floatRatio": 0.07,
+          "holderName": "邹晓明",
+          "shareType": "首发原始股"
+        },
+        "name": "慧为智能"
+      },
+      {
+        "date": "20260318",
+        "type": "SHARE_FLOAT",
+        "tsCode": "301479.SZ",
+        "summary": "弘景光电 限售解禁 7807100.00万股",
+        "payload": {
+          "floatShare": 7807100,
+          "floatRatio": 8.7754,
+          "holderName": "易习军",
+          "shareType": "首发原始股"
+        },
+        "name": "弘景光电"
+      },
+      {
+        "date": "20260318",
+        "type": "SHARE_FLOAT",
+        "tsCode": "301479.SZ",
+        "summary": "弘景光电 限售解禁 3780000.00万股",
+        "payload": {
+          "floatShare": 3780000,
+          "floatRatio": 4.2488,
+          "holderName": "惠州市德赛西威汽车电子股份有限公司",
+          "shareType": "首发原始股"
+        },
+        "name": "弘景光电"
+      },
+      {
+        "date": "20260318",
+        "type": "SHARE_FLOAT",
+        "tsCode": "301479.SZ",
+        "summary": "弘景光电 限售解禁 1680000.00万股",
+        "payload": {
+          "floatShare": 1680000,
+          "floatRatio": 1.8884,
+          "holderName": "广东立湾股权投资合伙企业(有限合伙)",
+          "shareType": "首发原始股"
+        },
+        "name": "弘景光电"
+      },
+      {
+        "date": "20260318",
+        "type": "SHARE_FLOAT",
+        "tsCode": "301479.SZ",
+        "summary": "弘景光电 限售解禁 2238600.00万股",
+        "payload": {
+          "floatShare": 2238600,
+          "floatRatio": 2.5163,
+          "holderName": "中山永辉化工股份有限公司",
+          "shareType": "首发原始股"
+        },
+        "name": "弘景光电"
+      },
+      {
+        "date": "20260318",
+        "type": "SHARE_FLOAT",
+        "tsCode": "301479.SZ",
+        "summary": "弘景光电 限售解禁 1237600.00万股",
+        "payload": {
+          "floatShare": 1237600,
+          "floatRatio": 1.3911,
+          "holderName": "宁波昆石承长创业投资合伙企业(有限合伙)",
+          "shareType": "首发原始股"
+        },
+        "name": "弘景光电"
+      },
+      {
+        "date": "20260318",
+        "type": "SHARE_FLOAT",
+        "tsCode": "301479.SZ",
+        "summary": "弘景光电 限售解禁 1512000.00万股",
+        "payload": {
+          "floatShare": 1512000,
+          "floatRatio": 1.6995,
+          "holderName": "武汉传新未来股权投资基金合伙企业(有限合伙)",
+          "shareType": "首发原始股"
+        },
+        "name": "弘景光电"
+      },
+      {
+        "date": "20260318",
+        "type": "SHARE_FLOAT",
+        "tsCode": "301479.SZ",
+        "summary": "弘景光电 限售解禁 1512000.00万股",
+        "payload": {
+          "floatShare": 1512000,
+          "floatRatio": 1.6995,
+          "holderName": "海宁君马新材料产业投资合伙企业(有限合伙)",
+          "shareType": "首发原始股"
+        },
+        "name": "弘景光电"
+      },
+      {
+        "date": "20260318",
+        "type": "SHARE_FLOAT",
+        "tsCode": "301479.SZ",
+        "summary": "弘景光电 限售解禁 1512000.00万股",
+        "payload": {
+          "floatShare": 1512000,
+          "floatRatio": 1.6995,
+          "holderName": "珠海昆石财富创业投资基金合伙企业(有限合伙)",
+          "shareType": "首发原始股"
+        },
+        "name": "弘景光电"
+      },
+      {
+        "date": "20260318",
+        "type": "SHARE_FLOAT",
+        "tsCode": "301479.SZ",
+        "summary": "弘景光电 限售解禁 885441.00万股",
+        "payload": {
+          "floatShare": 885441,
+          "floatRatio": 1.3934,
+          "holderName": "申万宏源弘景光电员工参与创业板战略配售1号集合资产管理计划",
+          "shareType": "首发战略配售股份"
+        },
+        "name": "弘景光电"
+      },
+      {
+        "date": "20260318",
+        "type": "SHARE_FLOAT",
+        "tsCode": "301479.SZ",
+        "summary": "弘景光电 限售解禁 1800000.00万股",
+        "payload": {
+          "floatShare": 1800000,
+          "floatRatio": 2.8326,
+          "holderName": "东莞勤合创业投资中心(有限合伙)",
+          "shareType": "首发原始股"
+        },
+        "name": "弘景光电"
+      },
+      {
+        "date": "20260318",
+        "type": "SHARE_FLOAT",
+        "tsCode": "301479.SZ",
+        "summary": "弘景光电 限售解禁 260000.00万股",
+        "payload": {
+          "floatShare": 260000,
+          "floatRatio": 0.4091,
+          "holderName": "宁波锦灿企业管理合伙企业(有限合伙)",
+          "shareType": "首发原始股"
+        },
+        "name": "弘景光电"
+      },
+      {
+        "date": "20260318",
+        "type": "SHARE_FLOAT",
+        "tsCode": "301479.SZ",
+        "summary": "弘景光电 限售解禁 280550.00万股",
+        "payload": {
+          "floatShare": 280550,
+          "floatRatio": 0.4415,
+          "holderName": "魏庆阳",
+          "shareType": "首发原始股"
+        },
+        "name": "弘景光电"
+      },
+      {
+        "date": "20260318",
+        "type": "SHARE_FLOAT",
+        "tsCode": "301479.SZ",
+        "summary": "弘景光电 限售解禁 286000.00万股",
+        "payload": {
+          "floatShare": 286000,
+          "floatRatio": 0.4501,
+          "holderName": "宁波锦炫企业管理合伙企业(有限合伙)",
+          "shareType": "首发原始股"
+        },
+        "name": "弘景光电"
+      },
+      {
+        "date": "20260318",
+        "type": "SHARE_FLOAT",
+        "tsCode": "301479.SZ",
+        "summary": "弘景光电 限售解禁 400000.00万股",
+        "payload": {
+          "floatShare": 400000,
+          "floatRatio": 0.6295,
+          "holderName": "珠海全志科技股份有限公司",
+          "shareType": "首发原始股"
+        },
+        "name": "弘景光电"
+      },
+      {
+        "date": "20260318",
+        "type": "SHARE_FLOAT",
+        "tsCode": "301479.SZ",
+        "summary": "弘景光电 限售解禁 430000.00万股",
+        "payload": {
+          "floatShare": 430000,
+          "floatRatio": 0.6767,
+          "holderName": "中山火炬华盈投资有限公司",
+          "shareType": "首发原始股"
+        },
+        "name": "弘景光电"
+      },
+      {
+        "date": "20260318",
+        "type": "SHARE_FLOAT",
+        "tsCode": "301479.SZ",
+        "summary": "弘景光电 限售解禁 430000.00万股",
+        "payload": {
+          "floatShare": 430000,
+          "floatRatio": 0.6767,
+          "holderName": "中山火炬工业集团有限公司",
+          "shareType": "首发原始股"
+        },
+        "name": "弘景光电"
+      },
+      {
+        "date": "20260318",
+        "type": "SHARE_FLOAT",
+        "tsCode": "301479.SZ",
+        "summary": "弘景光电 限售解禁 572000.00万股",
+        "payload": {
+          "floatShare": 572000,
+          "floatRatio": 0.9001,
+          "holderName": "中山火炬开发区点亮天使投资合伙企业(有限合伙)",
+          "shareType": "首发原始股"
+        },
+        "name": "弘景光电"
+      },
+      {
+        "date": "20260318",
+        "type": "SHARE_FLOAT",
+        "tsCode": "301479.SZ",
+        "summary": "弘景光电 限售解禁 833300.00万股",
+        "payload": {
+          "floatShare": 833300,
+          "floatRatio": 1.3113,
+          "holderName": "高国成",
+          "shareType": "首发原始股"
+        },
+        "name": "弘景光电"
+      }
+    ],
+    "message": ""
+  }
+}

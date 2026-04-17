@@ -1,0 +1,19 @@
+{
+  "list": {
+    "code": 0,
+    "data": [],
+    "message": ""
+  },
+  "summary": {
+    "code": -1,
+    "data": null,
+    "message": "Error: 404"
+  },
+  "overview": {
+    "code": 0,
+    "data": {
+      "watchlists": []
+    },
+    "message": ""
+  }
+}

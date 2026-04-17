@@ -1,0 +1,3506 @@
+{
+  "overview": {
+    "code": 0,
+    "data": {
+      "tradeDate": "20260417",
+      "returnSnapshot": {
+        "topGainers": [
+          {
+            "name": "锂",
+            "value": 36.9741
+          },
+          {
+            "name": "能源金属",
+            "value": 32.6934
+          },
+          {
+            "name": "储能",
+            "value": 30.4654
+          },
+          {
+            "name": "通信线缆及配套",
+            "value": 27.7623
+          },
+          {
+            "name": "钴",
+            "value": 22.7256
+          }
+        ],
+        "topLosers": [
+          {
+            "name": "其他多元金融",
+            "value": 0
+          },
+          {
+            "name": "焦炭Ⅲ",
+            "value": -16.8133
+          },
+          {
+            "name": "焦炭Ⅱ",
+            "value": -16.8133
+          },
+          {
+            "name": "油田服务",
+            "value": -16.2707
+          },
+          {
+            "name": "氮肥",
+            "value": -13.0727
+          }
+        ]
+      },
+      "momentumSnapshot": {
+        "leaders": [
+          {
+            "name": "锂",
+            "value": 25.4835
+          },
+          {
+            "name": "储能",
+            "value": 24.4525
+          },
+          {
+            "name": "能源金属",
+            "value": 23.6017
+          },
+          {
+            "name": "钴",
+            "value": 20.8066
+          },
+          {
+            "name": "通信线缆及配套",
+            "value": 16.643
+          }
+        ],
+        "laggards": [
+          {
+            "name": "油田服务",
+            "value": -11.2157
+          },
+          {
+            "name": "焦炭Ⅲ",
+            "value": -10.9521
+          },
+          {
+            "name": "焦炭Ⅱ",
+            "value": -10.9521
+          },
+          {
+            "name": "教育运营及其他",
+            "value": -9.5736
+          },
+          {
+            "name": "油服工程",
+            "value": -9.3503
+          }
+        ]
+      },
+      "flowSnapshot": {
+        "topInflow": [
+          {
+            "name": "工业金属",
+            "value": 2365971968
+          },
+          {
+            "name": "铜",
+            "value": 2291591312
+          },
+          {
+            "name": "其他小金属",
+            "value": 1992172080
+          },
+          {
+            "name": "房地产",
+            "value": 1805328320
+          },
+          {
+            "name": "集成电路封测",
+            "value": 1750900592
+          }
+        ],
+        "topOutflow": [
+          {
+            "name": "电力设备",
+            "value": -17264176384
+          },
+          {
+            "name": "通信设备",
+            "value": -16366131968
+          },
+          {
+            "name": "通信",
+            "value": -16039420672
+          },
+          {
+            "name": "医药生物",
+            "value": -13353226240
+          },
+          {
+            "name": "电子",
+            "value": -13154078720
+          }
+        ]
+      },
+      "valuationSnapshot": {
+        "undervalued": [
+          {
+            "name": "批发业",
+            "value": 0
+          },
+          {
+            "name": "啤酒",
+            "value": 1.65
+          },
+          {
+            "name": "酒店餐饮",
+            "value": 1.65
+          },
+          {
+            "name": "铁路",
+            "value": 1.65
+          },
+          {
+            "name": "公共交通",
+            "value": 2.48
+          }
+        ],
+        "overvalued": [
+          {
+            "name": "纺织机械",
+            "value": 100
+          },
+          {
+            "name": "机床制造",
+            "value": 100
+          },
+          {
+            "name": "影视音像",
+            "value": 100
+          },
+          {
+            "name": "建筑工程",
+            "value": 100
+          },
+          {
+            "name": "元器件",
+            "value": 100
+          }
+        ]
+      }
+    },
+    "message": ""
+  },
+  "heatmap": {
+    "code": 0,
+    "data": {
+      "tradeDate": "20260417",
+      "periods": [
+        1,
+        5,
+        10,
+        20,
+        60
+      ],
+      "industries": [
+        {
+          "tsCode": "BK1325.DC",
+          "name": "半导体材料",
+          "returns": {
+            "1": 4.2924,
+            "5": 6.0529,
+            "10": 17.8628,
+            "20": 10.0067,
+            "60": null
+          }
+        },
+        {
+          "tsCode": "BK1304.DC",
+          "name": "锂电专用设备",
+          "returns": {
+            "1": 4.1084,
+            "5": 7.078,
+            "10": 15.4014,
+            "20": 9.6773,
+            "60": null
+          }
+        },
+        {
+          "tsCode": "BK1614.DC",
+          "name": "铅锌",
+          "returns": {
+            "1": 3.9986,
+            "5": 10.1105,
+            "10": 14.0774,
+            "20": 14.6595,
+            "60": null
+          }
+        },
+        {
+          "tsCode": "BK1411.DC",
+          "name": "非金属材料Ⅲ",
+          "returns": {
+            "1": 3.9169,
+            "5": 7.3993,
+            "10": 11.4309,
+            "20": 7.7988,
+            "60": null
+          }
+        },
+        {
+          "tsCode": "BK1020.DC",
+          "name": "非金属材料Ⅱ",
+          "returns": {
+            "1": 3.9169,
+            "5": 7.3993,
+            "10": 11.4309,
+            "20": 7.7988,
+            "60": null
+          }
+        },
+        {
+          "tsCode": "BK1409.DC",
+          "name": "激光设备",
+          "returns": {
+            "1": 3.8971,
+            "5": 6.6184,
+            "10": 20.983,
+            "20": 17.3715,
+            "60": null
+          }
+        },
+        {
+          "tsCode": "BK1317.DC",
+          "name": "光伏加工设备",
+          "returns": {
+            "1": 3.7295,
+            "5": 9.4079,
+            "10": 6.8838,
+            "20": 2.105,
+            "60": null
+          }
+        },
+        {
+          "tsCode": "BK1591.DC",
+          "name": "通信网络设备及器件",
+          "returns": {
+            "1": 3.6807,
+            "5": 8.1931,
+            "10": 19.7427,
+            "20": 18.364,
+            "60": null
+          }
+        },
+        {
+          "tsCode": "BK0729.DC",
+          "name": "船舶制造",
+          "returns": {
+            "1": 3.6597,
+            "5": 10.5303,
+            "10": 14.257,
+            "20": 11.1459,
+            "60": null
+          }
+        },
+        {
+          "tsCode": "BK1039.DC",
+          "name": "电子化学品Ⅱ",
+          "returns": {
+            "1": 3.635,
+            "5": 7.4874,
+            "10": 17.4039,
+            "20": 11.5285,
+            "60": null
+          }
+        },
+        {
+          "tsCode": "BK1332.DC",
+          "name": "电子化学品Ⅲ",
+          "returns": {
+            "1": 3.635,
+            "5": 7.4874,
+            "10": 17.4039,
+            "20": 11.5285,
+            "60": null
+          }
+        },
+        {
+          "tsCode": "BK1415.DC",
+          "name": "其他化学纤维",
+          "returns": {
+            "1": 3.6134,
+            "5": 8.3489,
+            "10": 12.9781,
+            "20": 4.379,
+            "60": null
+          }
+        },
+        {
+          "tsCode": "BK1439.DC",
+          "name": "膜材料",
+          "returns": {
+            "1": 3.3864,
+            "5": 7.1165,
+            "10": 10.9127,
+            "20": 8.0838,
+            "60": null
+          }
+        },
+        {
+          "tsCode": "BK1334.DC",
+          "name": "光学元件",
+          "returns": {
+            "1": 3.2193,
+            "5": 4.3234,
+            "10": 17.4802,
+            "20": 15.7588,
+            "60": null
+          }
+        },
+        {
+          "tsCode": "BK1620.DC",
+          "name": "钴",
+          "returns": {
+            "1": 2.9235,
+            "5": 18.248,
+            "10": 24.357,
+            "20": 22.7256,
+            "60": null
+          }
+        },
+        {
+          "tsCode": "BK1340.DC",
+          "name": "印制电路板",
+          "returns": {
+            "1": 2.8524,
+            "5": 9.5138,
+            "10": 21.8939,
+            "20": 12.4809,
+            "60": null
+          }
+        },
+        {
+          "tsCode": "BK1517.DC",
+          "name": "食用菌",
+          "returns": {
+            "1": 2.8201,
+            "5": 5.9143,
+            "10": 7.5276,
+            "20": 9.7107,
+            "60": null
+          }
+        },
+        {
+          "tsCode": "BK1388.DC",
+          "name": "大气治理",
+          "returns": {
+            "1": 2.6688,
+            "5": 6.6285,
+            "10": 8.2457,
+            "20": 10.0374,
+            "60": null
+          }
+        },
+        {
+          "tsCode": "BK1306.DC",
+          "name": "蓄电池及其他电池",
+          "returns": {
+            "1": 2.5979,
+            "5": 9.763,
+            "10": 19.2615,
+            "20": 16.8785,
+            "60": null
+          }
+        },
+        {
+          "tsCode": "BK0459.DC",
+          "name": "元件",
+          "returns": {
+            "1": 2.5941,
+            "5": 8.8055,
+            "10": 19.0328,
+            "20": 11.3553,
+            "60": null
+          }
+        },
+        {
+          "tsCode": "BK1360.DC",
+          "name": "金融信息服务",
+          "returns": {
+            "1": 2.5365,
+            "5": 1.3534,
+            "10": 18.2794,
+            "20": 5.2113,
+            "60": null
+          }
+        },
+        {
+          "tsCode": "BK1395.DC",
+          "name": "机床工具",
+          "returns": {
+            "1": 2.456,
+            "5": 6.5021,
+            "10": 10.9355,
+            "20": 3.7811,
+            "60": null
+          }
+        },
+        {
+          "tsCode": "BK1619.DC",
+          "name": "其他金属新材料",
+          "returns": {
+            "1": 2.4213,
+            "5": 5.0323,
+            "10": 10.3727,
+            "20": 5.2173,
+            "60": null
+          }
+        },
+        {
+          "tsCode": "BK1441.DC",
+          "name": "其他橡胶制品",
+          "returns": {
+            "1": 2.4093,
+            "5": 6.0746,
+            "10": 9.713,
+            "20": 2.4129,
+            "60": null
+          }
+        },
+        {
+          "tsCode": "BK1443.DC",
+          "name": "橡胶助剂",
+          "returns": {
+            "1": 2.4031,
+            "5": 2.8326,
+            "10": 11.0879,
+            "20": 1.0768,
+            "60": null
+          }
+        },
+        {
+          "tsCode": "BK1625.DC",
+          "name": "钨",
+          "returns": {
+            "1": 2.393,
+            "5": 6.8339,
+            "10": 13.6767,
+            "20": 5.2619,
+            "60": null
+          }
+        },
+        {
+          "tsCode": "BK0448.DC",
+          "name": "通信设备",
+          "returns": {
+            "1": 2.2865,
+            "5": 5.8914,
+            "10": 14.4886,
+            "20": 12.7433,
+            "60": null
+          }
+        },
+        {
+          "tsCode": "BK1314.DC",
+          "name": "风电整机",
+          "returns": {
+            "1": 2.2821,
+            "5": 1.9527,
+            "10": 1.0517,
+            "20": -11.2041,
+            "60": null
+          }
+        },
+        {
+          "tsCode": "BK1407.DC",
+          "name": "工控设备",
+          "returns": {
+            "1": 2.2667,
+            "5": 4.5509,
+            "10": 9.8443,
+            "20": 3.2473,
+            "60": null
+          }
+        },
+        {
+          "tsCode": "BK1533.DC",
+          "name": "塑料包装",
+          "returns": {
+            "1": 2.2553,
+            "5": 4.3257,
+            "10": 4.5032,
+            "20": 5.7918,
+            "60": null
+          }
+        },
+        {
+          "tsCode": "BK1503.DC",
+          "name": "果蔬加工",
+          "returns": {
+            "1": 2.253,
+            "5": 5.3092,
+            "10": 5.1101,
+            "20": 5.4431,
+            "60": null
+          }
+        },
+        {
+          "tsCode": "BK1316.DC",
+          "name": "光伏辅材",
+          "returns": {
+            "1": 2.21,
+            "5": 3.9984,
+            "10": 5.1692,
+            "20": -3.3428,
+            "60": null
+          }
+        },
+        {
+          "tsCode": "BK0480.DC",
+          "name": "航天航空",
+          "returns": {
+            "1": 2.2082,
+            "5": 2.0585,
+            "10": 2.9018,
+            "20": 3.1943,
+            "60": null
+          }
+        },
+        {
+          "tsCode": "BK1327.DC",
+          "name": "分立器件",
+          "returns": {
+            "1": 2.205,
+            "5": 5.2866,
+            "10": 13.9598,
+            "20": 11.5996,
+            "60": null
+          }
+        },
+        {
+          "tsCode": "BK1392.DC",
+          "name": "工程机械器件",
+          "returns": {
+            "1": 2.1909,
+            "5": 4.065,
+            "10": 6.0298,
+            "20": 3.5363,
+            "60": null
+          }
+        },
+        {
+          "tsCode": "BK0454.DC",
+          "name": "塑料",
+          "returns": {
+            "1": 2.1908,
+            "5": 4.7644,
+            "10": 8.3702,
+            "20": 5.869,
+            "60": null
+          }
+        },
+        {
+          "tsCode": "BK1300.DC",
+          "name": "院线",
+          "returns": {
+            "1": 2.1621,
+            "5": 5.08,
+            "10": 4.6511,
+            "20": 2.7082,
+            "60": null
+          }
+        },
+        {
+          "tsCode": "BK1440.DC",
+          "name": "其他塑料制品",
+          "returns": {
+            "1": 2.1466,
+            "5": 4.4986,
+            "10": 7.8891,
+            "20": 3.6281,
+            "60": null
+          }
+        },
+        {
+          "tsCode": "BK1397.DC",
+          "name": "磨具磨料",
+          "returns": {
+            "1": 2.1216,
+            "5": 3.8622,
+            "10": 10.8975,
+            "20": 3.1056,
+            "60": null
+          }
+        },
+        {
+          "tsCode": "BK1341.DC",
+          "name": "房产租赁经纪",
+          "returns": {
+            "1": 2.0956,
+            "5": 4.532,
+            "10": 6.5566,
+            "20": 1.0928,
+            "60": null
+          }
+        },
+        {
+          "tsCode": "BK1453.DC",
+          "name": "彩电",
+          "returns": {
+            "1": 2.0549,
+            "5": 5.1791,
+            "10": 8.8217,
+            "20": 7.5592,
+            "60": null
+          }
+        },
+        {
+          "tsCode": "BK1033.DC",
+          "name": "电池",
+          "returns": {
+            "1": 2.04,
+            "5": 6.8179,
+            "10": 14.1185,
+            "20": 14.2073,
+            "60": null
+          }
+        },
+        {
+          "tsCode": "BK1237.DC",
+          "name": "自动化设备",
+          "returns": {
+            "1": 2.0061,
+            "5": 4.4642,
+            "10": 10.8733,
+            "20": 7.2772,
+            "60": null
+          }
+        },
+        {
+          "tsCode": "BK1467.DC",
+          "name": "耐火材料",
+          "returns": {
+            "1": 2.0043,
+            "5": 2.2084,
+            "10": 5.3697,
+            "20": 0.9726,
+            "60": null
+          }
+        },
+        {
+          "tsCode": "BK1339.DC",
+          "name": "被动元件",
+          "returns": {
+            "1": 1.982,
+            "5": 7.1588,
+            "10": 12.6028,
+            "20": 8.6995,
+            "60": null
+          }
+        },
+        {
+          "tsCode": "BK1303.DC",
+          "name": "锂电池",
+          "returns": {
+            "1": 1.9752,
+            "5": 6.5112,
+            "10": 14.6038,
+            "20": 15.7399,
+            "60": null
+          }
+        },
+        {
+          "tsCode": "BK1032.DC",
+          "name": "风电设备",
+          "returns": {
+            "1": 1.9046,
+            "5": 5.2414,
+            "10": 7.025,
+            "20": -3.1159,
+            "60": null
+          }
+        },
+        {
+          "tsCode": "BK1333.DC",
+          "name": "LED",
+          "returns": {
+            "1": 1.8863,
+            "5": 3.7872,
+            "10": 8.7395,
+            "20": -1.739,
+            "60": null
+          }
+        },
+        {
+          "tsCode": "BK1201.DC",
+          "name": "电子",
+          "returns": {
+            "1": 1.8489,
+            "5": 5.5807,
+            "10": 14.7991,
+            "20": 7.6059,
+            "60": null
+          }
+        },
+        {
+          "tsCode": "BK1313.DC",
+          "name": "风电零部件",
+          "returns": {
+            "1": 1.8293,
+            "5": 5.9006,
+            "10": 8.2351,
+            "20": -1.4432,
+            "60": null
+          }
+        }
+      ]
+    },
+    "message": ""
+  },
+  "momentumRanking": {
+    "code": 0,
+    "data": {
+      "tradeDate": "20260417",
+      "method": "weighted",
+      "industries": [
+        {
+          "tsCode": "BK1621.DC",
+          "name": "锂",
+          "momentumScore": 25.4835,
+          "return5d": 10.1626,
+          "return20d": 36.9741,
+          "return60d": null,
+          "latestPctChange": -0.11,
+          "rank": 1
+        },
+        {
+          "tsCode": "BK1324.DC",
+          "name": "储能",
+          "momentumScore": 24.4525,
+          "return5d": 16.4354,
+          "return20d": 30.4654,
+          "return60d": null,
+          "latestPctChange": -2.52,
+          "rank": 2
+        },
+        {
+          "tsCode": "BK1015.DC",
+          "name": "能源金属",
+          "momentumScore": 23.6017,
+          "return5d": 11.4794,
+          "return20d": 32.6934,
+          "return60d": null,
+          "latestPctChange": 0.49,
+          "rank": 3
+        },
+        {
+          "tsCode": "BK1620.DC",
+          "name": "钴",
+          "momentumScore": 20.8066,
+          "return5d": 18.248,
+          "return20d": 22.7256,
+          "return60d": null,
+          "latestPctChange": 2.92,
+          "rank": 4
+        },
+        {
+          "tsCode": "BK1592.DC",
+          "name": "通信线缆及配套",
+          "momentumScore": 16.643,
+          "return5d": 1.8173,
+          "return20d": 27.7623,
+          "return60d": null,
+          "latestPctChange": 1.04,
+          "rank": 5
+        },
+        {
+          "tsCode": "BK1462.DC",
+          "name": "玻纤制造",
+          "momentumScore": 16.2977,
+          "return5d": 9.9103,
+          "return20d": 21.0882,
+          "return60d": null,
+          "latestPctChange": 0.25,
+          "rank": 6
+        },
+        {
+          "tsCode": "BK1591.DC",
+          "name": "通信网络设备及器件",
+          "momentumScore": 14.005,
+          "return5d": 8.1931,
+          "return20d": 18.364,
+          "return60d": null,
+          "latestPctChange": 3.68,
+          "rank": 7
+        },
+        {
+          "tsCode": "BK1306.DC",
+          "name": "蓄电池及其他电池",
+          "momentumScore": 13.829,
+          "return5d": 9.763,
+          "return20d": 16.8785,
+          "return60d": null,
+          "latestPctChange": 2.6,
+          "rank": 8
+        },
+        {
+          "tsCode": "BK1622.DC",
+          "name": "镍",
+          "momentumScore": 13.1434,
+          "return5d": 7.7812,
+          "return20d": 17.165,
+          "return60d": null,
+          "latestPctChange": 0.46,
+          "rank": 9
+        },
+        {
+          "tsCode": "BK1409.DC",
+          "name": "激光设备",
+          "momentumScore": 12.763,
+          "return5d": 6.6184,
+          "return20d": 17.3715,
+          "return60d": null,
+          "latestPctChange": 3.9,
+          "rank": 10
+        },
+        {
+          "tsCode": "BK1614.DC",
+          "name": "铅锌",
+          "momentumScore": 12.7099,
+          "return5d": 10.1105,
+          "return20d": 14.6595,
+          "return60d": null,
+          "latestPctChange": 4,
+          "rank": 11
+        },
+        {
+          "tsCode": "BK1303.DC",
+          "name": "锂电池",
+          "momentumScore": 11.7847,
+          "return5d": 6.5112,
+          "return20d": 15.7399,
+          "return60d": null,
+          "latestPctChange": 1.98,
+          "rank": 12
+        },
+        {
+          "tsCode": "BK1340.DC",
+          "name": "印制电路板",
+          "momentumScore": 11.2093,
+          "return5d": 9.5138,
+          "return20d": 12.4809,
+          "return60d": null,
+          "latestPctChange": 2.85,
+          "rank": 13
+        },
+        {
+          "tsCode": "BK1302.DC",
+          "name": "电池化学品",
+          "momentumScore": 11.1856,
+          "return5d": 6.2344,
+          "return20d": 14.899,
+          "return60d": null,
+          "latestPctChange": 1.15,
+          "rank": 14
+        },
+        {
+          "tsCode": "BK1033.DC",
+          "name": "电池",
+          "momentumScore": 11.0404,
+          "return5d": 6.8179,
+          "return20d": 14.2073,
+          "return60d": null,
+          "latestPctChange": 2.04,
+          "rank": 15
+        },
+        {
+          "tsCode": "BK0729.DC",
+          "name": "船舶制造",
+          "momentumScore": 10.8821,
+          "return5d": 10.5303,
+          "return20d": 11.1459,
+          "return60d": null,
+          "latestPctChange": 3.66,
+          "rank": 16
+        },
+        {
+          "tsCode": "BK1334.DC",
+          "name": "光学元件",
+          "momentumScore": 10.8579,
+          "return5d": 4.3234,
+          "return20d": 15.7588,
+          "return60d": null,
+          "latestPctChange": 3.22,
+          "rank": 17
+        },
+        {
+          "tsCode": "BK0459.DC",
+          "name": "元件",
+          "momentumScore": 10.2625,
+          "return5d": 8.8055,
+          "return20d": 11.3553,
+          "return60d": null,
+          "latestPctChange": 2.59,
+          "rank": 18
+        },
+        {
+          "tsCode": "BK0448.DC",
+          "name": "通信设备",
+          "momentumScore": 9.8068,
+          "return5d": 5.8914,
+          "return20d": 12.7433,
+          "return60d": null,
+          "latestPctChange": 2.29,
+          "rank": 19
+        },
+        {
+          "tsCode": "BK1039.DC",
+          "name": "电子化学品Ⅱ",
+          "momentumScore": 9.7966,
+          "return5d": 7.4874,
+          "return20d": 11.5285,
+          "return60d": null,
+          "latestPctChange": 3.64,
+          "rank": 20
+        },
+        {
+          "tsCode": "BK1332.DC",
+          "name": "电子化学品Ⅲ",
+          "momentumScore": 9.7966,
+          "return5d": 7.4874,
+          "return20d": 11.5285,
+          "return60d": null,
+          "latestPctChange": 3.64,
+          "rank": 21
+        },
+        {
+          "tsCode": "BK1287.DC",
+          "name": "工业金属",
+          "momentumScore": 8.9797,
+          "return5d": 5.6265,
+          "return20d": 11.4946,
+          "return60d": null,
+          "latestPctChange": 1.29,
+          "rank": 22
+        },
+        {
+          "tsCode": "BK1327.DC",
+          "name": "分立器件",
+          "momentumScore": 8.894,
+          "return5d": 5.2866,
+          "return20d": 11.5996,
+          "return60d": null,
+          "latestPctChange": 2.21,
+          "rank": 23
+        },
+        {
+          "tsCode": "BK1388.DC",
+          "name": "大气治理",
+          "momentumScore": 8.5764,
+          "return5d": 6.6285,
+          "return20d": 10.0374,
+          "return60d": null,
+          "latestPctChange": 2.67,
+          "rank": 24
+        },
+        {
+          "tsCode": "BK1304.DC",
+          "name": "锂电专用设备",
+          "momentumScore": 8.5633,
+          "return5d": 7.078,
+          "return20d": 9.6773,
+          "return60d": null,
+          "latestPctChange": 4.11,
+          "rank": 25
+        },
+        {
+          "tsCode": "BK1410.DC",
+          "name": "其他自动化设备",
+          "momentumScore": 8.5497,
+          "return5d": 4.1464,
+          "return20d": 11.8522,
+          "return60d": null,
+          "latestPctChange": 1.32,
+          "rank": 26
+        },
+        {
+          "tsCode": "BK1613.DC",
+          "name": "铝",
+          "momentumScore": 8.3638,
+          "return5d": 3.9889,
+          "return20d": 11.6449,
+          "return60d": null,
+          "latestPctChange": 0.42,
+          "rank": 27
+        },
+        {
+          "tsCode": "BK1325.DC",
+          "name": "半导体材料",
+          "momentumScore": 8.3122,
+          "return5d": 6.0529,
+          "return20d": 10.0067,
+          "return60d": null,
+          "latestPctChange": 4.29,
+          "rank": 28
+        },
+        {
+          "tsCode": "BK1475.DC",
+          "name": "国际工程",
+          "momentumScore": 8.1896,
+          "return5d": 0.3686,
+          "return20d": 14.0554,
+          "return60d": null,
+          "latestPctChange": -1.07,
+          "rank": 29
+        },
+        {
+          "tsCode": "BK1517.DC",
+          "name": "食用菌",
+          "momentumScore": 8.0837,
+          "return5d": 5.9143,
+          "return20d": 9.7107,
+          "return60d": null,
+          "latestPctChange": 2.82,
+          "rank": 30
+        },
+        {
+          "tsCode": "BK1339.DC",
+          "name": "被动元件",
+          "momentumScore": 8.0392,
+          "return5d": 7.1588,
+          "return20d": 8.6995,
+          "return60d": null,
+          "latestPctChange": 1.98,
+          "rank": 31
+        },
+        {
+          "tsCode": "BK1326.DC",
+          "name": "半导体设备",
+          "momentumScore": 7.8051,
+          "return5d": 3.7712,
+          "return20d": 10.8305,
+          "return60d": null,
+          "latestPctChange": 0.4,
+          "rank": 32
+        },
+        {
+          "tsCode": "BK0478.DC",
+          "name": "有色金属",
+          "momentumScore": 7.739,
+          "return5d": 4.8146,
+          "return20d": 9.9323,
+          "return60d": null,
+          "latestPctChange": 1.21,
+          "rank": 33
+        },
+        {
+          "tsCode": "BK1439.DC",
+          "name": "膜材料",
+          "momentumScore": 7.6692,
+          "return5d": 7.1165,
+          "return20d": 8.0838,
+          "return60d": null,
+          "latestPctChange": 3.39,
+          "rank": 34
+        },
+        {
+          "tsCode": "BK1215.DC",
+          "name": "通信",
+          "momentumScore": 7.6344,
+          "return5d": 5.6963,
+          "return20d": 9.088,
+          "return60d": null,
+          "latestPctChange": 1.38,
+          "rank": 35
+        },
+        {
+          "tsCode": "BK1411.DC",
+          "name": "非金属材料Ⅲ",
+          "momentumScore": 7.6276,
+          "return5d": 7.3993,
+          "return20d": 7.7988,
+          "return60d": null,
+          "latestPctChange": 3.92,
+          "rank": 36
+        },
+        {
+          "tsCode": "BK1020.DC",
+          "name": "非金属材料Ⅱ",
+          "momentumScore": 7.6276,
+          "return5d": 7.3993,
+          "return20d": 7.7988,
+          "return60d": null,
+          "latestPctChange": 3.92,
+          "rank": 37
+        },
+        {
+          "tsCode": "BK1371.DC",
+          "name": "铁矿石",
+          "momentumScore": 7.6146,
+          "return5d": 5.1424,
+          "return20d": 9.4688,
+          "return60d": null,
+          "latestPctChange": 0.04,
+          "rank": 38
+        },
+        {
+          "tsCode": "BK1351.DC",
+          "name": "印染",
+          "momentumScore": 7.5876,
+          "return5d": 1.7237,
+          "return20d": 11.9856,
+          "return60d": null,
+          "latestPctChange": -0.82,
+          "rank": 39
+        },
+        {
+          "tsCode": "BK1615.DC",
+          "name": "铜",
+          "momentumScore": 7.2844,
+          "return5d": 5.3735,
+          "return20d": 8.7175,
+          "return60d": null,
+          "latestPctChange": 0.93,
+          "rank": 40
+        },
+        {
+          "tsCode": "BK1338.DC",
+          "name": "消费电子零部件及组装",
+          "momentumScore": 7.1675,
+          "return5d": 5.4984,
+          "return20d": 8.4193,
+          "return60d": null,
+          "latestPctChange": 1.36,
+          "rank": 41
+        },
+        {
+          "tsCode": "BK1037.DC",
+          "name": "消费电子",
+          "momentumScore": 7.132,
+          "return5d": 5.4663,
+          "return20d": 8.3812,
+          "return60d": null,
+          "latestPctChange": 1.24,
+          "rank": 42
+        },
+        {
+          "tsCode": "BK1626.DC",
+          "name": "稀土",
+          "momentumScore": 7.0149,
+          "return5d": 0.5626,
+          "return20d": 11.8542,
+          "return60d": null,
+          "latestPctChange": 1.35,
+          "rank": 43
+        },
+        {
+          "tsCode": "BK1337.DC",
+          "name": "品牌消费电子",
+          "momentumScore": 6.7775,
+          "return5d": 5.1884,
+          "return20d": 7.9694,
+          "return60d": null,
+          "latestPctChange": 0.31,
+          "rank": 44
+        },
+        {
+          "tsCode": "BK1201.DC",
+          "name": "电子",
+          "momentumScore": 6.738,
+          "return5d": 5.5807,
+          "return20d": 7.6059,
+          "return60d": null,
+          "latestPctChange": 1.85,
+          "rank": 45
+        },
+        {
+          "tsCode": "BK1232.DC",
+          "name": "航天装备Ⅱ",
+          "momentumScore": 6.6731,
+          "return5d": 9.1201,
+          "return20d": 4.8378,
+          "return60d": null,
+          "latestPctChange": 0.48,
+          "rank": 46
+        },
+        {
+          "tsCode": "BK1385.DC",
+          "name": "航天装备Ⅲ",
+          "momentumScore": 6.6731,
+          "return5d": 9.1201,
+          "return20d": 4.8378,
+          "return60d": null,
+          "latestPctChange": 0.48,
+          "rank": 47
+        },
+        {
+          "tsCode": "BK1036.DC",
+          "name": "半导体",
+          "momentumScore": 6.5738,
+          "return5d": 5.3501,
+          "return20d": 7.4916,
+          "return60d": null,
+          "latestPctChange": 1.69,
+          "rank": 48
+        },
+        {
+          "tsCode": "BK1453.DC",
+          "name": "彩电",
+          "momentumScore": 6.5392,
+          "return5d": 5.1791,
+          "return20d": 7.5592,
+          "return60d": null,
+          "latestPctChange": 2.05,
+          "rank": 49
+        },
+        {
+          "tsCode": "BK0546.DC",
+          "name": "玻璃玻纤",
+          "momentumScore": 6.2958,
+          "return5d": 5.1218,
+          "return20d": 7.1763,
+          "return60d": null,
+          "latestPctChange": -0.03,
+          "rank": 50
+        }
+      ]
+    },
+    "message": ""
+  },
+  "returnComparison": {
+    "code": 0,
+    "data": {
+      "tradeDate": "20260417",
+      "industries": [
+        {
+          "tsCode": "BK1621.DC",
+          "name": "锂",
+          "returns": {
+            "5": 10.1626,
+            "20": 36.9741,
+            "60": null
+          },
+          "latestPctChange": -0.11,
+          "latestClose": 20906.47
+        },
+        {
+          "tsCode": "BK1015.DC",
+          "name": "能源金属",
+          "returns": {
+            "5": 11.4794,
+            "20": 32.6934,
+            "60": null
+          },
+          "latestPctChange": 0.49,
+          "latestClose": 1150.2
+        },
+        {
+          "tsCode": "BK1324.DC",
+          "name": "储能",
+          "returns": {
+            "5": 16.4354,
+            "20": 30.4654,
+            "60": null
+          },
+          "latestPctChange": -2.52,
+          "latestClose": 876.91
+        },
+        {
+          "tsCode": "BK1592.DC",
+          "name": "通信线缆及配套",
+          "returns": {
+            "5": 1.8173,
+            "20": 27.7623,
+            "60": null
+          },
+          "latestPctChange": 1.04,
+          "latestClose": 25164.35
+        },
+        {
+          "tsCode": "BK1620.DC",
+          "name": "钴",
+          "returns": {
+            "5": 18.248,
+            "20": 22.7256,
+            "60": null
+          },
+          "latestPctChange": 2.92,
+          "latestClose": 1449.07
+        },
+        {
+          "tsCode": "BK1462.DC",
+          "name": "玻纤制造",
+          "returns": {
+            "5": 9.9103,
+            "20": 21.0882,
+            "60": null
+          },
+          "latestPctChange": 0.25,
+          "latestClose": 13072.61
+        },
+        {
+          "tsCode": "BK1591.DC",
+          "name": "通信网络设备及器件",
+          "returns": {
+            "5": 8.1931,
+            "20": 18.364,
+            "60": null
+          },
+          "latestPctChange": 3.68,
+          "latestClose": 14712.38
+        },
+        {
+          "tsCode": "BK1409.DC",
+          "name": "激光设备",
+          "returns": {
+            "5": 6.6184,
+            "20": 17.3715,
+            "60": null
+          },
+          "latestPctChange": 3.9,
+          "latestClose": 16561.46
+        },
+        {
+          "tsCode": "BK1622.DC",
+          "name": "镍",
+          "returns": {
+            "5": 7.7812,
+            "20": 17.165,
+            "60": null
+          },
+          "latestPctChange": 0.46,
+          "latestClose": 7846.32
+        },
+        {
+          "tsCode": "BK1306.DC",
+          "name": "蓄电池及其他电池",
+          "returns": {
+            "5": 9.763,
+            "20": 16.8785,
+            "60": null
+          },
+          "latestPctChange": 2.6,
+          "latestClose": 3075.67
+        },
+        {
+          "tsCode": "BK1334.DC",
+          "name": "光学元件",
+          "returns": {
+            "5": 4.3234,
+            "20": 15.7588,
+            "60": null
+          },
+          "latestPctChange": 3.22,
+          "latestClose": 15569.82
+        },
+        {
+          "tsCode": "BK1303.DC",
+          "name": "锂电池",
+          "returns": {
+            "5": 6.5112,
+            "20": 15.7399,
+            "60": null
+          },
+          "latestPctChange": 1.98,
+          "latestClose": 20629.65
+        },
+        {
+          "tsCode": "BK1302.DC",
+          "name": "电池化学品",
+          "returns": {
+            "5": 6.2344,
+            "20": 14.899,
+            "60": null
+          },
+          "latestPctChange": 1.15,
+          "latestClose": 13567.23
+        },
+        {
+          "tsCode": "BK1614.DC",
+          "name": "铅锌",
+          "returns": {
+            "5": 10.1105,
+            "20": 14.6595,
+            "60": null
+          },
+          "latestPctChange": 4,
+          "latestClose": 2869.8
+        },
+        {
+          "tsCode": "BK1033.DC",
+          "name": "电池",
+          "returns": {
+            "5": 6.8179,
+            "20": 14.2073,
+            "60": null
+          },
+          "latestPctChange": 2.04,
+          "latestClose": 1658.69
+        },
+        {
+          "tsCode": "BK1475.DC",
+          "name": "国际工程",
+          "returns": {
+            "5": 0.3686,
+            "20": 14.0554,
+            "60": null
+          },
+          "latestPctChange": -1.07,
+          "latestClose": 3208.07
+        },
+        {
+          "tsCode": "BK1017.DC",
+          "name": "采掘行业",
+          "returns": {
+            "5": -2.815,
+            "20": 12.9519,
+            "60": null
+          },
+          "latestPctChange": -2.1,
+          "latestClose": 1818.39
+        },
+        {
+          "tsCode": "BK0448.DC",
+          "name": "通信设备",
+          "returns": {
+            "5": 5.8914,
+            "20": 12.7433,
+            "60": null
+          },
+          "latestPctChange": 2.29,
+          "latestClose": 24859.74
+        },
+        {
+          "tsCode": "BK1340.DC",
+          "name": "印制电路板",
+          "returns": {
+            "5": 9.5138,
+            "20": 12.4809,
+            "60": null
+          },
+          "latestPctChange": 2.85,
+          "latestClose": 9708.17
+        },
+        {
+          "tsCode": "BK1351.DC",
+          "name": "印染",
+          "returns": {
+            "5": 1.7237,
+            "20": 11.9856,
+            "60": null
+          },
+          "latestPctChange": -0.82,
+          "latestClose": 1704.97
+        },
+        {
+          "tsCode": "BK1626.DC",
+          "name": "稀土",
+          "returns": {
+            "5": 0.5626,
+            "20": 11.8542,
+            "60": null
+          },
+          "latestPctChange": 1.35,
+          "latestClose": 10569.17
+        },
+        {
+          "tsCode": "BK1410.DC",
+          "name": "其他自动化设备",
+          "returns": {
+            "5": 4.1464,
+            "20": 11.8522,
+            "60": null
+          },
+          "latestPctChange": 1.32,
+          "latestClose": 7281.04
+        },
+        {
+          "tsCode": "BK1613.DC",
+          "name": "铝",
+          "returns": {
+            "5": 3.9889,
+            "20": 11.6449,
+            "60": null
+          },
+          "latestPctChange": 0.42,
+          "latestClose": 3169.51
+        },
+        {
+          "tsCode": "BK1600.DC",
+          "name": "医疗研发外包",
+          "returns": {
+            "5": -1.6285,
+            "20": 11.6079,
+            "60": null
+          },
+          "latestPctChange": -2.52,
+          "latestClose": 7319.48
+        },
+        {
+          "tsCode": "BK1327.DC",
+          "name": "分立器件",
+          "returns": {
+            "5": 5.2866,
+            "20": 11.5996,
+            "60": null
+          },
+          "latestPctChange": 2.21,
+          "latestClose": 14664.98
+        },
+        {
+          "tsCode": "BK1039.DC",
+          "name": "电子化学品Ⅱ",
+          "returns": {
+            "5": 7.4874,
+            "20": 11.5285,
+            "60": null
+          },
+          "latestPctChange": 3.64,
+          "latestClose": 2703.06
+        },
+        {
+          "tsCode": "BK1332.DC",
+          "name": "电子化学品Ⅲ",
+          "returns": {
+            "5": 7.4874,
+            "20": 11.5285,
+            "60": null
+          },
+          "latestPctChange": 3.64,
+          "latestClose": 2703.06
+        },
+        {
+          "tsCode": "BK1287.DC",
+          "name": "工业金属",
+          "returns": {
+            "5": 5.6265,
+            "20": 11.4946,
+            "60": null
+          },
+          "latestPctChange": 1.29,
+          "latestClose": 3701.51
+        },
+        {
+          "tsCode": "BK0459.DC",
+          "name": "元件",
+          "returns": {
+            "5": 8.8055,
+            "20": 11.3553,
+            "60": null
+          },
+          "latestPctChange": 2.59,
+          "latestClose": 45279.22
+        },
+        {
+          "tsCode": "BK0729.DC",
+          "name": "船舶制造",
+          "returns": {
+            "5": 10.5303,
+            "20": 11.1459,
+            "60": null
+          },
+          "latestPctChange": 3.66,
+          "latestClose": 1478.84
+        },
+        {
+          "tsCode": "BK1326.DC",
+          "name": "半导体设备",
+          "returns": {
+            "5": 3.7712,
+            "20": 10.8305,
+            "60": null
+          },
+          "latestPctChange": 0.4,
+          "latestClose": 33551.07
+        },
+        {
+          "tsCode": "BK1388.DC",
+          "name": "大气治理",
+          "returns": {
+            "5": 6.6285,
+            "20": 10.0374,
+            "60": null
+          },
+          "latestPctChange": 2.67,
+          "latestClose": 3935.51
+        },
+        {
+          "tsCode": "BK1325.DC",
+          "name": "半导体材料",
+          "returns": {
+            "5": 6.0529,
+            "20": 10.0067,
+            "60": null
+          },
+          "latestPctChange": 4.29,
+          "latestClose": 9472.74
+        },
+        {
+          "tsCode": "BK0478.DC",
+          "name": "有色金属",
+          "returns": {
+            "5": 4.8146,
+            "20": 9.9323,
+            "60": null
+          },
+          "latestPctChange": 1.21,
+          "latestClose": 30349.82
+        },
+        {
+          "tsCode": "BK1517.DC",
+          "name": "食用菌",
+          "returns": {
+            "5": 5.9143,
+            "20": 9.7107,
+            "60": null
+          },
+          "latestPctChange": 2.82,
+          "latestClose": 1723.84
+        },
+        {
+          "tsCode": "BK1304.DC",
+          "name": "锂电专用设备",
+          "returns": {
+            "5": 7.078,
+            "20": 9.6773,
+            "60": null
+          },
+          "latestPctChange": 4.11,
+          "latestClose": 28845.97
+        },
+        {
+          "tsCode": "BK1371.DC",
+          "name": "铁矿石",
+          "returns": {
+            "5": 5.1424,
+            "20": 9.4688,
+            "60": null
+          },
+          "latestPctChange": 0.04,
+          "latestClose": 2240.28
+        },
+        {
+          "tsCode": "BK1412.DC",
+          "name": "氨纶",
+          "returns": {
+            "5": -4.3478,
+            "20": 9.1093,
+            "60": null
+          },
+          "latestPctChange": -2.44,
+          "latestClose": 2686.01
+        },
+        {
+          "tsCode": "BK1215.DC",
+          "name": "通信",
+          "returns": {
+            "5": 5.6963,
+            "20": 9.088,
+            "60": null
+          },
+          "latestPctChange": 1.38,
+          "latestClose": 8363.23
+        },
+        {
+          "tsCode": "BK1596.DC",
+          "name": "其他生物制品",
+          "returns": {
+            "5": 2.6268,
+            "20": 8.7228,
+            "60": null
+          },
+          "latestPctChange": -1.38,
+          "latestClose": 8682.21
+        },
+        {
+          "tsCode": "BK1615.DC",
+          "name": "铜",
+          "returns": {
+            "5": 5.3735,
+            "20": 8.7175,
+            "60": null
+          },
+          "latestPctChange": 0.93,
+          "latestClose": 3920.2
+        },
+        {
+          "tsCode": "BK1339.DC",
+          "name": "被动元件",
+          "returns": {
+            "5": 7.1588,
+            "20": 8.6995,
+            "60": null
+          },
+          "latestPctChange": 1.98,
+          "latestClose": 9801.43
+        },
+        {
+          "tsCode": "BK1338.DC",
+          "name": "消费电子零部件及组装",
+          "returns": {
+            "5": 5.4984,
+            "20": 8.4193,
+            "60": null
+          },
+          "latestPctChange": 1.36,
+          "latestClose": 13908.22
+        },
+        {
+          "tsCode": "BK1037.DC",
+          "name": "消费电子",
+          "returns": {
+            "5": 5.4663,
+            "20": 8.3812,
+            "60": null
+          },
+          "latestPctChange": 1.24,
+          "latestClose": 2148.17
+        },
+        {
+          "tsCode": "BK1439.DC",
+          "name": "膜材料",
+          "returns": {
+            "5": 7.1165,
+            "20": 8.0838,
+            "60": null
+          },
+          "latestPctChange": 3.39,
+          "latestClose": 3795.19
+        },
+        {
+          "tsCode": "BK1337.DC",
+          "name": "品牌消费电子",
+          "returns": {
+            "5": 5.1884,
+            "20": 7.9694,
+            "60": null
+          },
+          "latestPctChange": 0.31,
+          "latestClose": 2938.28
+        },
+        {
+          "tsCode": "BK1411.DC",
+          "name": "非金属材料Ⅲ",
+          "returns": {
+            "5": 7.3993,
+            "20": 7.7988,
+            "60": null
+          },
+          "latestPctChange": 3.92,
+          "latestClose": 2112.63
+        },
+        {
+          "tsCode": "BK1020.DC",
+          "name": "非金属材料Ⅱ",
+          "returns": {
+            "5": 7.3993,
+            "20": 7.7988,
+            "60": null
+          },
+          "latestPctChange": 3.92,
+          "latestClose": 2112.63
+        },
+        {
+          "tsCode": "BK1489.DC",
+          "name": "快递",
+          "returns": {
+            "5": 3.0797,
+            "20": 7.6658,
+            "60": null
+          },
+          "latestPctChange": -2.71,
+          "latestClose": 5801.54
+        },
+        {
+          "tsCode": "BK1201.DC",
+          "name": "电子",
+          "returns": {
+            "5": 5.5807,
+            "20": 7.6059,
+            "60": null
+          },
+          "latestPctChange": 1.85,
+          "latestClose": 11920.06
+        }
+      ]
+    },
+    "message": ""
+  },
+  "flowAnalysis": {
+    "code": 0,
+    "data": {
+      "tradeDate": "20260417",
+      "days": 5,
+      "industries": [
+        {
+          "tsCode": "BK1287.DC",
+          "name": "工业金属",
+          "cumulativeNetAmount": 2365971968,
+          "avgDailyNetAmount": 473194393.6,
+          "cumulativeReturn": 5.6265,
+          "flowMomentum": 574293504,
+          "flowAcceleration": 4026523744,
+          "cumulativeBuyElg": 2665189632,
+          "cumulativeBuyLg": -299217664,
+          "mainForceRatio": 1,
+          "latestDayRank": 39
+        },
+        {
+          "tsCode": "BK1615.DC",
+          "name": "铜",
+          "cumulativeNetAmount": 2291591312,
+          "avgDailyNetAmount": 458318262.4,
+          "cumulativeReturn": 5.3735,
+          "flowMomentum": -1984719632,
+          "flowAcceleration": 1916200400,
+          "cumulativeBuyElg": 2002940560,
+          "cumulativeBuyLg": 288650752,
+          "mainForceRatio": 1,
+          "latestDayRank": 28
+        },
+        {
+          "tsCode": "BK1624.DC",
+          "name": "其他小金属",
+          "cumulativeNetAmount": 1992172080,
+          "avgDailyNetAmount": 398434416,
+          "cumulativeReturn": 4.9788,
+          "flowMomentum": 881281904,
+          "flowAcceleration": 2068755968,
+          "cumulativeBuyElg": 2646859152,
+          "cumulativeBuyLg": -654687072,
+          "mainForceRatio": 1,
+          "latestDayRank": 8
+        },
+        {
+          "tsCode": "BK1202.DC",
+          "name": "房地产",
+          "cumulativeNetAmount": 1805328320,
+          "avgDailyNetAmount": 361065664,
+          "cumulativeReturn": 2.2203,
+          "flowMomentum": -452052960,
+          "flowAcceleration": 2146220816,
+          "cumulativeBuyElg": 1617363216,
+          "cumulativeBuyLg": 187965104,
+          "mainForceRatio": 1,
+          "latestDayRank": 23
+        },
+        {
+          "tsCode": "BK1328.DC",
+          "name": "集成电路封测",
+          "cumulativeNetAmount": 1750900592,
+          "avgDailyNetAmount": 350180118.4,
+          "cumulativeReturn": 7.2013,
+          "flowMomentum": -51929616,
+          "flowAcceleration": 1959506800,
+          "cumulativeBuyElg": 1010575552,
+          "cumulativeBuyLg": 740325040,
+          "mainForceRatio": 1,
+          "latestDayRank": 30
+        },
+        {
+          "tsCode": "BK0475.DC",
+          "name": "银行Ⅱ",
+          "cumulativeNetAmount": 1714063008,
+          "avgDailyNetAmount": 342812601.6,
+          "cumulativeReturn": 1.0876,
+          "flowMomentum": -3558159136,
+          "flowAcceleration": 4116161264,
+          "cumulativeBuyElg": 1515867520,
+          "cumulativeBuyLg": 198195488,
+          "mainForceRatio": 1,
+          "latestDayRank": 25
+        },
+        {
+          "tsCode": "BK1283.DC",
+          "name": "银行",
+          "cumulativeNetAmount": 1714063008,
+          "avgDailyNetAmount": 342812601.6,
+          "cumulativeReturn": 1.0876,
+          "flowMomentum": -3558159136,
+          "flowAcceleration": 4116161264,
+          "cumulativeBuyElg": 1515867520,
+          "cumulativeBuyLg": 198195488,
+          "mainForceRatio": 1,
+          "latestDayRank": 24
+        },
+        {
+          "tsCode": "BK0451.DC",
+          "name": "房地产开发",
+          "cumulativeNetAmount": 1604497824,
+          "avgDailyNetAmount": 320899564.8,
+          "cumulativeReturn": 2.1988,
+          "flowMomentum": -382516320,
+          "flowAcceleration": 1939183712,
+          "cumulativeBuyElg": 1502573952,
+          "cumulativeBuyLg": 101923872,
+          "mainForceRatio": 1,
+          "latestDayRank": 28
+        },
+        {
+          "tsCode": "BK1346.DC",
+          "name": "住宅开发",
+          "cumulativeNetAmount": 1382516752,
+          "avgDailyNetAmount": 276503350.4,
+          "cumulativeReturn": 2.8389,
+          "flowMomentum": -259363024,
+          "flowAcceleration": 1806952704,
+          "cumulativeBuyElg": 1388399056,
+          "cumulativeBuyLg": -5882304,
+          "mainForceRatio": 1,
+          "latestDayRank": 31
+        },
+        {
+          "tsCode": "BK1232.DC",
+          "name": "航天装备Ⅱ",
+          "cumulativeNetAmount": 1364878544,
+          "avgDailyNetAmount": 272975708.8,
+          "cumulativeReturn": 9.1201,
+          "flowMomentum": -2695899088,
+          "flowAcceleration": 3063137520,
+          "cumulativeBuyElg": 709857072,
+          "cumulativeBuyLg": 655021472,
+          "mainForceRatio": 1,
+          "latestDayRank": 39
+        },
+        {
+          "tsCode": "BK1385.DC",
+          "name": "航天装备Ⅲ",
+          "cumulativeNetAmount": 1364878544,
+          "avgDailyNetAmount": 272975708.8,
+          "cumulativeReturn": 9.1201,
+          "flowMomentum": -2695899088,
+          "flowAcceleration": 3063137520,
+          "cumulativeBuyElg": 709857072,
+          "cumulativeBuyLg": 655021472,
+          "mainForceRatio": 1,
+          "latestDayRank": 38
+        },
+        {
+          "tsCode": "BK1611.DC",
+          "name": "国有大型银行Ⅲ",
+          "cumulativeNetAmount": 1200866144,
+          "avgDailyNetAmount": 240173228.8,
+          "cumulativeReturn": 2.7598,
+          "flowMomentum": -2105969632,
+          "flowAcceleration": 2673964064,
+          "cumulativeBuyElg": 1247238208,
+          "cumulativeBuyLg": -46372064,
+          "mainForceRatio": 1,
+          "latestDayRank": 28
+        },
+        {
+          "tsCode": "BK1313.DC",
+          "name": "风电零部件",
+          "cumulativeNetAmount": 1177648144,
+          "avgDailyNetAmount": 235529628.8,
+          "cumulativeReturn": 5.9006,
+          "flowMomentum": 123381296,
+          "flowAcceleration": 2343006528,
+          "cumulativeBuyElg": 1276842592,
+          "cumulativeBuyLg": -99194448,
+          "mainForceRatio": 1,
+          "latestDayRank": 14
+        },
+        {
+          "tsCode": "BK1317.DC",
+          "name": "光伏加工设备",
+          "cumulativeNetAmount": 1174952336,
+          "avgDailyNetAmount": 234990467.2,
+          "cumulativeReturn": 9.4079,
+          "flowMomentum": -125286896,
+          "flowAcceleration": 4116431760,
+          "cumulativeBuyElg": 655026784,
+          "cumulativeBuyLg": 519925552,
+          "mainForceRatio": 1,
+          "latestDayRank": 11
+        },
+        {
+          "tsCode": "BK1593.DC",
+          "name": "通信终端及配件",
+          "cumulativeNetAmount": 1166224048,
+          "avgDailyNetAmount": 233244809.6,
+          "cumulativeReturn": 5.2985,
+          "flowMomentum": 829877936,
+          "flowAcceleration": 811418000,
+          "cumulativeBuyElg": 2419853328,
+          "cumulativeBuyLg": -1253629280,
+          "mainForceRatio": 1,
+          "latestDayRank": 25
+        },
+        {
+          "tsCode": "BK1614.DC",
+          "name": "铅锌",
+          "cumulativeNetAmount": 1087193504,
+          "avgDailyNetAmount": 217438700.8,
+          "cumulativeReturn": 10.1105,
+          "flowMomentum": 1021218592,
+          "flowAcceleration": 1373245859,
+          "cumulativeBuyElg": 563599680,
+          "cumulativeBuyLg": 523593824,
+          "mainForceRatio": 1,
+          "latestDayRank": 24
+        },
+        {
+          "tsCode": "BK0474.DC",
+          "name": "保险Ⅱ",
+          "cumulativeNetAmount": 1032197712,
+          "avgDailyNetAmount": 206439542.4,
+          "cumulativeReturn": -0.693,
+          "flowMomentum": -978480528,
+          "flowAcceleration": 1099132608,
+          "cumulativeBuyElg": 15993600,
+          "cumulativeBuyLg": 1016204112,
+          "mainForceRatio": 1,
+          "latestDayRank": 39
+        },
+        {
+          "tsCode": "BK1358.DC",
+          "name": "保险Ⅲ",
+          "cumulativeNetAmount": 1032197712,
+          "avgDailyNetAmount": 206439542.4,
+          "cumulativeReturn": -0.693,
+          "flowMomentum": -978480528,
+          "flowAcceleration": 1099132608,
+          "cumulativeBuyElg": 15993600,
+          "cumulativeBuyLg": 1016204112,
+          "mainForceRatio": 1,
+          "latestDayRank": 38
+        },
+        {
+          "tsCode": "BK1304.DC",
+          "name": "锂电专用设备",
+          "cumulativeNetAmount": 1005148880,
+          "avgDailyNetAmount": 201029776,
+          "cumulativeReturn": 7.078,
+          "flowMomentum": 1413815056,
+          "flowAcceleration": 754344980,
+          "cumulativeBuyElg": 785412000,
+          "cumulativeBuyLg": 219736880,
+          "mainForceRatio": 1,
+          "latestDayRank": 15
+        },
+        {
+          "tsCode": "BK1622.DC",
+          "name": "镍",
+          "cumulativeNetAmount": 935518416,
+          "avgDailyNetAmount": 187103683.2,
+          "cumulativeReturn": 7.7812,
+          "flowMomentum": 173984592,
+          "flowAcceleration": 872771136,
+          "cumulativeBuyElg": 514101840,
+          "cumulativeBuyLg": 421416576,
+          "mainForceRatio": 1,
+          "latestDayRank": 9
+        },
+        {
+          "tsCode": "BK1625.DC",
+          "name": "钨",
+          "cumulativeNetAmount": 891987456,
+          "avgDailyNetAmount": 178397491.2,
+          "cumulativeReturn": 6.8339,
+          "flowMomentum": 4018873536,
+          "flowAcceleration": -906395712,
+          "cumulativeBuyElg": 1744159536,
+          "cumulativeBuyLg": -852172080,
+          "mainForceRatio": 1,
+          "latestDayRank": 35
+        },
+        {
+          "tsCode": "BK1395.DC",
+          "name": "机床工具",
+          "cumulativeNetAmount": 593770574,
+          "avgDailyNetAmount": 118754114.8,
+          "cumulativeReturn": 6.5021,
+          "flowMomentum": -140420078,
+          "flowAcceleration": 607335497,
+          "cumulativeBuyElg": 553526974,
+          "cumulativeBuyLg": 40243600,
+          "mainForceRatio": 1,
+          "latestDayRank": 37
+        },
+        {
+          "tsCode": "BK1407.DC",
+          "name": "工控设备",
+          "cumulativeNetAmount": 578772544,
+          "avgDailyNetAmount": 115754508.8,
+          "cumulativeReturn": 4.5509,
+          "flowMomentum": 433710592,
+          "flowAcceleration": 1497526896,
+          "cumulativeBuyElg": 768684560,
+          "cumulativeBuyLg": -189912016,
+          "mainForceRatio": 1,
+          "latestDayRank": 29
+        },
+        {
+          "tsCode": "BK1375.DC",
+          "name": "光伏发电",
+          "cumulativeNetAmount": 567615488,
+          "avgDailyNetAmount": 113523097.6,
+          "cumulativeReturn": 6.0664,
+          "flowMomentum": -1143926784,
+          "flowAcceleration": 1441223024,
+          "cumulativeBuyElg": 1541473520,
+          "cumulativeBuyLg": -973858032,
+          "mainForceRatio": 1,
+          "latestDayRank": 23
+        },
+        {
+          "tsCode": "BK1398.DC",
+          "name": "其他通用设备",
+          "cumulativeNetAmount": 565586432,
+          "avgDailyNetAmount": 113117286.4,
+          "cumulativeReturn": 4.0172,
+          "flowMomentum": 325833600,
+          "flowAcceleration": 150017376,
+          "cumulativeBuyElg": 393234256,
+          "cumulativeBuyLg": 172352176,
+          "mainForceRatio": 1,
+          "latestDayRank": 36
+        },
+        {
+          "tsCode": "BK1318.DC",
+          "name": "光伏主材",
+          "cumulativeNetAmount": 433895088,
+          "avgDailyNetAmount": 86779017.6,
+          "cumulativeReturn": 5.2007,
+          "flowMomentum": -446497808,
+          "flowAcceleration": 1453473216,
+          "cumulativeBuyElg": 754795056,
+          "cumulativeBuyLg": -320899968,
+          "mainForceRatio": 1,
+          "latestDayRank": 18
+        },
+        {
+          "tsCode": "BK1032.DC",
+          "name": "风电设备",
+          "cumulativeNetAmount": 420211360,
+          "avgDailyNetAmount": 84042272,
+          "cumulativeReturn": 5.2414,
+          "flowMomentum": 446577056,
+          "flowAcceleration": 4278679712,
+          "cumulativeBuyElg": 964939888,
+          "cumulativeBuyLg": -544728528,
+          "mainForceRatio": 1,
+          "latestDayRank": 9
+        },
+        {
+          "tsCode": "BK1326.DC",
+          "name": "半导体设备",
+          "cumulativeNetAmount": 411215104,
+          "avgDailyNetAmount": 82243020.8,
+          "cumulativeReturn": 3.7712,
+          "flowMomentum": -924446752,
+          "flowAcceleration": -96640480,
+          "cumulativeBuyElg": 302766080,
+          "cumulativeBuyLg": 108449024,
+          "mainForceRatio": 1,
+          "latestDayRank": 33
+        },
+        {
+          "tsCode": "BK1339.DC",
+          "name": "被动元件",
+          "cumulativeNetAmount": 406510096,
+          "avgDailyNetAmount": 81302019.2,
+          "cumulativeReturn": 7.1588,
+          "flowMomentum": -375291312,
+          "flowAcceleration": 1028483648,
+          "cumulativeBuyElg": 330829040,
+          "cumulativeBuyLg": 75681056,
+          "mainForceRatio": 1,
+          "latestDayRank": 5
+        },
+        {
+          "tsCode": "BK1580.DC",
+          "name": "肉制品",
+          "cumulativeNetAmount": 394496405,
+          "avgDailyNetAmount": 78899281,
+          "cumulativeReturn": 5.3677,
+          "flowMomentum": -6486587,
+          "flowAcceleration": 412160463,
+          "cumulativeBuyElg": 347638501,
+          "cumulativeBuyLg": 46857904,
+          "mainForceRatio": 1,
+          "latestDayRank": 50
+        },
+        {
+          "tsCode": "BK1325.DC",
+          "name": "半导体材料",
+          "cumulativeNetAmount": 386649824,
+          "avgDailyNetAmount": 77329964.8,
+          "cumulativeReturn": 6.0529,
+          "flowMomentum": 1670460992,
+          "flowAcceleration": -517170416,
+          "cumulativeBuyElg": 111785792,
+          "cumulativeBuyLg": 274864032,
+          "mainForceRatio": 1,
+          "latestDayRank": 10
+        },
+        {
+          "tsCode": "BK1329.DC",
+          "name": "集成电路制造",
+          "cumulativeNetAmount": 382823552,
+          "avgDailyNetAmount": 76564710.4,
+          "cumulativeReturn": 3.0045,
+          "flowMomentum": -101303200,
+          "flowAcceleration": -68660688,
+          "cumulativeBuyElg": 446015040,
+          "cumulativeBuyLg": -63191488,
+          "mainForceRatio": 1,
+          "latestDayRank": 26
+        },
+        {
+          "tsCode": "BK1609.DC",
+          "name": "城商行Ⅲ",
+          "cumulativeNetAmount": 375960352,
+          "avgDailyNetAmount": 75192070.4,
+          "cumulativeReturn": 1.5167,
+          "flowMomentum": -652660352,
+          "flowAcceleration": 634620608,
+          "cumulativeBuyElg": 508263696,
+          "cumulativeBuyLg": -132303344,
+          "mainForceRatio": 1,
+          "latestDayRank": 21
+        },
+        {
+          "tsCode": "BK1588.DC",
+          "name": "通信工程及服务",
+          "cumulativeNetAmount": 371029328,
+          "avgDailyNetAmount": 74205865.6,
+          "cumulativeReturn": 6.1475,
+          "flowMomentum": 159816720,
+          "flowAcceleration": 361536243,
+          "cumulativeBuyElg": 840504528,
+          "cumulativeBuyLg": -469475200,
+          "mainForceRatio": 1,
+          "latestDayRank": 43
+        },
+        {
+          "tsCode": "BK1280.DC",
+          "name": "食品加工",
+          "cumulativeNetAmount": 353913720,
+          "avgDailyNetAmount": 70782744,
+          "cumulativeReturn": 1.391,
+          "flowMomentum": -2343986,
+          "flowAcceleration": 534579823,
+          "cumulativeBuyElg": 255638616,
+          "cumulativeBuyLg": 98275104,
+          "mainForceRatio": 1,
+          "latestDayRank": 14
+        },
+        {
+          "tsCode": "BK1616.DC",
+          "name": "白银",
+          "cumulativeNetAmount": 351349936,
+          "avgDailyNetAmount": 70269987.2,
+          "cumulativeReturn": 1.6543,
+          "flowMomentum": -954110192,
+          "flowAcceleration": -306754103,
+          "cumulativeBuyElg": 19694048,
+          "cumulativeBuyLg": 331655888,
+          "mainForceRatio": 1,
+          "latestDayRank": 10
+        },
+        {
+          "tsCode": "BK1330.DC",
+          "name": "模拟芯片设计",
+          "cumulativeNetAmount": 331210272,
+          "avgDailyNetAmount": 66242054.4,
+          "cumulativeReturn": 5.1194,
+          "flowMomentum": 1035388320,
+          "flowAcceleration": 994910752,
+          "cumulativeBuyElg": 283741440,
+          "cumulativeBuyLg": 47468832,
+          "mainForceRatio": 1,
+          "latestDayRank": 46
+        },
+        {
+          "tsCode": "BK1485.DC",
+          "name": "铁路运输",
+          "cumulativeNetAmount": 328797034,
+          "avgDailyNetAmount": 65759406.8,
+          "cumulativeReturn": -0.9266,
+          "flowMomentum": -141448236,
+          "flowAcceleration": 384921813,
+          "cumulativeBuyElg": -6641142,
+          "cumulativeBuyLg": 335438176,
+          "mainForceRatio": 1,
+          "latestDayRank": 16
+        },
+        {
+          "tsCode": "BK0736.DC",
+          "name": "通信服务",
+          "cumulativeNetAmount": 326711776,
+          "avgDailyNetAmount": 65342355.2,
+          "cumulativeReturn": 5.2276,
+          "flowMomentum": -383017056,
+          "flowAcceleration": 185764656,
+          "cumulativeBuyElg": 1156694752,
+          "cumulativeBuyLg": -829982976,
+          "mainForceRatio": 1,
+          "latestDayRank": 28
+        },
+        {
+          "tsCode": "BK0421.DC",
+          "name": "铁路公路",
+          "cumulativeNetAmount": 324426436,
+          "avgDailyNetAmount": 64885287.2,
+          "cumulativeReturn": 0.127,
+          "flowMomentum": -205950244,
+          "flowAcceleration": 327407361,
+          "cumulativeBuyElg": -18445820,
+          "cumulativeBuyLg": 342872256,
+          "mainForceRatio": 1,
+          "latestDayRank": 9
+        },
+        {
+          "tsCode": "BK1371.DC",
+          "name": "铁矿石",
+          "cumulativeNetAmount": 323457423,
+          "avgDailyNetAmount": 64691484.6,
+          "cumulativeReturn": 5.1424,
+          "flowMomentum": -90373193,
+          "flowAcceleration": 330699742,
+          "cumulativeBuyElg": 414781951,
+          "cumulativeBuyLg": -91324528,
+          "mainForceRatio": 1,
+          "latestDayRank": 10
+        },
+        {
+          "tsCode": "BK1440.DC",
+          "name": "其他塑料制品",
+          "cumulativeNetAmount": 313771616,
+          "avgDailyNetAmount": 62754323.2,
+          "cumulativeReturn": 4.4986,
+          "flowMomentum": 800853792,
+          "flowAcceleration": 454141804,
+          "cumulativeBuyElg": 414470176,
+          "cumulativeBuyLg": -100698560,
+          "mainForceRatio": 1,
+          "latestDayRank": 33
+        },
+        {
+          "tsCode": "BK1219.DC",
+          "name": "电视广播Ⅱ",
+          "cumulativeNetAmount": 308487987,
+          "avgDailyNetAmount": 61697597.4,
+          "cumulativeReturn": 1.1305,
+          "flowMomentum": 121016531,
+          "flowAcceleration": 191728853,
+          "cumulativeBuyElg": 180058275,
+          "cumulativeBuyLg": 128429712,
+          "mainForceRatio": 1,
+          "latestDayRank": 40
+        },
+        {
+          "tsCode": "BK1291.DC",
+          "name": "电视广播Ⅲ",
+          "cumulativeNetAmount": 308487987,
+          "avgDailyNetAmount": 61697597.4,
+          "cumulativeReturn": 1.1305,
+          "flowMomentum": 121016531,
+          "flowAcceleration": 191728853,
+          "cumulativeBuyElg": 180058275,
+          "cumulativeBuyLg": 128429712,
+          "mainForceRatio": 1,
+          "latestDayRank": 39
+        },
+        {
+          "tsCode": "BK1507.DC",
+          "name": "宠物食品",
+          "cumulativeNetAmount": 292651012,
+          "avgDailyNetAmount": 58530202.4,
+          "cumulativeReturn": 6.6986,
+          "flowMomentum": 106938908,
+          "flowAcceleration": 245347825,
+          "cumulativeBuyElg": 171984743,
+          "cumulativeBuyLg": 120666269,
+          "mainForceRatio": 1,
+          "latestDayRank": 7
+        },
+        {
+          "tsCode": "BK1345.DC",
+          "name": "商业地产",
+          "cumulativeNetAmount": 290555713,
+          "avgDailyNetAmount": 58111142.6,
+          "cumulativeReturn": 1.6739,
+          "flowMomentum": -248515071,
+          "flowAcceleration": 218530098,
+          "cumulativeBuyElg": 186611921,
+          "cumulativeBuyLg": 103943792,
+          "mainForceRatio": 1,
+          "latestDayRank": 41
+        },
+        {
+          "tsCode": "BK1228.DC",
+          "name": "冶钢原料",
+          "cumulativeNetAmount": 257734393,
+          "avgDailyNetAmount": 51546878.6,
+          "cumulativeReturn": 4.7147,
+          "flowMomentum": 30163751,
+          "flowAcceleration": 331307308,
+          "cumulativeBuyElg": 377395113,
+          "cumulativeBuyLg": -119660720,
+          "mainForceRatio": 1,
+          "latestDayRank": 36
+        },
+        {
+          "tsCode": "BK1408.DC",
+          "name": "机器人",
+          "cumulativeNetAmount": 227565453,
+          "avgDailyNetAmount": 45513090.6,
+          "cumulativeReturn": 3.6695,
+          "flowMomentum": -152246029,
+          "flowAcceleration": 611299118,
+          "cumulativeBuyElg": 140295453,
+          "cumulativeBuyLg": 87270000,
+          "mainForceRatio": 1,
+          "latestDayRank": 46
+        },
+        {
+          "tsCode": "BK1335.DC",
+          "name": "面板",
+          "cumulativeNetAmount": 227539008,
+          "avgDailyNetAmount": 45507801.6,
+          "cumulativeReturn": 2.621,
+          "flowMomentum": 1987165248,
+          "flowAcceleration": 304516848,
+          "cumulativeBuyElg": 1447083376,
+          "cumulativeBuyLg": -1219544368,
+          "mainForceRatio": 1,
+          "latestDayRank": 48
+        },
+        {
+          "tsCode": "BK1534.DC",
+          "name": "印刷",
+          "cumulativeNetAmount": 217314784,
+          "avgDailyNetAmount": 43462956.8,
+          "cumulativeReturn": 3.1226,
+          "flowMomentum": -228399278,
+          "flowAcceleration": 308117005,
+          "cumulativeBuyElg": 399505633,
+          "cumulativeBuyLg": -182190849,
+          "mainForceRatio": 1,
+          "latestDayRank": 18
+        }
+      ],
+      "summary": {
+        "inflowCount": 117,
+        "outflowCount": 379,
+        "topInflowNames": [
+          "工业金属",
+          "铜",
+          "其他小金属",
+          "房地产",
+          "集成电路封测"
+        ],
+        "topOutflowNames": [
+          "电力设备",
+          "通信设备",
+          "通信",
+          "医药生物",
+          "电子"
+        ]
+      }
+    },
+    "message": ""
+  },
+  "valuation": {
+    "code": 0,
+    "data": {
+      "tradeDate": "20260417",
+      "industries": [
+        {
+          "industry": "批发业",
+          "stockCount": 4,
+          "peTtmMedian": 21.35,
+          "pbMedian": 1.7,
+          "peTtmPercentile1y": 0,
+          "peTtmPercentile3y": 7.99,
+          "pbPercentile1y": 100,
+          "pbPercentile3y": 75.62,
+          "valuationLabel": "低估"
+        },
+        {
+          "industry": "啤酒",
+          "stockCount": 7,
+          "peTtmMedian": 21.22,
+          "pbMedian": 2.35,
+          "peTtmPercentile1y": 1.65,
+          "peTtmPercentile3y": 0.55,
+          "pbPercentile1y": 53.31,
+          "pbPercentile3y": 70.8,
+          "valuationLabel": "低估"
+        },
+        {
+          "industry": "酒店餐饮",
+          "stockCount": 5,
+          "peTtmMedian": 49.93,
+          "pbMedian": 1.94,
+          "peTtmPercentile1y": 1.65,
+          "peTtmPercentile3y": 34.71,
+          "pbPercentile1y": 26.86,
+          "pbPercentile3y": 21.21,
+          "valuationLabel": "低估"
+        },
+        {
+          "industry": "铁路",
+          "stockCount": 6,
+          "peTtmMedian": 17.18,
+          "pbMedian": 0.99,
+          "peTtmPercentile1y": 1.65,
+          "peTtmPercentile3y": 0.55,
+          "pbPercentile1y": 21.49,
+          "pbPercentile3y": 14.33,
+          "valuationLabel": "低估"
+        },
+        {
+          "industry": "公共交通",
+          "stockCount": 4,
+          "peTtmMedian": 61.09,
+          "pbMedian": 1.82,
+          "peTtmPercentile1y": 2.48,
+          "peTtmPercentile3y": 55.37,
+          "pbPercentile1y": 8.68,
+          "pbPercentile3y": 41.05,
+          "valuationLabel": "低估"
+        },
+        {
+          "industry": "红黄酒",
+          "stockCount": 5,
+          "peTtmMedian": 39.51,
+          "pbMedian": 2.4,
+          "peTtmPercentile1y": 2.89,
+          "peTtmPercentile3y": 46.14,
+          "pbPercentile1y": 69.01,
+          "pbPercentile3y": 89.67,
+          "valuationLabel": "低估"
+        },
+        {
+          "industry": "机场",
+          "stockCount": 5,
+          "peTtmMedian": 24.01,
+          "pbMedian": 1.43,
+          "peTtmPercentile1y": 4.13,
+          "peTtmPercentile3y": 3.58,
+          "pbPercentile1y": 57.02,
+          "pbPercentile3y": 49.17,
+          "valuationLabel": "低估"
+        },
+        {
+          "industry": "汽车服务",
+          "stockCount": 6,
+          "peTtmMedian": 45.9,
+          "pbMedian": 2.55,
+          "peTtmPercentile1y": 4.13,
+          "peTtmPercentile3y": 28.79,
+          "pbPercentile1y": 19.42,
+          "pbPercentile3y": 31.54,
+          "valuationLabel": "低估"
+        },
+        {
+          "industry": "造纸",
+          "stockCount": 26,
+          "peTtmMedian": 33.56,
+          "pbMedian": 2.02,
+          "peTtmPercentile1y": 4.13,
+          "peTtmPercentile3y": 68.04,
+          "pbPercentile1y": 92.56,
+          "pbPercentile3y": 97.52,
+          "valuationLabel": "低估"
+        },
+        {
+          "industry": "石油贸易",
+          "stockCount": 4,
+          "peTtmMedian": 61.59,
+          "pbMedian": 2.57,
+          "peTtmPercentile1y": 4.96,
+          "peTtmPercentile3y": 37.33,
+          "pbPercentile1y": 59.09,
+          "pbPercentile3y": 78.51,
+          "valuationLabel": "低估"
+        },
+        {
+          "industry": "仓储物流",
+          "stockCount": 36,
+          "peTtmMedian": 23.76,
+          "pbMedian": 1.82,
+          "peTtmPercentile1y": 5.37,
+          "peTtmPercentile3y": 68.46,
+          "pbPercentile1y": 58.26,
+          "pbPercentile3y": 85.95,
+          "valuationLabel": "低估"
+        },
+        {
+          "industry": "保险",
+          "stockCount": 5,
+          "peTtmMedian": 6.88,
+          "pbMedian": 1.19,
+          "peTtmPercentile1y": 5.37,
+          "peTtmPercentile3y": 2.48,
+          "pbPercentile1y": 9.09,
+          "pbPercentile3y": 59.09,
+          "valuationLabel": "低估"
+        },
+        {
+          "industry": "公路",
+          "stockCount": 2,
+          "peTtmMedian": 44.09,
+          "pbMedian": 1.54,
+          "peTtmPercentile1y": 5.79,
+          "peTtmPercentile3y": 2.62,
+          "pbPercentile1y": 7.44,
+          "pbPercentile3y": 13.09,
+          "valuationLabel": "低估"
+        },
+        {
+          "industry": "证券",
+          "stockCount": 50,
+          "peTtmMedian": 18.96,
+          "pbMedian": 1.18,
+          "peTtmPercentile1y": 5.79,
+          "peTtmPercentile3y": 1.93,
+          "pbPercentile1y": 13.22,
+          "pbPercentile3y": 38.98,
+          "valuationLabel": "低估"
+        },
+        {
+          "industry": "石油加工",
+          "stockCount": 7,
+          "peTtmMedian": 32.38,
+          "pbMedian": 2.71,
+          "peTtmPercentile1y": 8.26,
+          "peTtmPercentile3y": 4.55,
+          "pbPercentile1y": 91.74,
+          "pbPercentile3y": 97.11,
+          "valuationLabel": "低估"
+        },
+        {
+          "industry": "软饮料",
+          "stockCount": 9,
+          "peTtmMedian": 35.46,
+          "pbMedian": 4.5,
+          "peTtmPercentile1y": 11.57,
+          "peTtmPercentile3y": 68.87,
+          "pbPercentile1y": 78.1,
+          "pbPercentile3y": 92.7,
+          "valuationLabel": "低估"
+        },
+        {
+          "industry": "摩托车",
+          "stockCount": 11,
+          "peTtmMedian": 26.97,
+          "pbMedian": 4.07,
+          "peTtmPercentile1y": 12.81,
+          "peTtmPercentile3y": 69.56,
+          "pbPercentile1y": 42.98,
+          "pbPercentile3y": 80.99,
+          "valuationLabel": "低估"
+        },
+        {
+          "industry": "水务",
+          "stockCount": 15,
+          "peTtmMedian": 25.88,
+          "pbMedian": 1.16,
+          "peTtmPercentile1y": 12.81,
+          "peTtmPercentile3y": 63.5,
+          "pbPercentile1y": 1.65,
+          "pbPercentile3y": 1.38,
+          "valuationLabel": "低估"
+        },
+        {
+          "industry": "船舶",
+          "stockCount": 7,
+          "peTtmMedian": 44.25,
+          "pbMedian": 2.3,
+          "peTtmPercentile1y": 13.22,
+          "peTtmPercentile3y": 4.41,
+          "pbPercentile1y": 0,
+          "pbPercentile3y": 18.18,
+          "valuationLabel": "低估"
+        },
+        {
+          "industry": "电信运营",
+          "stockCount": 5,
+          "peTtmMedian": 16.19,
+          "pbMedian": 1.45,
+          "peTtmPercentile1y": 14.05,
+          "peTtmPercentile3y": 6.2,
+          "pbPercentile1y": 2.07,
+          "pbPercentile3y": 0.96,
+          "valuationLabel": "低估"
+        },
+        {
+          "industry": "林业",
+          "stockCount": 1,
+          "peTtmMedian": 171.57,
+          "pbMedian": 3.39,
+          "peTtmPercentile1y": 17.36,
+          "peTtmPercentile3y": 42.98,
+          "pbPercentile1y": 47.11,
+          "pbPercentile3y": 61.71,
+          "valuationLabel": "低估"
+        },
+        {
+          "industry": "出版业",
+          "stockCount": 24,
+          "peTtmMedian": 21.79,
+          "pbMedian": 1.39,
+          "peTtmPercentile1y": 17.77,
+          "peTtmPercentile3y": 68.6,
+          "pbPercentile1y": 3.72,
+          "pbPercentile3y": 4.96,
+          "valuationLabel": "低估"
+        },
+        {
+          "industry": "医药商业",
+          "stockCount": 26,
+          "peTtmMedian": 27.27,
+          "pbMedian": 1.4,
+          "peTtmPercentile1y": 19.01,
+          "peTtmPercentile3y": 71.07,
+          "pbPercentile1y": 71.07,
+          "pbPercentile3y": 47.11,
+          "valuationLabel": "低估"
+        },
+        {
+          "industry": "玻璃",
+          "stockCount": 13,
+          "peTtmMedian": 50.42,
+          "pbMedian": 4.31,
+          "peTtmPercentile1y": 21.49,
+          "peTtmPercentile3y": 73.83,
+          "pbPercentile1y": 99.59,
+          "pbPercentile3y": 99.86,
+          "valuationLabel": "低估"
+        },
+        {
+          "industry": "互联网",
+          "stockCount": 44,
+          "peTtmMedian": 60.52,
+          "pbMedian": 3.89,
+          "peTtmPercentile1y": 21.9,
+          "peTtmPercentile3y": 57.44,
+          "pbPercentile1y": 37.6,
+          "pbPercentile3y": 68.73,
+          "valuationLabel": "低估"
+        },
+        {
+          "industry": "其他建材",
+          "stockCount": 17,
+          "peTtmMedian": 45.16,
+          "pbMedian": 2.09,
+          "peTtmPercentile1y": 26.86,
+          "peTtmPercentile3y": 75.62,
+          "pbPercentile1y": 57.85,
+          "pbPercentile3y": 79.75,
+          "valuationLabel": "适中"
+        },
+        {
+          "industry": "日用化工",
+          "stockCount": 17,
+          "peTtmMedian": 39.88,
+          "pbMedian": 2.62,
+          "peTtmPercentile1y": 29.34,
+          "peTtmPercentile3y": 72.59,
+          "pbPercentile1y": 6.2,
+          "pbPercentile3y": 42.15,
+          "valuationLabel": "适中"
+        },
+        {
+          "industry": "农用机械",
+          "stockCount": 8,
+          "peTtmMedian": 50.44,
+          "pbMedian": 2.62,
+          "peTtmPercentile1y": 34.3,
+          "peTtmPercentile3y": 70.52,
+          "pbPercentile1y": 12.4,
+          "pbPercentile3y": 27.55,
+          "valuationLabel": "适中"
+        },
+        {
+          "industry": "全国地产",
+          "stockCount": 4,
+          "peTtmMedian": 83.93,
+          "pbMedian": 0.86,
+          "peTtmPercentile1y": 35.95,
+          "peTtmPercentile3y": 78.65,
+          "pbPercentile1y": 35.95,
+          "pbPercentile3y": 67.08,
+          "valuationLabel": "适中"
+        },
+        {
+          "industry": "化学制药",
+          "stockCount": 111,
+          "peTtmMedian": 35.77,
+          "pbMedian": 2.61,
+          "peTtmPercentile1y": 39.67,
+          "peTtmPercentile3y": 79.89,
+          "pbPercentile1y": 31.82,
+          "pbPercentile3y": 67.63,
+          "valuationLabel": "适中"
+        },
+        {
+          "industry": "百货",
+          "stockCount": 23,
+          "peTtmMedian": 49.42,
+          "pbMedian": 1.67,
+          "peTtmPercentile1y": 40.91,
+          "peTtmPercentile3y": 79.89,
+          "pbPercentile1y": 85.54,
+          "pbPercentile3y": 94.63,
+          "valuationLabel": "适中"
+        },
+        {
+          "industry": "路桥",
+          "stockCount": 19,
+          "peTtmMedian": 13.44,
+          "pbMedian": 0.96,
+          "peTtmPercentile1y": 40.91,
+          "peTtmPercentile3y": 68.32,
+          "pbPercentile1y": 0.41,
+          "pbPercentile3y": 0.96,
+          "valuationLabel": "适中"
+        },
+        {
+          "industry": "多元金融",
+          "stockCount": 17,
+          "peTtmMedian": 27.68,
+          "pbMedian": 1.65,
+          "peTtmPercentile1y": 41.32,
+          "peTtmPercentile3y": 80.17,
+          "pbPercentile1y": 28.93,
+          "pbPercentile3y": 70.25,
+          "valuationLabel": "适中"
+        },
+        {
+          "industry": "普钢",
+          "stockCount": 15,
+          "peTtmMedian": 24.94,
+          "pbMedian": 1.27,
+          "peTtmPercentile1y": 41.32,
+          "peTtmPercentile3y": 80.44,
+          "pbPercentile1y": 73.14,
+          "pbPercentile3y": 91.05,
+          "valuationLabel": "适中"
+        },
+        {
+          "industry": "文教休闲",
+          "stockCount": 33,
+          "peTtmMedian": 36.03,
+          "pbMedian": 2.84,
+          "peTtmPercentile1y": 42.56,
+          "peTtmPercentile3y": 60.19,
+          "pbPercentile1y": 2.48,
+          "pbPercentile3y": 39.81,
+          "valuationLabel": "适中"
+        },
+        {
+          "industry": "其他商业",
+          "stockCount": 6,
+          "peTtmMedian": 67.92,
+          "pbMedian": 5.12,
+          "peTtmPercentile1y": 43.8,
+          "peTtmPercentile3y": 50.83,
+          "pbPercentile1y": 58.26,
+          "pbPercentile3y": 86.09,
+          "valuationLabel": "适中"
+        },
+        {
+          "industry": "电器仪表",
+          "stockCount": 83,
+          "peTtmMedian": 50.58,
+          "pbMedian": 4.13,
+          "peTtmPercentile1y": 44.21,
+          "peTtmPercentile3y": 81.4,
+          "pbPercentile1y": 85.12,
+          "pbPercentile3y": 95.04,
+          "valuationLabel": "适中"
+        },
+        {
+          "industry": "中成药",
+          "stockCount": 48,
+          "peTtmMedian": 27.66,
+          "pbMedian": 2.41,
+          "peTtmPercentile1y": 44.63,
+          "peTtmPercentile3y": 53.58,
+          "pbPercentile1y": 24.79,
+          "pbPercentile3y": 25.34,
+          "valuationLabel": "适中"
+        },
+        {
+          "industry": "汽车整车",
+          "stockCount": 16,
+          "peTtmMedian": 25.32,
+          "pbMedian": 1.9,
+          "peTtmPercentile1y": 45.04,
+          "peTtmPercentile3y": 36.91,
+          "pbPercentile1y": 2.48,
+          "pbPercentile3y": 33.61,
+          "valuationLabel": "适中"
+        },
+        {
+          "industry": "乳制品",
+          "stockCount": 15,
+          "peTtmMedian": 44.18,
+          "pbMedian": 2.66,
+          "peTtmPercentile1y": 47.11,
+          "peTtmPercentile3y": 81.96,
+          "pbPercentile1y": 8.26,
+          "pbPercentile3y": 50.69,
+          "valuationLabel": "适中"
+        },
+        {
+          "industry": "白酒",
+          "stockCount": 15,
+          "peTtmMedian": 19.55,
+          "pbMedian": 2.34,
+          "peTtmPercentile1y": 47.93,
+          "peTtmPercentile3y": 29.34,
+          "pbPercentile1y": 2.07,
+          "pbPercentile3y": 0.69,
+          "valuationLabel": "适中"
+        },
+        {
+          "industry": "矿物制品",
+          "stockCount": 28,
+          "peTtmMedian": 64.99,
+          "pbMedian": 4.35,
+          "peTtmPercentile1y": 49.17,
+          "peTtmPercentile3y": 83.06,
+          "pbPercentile1y": 85.95,
+          "pbPercentile3y": 95.32,
+          "valuationLabel": "适中"
+        },
+        {
+          "industry": "超市连锁",
+          "stockCount": 4,
+          "peTtmMedian": 35.92,
+          "pbMedian": 1.93,
+          "peTtmPercentile1y": 53.72,
+          "peTtmPercentile3y": 39.26,
+          "pbPercentile1y": 45.87,
+          "pbPercentile3y": 57.16,
+          "valuationLabel": "偏高"
+        },
+        {
+          "industry": "园区开发",
+          "stockCount": 10,
+          "peTtmMedian": 21.41,
+          "pbMedian": 1.01,
+          "peTtmPercentile1y": 54.55,
+          "peTtmPercentile3y": 78.37,
+          "pbPercentile1y": 0.41,
+          "pbPercentile3y": 31.54,
+          "valuationLabel": "偏高"
+        },
+        {
+          "industry": "汽车配件",
+          "stockCount": 224,
+          "peTtmMedian": 37.94,
+          "pbMedian": 3.02,
+          "peTtmPercentile1y": 54.55,
+          "peTtmPercentile3y": 79.2,
+          "pbPercentile1y": 34.3,
+          "pbPercentile3y": 75.62,
+          "valuationLabel": "偏高"
+        },
+        {
+          "industry": "家用电器",
+          "stockCount": 74,
+          "peTtmMedian": 30.69,
+          "pbMedian": 2.68,
+          "peTtmPercentile1y": 55.37,
+          "peTtmPercentile3y": 85.12,
+          "pbPercentile1y": 43.8,
+          "pbPercentile3y": 80.85,
+          "valuationLabel": "偏高"
+        },
+        {
+          "industry": "空运",
+          "stockCount": 5,
+          "peTtmMedian": 35.8,
+          "pbMedian": 2.67,
+          "peTtmPercentile1y": 55.79,
+          "peTtmPercentile3y": 38.02,
+          "pbPercentile1y": 5.79,
+          "pbPercentile3y": 19.83,
+          "valuationLabel": "偏高"
+        },
+        {
+          "industry": "陶瓷",
+          "stockCount": 4,
+          "peTtmMedian": 66.95,
+          "pbMedian": 3.3,
+          "peTtmPercentile1y": 55.79,
+          "peTtmPercentile3y": 85.26,
+          "pbPercentile1y": 100,
+          "pbPercentile3y": 98.9,
+          "valuationLabel": "偏高"
+        },
+        {
+          "industry": "旅游景点",
+          "stockCount": 15,
+          "peTtmMedian": 32.85,
+          "pbMedian": 2.46,
+          "peTtmPercentile1y": 57.44,
+          "peTtmPercentile3y": 27.55,
+          "pbPercentile1y": 25.21,
+          "pbPercentile3y": 38.15,
+          "valuationLabel": "偏高"
+        },
+        {
+          "industry": "食品",
+          "stockCount": 76,
+          "peTtmMedian": 31.78,
+          "pbMedian": 2.37,
+          "peTtmPercentile1y": 57.44,
+          "peTtmPercentile3y": 72.87,
+          "pbPercentile1y": 21.9,
+          "pbPercentile3y": 42.98,
+          "valuationLabel": "偏高"
+        }
+      ]
+    },
+    "message": ""
+  },
+  "detail": {
+    "code": 0,
+    "data": {
+      "industry": "银行",
+      "tsCode": "BK0475.DC",
+      "returnTrend": [
+        {
+          "tradeDate": "20260320",
+          "close": 4153.4,
+          "pctChange": -0.39,
+          "cumulativeReturn": 0
+        },
+        {
+          "tradeDate": "20260323",
+          "close": 3998.76,
+          "pctChange": -3.72,
+          "cumulativeReturn": -3.72
+        },
+        {
+          "tradeDate": "20260324",
+          "close": 4097.3,
+          "pctChange": 2.46,
+          "cumulativeReturn": -1.35
+        },
+        {
+          "tradeDate": "20260325",
+          "close": 4145.41,
+          "pctChange": 1.17,
+          "cumulativeReturn": -0.19
+        },
+        {
+          "tradeDate": "20260326",
+          "close": 4155.36,
+          "pctChange": 0.24,
+          "cumulativeReturn": 0.05
+        },
+        {
+          "tradeDate": "20260327",
+          "close": 4119.83,
+          "pctChange": -0.86,
+          "cumulativeReturn": -0.81
+        },
+        {
+          "tradeDate": "20260330",
+          "close": 4136.16,
+          "pctChange": 0.4,
+          "cumulativeReturn": -0.42
+        },
+        {
+          "tradeDate": "20260331",
+          "close": 4155.7,
+          "pctChange": 0.47,
+          "cumulativeReturn": 0.06
+        },
+        {
+          "tradeDate": "20260401",
+          "close": 4155.46,
+          "pctChange": -0.01,
+          "cumulativeReturn": 0.05
+        },
+        {
+          "tradeDate": "20260402",
+          "close": 4170.86,
+          "pctChange": 0.37,
+          "cumulativeReturn": 0.42
+        },
+        {
+          "tradeDate": "20260403",
+          "close": 4119.5,
+          "pctChange": -1.23,
+          "cumulativeReturn": -0.82
+        },
+        {
+          "tradeDate": "20260407",
+          "close": 4087.39,
+          "pctChange": -0.78,
+          "cumulativeReturn": -1.59
+        },
+        {
+          "tradeDate": "20260408",
+          "close": 4137.7,
+          "pctChange": 1.23,
+          "cumulativeReturn": -0.38
+        },
+        {
+          "tradeDate": "20260409",
+          "close": 4092.52,
+          "pctChange": -1.09,
+          "cumulativeReturn": -1.47
+        },
+        {
+          "tradeDate": "20260410",
+          "close": 4096.25,
+          "pctChange": 0.09,
+          "cumulativeReturn": -1.38
+        },
+        {
+          "tradeDate": "20260413",
+          "close": 4094.6,
+          "pctChange": -0.04,
+          "cumulativeReturn": -1.42
+        },
+        {
+          "tradeDate": "20260414",
+          "close": 4128.51,
+          "pctChange": 0.83,
+          "cumulativeReturn": -0.6
+        },
+        {
+          "tradeDate": "20260415",
+          "close": 4162.35,
+          "pctChange": 0.82,
+          "cumulativeReturn": 0.22
+        },
+        {
+          "tradeDate": "20260416",
+          "close": 4147.98,
+          "pctChange": -0.35,
+          "cumulativeReturn": -0.13
+        },
+        {
+          "tradeDate": "20260417",
+          "close": 4140.8,
+          "pctChange": -0.17,
+          "cumulativeReturn": -0.3
+        }
+      ],
+      "flowTrend": [
+        {
+          "tradeDate": "20260320",
+          "netAmount": -769946368,
+          "cumulativeNet": -769946368,
+          "buyElgAmount": -559778816,
+          "buyLgAmount": -210167552
+        },
+        {
+          "tradeDate": "20260323",
+          "netAmount": -3013958656,
+          "cumulativeNet": -3783905024,
+          "buyElgAmount": -2465042688,
+          "buyLgAmount": -548915968
+        },
+        {
+          "tradeDate": "20260324",
+          "netAmount": 956059392,
+          "cumulativeNet": -2827845632,
+          "buyElgAmount": 800294144,
+          "buyLgAmount": 155765248
+        },
+        {
+          "tradeDate": "20260325",
+          "netAmount": 711675392,
+          "cumulativeNet": -2116170240,
+          "buyElgAmount": 383259904,
+          "buyLgAmount": 328415488
+        },
+        {
+          "tradeDate": "20260326",
+          "netAmount": -663973536,
+          "cumulativeNet": -2780143776,
+          "buyElgAmount": -725357728,
+          "buyLgAmount": 61384192
+        },
+        {
+          "tradeDate": "20260327",
+          "netAmount": 148367536,
+          "cumulativeNet": -2631776240,
+          "buyElgAmount": -353638736,
+          "buyLgAmount": 502006272
+        },
+        {
+          "tradeDate": "20260330",
+          "netAmount": 196370688,
+          "cumulativeNet": -2435405552,
+          "buyElgAmount": -145537536,
+          "buyLgAmount": 341908224
+        },
+        {
+          "tradeDate": "20260331",
+          "netAmount": 637628672,
+          "cumulativeNet": -1797776880,
+          "buyElgAmount": 265863680,
+          "buyLgAmount": 371764992
+        },
+        {
+          "tradeDate": "20260401",
+          "netAmount": 85970944,
+          "cumulativeNet": -1711805936,
+          "buyElgAmount": 138875136,
+          "buyLgAmount": -52904192
+        },
+        {
+          "tradeDate": "20260402",
+          "netAmount": 738089216,
+          "cumulativeNet": -973716720,
+          "buyElgAmount": 757566208,
+          "buyLgAmount": -19476992
+        },
+        {
+          "tradeDate": "20260403",
+          "netAmount": -896719952,
+          "cumulativeNet": -1870436672,
+          "buyElgAmount": -505460304,
+          "buyLgAmount": -391259648
+        },
+        {
+          "tradeDate": "20260407",
+          "netAmount": -827275344,
+          "cumulativeNet": -2697712016,
+          "buyElgAmount": -605506128,
+          "buyLgAmount": -221769216
+        },
+        {
+          "tradeDate": "20260408",
+          "netAmount": 701518336,
+          "cumulativeNet": -1996193680,
+          "buyElgAmount": 419760640,
+          "buyLgAmount": 281757696
+        },
+        {
+          "tradeDate": "20260409",
+          "netAmount": -1389600640,
+          "cumulativeNet": -3385794320,
+          "buyElgAmount": -1306878848,
+          "buyLgAmount": -82721792
+        },
+        {
+          "tradeDate": "20260410",
+          "netAmount": 9979344,
+          "cumulativeNet": -3375814976,
+          "buyElgAmount": -141135632,
+          "buyLgAmount": 151114976
+        },
+        {
+          "tradeDate": "20260413",
+          "netAmount": 717045376,
+          "cumulativeNet": -2658769600,
+          "buyElgAmount": 299038032,
+          "buyLgAmount": 418007344
+        },
+        {
+          "tradeDate": "20260414",
+          "netAmount": 1356929632,
+          "cumulativeNet": -1301839968,
+          "buyElgAmount": 1187352160,
+          "buyLgAmount": 169577472
+        },
+        {
+          "tradeDate": "20260415",
+          "netAmount": 562136064,
+          "cumulativeNet": -739703904,
+          "buyElgAmount": 929106944,
+          "buyLgAmount": -366970880
+        },
+        {
+          "tradeDate": "20260416",
+          "netAmount": -624056992,
+          "cumulativeNet": -1363760896,
+          "buyElgAmount": -452347296,
+          "buyLgAmount": -171709696
+        },
+        {
+          "tradeDate": "20260417",
+          "netAmount": -297991072,
+          "cumulativeNet": -1661751968,
+          "buyElgAmount": -447282320,
+          "buyLgAmount": 149291248
+        }
+      ],
+      "valuation": {
+        "peTtmMedian": 6.36,
+        "pbMedian": 0.6,
+        "peTtmPercentile1y": 72.31,
+        "pbPercentile1y": 40.5,
+        "valuationLabel": "偏高"
+      },
+      "topStocks": [
+        {
+          "tsCode": "601398.SH",
+          "name": "工商银行",
+          "pctChg": -0.2681,
+          "peTtm": 7.1946,
+          "pb": 0.687,
+          "totalMv": 265166255.2742
+        },
+        {
+          "tsCode": "601288.SH",
+          "name": "农业银行",
+          "pctChg": 0.8571,
+          "peTtm": 8.4898,
+          "pb": 0.8929,
+          "totalMv": 247088021.9143
+        },
+        {
+          "tsCode": "601939.SH",
+          "name": "建设银行",
+          "pctChg": -0.4233,
+          "peTtm": 7.2635,
+          "pb": 0.7108,
+          "totalMv": 246165958.9529
+        },
+        {
+          "tsCode": "601988.SH",
+          "name": "中国银行",
+          "pctChg": -0.3454,
+          "peTtm": 7.6502,
+          "pb": 0.6901,
+          "totalMv": 185916561.6167
+        },
+        {
+          "tsCode": "600036.SH",
+          "name": "招商银行",
+          "pctChg": -0.9772,
+          "peTtm": 6.6366,
+          "pb": 0.9099,
+          "totalMv": 99668829.8152
+        },
+        {
+          "tsCode": "601328.SH",
+          "name": "交通银行",
+          "pctChg": 0.578,
+          "peTtm": 6.4317,
+          "pb": 0.5382,
+          "totalMv": 61501193.8192
+        },
+        {
+          "tsCode": "601658.SH",
+          "name": "邮储银行",
+          "pctChg": 0,
+          "peTtm": 6.9663,
+          "pb": 0.6028,
+          "totalMv": 60888192.1204
+        },
+        {
+          "tsCode": "601998.SH",
+          "name": "中信银行",
+          "pctChg": -1.2063,
+          "peTtm": 6.4535,
+          "pb": 0.6296,
+          "totalMv": 45573387.8942
+        },
+        {
+          "tsCode": "601166.SH",
+          "name": "兴业银行",
+          "pctChg": -1.1284,
+          "peTtm": 5.0265,
+          "pb": 0.4809,
+          "totalMv": 38939657.4191
+        },
+        {
+          "tsCode": "600000.SH",
+          "name": "浦发银行",
+          "pctChg": -1.4,
+          "peTtm": 6.5657,
+          "pb": 0.4456,
+          "totalMv": 32839556.5638
+        },
+        {
+          "tsCode": "000001.SZ",
+          "name": "平安银行",
+          "pctChg": -0.7214,
+          "peTtm": 5.0116,
+          "pb": 0.4735,
+          "totalMv": 21365915.936
+        },
+        {
+          "tsCode": "002142.SZ",
+          "name": "宁波银行",
+          "pctChg": -0.5112,
+          "peTtm": 7.0104,
+          "pb": 0.9242,
+          "totalMv": 20563581.7263
+        },
+        {
+          "tsCode": "600919.SH",
+          "name": "江苏银行",
+          "pctChg": -0.6422,
+          "peTtm": 5.8128,
+          "pb": 0.7981,
+          "totalMv": 19874484.3934
+        },
+        {
+          "tsCode": "601818.SH",
+          "name": "光大银行",
+          "pctChg": -0.625,
+          "peTtm": 4.8393,
+          "pb": 0.3806,
+          "totalMv": 18789205.2374
+        },
+        {
+          "tsCode": "600016.SH",
+          "name": "民生银行",
+          "pctChg": -0.2688,
+          "peTtm": 5.3147,
+          "pb": 0.2877,
+          "totalMv": 16243277.2642
+        },
+        {
+          "tsCode": "601229.SH",
+          "name": "上海银行",
+          "pctChg": -0.6122,
+          "peTtm": 5.7205,
+          "pb": 0.5874,
+          "totalMv": 13839583.3995
+        },
+        {
+          "tsCode": "601009.SH",
+          "name": "南京银行",
+          "pctChg": 0,
+          "peTtm": 6.2989,
+          "pb": 0.7567,
+          "totalMv": 13735923.2092
+        },
+        {
+          "tsCode": "600926.SH",
+          "name": "杭州银行",
+          "pctChg": -0.2349,
+          "peTtm": 6.4719,
+          "pb": 0.9247,
+          "totalMv": 12316055.3291
+        },
+        {
+          "tsCode": "601169.SH",
+          "name": "北京银行",
+          "pctChg": -0.1842,
+          "peTtm": 4.361,
+          "pb": 0.4124,
+          "totalMv": 11459497.4754
+        },
+        {
+          "tsCode": "600015.SH",
+          "name": "华夏银行",
+          "pctChg": -0.9709,
+          "peTtm": 4.1777,
+          "pb": 0.3599,
+          "totalMv": 11363258.9262
+        }
+      ]
+    },
+    "message": ""
+  }
+}

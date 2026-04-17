@@ -1,0 +1,920 @@
+{
+  "data": {
+    "code": 0,
+    "data": [
+      {
+        "tsCode": "002415.SZ",
+        "name": "海康威视",
+        "groupName": "IT设备",
+        "industry": "IT设备",
+        "pctChg": -1.2224,
+        "totalMv": 30363219.4452,
+        "amount": 2654570.773
+      },
+      {
+        "tsCode": "603019.SH",
+        "name": "中科曙光",
+        "groupName": "IT设备",
+        "industry": "IT设备",
+        "pctChg": 1.0451,
+        "totalMv": 13156337.1297,
+        "amount": 5239003.645
+      },
+      {
+        "tsCode": "300857.SZ",
+        "name": "协创数据",
+        "groupName": "IT设备",
+        "industry": "IT设备",
+        "pctChg": -0.6583,
+        "totalMv": 10968567.1696,
+        "amount": 8214695.258
+      },
+      {
+        "tsCode": "301666.SZ",
+        "name": "C大普微-UW",
+        "groupName": "IT设备",
+        "industry": "IT设备",
+        "pctChg": -5.3363,
+        "totalMv": 10098408.734,
+        "amount": 4434999.899
+      },
+      {
+        "tsCode": "000977.SZ",
+        "name": "浪潮信息",
+        "groupName": "IT设备",
+        "industry": "IT设备",
+        "pctChg": -0.0732,
+        "totalMv": 10019416.2171,
+        "amount": 4252957.946
+      },
+      {
+        "tsCode": "000938.SZ",
+        "name": "紫光股份",
+        "groupName": "IT设备",
+        "industry": "IT设备",
+        "pctChg": -1.3884,
+        "totalMv": 7922421.251,
+        "amount": 2886003.914
+      },
+      {
+        "tsCode": "688775.SH",
+        "name": "影石创新",
+        "groupName": "IT设备",
+        "industry": "IT设备",
+        "pctChg": 0.4662,
+        "totalMv": 7863209,
+        "amount": 149780.809
+      },
+      {
+        "tsCode": "002236.SZ",
+        "name": "大华股份",
+        "groupName": "IT设备",
+        "industry": "IT设备",
+        "pctChg": -0.0522,
+        "totalMv": 6297423.6798,
+        "amount": 1308719.365
+      },
+      {
+        "tsCode": "000066.SZ",
+        "name": "中国长城",
+        "groupName": "IT设备",
+        "industry": "IT设备",
+        "pctChg": 0.7692,
+        "totalMv": 5070956.1663,
+        "amount": 1497026.554
+      },
+      {
+        "tsCode": "002152.SZ",
+        "name": "广电运通",
+        "groupName": "IT设备",
+        "industry": "IT设备",
+        "pctChg": 0.4146,
+        "totalMv": 3007376.6895,
+        "amount": 211899.879
+      },
+      {
+        "tsCode": "603516.SH",
+        "name": "淳中科技",
+        "groupName": "IT设备",
+        "industry": "IT设备",
+        "pctChg": 3.0719,
+        "totalMv": 2994141.7497,
+        "amount": 1069382.751
+      },
+      {
+        "tsCode": "600100.SH",
+        "name": "同方股份",
+        "groupName": "IT设备",
+        "industry": "IT设备",
+        "pctChg": 0.7255,
+        "totalMv": 2790797.9949,
+        "amount": 342189.656
+      },
+      {
+        "tsCode": "002180.SZ",
+        "name": "纳思达",
+        "groupName": "IT设备",
+        "industry": "IT设备",
+        "pctChg": 0.1127,
+        "totalMv": 2526678.8462,
+        "amount": 226354.505
+      },
+      {
+        "tsCode": "688208.SH",
+        "name": "道通科技",
+        "groupName": "IT设备",
+        "industry": "IT设备",
+        "pctChg": 0.1928,
+        "totalMv": 2437457.3386,
+        "amount": 299231.813
+      },
+      {
+        "tsCode": "688475.SH",
+        "name": "萤石网络",
+        "groupName": "IT设备",
+        "industry": "IT设备",
+        "pctChg": 0.7153,
+        "totalMv": 2328637.5,
+        "amount": 162755.943
+      },
+      {
+        "tsCode": "000997.SZ",
+        "name": "新大陆",
+        "groupName": "IT设备",
+        "industry": "IT设备",
+        "pctChg": 5.1434,
+        "totalMv": 2153846.1673,
+        "amount": 935263.124
+      },
+      {
+        "tsCode": "300455.SZ",
+        "name": "航天智装",
+        "groupName": "IT设备",
+        "industry": "IT设备",
+        "pctChg": 1.1499,
+        "totalMv": 1831026.0047,
+        "amount": 336857.616
+      },
+      {
+        "tsCode": "001339.SZ",
+        "name": "智微智能",
+        "groupName": "IT设备",
+        "industry": "IT设备",
+        "pctChg": -1.4866,
+        "totalMv": 1805502.5736,
+        "amount": 805518.84
+      },
+      {
+        "tsCode": "920808.BJ",
+        "name": "曙光数创",
+        "groupName": "IT设备",
+        "industry": "IT设备",
+        "pctChg": 3.1368,
+        "totalMv": 1644000.0082,
+        "amount": 512630.275
+      },
+      {
+        "tsCode": "301589.SZ",
+        "name": "诺瓦星云",
+        "groupName": "IT设备",
+        "industry": "IT设备",
+        "pctChg": -0.9258,
+        "totalMv": 1602770.976,
+        "amount": 85927.549
+      },
+      {
+        "tsCode": "300045.SZ",
+        "name": "华力创通",
+        "groupName": "IT设备",
+        "industry": "IT设备",
+        "pctChg": 0.2169,
+        "totalMv": 1530779.7952,
+        "amount": 396246.347
+      },
+      {
+        "tsCode": "002268.SZ",
+        "name": "电科网安",
+        "groupName": "IT设备",
+        "industry": "IT设备",
+        "pctChg": 0.2307,
+        "totalMv": 1469715.5123,
+        "amount": 125495.231
+      },
+      {
+        "tsCode": "300130.SZ",
+        "name": "新国都",
+        "groupName": "IT设备",
+        "industry": "IT设备",
+        "pctChg": 1.6631,
+        "totalMv": 1352441.1092,
+        "amount": 289559.535
+      },
+      {
+        "tsCode": "300302.SZ",
+        "name": "同有科技",
+        "groupName": "IT设备",
+        "industry": "IT设备",
+        "pctChg": 3.7431,
+        "totalMv": 1168924.4033,
+        "amount": 963046.763
+      },
+      {
+        "tsCode": "002970.SZ",
+        "name": "锐明技术",
+        "groupName": "IT设备",
+        "industry": "IT设备",
+        "pctChg": 0.4834,
+        "totalMv": 1097231.9917,
+        "amount": 380834.335
+      },
+      {
+        "tsCode": "002351.SZ",
+        "name": "漫步者",
+        "groupName": "IT设备",
+        "industry": "IT设备",
+        "pctChg": -0.5263,
+        "totalMv": 1008247.338,
+        "amount": 41213.899
+      },
+      {
+        "tsCode": "300042.SZ",
+        "name": "朗科科技",
+        "groupName": "IT设备",
+        "industry": "IT设备",
+        "pctChg": -0.5668,
+        "totalMv": 984364.8,
+        "amount": 1070675.155
+      },
+      {
+        "tsCode": "603496.SH",
+        "name": "恒为科技",
+        "groupName": "IT设备",
+        "industry": "IT设备",
+        "pctChg": -0.5984,
+        "totalMv": 957425.6366,
+        "amount": 420813.553
+      },
+      {
+        "tsCode": "301189.SZ",
+        "name": "奥尼电子",
+        "groupName": "IT设备",
+        "industry": "IT设备",
+        "pctChg": 0.1955,
+        "totalMv": 954451.013,
+        "amount": 1043375.586
+      },
+      {
+        "tsCode": "603508.SH",
+        "name": "思维列控",
+        "groupName": "IT设备",
+        "industry": "IT设备",
+        "pctChg": 0.5752,
+        "totalMv": 933359.6749,
+        "amount": 83616.853
+      },
+      {
+        "tsCode": "301330.SZ",
+        "name": "熵基科技",
+        "groupName": "IT设备",
+        "industry": "IT设备",
+        "pctChg": 0.4958,
+        "totalMv": 811021.4413,
+        "amount": 89081.341
+      },
+      {
+        "tsCode": "300249.SZ",
+        "name": "依米康",
+        "groupName": "IT设备",
+        "industry": "IT设备",
+        "pctChg": -1.3812,
+        "totalMv": 786271.0693,
+        "amount": 528200.89
+      },
+      {
+        "tsCode": "300079.SZ",
+        "name": "数码视讯",
+        "groupName": "IT设备",
+        "industry": "IT设备",
+        "pctChg": 0.5545,
+        "totalMv": 775759.2657,
+        "amount": 153310.512
+      },
+      {
+        "tsCode": "301339.SZ",
+        "name": "通行宝",
+        "groupName": "IT设备",
+        "industry": "IT设备",
+        "pctChg": -0.8909,
+        "totalMv": 774744.9822,
+        "amount": 42358.976
+      },
+      {
+        "tsCode": "002866.SZ",
+        "name": "传艺科技",
+        "groupName": "IT设备",
+        "industry": "IT设备",
+        "pctChg": 10.0042,
+        "totalMv": 764049.2336,
+        "amount": 1099079.249
+      },
+      {
+        "tsCode": "301391.SZ",
+        "name": "卡莱特",
+        "groupName": "IT设备",
+        "industry": "IT设备",
+        "pctChg": -0.6565,
+        "totalMv": 762018.7842,
+        "amount": 155611.601
+      },
+      {
+        "tsCode": "301042.SZ",
+        "name": "安联锐视",
+        "groupName": "IT设备",
+        "industry": "IT设备",
+        "pctChg": -0.0943,
+        "totalMv": 664535.4124,
+        "amount": 97659.618
+      },
+      {
+        "tsCode": "301491.SZ",
+        "name": "汉桑科技",
+        "groupName": "IT设备",
+        "industry": "IT设备",
+        "pctChg": 0,
+        "totalMv": 657255,
+        "amount": 25262.75
+      },
+      {
+        "tsCode": "300531.SZ",
+        "name": "优博讯",
+        "groupName": "IT设备",
+        "industry": "IT设备",
+        "pctChg": -0.2954,
+        "totalMv": 650184.9041,
+        "amount": 397752.159
+      },
+      {
+        "tsCode": "002528.SZ",
+        "name": "ST英飞拓",
+        "groupName": "IT设备",
+        "industry": "IT设备",
+        "pctChg": 5.0781,
+        "totalMv": 644887.1941,
+        "amount": 207440.068
+      },
+      {
+        "tsCode": "300386.SZ",
+        "name": "飞天诚信",
+        "groupName": "IT设备",
+        "industry": "IT设备",
+        "pctChg": 0.3472,
+        "totalMv": 604073.58,
+        "amount": 68142.623
+      },
+      {
+        "tsCode": "002955.SZ",
+        "name": "鸿合科技",
+        "groupName": "IT设备",
+        "industry": "IT设备",
+        "pctChg": -0.197,
+        "totalMv": 599408.8971,
+        "amount": 45244.053
+      },
+      {
+        "tsCode": "002376.SZ",
+        "name": "新北洋",
+        "groupName": "IT设备",
+        "industry": "IT设备",
+        "pctChg": -1.2448,
+        "totalMv": 578741.6543,
+        "amount": 78064.816
+      },
+      {
+        "tsCode": "603660.SH",
+        "name": "苏州科达",
+        "groupName": "IT设备",
+        "industry": "IT设备",
+        "pctChg": -1.9589,
+        "totalMv": 576361.832,
+        "amount": 169906.974
+      },
+      {
+        "tsCode": "300552.SZ",
+        "name": "万集科技",
+        "groupName": "IT设备",
+        "industry": "IT设备",
+        "pctChg": -0.149,
+        "totalMv": 571196.7402,
+        "amount": 140112.294
+      },
+      {
+        "tsCode": "300368.SZ",
+        "name": "汇金股份",
+        "groupName": "IT设备",
+        "industry": "IT设备",
+        "pctChg": -1.6468,
+        "totalMv": 568614.2356,
+        "amount": 148410.08
+      },
+      {
+        "tsCode": "300793.SZ",
+        "name": "佳禾智能",
+        "groupName": "IT设备",
+        "industry": "IT设备",
+        "pctChg": 0,
+        "totalMv": 547985.7,
+        "amount": 57679.01
+      },
+      {
+        "tsCode": "002197.SZ",
+        "name": "证通电子",
+        "groupName": "IT设备",
+        "industry": "IT设备",
+        "pctChg": -2.6764,
+        "totalMv": 491490.3424,
+        "amount": 193122.877
+      },
+      {
+        "tsCode": "300588.SZ",
+        "name": "熙菱信息",
+        "groupName": "IT设备",
+        "industry": "IT设备",
+        "pctChg": -0.1977,
+        "totalMv": 483272.8797,
+        "amount": 76822.461
+      },
+      {
+        "tsCode": "603106.SH",
+        "name": "恒银科技",
+        "groupName": "IT设备",
+        "industry": "IT设备",
+        "pctChg": -0.9783,
+        "totalMv": 474193.72,
+        "amount": 40397.301
+      }
+    ],
+    "message": ""
+  },
+  "snapshotHistory": {
+    "code": 0,
+    "data": {
+      "tradeDate": "20260417",
+      "groupBy": "industry",
+      "stockCount": 5496,
+      "isFromSnapshot": true,
+      "items": [
+        {
+          "tsCode": "002415.SZ",
+          "name": "海康威视",
+          "groupName": "IT设备",
+          "industry": "IT设备",
+          "pctChg": -1.2224,
+          "totalMv": 30363219.4452,
+          "amount": 2654570.773
+        },
+        {
+          "tsCode": "603019.SH",
+          "name": "中科曙光",
+          "groupName": "IT设备",
+          "industry": "IT设备",
+          "pctChg": 1.0451,
+          "totalMv": 13156337.1297,
+          "amount": 5239003.645
+        },
+        {
+          "tsCode": "300857.SZ",
+          "name": "协创数据",
+          "groupName": "IT设备",
+          "industry": "IT设备",
+          "pctChg": -0.6583,
+          "totalMv": 10968567.1696,
+          "amount": 8214695.258
+        },
+        {
+          "tsCode": "301666.SZ",
+          "name": "C大普微-UW",
+          "groupName": "IT设备",
+          "industry": "IT设备",
+          "pctChg": -5.3363,
+          "totalMv": 10098408.734,
+          "amount": 4434999.899
+        },
+        {
+          "tsCode": "000977.SZ",
+          "name": "浪潮信息",
+          "groupName": "IT设备",
+          "industry": "IT设备",
+          "pctChg": -0.0732,
+          "totalMv": 10019416.2171,
+          "amount": 4252957.946
+        },
+        {
+          "tsCode": "000938.SZ",
+          "name": "紫光股份",
+          "groupName": "IT设备",
+          "industry": "IT设备",
+          "pctChg": -1.3884,
+          "totalMv": 7922421.251,
+          "amount": 2886003.914
+        },
+        {
+          "tsCode": "688775.SH",
+          "name": "影石创新",
+          "groupName": "IT设备",
+          "industry": "IT设备",
+          "pctChg": 0.4662,
+          "totalMv": 7863209,
+          "amount": 149780.809
+        },
+        {
+          "tsCode": "002236.SZ",
+          "name": "大华股份",
+          "groupName": "IT设备",
+          "industry": "IT设备",
+          "pctChg": -0.0522,
+          "totalMv": 6297423.6798,
+          "amount": 1308719.365
+        },
+        {
+          "tsCode": "000066.SZ",
+          "name": "中国长城",
+          "groupName": "IT设备",
+          "industry": "IT设备",
+          "pctChg": 0.7692,
+          "totalMv": 5070956.1663,
+          "amount": 1497026.554
+        },
+        {
+          "tsCode": "002152.SZ",
+          "name": "广电运通",
+          "groupName": "IT设备",
+          "industry": "IT设备",
+          "pctChg": 0.4146,
+          "totalMv": 3007376.6895,
+          "amount": 211899.879
+        },
+        {
+          "tsCode": "603516.SH",
+          "name": "淳中科技",
+          "groupName": "IT设备",
+          "industry": "IT设备",
+          "pctChg": 3.0719,
+          "totalMv": 2994141.7497,
+          "amount": 1069382.751
+        },
+        {
+          "tsCode": "600100.SH",
+          "name": "同方股份",
+          "groupName": "IT设备",
+          "industry": "IT设备",
+          "pctChg": 0.7255,
+          "totalMv": 2790797.9949,
+          "amount": 342189.656
+        },
+        {
+          "tsCode": "002180.SZ",
+          "name": "纳思达",
+          "groupName": "IT设备",
+          "industry": "IT设备",
+          "pctChg": 0.1127,
+          "totalMv": 2526678.8462,
+          "amount": 226354.505
+        },
+        {
+          "tsCode": "688208.SH",
+          "name": "道通科技",
+          "groupName": "IT设备",
+          "industry": "IT设备",
+          "pctChg": 0.1928,
+          "totalMv": 2437457.3386,
+          "amount": 299231.813
+        },
+        {
+          "tsCode": "688475.SH",
+          "name": "萤石网络",
+          "groupName": "IT设备",
+          "industry": "IT设备",
+          "pctChg": 0.7153,
+          "totalMv": 2328637.5,
+          "amount": 162755.943
+        },
+        {
+          "tsCode": "000997.SZ",
+          "name": "新大陆",
+          "groupName": "IT设备",
+          "industry": "IT设备",
+          "pctChg": 5.1434,
+          "totalMv": 2153846.1673,
+          "amount": 935263.124
+        },
+        {
+          "tsCode": "300455.SZ",
+          "name": "航天智装",
+          "groupName": "IT设备",
+          "industry": "IT设备",
+          "pctChg": 1.1499,
+          "totalMv": 1831026.0047,
+          "amount": 336857.616
+        },
+        {
+          "tsCode": "001339.SZ",
+          "name": "智微智能",
+          "groupName": "IT设备",
+          "industry": "IT设备",
+          "pctChg": -1.4866,
+          "totalMv": 1805502.5736,
+          "amount": 805518.84
+        },
+        {
+          "tsCode": "920808.BJ",
+          "name": "曙光数创",
+          "groupName": "IT设备",
+          "industry": "IT设备",
+          "pctChg": 3.1368,
+          "totalMv": 1644000.0082,
+          "amount": 512630.275
+        },
+        {
+          "tsCode": "301589.SZ",
+          "name": "诺瓦星云",
+          "groupName": "IT设备",
+          "industry": "IT设备",
+          "pctChg": -0.9258,
+          "totalMv": 1602770.976,
+          "amount": 85927.549
+        },
+        {
+          "tsCode": "300045.SZ",
+          "name": "华力创通",
+          "groupName": "IT设备",
+          "industry": "IT设备",
+          "pctChg": 0.2169,
+          "totalMv": 1530779.7952,
+          "amount": 396246.347
+        },
+        {
+          "tsCode": "002268.SZ",
+          "name": "电科网安",
+          "groupName": "IT设备",
+          "industry": "IT设备",
+          "pctChg": 0.2307,
+          "totalMv": 1469715.5123,
+          "amount": 125495.231
+        },
+        {
+          "tsCode": "300130.SZ",
+          "name": "新国都",
+          "groupName": "IT设备",
+          "industry": "IT设备",
+          "pctChg": 1.6631,
+          "totalMv": 1352441.1092,
+          "amount": 289559.535
+        },
+        {
+          "tsCode": "300302.SZ",
+          "name": "同有科技",
+          "groupName": "IT设备",
+          "industry": "IT设备",
+          "pctChg": 3.7431,
+          "totalMv": 1168924.4033,
+          "amount": 963046.763
+        },
+        {
+          "tsCode": "002970.SZ",
+          "name": "锐明技术",
+          "groupName": "IT设备",
+          "industry": "IT设备",
+          "pctChg": 0.4834,
+          "totalMv": 1097231.9917,
+          "amount": 380834.335
+        },
+        {
+          "tsCode": "002351.SZ",
+          "name": "漫步者",
+          "groupName": "IT设备",
+          "industry": "IT设备",
+          "pctChg": -0.5263,
+          "totalMv": 1008247.338,
+          "amount": 41213.899
+        },
+        {
+          "tsCode": "300042.SZ",
+          "name": "朗科科技",
+          "groupName": "IT设备",
+          "industry": "IT设备",
+          "pctChg": -0.5668,
+          "totalMv": 984364.8,
+          "amount": 1070675.155
+        },
+        {
+          "tsCode": "603496.SH",
+          "name": "恒为科技",
+          "groupName": "IT设备",
+          "industry": "IT设备",
+          "pctChg": -0.5984,
+          "totalMv": 957425.6366,
+          "amount": 420813.553
+        },
+        {
+          "tsCode": "301189.SZ",
+          "name": "奥尼电子",
+          "groupName": "IT设备",
+          "industry": "IT设备",
+          "pctChg": 0.1955,
+          "totalMv": 954451.013,
+          "amount": 1043375.586
+        },
+        {
+          "tsCode": "603508.SH",
+          "name": "思维列控",
+          "groupName": "IT设备",
+          "industry": "IT设备",
+          "pctChg": 0.5752,
+          "totalMv": 933359.6749,
+          "amount": 83616.853
+        },
+        {
+          "tsCode": "301330.SZ",
+          "name": "熵基科技",
+          "groupName": "IT设备",
+          "industry": "IT设备",
+          "pctChg": 0.4958,
+          "totalMv": 811021.4413,
+          "amount": 89081.341
+        },
+        {
+          "tsCode": "300249.SZ",
+          "name": "依米康",
+          "groupName": "IT设备",
+          "industry": "IT设备",
+          "pctChg": -1.3812,
+          "totalMv": 786271.0693,
+          "amount": 528200.89
+        },
+        {
+          "tsCode": "300079.SZ",
+          "name": "数码视讯",
+          "groupName": "IT设备",
+          "industry": "IT设备",
+          "pctChg": 0.5545,
+          "totalMv": 775759.2657,
+          "amount": 153310.512
+        },
+        {
+          "tsCode": "301339.SZ",
+          "name": "通行宝",
+          "groupName": "IT设备",
+          "industry": "IT设备",
+          "pctChg": -0.8909,
+          "totalMv": 774744.9822,
+          "amount": 42358.976
+        },
+        {
+          "tsCode": "002866.SZ",
+          "name": "传艺科技",
+          "groupName": "IT设备",
+          "industry": "IT设备",
+          "pctChg": 10.0042,
+          "totalMv": 764049.2336,
+          "amount": 1099079.249
+        },
+        {
+          "tsCode": "301391.SZ",
+          "name": "卡莱特",
+          "groupName": "IT设备",
+          "industry": "IT设备",
+          "pctChg": -0.6565,
+          "totalMv": 762018.7842,
+          "amount": 155611.601
+        },
+        {
+          "tsCode": "301042.SZ",
+          "name": "安联锐视",
+          "groupName": "IT设备",
+          "industry": "IT设备",
+          "pctChg": -0.0943,
+          "totalMv": 664535.4124,
+          "amount": 97659.618
+        },
+        {
+          "tsCode": "301491.SZ",
+          "name": "汉桑科技",
+          "groupName": "IT设备",
+          "industry": "IT设备",
+          "pctChg": 0,
+          "totalMv": 657255,
+          "amount": 25262.75
+        },
+        {
+          "tsCode": "300531.SZ",
+          "name": "优博讯",
+          "groupName": "IT设备",
+          "industry": "IT设备",
+          "pctChg": -0.2954,
+          "totalMv": 650184.9041,
+          "amount": 397752.159
+        },
+        {
+          "tsCode": "002528.SZ",
+          "name": "ST英飞拓",
+          "groupName": "IT设备",
+          "industry": "IT设备",
+          "pctChg": 5.0781,
+          "totalMv": 644887.1941,
+          "amount": 207440.068
+        },
+        {
+          "tsCode": "300386.SZ",
+          "name": "飞天诚信",
+          "groupName": "IT设备",
+          "industry": "IT设备",
+          "pctChg": 0.3472,
+          "totalMv": 604073.58,
+          "amount": 68142.623
+        },
+        {
+          "tsCode": "002955.SZ",
+          "name": "鸿合科技",
+          "groupName": "IT设备",
+          "industry": "IT设备",
+          "pctChg": -0.197,
+          "totalMv": 599408.8971,
+          "amount": 45244.053
+        },
+        {
+          "tsCode": "002376.SZ",
+          "name": "新北洋",
+          "groupName": "IT设备",
+          "industry": "IT设备",
+          "pctChg": -1.2448,
+          "totalMv": 578741.6543,
+          "amount": 78064.816
+        },
+        {
+          "tsCode": "603660.SH",
+          "name": "苏州科达",
+          "groupName": "IT设备",
+          "industry": "IT设备",
+          "pctChg": -1.9589,
+          "totalMv": 576361.832,
+          "amount": 169906.974
+        },
+        {
+          "tsCode": "300552.SZ",
+          "name": "万集科技",
+          "groupName": "IT设备",
+          "industry": "IT设备",
+          "pctChg": -0.149,
+          "totalMv": 571196.7402,
+          "amount": 140112.294
+        },
+        {
+          "tsCode": "300368.SZ",
+          "name": "汇金股份",
+          "groupName": "IT设备",
+          "industry": "IT设备",
+          "pctChg": -1.6468,
+          "totalMv": 568614.2356,
+          "amount": 148410.08
+        },
+        {
+          "tsCode": "300793.SZ",
+          "name": "佳禾智能",
+          "groupName": "IT设备",
+          "industry": "IT设备",
+          "pctChg": 0,
+          "totalMv": 547985.7,
+          "amount": 57679.01
+        },
+        {
+          "tsCode": "002197.SZ",
+          "name": "证通电子",
+          "groupName": "IT设备",
+          "industry": "IT设备",
+          "pctChg": -2.6764,
+          "totalMv": 491490.3424,
+          "amount": 193122.877
+        },
+        {
+          "tsCode": "300588.SZ",
+          "name": "熙菱信息",
+          "groupName": "IT设备",
+          "industry": "IT设备",
+          "pctChg": -0.1977,
+          "totalMv": 483272.8797,
+          "amount": 76822.461
+        },
+        {
+          "tsCode": "603106.SH",
+          "name": "恒银科技",
+          "groupName": "IT设备",
+          "industry": "IT设备",
+          "pctChg": -0.9783,
+          "totalMv": 474193.72,
+          "amount": 40397.301
+        }
+      ]
+    },
+    "message": ""
+  }
+}

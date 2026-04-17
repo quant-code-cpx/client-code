@@ -1,0 +1,56 @@
+{
+  "templates": {
+    "code": 0,
+    "data": [
+      {
+        "id": "HEAD_SHOULDERS_TOP",
+        "name": "头肩顶",
+        "description": "左肩 → 头部 → 右肩，看跌反转形态",
+        "length": 17
+      },
+      {
+        "id": "HEAD_SHOULDERS_BOTTOM",
+        "name": "头肩底",
+        "description": "反向头肩，看涨反转形态",
+        "length": 17
+      },
+      {
+        "id": "DOUBLE_TOP",
+        "name": "双顶（M 顶）",
+        "description": "两个高点接近，中间有回调，看跌形态",
+        "length": 15
+      },
+      {
+        "id": "DOUBLE_BOTTOM",
+        "name": "双底（W 底）",
+        "description": "两个低点接近，中间有反弹，看涨形态",
+        "length": 15
+      },
+      {
+        "id": "ASCENDING_TRIANGLE",
+        "name": "上升三角形",
+        "description": "顶部水平，底部逐步抬高，通常向上突破",
+        "length": 15
+      },
+      {
+        "id": "DESCENDING_TRIANGLE",
+        "name": "下降三角形",
+        "description": "底部水平，顶部逐步降低，通常向下突破",
+        "length": 15
+      },
+      {
+        "id": "FLAG_BULLISH",
+        "name": "牛旗",
+        "description": "急涨后小幅回调整理，看涨延续",
+        "length": 15
+      },
+      {
+        "id": "V_REVERSAL",
+        "name": "V 形反转",
+        "description": "急跌后快速回升",
+        "length": 11
+      }
+    ],
+    "message": ""
+  }
+}

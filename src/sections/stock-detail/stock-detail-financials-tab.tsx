@@ -326,8 +326,8 @@ export function StockDetailFinancialsTab({ tsCode }: Props) {
                       <TableHead>
                         <TableRow>
                           <TableCell>报告期</TableCell>
-                          <TableCell align="right">营业收入(万元)</TableCell>
-                          <TableCell align="right">净利润(万元)</TableCell>
+                          <TableCell align="right">营业收入</TableCell>
+                          <TableCell align="right">净利润</TableCell>
                           <TableCell align="right">每股收益</TableCell>
                           <TableCell align="right">净资产收益率(%)</TableCell>
                         </TableRow>
@@ -336,8 +336,12 @@ export function StockDetailFinancialsTab({ tsCode }: Props) {
                         {latestExpress.map((row, i) => (
                           <TableRow key={i} hover>
                             <TableCell>{fmtPeriod(row.endDate)}</TableCell>
-                            <TableCell align="right">{formatValue(row.revenue)}</TableCell>
-                            <TableCell align="right">{formatValue(row.nIncome)}</TableCell>
+                            <TableCell align="right">
+                              {fYuanAmt(row.revenue as number | null)}
+                            </TableCell>
+                            <TableCell align="right">
+                              {fYuanAmt(row.nIncome as number | null)}
+                            </TableCell>
                             <TableCell align="right">{formatValue(row.dilutedEps)}</TableCell>
                             <TableCell align="right">
                               {formatValue(row.dilutedRoe, 'percent')}

@@ -46,10 +46,17 @@ function formatLabel(pctChg: number | null): string {
   return `${v >= 0 ? '+' : ''}${v.toFixed(1)}%`;
 }
 
-export function HeatmapTreemapChart({ items, distribution, loading, error, groupBy, sizeBy }: Props) {
+export function HeatmapTreemapChart({
+  items,
+  distribution,
+  loading,
+  error,
+  groupBy,
+  sizeBy,
+}: Props) {
   const theme = useTheme();
   const itemsRef = useRef<HeatmapItem[]>([]);
-  const [displayCount, setDisplayCount] = useState<DisplayCount>(200);
+  const [displayCount, setDisplayCount] = useState<DisplayCount>(100);
 
   useEffect(() => {
     itemsRef.current = items;
@@ -153,7 +160,9 @@ export function HeatmapTreemapChart({ items, distribution, loading, error, group
               size="small"
               exclusive
               value={displayCount}
-              onChange={(_e, v) => { if (v) setDisplayCount(v as DisplayCount); }}
+              onChange={(_e, v) => {
+                if (v) setDisplayCount(v as DisplayCount);
+              }}
             >
               <ToggleButton value={100}>100</ToggleButton>
               <ToggleButton value={200}>200</ToggleButton>

@@ -21,7 +21,7 @@ import TableContainer from '@mui/material/TableContainer';
 
 import { useRouter } from 'src/routes/hooks';
 
-import { toYi } from './utils';
+import { toYi, yuanToYi } from './utils';
 
 // ----------------------------------------------------------------------
 
@@ -45,7 +45,7 @@ export function HeatmapSectorDetailDialog({ open, onClose, sector, stocks, stock
 
   if (!sector) return null;
 
-  const netYi = toYi(sector.netAmount);
+  const netYi = yuanToYi(sector.netAmount);
   const amountYi = toYi(sector.amount);
 
   const sortedStocks = [...stocks].sort((a, b) => (b.pctChg ?? 0) - (a.pctChg ?? 0)).slice(0, 30);
@@ -54,14 +54,11 @@ export function HeatmapSectorDetailDialog({ open, onClose, sector, stocks, stock
     .slice(0, 30);
 
   const pctColor = (v: number | null) => ((v ?? 0) >= 0 ? 'error.main' : 'success.main');
-  const fmtPct = (v: number | null) =>
-    `${(v ?? 0) >= 0 ? '+' : ''}${(v ?? 0).toFixed(2)}%`;
+  const fmtPct = (v: number | null) => `${(v ?? 0) >= 0 ? '+' : ''}${(v ?? 0).toFixed(2)}%`;
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle>
-        {sector.name} — 行业详情
-      </DialogTitle>
+      <DialogTitle>{sector.name} — 行业详情</DialogTitle>
 
       <DialogContent dividers>
         {/* 摘要卡片 */}
@@ -112,15 +109,11 @@ export function HeatmapSectorDetailDialog({ open, onClose, sector, stocks, stock
                 {sortedStocks.map((s) => (
                   <TableRow key={s.tsCode}>
                     <TableCell>{s.name ?? s.tsCode}</TableCell>
-                    <TableCell sx={{ color: 'text.secondary', fontSize: 12 }}>
-                      {s.tsCode}
-                    </TableCell>
+                    <TableCell sx={{ color: 'text.secondary', fontSize: 12 }}>{s.tsCode}</TableCell>
                     <TableCell align="right" sx={{ color: pctColor(s.pctChg), fontWeight: 600 }}>
                       {fmtPct(s.pctChg)}
                     </TableCell>
-                    <TableCell align="right">
-                      {toYi((s.amount ?? 0) / 10)}
-                    </TableCell>
+                    <TableCell align="right">{toYi((s.amount ?? 0) / 10)}</TableCell>
                   </TableRow>
                 ))}
                 {sortedStocks.length === 0 && (
@@ -150,9 +143,7 @@ export function HeatmapSectorDetailDialog({ open, onClose, sector, stocks, stock
                 {sortedFlows.map((s) => (
                   <TableRow key={s.tsCode}>
                     <TableCell>{s.name ?? s.tsCode}</TableCell>
-                    <TableCell sx={{ color: 'text.secondary', fontSize: 12 }}>
-                      {s.tsCode}
-                    </TableCell>
+                    <TableCell sx={{ color: 'text.secondary', fontSize: 12 }}>{s.tsCode}</TableCell>
                     <TableCell
                       align="right"
                       sx={{

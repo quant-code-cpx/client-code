@@ -20,9 +20,9 @@ import { Chart, useChart } from 'src/components/chart';
 
 // ----------------------------------------------------------------------
 
-/** 千元 → 万元 */
-function toWan(qianYuan: number): number {
-  return +(qianYuan / 10).toFixed(2);
+/** 万元值保留 2 位小数 */
+function fmtWan(wanYuan: number): number {
+  return +wanYuan.toFixed(2);
 }
 
 // ----------------------------------------------------------------------
@@ -63,9 +63,9 @@ export function StockFlowDetailDialog({ open, tsCode, stockName, onClose }: Prop
   }, [open, tsCode]);
 
   const categories = data.map((d) => fmtDate(d.tradeDate));
-  const mainNet = data.map((d) => toWan(d.mainNetInflow));
-  const retailNet = data.map((d) => toWan(d.retailNetInflow));
-  const totalNet = data.map((d) => toWan(d.netMfAmount));
+  const mainNet = data.map((d) => fmtWan(d.mainNetInflow));
+  const retailNet = data.map((d) => fmtWan(d.retailNetInflow));
+  const totalNet = data.map((d) => fmtWan(d.netMfAmount));
 
   const chartOptions = useChart({
     chart: { type: 'line', stacked: false },

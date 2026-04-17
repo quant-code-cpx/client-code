@@ -1,0 +1,918 @@
+{
+  "calendar": {
+    "code": 0,
+    "data": {
+      "startDate": "20260317",
+      "endDate": "20260417",
+      "totalCount": 44915,
+      "events": [
+        {
+          "date": "20260317",
+          "tsCode": "300765.SZ",
+          "stockName": "新诺威",
+          "type": "DISCLOSURE",
+          "title": "财报披露（实际）",
+          "detail": {
+            "endDate": "20251231",
+            "actualDate": "20260317",
+            "preDate": "20260317"
+          }
+        },
+        {
+          "date": "20260317",
+          "tsCode": "300857.SZ",
+          "stockName": "协创数据",
+          "type": "DISCLOSURE",
+          "title": "财报披露（实际）",
+          "detail": {
+            "endDate": "20251231",
+            "actualDate": "20260317",
+            "preDate": "20260317"
+          }
+        },
+        {
+          "date": "20260317",
+          "tsCode": "000099.SZ",
+          "stockName": "中信海直",
+          "type": "DISCLOSURE",
+          "title": "财报披露（实际）",
+          "detail": {
+            "endDate": "20251231",
+            "actualDate": "20260317",
+            "preDate": "20260317"
+          }
+        },
+        {
+          "date": "20260317",
+          "tsCode": "920186.BJ",
+          "stockName": null,
+          "type": "DISCLOSURE",
+          "title": "财报披露（实际）",
+          "detail": {
+            "endDate": "20251231",
+            "actualDate": "20260317",
+            "preDate": "20260317"
+          }
+        },
+        {
+          "date": "20260317",
+          "tsCode": "002282.SZ",
+          "stockName": "博深股份",
+          "type": "DISCLOSURE",
+          "title": "财报披露（实际）",
+          "detail": {
+            "endDate": "20251231",
+            "actualDate": "20260317",
+            "preDate": "20260317"
+          }
+        },
+        {
+          "date": "20260317",
+          "tsCode": "002879.SZ",
+          "stockName": "长缆科技",
+          "type": "DISCLOSURE",
+          "title": "财报披露（实际）",
+          "detail": {
+            "endDate": "20251231",
+            "actualDate": "20260317",
+            "preDate": "20260317"
+          }
+        },
+        {
+          "date": "20260317",
+          "tsCode": "688615.SH",
+          "stockName": "合合信息",
+          "type": "DISCLOSURE",
+          "title": "财报披露（实际）",
+          "detail": {
+            "endDate": "20251231",
+            "actualDate": "20260317",
+            "preDate": "20260317"
+          }
+        },
+        {
+          "date": "20260317",
+          "tsCode": "600282.SH",
+          "stockName": "南钢股份",
+          "type": "DISCLOSURE",
+          "title": "财报披露（实际）",
+          "detail": {
+            "endDate": "20251231",
+            "actualDate": "20260317",
+            "preDate": "20260317"
+          }
+        },
+        {
+          "date": "20260317",
+          "tsCode": "300774.SZ",
+          "stockName": "倍杰特",
+          "type": "DISCLOSURE",
+          "title": "财报披露（实际）",
+          "detail": {
+            "endDate": "20251231",
+            "actualDate": "20260317",
+            "preDate": "20260317"
+          }
+        },
+        {
+          "date": "20260317",
+          "tsCode": "920476.BJ",
+          "stockName": "海能技术",
+          "type": "DISCLOSURE",
+          "title": "财报披露（实际）",
+          "detail": {
+            "endDate": "20251231",
+            "actualDate": "20260317",
+            "preDate": "20260317"
+          }
+        },
+        {
+          "date": "20260317",
+          "tsCode": "688586.SH",
+          "stockName": "江航装备",
+          "type": "DISCLOSURE",
+          "title": "财报披露（实际）",
+          "detail": {
+            "endDate": "20251231",
+            "actualDate": "20260317",
+            "preDate": "20260317"
+          }
+        },
+        {
+          "date": "20260317",
+          "tsCode": "300788.SZ",
+          "stockName": "中信出版",
+          "type": "DISCLOSURE",
+          "title": "财报披露（实际）",
+          "detail": {
+            "endDate": "20251231",
+            "actualDate": "20260317",
+            "preDate": "20260317"
+          }
+        },
+        {
+          "date": "20260317",
+          "tsCode": "001979.SZ",
+          "stockName": "招商蛇口",
+          "type": "DISCLOSURE",
+          "title": "财报披露（实际）",
+          "detail": {
+            "endDate": "20251231",
+            "actualDate": "20260317",
+            "preDate": "20260317"
+          }
+        },
+        {
+          "date": "20260317",
+          "tsCode": "688297.SH",
+          "stockName": "中无人机",
+          "type": "DISCLOSURE",
+          "title": "财报披露（实际）",
+          "detail": {
+            "endDate": "20251231",
+            "actualDate": "20260317",
+            "preDate": "20260317"
+          }
+        },
+        {
+          "date": "20260317",
+          "tsCode": "600871.SH",
+          "stockName": "石化油服",
+          "type": "DISCLOSURE",
+          "title": "财报披露（实际）",
+          "detail": {
+            "endDate": "20251231",
+            "actualDate": "20260317",
+            "preDate": "20260317"
+          }
+        },
+        {
+          "date": "20260317",
+          "tsCode": "600237.SH",
+          "stockName": "铜峰电子",
+          "type": "DISCLOSURE",
+          "title": "财报披露（实际）",
+          "detail": {
+            "endDate": "20251231",
+            "actualDate": "20260317",
+            "preDate": "20260317"
+          }
+        },
+        {
+          "date": "20260317",
+          "tsCode": "688127.SH",
+          "stockName": "蓝特光学",
+          "type": "DISCLOSURE",
+          "title": "财报披露（实际）",
+          "detail": {
+            "endDate": "20251231",
+            "actualDate": "20260317",
+            "preDate": "20260317"
+          }
+        },
+        {
+          "date": "20260317",
+          "tsCode": "603333.SH",
+          "stockName": "尚纬股份",
+          "type": "DISCLOSURE",
+          "title": "财报披露（实际）",
+          "detail": {
+            "endDate": "20251231",
+            "actualDate": "20260317",
+            "preDate": "20260317"
+          }
+        },
+        {
+          "date": "20260317",
+          "tsCode": "001210.SZ",
+          "stockName": "金房能源",
+          "type": "DISCLOSURE",
+          "title": "财报披露（实际）",
+          "detail": {
+            "endDate": "20251231",
+            "actualDate": "20260317",
+            "preDate": "20260317"
+          }
+        },
+        {
+          "date": "20260317",
+          "tsCode": "300222.SZ",
+          "stockName": "科大智能",
+          "type": "DISCLOSURE",
+          "title": "财报披露（实际）",
+          "detail": {
+            "endDate": "20251231",
+            "actualDate": "20260317",
+            "preDate": "20260317"
+          }
+        },
+        {
+          "date": "20260317",
+          "tsCode": "000708.SZ",
+          "stockName": "中信特钢",
+          "type": "DISCLOSURE",
+          "title": "财报披露（实际）",
+          "detail": {
+            "endDate": "20251231",
+            "actualDate": "20260317",
+            "preDate": "20260317"
+          }
+        },
+        {
+          "date": "20260317",
+          "tsCode": "920445.BJ",
+          "stockName": "龙竹科技",
+          "type": "FLOAT",
+          "title": "限售解禁 12.00%",
+          "detail": {
+            "floatRatio": 0.12,
+            "floatShare": 182078
+          }
+        },
+        {
+          "date": "20260317",
+          "tsCode": "920445.BJ",
+          "stockName": "龙竹科技",
+          "type": "FLOAT",
+          "title": "限售解禁 17.00%",
+          "detail": {
+            "floatRatio": 0.17,
+            "floatShare": 254267
+          }
+        },
+        {
+          "date": "20260317",
+          "tsCode": "920139.BJ",
+          "stockName": "华岭股份",
+          "type": "FLOAT",
+          "title": "限售解禁 60.00%",
+          "detail": {
+            "floatRatio": 0.6,
+            "floatShare": 1607566
+          }
+        },
+        {
+          "date": "20260317",
+          "tsCode": "920570.BJ",
+          "stockName": "坤博精工",
+          "type": "FLOAT",
+          "title": "限售解禁 171.83%",
+          "detail": {
+            "floatRatio": 1.7183,
+            "floatShare": 862046
+          }
+        },
+        {
+          "date": "20260317",
+          "tsCode": "300375.SZ",
+          "stockName": "鹏翎股份",
+          "type": "FLOAT",
+          "title": "限售解禁 1199.19%",
+          "detail": {
+            "floatRatio": 11.9919,
+            "floatShare": 90584415
+          }
+        },
+        {
+          "date": "20260317",
+          "tsCode": "300293.SZ",
+          "stockName": "蓝英装备",
+          "type": "FLOAT",
+          "title": "限售解禁 2072.59%",
+          "detail": {
+            "floatRatio": 20.7259,
+            "floatShare": 58102189
+          }
+        },
+        {
+          "date": "20260317",
+          "tsCode": "301439.SZ",
+          "stockName": "泓淋电力",
+          "type": "FLOAT",
+          "title": "限售解禁 5290.51%",
+          "detail": {
+            "floatRatio": 52.9051,
+            "floatShare": 205854885
+          }
+        },
+        {
+          "date": "20260318",
+          "tsCode": "605028.SH",
+          "stockName": "世茂能源",
+          "type": "DISCLOSURE",
+          "title": "财报披露（实际）",
+          "detail": {
+            "endDate": "20251231",
+            "actualDate": "20260318",
+            "preDate": "20260318"
+          }
+        },
+        {
+          "date": "20260318",
+          "tsCode": "002912.SZ",
+          "stockName": "中新赛克",
+          "type": "DISCLOSURE",
+          "title": "财报披露（实际）",
+          "detail": {
+            "endDate": "20251231",
+            "actualDate": "20260318",
+            "preDate": "20260318"
+          }
+        },
+        {
+          "date": "20260318",
+          "tsCode": "000014.SZ",
+          "stockName": "沙河股份",
+          "type": "DISCLOSURE",
+          "title": "财报披露（实际）",
+          "detail": {
+            "endDate": "20251231",
+            "actualDate": "20260318",
+            "preDate": "20260318"
+          }
+        },
+        {
+          "date": "20260318",
+          "tsCode": "002955.SZ",
+          "stockName": "鸿合科技",
+          "type": "DISCLOSURE",
+          "title": "财报披露（实际）",
+          "detail": {
+            "endDate": "20251231",
+            "actualDate": "20260318",
+            "preDate": "20260318"
+          }
+        },
+        {
+          "date": "20260318",
+          "tsCode": "300050.SZ",
+          "stockName": "世纪鼎利",
+          "type": "DISCLOSURE",
+          "title": "财报披露（实际）",
+          "detail": {
+            "endDate": "20251231",
+            "actualDate": "20260318",
+            "preDate": "20260318"
+          }
+        },
+        {
+          "date": "20260318",
+          "tsCode": "301076.SZ",
+          "stockName": "新瀚新材",
+          "type": "DISCLOSURE",
+          "title": "财报披露（实际）",
+          "detail": {
+            "endDate": "20251231",
+            "actualDate": "20260318",
+            "preDate": "20260318"
+          }
+        },
+        {
+          "date": "20260318",
+          "tsCode": "603990.SH",
+          "stockName": "麦迪科技",
+          "type": "DISCLOSURE",
+          "title": "财报披露（实际）",
+          "detail": {
+            "endDate": "20251231",
+            "actualDate": "20260318",
+            "preDate": "20260318"
+          }
+        },
+        {
+          "date": "20260318",
+          "tsCode": "688656.SH",
+          "stockName": "浩欧博",
+          "type": "DISCLOSURE",
+          "title": "财报披露（实际）",
+          "detail": {
+            "endDate": "20251231",
+            "actualDate": "20260318",
+            "preDate": "20260318"
+          }
+        },
+        {
+          "date": "20260318",
+          "tsCode": "300972.SZ",
+          "stockName": "万辰集团",
+          "type": "DISCLOSURE",
+          "title": "财报披露（实际）",
+          "detail": {
+            "endDate": "20251231",
+            "actualDate": "20260318",
+            "preDate": "20260318"
+          }
+        },
+        {
+          "date": "20260318",
+          "tsCode": "600660.SH",
+          "stockName": "福耀玻璃",
+          "type": "DISCLOSURE",
+          "title": "财报披露（实际）",
+          "detail": {
+            "endDate": "20251231",
+            "actualDate": "20260318",
+            "preDate": "20260318"
+          }
+        },
+        {
+          "date": "20260318",
+          "tsCode": "300554.SZ",
+          "stockName": "三超新材",
+          "type": "DISCLOSURE",
+          "title": "财报披露（实际）",
+          "detail": {
+            "endDate": "20251231",
+            "actualDate": "20260318",
+            "preDate": "20260318"
+          }
+        },
+        {
+          "date": "20260318",
+          "tsCode": "688639.SH",
+          "stockName": "华恒生物",
+          "type": "DISCLOSURE",
+          "title": "财报披露（实际）",
+          "detail": {
+            "endDate": "20251231",
+            "actualDate": "20260318",
+            "preDate": "20260318"
+          }
+        },
+        {
+          "date": "20260318",
+          "tsCode": "002985.SZ",
+          "stockName": "北摩高科",
+          "type": "DISCLOSURE",
+          "title": "财报披露（实际）",
+          "detail": {
+            "endDate": "20251231",
+            "actualDate": "20260318",
+            "preDate": "20260318"
+          }
+        },
+        {
+          "date": "20260318",
+          "tsCode": "688535.SH",
+          "stockName": "华海诚科",
+          "type": "DISCLOSURE",
+          "title": "财报披露（实际）",
+          "detail": {
+            "endDate": "20251231",
+            "actualDate": "20260318",
+            "preDate": "20260318"
+          }
+        },
+        {
+          "date": "20260318",
+          "tsCode": "003019.SZ",
+          "stockName": "宸展光电",
+          "type": "DISCLOSURE",
+          "title": "财报披露（实际）",
+          "detail": {
+            "endDate": "20251231",
+            "actualDate": "20260318",
+            "preDate": "20260318"
+          }
+        },
+        {
+          "date": "20260318",
+          "tsCode": "002752.SZ",
+          "stockName": "昇兴股份",
+          "type": "DISCLOSURE",
+          "title": "财报披露（实际）",
+          "detail": {
+            "endDate": "20251231",
+            "actualDate": "20260318",
+            "preDate": "20260318"
+          }
+        },
+        {
+          "date": "20260318",
+          "tsCode": "688678.SH",
+          "stockName": "福立旺",
+          "type": "DISCLOSURE",
+          "title": "财报披露（实际）",
+          "detail": {
+            "endDate": "20251231",
+            "actualDate": "20260318",
+            "preDate": "20260318"
+          }
+        },
+        {
+          "date": "20260318",
+          "tsCode": "605123.SH",
+          "stockName": "派克新材",
+          "type": "DISCLOSURE",
+          "title": "财报披露（实际）",
+          "detail": {
+            "endDate": "20251231",
+            "actualDate": "20260318",
+            "preDate": "20260318"
+          }
+        },
+        {
+          "date": "20260318",
+          "tsCode": "920876.BJ",
+          "stockName": "慧为智能",
+          "type": "FLOAT",
+          "title": "限售解禁 12.00%",
+          "detail": {
+            "floatRatio": 0.12,
+            "floatShare": 78875
+          }
+        },
+        {
+          "date": "20260318",
+          "tsCode": "920876.BJ",
+          "stockName": "慧为智能",
+          "type": "FLOAT",
+          "title": "限售解禁 75.00%",
+          "detail": {
+            "floatRatio": 0.75,
+            "floatShare": 479668
+          }
+        },
+        {
+          "date": "20260318",
+          "tsCode": "920876.BJ",
+          "stockName": "慧为智能",
+          "type": "FLOAT",
+          "title": "限售解禁 1.00%",
+          "detail": {
+            "floatRatio": 0.01,
+            "floatShare": 8039
+          }
+        },
+        {
+          "date": "20260318",
+          "tsCode": "920876.BJ",
+          "stockName": "慧为智能",
+          "type": "FLOAT",
+          "title": "限售解禁 7.00%",
+          "detail": {
+            "floatRatio": 0.07,
+            "floatShare": 44349
+          }
+        }
+      ]
+    },
+    "message": ""
+  },
+  "priceRules": {
+    "code": 0,
+    "data": [],
+    "message": ""
+  },
+  "anomalies": {
+    "code": 0,
+    "data": {
+      "page": 1,
+      "pageSize": 20,
+      "total": 98,
+      "items": [
+        {
+          "id": 82,
+          "tradeDate": "20260413",
+          "tsCode": "688690.SH",
+          "stockName": "纳微科技",
+          "anomalyType": "VOLUME_SURGE",
+          "value": 7.758542015946751,
+          "threshold": 3,
+          "detail": {
+            "vol": 385852.63,
+            "avg20Vol": 49732.62105263158,
+            "tradeDateStr": "20260413"
+          },
+          "scannedAt": "2026-04-13T11:00:03.408Z"
+        },
+        {
+          "id": 35,
+          "tradeDate": "20260413",
+          "tsCode": "002962.SZ",
+          "stockName": "五方光电",
+          "anomalyType": "VOLUME_SURGE",
+          "value": 7.426388619665105,
+          "threshold": 3,
+          "detail": {
+            "vol": 523015.59,
+            "avg20Vol": 70426.63894736841,
+            "tradeDateStr": "20260413"
+          },
+          "scannedAt": "2026-04-13T11:00:03.392Z"
+        },
+        {
+          "id": 58,
+          "tradeDate": "20260413",
+          "tsCode": "002542.SZ",
+          "stockName": "中化岩土",
+          "anomalyType": "VOLUME_SURGE",
+          "value": 7.088533152876969,
+          "threshold": 3,
+          "detail": {
+            "vol": 2345026.62,
+            "avg20Vol": 330819.7294736842,
+            "tradeDateStr": "20260413"
+          },
+          "scannedAt": "2026-04-13T11:00:03.405Z"
+        },
+        {
+          "id": 19,
+          "tradeDate": "20260413",
+          "tsCode": "000402.SZ",
+          "stockName": "金融街",
+          "anomalyType": "VOLUME_SURGE",
+          "value": 6.927955588510582,
+          "threshold": 3,
+          "detail": {
+            "vol": 1466659.25,
+            "avg20Vol": 211701.5952631579,
+            "tradeDateStr": "20260413"
+          },
+          "scannedAt": "2026-04-13T11:00:03.391Z"
+        },
+        {
+          "id": 48,
+          "tradeDate": "20260413",
+          "tsCode": "603202.SH",
+          "stockName": "天有为",
+          "anomalyType": "VOLUME_SURGE",
+          "value": 6.814073416925246,
+          "threshold": 3,
+          "detail": {
+            "vol": 82108.29,
+            "avg20Vol": 12049.81,
+            "tradeDateStr": "20260413"
+          },
+          "scannedAt": "2026-04-13T11:00:03.404Z"
+        },
+        {
+          "id": 29,
+          "tradeDate": "20260413",
+          "tsCode": "600480.SH",
+          "stockName": "凌云股份",
+          "anomalyType": "VOLUME_SURGE",
+          "value": 6.681051357803237,
+          "threshold": 3,
+          "detail": {
+            "vol": 1059177.14,
+            "avg20Vol": 158534.5005263158,
+            "tradeDateStr": "20260413"
+          },
+          "scannedAt": "2026-04-13T11:00:03.403Z"
+        },
+        {
+          "id": 42,
+          "tradeDate": "20260413",
+          "tsCode": "603889.SH",
+          "stockName": "新澳股份",
+          "anomalyType": "VOLUME_SURGE",
+          "value": 6.653748457793071,
+          "threshold": 3,
+          "detail": {
+            "vol": 556136.09,
+            "avg20Vol": 83582.37368421053,
+            "tradeDateStr": "20260413"
+          },
+          "scannedAt": "2026-04-13T11:00:03.404Z"
+        },
+        {
+          "id": 60,
+          "tradeDate": "20260413",
+          "tsCode": "600103.SH",
+          "stockName": "青山纸业",
+          "anomalyType": "VOLUME_SURGE",
+          "value": 6.61778868268016,
+          "threshold": 3,
+          "detail": {
+            "vol": 4601433.13,
+            "avg20Vol": 695312.7926315789,
+            "tradeDateStr": "20260413"
+          },
+          "scannedAt": "2026-04-13T11:00:03.406Z"
+        },
+        {
+          "id": 96,
+          "tradeDate": "20260413",
+          "tsCode": "688478.SH",
+          "stockName": "晶升股份",
+          "anomalyType": "VOLUME_SURGE",
+          "value": 6.446095865492494,
+          "threshold": 3,
+          "detail": {
+            "vol": 135190.81,
+            "avg20Vol": 20972.51,
+            "tradeDateStr": "20260413"
+          },
+          "scannedAt": "2026-04-13T11:00:03.412Z"
+        },
+        {
+          "id": 88,
+          "tradeDate": "20260413",
+          "tsCode": "600749.SH",
+          "stockName": "西藏旅游",
+          "anomalyType": "VOLUME_SURGE",
+          "value": 6.391732636893524,
+          "threshold": 3,
+          "detail": {
+            "vol": 370017.51,
+            "avg20Vol": 57890.01684210527,
+            "tradeDateStr": "20260413"
+          },
+          "scannedAt": "2026-04-13T11:00:03.409Z"
+        },
+        {
+          "id": 75,
+          "tradeDate": "20260413",
+          "tsCode": "000586.SZ",
+          "stockName": "汇源通信",
+          "anomalyType": "VOLUME_SURGE",
+          "value": 6.341575007269067,
+          "threshold": 3,
+          "detail": {
+            "vol": 694274.25,
+            "avg20Vol": 109479.7821052631,
+            "tradeDateStr": "20260413"
+          },
+          "scannedAt": "2026-04-13T11:00:03.407Z"
+        },
+        {
+          "id": 69,
+          "tradeDate": "20260413",
+          "tsCode": "600707.SH",
+          "stockName": "彩虹股份",
+          "anomalyType": "VOLUME_SURGE",
+          "value": 6.247913724042938,
+          "threshold": 3,
+          "detail": {
+            "vol": 1637688.42,
+            "avg20Vol": 262117.6431578947,
+            "tradeDateStr": "20260413"
+          },
+          "scannedAt": "2026-04-13T11:00:03.407Z"
+        },
+        {
+          "id": 93,
+          "tradeDate": "20260413",
+          "tsCode": "600983.SH",
+          "stockName": "惠而浦",
+          "anomalyType": "VOLUME_SURGE",
+          "value": 6.245947086630064,
+          "threshold": 3,
+          "detail": {
+            "vol": 272627.99,
+            "avg20Vol": 43648.78315789473,
+            "tradeDateStr": "20260413"
+          },
+          "scannedAt": "2026-04-13T11:00:03.410Z"
+        },
+        {
+          "id": 89,
+          "tradeDate": "20260413",
+          "tsCode": "920237.BJ",
+          "stockName": "力佳科技",
+          "anomalyType": "VOLUME_SURGE",
+          "value": 6.191130079792169,
+          "threshold": 3,
+          "detail": {
+            "vol": 82233.48,
+            "avg20Vol": 13282.46684210526,
+            "tradeDateStr": "20260413"
+          },
+          "scannedAt": "2026-04-13T11:00:03.408Z"
+        },
+        {
+          "id": 9,
+          "tradeDate": "20260413",
+          "tsCode": "002988.SZ",
+          "stockName": "豪美新材",
+          "anomalyType": "VOLUME_SURGE",
+          "value": 5.851567986605556,
+          "threshold": 3,
+          "detail": {
+            "vol": 194376.56,
+            "avg20Vol": 33217.85894736843,
+            "tradeDateStr": "20260413"
+          },
+          "scannedAt": "2026-04-13T11:00:03.400Z"
+        },
+        {
+          "id": 65,
+          "tradeDate": "20260413",
+          "tsCode": "603350.SH",
+          "stockName": "安乃达",
+          "anomalyType": "VOLUME_SURGE",
+          "value": 5.667468128986546,
+          "threshold": 3,
+          "detail": {
+            "vol": 41897.48,
+            "avg20Vol": 7392.627368421054,
+            "tradeDateStr": "20260413"
+          },
+          "scannedAt": "2026-04-13T11:00:03.406Z"
+        },
+        {
+          "id": 81,
+          "tradeDate": "20260413",
+          "tsCode": "600713.SH",
+          "stockName": "南京医药",
+          "anomalyType": "VOLUME_SURGE",
+          "value": 5.524850223632316,
+          "threshold": 3,
+          "detail": {
+            "vol": 1505269.02,
+            "avg20Vol": 272454.2673684211,
+            "tradeDateStr": "20260413"
+          },
+          "scannedAt": "2026-04-13T11:00:03.408Z"
+        },
+        {
+          "id": 80,
+          "tradeDate": "20260413",
+          "tsCode": "603777.SH",
+          "stockName": "来伊份",
+          "anomalyType": "VOLUME_SURGE",
+          "value": 5.468146547960366,
+          "threshold": 3,
+          "detail": {
+            "vol": 692833.05,
+            "avg20Vol": 126703.4531578947,
+            "tradeDateStr": "20260413"
+          },
+          "scannedAt": "2026-04-13T11:00:03.408Z"
+        },
+        {
+          "id": 86,
+          "tradeDate": "20260413",
+          "tsCode": "000889.SZ",
+          "stockName": "中嘉博创",
+          "anomalyType": "VOLUME_SURGE",
+          "value": 5.429537700866996,
+          "threshold": 3,
+          "detail": {
+            "vol": 2171211.09,
+            "avg20Vol": 399888.7584210527,
+            "tradeDateStr": "20260413"
+          },
+          "scannedAt": "2026-04-13T11:00:03.409Z"
+        },
+        {
+          "id": 63,
+          "tradeDate": "20260413",
+          "tsCode": "600655.SH",
+          "stockName": "豫园股份",
+          "anomalyType": "VOLUME_SURGE",
+          "value": 5.346664946919196,
+          "threshold": 3,
+          "detail": {
+            "vol": 593433.87,
+            "avg20Vol": 110991.4078947368,
+            "tradeDateStr": "20260413"
+          },
+          "scannedAt": "2026-04-13T11:00:03.406Z"
+        }
+      ]
+    },
+    "message": ""
+  }
+}

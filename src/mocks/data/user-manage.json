@@ -1,0 +1,73 @@
+{
+  "profile": {
+    "code": 0,
+    "data": {
+      "id": 1,
+      "account": "superadmin",
+      "nickname": "超级管理员",
+      "role": "SUPER_ADMIN",
+      "status": "ACTIVE",
+      "email": null,
+      "wechat": null,
+      "lastLoginAt": "2026-04-17T17:08:53.345Z",
+      "backtestQuota": -1,
+      "watchlistLimit": -1,
+      "createdAt": "2026-04-12T16:02:51.110Z",
+      "updatedAt": "2026-04-17T17:08:53.346Z"
+    },
+    "message": ""
+  },
+  "list": {
+    "code": 0,
+    "data": {
+      "total": 1,
+      "page": 1,
+      "pageSize": 20,
+      "items": [
+        {
+          "id": 1,
+          "account": "superadmin",
+          "nickname": "超级管理员",
+          "role": "SUPER_ADMIN",
+          "status": "ACTIVE",
+          "email": null,
+          "wechat": null,
+          "lastLoginAt": "2026-04-17T17:08:53.345Z",
+          "backtestQuota": -1,
+          "watchlistLimit": -1,
+          "createdAt": "2026-04-12T16:02:51.110Z",
+          "updatedAt": "2026-04-17T17:08:53.346Z"
+        }
+      ]
+    },
+    "message": ""
+  },
+  "auditLogs": {
+    "code": 0,
+    "data": {
+      "total": 0,
+      "page": 1,
+      "pageSize": 20,
+      "items": []
+    },
+    "message": ""
+  },
+  "detail": {
+    "code": 0,
+    "data": {
+      "id": 1,
+      "account": "superadmin",
+      "nickname": "超级管理员",
+      "role": "SUPER_ADMIN",
+      "status": "ACTIVE",
+      "email": null,
+      "wechat": null,
+      "lastLoginAt": "2026-04-17T17:08:53.345Z",
+      "backtestQuota": -1,
+      "watchlistLimit": -1,
+      "createdAt": "2026-04-12T16:02:51.110Z",
+      "updatedAt": "2026-04-17T17:08:53.346Z"
+    },
+    "message": ""
+  }
+}
