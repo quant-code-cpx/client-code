@@ -85,6 +85,9 @@ const routeMap: Record<string, unknown> = {
   '/api/stock/detail/analysis/factors': r(stockData, 'detail_factors'),
   '/api/stock/detail/analysis/factors/latest': r(stockData, 'detail_factorsLatest'),
 
+  '/api/stock/detail/dividend-financing': ok({ tsCode: '', dividends: [], allotments: [] }),
+  '/api/stock/minute-kline': ok([]),
+
   // ── Screener ──
   '/api/stock/screener': r(screenerData, 'screener'),
   '/api/stock/screener/presets': r(screenerData, 'presets'),
@@ -117,6 +120,8 @@ const routeMap: Record<string, unknown> = {
   '/api/market/sector-flow': r(marketData, 'sectorFlow'),
   '/api/market/concept/list': r(marketData, 'conceptList'),
   '/api/market/concept/members': r(marketData, 'conceptMembers'),
+  '/api/market/daily-info': ok(null),
+  '/api/market/sector-daily': ok([]),
 
   // ── Industry Rotation ──
   '/api/industry-rotation/overview': r(industryRotationData, 'overview'),
@@ -185,19 +190,33 @@ const routeMap: Record<string, unknown> = {
   '/api/backtests/comparisons': ok(null),
   '/api/backtests/comparisons/detail': ok(null),
   '/api/backtests/comparisons/equity': ok(null),
+  '/api/backtests/runs/rebalance-logs': ok({ items: [], total: 0 }),
 
   // ── Portfolio ──
   '/api/portfolio/list': r(portfolioData, 'list'),
   '/api/portfolio/detail': r(portfolioData, 'detail'),
   '/api/portfolio/create': ok({ id: 'mock-portfolio-1' }),
+  '/api/portfolio/update': ok({ success: true }),
   '/api/portfolio/delete': ok({ success: true }),
+  '/api/portfolio/holding/add': ok({ success: true }),
+  '/api/portfolio/holding/update': ok({ success: true }),
+  '/api/portfolio/holding/remove': ok({ success: true }),
   '/api/portfolio/pnl/today': r(portfolioData, 'pnlToday'),
   '/api/portfolio/pnl/history': r(portfolioData, 'pnlHistory'),
   '/api/portfolio/risk/industry': r(portfolioData, 'riskIndustry'),
   '/api/portfolio/risk/position': r(portfolioData, 'riskPosition'),
   '/api/portfolio/risk/market-cap': r(portfolioData, 'riskMarketCap'),
   '/api/portfolio/risk/beta': r(portfolioData, 'riskBeta'),
+  '/api/portfolio/risk/check': ok({ violations: [], isCompliant: true }),
+  '/api/portfolio/risk/violations': ok({ items: [], total: 0 }),
   '/api/portfolio/rule/list': r(portfolioData, 'riskRules'),
+  '/api/portfolio/rule/upsert': ok({ id: 'mock-rule-1' }),
+  '/api/portfolio/rule/update': ok({ success: true }),
+  '/api/portfolio/rule/delete': ok({ success: true }),
+  '/api/portfolio/rebalance-plan': ok({ portfolioId: '', totalValue: 0, priceDate: '', actions: [], estimatedCost: 0, summary: { added: 0, updated: 0, removed: 0, unchanged: 0, totalHoldings: 0 } }),
+  '/api/portfolio/performance': ok({ portfolioId: '', startDate: '', endDate: '', benchmarkTsCode: '', series: [], metrics: {} }),
+  '/api/portfolio/trade-log': ok({ items: [], total: 0, page: 1, pageSize: 20 }),
+  '/api/portfolio/trade-log/summary': ok(null),
   '/api/portfolio/drift-detection': r(portfolioData, 'driftDetection'),
   '/api/portfolio/apply-backtest': ok({ success: true }),
 
@@ -225,7 +244,9 @@ const routeMap: Record<string, unknown> = {
   '/api/screener-subscription/list': r(screenerSubData, 'list'),
   '/api/screener-subscription/detail': r(screenerSubData, 'detail'),
   '/api/screener-subscription/logs': r(screenerSubData, 'logs'),
+  '/api/screener-subscription/create': ok({ id: 1 }),
   '/api/screener-subscription/update': ok({ success: true }),
+  '/api/screener-subscription/delete': ok({ success: true }),
   '/api/screener-subscription/pause': ok({ success: true }),
   '/api/screener-subscription/resume': ok({ success: true }),
   '/api/screener-subscription/run': ok({ success: true }),
@@ -255,6 +276,7 @@ const routeMap: Record<string, unknown> = {
   '/api/alert/price-rules/update': ok({ success: true }),
   '/api/alert/price-rules/delete': ok({ success: true }),
   '/api/alert/price-rules/scan': ok({ success: true }),
+  '/api/alert/limit-list': ok({ items: [], total: 0 }),
 
   // ── Signal ──
   '/api/signal/strategies/list': r(signalData, 'activations'),
@@ -276,12 +298,26 @@ const routeMap: Record<string, unknown> = {
 
   // ── Report ──
   '/api/report/list': r(reportData, 'list'),
+  '/api/report/backtest': ok({ id: 'mock-report-1', status: 'PENDING' }),
+  '/api/report/stock': ok({ id: 'mock-report-2', status: 'PENDING' }),
+  '/api/report/portfolio': ok({ id: 'mock-report-3', status: 'PENDING' }),
+  '/api/report/strategy-research': ok({ id: 'mock-report-4', status: 'PENDING' }),
+  '/api/report/detail': ok(null),
+  '/api/report/delete': ok({ success: true }),
+  '/api/report/schedules/list': ok({ schedules: [] }),
+  '/api/report/schedules': ok({ id: 'mock-sched-1' }),
+  '/api/report/schedules/update': ok({ success: true }),
+  '/api/report/schedules/delete': ok({ success: true }),
+  '/api/report/schedules/run-now': ok({ success: true }),
 
   // ── Research Note ──
   '/api/research-note/list': r(researchNoteData, 'list'),
   '/api/research-note/tags': r(researchNoteData, 'tags'),
   '/api/research-note/detail': r(researchNoteData, 'detail'),
   '/api/research-note/stock': r(researchNoteData, 'stockNotes'),
+  '/api/research-note/create': ok({ id: 1 }),
+  '/api/research-note/update': ok({ success: true }),
+  '/api/research-note/delete': ok({ success: true }),
 
   // ── Pattern ──
   '/api/pattern/templates/list': r(patternData, 'templates'),
@@ -323,6 +359,11 @@ const routeMap: Record<string, unknown> = {
   '/api/export/backtest-trades': ok(null),
   '/api/export/factor-values': ok(null),
   '/api/export/portfolio-holdings': ok(null),
+
+  // ── Fund (backend not implemented, stubs only) ──
+  '/api/fund/holdings': ok([]),
+  '/api/fund/institutional-summary': ok([]),
+  '/api/fund/etf-flow': ok([]),
 };
 
 // ---------------------------------------------------------------------------
