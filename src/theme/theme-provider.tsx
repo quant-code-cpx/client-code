@@ -1,9 +1,9 @@
 import type { ThemeProviderProps as MuiThemeProviderProps } from '@mui/material/styles';
 
-import { useMemo, useState, useContext, useCallback, createContext } from 'react';
+import { useMemo, useState, useEffect, useContext, useCallback, createContext } from 'react';
 
 import CssBaseline from '@mui/material/CssBaseline';
-import { ThemeProvider as ThemeVarsProvider } from '@mui/material/styles';
+import { useTheme, ThemeProvider as ThemeVarsProvider } from '@mui/material/styles';
 
 import { createTheme } from './create-theme';
 import { themePresets, isThemePresetKey, defaultThemePreset } from './theme-presets';
@@ -11,6 +11,38 @@ import { themePresets, isThemePresetKey, defaultThemePreset } from './theme-pres
 import type {} from './extend-theme-types';
 import type { ThemeOptions } from './types';
 import type { ThemePreset, ThemePresetKey } from './theme-presets';
+
+function ThemeColorMeta() {
+  const theme = useTheme();
+
+  useEffect(() => {
+    function update() {
+      const isDark = document.documentElement.getAttribute('data-color-scheme') === 'dark';
+      // theme.palette gives light-mode resolved values (actual hex, not CSS vars)
+      // theme.colorSchemes.dark.palette gives dark-mode resolved values
+
+      const schemes = (theme as any).colorSchemes;
+      const darkBg =
+        (schemes?.dark?.palette?.background?.default as string | undefined) ??
+        theme.palette.grey[900];
+      const lightBg = theme.palette.background.default;
+      const color = isDark ? darkBg : lightBg;
+      const meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+      if (meta && typeof color === 'string') meta.content = color;
+    }
+
+    update();
+
+    const observer = new MutationObserver(update);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['data-color-scheme'],
+    });
+    return () => observer.disconnect();
+  }, [theme]);
+
+  return null;
+}
 
 // ----------------------------------------------------------------------
 
@@ -73,6 +105,7 @@ export function ThemeProvider({ themeOverrides, children, ...other }: ThemeProvi
     <ThemePresetContext.Provider value={contextValue}>
       <ThemeVarsProvider disableTransitionOnChange theme={theme} {...other}>
         <CssBaseline />
+        <ThemeColorMeta />
         {children}
       </ThemeVarsProvider>
     </ThemePresetContext.Provider>

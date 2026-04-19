@@ -66,7 +66,7 @@ export function DashboardChangeDistribution() {
     legend: { show: false },
     xaxis: {
       categories: distribution.map((d) => d.label),
-      labels: { rotate: -45, style: { fontSize: '10px' } },
+      labels: { rotate: -45, style: { fontSize: '12px' } },
     },
     tooltip: { shared: false, intersect: false },
   });
@@ -74,7 +74,7 @@ export function DashboardChangeDistribution() {
   const series = [{ name: '家数', data: distribution.map((d) => d.count) }];
 
   return (
-    <Card sx={{ height: '100%' }}>
+    <Card>
       <CardContent>
         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
           <Typography variant="h6">涨跌幅分布</Typography>

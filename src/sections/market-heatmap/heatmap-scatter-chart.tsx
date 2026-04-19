@@ -207,7 +207,7 @@ export function HeatmapScatterChart({
         const sector = o ? pointToSector[o.seriesIndex]?.[o.dataPointIndex] : undefined;
         return sector?.name ?? '';
       },
-      style: { fontSize: '10px', fontWeight: '600', colors: ['#fff'] },
+      style: { fontSize: '12px', fontWeight: '600', colors: ['#fff'] },
       dropShadow: { enabled: true, blur: 2, opacity: 0.6 },
     },
     legend: { show: false },

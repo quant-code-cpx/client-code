@@ -38,7 +38,6 @@ export function RiskRuleTable({ rules, loading, onEdit, onDelete }: RiskRuleTabl
             <TableCell>规则类型</TableCell>
             <TableCell align="right">阈值</TableCell>
             <TableCell>状态</TableCell>
-            <TableCell>备注</TableCell>
             <TableCell>更新时间</TableCell>
             <TableCell align="center">操作</TableCell>
           </TableRow>
@@ -57,7 +56,6 @@ export function RiskRuleTable({ rules, loading, onEdit, onDelete }: RiskRuleTabl
                   {rule.isEnabled ? '启用' : '禁用'}
                 </Label>
               </TableCell>
-              <TableCell>{rule.memo ?? '-'}</TableCell>
               <TableCell>{fDate(rule.updatedAt, 'YYYY-MM-DD')}</TableCell>
               <TableCell align="center">
                 <Button size="small" onClick={() => onEdit(rule)}>
@@ -71,7 +69,7 @@ export function RiskRuleTable({ rules, loading, onEdit, onDelete }: RiskRuleTabl
           ))}
           {rules.length === 0 && (
             <TableRow>
-              <TableCell colSpan={6} align="center" sx={{ py: 4, color: 'text.secondary' }}>
+              <TableCell colSpan={5} align="center" sx={{ py: 4, color: 'text.secondary' }}>
                 暂无风控规则
               </TableCell>
             </TableRow>

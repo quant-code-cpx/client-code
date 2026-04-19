@@ -11,11 +11,17 @@ export type ScreenerFilters = {
   industry?: string;
   area?: string;
   isHs?: string;
+  // 基本面（V2 多选）
+  industries?: string[];
+  areas?: string[];
+  conceptCodes?: string[];
   // 估值
   minPeTtm?: number;
   maxPeTtm?: number;
   minPb?: number;
   maxPb?: number;
+  minPsTtm?: number;
+  maxPsTtm?: number;
   minDvTtm?: number;
   minTotalMv?: number;
   maxTotalMv?: number;
@@ -49,6 +55,16 @@ export type ScreenerFilters = {
   // 资金
   minMainNetInflow5d?: number;
   minMainNetInflow20d?: number;
+  // 技术信号
+  macdSignal?: string;
+  kdjSignal?: string;
+  rsiSignal?: string;
+  minRsi6?: number;
+  maxRsi6?: number;
+  bollSignal?: 'above_upper' | 'below_lower' | 'squeeze';
+  maTrend?: 'bullish' | 'bearish';
+  // 北向资金
+  northboundOnly?: boolean;
 };
 
 export type ScreenerQuery = ScreenerFilters & {
@@ -85,6 +101,8 @@ export type StockScreenerItem = {
   mainNetInflow5d: number | null;
   mainNetInflow20d: number | null;
   latestFinDate: string | null;
+  psTtm: number | null;
+  concepts: string[] | null;
 };
 
 export type ScreenerResult = {
@@ -103,6 +121,7 @@ export type ScreenerPreset = {
 
 export type IndustryItem = { name: string; count: number };
 export type AreaItem = { name: string; count: number };
+export type ScreenerConceptItem = { tsCode: string; name: string; count: number };
 
 // ----------------------------------------------------------------------
 // API 调用函数
@@ -122,6 +141,10 @@ export function fetchIndustries(): Promise<{ industries: IndustryItem[] }> {
 
 export function fetchAreas(): Promise<{ areas: AreaItem[] }> {
   return apiClient.post<{ areas: AreaItem[] }>('/api/stock/areas');
+}
+
+export function fetchScreenerConcepts(): Promise<{ concepts: ScreenerConceptItem[] }> {
+  return apiClient.post<{ concepts: ScreenerConceptItem[] }>('/api/stock/screener/concepts', {});
 }
 
 // ----------------------------------------------------------------------

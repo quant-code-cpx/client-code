@@ -674,9 +674,9 @@ fToNow(date); // e.g. "2 minutes ago"
 import { fNumber, fCurrency, fPercent, fShortenNumber, fData } from 'src/utils/format-number';
 
 fNumber(1234567); // "1,234,567"
-fCurrency(9999); // "$9,999.00"
+fCurrency(9999); // "¥9,999"
 fPercent(0.85); // "85%"
-fShortenNumber(1234567); // "1.23M"
+fShortenNumber(1234567); // "123万"
 fData(1024); // file size formatting
 ```
 
@@ -1082,4 +1082,74 @@ export function fWanYuan(value: InputNumberValue, decimals = 2, suffix = ''): st
 it('appends suffix', () => {
   expect(fWanYuan(50000, 2, '元')).toBe('5.00亿元');
 });
+```
+
+---
+
+## 设计与代码审查技能调用规范
+
+本项目集成了以下外部技能，每个技能在工作流中有明确的**触发时机**，不应互换或叠加调用。
+
+### 技能一览
+
+| 技能                          | 路径                                                    | 触发时机                             |
+| ----------------------------- | ------------------------------------------------------- | ------------------------------------ |
+| `frontend-design`             | `~/.agents/skills/frontend-design/SKILL.md`             | 设计阶段（阶段一）规划 UI 方案时     |
+| `web-design-guidelines`       | `~/.agents/skills/web-design-guidelines/SKILL.md`       | 实现完成后（阶段二末尾）自动审查代码 |
+| `mui`                         | `~/.agents/skills/mui/SKILL.md`                         | 实现阶段编写 MUI 组件代码时          |
+| `vercel-react-best-practices` | `~/.agents/skills/vercel-react-best-practices/SKILL.md` | 编写 React 组件/数据获取时           |
+
+---
+
+### 调用规则（防冲突）
+
+#### `frontend-design` — 仅在设计阶段调用
+
+- **触发条件**：用户要求"设计 XX 页面方案"、"设计 XX 组件"、"规划 UI 布局"等。
+- **调用时机**：阶段一（产出设计文档），**不在实现阶段调用**。
+- **职责**：确定视觉方向、组件层级、色调选择、排版风格、空间结构。对于金融量化仪表盘，应偏向精炼专业的风格而非实验性设计，以信息密度和可读性优先。
+- **输出**：写入设计文档（`docs/design/`），作为阶段二实现的输入。
+
+#### `web-design-guidelines` — 仅在实现完成后调用
+
+- **触发条件**：阶段二代码实现完毕，构建通过后自动触发；或用户要求"审查 UI"、"检查合规"时。
+- **调用时机**：阶段二末尾（yarn build 通过后）或用户单独触发审查。
+- **职责**：检查已实现代码是否符合 Web Interface Guidelines（dark mode、tabular-nums、prefers-reduced-motion、aria 标签、transition 反模式等技术合规项）。
+- **输出**：以 `file:line — 问题描述` 格式输出审查结果，不重新设计视觉方向。
+
+#### 防止冲突的关键原则
+
+1. **职责不重叠**：`frontend-design` 管"长什么样"（美学方向），`web-design-guidelines` 管"代码写得对不对"（技术合规）。设计文档不涉及合规检查，代码审查不重新定义视觉风格。
+2. **顺序不可颠倒**：先 `frontend-design`（设计）→ 再实现 → 再 `web-design-guidelines`（审查）。不在设计阶段运行合规审查，不在审查阶段重做视觉设计。
+3. **设计文档是边界**：`frontend-design` 的输出（设计文档）是阶段二的约束条件，`web-design-guidelines` 的审查不得否定设计文档中已确定的视觉方向，只纠正实现层面的技术问题。
+
+---
+
+### 功能迭代中的完整技能调用流程
+
+```
+阶段一（设计）
+  └─ 读取 frontend-design skill
+  └─ 结合 quant-client 风格约束（专业金融、信息密度优先）
+  └─ 产出设计文档
+
+阶段二（实现）
+  └─ 读取 mui skill（编写 MUI 组件时）
+  └─ 读取 vercel-react-best-practices skill（数据获取/性能敏感代码时）
+  └─ 完成实现 → ESLint → yarn build
+
+阶段二完成后（代码审查）
+  └─ 读取 web-design-guidelines skill
+  └─ fetch https://raw.githubusercontent.com/vercel-labs/web-interface-guidelines/main/command.md
+  └─ 输出 file:line 格式的审查报告
+  └─ 修复技术合规问题（不改动视觉方向）
+
+阶段三（文档更新）
+  └─ 更新 docs/ 状态标记
+```
+
+> **注意**：`web-design-guidelines` 里会 fetch 远端规则文件，需要网络连接。如果网络不通，可跳过 fetch 步骤，使用上次已知的规则（涵盖 dark mode、animation、typography、accessibility 等核心规则）。
+
+```
+
 ```

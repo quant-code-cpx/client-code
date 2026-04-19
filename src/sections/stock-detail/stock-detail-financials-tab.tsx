@@ -99,7 +99,7 @@ function StatementTable({ periods, fields, unitNote = '单位: 元' }: Statement
                 bgcolor: 'background.neutral',
                 minWidth: 200,
                 color: 'text.disabled',
-                fontSize: 11,
+                fontSize: 12,
               }}
             >
               指标 ({unitNote})

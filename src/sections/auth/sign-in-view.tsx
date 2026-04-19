@@ -177,7 +177,7 @@ export function SignInView() {
                 }}
               >
                 <Iconify icon="solar:restart-bold" sx={{ color: '#fff', fontSize: 18 }} />
-                <Typography variant="caption" sx={{ color: '#fff', lineHeight: 1.3, fontSize: 10 }}>
+                <Typography variant="caption" sx={{ color: '#fff', lineHeight: 1.3, fontSize: 12 }}>
                   已过期
                 </Typography>
               </Box>

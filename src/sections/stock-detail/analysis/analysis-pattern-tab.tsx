@@ -99,7 +99,7 @@ function TemplateCard({
         <Typography variant="subtitle2" noWrap sx={{ mt: 0.5, mb: 0.5 }}>
           {template.name}
         </Typography>
-        <Label color={TYPE_COLORS[template.type] ?? 'default'} variant="soft" sx={{ fontSize: 10 }}>
+        <Label color={TYPE_COLORS[template.type] ?? 'default'} variant="soft" sx={{ fontSize: 12 }}>
           {TYPE_LABELS[template.type] ?? template.type}
         </Label>
       </CardContent>

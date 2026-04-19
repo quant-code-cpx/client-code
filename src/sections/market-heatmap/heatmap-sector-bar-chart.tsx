@@ -51,7 +51,7 @@ export function HeatmapSectorBarChart({ sectors, loading, error }: Props) {
       },
     },
     yaxis: {
-      labels: { style: { fontSize: '11px' } },
+      labels: { style: { fontSize: '12px' } },
     },
     tooltip: {
       y: { formatter: (v: number) => `${v.toFixed(2)}%` },
@@ -74,7 +74,7 @@ export function HeatmapSectorBarChart({ sectors, loading, error }: Props) {
     },
     colors: [theme.palette.error.main, theme.palette.success.main, theme.palette.grey[500]],
     xaxis: { categories: sortedByCount.map((s) => s.groupName) },
-    yaxis: { labels: { style: { fontSize: '11px' } } },
+    yaxis: { labels: { style: { fontSize: '12px' } } },
     legend: { position: 'top' },
     dataLabels: { enabled: false },
     tooltip: { shared: true, intersect: false },

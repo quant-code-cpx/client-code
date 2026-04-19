@@ -152,27 +152,47 @@ export function fetchValuationTrend(query?: { period?: string }) {
 // 资金动态 类型定义
 // ----------------------------------------------------------------------
 
+/**
+ * 单一层级（超大/大/中/小单）或汇总组（主力/散户）的资金流向。
+ * buyAmount / sellAmount 是按订单规模分类的买方/卖方成交额，非「主动买入/卖出」。
+ */
+export type TierFlow = {
+  /** 买方订单成交额（元，按订单规模分类） */
+  buyAmount: number | null;
+  /** 卖方订单成交额（元，按订单规模分类） */
+  sellAmount: number | null;
+  /** 净流入 = 买入 - 卖出（元，正=净流入，负=净流出） */
+  netAmount: number | null;
+  /** 买入额 / 全市场总成交（%） */
+  buyRate: number | null;
+  /** 卖出额 / 全市场总成交（%） */
+  sellRate: number | null;
+  /** 净流入 / 全市场总成交（%） */
+  netRate: number | null;
+};
+
 export type MarketMoneyFlowDetail = {
   tradeDate: string;
-  /** 净流入额（元） */
-  netAmount: number | null;
-  netAmountRate: number | null;
-  /** 超大单净流入（元） */
-  buyElgAmount: number | null;
-  buyElgAmountRate: number | null;
-  /** 大单净流入（元） */
-  buyLgAmount: number | null;
-  buyLgAmountRate: number | null;
-  /** 中单净流入（元） */
-  buyMdAmount: number | null;
-  buyMdAmountRate: number | null;
-  /** 小单净流入（元） */
-  buySmAmount: number | null;
-  buySmAmountRate: number | null;
   closeSh: number | null;
   pctChangeSh: number | null;
   closeSz: number | null;
   pctChangeSz: number | null;
+  /** 全市场单边总成交金额（元）= 四层买入之和 */
+  totalAmount: number | null;
+  /** 逐笔主力净流入汇总（元，独立算法，最接近「真实主力净流入」） */
+  netMfAmount: number | null;
+  /** 主力资金（超大单 + 大单）汇总 */
+  main: TierFlow;
+  /** 散户资金（中单 + 小单）汇总 */
+  retail: TierFlow;
+  /** 超大单（单笔成交 ≥ 100万元） */
+  elg: TierFlow;
+  /** 大单（单笔 20~100万元） */
+  lg: TierFlow;
+  /** 中单（单笔 4~20万元） */
+  md: TierFlow;
+  /** 小单（单笔 < 4万元） */
+  sm: TierFlow;
 };
 
 export type MoneyFlowTrendItem = {
@@ -290,11 +310,13 @@ export type StockFlowDetailItem = {
 export async function fetchMoneyFlow(query?: {
   trade_date?: string;
 }): Promise<MarketMoneyFlowDetail | null> {
-  const result = await apiClient.post<MarketMoneyFlowDetail[]>(
+  const result = await apiClient.post<MarketMoneyFlowDetail | MarketMoneyFlowDetail[]>(
     '/api/market/money-flow',
     query ?? {}
   );
-  return result?.[0] ?? null;
+  if (!result) return null;
+  if (Array.isArray(result)) return result[0] ?? null;
+  return result;
 }
 
 export function fetchMoneyFlowTrend(query?: { trade_date?: string; days?: number }) {
@@ -410,25 +432,110 @@ export type MomentumRankingResult = {
 // 行业轮动 API 调用函数
 // ----------------------------------------------------------------------
 
-export function fetchRotationOverview(query?: { trade_date?: string }) {
-  return apiClient.post<RotationOverviewResult>('/api/industry-rotation/overview', query ?? {});
+/** BE returns snapshot-based structure; adapter maps to flat FE convention */
+export async function fetchRotationOverview(query?: {
+  trade_date?: string;
+}): Promise<RotationOverviewResult> {
+  const res = await apiClient.post<{
+    tradeDate: string;
+    returnSnapshot: {
+      topGainers: Array<{ name: string; value: number }>;
+      topLosers: Array<{ name: string; value: number }>;
+    };
+    momentumSnapshot: {
+      leaders: Array<{ name: string; value: number }>;
+      laggards: Array<{ name: string; value: number }>;
+    };
+    flowSnapshot: {
+      topInflow: Array<{ name: string; value: number }>;
+      topOutflow: Array<{ name: string; value: number }>;
+    };
+    valuationSnapshot: {
+      undervalued: Array<{ name: string; value: number }>;
+      overvalued: Array<{ name: string; value: number }>;
+    };
+  }>('/api/industry-rotation/overview', query ?? {});
+
+  const gainers = res?.returnSnapshot?.topGainers ?? [];
+  const losers = res?.returnSnapshot?.topLosers ?? [];
+
+  return {
+    tradeDate: res?.tradeDate ?? '',
+    period: 'daily',
+    topGainers: gainers.map((g) => ({ name: g.name, pctChange: g.value })),
+    topLosers: losers.map((l) => ({ name: l.name, pctChange: l.value })),
+    topInflows: (res?.flowSnapshot?.topInflow ?? []).map((f) => ({
+      name: f.name,
+      netAmount: f.value,
+    })),
+    avgPctChange: 0,
+    riseCount: gainers.length,
+    fallCount: losers.length,
+    totalCount: gainers.length + losers.length,
+  };
 }
 
-export function fetchRotationHeatmap(query?: { trade_date?: string; periods?: string[] }) {
-  return apiClient.post<RotationHeatmapResult>('/api/industry-rotation/heatmap', query ?? {});
+/** BE returns { periods, industries: [{tsCode, name, returns}] };
+ *  adapter maps to FE { sectors: [{name, pctChange, amount, netAmount}] } */
+export async function fetchRotationHeatmap(query?: {
+  trade_date?: string;
+  periods?: number[];
+}): Promise<RotationHeatmapResult> {
+  const res = await apiClient.post<{
+    tradeDate: string;
+    periods: number[];
+    industries: Array<{ tsCode: string; name: string; returns: Record<string, number> }>;
+  }>('/api/industry-rotation/heatmap', query ?? {});
+
+  const firstPeriod = String(res?.periods?.[0] ?? '');
+
+  return {
+    tradeDate: res?.tradeDate ?? '',
+    sectors: (res?.industries ?? []).map((ind) => ({
+      name: ind.name,
+      pctChange: ind.returns?.[firstPeriod] ?? 0,
+      amount: 0,
+      netAmount: 0,
+    })),
+  };
 }
 
-export function fetchMomentumRanking(query?: {
+/** BE returns { method, industries: [{momentumScore, ...}] };
+ *  adapter maps to FE { period, rankings: [{momentum, ...}] } */
+export async function fetchMomentumRanking(query?: {
   trade_date?: string;
   method?: 'weighted' | 'simple';
   weights?: number[];
   limit?: number;
   order?: 'asc' | 'desc';
-}) {
-  return apiClient.post<MomentumRankingResult>(
-    '/api/industry-rotation/momentum-ranking',
-    query ?? {}
-  );
+}): Promise<MomentumRankingResult> {
+  const res = await apiClient.post<{
+    tradeDate: string;
+    method: string;
+    industries: Array<{
+      tsCode: string;
+      name: string;
+      momentumScore: number;
+      return5d: number | null;
+      return20d: number | null;
+      return60d: number | null;
+      latestPctChange: number | null;
+      rank: number;
+    }>;
+  }>('/api/industry-rotation/momentum-ranking', query ?? {});
+
+  return {
+    tradeDate: res?.tradeDate ?? '',
+    period: res?.method ?? 'weighted',
+    rankings: (res?.industries ?? []).map((ind) => ({
+      name: ind.name,
+      momentum: ind.momentumScore,
+      rank: ind.rank,
+      prevRank: 0,
+      rankChange: 0,
+      amount: undefined,
+    })),
+  };
 }
 
 // Batch 2 types
@@ -497,39 +604,201 @@ export type RotationDetailResult = {
   topStocks: RotationDetailTopStock[];
 };
 
-export function fetchReturnComparison(query?: {
+/** BE returns { industries: [{tsCode, name, returns: Record<period, number>}] };
+ *  adapter creates time-series format expected by FE */
+export async function fetchReturnComparison(query?: {
   trade_date?: string;
-  periods?: string[];
+  periods?: number[];
   sort_period?: number;
   order?: 'asc' | 'desc';
-}) {
-  return apiClient.post<ReturnComparisonResult>(
-    '/api/industry-rotation/return-comparison',
-    query ?? {}
-  );
+}): Promise<ReturnComparisonResult> {
+  const res = await apiClient.post<{
+    tradeDate: string;
+    industries: Array<{
+      tsCode: string;
+      name: string;
+      returns: Record<string, number>;
+      latestPctChange: number | null;
+      latestClose: number | null;
+    }>;
+  }>('/api/industry-rotation/return-comparison', query ?? {});
+
+  const industries = res?.industries ?? [];
+  // Sort period keys numerically (e.g., ['5','20','60'] not lexicographic ['20','5','60'])
+  const periodKeys =
+    industries.length > 0
+      ? Object.keys(industries[0].returns ?? {}).sort((a, b) => Number(a) - Number(b))
+      : [];
+
+  return {
+    period: periodKeys.join(','),
+    benchmark: {
+      name: '沪深300',
+      data: periodKeys.map((pk) => ({ tradeDate: `${pk}d`, cumReturn: 0 })),
+    },
+    sectors: industries.map((ind) => ({
+      name: ind.name,
+      data: periodKeys.map((pk) => ({
+        tradeDate: `${pk}d`,
+        cumReturn: ind.returns?.[pk] ?? 0,
+      })),
+    })),
+  };
 }
 
-export function fetchFlowAnalysis(query?: {
+/** BE returns { days, industries: [...], summary }; adapter maps to FE { period, flows, ... } */
+export async function fetchFlowAnalysis(query?: {
   trade_date?: string;
   days?: number;
   sort_by?: string;
   order?: 'asc' | 'desc';
   limit?: number;
-}) {
-  return apiClient.post<FlowAnalysisResult>('/api/industry-rotation/flow-analysis', query ?? {});
+}): Promise<FlowAnalysisResult> {
+  const res = await apiClient.post<{
+    tradeDate: string;
+    days: number;
+    industries: Array<{
+      tsCode: string;
+      name: string;
+      cumulativeNetAmount: number;
+      avgDailyNetAmount: number;
+      cumulativeReturn: number | null;
+      flowMomentum: number;
+      flowAcceleration: number | null;
+      cumulativeBuyElg: number;
+      cumulativeBuyLg: number;
+      mainForceRatio: number | null;
+      latestDayRank: number | null;
+    }>;
+    summary: {
+      inflowCount: number;
+      outflowCount: number;
+      topInflowNames: string[];
+      topOutflowNames: string[];
+    };
+  }>('/api/industry-rotation/flow-analysis', query ?? {});
+
+  return {
+    tradeDate: res?.tradeDate ?? '',
+    period: String(res?.days ?? ''),
+    flows: (res?.industries ?? []).map((ind) => ({
+      name: ind.name,
+      netInflow: ind.cumulativeNetAmount,
+      inflowAmount: ind.cumulativeNetAmount > 0 ? ind.cumulativeNetAmount : 0,
+      outflowAmount: ind.cumulativeNetAmount < 0 ? Math.abs(ind.cumulativeNetAmount) : 0,
+      inflowRatio: ind.mainForceRatio ?? 0,
+    })),
+    topInflowSectors: res?.summary?.topInflowNames ?? [],
+    topOutflowSectors: res?.summary?.topOutflowNames ?? [],
+  };
 }
 
-export function fetchSectorValuation(query?: {
+/** BE returns { industries: [{industry, peTtmMedian, pbMedian, peTtmPercentile1y, ...}] };
+ *  adapter maps to FE { sectors: [{name, peTtm, pbMrq, pePercentile, ...}] } */
+export async function fetchSectorValuation(query?: {
   trade_date?: string;
   industry?: string;
   sort_by?: 'pe_ttm' | 'pb' | 'pe_percentile_1y' | 'pb_percentile_1y';
   order?: 'asc' | 'desc';
-}) {
-  return apiClient.post<SectorValuationResult>('/api/industry-rotation/valuation', query ?? {});
+}): Promise<SectorValuationResult> {
+  const res = await apiClient.post<{
+    tradeDate: string;
+    industries: Array<{
+      industry: string;
+      stockCount: number;
+      peTtmMedian: number | null;
+      pbMedian: number | null;
+      peTtmPercentile1y: number | null;
+      peTtmPercentile3y: number | null;
+      pbPercentile1y: number | null;
+      pbPercentile3y: number | null;
+      valuationLabel: string;
+    }>;
+  }>('/api/industry-rotation/valuation', query ?? {});
+
+  return {
+    tradeDate: res?.tradeDate ?? '',
+    sectors: (res?.industries ?? []).map((ind) => ({
+      name: ind.industry,
+      peTtm: ind.peTtmMedian ?? 0,
+      pbMrq: ind.pbMedian ?? 0,
+      pePercentile: ind.peTtmPercentile1y ?? 0,
+      pbPercentile: ind.pbPercentile1y ?? 0,
+      peMedian3y: ind.peTtmPercentile3y ?? 0,
+      pbMedian3y: ind.pbPercentile3y ?? 0,
+    })),
+  };
 }
 
-export function fetchRotationDetail(query: { industry: string; days?: number }) {
-  return apiClient.post<RotationDetailResult>('/api/industry-rotation/detail', query);
+/** BE returns { industry, returnTrend, flowTrend, valuation, topStocks };
+ *  adapter maps to FE RotationDetailResult */
+export async function fetchRotationDetail(query: {
+  industry: string;
+  days?: number;
+}): Promise<RotationDetailResult> {
+  const res = await apiClient.post<{
+    industry: string;
+    tsCode: string | null;
+    returnTrend: Array<{
+      tradeDate: string;
+      close: number;
+      pctChange: number;
+      cumulativeReturn: number;
+    }>;
+    flowTrend: Array<{
+      tradeDate: string;
+      netAmount: number;
+      cumulativeNet: number;
+      buyElgAmount: number;
+      buyLgAmount: number;
+    }>;
+    valuation: {
+      peTtmMedian: number | null;
+      pbMedian: number | null;
+      peTtmPercentile1y: number | null;
+      pbPercentile1y: number | null;
+      valuationLabel: string | null;
+    } | null;
+    topStocks: Array<{
+      tsCode: string;
+      name: string;
+      pctChg: number | null;
+      peTtm: number | null;
+      pb: number | null;
+      totalMv: number | null;
+    }>;
+  }>('/api/industry-rotation/detail', query);
+
+  const latestReturn = res?.returnTrend?.at(-1);
+  const latestFlow = res?.flowTrend?.at(-1);
+
+  return {
+    sectorName: res?.industry ?? '',
+    tradeDate: latestReturn?.tradeDate ?? '',
+    pctChange: latestReturn?.pctChange ?? 0,
+    amount: 0,
+    netAmount: latestFlow?.netAmount ?? 0,
+    momentum: 0,
+    pePercentile: res?.valuation?.peTtmPercentile1y ?? 0,
+    pbPercentile: res?.valuation?.pbPercentile1y ?? 0,
+    returnTrend: (res?.returnTrend ?? []).map((p) => ({
+      tradeDate: p.tradeDate,
+      cumReturn: p.cumulativeReturn,
+      benchmarkReturn: 0,
+    })),
+    flowTrend: (res?.flowTrend ?? []).map((p) => ({
+      tradeDate: p.tradeDate,
+      netInflow: p.netAmount,
+      cumulativeInflow: p.cumulativeNet,
+    })),
+    topStocks: (res?.topStocks ?? []).map((s) => ({
+      tsCode: s.tsCode,
+      name: s.name,
+      pctChg: s.pctChg ?? 0,
+      mainNetInflow: 0,
+      amount: (s.totalMv ?? 0) / 10000,
+    })),
+  };
 }
 
 // ─── 行业板块资金流向 ──────────────────────────────────
@@ -615,12 +884,72 @@ export function fetchSectorFlow(query?: {
   return apiClient.post<SectorFlowResult>('/api/market/sector-flow', query ?? {});
 }
 
-export function fetchConceptList(query?: { keyword?: string; page?: number; pageSize?: number }) {
-  return apiClient.post<ConceptListResult>('/api/market/concept/list', query ?? {});
+/** BE returns { total, page, pageSize, items: [{tsCode, name, count, listDate}] };
+ *  adapter maps tsCode→code and defaults missing trading fields */
+export async function fetchConceptList(query?: {
+  keyword?: string;
+  page?: number;
+  pageSize?: number;
+}): Promise<ConceptListResult> {
+  const res = await apiClient.post<{
+    total: number;
+    page: number;
+    pageSize: number;
+    items: Array<{
+      tsCode: string;
+      name: string;
+      count: number | null;
+      listDate: string | null;
+    }>;
+  }>('/api/market/concept/list', query ?? {});
+
+  return {
+    tradeDate: '',
+    total: res?.total ?? 0,
+    items: (res?.items ?? []).map((it) => ({
+      code: it.tsCode,
+      name: it.name,
+      count: it.count ?? 0,
+      pctChange: null,
+      amount: null,
+      netAmount: null,
+      leadStock: null,
+      leadPctChg: null,
+    })),
+  };
 }
 
-export function fetchConceptMembers(query: { tsCode: string; page?: number; pageSize?: number }) {
-  return apiClient.post<ConceptMembersResult>('/api/market/concept/members', query);
+/** BE returns { tsCode, name, total, items: [{conCode, conName}] };
+ *  adapter maps to FE { conceptCode, conceptName, members: [{tsCode, name, ...}] } */
+export async function fetchConceptMembers(query: {
+  tsCode: string;
+  page?: number;
+  pageSize?: number;
+}): Promise<ConceptMembersResult> {
+  const res = await apiClient.post<{
+    tsCode: string;
+    name: string | null;
+    total: number;
+    items: Array<{
+      conCode: string;
+      conName: string | null;
+    }>;
+  }>('/api/market/concept/members', query);
+
+  return {
+    conceptCode: res?.tsCode ?? '',
+    conceptName: res?.name ?? '',
+    tradeDate: '',
+    members: (res?.items ?? []).map((it) => ({
+      tsCode: it.conCode,
+      name: it.conName ?? '',
+      pctChg: null,
+      close: null,
+      amount: null,
+      netAmount: null,
+      industry: null,
+    })),
+  };
 }
 
 // ── 每日全景 (daily_info) ─────────────────────────────────────
@@ -649,6 +978,62 @@ export type DailyInfoResult = {
 
 export function fetchDailyInfo(query?: MarketQueryBase) {
   return apiClient.post<DailyInfoResult>('/api/market/daily-info', query ?? {});
+}
+
+// ── 市场宽度 (market-breadth) ─────────────────────────────
+
+export type MarketBreadthResult = {
+  tradeDate: string;
+  /** 涨停家数 (pct_chg ≥ 9.5) */
+  limitUp: number;
+  /** 跌停家数 (pct_chg ≤ -9.5) */
+  limitDown: number;
+  /** 大涨家数 (pct_chg ≥ 5%) */
+  bigRise: number;
+  /** 上涨家数 (0.001% ≤ pct_chg < 5%) */
+  rise: number;
+  /** 平盘家数 */
+  flat: number;
+  /** 下跌家数 (-5% < pct_chg < -0.001%) */
+  fall: number;
+  /** 大跌家数 (pct_chg ≤ -5%) */
+  bigFall: number;
+  /** 当日有行情 A 股总数 */
+  total: number;
+};
+
+export function fetchMarketBreadth(query?: MarketQueryBase) {
+  return apiClient.post<MarketBreadthResult>('/api/market/market-breadth', query ?? {});
+}
+
+// ── 指数行情 + 迷你走势（合并接口）────────────────────────────
+
+export type IndexQuoteWithSparklineItem = {
+  tsCode: string;
+  name: string;
+  tradeDate: string;
+  close: number | null;
+  preClose: number | null;
+  change: number | null;
+  pctChg: number | null;
+  vol: number | null;
+  /** 成交额（千元） */
+  amount: number | null;
+  /** 近 N 交易日收盘价数组（升序） */
+  sparkline: (number | null)[];
+};
+
+export type IndexQuoteWithSparklineResult = {
+  tradeDate: string;
+  sparklinePeriod: string;
+  indices: IndexQuoteWithSparklineItem[];
+};
+
+export function fetchIndexQuoteWithSparkline(query?: MarketQueryBase & { sparkline_period?: string }) {
+  return apiClient.post<IndexQuoteWithSparklineResult>(
+    '/api/market/index-quote-with-sparkline',
+    query ?? {}
+  );
 }
 
 // ── 板块日线 (ths_daily) ──────────────────────────────────

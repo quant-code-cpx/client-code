@@ -51,7 +51,7 @@ export function DashboardSentimentCard() {
   const fallPercent = total > 0 ? 100 - risePercent - flatPercent : 0;
 
   return (
-    <Card sx={{ height: '100%' }}>
+    <Card>
       <CardContent>
         <Typography variant="h6" sx={{ mb: 2 }}>
           市场情绪

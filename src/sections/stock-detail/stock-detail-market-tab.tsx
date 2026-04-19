@@ -619,7 +619,7 @@ export function StockDetailMarketTab({ tsCode }: Props) {
           if (dateStr.length >= 10) return dateStr.slice(5, 10);
           return dateStr;
         },
-        style: { fontSize: '10px' },
+        style: { fontSize: '12px' },
       },
       tickAmount: 10,
     },
@@ -724,7 +724,7 @@ export function StockDetailMarketTab({ tsCode }: Props) {
           if (dateStr.length >= 10) return dateStr.slice(5, 10);
           return dateStr;
         },
-        style: { fontSize: '10px' },
+        style: { fontSize: '12px' },
       },
       tickAmount: 10,
     },

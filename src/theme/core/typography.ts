@@ -107,10 +107,12 @@ export const typography: TypographyVariantsOptions = {
   body2: {
     lineHeight: 22 / 14,
     fontSize: pxToRem(14),
+    fontVariantNumeric: 'tabular-nums',
   },
   caption: {
     lineHeight: 1.5,
     fontSize: pxToRem(12),
+    fontVariantNumeric: 'tabular-nums',
   },
   overline: {
     fontWeight: 700,

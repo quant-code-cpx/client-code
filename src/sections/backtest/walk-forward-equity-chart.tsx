@@ -23,7 +23,7 @@ export function WalkForwardEquityChart({ points }: Props) {
       categories,
       type: 'category',
       tickAmount: 8,
-      labels: { rotate: -30, style: { fontSize: '11px' } },
+      labels: { rotate: -30, style: { fontSize: '12px' } },
     },
     yaxis: {
       labels: {

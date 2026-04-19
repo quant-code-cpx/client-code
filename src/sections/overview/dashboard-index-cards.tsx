@@ -11,6 +11,7 @@ import Dialog from '@mui/material/Dialog';
 import Tooltip from '@mui/material/Tooltip';
 import Checkbox from '@mui/material/Checkbox';
 import Skeleton from '@mui/material/Skeleton';
+import { useTheme } from '@mui/material/styles';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
@@ -89,25 +90,36 @@ function saveSelected(codes: string[]) {
 // ----------------------------------------------------------------------
 
 function IndexCard({ item }: { item: IndexQuoteItem }) {
+  const theme = useTheme();
   const router = useRouter();
   const name = CODE_TO_NAME[item.tsCode] ?? item.tsCode;
   const pct = item.pctChg ?? 0;
 
   let pctColor: 'error.main' | 'success.main' | 'text.secondary' = 'text.secondary';
-  if (pct > 0) pctColor = 'error.main';
-  else if (pct < 0) pctColor = 'success.main';
+  let borderColor = theme.palette.divider;
+  if (pct > 0) {
+    pctColor = 'error.main';
+    borderColor = theme.palette.error.main;
+  } else if (pct < 0) {
+    pctColor = 'success.main';
+    borderColor = theme.palette.success.main;
+  }
 
   return (
-    <Card sx={{ height: '100%' }}>
+    <Card sx={{ borderTop: `3px solid ${borderColor}` }}>
       <CardActionArea sx={{ height: '100%' }} onClick={() => router.push('/market/overview')}>
-        <CardContent>
+        <CardContent sx={{ py: 2, px: 2, '&:last-child': { pb: 2 } }}>
           <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}>
             {name}
           </Typography>
-          <Typography variant="h5" fontWeight="fontWeightBold" sx={{ mb: 0.5 }}>
+          <Typography
+            variant="h5"
+            fontWeight="fontWeightBold"
+            sx={{ mb: 0.5, letterSpacing: '-0.02em' }}
+          >
             {item.close != null ? item.close.toFixed(2) : '-'}
           </Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <Typography variant="body2" fontWeight="fontWeightMedium" sx={{ color: pctColor }}>
               {item.pctChg != null ? fPctChg(item.pctChg) : '-'}
             </Typography>
@@ -115,8 +127,8 @@ function IndexCard({ item }: { item: IndexQuoteItem }) {
               {item.change != null ? `${item.change > 0 ? '+' : ''}${item.change.toFixed(2)}` : '-'}
             </Typography>
           </Box>
-          <Typography variant="caption" sx={{ color: 'text.secondary', mt: 0.5, display: 'block' }}>
-            成交额&nbsp;{item.amount != null ? fQianYuan(item.amount) : '-'}
+          <Typography variant="caption" sx={{ color: 'text.disabled', mt: 0.5, display: 'block' }}>
+            成交 {item.amount != null ? fQianYuan(item.amount) : '-'}
           </Typography>
         </CardContent>
       </CardActionArea>
@@ -126,7 +138,7 @@ function IndexCard({ item }: { item: IndexQuoteItem }) {
 
 function IndexCardSkeleton() {
   return (
-    <Card sx={{ height: '100%' }}>
+    <Card>
       <CardContent>
         <Skeleton variant="text" width="50%" />
         <Skeleton variant="text" width="60%" height={40} />
@@ -250,9 +262,12 @@ export function DashboardIndexCards() {
 
   return (
     <>
-      {/* 设置按钮行 */}
+      {/* 指数行情 section header */}
       <Grid size={{ xs: 12 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Typography variant="overline" sx={{ color: 'text.secondary', letterSpacing: 1.5 }}>
+            指数行情
+          </Typography>
           <Tooltip title="自定义指数卡片">
             <IconButton size="small" onClick={() => setDialogOpen(true)}>
               <Iconify icon="solar:pen-bold" width={18} />
@@ -280,7 +295,7 @@ export function DashboardIndexCards() {
               {item ? (
                 <IndexCard item={item} />
               ) : (
-                <Card sx={{ height: '100%' }}>
+                <Card>
                   <CardContent>
                     <Typography variant="caption" color="text.secondary">
                       {CODE_TO_NAME[code] ?? code}

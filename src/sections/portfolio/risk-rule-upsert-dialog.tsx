@@ -45,7 +45,6 @@ export function RiskRuleUpsertDialog({
   const [ruleType, setRuleType] = useState<PortfolioRiskRuleType>('MAX_SINGLE_POSITION');
   const [threshold, setThreshold] = useState(30);
   const [isEnabled, setIsEnabled] = useState(true);
-  const [memo, setMemo] = useState('');
   const [error, setError] = useState('');
   const [localSubmitting, setLocalSubmitting] = useState(false);
 
@@ -55,12 +54,10 @@ export function RiskRuleUpsertDialog({
         setRuleType(rule.ruleType as PortfolioRiskRuleType);
         setThreshold(Math.round(rule.threshold * 100));
         setIsEnabled(rule.isEnabled);
-        setMemo(rule.memo ?? '');
       } else {
         setRuleType('MAX_SINGLE_POSITION');
         setThreshold(30);
         setIsEnabled(true);
-        setMemo('');
       }
       setError('');
     }
@@ -75,7 +72,6 @@ export function RiskRuleUpsertDialog({
           ruleId: rule.id,
           threshold: threshold / 100,
           isEnabled,
-          memo: memo.trim() || undefined,
         });
       } else {
         const req: CreateRiskRuleRequest = {
@@ -83,7 +79,6 @@ export function RiskRuleUpsertDialog({
           ruleType,
           threshold: threshold / 100,
           isEnabled,
-          memo: memo.trim() || undefined,
         };
         await upsertRiskRule(req);
       }
@@ -120,7 +115,9 @@ export function RiskRuleUpsertDialog({
           </FormControl>
 
           <Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+            <Box
+              sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}
+            >
               <TextField
                 label="阈值 (%)"
                 type="number"
@@ -146,21 +143,9 @@ export function RiskRuleUpsertDialog({
 
           <FormControlLabel
             control={
-              <Switch
-                checked={isEnabled}
-                onChange={(e) => setIsEnabled(e.target.checked)}
-              />
+              <Switch checked={isEnabled} onChange={(e) => setIsEnabled(e.target.checked)} />
             }
             label="启用规则"
-          />
-
-          <TextField
-            label="备注（可选）"
-            value={memo}
-            onChange={(e) => setMemo(e.target.value)}
-            multiline
-            rows={2}
-            disabled={busy}
           />
         </Box>
       </DialogContent>
@@ -168,12 +153,7 @@ export function RiskRuleUpsertDialog({
         <Button onClick={onClose} disabled={busy}>
           取消
         </Button>
-        <Button
-          variant="contained"
-          onClick={handleSubmit}
-          disabled={busy}
-          loading={busy}
-        >
+        <Button variant="contained" onClick={handleSubmit} disabled={busy} loading={busy}>
           {isEdit ? '保存' : '创建'}
         </Button>
       </DialogActions>

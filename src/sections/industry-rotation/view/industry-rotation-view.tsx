@@ -9,6 +9,8 @@ import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
+import { ExportButton } from 'src/components/export-button';
+
 import { RotationHeatmapChart } from '../rotation-heatmap-chart';
 import { RotationDetailDrawer } from '../rotation-detail-drawer';
 import { RotationOverviewCards } from '../rotation-overview-cards';
@@ -61,18 +63,17 @@ export function IndustryRotationView() {
             onChange={(e) => setTradeDate(e.target.value)}
             sx={{ width: 200 }}
           />
-          <ToggleButtonGroup
-            size="small"
-            exclusive
-            value={period}
-            onChange={handlePeriodChange}
-          >
+          <ToggleButtonGroup size="small" exclusive value={period} onChange={handlePeriodChange}>
             {PERIOD_OPTIONS.map((p) => (
               <ToggleButton key={p} value={p} sx={{ px: 1.5 }}>
                 {p.toUpperCase()}
               </ToggleButton>
             ))}
           </ToggleButtonGroup>
+          <ExportButton
+            source="industry_rotation"
+            params={{ tradeDate: tradeDate || undefined, period }}
+          />
         </Stack>
       </Stack>
 

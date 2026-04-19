@@ -1,4 +1,11 @@
-import type { AreaItem, IndustryItem, ScreenerResult, ScreenerPreset, ScreenerFilters } from 'src/api/screener';
+import type {
+  AreaItem,
+  IndustryItem,
+  ScreenerResult,
+  ScreenerPreset,
+  ScreenerFilters,
+  ScreenerConceptItem,
+} from 'src/api/screener';
 
 import { useState, useEffect, useCallback } from 'react';
 
@@ -8,7 +15,13 @@ import Alert from '@mui/material/Alert';
 import Typography from '@mui/material/Typography';
 
 import { DashboardContent } from 'src/layouts/dashboard';
-import { fetchAreas, fetchScreener, fetchIndustries, fetchScreenerPresets } from 'src/api/screener';
+import {
+  fetchAreas,
+  fetchScreener,
+  fetchIndustries,
+  fetchScreenerPresets,
+  fetchScreenerConcepts,
+} from 'src/api/screener';
 
 import { ScreenerPresetBar } from '../screener-preset-bar';
 import { ScreenerFilterPanel } from '../screener-filter-panel';
@@ -60,6 +73,7 @@ export function StockScreenerView() {
   const [activePreset, setActivePreset] = useState<string | null>(null);
   const [industries, setIndustries] = useState<IndustryItem[]>([]);
   const [areas, setAreas] = useState<AreaItem[]>([]);
+  const [concepts, setConcepts] = useState<ScreenerConceptItem[]>([]);
 
   // 计算动态列
   const visibleColumns = computeVisibleColumns(filters, sortBy);
@@ -91,13 +105,17 @@ export function StockScreenerView() {
   useEffect(() => {
     const init = async () => {
       try {
-        const [presetsRes, industriesRes, areasRes] = await Promise.allSettled([
+        const [presetsRes, industriesRes, areasRes, conceptsRes] = await Promise.allSettled([
           fetchScreenerPresets(),
           fetchIndustries(),
           fetchAreas(),
+          fetchScreenerConcepts(),
         ]);
         if (presetsRes.status === 'fulfilled') setPresets(presetsRes.value.presets ?? []);
-        if (industriesRes.status === 'fulfilled') setIndustries(industriesRes.value.industries ?? []);
+        if (industriesRes.status === 'fulfilled')
+          setIndustries(industriesRes.value.industries ?? []);
+        if (areasRes.status === 'fulfilled') setAreas(areasRes.value.areas ?? []);
+        if (conceptsRes.status === 'fulfilled') setConcepts(conceptsRes.value.concepts ?? []);
         if (areasRes.status === 'fulfilled') setAreas(areasRes.value.areas ?? []);
       } catch {
         // 辅助数据失败不阻塞主流程
@@ -120,7 +138,6 @@ export function StockScreenerView() {
       }
     };
     init();
-     
   }, []);
 
   // 翻页 / 每页条数变化自动查询
@@ -232,6 +249,7 @@ export function StockScreenerView() {
         filters={filters}
         industries={industries}
         areas={areas}
+        concepts={concepts}
         onChange={handleFilterChange}
         onSearch={handleSearch}
         onReset={handleReset}

@@ -73,7 +73,7 @@ export function AnalysisMainMoneyFlowTab({ tsCode }: Props) {
   const chartOptions = useChart({
     xaxis: {
       categories: data?.history.map((d) => d.tradeDate) ?? [],
-      labels: { rotate: -30, style: { fontSize: '11px' } },
+      labels: { rotate: -30, style: { fontSize: '12px' } },
     },
     yaxis: [
       {

@@ -1,14 +1,14 @@
+import { varAlpha } from 'minimal-shared/utils';
 import { useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
-import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
+import Divider from '@mui/material/Divider';
+import { useTheme } from '@mui/material/styles';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
-
-import { useRouter } from 'src/routes/hooks';
 
 import { fmtTradeDate } from 'src/utils/format-time';
 
@@ -19,24 +19,18 @@ import { usePermission } from 'src/permission/use-permission';
 
 import { Iconify } from 'src/components/iconify';
 
-import { DashboardHsgtFlow } from '../dashboard-hsgt-flow';
-import { DashboardMoneyFlow } from '../dashboard-money-flow';
-import { DashboardIndexCards } from '../dashboard-index-cards';
-import { DashboardHotSectors } from '../dashboard-hot-sectors';
+import { DashboardQuickNav } from '../dashboard-quick-nav';
+import { DashboardSectorWind } from '../dashboard-sector-wind';
+import { DashboardMarketPulse } from '../dashboard-market-pulse';
 import { DashboardSystemStatus } from '../dashboard-system-status';
-import { DashboardSentimentCard } from '../dashboard-sentiment-card';
+import { DashboardCapitalRadar } from '../dashboard-capital-radar';
+import { DashboardSignalCenter } from '../dashboard-signal-center';
 import { DashboardRecentBacktests } from '../dashboard-recent-backtests';
+import { DashboardPortfolioGlance } from '../dashboard-portfolio-glance';
 import { DashboardMainFlowRanking } from '../dashboard-main-flow-ranking';
-import { DashboardChangeDistribution } from '../dashboard-change-distribution';
+import { DashboardMarketTemperature } from '../dashboard-market-temperature';
 
 // ----------------------------------------------------------------------
-
-const QUICK_ACTIONS = [
-  { label: '自选股', path: '/research/watchlist', icon: 'solar:star-bold' as const },
-  { label: '回测工作台', path: '/backtest', icon: 'solar:playback-speed-bold' as const },
-  { label: '策略管理', path: '/strategy', icon: 'solar:layers-bold' as const },
-  { label: '市场热力图', path: '/market/heatmap', icon: 'solar:widget-bold' as const },
-];
 
 function getGreeting(): string {
   const h = new Date().getHours();
@@ -47,15 +41,24 @@ function getGreeting(): string {
   return '晚上好';
 }
 
+function isMarketOpen(): boolean {
+  const now = new Date();
+  const day = now.getDay();
+  if (day === 0 || day === 6) return false;
+  const h = now.getHours();
+  const m = now.getMinutes();
+  const mins = h * 60 + m;
+  return (mins >= 555 && mins <= 690) || (mins >= 780 && mins <= 900); // 9:15-11:30 || 13:00-15:00
+}
+
 // ----------------------------------------------------------------------
 
 export function OverviewDashboardView() {
-  const router = useRouter();
+  const theme = useTheme();
   const { userProfile } = useAuth();
   const { hasMinRole } = usePermission();
   const isAdmin = hasMinRole('ADMIN');
 
-  // refreshKey 变化会强制所有子组件重新挂载，从而重新拉取数据
   const [refreshKey, setRefreshKey] = useState(0);
   const handleRefresh = useCallback(() => setRefreshKey((k) => k + 1), []);
 
@@ -68,10 +71,11 @@ export function OverviewDashboardView() {
   }, [refreshKey]);
 
   const displayName = userProfile?.nickname || userProfile?.account || '';
+  const marketOpen = isMarketOpen();
 
   return (
     <DashboardContent maxWidth="xl">
-      {/* ── 欢迎 + 刷新 + 快捷入口 ── */}
+      {/* ═══ Hero Header ═══ */}
       <Box
         sx={{
           display: 'flex',
@@ -79,91 +83,131 @@ export function OverviewDashboardView() {
           justifyContent: 'space-between',
           flexWrap: 'wrap',
           gap: 2,
-          mb: { xs: 3, md: 4 },
+          mb: 3,
         }}
       >
         <Box>
-          <Typography variant="h4">
+          <Typography variant="h4" sx={{ fontWeight: 800 }}>
             {getGreeting()}
-            {displayName ? `，${displayName}` : ''} 👋
+            {displayName ? `，${displayName}` : ''}
           </Typography>
-          <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
-            市场快报 · 一站式查看今日行情、资金与策略动态
-          </Typography>
-          {latestTradeDate && (
-            <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mt: 0.5 }}>
-              <Iconify icon="solar:calendar-bold" width={14} sx={{ color: 'text.disabled' }} />
-              <Typography variant="caption" sx={{ color: 'text.disabled' }}>
-                数据截止&nbsp;{fmtTradeDate(latestTradeDate)}
+          <Stack direction="row" alignItems="center" spacing={1} sx={{ mt: 0.5 }}>
+            {/* Market status badge */}
+            <Box
+              sx={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 0.5,
+                px: 1,
+                py: 0.25,
+                borderRadius: 1,
+                bgcolor: marketOpen
+                  ? varAlpha(theme.vars.palette.success.mainChannel, 0.12)
+                  : varAlpha(theme.vars.palette.text.disabledChannel, 0.08),
+              }}
+            >
+              <Box
+                sx={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: '50%',
+                  bgcolor: marketOpen ? 'success.main' : 'text.disabled',
+                  ...(marketOpen && {
+                    animation: 'pulse 2s infinite',
+                    '@keyframes pulse': {
+                      '0%': {
+                        boxShadow: `0 0 0 0 ${varAlpha(theme.vars.palette.success.mainChannel, 0.4)}`,
+                      },
+                      '70%': { boxShadow: '0 0 0 6px rgba(0,0,0,0)' },
+                      '100%': { boxShadow: '0 0 0 0 rgba(0,0,0,0)' },
+                    },
+                  }),
+                }}
+              />
+              <Typography
+                variant="caption"
+                sx={{
+                  fontWeight: 600,
+                  fontSize: 10,
+                  color: marketOpen ? 'success.main' : 'text.disabled',
+                }}
+              >
+                {marketOpen ? '交易中' : '已收盘'}
               </Typography>
-            </Stack>
-          )}
+            </Box>
+
+            {latestTradeDate && (
+              <>
+                <Divider orientation="vertical" flexItem sx={{ height: 14, my: 'auto' }} />
+                <Stack direction="row" alignItems="center" spacing={0.5}>
+                  <Iconify icon="solar:calendar-bold" width={12} sx={{ color: 'text.disabled' }} />
+                  <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: 11 }}>
+                    {fmtTradeDate(latestTradeDate)}
+                  </Typography>
+                </Stack>
+              </>
+            )}
+          </Stack>
         </Box>
 
-        <Stack direction="row" spacing={1} alignItems="center" sx={{ flexWrap: 'wrap' }}>
-          {QUICK_ACTIONS.map((action) => (
-            <Chip
-              key={action.path}
-              label={action.label}
-              icon={<Iconify icon={action.icon} width={16} />}
-              size="small"
-              variant="outlined"
-              clickable
-              onClick={() => router.push(action.path)}
-              sx={{ fontWeight: 'fontWeightMedium' }}
-            />
-          ))}
-          <Tooltip title="刷新数据">
-            <IconButton size="small" onClick={handleRefresh} sx={{ ml: 0.5 }}>
-              <Iconify icon="solar:refresh-bold" width={20} />
-            </IconButton>
-          </Tooltip>
-        </Stack>
+        <Tooltip title="刷新全部数据">
+          <IconButton size="small" onClick={handleRefresh}>
+            <Iconify icon="solar:refresh-bold" width={20} />
+          </IconButton>
+        </Tooltip>
       </Box>
 
-      <Grid container spacing={3} key={refreshKey}>
-        {/* A: 指数概览 */}
-        <DashboardIndexCards />
+      <Box key={refreshKey}>
+        {/* ═══ Row 1: Market Pulse — Compact Index Ticker ═══ */}
+        <Box sx={{ mb: 3 }}>
+          <DashboardMarketPulse />
+        </Box>
 
-        {/* B: 市场情绪 + 涨跌分布 */}
-        <Grid size={{ xs: 12, md: 5 }}>
-          <DashboardSentimentCard />
-        </Grid>
-
-        <Grid size={{ xs: 12, md: 7 }}>
-          <DashboardChangeDistribution />
-        </Grid>
-
-        {/* C: 资金流向 + 北向资金 */}
-        <Grid size={{ xs: 12, md: 6 }}>
-          <DashboardMoneyFlow />
-        </Grid>
-
-        <Grid size={{ xs: 12, md: 6 }}>
-          <DashboardHsgtFlow />
-        </Grid>
-
-        {/* D: 主力排行 + 热门板块 */}
-        <Grid size={{ xs: 12, md: 7 }}>
-          <DashboardMainFlowRanking />
-        </Grid>
-
-        <Grid size={{ xs: 12, md: 5 }}>
-          <DashboardHotSectors />
-        </Grid>
-
-        {/* E: 近期回测 */}
-        <Grid size={{ xs: 12 }}>
-          <DashboardRecentBacktests />
-        </Grid>
-
-        {/* F: 系统状态（管理员可见） */}
-        {isAdmin && (
-          <Grid size={{ xs: 12 }}>
-            <DashboardSystemStatus />
+        {/* ═══ Row 2: Three Intelligence Cards ═══ */}
+        <Grid container spacing={3} sx={{ mb: 3 }} alignItems="stretch">
+          <Grid size={{ xs: 12, md: 4 }}>
+            <DashboardMarketTemperature />
           </Grid>
+          <Grid size={{ xs: 12, md: 4 }}>
+            <DashboardCapitalRadar />
+          </Grid>
+          <Grid size={{ xs: 12, md: 4 }}>
+            <DashboardSignalCenter />
+          </Grid>
+        </Grid>
+
+        {/* ═══ Row 3: Sector Wind + Main Flow Tracker ═══ */}
+        <Grid container spacing={3} sx={{ mb: 3 }} alignItems="stretch">
+          <Grid size={{ xs: 12, md: 7 }}>
+            <DashboardSectorWind />
+          </Grid>
+          <Grid size={{ xs: 12, md: 5 }}>
+            <DashboardMainFlowRanking />
+          </Grid>
+        </Grid>
+
+        {/* ═══ Row 4: My Workspace — Portfolio + Backtests ═══ */}
+        <Grid container spacing={3} sx={{ mb: 3 }} alignItems="stretch">
+          <Grid size={{ xs: 12, md: 5 }}>
+            <DashboardPortfolioGlance />
+          </Grid>
+          <Grid size={{ xs: 12, md: 7 }}>
+            <DashboardRecentBacktests />
+          </Grid>
+        </Grid>
+
+        {/* ═══ Row 5: Quick Navigation Grid ═══ */}
+        <Box sx={{ mb: 3 }}>
+          <DashboardQuickNav />
+        </Box>
+
+        {/* ═══ Row 6: System Status (Admin Only) ═══ */}
+        {isAdmin && (
+          <Box>
+            <DashboardSystemStatus />
+          </Box>
         )}
-      </Grid>
+      </Box>
     </DashboardContent>
   );
 }

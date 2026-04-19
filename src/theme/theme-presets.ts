@@ -173,7 +173,17 @@ export const themePresets: ThemePreset[] = [
     label: '经典蓝',
     description: '当前默认的 Minimals 风格，保持现有界面完全不变。',
     swatches: ['#1877F2', '#8E33FF', '#22C55E', '#FFAB00'],
-    themeOverrides: {},
+    themeOverrides: {
+      components: {
+        MuiCard: {
+          styleOverrides: {
+            root: {
+              border: '1px solid rgba(24, 119, 242, 0.12)',
+            },
+          },
+        },
+      },
+    },
   },
   createThemePreset({
     value: 'quantum-night',
@@ -499,7 +509,7 @@ export const themePresets: ThemePreset[] = [
     value: 'aurora-gradient',
     label: '极光渐变',
     description: '更具品牌感的高饱和主题，适合展示与运营页面。',
-    swatches: ['#6366F1', '#EC4899', '#06B6D4', '#10B981'],
+    swatches: ['#6366F1', '#0D9488', '#06B6D4', '#10B981'],
     palette: {
       primary: {
         lighter: '#E5E6FF',
@@ -510,11 +520,11 @@ export const themePresets: ThemePreset[] = [
         contrastText: '#FFFFFF',
       },
       secondary: {
-        lighter: '#FFE0F0',
-        light: '#FF9FC7',
-        main: '#EC4899',
-        dark: '#BE185D',
-        darker: '#831843',
+        lighter: '#CCFBF1',
+        light: '#2DD4BF',
+        main: '#0D9488',
+        dark: '#0F766E',
+        darker: '#134E4A',
         contrastText: '#FFFFFF',
       },
       info: {

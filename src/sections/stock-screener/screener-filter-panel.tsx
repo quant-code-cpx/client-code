@@ -1,24 +1,40 @@
-import type { AreaItem, IndustryItem, ScreenerFilters } from 'src/api/screener';
+import type {
+  AreaItem,
+  IndustryItem,
+  ScreenerFilters,
+  ScreenerConceptItem,
+} from 'src/api/screener';
 
 import { memo, useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
+import Chip from '@mui/material/Chip';
 import Grid from '@mui/material/Grid';
 import Button from '@mui/material/Button';
 import Select from '@mui/material/Select';
+import Switch from '@mui/material/Switch';
 import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
 import Accordion from '@mui/material/Accordion';
 import Typography from '@mui/material/Typography';
 import Autocomplete from '@mui/material/Autocomplete';
 import InputAdornment from '@mui/material/InputAdornment';
+import FormControlLabel from '@mui/material/FormControlLabel';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import AccordionSummary from '@mui/material/AccordionSummary';
 
 import { Iconify } from 'src/components/iconify';
 
-import { MARKET_OPTIONS, EXCHANGE_OPTIONS } from './constants';
 import { ScreenerFilterRangeInput } from './screener-filter-range-input';
+import {
+  MARKET_OPTIONS,
+  EXCHANGE_OPTIONS,
+  MA_TREND_OPTIONS,
+  KDJ_SIGNAL_OPTIONS,
+  RSI_SIGNAL_OPTIONS,
+  BOLL_SIGNAL_OPTIONS,
+  MACD_SIGNAL_OPTIONS,
+} from './constants';
 
 // ----------------------------------------------------------------------
 // 单个数字输入（本地 draft 状态，失焦时才提交父组件）
@@ -68,6 +84,7 @@ type ScreenerFilterPanelProps = {
   filters: ScreenerFilters;
   industries: IndustryItem[];
   areas: AreaItem[];
+  concepts?: ScreenerConceptItem[];
   onChange: (newFilters: ScreenerFilters) => void;
   onSearch: () => void;
   onReset: () => void;
@@ -79,6 +96,7 @@ export const ScreenerFilterPanel = memo(function ScreenerFilterPanel({
   filters,
   industries,
   areas,
+  concepts = [],
   onChange,
   onSearch,
   onReset,
@@ -87,16 +105,17 @@ export const ScreenerFilterPanel = memo(function ScreenerFilterPanel({
     onChange({ ...filters, [key]: value });
   };
 
-  const industryOptions = industries.map((i) => `${i.name}(${i.count})`);
-  const areaOptions = areas.map((a) => `${a.name}(${a.count})`);
+  const industryOptions = industries.map((i) => i.name);
+  const areaOptions = areas.map((a) => a.name);
+  const conceptOptions = concepts.map((c) => ({
+    tsCode: c.tsCode,
+    label: `${c.name}(${c.count})`,
+  }));
 
-  const industryValue = filters.industry
-    ? (industryOptions.find((o) => o.startsWith(filters.industry!)) ?? filters.industry)
-    : null;
-
-  const areaValue = filters.area
-    ? (areaOptions.find((o) => o.startsWith(filters.area!)) ?? filters.area)
-    : null;
+  // 多选行业：industries 数组
+  const industriesValue = filters.industries ?? [];
+  const areasValue = filters.areas ?? [];
+  const conceptCodesValue = filters.conceptCodes ?? [];
 
   return (
     <Accordion defaultExpanded sx={{ mb: 2 }}>
@@ -157,17 +176,28 @@ export const ScreenerFilterPanel = memo(function ScreenerFilterPanel({
               variant="caption"
               sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}
             >
-              行业
+              行业（多选）
             </Typography>
             <Autocomplete
+              multiple
               size="small"
               options={industryOptions}
-              value={industryValue}
+              value={industriesValue}
               onChange={(_, v) => {
-                const raw = v ? v.replace(/\(\d+\)$/, '') : undefined;
-                set('industry', raw);
+                set('industries', v.length > 0 ? v : undefined);
               }}
               renderInput={(params) => <TextField {...params} placeholder="全部" />}
+              renderTags={(value, getTagProps) =>
+                value.map((option, index) => (
+                  <Chip
+                    {...getTagProps({ index })}
+                    key={option}
+                    label={option}
+                    size="small"
+                    variant="outlined"
+                  />
+                ))
+              }
             />
           </Grid>
 
@@ -176,20 +206,72 @@ export const ScreenerFilterPanel = memo(function ScreenerFilterPanel({
               variant="caption"
               sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}
             >
-              地域
+              地域（多选）
             </Typography>
             <Autocomplete
+              multiple
               size="small"
               options={areaOptions}
-              value={areaValue}
+              value={areasValue}
               onChange={(_, v) => {
-                const raw = v ? v.replace(/\(\d+\)$/, '') : undefined;
-                set('area', raw);
+                set('areas', v.length > 0 ? v : undefined);
               }}
               renderInput={(params) => <TextField {...params} placeholder="全部" />}
+              renderTags={(value, getTagProps) =>
+                value.map((option, index) => (
+                  <Chip
+                    {...getTagProps({ index })}
+                    key={option}
+                    label={option}
+                    size="small"
+                    variant="outlined"
+                  />
+                ))
+              }
             />
           </Grid>
         </Grid>
+
+        {/* 概念板块筛选 */}
+        {concepts.length > 0 && (
+          <>
+            <Typography
+              variant="overline"
+              sx={{ color: 'text.secondary', mb: 1, display: 'block' }}
+            >
+              概念板块
+            </Typography>
+            <Grid container spacing={2} sx={{ mb: 2 }}>
+              <Grid size={{ xs: 12, sm: 8, md: 6 }}>
+                <Autocomplete
+                  multiple
+                  size="small"
+                  options={conceptOptions}
+                  getOptionLabel={(opt) => opt.label}
+                  value={conceptOptions.filter((o) => conceptCodesValue.includes(o.tsCode))}
+                  onChange={(_, v) => {
+                    const codes = v.map((o) => o.tsCode);
+                    set('conceptCodes', codes.length > 0 ? codes : undefined);
+                  }}
+                  isOptionEqualToValue={(opt, val) => opt.tsCode === val.tsCode}
+                  renderInput={(params) => <TextField {...params} placeholder="选择概念板块" />}
+                  renderTags={(value, getTagProps) =>
+                    value.map((option, index) => (
+                      <Chip
+                        {...getTagProps({ index })}
+                        key={option.tsCode}
+                        label={option.label}
+                        size="small"
+                        color="primary"
+                        variant="outlined"
+                      />
+                    ))
+                  }
+                />
+              </Grid>
+            </Grid>
+          </>
+        )}
 
         {/* 第 2 行：估值 */}
         <Typography variant="overline" sx={{ color: 'text.secondary', mb: 1, display: 'block' }}>
@@ -213,6 +295,16 @@ export const ScreenerFilterPanel = memo(function ScreenerFilterPanel({
               maxValue={filters.maxPb}
               onMinChange={(v) => set('minPb', v)}
               onMaxChange={(v) => set('maxPb', v)}
+              step={0.1}
+            />
+          </Grid>
+          <Grid size={{ xs: 6, sm: 4, md: 3 }}>
+            <ScreenerFilterRangeInput
+              label="PS TTM"
+              minValue={filters.minPsTtm}
+              maxValue={filters.maxPsTtm}
+              onMinChange={(v) => set('minPsTtm', v)}
+              onMaxChange={(v) => set('maxPsTtm', v)}
               step={0.1}
             />
           </Grid>
@@ -385,6 +477,145 @@ export const ScreenerFilterPanel = memo(function ScreenerFilterPanel({
               onMaxChange={(v) => set('maxTurnoverRate', v)}
               unit="%"
               step={0.1}
+            />
+          </Grid>
+        </Grid>
+
+        {/* 第 8 行：技术信号 */}
+        <Typography variant="overline" sx={{ color: 'text.secondary', mb: 1, display: 'block' }}>
+          技术信号
+        </Typography>
+        <Grid container spacing={2} sx={{ mb: 2 }}>
+          <Grid size={{ xs: 6, sm: 4, md: 3 }}>
+            <Typography
+              variant="caption"
+              sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}
+            >
+              MACD 信号
+            </Typography>
+            <Select
+              fullWidth
+              size="small"
+              value={filters.macdSignal ?? ''}
+              onChange={(e) => set('macdSignal', e.target.value || undefined)}
+            >
+              {MACD_SIGNAL_OPTIONS.map((opt) => (
+                <MenuItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </MenuItem>
+              ))}
+            </Select>
+          </Grid>
+          <Grid size={{ xs: 6, sm: 4, md: 3 }}>
+            <Typography
+              variant="caption"
+              sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}
+            >
+              KDJ 信号
+            </Typography>
+            <Select
+              fullWidth
+              size="small"
+              value={filters.kdjSignal ?? ''}
+              onChange={(e) => set('kdjSignal', e.target.value || undefined)}
+            >
+              {KDJ_SIGNAL_OPTIONS.map((opt) => (
+                <MenuItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </MenuItem>
+              ))}
+            </Select>
+          </Grid>
+          <Grid size={{ xs: 6, sm: 4, md: 3 }}>
+            <Typography
+              variant="caption"
+              sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}
+            >
+              RSI 信号
+            </Typography>
+            <Select
+              fullWidth
+              size="small"
+              value={filters.rsiSignal ?? ''}
+              onChange={(e) => set('rsiSignal', e.target.value || undefined)}
+            >
+              {RSI_SIGNAL_OPTIONS.map((opt) => (
+                <MenuItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </MenuItem>
+              ))}
+            </Select>
+          </Grid>
+          <Grid size={{ xs: 6, sm: 4, md: 3 }}>
+            <ScreenerFilterRangeInput
+              label="RSI 6日"
+              minValue={filters.minRsi6}
+              maxValue={filters.maxRsi6}
+              onMinChange={(v) => set('minRsi6', v)}
+              onMaxChange={(v) => set('maxRsi6', v)}
+              step={1}
+            />
+          </Grid>
+          <Grid size={{ xs: 6, sm: 4, md: 3 }}>
+            <Typography
+              variant="caption"
+              sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}
+            >
+              布林带信号
+            </Typography>
+            <Select
+              fullWidth
+              size="small"
+              value={filters.bollSignal ?? ''}
+              onChange={(e) =>
+                set('bollSignal', (e.target.value || undefined) as ScreenerFilters['bollSignal'])
+              }
+            >
+              {BOLL_SIGNAL_OPTIONS.map((opt) => (
+                <MenuItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </MenuItem>
+              ))}
+            </Select>
+          </Grid>
+          <Grid size={{ xs: 6, sm: 4, md: 3 }}>
+            <Typography
+              variant="caption"
+              sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}
+            >
+              均线趋势
+            </Typography>
+            <Select
+              fullWidth
+              size="small"
+              value={filters.maTrend ?? ''}
+              onChange={(e) =>
+                set('maTrend', (e.target.value || undefined) as ScreenerFilters['maTrend'])
+              }
+            >
+              {MA_TREND_OPTIONS.map((opt) => (
+                <MenuItem key={opt.value} value={opt.value}>
+                  {opt.label}
+                </MenuItem>
+              ))}
+            </Select>
+          </Grid>
+        </Grid>
+
+        {/* 第 9 行：北向资金 */}
+        <Typography variant="overline" sx={{ color: 'text.secondary', mb: 1, display: 'block' }}>
+          北向资金
+        </Typography>
+        <Grid container spacing={2} sx={{ mb: 2 }}>
+          <Grid size={{ xs: 6, sm: 4, md: 3 }}>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={filters.northboundOnly ?? false}
+                  onChange={(e) => set('northboundOnly', e.target.checked || undefined)}
+                />
+              }
+              label="仅显示北向持仓股"
             />
           </Grid>
         </Grid>

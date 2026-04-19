@@ -67,6 +67,11 @@ export function getUserTags() {
   return apiClient.post<{ tags: string[] }>('/api/research-note/tags');
 }
 
-export function getStockNotes(tsCode: string) {
-  return apiClient.post<ResearchNote[]>('/api/research-note/stock', { tsCode });
+/** BE returns { notes, total }; adapter unwraps to flat array */
+export async function getStockNotes(tsCode: string): Promise<ResearchNote[]> {
+  const res = await apiClient.post<{ notes: ResearchNote[]; total: number }>(
+    '/api/research-note/stock',
+    { tsCode }
+  );
+  return res?.notes ?? [];
 }

@@ -6,6 +6,7 @@ import type {
   ScreenerResult,
   ScreenerFilters,
   ScreenerStrategy,
+  ScreenerConceptItem,
 } from 'src/api/screener';
 
 import { useState, useEffect, useCallback } from 'react';
@@ -29,6 +30,7 @@ import {
   fetchIndustries,
   fetchStrategies,
   fetchScreenerPresets,
+  fetchScreenerConcepts,
 } from 'src/api/screener';
 
 import { ScreenerFilterPanel } from 'src/sections/stock-screener/screener-filter-panel';
@@ -97,6 +99,7 @@ export function ScreenerDialog({ open, onClose }: ScreenerDialogProps) {
   // ── 辅助数据 ──
   const [industries, setIndustries] = useState<IndustryItem[]>([]);
   const [areas, setAreas] = useState<AreaItem[]>([]);
+  const [concepts, setConcepts] = useState<ScreenerConceptItem[]>([]);
 
   const visibleColumns = computeVisibleColumns(filters, sortBy);
 
@@ -129,18 +132,21 @@ export function ScreenerDialog({ open, onClose }: ScreenerDialogProps) {
 
     const init = async () => {
       try {
-        const [presetsRes, strategiesRes, industriesRes, areasRes] = await Promise.allSettled([
-          fetchScreenerPresets(),
-          fetchStrategies(),
-          fetchIndustries(),
-          fetchAreas(),
-        ]);
+        const [presetsRes, strategiesRes, industriesRes, areasRes, conceptsRes] =
+          await Promise.allSettled([
+            fetchScreenerPresets(),
+            fetchStrategies(),
+            fetchIndustries(),
+            fetchAreas(),
+            fetchScreenerConcepts(),
+          ]);
         if (presetsRes.status === 'fulfilled') setPresets(presetsRes.value.presets ?? []);
         if (strategiesRes.status === 'fulfilled')
           setStrategies(strategiesRes.value.strategies ?? []);
         if (industriesRes.status === 'fulfilled')
           setIndustries(industriesRes.value.industries ?? []);
         if (areasRes.status === 'fulfilled') setAreas(areasRes.value.areas ?? []);
+        if (conceptsRes.status === 'fulfilled') setConcepts(conceptsRes.value.concepts ?? []);
       } catch {
         // 辅助数据失败不阻塞主流程
       }
@@ -364,6 +370,7 @@ export function ScreenerDialog({ open, onClose }: ScreenerDialogProps) {
             filters={filters}
             industries={industries}
             areas={areas}
+            concepts={concepts}
             onChange={handleFilterChange}
             onSearch={handleSearch}
             onReset={handleReset}

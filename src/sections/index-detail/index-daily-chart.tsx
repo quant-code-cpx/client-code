@@ -23,11 +23,18 @@ import { Chart, useChart } from 'src/components/chart';
 // ----------------------------------------------------------------------
 
 const PERIOD_OPTIONS = [
-  { value: 60, label: '3月' },
-  { value: 120, label: '半年' },
-  { value: 250, label: '1年' },
-  { value: 500, label: '2年' },
+  { value: 90, label: '3月' },
+  { value: 180, label: '半年' },
+  { value: 365, label: '1年' },
+  { value: 730, label: '2年' },
 ];
+
+/** Convert calendar days back to YYYYMMDD start_date */
+function daysAgoStr(days: number): string {
+  const d = new Date();
+  d.setDate(d.getDate() - days);
+  return d.toISOString().slice(0, 10).replace(/-/g, '');
+}
 
 // ----------------------------------------------------------------------
 
@@ -37,7 +44,7 @@ type Props = {
 
 export function IndexDailyChart({ tsCode }: Props) {
   const theme = useTheme();
-  const [limit, setLimit] = useState(250);
+  const [days, setDays] = useState(365);
   const [data, setData] = useState<IndexDailyItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -47,9 +54,9 @@ export function IndexDailyChart({ tsCode }: Props) {
     setLoading(true);
     setError('');
 
-    fetchIndexDaily({ ts_code: tsCode, limit })
+    fetchIndexDaily({ ts_code: tsCode, start_date: daysAgoStr(days) })
       .then((res) => {
-        if (!cancelled) setData(Array.isArray(res) ? res : ((res as any)?.items ?? []));
+        if (!cancelled) setData(Array.isArray(res) ? res : []);
       })
       .catch((err: unknown) => {
         if (!cancelled) setError(err instanceof Error ? err.message : '加载日线数据失败');
@@ -61,7 +68,7 @@ export function IndexDailyChart({ tsCode }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [tsCode, limit]);
+  }, [tsCode, days]);
 
   const categories = data.map((d) => fmtDate(d.tradeDate));
 
@@ -112,10 +119,10 @@ export function IndexDailyChart({ tsCode }: Props) {
           </Typography>
           <ToggleButtonGroup
             size="small"
-            value={limit}
+            value={days}
             exclusive
             onChange={(_, v) => {
-              if (v !== null) setLimit(v as number);
+              if (v !== null) setDays(v as number);
             }}
           >
             {PERIOD_OPTIONS.map((o) => (

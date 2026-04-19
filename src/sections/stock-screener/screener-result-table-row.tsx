@@ -1,5 +1,6 @@
 import type { StockScreenerItem } from 'src/api/screener';
 
+import Chip from '@mui/material/Chip';
 import TableRow from '@mui/material/TableRow';
 import TableCell from '@mui/material/TableCell';
 import Typography from '@mui/material/Typography';
@@ -73,7 +74,11 @@ export function ScreenerResultTableRow({ row, visibleColumns }: ScreenerResultTa
           href={`/stock/detail?code=${encodeURIComponent(row.tsCode)}`}
           variant="body2"
           fontWeight="fontWeightMedium"
-          sx={{ color: 'primary.main', textDecoration: 'none', '&:hover': { textDecoration: 'underline' } }}
+          sx={{
+            color: 'primary.main',
+            textDecoration: 'none',
+            '&:hover': { textDecoration: 'underline' },
+          }}
         >
           {row.name ?? '—'}
         </Typography>
@@ -101,9 +106,7 @@ export function ScreenerResultTableRow({ row, visibleColumns }: ScreenerResultTa
       )}
 
       {/* 总市值 */}
-      {visible.has('totalMv') && (
-        <TableCell align="right">{fWanYuan(row.totalMv)}</TableCell>
-      )}
+      {visible.has('totalMv') && <TableCell align="right">{fWanYuan(row.totalMv)}</TableCell>}
 
       {/* PE TTM */}
       {visible.has('peTtm') && (
@@ -130,9 +133,7 @@ export function ScreenerResultTableRow({ row, visibleColumns }: ScreenerResultTa
       )}
 
       {/* 股息率 */}
-      {visible.has('dvTtm') && (
-        <TableCell align="right">{fRatePercent(row.dvTtm)}</TableCell>
-      )}
+      {visible.has('dvTtm') && <TableCell align="right">{fRatePercent(row.dvTtm)}</TableCell>}
 
       {/* 换手率 */}
       {visible.has('turnoverRate') && (
@@ -228,15 +229,41 @@ export function ScreenerResultTableRow({ row, visibleColumns }: ScreenerResultTa
         </TableCell>
       )}
 
-      {/* 行业 */}
-      {visible.has('industry') && (
-        <TableCell>{row.industry ?? '—'}</TableCell>
+      {/* PS TTM */}
+      {visible.has('psTtm') && (
+        <TableCell align="right">
+          <Typography
+            variant="body2"
+            sx={{ color: (row.psTtm ?? 0) < 0 ? 'error.main' : 'text.primary' }}
+          >
+            {fPeOrPb(row.psTtm)}
+          </Typography>
+        </TableCell>
       )}
 
-      {/* 板块 */}
-      {visible.has('market') && (
-        <TableCell>{row.market ?? '—'}</TableCell>
+      {/* 概念板块 */}
+      {visible.has('concepts') && (
+        <TableCell>
+          {row.concepts && row.concepts.length > 0 ? (
+            <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+              {row.concepts.slice(0, 3).map((c) => (
+                <Chip key={c} label={c} size="small" variant="outlined" />
+              ))}
+              {row.concepts.length > 3 && (
+                <Chip label={`+${row.concepts.length - 3}`} size="small" variant="filled" />
+              )}
+            </div>
+          ) : (
+            '—'
+          )}
+        </TableCell>
       )}
+
+      {/* 行业 */}
+      {visible.has('industry') && <TableCell>{row.industry ?? '—'}</TableCell>}
+
+      {/* 板块 */}
+      {visible.has('market') && <TableCell>{row.market ?? '—'}</TableCell>}
 
       {/* 财报期 */}
       {visible.has('latestFinDate') && (

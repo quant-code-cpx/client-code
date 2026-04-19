@@ -42,8 +42,7 @@ export function MarketSectorRankingChart({ tradeDate }: Props) {
         if (!cancelled) setSectors(res?.sectors ?? []);
       })
       .catch((err: unknown) => {
-        if (!cancelled)
-          setError(err instanceof Error ? err.message : '加载行业排行失败');
+        if (!cancelled) setError(err instanceof Error ? err.message : '加载行业排行失败');
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -54,11 +53,9 @@ export function MarketSectorRankingChart({ tradeDate }: Props) {
     };
   }, [tradeDate, sortBy]);
 
-  // Sort ascending so the chart reads top-to-bottom as best → worst
+  // Sort descending so the chart reads top-to-bottom as best → worst
   const sorted = [...sectors].sort((a, b) =>
-    sortBy === 'pct_change'
-      ? a.pctChange - b.pctChange
-      : a.netAmount - b.netAmount
+    sortBy === 'pct_change' ? b.pctChange - a.pctChange : b.netAmount - a.netAmount
   );
 
   const values = sorted.map((s) =>
@@ -92,9 +89,10 @@ export function MarketSectorRankingChart({ tradeDate }: Props) {
       enabled: true,
       formatter: (v: number) =>
         sortBy === 'pct_change' ? `${v.toFixed(2)}%` : `${v.toFixed(1)}亿`,
-      style: { colors: [theme.palette.text.primary], fontSize: '10px' },
+      style: { colors: [theme.palette.text.primary], fontSize: '12px' },
     },
-    tooltip: { shared: false, intersect: true },
+    tooltip: { shared: true, intersect: false },
+    states: { active: { filter: { type: 'none' } } },
   });
 
   const series = [
@@ -125,7 +123,11 @@ export function MarketSectorRankingChart({ tradeDate }: Props) {
           </ToggleButtonGroup>
         </Stack>
 
-        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
 
         {loading ? (
           <Skeleton variant="rectangular" height={400} />

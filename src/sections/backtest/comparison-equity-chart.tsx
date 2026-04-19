@@ -42,7 +42,7 @@ export function ComparisonEquityChart({ series }: Props) {
       categories,
       type: 'category',
       tickAmount: 8,
-      labels: { rotate: -30, style: { fontSize: '11px' } },
+      labels: { rotate: -30, style: { fontSize: '12px' } },
     },
     yaxis: {
       labels: { formatter: (val: number) => val.toFixed(2) },

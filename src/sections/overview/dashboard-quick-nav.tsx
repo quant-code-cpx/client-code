@@ -1,0 +1,151 @@
+import { varAlpha } from 'minimal-shared/utils';
+
+import Box from '@mui/material/Box';
+import Grid from '@mui/material/Grid';
+import Card from '@mui/material/Card';
+import { useTheme } from '@mui/material/styles';
+import Typography from '@mui/material/Typography';
+
+import { useRouter } from 'src/routes/hooks';
+
+import { Iconify } from 'src/components/iconify';
+
+// ----------------------------------------------------------------------
+
+const NAV_ITEMS = [
+  {
+    icon: 'solar:star-bold',
+    label: '自选股',
+    path: '/research/watchlist',
+    color: 'warning',
+  },
+  {
+    icon: 'solar:chart-2-bold',
+    label: '市场概览',
+    path: '/market/overview',
+    color: 'info',
+  },
+  {
+    icon: 'solar:widget-bold',
+    label: '热力图',
+    path: '/market/heatmap',
+    color: 'error',
+  },
+  {
+    icon: 'solar:filter-bold',
+    label: '选股器',
+    path: '/stock/screener',
+    color: 'primary',
+  },
+  {
+    icon: 'solar:playback-speed-bold',
+    label: '回测工作台',
+    path: '/backtest',
+    color: 'secondary',
+  },
+  {
+    icon: 'solar:layers-bold',
+    label: '策略管理',
+    path: '/strategy',
+    color: 'success',
+  },
+  {
+    icon: 'solar:graph-up-bold',
+    label: '因子市场',
+    path: '/factor',
+    color: 'info',
+  },
+  {
+    icon: 'solar:bell-bold',
+    label: '预警监控',
+    path: '/alert/price-rules',
+    color: 'warning',
+  },
+  {
+    icon: 'solar:notebook-bookmark-bold',
+    label: '研究笔记',
+    path: '/research/notes',
+    color: 'secondary',
+  },
+  {
+    icon: 'solar:document-text-bold',
+    label: '量化报告',
+    path: '/research/reports',
+    color: 'primary',
+  },
+  {
+    icon: 'solar:shuffle-bold',
+    label: '行业轮动',
+    path: '/market/industry-rotation',
+    color: 'error',
+  },
+  {
+    icon: 'solar:calendar-bold',
+    label: '事件日历',
+    path: '/alert/calendar',
+    color: 'success',
+  },
+] as const;
+
+// ----------------------------------------------------------------------
+
+export function DashboardQuickNav() {
+  const theme = useTheme();
+  const router = useRouter();
+
+  return (
+    <Box>
+      <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 2 }}>
+        快速导航
+      </Typography>
+      <Grid container spacing={1.5}>
+        {NAV_ITEMS.map((item) => {
+          const paletteColor = theme.palette[item.color as keyof typeof theme.palette] as {
+            main: string;
+            mainChannel: string;
+          };
+
+          return (
+            <Grid key={item.path} size={{ xs: 4, sm: 3, md: 2, lg: 1.5 }}>
+              <Card
+                onClick={() => router.push(item.path)}
+                sx={{
+                  py: 2,
+                  px: 1,
+                  textAlign: 'center',
+                  cursor: 'pointer',
+                  border: '1px solid',
+                  borderColor: 'transparent',
+                  boxShadow: 'none',
+                  bgcolor: varAlpha(paletteColor.mainChannel, 0.04),
+                  transition: 'all 0.2s ease',
+                  '&:hover': {
+                    borderColor: paletteColor.main,
+                    bgcolor: varAlpha(paletteColor.mainChannel, 0.1),
+                    transform: 'translateY(-2px)',
+                    boxShadow: `0 4px 12px ${varAlpha(paletteColor.mainChannel, 0.16)}`,
+                  },
+                }}
+              >
+                <Iconify
+                  icon={item.icon as any}
+                  width={24}
+                  sx={{
+                    color: paletteColor.main,
+                    mb: 0.75,
+                  }}
+                />
+                <Typography
+                  variant="caption"
+                  sx={{ fontWeight: 600, fontSize: 12, display: 'block' }}
+                >
+                  {item.label}
+                </Typography>
+              </Card>
+            </Grid>
+          );
+        })}
+      </Grid>
+    </Box>
+  );
+}

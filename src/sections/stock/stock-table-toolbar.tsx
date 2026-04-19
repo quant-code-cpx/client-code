@@ -13,6 +13,7 @@ import OutlinedInput from '@mui/material/OutlinedInput';
 import InputAdornment from '@mui/material/InputAdornment';
 
 import { Iconify } from 'src/components/iconify';
+import { ExportButton } from 'src/components/export-button';
 
 import { MARKET_OPTIONS, EXCHANGE_OPTIONS } from './constants';
 
@@ -121,6 +122,8 @@ export function StockTableToolbar({
         />
 
         <Box sx={{ flexGrow: 1 }} />
+
+        <ExportButton source="stock_list" params={filters} />
 
         <Button
           variant="outlined"

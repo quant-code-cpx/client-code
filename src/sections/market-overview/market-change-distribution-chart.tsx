@@ -73,9 +73,9 @@ export function MarketChangeDistributionChart({ tradeDate }: Props) {
     legend: { show: false },
     xaxis: {
       categories: distribution.map((d) => d.label),
-      labels: { rotate: -45, rotateAlways: false, style: { fontSize: '10px' } },
+      labels: { rotate: -45, rotateAlways: false, style: { fontSize: '12px' } },
     },
-    tooltip: { shared: false, intersect: true },
+    tooltip: { shared: true, intersect: false },
   });
 
   const series = [{ name: '家数', data: distribution.map((d) => d.count) }];

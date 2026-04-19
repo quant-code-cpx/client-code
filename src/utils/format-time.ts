@@ -114,3 +114,26 @@ export function fmtTradeDate(d: string, fmt = 'YYYY-MM-DD'): string {
   if (d.includes('T')) return dayjs(d).format(fmt);
   return dayjs(d).format(fmt);
 }
+
+// ----------------------------------------------------------------------
+
+/**
+ * Convert period string to approximate trading day count.
+ * Used when passing period to backend endpoints that expect `days: number`.
+ *
+ * @example
+ *   periodToDays('1w')  // → 5
+ *   periodToDays('1m')  // → 20
+ *   periodToDays('3m')  // → 60
+ */
+const PERIOD_DAYS_MAP: Record<string, number> = {
+  '1w': 5,
+  '1m': 20,
+  '3m': 60,
+  '6m': 120,
+  '1y': 250,
+};
+
+export function periodToDays(period: string): number {
+  return PERIOD_DAYS_MAP[period] ?? 20;
+}

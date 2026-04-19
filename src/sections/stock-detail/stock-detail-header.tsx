@@ -158,28 +158,28 @@ export function StockDetailHeader({ tsCode, overview, loading }: Props) {
             label={exchange}
             size="small"
             variant="outlined"
-            sx={{ height: 22, fontSize: 11 }}
+            sx={{ height: 22, fontSize: 12 }}
           />
         )}
         {market && (
-          <Chip label={market} size="small" variant="outlined" sx={{ height: 22, fontSize: 11 }} />
+          <Chip label={market} size="small" variant="outlined" sx={{ height: 22, fontSize: 12 }} />
         )}
         {industry && (
           <Chip
             label={industry}
             size="small"
             variant="outlined"
-            sx={{ height: 22, fontSize: 11 }}
+            sx={{ height: 22, fontSize: 12 }}
           />
         )}
         {area && (
-          <Chip label={area} size="small" variant="outlined" sx={{ height: 22, fontSize: 11 }} />
+          <Chip label={area} size="small" variant="outlined" sx={{ height: 22, fontSize: 12 }} />
         )}
         {listStatus && (
-          <Chip label={listStatus} size="small" color="default" sx={{ height: 22, fontSize: 11 }} />
+          <Chip label={listStatus} size="small" color="default" sx={{ height: 22, fontSize: 12 }} />
         )}
         {hsTag && (
-          <Label color="info" variant="soft" sx={{ height: 22, fontSize: 11, px: 1.25 }}>
+          <Label color="info" variant="soft" sx={{ height: 22, fontSize: 12, px: 1.25 }}>
             {hsTag}
           </Label>
         )}

@@ -6,11 +6,12 @@ import Card from '@mui/material/Card';
 import Alert from '@mui/material/Alert';
 import Skeleton from '@mui/material/Skeleton';
 import TextField from '@mui/material/TextField';
+import { useTheme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 import Autocomplete from '@mui/material/Autocomplete';
 
-import { fmtTradeDate as fmtDate } from 'src/utils/format-time';
+import { periodToDays } from 'src/utils/format-time';
 
 import { fetchReturnComparison, type ReturnComparisonResult } from 'src/api/market';
 
@@ -18,7 +19,6 @@ import { Chart, useChart } from 'src/components/chart';
 
 // ----------------------------------------------------------------------
 
-// Common A-share industry sectors for autocomplete suggestions
 const DEFAULT_SECTOR_OPTIONS = [
   '银行',
   '非银金融',
@@ -52,7 +52,18 @@ const DEFAULT_SECTOR_OPTIONS = [
   '综合',
 ];
 
-const MAX_SECTORS = 6;
+const MAX_SECTORS = 8;
+
+// Period label for chart series name: "5d" → "5天"
+function periodLabel(key: string): string {
+  const n = Number(key.replace('d', ''));
+  if (n >= 250) return '1年';
+  if (n >= 120) return '6月';
+  if (n >= 60) return '3月';
+  if (n >= 20) return '1月';
+  if (n >= 5) return '1周';
+  return `${n}天`;
+}
 
 // ----------------------------------------------------------------------
 
@@ -62,6 +73,7 @@ type Props = {
 };
 
 export function RotationReturnComparisonChart({ tradeDate, period }: Props) {
+  const theme = useTheme();
   const [selectedSectors, setSelectedSectors] = useState<string[]>([]);
   const [data, setData] = useState<ReturnComparisonResult | null>(null);
   const [loading, setLoading] = useState(true);
@@ -74,7 +86,7 @@ export function RotationReturnComparisonChart({ tradeDate, period }: Props) {
 
     fetchReturnComparison({
       trade_date: tradeDate,
-      periods: period ? [period] : undefined,
+      periods: period ? [periodToDays(period)] : [5, 20, 60],
     })
       .then((res) => {
         if (!cancelled) setData(res ?? null);
@@ -89,68 +101,69 @@ export function RotationReturnComparisonChart({ tradeDate, period }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [tradeDate, period, selectedSectors]);
+  }, [tradeDate, period]);
 
   const handleSectorChange = useCallback((_: unknown, value: string[]) => {
-    if (value.length <= MAX_SECTORS) {
-      setSelectedSectors(value);
-    }
+    if (value.length <= MAX_SECTORS) setSelectedSectors(value);
   }, []);
 
-  // Build series
-  const benchmarkSeries = data?.benchmark
-    ? {
-        name: data.benchmark.name,
-        type: 'line' as const,
-        data: data.benchmark.data.map((d) => [fmtDate(d.tradeDate), d.cumReturn]),
-      }
-    : null;
+  // Apply sector filter; if nothing selected use top 15 (by first period return)
+  const allSectors = data?.sectors ?? [];
+  const filteredSectors =
+    selectedSectors.length > 0
+      ? allSectors.filter((s) => selectedSectors.includes(s.name))
+      : allSectors.slice(0, 15);
 
-  const sectorSeries = (data?.sectors ?? []).map((s) => ({
-    name: s.name,
-    type: 'line' as const,
-    data: s.data.map((d) => [fmtDate(d.tradeDate), d.cumReturn]),
+  // period keys come from benchmark.data[].tradeDate which are like '5d', '20d', '60d'
+  const periodKeys = data?.benchmark?.data?.map((d) => d.tradeDate) ?? [];
+
+  // Build grouped bar series: one series per period
+  const barSeries = periodKeys.map((pk) => ({
+    name: periodLabel(pk),
+    data: filteredSectors.map((s) => {
+      const point = s.data.find((d) => d.tradeDate === pk);
+      return Math.round((point?.cumReturn ?? 0) * 100) / 100;
+    }),
   }));
 
-  const series = benchmarkSeries ? [benchmarkSeries, ...sectorSeries] : sectorSeries;
-
-  // Build stroke config: benchmark is dashed, sectors are solid
-  const strokeDash = series.map((s, i) => (s.name === data?.benchmark?.name ? 4 : 0));
-  const strokeWidths = series.map(() => 2);
+  const categories = filteredSectors.map((s) => s.name);
 
   const chartOptions = useChart({
     chart: {
-      type: 'line',
+      type: 'bar',
       toolbar: { show: false },
-      zoom: { enabled: true },
     },
-    stroke: {
-      curve: 'smooth',
-      width: strokeWidths,
-      dashArray: strokeDash,
+    colors: [theme.palette.primary.main, theme.palette.warning.main, theme.palette.info.main],
+    plotOptions: {
+      bar: {
+        columnWidth: categories.length <= 5 ? '40%' : '65%',
+        borderRadius: 2,
+        dataLabels: { position: 'top' },
+      },
+    },
+    dataLabels: {
+      enabled: categories.length <= 8,
+      offsetY: -18,
+      style: { fontSize: '12px', colors: [theme.palette.text.primary] },
+      formatter: (val: number) => `${val > 0 ? '+' : ''}${val.toFixed(1)}%`,
     },
     xaxis: {
-      type: 'datetime',
-      labels: { datetimeUTC: false },
+      categories,
+      labels: { rotate: -35, style: { fontSize: '12px' } },
     },
     yaxis: {
-      labels: {
-        formatter: (val: number) => `${val.toFixed(2)}%`,
-      },
+      labels: { formatter: (v: number) => `${v.toFixed(1)}%` },
+      title: { text: '涨跌幅 (%)' },
     },
     tooltip: {
       shared: true,
       intersect: false,
-      x: { format: 'yyyy-MM-dd' },
-      y: {
-        formatter: (val: number) => `${val.toFixed(2)}%`,
-      },
+      y: { formatter: (v: number) => `${v > 0 ? '+' : ''}${v.toFixed(2)}%` },
     },
-    legend: {
-      position: 'top',
-      horizontalAlign: 'left',
-    },
+    legend: { position: 'top', horizontalAlign: 'left' },
   });
+
+  const chartHeight = Math.max(320, categories.length * 22 + 80);
 
   return (
     <Card sx={{ height: '100%' }}>
@@ -158,7 +171,7 @@ export function RotationReturnComparisonChart({ tradeDate, period }: Props) {
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
           <Typography variant="h6">行业收益对比</Typography>
           <Typography variant="caption" color="text.secondary">
-            最多对比 {MAX_SECTORS} 个行业
+            最多选 {MAX_SECTORS} 个行业
           </Typography>
         </Box>
 
@@ -178,7 +191,7 @@ export function RotationReturnComparisonChart({ tradeDate, period }: Props) {
           renderInput={(params) => (
             <TextField
               {...params}
-              placeholder={selectedSectors.length === 0 ? '不选默认展示全部，可搜索行业名称' : ''}
+              placeholder={selectedSectors.length === 0 ? '不选默认显示前15个行业，可搜索' : ''}
               size="small"
             />
           )}
@@ -195,16 +208,17 @@ export function RotationReturnComparisonChart({ tradeDate, period }: Props) {
 
         {loading ? (
           <Skeleton variant="rectangular" height={320} />
-        ) : series.length === 0 ? (
+        ) : barSeries.every((s) => s.data.length === 0) ? (
           <Box
             sx={{ height: 320, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           >
             <Typography color="text.disabled">暂无数据</Typography>
           </Box>
         ) : (
-          <Chart type="line" series={series} options={chartOptions} sx={{ height: 320 }} />
+          <Chart type="bar" series={barSeries} options={chartOptions} sx={{ height: chartHeight }} />
         )}
       </CardContent>
     </Card>
   );
 }
+

@@ -153,7 +153,6 @@ export type RiskRule = {
   ruleType: string;
   threshold: number;
   isEnabled: boolean;
-  memo: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -222,14 +221,12 @@ export type CreateRiskRuleRequest = {
   ruleType: PortfolioRiskRuleType;
   threshold: number;
   isEnabled?: boolean;
-  memo?: string;
 };
 
 export type UpdateRiskRuleRequest = {
   ruleId: string;
   threshold: number;
   isEnabled: boolean;
-  memo?: string;
 };
 
 // ---- API 函数 ----
@@ -254,12 +251,22 @@ export function deletePortfolio(query: { portfolioId: string }) {
   return apiClient.post<{ message: string }>('/api/portfolio/delete', query);
 }
 
+/** BE returns HoldingItemDto (subset of HoldingDetailItem); return value is not used by views */
 export function addHolding(data: AddHoldingRequest) {
-  return apiClient.post<HoldingDetailItem>('/api/portfolio/holding/add', data);
+  return apiClient.post<
+    Pick<HoldingDetailItem, 'id' | 'tsCode' | 'stockName' | 'quantity' | 'avgCost'> & {
+      updatedAt: string;
+    }
+  >('/api/portfolio/holding/add', data);
 }
 
+/** BE returns HoldingItemDto (subset of HoldingDetailItem); return value is not used by views */
 export function updateHolding(data: UpdateHoldingRequest) {
-  return apiClient.post<HoldingDetailItem>('/api/portfolio/holding/update', data);
+  return apiClient.post<
+    Pick<HoldingDetailItem, 'id' | 'tsCode' | 'stockName' | 'quantity' | 'avgCost'> & {
+      updatedAt: string;
+    }
+  >('/api/portfolio/holding/update', data);
 }
 
 export function removeHolding(query: { holdingId: string }) {
@@ -510,16 +517,143 @@ export function applyBacktest(dto: ApplyBacktestRequest) {
   return apiClient.post<ApplyBacktestResponse>('/api/portfolio/apply-backtest', dto);
 }
 
-export function rebalancePlan(dto: RebalancePlanRequest) {
-  return apiClient.post<RebalancePlanResponse>('/api/portfolio/rebalance-plan', dto);
+/** BE returns { items: RebalancePlanItemDto[], refDate, summary: RebalancePlanSummaryDto };
+ *  adapter maps to FE types { actions, priceDate, estimatedCost, summary } */
+export async function rebalancePlan(dto: RebalancePlanRequest): Promise<RebalancePlanResponse> {
+  const res = await apiClient.post<{
+    portfolioId: string;
+    portfolioName: string;
+    refDate: string;
+    totalValue: number;
+    items: Array<{
+      tsCode: string;
+      stockName: string;
+      currentShares: number;
+      currentPrice: number | null;
+      currentMarketValue: number | null;
+      currentWeight: number | null;
+      targetWeight: number;
+      targetShares: number;
+      targetMarketValue: number | null;
+      action: 'BUY' | 'SELL' | 'ADJUST' | 'HOLD' | 'SKIP';
+      skipReason: string | null;
+      deltaShares: number;
+      deltaAmount: number | null;
+      estimatedTradingCost: number;
+    }>;
+    summary: {
+      totalBuyAmount: number;
+      totalSellProceeds: number;
+      totalTradingCost: number;
+      buyCount: number;
+      sellCount: number;
+      adjustCount: number;
+      holdCount: number;
+      skipCount: number;
+      cashBefore: number;
+      cashAfter: number;
+      isFeasible: boolean;
+    };
+  }>('/api/portfolio/rebalance-plan', dto);
+
+  return {
+    portfolioId: res.portfolioId,
+    totalValue: res.totalValue,
+    priceDate: res.refDate,
+    estimatedCost: res.summary?.totalTradingCost ?? 0,
+    actions: (res.items ?? []).map((it) => ({
+      tsCode: it.tsCode,
+      stockName: it.stockName,
+      action: it.action === 'SKIP' ? 'HOLD' : it.action,
+      previousQuantity: it.currentShares,
+      previousAvgCost: 0,
+      targetQuantity: it.targetShares,
+      targetAvgCost: 0,
+      deltaQuantity: it.deltaShares,
+    })),
+    summary: {
+      added: res.summary?.buyCount ?? 0,
+      updated: res.summary?.adjustCount ?? 0,
+      removed: res.summary?.sellCount ?? 0,
+      unchanged: res.summary?.holdCount ?? 0,
+      totalHoldings:
+        (res.summary?.buyCount ?? 0) +
+        (res.summary?.adjustCount ?? 0) +
+        (res.summary?.holdCount ?? 0),
+    },
+  };
 }
 
-export function getPerformance(dto: PortfolioPerformanceRequest) {
-  return apiClient.post<PortfolioPerformanceResponse>('/api/portfolio/performance', dto);
+/** BE returns { dailySeries, metrics: { benchmarkTotalReturn, cumulativeExcessReturn, ... } };
+ *  adapter renames to match FE convention used by views */
+export async function getPerformance(
+  dto: PortfolioPerformanceRequest
+): Promise<PortfolioPerformanceResponse> {
+  const res = await apiClient.post<{
+    portfolioId: string;
+    startDate: string;
+    endDate: string;
+    benchmarkTsCode: string;
+    dailySeries: PerformanceDailyItem[];
+    metrics: {
+      totalReturn: number | null;
+      annualizedReturn: number | null;
+      benchmarkTotalReturn: number | null;
+      cumulativeExcessReturn: number | null;
+      annualizedVolatility: number | null;
+      trackingError: number | null;
+      informationRatio: number | null;
+      maxDrawdown: number | null;
+      sharpeRatio: number | null;
+    };
+  }>('/api/portfolio/performance', dto);
+
+  return {
+    portfolioId: res.portfolioId,
+    startDate: res.startDate,
+    endDate: res.endDate,
+    benchmarkTsCode: res.benchmarkTsCode,
+    series: res.dailySeries ?? [],
+    metrics: {
+      totalReturn: res.metrics.totalReturn,
+      annualizedReturn: res.metrics.annualizedReturn,
+      benchmarkReturn: res.metrics.benchmarkTotalReturn,
+      excessReturn: res.metrics.cumulativeExcessReturn,
+      trackingError: res.metrics.trackingError,
+      informationRatio: res.metrics.informationRatio,
+      maxDrawdown: res.metrics.maxDrawdown,
+      sharpeRatio: res.metrics.sharpeRatio,
+    },
+  };
 }
 
-export function detectDrift(dto: DriftDetectionRequest) {
-  return apiClient.post<DriftDetectionResponse>('/api/portfolio/drift-detection', dto);
+/** BE returns { totalDriftScore, isAlert, industryItems, ... };
+ *  adapter renames to FE convention { overallDrift, isAlerting, industryDrift } */
+export async function detectDrift(dto: DriftDetectionRequest): Promise<DriftDetectionResponse> {
+  const res = await apiClient.post<{
+    portfolioId: string;
+    strategyId: string;
+    tradeDate: string;
+    totalDriftScore: number;
+    isAlert: boolean;
+    alertThreshold: number;
+    positionDrift: number;
+    weightDrift: number;
+    industryDrift: number;
+    items: DriftItem[];
+    industryItems: IndustryDriftItem[];
+  }>('/api/portfolio/drift-detection', dto);
+
+  return {
+    portfolioId: res.portfolioId,
+    strategyId: res.strategyId,
+    tradeDate: res.tradeDate,
+    overallDrift: res.totalDriftScore,
+    isAlerting: res.isAlert,
+    alertThreshold: res.alertThreshold,
+    items: res.items ?? [],
+    industryDrift: res.industryItems ?? [],
+  };
 }
 
 export function queryTradeLog(dto: TradeLogQueryRequest) {

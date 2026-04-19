@@ -257,7 +257,7 @@ export type StockTodayFlowData = {
   large: StockTodayFlowCategory;
   /** 中单（5–20 万元/笔） */
   medium: StockTodayFlowCategory;
-  /** 小单（＜5 万元/笔，散户） */
+  /** 小单（＜5 万元/笔） */
   small: StockTodayFlowCategory;
   /** 主力合计 = 超大单 + 大单 */
   mainForce: StockTodayFlowCategory;
@@ -883,8 +883,14 @@ export function fetchMinuteKline(query: MinuteKlineQuery) {
 
 // ─── 扩展 stockApi / stockDetailApi ──────────────────────────────────
 
-export function searchStocks(query: { keyword: string; limit?: number }) {
-  return apiClient.post<StockSearchResult>('/api/stock/search', query);
+/** BE returns StockSearchItemDto[]; adapter wraps into { items, total } */
+export async function searchStocks(query: {
+  keyword: string;
+  limit?: number;
+}): Promise<StockSearchResult> {
+  const arr = await apiClient.post<StockSearchItem[]>('/api/stock/search', query);
+  const items = arr ?? [];
+  return { items, total: items.length };
 }
 
 export const stockDetailApiExtra = {

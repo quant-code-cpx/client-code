@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -7,8 +7,8 @@ import Skeleton from '@mui/material/Skeleton';
 import { useTheme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
-import ToggleButton from '@mui/material/ToggleButton';
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+
+import { periodToDays } from 'src/utils/format-time';
 
 import { fetchFlowAnalysis, type FlowAnalysisItem } from 'src/api/market';
 
@@ -16,7 +16,12 @@ import { Chart, useChart } from 'src/components/chart';
 
 // ----------------------------------------------------------------------
 
-type ChartMode = 'bar' | 'bubble';
+// Backend returns values in yuan (元); convert to 亿
+function toYi(yuan: number): number {
+  return +(yuan / 1e8).toFixed(2);
+}
+
+const MAX_SECTORS = 20;
 
 type Props = {
   tradeDate?: string;
@@ -24,13 +29,8 @@ type Props = {
   onSectorClick?: (name: string) => void;
 };
 
-function toYi(wan: number): number {
-  return +(wan / 10000).toFixed(2);
-}
-
 export function RotationFlowAnalysisChart({ tradeDate, period, onSectorClick }: Props) {
   const theme = useTheme();
-  const [chartMode, setChartMode] = useState<ChartMode>('bar');
   const [flows, setFlows] = useState<FlowAnalysisItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -40,7 +40,7 @@ export function RotationFlowAnalysisChart({ tradeDate, period, onSectorClick }: 
     setLoading(true);
     setError('');
 
-    fetchFlowAnalysis({ trade_date: tradeDate, days: period ? Number(period) : undefined })
+    fetchFlowAnalysis({ trade_date: tradeDate, days: period ? periodToDays(period) : undefined })
       .then((res) => {
         if (!cancelled) setFlows(res?.flows ?? []);
       })
@@ -56,31 +56,22 @@ export function RotationFlowAnalysisChart({ tradeDate, period, onSectorClick }: 
     };
   }, [tradeDate, period]);
 
-  const handleModeChange = useCallback(
-    (_: React.MouseEvent<HTMLElement>, val: ChartMode | null) => {
-      if (val) setChartMode(val);
-    },
-    []
+  // Sort by net inflow descending, take top MAX_SECTORS
+  const displayed = [...flows].sort((a, b) => b.netInflow - a.netInflow).slice(0, MAX_SECTORS);
+
+  // For horizontal bar, reverse so largest value appears at top
+  const reversed = [...displayed].reverse();
+  const categories = reversed.map((r) => r.name);
+  const netValues = reversed.map((r) => toYi(r.netInflow));
+  // Distributed colors: red = inflow (A-share convention), green = outflow
+  const colors = netValues.map((v) =>
+    v >= 0 ? theme.palette.error.main : theme.palette.success.main
   );
 
-  // Sort by netInflow descending; take top 15 each side
-  const sorted = [...flows].sort((a, b) => b.netInflow - a.netInflow);
-  const topInflow = sorted.slice(0, 15);
-  const topOutflow = sorted.slice(-15).reverse();
-  const displayed = [...topInflow, ...topOutflow.filter((r) => !topInflow.includes(r))];
-
-  const categories = displayed.map((r) => r.name);
-  const inflowData = displayed.map((r) => toYi(r.inflowAmount));
-  const outflowData = displayed.map((r) => -toYi(r.outflowAmount)); // negative for visual
-  const netData = displayed.map((r) => toYi(r.netInflow));
-
-  // Bar chart options
-  const barOptions = useChart({
+  const chartOptions = useChart({
     chart: {
       type: 'bar',
-      stacked: false,
       toolbar: { show: false },
-       
       events: {
         dataPointSelection: (_e: unknown, _chart: unknown, opts: any) => {
           const idx = (opts as { dataPointIndex: number })?.dataPointIndex;
@@ -89,85 +80,64 @@ export function RotationFlowAnalysisChart({ tradeDate, period, onSectorClick }: 
         },
       },
     },
-    colors: [theme.palette.error.light, theme.palette.success.light, theme.palette.info.main],
+    colors,
     plotOptions: {
-      bar: { columnWidth: '55%', borderRadius: 2 },
-    },
-    stroke: {
-      show: true,
-      width: [0, 0, 2],
-      colors: ['transparent', 'transparent', theme.palette.info.main],
+      bar: {
+        horizontal: true,
+        barHeight: '60%',
+        distributed: true,
+        borderRadius: 3,
+      },
     },
     xaxis: {
-      categories,
-      labels: { rotate: -40, style: { fontSize: '11px' } },
-    },
-    yaxis: [
-      {
-        title: { text: '金额（亿）' },
-        labels: { formatter: (v: number) => `${v.toFixed(1)}亿` },
+      labels: {
+        formatter: (v: number) => `${v > 0 ? '+' : ''}${v.toFixed(1)}亿`,
       },
-      {
-        opposite: true,
-        title: { text: '净流入（亿）' },
-        labels: { formatter: (v: number) => `${v.toFixed(1)}亿` },
-      },
-    ],
-    tooltip: {
-      shared: true,
-      intersect: false,
-      y: {
-        formatter: (val: number) => `${Math.abs(val).toFixed(2)} 亿`,
-      },
-    },
-    legend: { position: 'top' },
-  });
-
-  // Bubble chart options
-  const bubbleSeries = flows.map((r) => ({
-    name: r.name,
-    data: [[r.inflowRatio, toYi(r.netInflow), toYi(r.inflowAmount)]] as [number, number, number][],
-  }));
-
-  const bubbleOptions = useChart({
-    chart: { type: 'bubble', toolbar: { show: false } },
-    xaxis: {
-      title: { text: '流入占比 (%)' },
-      labels: { formatter: (v: number) => `${v.toFixed(1)}%` },
+      title: { text: '区间净流入（亿元）' },
     },
     yaxis: {
-      title: { text: '净流入 (亿)' },
-      labels: { formatter: (v: number) => `${v.toFixed(1)}亿` },
+      labels: { style: { fontSize: '12px' } },
+    },
+    dataLabels: {
+      enabled: true,
+      formatter: (val: number) => `${val > 0 ? '+' : ''}${(val as number).toFixed(1)}亿`,
+      style: { fontSize: '12px', colors: ['#fff'] },
+      offsetX: 0,
     },
     tooltip: {
       shared: false,
-      y: { formatter: (v: number) => `${v.toFixed(2)}亿净流入` },
+      intersect: true,
+      custom: ({ dataPointIndex }: any) => {
+        const item = reversed[dataPointIndex];
+        if (!item) return '';
+        const net = toYi(item.netInflow);
+        const sign = net > 0 ? '+' : '';
+        const color = net >= 0 ? theme.palette.error.main : theme.palette.success.main;
+        const label = net >= 0 ? '净流入' : '净流出';
+        return [
+          '<div style="padding:8px 12px;font-size:13px;">',
+          `<b>${item.name}</b><br/>`,
+          `${label}：<span style="color:${color}">${sign}${net.toFixed(2)} 亿</span>`,
+          '</div>',
+        ].join('');
+      },
     },
     legend: { show: false },
   });
 
-  const barSeries = [
-    { name: '流入金额', type: 'column', data: inflowData },
-    { name: '流出金额', type: 'column', data: outflowData },
-    { name: '净流入', type: 'line', data: netData },
-  ];
-
-  const chartHeight = Math.max(360, categories.length * 26);
+  const series = [{ name: '净流入', data: netValues }];
+  const chartHeight = Math.max(320, reversed.length * 34);
 
   return (
     <Card>
       <CardContent>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-          <Typography variant="h6">行业资金流转</Typography>
-          <ToggleButtonGroup
-            size="small"
-            exclusive
-            value={chartMode}
-            onChange={handleModeChange}
-          >
-            <ToggleButton value="bar">柱状图</ToggleButton>
-            <ToggleButton value="bubble">气泡图</ToggleButton>
-          </ToggleButtonGroup>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+          <Typography variant="h6" sx={{ flexGrow: 1 }}>
+            行业资金净流入
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            Top {MAX_SECTORS} · 单位：亿元
+          </Typography>
         </Box>
 
         {error && (
@@ -177,17 +147,15 @@ export function RotationFlowAnalysisChart({ tradeDate, period, onSectorClick }: 
         )}
 
         {loading ? (
-          <Skeleton variant="rectangular" height={360} />
+          <Skeleton variant="rectangular" height={320} />
         ) : flows.length === 0 ? (
           <Box
-            sx={{ height: 360, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            sx={{ height: 320, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           >
             <Typography color="text.disabled">暂无数据</Typography>
           </Box>
-        ) : chartMode === 'bubble' ? (
-          <Chart type="bubble" series={bubbleSeries} options={bubbleOptions} sx={{ height: 360 }} />
         ) : (
-          <Chart type="bar" series={barSeries} options={barOptions} sx={{ height: chartHeight }} />
+          <Chart type="bar" series={series} options={chartOptions} sx={{ height: chartHeight }} />
         )}
       </CardContent>
     </Card>

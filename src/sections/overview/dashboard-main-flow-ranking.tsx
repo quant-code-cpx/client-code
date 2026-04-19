@@ -64,7 +64,7 @@ export function DashboardMainFlowRanking() {
   }, [order]);
 
   return (
-    <Card sx={{ height: '100%' }}>
+    <Card>
       <CardContent>
         <Box
           sx={{

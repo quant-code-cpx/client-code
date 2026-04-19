@@ -3,7 +3,9 @@ import { SvgColor } from 'src/components/svg-color';
 
 // ----------------------------------------------------------------------
 
-const icon = (name: string) => <SvgColor src={`/assets/icons/navbar/${name}.svg`} />;
+const icon = (name: string) => (
+  <SvgColor src={`${import.meta.env.BASE_URL}assets/icons/navbar/${name}.svg`} />
+);
 
 export type NavItem = {
   title: string;
@@ -42,14 +44,9 @@ export const navData = [
         icon: icon('ic-analytics'),
       },
       {
-        title: '行业轮动',
-        path: '/market/industry-rotation',
-        icon: <Iconify icon="solar:chart-2-bold" width={24} />,
-      },
-      {
-        title: '市场热力图',
-        path: '/market/heatmap',
-        icon: <Iconify icon="solar:widget-bold" width={24} />,
+        title: '行业分析',
+        path: '/market/industry',
+        icon: <Iconify icon="solar:shuffle-bold" width={24} />,
       },
     ],
   },

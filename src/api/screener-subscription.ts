@@ -100,6 +100,10 @@ export function getSubscriptionLogs(id: number, page = 1, pageSize = 20) {
   });
 }
 
-export function getSubscriptionById(id: number) {
-  return apiClient.post<ScreenerSubscription>('/api/screener-subscription/detail', { id });
+/** swagger 无 /detail 端点，改用 list + 客户端过滤 */
+export async function getSubscriptionById(id: number): Promise<ScreenerSubscription> {
+  const { subscriptions } = await listSubscriptions();
+  const found = subscriptions.find((s) => s.id === id);
+  if (!found) throw new Error(`订阅 ${id} 不存在`);
+  return found;
 }

@@ -55,9 +55,9 @@ export function RotationValuationChart({ tradeDate, onSectorClick }: Props) {
     setValMode(val);
   }, []);
 
-  // Sort ascending by percentile (low = undervalued, show on top)
+  // Sort descending by percentile (high = overvalued first)
   const sorted = [...sectors].sort((a, b) =>
-    valMode === 'pe' ? a.pePercentile - b.pePercentile : a.pbPercentile - b.pbPercentile
+    valMode === 'pe' ? b.pePercentile - a.pePercentile : b.pbPercentile - a.pbPercentile
   );
 
   const categories = sorted.map((s) => s.name);
@@ -108,15 +108,7 @@ export function RotationValuationChart({ tradeDate, onSectorClick }: Props) {
     },
     yaxis: { labels: { style: { fontSize: '12px' } } },
     dataLabels: {
-      enabled: true,
-       
-      formatter: (_val: unknown, opts: any) => {
-        const idx = (opts as { dataPointIndex: number })?.dataPointIndex;
-        const cv = currentValues[idx];
-        return cv != null ? `${cv.toFixed(1)}` : '';
-      },
-      style: { fontSize: '11px', colors: [theme.palette.text.primary] },
-      offsetX: 8,
+      enabled: false,
     },
     tooltip: {
       shared: false,
@@ -149,7 +141,7 @@ export function RotationValuationChart({ tradeDate, onSectorClick }: Props) {
     legend: { show: false },
   });
 
-  const chartHeight = Math.max(400, sorted.length * 30);
+  const chartHeight = Math.max(300, sorted.length * 32);
 
   return (
     <Card>
@@ -192,7 +184,9 @@ export function RotationValuationChart({ tradeDate, onSectorClick }: Props) {
             <Typography color="text.disabled">暂无数据</Typography>
           </Box>
         ) : (
-          <Chart type="bar" series={series} options={chartOptions} sx={{ height: chartHeight }} />
+          <Box sx={{ maxHeight: 640, overflowY: 'auto' }}>
+            <Chart type="bar" series={series} options={chartOptions} sx={{ height: chartHeight }} />
+          </Box>
         )}
       </CardContent>
     </Card>

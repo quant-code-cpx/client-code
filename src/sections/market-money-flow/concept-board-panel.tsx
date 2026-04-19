@@ -21,6 +21,7 @@ import CardContent from '@mui/material/CardContent';
 import TableContainer from '@mui/material/TableContainer';
 import TableSortLabel from '@mui/material/TableSortLabel';
 import InputAdornment from '@mui/material/InputAdornment';
+import TablePagination from '@mui/material/TablePagination';
 import CircularProgress from '@mui/material/CircularProgress';
 
 import { fPctChg, fWanYuan } from 'src/utils/format-number';
@@ -28,6 +29,7 @@ import { fPctChg, fWanYuan } from 'src/utils/format-number';
 import { fetchConceptList, fetchConceptMembers } from 'src/api/market';
 
 import { Iconify } from 'src/components/iconify';
+import { Scrollbar } from 'src/components/scrollbar';
 
 // ----------------------------------------------------------------------
 
@@ -250,6 +252,8 @@ export function ConceptBoardPanel({ tradeDate }: Props) {
   const [error, setError] = useState('');
   const [keyword, setKeyword] = useState('');
   const [searchInput, setSearchInput] = useState('');
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(15);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -318,43 +322,63 @@ export function ConceptBoardPanel({ tradeDate }: Props) {
             ))}
           </Stack>
         ) : (
-          <TableContainer>
-            <Table size="small">
-              <TableHead>
-                <TableRow>
-                  <TableCell padding="checkbox" />
-                  <TableCell>概念名称</TableCell>
-                  <TableCell align="right">
-                    <TableSortLabel active direction="desc">
-                      涨跌幅
-                    </TableSortLabel>
-                  </TableCell>
-                  <TableCell align="right">成分股数</TableCell>
-                  <TableCell align="right">成交额（万）</TableCell>
-                  <TableCell align="right">净流入（万）</TableCell>
-                  <TableCell>领涨股</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {items.map((concept, i) => (
-                  <ConceptRow
-                    key={concept.code || `concept-${i}`}
-                    concept={concept}
-                    tradeDate={tradeDate}
-                  />
-                ))}
-                {items.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={7} align="center">
-                      <Typography variant="body2" color="text.secondary">
-                        暂无数据
-                      </Typography>
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
+          <>
+            <Scrollbar sx={{ maxHeight: 600 }}>
+              <TableContainer>
+                <Table size="small" stickyHeader>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell padding="checkbox" />
+                      <TableCell>概念名称</TableCell>
+                      <TableCell align="right">
+                        <TableSortLabel active direction="desc">
+                          涨跌幅
+                        </TableSortLabel>
+                      </TableCell>
+                      <TableCell align="right">成分股数</TableCell>
+                      <TableCell align="right">成交额（万）</TableCell>
+                      <TableCell align="right">净流入（万）</TableCell>
+                      <TableCell>领涨股</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {items
+                      .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                      .map((concept, i) => (
+                        <ConceptRow
+                          key={concept.code || `concept-${page * rowsPerPage + i}`}
+                          concept={concept}
+                          tradeDate={tradeDate}
+                        />
+                      ))}
+                    {items.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={7} align="center">
+                          <Typography variant="body2" color="text.secondary">
+                            暂无数据
+                          </Typography>
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Scrollbar>
+
+            <TablePagination
+              component="div"
+              count={items.length}
+              page={page}
+              onPageChange={(_, newPage) => setPage(newPage)}
+              rowsPerPage={rowsPerPage}
+              onRowsPerPageChange={(e) => {
+                setRowsPerPage(parseInt(e.target.value, 10));
+                setPage(0);
+              }}
+              rowsPerPageOptions={[15, 25, 50]}
+              labelRowsPerPage="每页行数"
+            />
+          </>
         )}
       </CardContent>
     </Card>

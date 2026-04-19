@@ -119,7 +119,7 @@ export function HeatmapTreemapChart({
     },
     dataLabels: {
       enabled: true,
-      style: { fontSize: '11px', fontWeight: 500, colors: ['#fff'] },
+      style: { fontSize: '12px', fontWeight: 500, colors: ['#fff'] },
       formatter(text: string) {
         const item = itemsRef.current.find((s) => getStockDisplayName(s) === text);
         if (!item) return text;

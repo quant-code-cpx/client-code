@@ -56,6 +56,7 @@ export const SignalHistoryPage = lazy(() => import('src/pages/signal-history'));
 export const EventStudyPage = lazy(() => import('src/pages/event-study'));
 export const IndustryRotationPage = lazy(() => import('src/pages/industry-rotation'));
 export const MarketHeatmapPage = lazy(() => import('src/pages/market-heatmap'));
+export const IndustryAnalysisPage = lazy(() => import('src/pages/industry-analysis'));
 export const ReportListPage = lazy(() => import('src/pages/report'));
 export const ReportDetailPage = lazy(() => import('src/pages/report-detail'));
 export const IndexDetailPage = lazy(() => import('src/pages/index-detail'));
@@ -101,9 +102,11 @@ export const routesSection: RouteObject[] = [
       { path: 'stock/screener', element: <Navigate to="/stock" replace /> },
       { path: 'market/overview', element: <MarketOverviewPage /> },
       { path: 'market/money-flow', element: <MarketMoneyFlowPage /> },
-      { path: 'market/industry-rotation', element: <IndustryRotationPage /> },
-      { path: 'market/heatmap', element: <MarketHeatmapPage /> },
+      { path: 'market/industry', element: <IndustryAnalysisPage /> },
       { path: 'market/index', element: <IndexDetailPage /> },
+      // ─── backward-compat: old market routes redirect to new combined page ───
+      { path: 'market/industry-rotation', element: <Navigate to="/market/industry?tab=1" replace /> },
+      { path: 'market/heatmap', element: <Navigate to="/market/industry?tab=0" replace /> },
       { path: 'tushare-sync', element: <TushareSyncPage /> },
       { path: 'factor/library', element: <FactorLibraryPage /> },
       { path: 'factor/detail/:name', element: <FactorDetailPage /> },

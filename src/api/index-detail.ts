@@ -23,7 +23,7 @@ export type IndexDailyQuery = {
   ts_code: string;
   start_date?: string;
   end_date?: string;
-  limit?: number;
+  trade_date?: string;
 };
 
 export type IndexDailyItem = {
@@ -39,8 +39,14 @@ export type IndexDailyItem = {
   amount: number;
 };
 
-export function fetchIndexDaily(query: IndexDailyQuery) {
-  return apiClient.post<IndexDailyItem[]>('/api/index/daily', query);
+/** BE returns { tsCode, name, data: IndexDailyItem[] }; adapter unwraps to flat array */
+export async function fetchIndexDaily(query: IndexDailyQuery): Promise<IndexDailyItem[]> {
+  const res = await apiClient.post<{
+    tsCode: string;
+    name: string;
+    data: IndexDailyItem[];
+  }>('/api/index/daily', query);
+  return res?.data ?? [];
 }
 
 // ─── /index/constituents ────────────────────────────────────
@@ -69,6 +75,38 @@ export type IndexConstituentResult = {
   constituents: IndexConstituentItem[];
 };
 
-export function fetchIndexConstituents(query: IndexConstituentQuery) {
-  return apiClient.post<IndexConstituentResult>('/api/index/constituents', query);
+/** BE returns { indexCode, indexName, tradeDate, total, constituents: [{conCode, name, weight, tradeDate}] };
+ *  adapter maps to FE convention */
+export async function fetchIndexConstituents(
+  query: IndexConstituentQuery
+): Promise<IndexConstituentResult> {
+  const res = await apiClient.post<{
+    indexCode: string;
+    indexName: string;
+    tradeDate: string;
+    total: number;
+    constituents: Array<{
+      conCode: string;
+      name: string | null;
+      weight: number | null;
+      tradeDate: string;
+    }>;
+  }>('/api/index/constituents', query);
+
+  return {
+    tsCode: res?.indexCode ?? '',
+    name: res?.indexName ?? '',
+    tradeDate: res?.tradeDate ?? '',
+    totalCount: res?.total ?? 0,
+    constituents: (res?.constituents ?? []).map((c) => ({
+      tsCode: c.conCode,
+      name: c.name ?? '',
+      industry: '',
+      weight: c.weight,
+      close: null,
+      pctChg: null,
+      totalMv: null,
+      circMv: null,
+    })),
+  };
 }

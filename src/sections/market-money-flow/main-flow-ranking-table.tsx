@@ -14,10 +14,13 @@ import TableHead from '@mui/material/TableHead';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 import TableContainer from '@mui/material/TableContainer';
+import TablePagination from '@mui/material/TablePagination';
 
 import { fPctChg, fWanYuan } from 'src/utils/format-number';
 
 import { fetchMainFlowRanking } from 'src/api/market';
+
+import { Scrollbar } from 'src/components/scrollbar';
 
 import { StockFlowDetailDialog } from './stock-flow-detail-dialog';
 
@@ -40,96 +43,113 @@ type FlowTableProps = {
 };
 
 function FlowTable({ title, rows, onRowClick, selectedCode }: FlowTableProps) {
+  const [page, setPage] = useState(0);
+  const rowsPerPage = 10;
+
   return (
-    <Card sx={{ height: '100%' }}>
-      <CardContent>
-        <Typography variant="h6" sx={{ mb: 2 }}>
+    <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column', pb: '0 !important' }}>
+        <Typography variant="h6" sx={{ mb: 2, flexShrink: 0 }}>
           {title}
         </Typography>
-        <TableContainer>
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell>#</TableCell>
-                <TableCell>代码</TableCell>
-                <TableCell>名称</TableCell>
-                <TableCell>行业</TableCell>
-                <TableCell align="right">主力净流入</TableCell>
-                <TableCell align="right">超大单净</TableCell>
-                <TableCell align="right">大单净</TableCell>
-                <TableCell align="right">涨跌幅</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {rows.map((row, idx) => {
-                const isSelected = row.tsCode === selectedCode;
-                return (
-                  <TableRow
-                    key={row.tsCode}
-                    hover
-                    selected={isSelected}
-                    onClick={() => onRowClick(row)}
-                    sx={{ cursor: 'pointer' }}
-                  >
-                    <TableCell>
-                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                        {idx + 1}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                        {row.tsCode}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body2" fontWeight="fontWeightMedium">
-                        {row.name}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                        {row.industry}
-                      </Typography>
-                    </TableCell>
-                    <TableCell align="right">
-                      <Typography
-                        variant="body2"
-                        fontWeight="fontWeightMedium"
-                        sx={{ color: flowColor(row.mainNetInflow) }}
+        <Scrollbar sx={{ flex: 1, maxHeight: 480 }}>
+          <TableContainer>
+            <Table size="small" stickyHeader>
+              <TableHead>
+                <TableRow>
+                  <TableCell>#</TableCell>
+                  <TableCell>代码</TableCell>
+                  <TableCell>名称</TableCell>
+                  <TableCell>行业</TableCell>
+                  <TableCell align="right">主力净流入</TableCell>
+                  <TableCell align="right">超大单净</TableCell>
+                  <TableCell align="right">大单净</TableCell>
+                  <TableCell align="right">涨跌幅</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {rows
+                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                  .map((row, idx) => {
+                    const isSelected = row.tsCode === selectedCode;
+                    return (
+                      <TableRow
+                        key={row.tsCode}
+                        hover
+                        selected={isSelected}
+                        onClick={() => onRowClick(row)}
+                        sx={{ cursor: 'pointer' }}
                       >
-                        {fWanYuan(row.mainNetInflow)}
-                      </Typography>
-                    </TableCell>
-                    <TableCell align="right">
-                      <Typography variant="body2" sx={{ color: flowColor(row.elgNetInflow) }}>
-                        {fWanYuan(row.elgNetInflow)}
-                      </Typography>
-                    </TableCell>
-                    <TableCell align="right">
-                      <Typography variant="body2" sx={{ color: flowColor(row.lgNetInflow) }}>
-                        {fWanYuan(row.lgNetInflow)}
-                      </Typography>
-                    </TableCell>
-                    <TableCell align="right">
-                      <Typography variant="body2" sx={{ color: flowColor(row.pctChg) }}>
-                        {fPctChg(row.pctChg)}
+                        <TableCell>
+                          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                            {page * rowsPerPage + idx + 1}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                            {row.tsCode}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2" fontWeight="fontWeightMedium">
+                            {row.name}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                            {row.industry}
+                          </Typography>
+                        </TableCell>
+                        <TableCell align="right">
+                          <Typography
+                            variant="body2"
+                            fontWeight="fontWeightMedium"
+                            sx={{ color: flowColor(row.mainNetInflow) }}
+                          >
+                            {fWanYuan(row.mainNetInflow)}
+                          </Typography>
+                        </TableCell>
+                        <TableCell align="right">
+                          <Typography variant="body2" sx={{ color: flowColor(row.elgNetInflow) }}>
+                            {fWanYuan(row.elgNetInflow)}
+                          </Typography>
+                        </TableCell>
+                        <TableCell align="right">
+                          <Typography variant="body2" sx={{ color: flowColor(row.lgNetInflow) }}>
+                            {fWanYuan(row.lgNetInflow)}
+                          </Typography>
+                        </TableCell>
+                        <TableCell align="right">
+                          <Typography variant="body2" sx={{ color: flowColor(row.pctChg) }}>
+                            {fPctChg(row.pctChg)}
+                          </Typography>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                {rows.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={8} align="center">
+                      <Typography variant="body2" sx={{ color: 'text.secondary', py: 2 }}>
+                        暂无数据
                       </Typography>
                     </TableCell>
                   </TableRow>
-                );
-              })}
-              {rows.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={8} align="center">
-                    <Typography variant="body2" sx={{ color: 'text.secondary', py: 2 }}>
-                      暂无数据
-                    </Typography>
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
+                )}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Scrollbar>
+        <TablePagination
+          component="div"
+          count={rows.length}
+          page={page}
+          onPageChange={(_, newPage) => setPage(newPage)}
+          rowsPerPage={rowsPerPage}
+          rowsPerPageOptions={[10]}
+          labelRowsPerPage=""
+          sx={{ flexShrink: 0, borderTop: 1, borderColor: 'divider' }}
+        />
       </CardContent>
     </Card>
   );

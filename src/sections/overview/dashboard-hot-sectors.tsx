@@ -99,7 +99,7 @@ export function DashboardHotSectors() {
   const isError = tab === 0 ? rankError : flowError;
 
   return (
-    <Card sx={{ height: '100%' }}>
+    <Card>
       <CardContent>
         <Typography variant="h6" sx={{ mb: 1 }}>
           热门板块 Top 10

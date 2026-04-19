@@ -1,4 +1,14 @@
-import { fWanYi, fNumber, fPctChg, fPercent, fWanYuan, fCurrency, fQianYuan, fRatePercent, fShortenNumber } from '../format-number';
+import {
+  fWanYi,
+  fNumber,
+  fPctChg,
+  fPercent,
+  fWanYuan,
+  fCurrency,
+  fQianYuan,
+  fRatePercent,
+  fShortenNumber,
+} from '../format-number';
 
 // ----------------------------------------------------------------------
 
@@ -34,8 +44,8 @@ describe('format-number', () => {
 
   // ---------- fCurrency ----------
   describe('fCurrency', () => {
-    it('formats as USD currency', () => {
-      expect(fCurrency(9999)).toBe('$9,999');
+    it('formats as CNY currency', () => {
+      expect(fCurrency(9999)).toBe('¥9,999');
     });
 
     it('returns empty string for null', () => {
@@ -60,12 +70,12 @@ describe('format-number', () => {
 
   // ---------- fShortenNumber ----------
   describe('fShortenNumber', () => {
-    it('shortens million', () => {
-      expect(fShortenNumber(1234567)).toMatch(/1\.23m/i);
+    it('shortens to 万', () => {
+      expect(fShortenNumber(1234567)).toMatch(/123.*万/);
     });
 
-    it('shortens thousand', () => {
-      expect(fShortenNumber(1500)).toMatch(/1\.5k/i);
+    it('keeps small number as is', () => {
+      expect(fShortenNumber(1500)).toBe('1500');
     });
 
     it('returns empty string for null', () => {

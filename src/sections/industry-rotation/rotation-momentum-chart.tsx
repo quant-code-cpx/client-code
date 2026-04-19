@@ -102,7 +102,7 @@ export function RotationMomentumChart({ tradeDate, period, onSectorClick }: Prop
     dataLabels: {
       enabled: true,
       offsetX: 8,
-      style: { fontSize: '11px', colors: [theme.palette.text.primary] },
+      style: { fontSize: '12px', colors: [theme.palette.text.primary] },
        
       formatter: (val: unknown, opts: any) => {
         const numVal = typeof val === 'number' ? val : Number(val);

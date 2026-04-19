@@ -609,8 +609,46 @@ export function runAttribution(dto: BrinsonAttributionRequest) {
   return apiClient.post<BrinsonAttributionResponse>('/api/backtests/runs/attribution', dto);
 }
 
-export function analyzeCostSensitivity(dto: CostSensitivityRequest) {
-  return apiClient.post<CostSensitivityResponse>('/api/backtests/runs/cost-sensitivity', dto);
+/** BE returns { points: CostSensitivityPointDto[], originalCommissionRate, ... };
+ *  adapter maps to FE convention { results, baselineMetrics } */
+export async function analyzeCostSensitivity(
+  dto: CostSensitivityRequest
+): Promise<CostSensitivityResponse> {
+  const res = await apiClient.post<{
+    runId: string;
+    originalCommissionRate: number;
+    originalSlippageBps: number;
+    baselineTotalReturn: number;
+    points: Array<{
+      commissionRate: number;
+      slippageBps: number;
+      totalReturn: number | null;
+      annualizedReturn: number | null;
+      sharpeRatio: number | null;
+      maxDrawdown: number | null;
+      totalCost: number | null;
+      costCapitalRatio: number | null;
+    }>;
+  }>('/api/backtests/runs/cost-sensitivity', dto);
+
+  return {
+    runId: res.runId,
+    baselineMetrics: {
+      commissionRate: res.originalCommissionRate,
+      slippageBps: res.originalSlippageBps,
+      totalReturn: res.baselineTotalReturn,
+    },
+    results: (res.points ?? []).map((p) => ({
+      commissionRate: p.commissionRate,
+      stampDutyRate: 0,
+      slippageBps: p.slippageBps,
+      totalReturn: p.totalReturn,
+      annualizedReturn: p.annualizedReturn,
+      sharpeRatio: p.sharpeRatio,
+      maxDrawdown: p.maxDrawdown,
+      totalCost: p.totalCost,
+    })),
+  };
 }
 
 export function createParamSensitivity(dto: ParamSensitivityRequest) {

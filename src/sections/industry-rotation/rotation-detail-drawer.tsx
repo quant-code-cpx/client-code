@@ -21,9 +21,14 @@ import TableContainer from '@mui/material/TableContainer';
 
 import { useRouter } from 'src/routes/hooks';
 
-import { fmtTradeDate as fmtDate } from 'src/utils/format-time';
+import { periodToDays, fmtTradeDate as fmtDate } from 'src/utils/format-time';
 
-import { fetchRotationDetail, type RotationDetailResult } from 'src/api/market';
+import {
+  fetchSectorDaily,
+  fetchRotationDetail,
+  type SectorDailyItem,
+  type RotationDetailResult,
+} from 'src/api/market';
 
 import { Iconify } from 'src/components/iconify';
 import { Scrollbar } from 'src/components/scrollbar';
@@ -43,7 +48,7 @@ function percentileLabel(p: number): { label: string; color: 'success' | 'warnin
 
 // ----------------------------------------------------------------------
 
-type DrawerTab = 'return' | 'flow' | 'stocks';
+type DrawerTab = 'return' | 'flow' | 'stocks' | 'kline';
 
 type Props = {
   open: boolean;
@@ -66,7 +71,7 @@ const ReturnTrendChart = memo(function ReturnTrendChart({
   const chartOptions = useChart({
     chart: { type: 'line', toolbar: { show: false }, zoom: { enabled: false } },
     stroke: { curve: 'smooth', width: [2, 2], dashArray: [0, 4] },
-    xaxis: { categories, labels: { rotate: -30, style: { fontSize: '10px' } } },
+    xaxis: { categories, labels: { rotate: -30, style: { fontSize: '12px' } } },
     yaxis: { labels: { formatter: (v: number) => `${v.toFixed(2)}%` } },
     tooltip: {
       shared: true,
@@ -118,7 +123,7 @@ const FlowTrendChart = memo(function FlowTrendChart({
         },
       },
     },
-    xaxis: { categories, labels: { rotate: -30, style: { fontSize: '10px' } } },
+    xaxis: { categories, labels: { rotate: -30, style: { fontSize: '12px' } } },
     yaxis: [
       {
         title: { text: '每日净流入(亿)' },
@@ -156,6 +161,62 @@ const FlowTrendChart = memo(function FlowTrendChart({
 
 // ----------------------------------------------------------------------
 
+// Sub-component: sector daily K-line chart
+const SectorKlineChart = memo(function SectorKlineChart({
+  sectorName: name,
+  tradeDate: td,
+}: {
+  sectorName: string;
+  tradeDate?: string;
+}) {
+  const [data, setData] = useState<SectorDailyItem[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    fetchSectorDaily({ trade_date: td })
+      .then((items) => {
+        if (!cancelled) {
+          // filter to only this sector's data or show all sorted by pctChg
+          const filtered = (items ?? []).filter((it) => it.name === name);
+          setData(filtered.length > 0 ? filtered : (items ?? []));
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setData([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [name, td]);
+
+  const categories = data.map((d) => d.tradeDate ?? '');
+  const series = [{ name: '收盘价', data: data.map((d) => +(d.close ?? 0).toFixed(2)) }];
+
+  const chartOptions = useChart({
+    chart: { type: 'line', toolbar: { show: false }, zoom: { enabled: false } },
+    stroke: { curve: 'smooth', width: 2 },
+    xaxis: { categories, labels: { rotate: -30, style: { fontSize: '12px' } } },
+    yaxis: { labels: { formatter: (v: number) => v.toFixed(2) } },
+    tooltip: { y: { formatter: (v: number) => v.toFixed(2) } },
+  });
+
+  if (loading) return <Skeleton variant="rectangular" height={240} />;
+  if (data.length === 0)
+    return (
+      <Box sx={{ height: 240, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Typography color="text.disabled">暂无板块行情数据</Typography>
+      </Box>
+    );
+  return <Chart type="line" series={series} options={chartOptions} sx={{ height: 240 }} />;
+});
+
+// ----------------------------------------------------------------------
+
 export function RotationDetailDrawer({ open, onClose, sectorName, tradeDate, period }: Props) {
   const theme = useTheme();
   const router = useRouter();
@@ -172,7 +233,7 @@ export function RotationDetailDrawer({ open, onClose, sectorName, tradeDate, per
     setError('');
     setDetail(null);
 
-    fetchRotationDetail({ industry: sectorName, days: period ? Number(period) : undefined })
+    fetchRotationDetail({ industry: sectorName, days: period ? periodToDays(period) : undefined })
       .then((res) => {
         if (!cancelled) setDetail(res ?? null);
       })
@@ -283,7 +344,7 @@ export function RotationDetailDrawer({ open, onClose, sectorName, tradeDate, per
                         label={chip.label}
                         color={chip.color}
                         size="small"
-                        sx={{ mt: 0.5, height: 18, fontSize: '10px' }}
+                        sx={{ mt: 0.5, height: 18, fontSize: 12 }}
                       />
                     )}
                   </Box>
@@ -299,6 +360,7 @@ export function RotationDetailDrawer({ open, onClose, sectorName, tradeDate, per
             <Tab label="收益走势" value="return" sx={{ minHeight: 40, py: 0 }} />
             <Tab label="资金流向" value="flow" sx={{ minHeight: 40, py: 0 }} />
             <Tab label="成分股" value="stocks" sx={{ minHeight: 40, py: 0 }} />
+            <Tab label="板块行情" value="kline" sx={{ minHeight: 40, py: 0 }} />
           </Tabs>
 
           {loading ? (
@@ -307,6 +369,9 @@ export function RotationDetailDrawer({ open, onClose, sectorName, tradeDate, per
             <>
               {activeTab === 'return' && detail && <ReturnTrendChart data={detail.returnTrend} />}
               {activeTab === 'flow' && detail && <FlowTrendChart data={detail.flowTrend} />}
+              {activeTab === 'kline' && sectorName && (
+                <SectorKlineChart sectorName={sectorName} tradeDate={tradeDate} />
+              )}
               {activeTab === 'stocks' && detail && (
                 <TableContainer>
                   <Table size="small">
