@@ -76,7 +76,7 @@ export function DashboardMainFlowRanking() {
             gap: 1,
           }}
         >
-          <Typography variant="h6">主力资金 Top 10</Typography>
+          <Typography variant="h6">个股资金 Top 10</Typography>
           <ToggleButtonGroup
             size="small"
             exclusive
@@ -119,7 +119,7 @@ export function DashboardMainFlowRanking() {
                   <TableCell>名称</TableCell>
                   <TableCell>行业</TableCell>
                   <TableCell align="right">涨跌幅</TableCell>
-                  <TableCell align="right">主力净流入</TableCell>
+                  <TableCell align="right">净流入</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -176,7 +176,7 @@ export function DashboardMainFlowRanking() {
         )}
 
         {!loading && data.length > 0 && (
-          <Box sx={{ mt: 1.5, textAlign: 'right' }}>
+          <Box sx={{ mt: 1.5, textAlign: 'center' }}>
             <Button size="small" variant="text" onClick={() => router.push('/market/money-flow')}>
               查看更多 →
             </Button>

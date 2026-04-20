@@ -243,22 +243,18 @@ export type SectorFlowTrendItem = {
 
 export type HsgtTrendItem = {
   tradeDate: string;
-  /** 北向当日净买入（百万元） */
+  /** 北向当日成交额（百万元，非净流入） */
   northMoney: number | null;
-  /** 南向当日净买入（百万元） */
+  /** 南向当日成交额（百万元，非净流入） */
   southMoney: number | null;
-  /** 沪股通（百万元） */
+  /** 沪股通当日成交额（百万元） */
   hgt: number | null;
-  /** 深股通（百万元） */
+  /** 深股通当日成交额（百万元） */
   sgt: number | null;
-  /** 港股通（上海）百万元 */
+  /** 港股通（上海）当日成交额（百万元） */
   ggtSs: number | null;
-  /** 港股通（深圳）百万元 */
+  /** 港股通（深圳）当日成交额（百万元） */
   ggtSz: number | null;
-  /** 累计北向净买入（百万元） */
-  cumulativeNorth?: number;
-  /** 累计南向净买入（百万元） */
-  cumulativeSouth?: number;
 };
 
 export type MainFlowRankingItem = {
@@ -1029,7 +1025,9 @@ export type IndexQuoteWithSparklineResult = {
   indices: IndexQuoteWithSparklineItem[];
 };
 
-export function fetchIndexQuoteWithSparkline(query?: MarketQueryBase & { sparkline_period?: string }) {
+export function fetchIndexQuoteWithSparkline(
+  query?: MarketQueryBase & { sparkline_period?: string }
+) {
   return apiClient.post<IndexQuoteWithSparklineResult>(
     '/api/market/index-quote-with-sparkline',
     query ?? {}

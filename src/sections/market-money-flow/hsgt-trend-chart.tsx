@@ -72,11 +72,10 @@ export function HsgtTrendChart({ tradeDate: _tradeDate }: Props) {
   const isNorth = tabIndex === 0;
 
   const dailyValues = data.map((d) => toYi(isNorth ? d.northMoney : d.southMoney));
-  const cumulativeValues = data.map((d) => toYi(isNorth ? d.cumulativeNorth : d.cumulativeSouth));
 
   const chartOptions = useChart({
-    chart: { type: 'line', stacked: false },
-    stroke: { width: [0, 2], curve: 'smooth' },
+    chart: { type: 'bar', stacked: false },
+    stroke: { width: [0], curve: 'smooth' },
     plotOptions: {
       bar: {
         columnWidth: '60%',
@@ -95,14 +94,7 @@ export function HsgtTrendChart({ tradeDate: _tradeDate }: Props) {
     },
     yaxis: [
       {
-        title: { text: `每日净买入(亿)` },
-        labels: {
-          formatter: (v: number) => `${v.toFixed(0)}亿`,
-        },
-      },
-      {
-        opposite: true,
-        title: { text: '累计净买入(亿)' },
+        title: { text: `每日成交额(亿)` },
         labels: {
           formatter: (v: number) => `${v.toFixed(0)}亿`,
         },
@@ -113,8 +105,7 @@ export function HsgtTrendChart({ tradeDate: _tradeDate }: Props) {
   });
 
   const series = [
-    { name: `${isNorth ? '北向' : '南向'}每日净买入`, type: 'column', data: dailyValues },
-    { name: '累计净买入', type: 'line', data: cumulativeValues },
+    { name: `${isNorth ? '北向' : '南向'}每日成交额`, type: 'column', data: dailyValues },
   ];
 
   return (

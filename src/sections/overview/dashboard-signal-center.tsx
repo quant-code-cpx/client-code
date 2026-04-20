@@ -7,6 +7,7 @@ import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
+import Button from '@mui/material/Button';
 import Skeleton from '@mui/material/Skeleton';
 import { useTheme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
@@ -69,7 +70,7 @@ export function DashboardSignalCenter() {
   }
 
   return (
-    <Card sx={{ height: '100%' }}>
+    <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <CardHeader
         title="信号中心"
         titleTypographyProps={{ variant: 'subtitle1', fontWeight: 700 }}
@@ -77,7 +78,7 @@ export function DashboardSignalCenter() {
         sx={{ pb: 1 }}
       />
 
-      <Box sx={{ px: 3, pb: 2.5 }}>
+      <Box sx={{ px: 3, pb: 2.5, flex: 1, display: 'flex', flexDirection: 'column' }}>
         {/* Status badges row */}
         <Stack direction="row" spacing={1.5} sx={{ mb: 2 }}>
           <Box
@@ -92,7 +93,7 @@ export function DashboardSignalCenter() {
             <Typography variant="h5" sx={{ fontWeight: 800, color: 'primary.main' }}>
               {activeCount}
             </Typography>
-            <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: 10 }}>
+            <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: 12 }}>
               活跃策略
             </Typography>
           </Box>
@@ -108,7 +109,7 @@ export function DashboardSignalCenter() {
             <Typography variant="h5" sx={{ fontWeight: 800, color: 'warning.main' }}>
               {alertCount}
             </Typography>
-            <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: 10 }}>
+            <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: 12 }}>
               价格预警
             </Typography>
           </Box>
@@ -125,8 +126,11 @@ export function DashboardSignalCenter() {
         {signals.length === 0 ? (
           <Box
             sx={{
-              py: 3,
-              textAlign: 'center',
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
               color: 'text.disabled',
             }}
           >
@@ -136,7 +140,7 @@ export function DashboardSignalCenter() {
             </Typography>
           </Box>
         ) : (
-          <Stack spacing={0.5}>
+          <Stack spacing={0.5} sx={{ flex: 1, overflow: 'auto', minHeight: 0 }}>
             {signals.map((sig, idx) => {
               const cfg = ACTION_CONFIG[sig.action] || ACTION_CONFIG.HOLD;
               return (
@@ -164,7 +168,7 @@ export function DashboardSignalCenter() {
                     size="small"
                     sx={{
                       height: 18,
-                      fontSize: 10,
+                      fontSize: 12,
                       fontWeight: 700,
                       color: cfg.color,
                       bgcolor: 'transparent',
@@ -175,7 +179,7 @@ export function DashboardSignalCenter() {
                   {sig.confidence != null && (
                     <Typography
                       variant="caption"
-                      sx={{ color: 'text.disabled', ml: 'auto', fontSize: 10 }}
+                      sx={{ color: 'text.disabled', ml: 'auto', fontSize: 12 }}
                     >
                       {(sig.confidence * 100).toFixed(0)}%
                     </Typography>
@@ -187,20 +191,11 @@ export function DashboardSignalCenter() {
         )}
 
         {/* View more link */}
-        <Typography
-          variant="caption"
-          onClick={() => router.push('/signal/latest')}
-          sx={{
-            mt: 1.5,
-            display: 'block',
-            textAlign: 'center',
-            color: 'text.disabled',
-            cursor: 'pointer',
-            '&:hover': { color: 'primary.main' },
-          }}
-        >
-          查看全部信号 →
-        </Typography>
+        <Box sx={{ mt: 1.5, textAlign: 'center' }}>
+          <Button size="small" variant="text" onClick={() => router.push('/strategy/signal')}>
+            查看全部信号 →
+          </Button>
+        </Box>
       </Box>
     </Card>
   );

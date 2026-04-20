@@ -6,6 +6,7 @@ import { varAlpha } from 'minimal-shared/utils';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
+import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
 import Skeleton from '@mui/material/Skeleton';
 import { useTheme } from '@mui/material/styles';
@@ -71,8 +72,8 @@ export function DashboardSectorWind() {
 
   useEffect(() => {
     Promise.all([
-      fetchSectorRanking({ limit: 5, sort_by: 'pct_change' }),
-      fetchSectorFlowRanking({ limit: 5, order: 'desc', sort_by: 'net_amount' }),
+      fetchSectorRanking({ limit: 10, sort_by: 'pct_change' }),
+      fetchSectorFlowRanking({ limit: 10, order: 'desc', sort_by: 'net_amount' }),
     ])
       .then(([ranking, flow]) => {
         setSectors(ranking.sectors ?? []);
@@ -95,19 +96,6 @@ export function DashboardSectorWind() {
         title="板块风向标"
         titleTypographyProps={{ variant: 'subtitle1', fontWeight: 700 }}
         avatar={<Iconify icon="solar:chart-bold" width={22} sx={{ color: 'primary.main' }} />}
-        action={
-          <Typography
-            variant="caption"
-            onClick={() => router.push('/market/industry-rotation')}
-            sx={{
-              color: 'text.disabled',
-              cursor: 'pointer',
-              '&:hover': { color: 'primary.main' },
-            }}
-          >
-            更多 →
-          </Typography>
-        }
         sx={{ pb: 1 }}
       />
 
@@ -115,11 +103,11 @@ export function DashboardSectorWind() {
         {/* Top movers by pctChange */}
         <Typography
           variant="caption"
-          sx={{ color: 'text.disabled', fontWeight: 600, mb: 1, display: 'block', fontSize: 10 }}
+          sx={{ color: 'text.disabled', fontWeight: 600, mb: 1, display: 'block', fontSize: 12 }}
         >
           涨跌幅领先
         </Typography>
-        <Stack spacing={0.5} sx={{ mb: 2 }}>
+        <Stack spacing={0.25} sx={{ mb: 1.5 }}>
           {sectors.map((s) => {
             const isPos = s.pctChange >= 0;
             return (
@@ -130,7 +118,7 @@ export function DashboardSectorWind() {
                 spacing={1}
                 sx={{
                   px: 1,
-                  py: 0.5,
+                  py: 0.25,
                   borderRadius: 1,
                   cursor: 'pointer',
                   transition: 'background-color 0.15s',
@@ -171,16 +159,16 @@ export function DashboardSectorWind() {
           })}
         </Stack>
 
-        <Divider sx={{ mb: 1.5 }} />
+        <Divider sx={{ mb: 1 }} />
 
         {/* Top movers by capital flow */}
         <Typography
           variant="caption"
-          sx={{ color: 'text.disabled', fontWeight: 600, mb: 1, display: 'block', fontSize: 10 }}
+          sx={{ color: 'text.disabled', fontWeight: 600, mb: 0.75, display: 'block', fontSize: 12 }}
         >
           资金流入领先
         </Typography>
-        <Stack spacing={0.5}>
+        <Stack spacing={0.25}>
           {flowSectors.map((s) => {
             const netBillions = s.netAmount / 1e8;
             const isPos = netBillions >= 0;
@@ -192,7 +180,7 @@ export function DashboardSectorWind() {
                 spacing={1}
                 sx={{
                   px: 1,
-                  py: 0.5,
+                  py: 0.25,
                   borderRadius: 1,
                   cursor: 'pointer',
                   transition: 'background-color 0.15s',
@@ -232,6 +220,16 @@ export function DashboardSectorWind() {
             );
           })}
         </Stack>
+      </Box>
+
+      <Box sx={{ px: 2, pb: 1.5, textAlign: 'center' }}>
+        <Button
+          size="small"
+          variant="text"
+          onClick={() => router.push('/market/industry-rotation')}
+        >
+          查看更多 →
+        </Button>
       </Box>
     </Card>
   );

@@ -34,7 +34,7 @@ const NAV_ITEMS = [
   {
     icon: 'solar:filter-bold',
     label: '选股器',
-    path: '/stock/screener',
+    path: '/stock',
     color: 'primary',
   },
   {
@@ -52,7 +52,7 @@ const NAV_ITEMS = [
   {
     icon: 'solar:graph-up-bold',
     label: '因子市场',
-    path: '/factor',
+    path: '/factor/library',
     color: 'info',
   },
   {
@@ -70,7 +70,7 @@ const NAV_ITEMS = [
   {
     icon: 'solar:document-text-bold',
     label: '量化报告',
-    path: '/research/reports',
+    path: '/research/report',
     color: 'primary',
   },
   {
@@ -82,7 +82,7 @@ const NAV_ITEMS = [
   {
     icon: 'solar:calendar-bold',
     label: '事件日历',
-    path: '/alert/calendar',
+    path: '/alert',
     color: 'success',
   },
 ] as const;

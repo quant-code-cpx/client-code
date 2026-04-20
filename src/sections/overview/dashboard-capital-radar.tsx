@@ -1,4 +1,4 @@
-import type { HsgtTrendItem, MainFlowRankingItem, MarketMoneyFlowDetail } from 'src/api/market';
+import type { HsgtTrendItem, MarketMoneyFlowDetail } from 'src/api/market';
 
 import { useState, useEffect } from 'react';
 import { varAlpha } from 'minimal-shared/utils';
@@ -6,6 +6,8 @@ import { varAlpha } from 'minimal-shared/utils';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
+import Button from '@mui/material/Button';
+import Tooltip from '@mui/material/Tooltip';
 import Divider from '@mui/material/Divider';
 import Skeleton from '@mui/material/Skeleton';
 import { useTheme } from '@mui/material/styles';
@@ -14,9 +16,15 @@ import CardHeader from '@mui/material/CardHeader';
 
 import { useRouter } from 'src/routes/hooks';
 
-import { fetchHsgtFlow, fetchMoneyFlow, fetchMainFlowRanking } from 'src/api/market';
+import { fetchHsgtFlow, fetchMoneyFlow } from 'src/api/market';
 
 import { Iconify } from 'src/components/iconify';
+
+// ----------------------------------------------------------------------
+
+function flowColor(v: number): 'error.main' | 'success.main' {
+  return v >= 0 ? 'error.main' : 'success.main';
+}
 
 // ----------------------------------------------------------------------
 
@@ -26,36 +34,48 @@ export function DashboardCapitalRadar() {
 
   const [hsgt, setHsgt] = useState<HsgtTrendItem | null>(null);
   const [moneyFlow, setMoneyFlow] = useState<MarketMoneyFlowDetail | null>(null);
-  const [topStocks, setTopStocks] = useState<MainFlowRankingItem[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    Promise.all([
-      fetchHsgtFlow({ days: 1 }),
-      fetchMoneyFlow(),
-      fetchMainFlowRanking({ limit: 3, order: 'desc' }),
-    ])
-      .then(([h, m, r]) => {
+    const loadHsgt = fetchHsgtFlow({ days: 5 })
+      .then((h) => {
         const hsgtData = h.history ?? [];
         setHsgt(hsgtData.length > 0 ? hsgtData[hsgtData.length - 1] : null);
-        setMoneyFlow(m);
-        setTopStocks(r.data ?? []);
       })
-      .catch(() => {})
-      .finally(() => setLoading(false));
+      .catch(() => {});
+
+    const loadMoneyFlow = fetchMoneyFlow()
+      .then((m) => setMoneyFlow(m))
+      .catch(() => {});
+
+    Promise.all([loadHsgt, loadMoneyFlow]).finally(() => setLoading(false));
   }, []);
 
   if (loading) {
     return <Skeleton variant="rounded" height={260} />;
   }
 
-  // HSGT: northMoney in 百万元 → 亿元
-  const northNet = hsgt?.northMoney != null ? hsgt.northMoney / 100 : null;
-  const northIsPositive = (northNet ?? 0) >= 0;
+  // ── Derived metrics ──────────────────────────────────────────────
 
-  // Main force: netMfAmount in 元 → 亿元
-  const mainNet = moneyFlow?.netMfAmount != null ? moneyFlow.netMfAmount / 1e8 : null;
-  const mainIsPositive = (mainNet ?? 0) >= 0;
+  // 逐笔主力净流入（独立算法，元 → 亿元）
+  const mfNet = moneyFlow?.netMfAmount ?? 0;
+  const mfNetYi = mfNet / 1e8;
+  const mfIsPos = mfNetYi >= 0;
+
+  // 主力/散户汇总口径（按单量分层：超大+大单 vs 中+小单，元）
+  const mainNet = moneyFlow?.main?.netAmount ?? 0;
+  const retailNet = moneyFlow?.retail?.netAmount ?? 0;
+
+  // 四层明细（元）
+  const tiers = [
+    { key: 'elg', label: '超大单', desc: '≥100万', tier: moneyFlow?.elg },
+    { key: 'lg', label: '大单', desc: '20~100万', tier: moneyFlow?.lg },
+    { key: 'md', label: '中单', desc: '4~20万', tier: moneyFlow?.md },
+    { key: 'sm', label: '小单', desc: '<4万', tier: moneyFlow?.sm },
+  ] as const;
+
+  // 北向成交（百万元 → 亿元）
+  const northAmount = hsgt?.northMoney != null ? hsgt.northMoney / 100 : null;
 
   return (
     <Card sx={{ height: '100%' }}>
@@ -63,142 +83,236 @@ export function DashboardCapitalRadar() {
         title="资金雷达"
         titleTypographyProps={{ variant: 'subtitle1', fontWeight: 700 }}
         avatar={<Iconify icon="solar:target-bold" width={22} sx={{ color: 'info.main' }} />}
-        sx={{ pb: 1 }}
+        sx={{ pb: 0.5 }}
       />
 
       <Box sx={{ px: 3, pb: 2.5 }}>
-        {/* HSGT hero metric */}
-        <Box
-          sx={{
-            p: 1.5,
-            borderRadius: 1.5,
-            bgcolor: varAlpha(
-              northIsPositive
-                ? theme.vars.palette.error.mainChannel
-                : theme.vars.palette.success.mainChannel,
-              0.08
-            ),
-            mb: 2,
-          }}
-        >
-          <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
-            北向资金净流入
-          </Typography>
-          <Stack direction="row" alignItems="baseline" spacing={0.5} sx={{ mt: 0.25 }}>
-            <Typography
-              variant="h5"
-              sx={{
-                fontWeight: 800,
-                color: northIsPositive ? 'error.main' : 'success.main',
-              }}
+        {/* ── Hero: 全市场净流入 ── */}
+        <Box sx={{ textAlign: 'center', mb: 2 }}>
+          <Stack direction="row" alignItems="center" justifyContent="center" spacing={0.5}>
+            <Typography variant="caption" sx={{ color: 'text.disabled', fontWeight: 600 }}>
+              全市场净流入
+            </Typography>
+            <Tooltip
+              title="各股逐笔净流入（net_mf_amount）全市场汇总，独立算法估算；与下方「按单量分层」的买卖差汇总口径不同"
+              arrow
             >
-              {northNet != null ? `${northIsPositive ? '+' : ''}${northNet.toFixed(2)}` : '—'}
-            </Typography>
-            <Typography variant="caption" sx={{ color: 'text.disabled' }}>
-              亿元
-            </Typography>
+              <Box component="span" sx={{ display: 'flex', alignItems: 'center', cursor: 'help' }}>
+                <Iconify
+                  icon="solar:question-circle-bold"
+                  width={14}
+                  sx={{ color: 'text.disabled' }}
+                />
+              </Box>
+            </Tooltip>
           </Stack>
-        </Box>
-
-        {/* Main force net */}
-        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-          <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
-            主力净流入
-          </Typography>
           <Typography
-            variant="subtitle2"
+            variant="h4"
             sx={{
-              fontWeight: 700,
-              color: mainIsPositive ? 'error.main' : 'success.main',
+              fontWeight: 800,
+              color: flowColor(mfNetYi),
+              lineHeight: 1.3,
             }}
           >
-            {mainNet != null ? `${mainIsPositive ? '+' : ''}${mainNet.toFixed(2)}亿` : '—'}
+            {mfIsPos ? '+' : ''}
+            {mfNetYi.toFixed(2)}
+            <Typography
+              component="span"
+              variant="body2"
+              sx={{ color: 'text.disabled', fontWeight: 500, ml: 0.5 }}
+            >
+              亿
+            </Typography>
           </Typography>
-        </Stack>
+        </Box>
 
-        <Divider sx={{ mb: 1.5 }} />
-
-        {/* Top 3 main-force stocks */}
-        <Typography
-          variant="caption"
-          sx={{ color: 'text.disabled', fontWeight: 600, mb: 1, display: 'block' }}
-        >
-          主力净流入 TOP 3
-        </Typography>
-        <Stack spacing={0.75}>
-          {topStocks.map((stock, idx) => {
-            const netInflow = stock.mainNetInflow / 10000; // 万元→亿元
-            const isPos = netInflow >= 0;
+        {/* ── 主力 vs 散户（按单量汇总口径） ── */}
+        <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
+          {[
+            { label: '主力', desc: '超大+大单', val: mainNet },
+            { label: '散户', desc: '中+小单', val: retailNet },
+          ].map((g) => {
+            const yi = g.val / 1e8;
+            const isPos = yi >= 0;
             return (
-              <Stack
-                key={stock.tsCode}
-                direction="row"
-                alignItems="center"
-                spacing={1}
-                onClick={() => router.push(`/stock/${stock.tsCode}`)}
+              <Box
+                key={g.label}
                 sx={{
-                  cursor: 'pointer',
-                  borderRadius: 1,
-                  px: 1,
-                  py: 0.5,
-                  transition: 'background-color 0.15s',
-                  '&:hover': {
-                    bgcolor: varAlpha(theme.vars.palette.text.primaryChannel, 0.04),
-                  },
+                  flex: 1,
+                  p: 1.25,
+                  borderRadius: 1.5,
+                  bgcolor: varAlpha(
+                    isPos
+                      ? theme.vars.palette.error.mainChannel
+                      : theme.vars.palette.success.mainChannel,
+                    0.06
+                  ),
                 }}
               >
+                <Tooltip title={g.desc} arrow>
+                  <Typography
+                    variant="caption"
+                    sx={{ color: 'text.secondary', fontWeight: 600, cursor: 'help' }}
+                  >
+                    {g.label}
+                  </Typography>
+                </Tooltip>
                 <Typography
-                  variant="caption"
-                  sx={{
-                    width: 18,
-                    height: 18,
-                    borderRadius: '50%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontWeight: 800,
-                    fontSize: 10,
-                    bgcolor:
-                      idx === 0
-                        ? 'error.main'
-                        : idx === 1
-                          ? 'warning.main'
-                          : varAlpha(theme.vars.palette.text.disabledChannel, 0.2),
-                    color: idx < 2 ? '#fff' : 'text.secondary',
-                  }}
-                >
-                  {idx + 1}
-                </Typography>
-                <Typography variant="body2" sx={{ fontWeight: 600, flex: 1, fontSize: 13 }}>
-                  {stock.name ?? stock.tsCode}
-                </Typography>
-                <Typography
-                  variant="caption"
-                  sx={{ color: isPos ? 'error.main' : 'success.main', fontWeight: 700 }}
+                  variant="subtitle2"
+                  sx={{ fontWeight: 700, color: flowColor(yi), mt: 0.25 }}
                 >
                   {isPos ? '+' : ''}
-                  {netInflow.toFixed(2)}亿
+                  {yi.toFixed(2)}亿
                 </Typography>
-              </Stack>
+              </Box>
             );
           })}
         </Stack>
 
-        {/* View more link */}
-        <Typography
-          variant="caption"
-          onClick={() => router.push('/market/money-flow')}
+        <Divider sx={{ mb: 1.5 }} />
+
+        {/* ── 四层明细（按单量分层：买卖量 + 比例条） ── */}
+        <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
+          <Typography variant="caption" sx={{ color: 'text.disabled', fontWeight: 600 }}>
+            按单量分层
+          </Typography>
+          <Tooltip title="同一层内：买入额占比（红）vs 卖出额占比（绿）" arrow>
+            <Box component="span" sx={{ display: 'flex', alignItems: 'center', cursor: 'help' }}>
+              <Iconify
+                icon="solar:question-circle-bold"
+                width={13}
+                sx={{ color: 'text.disabled' }}
+              />
+            </Box>
+          </Tooltip>
+        </Stack>
+
+        <Stack spacing={1}>
+          {tiers.map((t) => {
+            const buy = t.tier?.buyAmount ?? 0;
+            const sell = t.tier?.sellAmount ?? 0;
+            const net = t.tier?.netAmount ?? 0;
+            const sideTotal = buy + sell;
+            const buyPct = sideTotal > 0 ? (buy / sideTotal) * 100 : 50;
+            const buyYi = buy / 1e8;
+            const sellYi = sell / 1e8;
+            const netYi = net / 1e8;
+
+            return (
+              <Box key={t.key}>
+                {/* Row 1: label + stacked bar + net */}
+                <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.3 }}>
+                  <Tooltip title={`单笔 ${t.desc}`} arrow>
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        width: 42,
+                        flexShrink: 0,
+                        color: 'text.secondary',
+                        fontWeight: 600,
+                        fontSize: 12,
+                        cursor: 'help',
+                      }}
+                    >
+                      {t.label}
+                    </Typography>
+                  </Tooltip>
+
+                  {/* Stacked buy/sell proportion bar */}
+                  <Box
+                    sx={{
+                      flex: 1,
+                      height: 6,
+                      borderRadius: 3,
+                      overflow: 'hidden',
+                      display: 'flex',
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        width: `${buyPct}%`,
+                        bgcolor: 'error.main',
+                        transition: 'width 0.4s ease',
+                      }}
+                    />
+                    <Box
+                      sx={{
+                        flex: 1,
+                        bgcolor: 'success.main',
+                        transition: 'width 0.4s ease',
+                      }}
+                    />
+                  </Box>
+
+                  {/* Net value */}
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: flowColor(netYi),
+                      fontWeight: 700,
+                      fontSize: 12,
+                      flexShrink: 0,
+                      minWidth: 52,
+                      textAlign: 'right',
+                    }}
+                  >
+                    {netYi >= 0 ? '+' : ''}
+                    {netYi.toFixed(1)}亿
+                  </Typography>
+                </Stack>
+
+                {/* Row 2: buy / sell amounts */}
+                <Stack
+                  direction="row"
+                  justifyContent="space-between"
+                  sx={{ pl: '50px', pr: '56px' }}
+                >
+                  <Typography
+                    variant="caption"
+                    sx={{ color: 'error.main', fontSize: 12, opacity: 0.65 }}
+                  >
+                    买{buyYi.toFixed(1)}亿
+                  </Typography>
+                  <Typography
+                    variant="caption"
+                    sx={{ color: 'success.main', fontSize: 12, opacity: 0.65 }}
+                  >
+                    卖{sellYi.toFixed(1)}亿
+                  </Typography>
+                </Stack>
+              </Box>
+            );
+          })}
+        </Stack>
+
+        {/* ── 北向成交（辅助信息） ── */}
+        <Stack
+          direction="row"
+          justifyContent="space-between"
+          alignItems="center"
           sx={{
             mt: 1.5,
-            display: 'block',
-            textAlign: 'center',
-            color: 'text.disabled',
-            cursor: 'pointer',
-            '&:hover': { color: 'primary.main' },
+            pt: 1.5,
+            borderTop: `1px dashed ${varAlpha(theme.vars.palette.text.disabledChannel, 0.16)}`,
           }}
         >
-          查看更多 →
-        </Typography>
+          <Stack direction="row" alignItems="center" spacing={0.5}>
+            <Iconify icon="solar:chart-bold" width={14} sx={{ color: 'text.disabled' }} />
+            <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+              北向成交
+            </Typography>
+          </Stack>
+          <Typography variant="caption" sx={{ fontWeight: 700 }}>
+            {northAmount != null ? `${northAmount.toFixed(1)}亿` : '—'}
+          </Typography>
+        </Stack>
+
+        {/* View more link */}
+        <Box sx={{ mt: 1.5, textAlign: 'center' }}>
+          <Button size="small" variant="text" onClick={() => router.push('/market/money-flow')}>
+            查看更多 →
+          </Button>
+        </Box>
       </Box>
     </Card>
   );

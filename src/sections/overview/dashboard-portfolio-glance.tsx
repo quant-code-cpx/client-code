@@ -127,7 +127,7 @@ export function DashboardPortfolioGlance() {
                   sx={{ color: isUp ? 'error.main' : 'success.main', fontWeight: 600 }}
                 >
                   {isUp ? '+' : ''}
-                  {fPercent(totalPnlPct)}
+                  {fPercent(totalPnlPct, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </Typography>
               </Stack>
             </Box>
@@ -174,7 +174,7 @@ export function DashboardPortfolioGlance() {
                       }}
                     >
                       {pos ? '+' : ''}
-                      {fPercent(pnlPct)}
+                      {fPercent(pnlPct, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </Typography>
                   </Stack>
                 );

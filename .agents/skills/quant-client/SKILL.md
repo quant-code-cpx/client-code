@@ -771,6 +771,7 @@ The backend lives at `../server-code/src` relative to the client project root (`
 - **Do not** use block-body arrow functions when expression suffices: `(x) => { return x; }` → `(x) => x`
 - **Do not** shadow outer-scope variable names in nested functions or callbacks
 - **Do not** use `{ name: name }` object literals — use shorthand `{ name }`
+- **Do not** use `fontSize` smaller than `12` (px) anywhere in the UI — this is a hard floor for readability. Any `fontSize: 10` or `fontSize: 11` in `sx` props must be raised to `12`.
 
 ---
 

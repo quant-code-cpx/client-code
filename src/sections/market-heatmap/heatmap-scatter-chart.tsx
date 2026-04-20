@@ -79,7 +79,7 @@ function buildTooltipHtml(
       ${sector.leadStock ? `<div>领涨: ${sector.leadStock} ${sector.leadPctChg != null ? `${sector.leadPctChg >= 0 ? '+' : ''}${sector.leadPctChg.toFixed(2)}%` : ''}</div>` : ''}
       ${gainersHtml}
       ${inflowsHtml}
-      <div style="margin-top:8px;color:#999;font-size:11px">点击查看行业详情 →</div>
+      <div style="margin-top:8px;color:#999;font-size:12px">点击查看行业详情 →</div>
     </div>
   `;
 }

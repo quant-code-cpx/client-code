@@ -12,7 +12,10 @@ export type TushareSyncCategory =
   | 'financial'
   | 'moneyflow'
   | 'factor'
-  | 'alternative';
+  | 'alternative'
+  | 'fund'
+  | 'macro'
+  | 'option';
 
 export type TushareSyncStatus = 'SUCCESS' | 'FAILED' | 'SKIPPED';
 

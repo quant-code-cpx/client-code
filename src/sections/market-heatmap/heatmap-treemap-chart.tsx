@@ -139,7 +139,7 @@ export function HeatmapTreemapChart({
         return `
           <div style="padding:10px 14px;font-size:13px;line-height:1.8">
             <b style="font-size:14px">${getStockDisplayName(item)}</b>
-            <span style="color:#9e9e9e;font-size:11px"> ${item.tsCode}</span><br/>
+            <span style="color:#9e9e9e;font-size:12px"> ${item.tsCode}</span><br/>
             <span style="color:#9e9e9e">分组：</span>${group}<br/>
             <span style="color:${pnlColor};font-weight:600">${formatLabel(item.pctChg)}</span><br/>
             <span style="color:#9e9e9e">成交额：</span>${amtBillion} 亿
@@ -175,27 +175,27 @@ export function HeatmapTreemapChart({
               <Chip
                 size="small"
                 label={`涨停 ${distribution.limitUp}`}
-                sx={{ bgcolor: '#B71C1C', color: '#fff', fontWeight: 700, fontSize: 11 }}
+                sx={{ bgcolor: '#B71C1C', color: '#fff', fontWeight: 700, fontSize: 12 }}
               />
               <Chip
                 size="small"
                 label={`上涨 ${distribution.upCount}`}
-                sx={{ bgcolor: '#F44336', color: '#fff', fontWeight: 700, fontSize: 11 }}
+                sx={{ bgcolor: '#F44336', color: '#fff', fontWeight: 700, fontSize: 12 }}
               />
               <Chip
                 size="small"
                 label={`平盘 ${distribution.flatCount}`}
-                sx={{ bgcolor: '#757575', color: '#fff', fontWeight: 700, fontSize: 11 }}
+                sx={{ bgcolor: '#757575', color: '#fff', fontWeight: 700, fontSize: 12 }}
               />
               <Chip
                 size="small"
                 label={`下跌 ${distribution.downCount}`}
-                sx={{ bgcolor: '#2E7D32', color: '#fff', fontWeight: 700, fontSize: 11 }}
+                sx={{ bgcolor: '#2E7D32', color: '#fff', fontWeight: 700, fontSize: 12 }}
               />
               <Chip
                 size="small"
                 label={`跌停 ${distribution.limitDown}`}
-                sx={{ bgcolor: '#00695C', color: '#fff', fontWeight: 700, fontSize: 11 }}
+                sx={{ bgcolor: '#00695C', color: '#fff', fontWeight: 700, fontSize: 12 }}
               />
             </Stack>
           )}

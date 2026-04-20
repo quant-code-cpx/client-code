@@ -48,6 +48,9 @@ const CATEGORY_LABEL: Record<TushareSyncCategory, string> = {
   moneyflow: '资金流向',
   factor: '因子数据',
   alternative: '另类数据',
+  fund: '基金数据',
+  macro: '宏观数据',
+  option: '期权数据',
 };
 
 // ----------------------------------------------------------------------
@@ -204,7 +207,8 @@ export function SyncStatusOverviewPanel() {
                     variant="outlined"
                     sx={{
                       p: 2,
-                      borderColor: (overview.failedTaskNames ?? []).length > 0 ? 'error.main' : 'divider',
+                      borderColor:
+                        (overview.failedTaskNames ?? []).length > 0 ? 'error.main' : 'divider',
                     }}
                   >
                     <Typography variant="subtitle2" sx={{ mb: 1 }}>

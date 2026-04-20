@@ -128,7 +128,7 @@ export function OverviewDashboardView() {
                 variant="caption"
                 sx={{
                   fontWeight: 600,
-                  fontSize: 10,
+                  fontSize: 12,
                   color: marketOpen ? 'success.main' : 'text.disabled',
                 }}
               >
@@ -141,7 +141,7 @@ export function OverviewDashboardView() {
                 <Divider orientation="vertical" flexItem sx={{ height: 14, my: 'auto' }} />
                 <Stack direction="row" alignItems="center" spacing={0.5}>
                   <Iconify icon="solar:calendar-bold" width={12} sx={{ color: 'text.disabled' }} />
-                  <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: 11 }}>
+                  <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: 12 }}>
                     {fmtTradeDate(latestTradeDate)}
                   </Typography>
                 </Stack>
@@ -158,6 +158,11 @@ export function OverviewDashboardView() {
       </Box>
 
       <Box key={refreshKey}>
+        {/* ═══ Row 0: Quick Navigation Grid ═══ */}
+        <Box sx={{ mb: 3 }}>
+          <DashboardQuickNav />
+        </Box>
+
         {/* ═══ Row 1: Market Pulse — Compact Index Ticker ═══ */}
         <Box sx={{ mb: 3 }}>
           <DashboardMarketPulse />
@@ -178,10 +183,10 @@ export function OverviewDashboardView() {
 
         {/* ═══ Row 3: Sector Wind + Main Flow Tracker ═══ */}
         <Grid container spacing={3} sx={{ mb: 3 }} alignItems="stretch">
-          <Grid size={{ xs: 12, md: 7 }}>
+          <Grid size={{ xs: 12, md: 5 }}>
             <DashboardSectorWind />
           </Grid>
-          <Grid size={{ xs: 12, md: 5 }}>
+          <Grid size={{ xs: 12, md: 7 }}>
             <DashboardMainFlowRanking />
           </Grid>
         </Grid>
@@ -196,12 +201,7 @@ export function OverviewDashboardView() {
           </Grid>
         </Grid>
 
-        {/* ═══ Row 5: Quick Navigation Grid ═══ */}
-        <Box sx={{ mb: 3 }}>
-          <DashboardQuickNav />
-        </Box>
-
-        {/* ═══ Row 6: System Status (Admin Only) ═══ */}
+        {/* ═══ Row 5: System Status (Admin Only) ═══ */}
         {isAdmin && (
           <Box>
             <DashboardSystemStatus />
