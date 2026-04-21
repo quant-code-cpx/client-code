@@ -1,5 +1,5 @@
+import { useState, useCallback } from 'react';
 import { varAlpha } from 'minimal-shared/utils';
-import { useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
@@ -13,7 +13,6 @@ import Typography from '@mui/material/Typography';
 import { fmtTradeDate } from 'src/utils/format-time';
 
 import { useAuth } from 'src/auth';
-import { fetchSentiment } from 'src/api/market';
 import { DashboardContent } from 'src/layouts/dashboard';
 import { usePermission } from 'src/permission/use-permission';
 
@@ -64,11 +63,10 @@ export function OverviewDashboardView() {
 
   const [latestTradeDate, setLatestTradeDate] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchSentiment()
-      .then((res) => setLatestTradeDate(res.tradeDate ?? null))
-      .catch(() => setLatestTradeDate(null));
-  }, [refreshKey]);
+  // latestTradeDate is reported back by DashboardMarketTemperature (avoids a duplicate fetchSentiment here)
+  const handleTradeDateResolved = useCallback((date: string) => {
+    setLatestTradeDate(date);
+  }, []);
 
   const displayName = userProfile?.nickname || userProfile?.account || '';
   const marketOpen = isMarketOpen();
@@ -171,7 +169,7 @@ export function OverviewDashboardView() {
         {/* ═══ Row 2: Three Intelligence Cards ═══ */}
         <Grid container spacing={3} sx={{ mb: 3 }} alignItems="stretch">
           <Grid size={{ xs: 12, md: 4 }}>
-            <DashboardMarketTemperature />
+            <DashboardMarketTemperature onTradeDateResolved={handleTradeDateResolved} />
           </Grid>
           <Grid size={{ xs: 12, md: 4 }}>
             <DashboardCapitalRadar />

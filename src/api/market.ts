@@ -133,6 +133,37 @@ export function fetchSectorRanking(query?: MarketQueryBase & { sort_by?: string;
   );
 }
 
+// ── Sector Top-Bottom (new dedicated endpoint) ─────────────────
+
+export type SectorTopBottomItem = {
+  tsCode: string;
+  name: string;
+  /** 涨跌幅 (%) */
+  pctChange: number;
+  /** 主力净流入 (元) */
+  netAmount: number;
+};
+
+export type SectorTopBottomResult = {
+  tradeDate: string;
+  /** 涨幅 Top N（genuine positive pct_change） */
+  pctGainers: SectorTopBottomItem[];
+  /** 跌幅 Top N（genuine negative pct_change，最负在前） */
+  pctLosers: SectorTopBottomItem[];
+  /** 净流入 Top N（genuine positive net_amount） */
+  flowGainers: SectorTopBottomItem[];
+  /** 净流出 Top N（genuine negative net_amount，最负在前） */
+  flowLosers: SectorTopBottomItem[];
+  gainersCount: number;
+  losersCount: number;
+  flatCount: number;
+  totalCount: number;
+};
+
+export function fetchSectorTopBottom(query?: MarketQueryBase & { top_n?: number }) {
+  return apiClient.post<SectorTopBottomResult>('/api/market/sector-top-bottom', query ?? {});
+}
+
 export function fetchVolumeOverview(query?: MarketQueryBase & { days?: number }) {
   return apiClient.post<{ data: VolumeOverviewItem[] }>('/api/market/volume-overview', query ?? {});
 }

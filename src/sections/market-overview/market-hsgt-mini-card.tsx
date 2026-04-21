@@ -27,9 +27,7 @@ function toYi(v: number | null | undefined): number {
   return v != null ? v / 100 : 0;
 }
 
-function flowColor(
-  v: number | null | undefined
-): 'error.main' | 'success.main' | 'text.secondary' {
+function flowColor(v: number | null | undefined): 'error.main' | 'success.main' | 'text.secondary' {
   if (v == null) return 'text.secondary';
   if (v > 0) return 'error.main';
   if (v < 0) return 'success.main';
@@ -117,22 +115,33 @@ function FlowChannel({ label, value, history }: ChannelProps) {
 
 type Props = {
   tradeDate?: string;
+  /** If provided by parent, skip internal fetch (avoids duplicate API call) */
+  history?: HsgtTrendItem[];
 };
 
-export function MarketHsgtMiniCard({ tradeDate }: Props) {
+export function MarketHsgtMiniCard({ tradeDate, history: externalHistory }: Props) {
   const theme = useTheme();
-  const [history, setHistory] = useState<HsgtTrendItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [fetchedHistory, setFetchedHistory] = useState<HsgtTrendItem[]>([]);
+  const [loading, setLoading] = useState(!externalHistory);
   const [error, setError] = useState('');
 
+  // Use externally provided history when available
+  const history = externalHistory ?? fetchedHistory;
+
   useEffect(() => {
+    // Skip internal fetch when parent is providing data
+    if (externalHistory !== undefined) {
+      setLoading(false);
+      return () => {};
+    }
+
     let cancelled = false;
     setLoading(true);
     setError('');
 
     fetchHsgtFlow({ trade_date: tradeDate, days: SPARKLINE_DAYS })
       .then((res) => {
-        if (!cancelled) setHistory(res?.history ?? []);
+        if (!cancelled) setFetchedHistory(res?.history ?? []);
       })
       .catch((err: unknown) => {
         if (!cancelled) setError(err instanceof Error ? err.message : '加载沪深港通数据失败');
@@ -144,7 +153,7 @@ export function MarketHsgtMiniCard({ tradeDate }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [tradeDate]);
+  }, [tradeDate, externalHistory]);
 
   const today = history[history.length - 1] ?? null;
   const northHistory = history.map((d) => toYi(d.northMoney));
@@ -215,7 +224,10 @@ export function MarketHsgtMiniCard({ tradeDate }: Props) {
           <>
             {/* ── Total North ── */}
             <Box sx={{ mb: 2 }}>
-              <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}>
+              <Typography
+                variant="caption"
+                sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}
+              >
                 合计北向（今日）
               </Typography>
               <Stack direction="row" alignItems="center" justifyContent="space-between">
@@ -236,7 +248,11 @@ export function MarketHsgtMiniCard({ tradeDate }: Props) {
             <Divider sx={{ my: 1.5 }} />
 
             {/* ── Sub channels ── */}
-            <Stack direction="row" spacing={2} divider={<Divider orientation="vertical" flexItem />}>
+            <Stack
+              direction="row"
+              spacing={2}
+              divider={<Divider orientation="vertical" flexItem />}
+            >
               <FlowChannel label="沪股通" value={today.hgt} history={hgtHistory} />
               <FlowChannel label="深股通" value={today.sgt} history={sgtHistory} />
             </Stack>

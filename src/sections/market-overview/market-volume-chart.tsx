@@ -87,35 +87,39 @@ export function MarketVolumeChart({ tradeDate }: Props) {
   ];
 
   return (
-    <Card sx={{ height: '100%' }}>
-      <CardContent>
-        <Typography variant="h6" sx={{ mb: 2 }}>
+    <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <CardContent
+        sx={{ flex: 1, display: 'flex', flexDirection: 'column', pb: '16px !important' }}
+      >
+        <Typography variant="h6" sx={{ mb: 2, flexShrink: 0 }}>
           市场成交额
         </Typography>
 
         {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
+          <Alert severity="error" sx={{ mb: 2, flexShrink: 0 }}>
             {error}
           </Alert>
         )}
 
-        {loading ? (
-          <Skeleton variant="rectangular" height={280} />
-        ) : data.length === 0 ? (
-          <Box
-            sx={{
-              height: 280,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              color: 'text.secondary',
-            }}
-          >
-            <Typography variant="body2">暂无数据</Typography>
-          </Box>
-        ) : (
-          <Chart type="bar" series={series} options={chartOptions} sx={{ height: 280 }} />
-        )}
+        <Box sx={{ flex: 1, minHeight: 200 }}>
+          {loading ? (
+            <Skeleton variant="rectangular" sx={{ height: '100%', borderRadius: 1 }} />
+          ) : data.length === 0 ? (
+            <Box
+              sx={{
+                height: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'text.secondary',
+              }}
+            >
+              <Typography variant="body2">暂无数据</Typography>
+            </Box>
+          ) : (
+            <Chart type="bar" series={series} options={chartOptions} sx={{ height: '100%' }} />
+          )}
+        </Box>
       </CardContent>
     </Card>
   );

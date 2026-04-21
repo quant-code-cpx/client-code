@@ -39,11 +39,20 @@ function SentimentGauge({
 
   // Net sentiment: 0~100 scale where 50 is neutral
   const sentiment = total > 0 ? ((rise - fall) / total) * 50 + 50 : 50;
-  const sentimentLabel = sentiment >= 65 ? '偏多' : sentiment <= 35 ? '偏空' : '中性';
+  const sentimentLabel =
+    sentiment >= 80
+      ? '极度贪婪'
+      : sentiment >= 60
+        ? '偏贪婪'
+        : sentiment >= 40
+          ? '中性'
+          : sentiment >= 20
+            ? '偏恐惧'
+            : '极度恐惧';
   const sentimentColor =
-    sentiment >= 65
+    sentiment >= 60
       ? theme.palette.error.main
-      : sentiment <= 35
+      : sentiment <= 40
         ? theme.palette.success.main
         : theme.palette.warning.main;
 
@@ -142,7 +151,14 @@ function SentimentGauge({
 
 // ----------------------------------------------------------------------
 
-export function DashboardMarketTemperature() {
+type DashboardMarketTemperatureProps = {
+  /** Called once with the latest trade date after sentiment data loads */
+  onTradeDateResolved?: (date: string) => void;
+};
+
+export function DashboardMarketTemperature({
+  onTradeDateResolved,
+}: DashboardMarketTemperatureProps) {
   const theme = useTheme();
   const [sentiment, setSentiment] = useState<SentimentResult | null>(null);
   const [volume, setVolume] = useState<VolumeOverviewItem[] | null>(null);
@@ -155,10 +171,11 @@ export function DashboardMarketTemperature() {
         setSentiment(s);
         setVolume(v.data ?? []);
         setChangeData(cd);
+        if (s.tradeDate) onTradeDateResolved?.(s.tradeDate);
       })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, []);
+  }, [onTradeDateResolved]);
 
   if (loading) {
     return <Skeleton variant="rounded" height={260} />;

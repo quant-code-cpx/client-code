@@ -48,13 +48,7 @@ function LevelLabel({ pct }: { pct: number | null }) {
   );
 }
 
-function PercentileRow({
-  label,
-  pct,
-}: {
-  label: string;
-  pct: number | null;
-}) {
+function PercentileRow({ label, pct }: { label: string; pct: number | null }) {
   return (
     <Box sx={{ mb: 1.5 }}>
       <Stack direction="row" justifyContent="space-between" sx={{ mb: 0.5 }}>
@@ -74,11 +68,12 @@ function PercentileRow({
           bgcolor: 'action.hover',
           '& .MuiLinearProgress-bar': {
             borderRadius: 3,
-            bgcolor: getLevel(pct) === 'high'
-              ? 'error.main'
-              : getLevel(pct) === 'low'
-              ? 'success.main'
-              : 'primary.main',
+            bgcolor:
+              getLevel(pct) === 'high'
+                ? 'error.main'
+                : getLevel(pct) === 'low'
+                  ? 'success.main'
+                  : 'primary.main',
           },
         }}
       />
@@ -107,8 +102,7 @@ export function MarketValuationCard({ tradeDate }: Props) {
         if (!cancelled) setData(res);
       })
       .catch((err: unknown) => {
-        if (!cancelled)
-          setError(err instanceof Error ? err.message : '加载市场估值失败');
+        if (!cancelled) setError(err instanceof Error ? err.message : '加载市场估值失败');
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -120,13 +114,17 @@ export function MarketValuationCard({ tradeDate }: Props) {
   }, [tradeDate]);
 
   return (
-    <Card sx={{ height: '100%' }}>
+    <Card sx={{ height: 456 }}>
       <CardContent>
         <Typography variant="h6" sx={{ mb: 2 }}>
           市场估值（全A中位数）
         </Typography>
 
-        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+        {error && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {error}
+          </Alert>
+        )}
 
         {loading ? (
           <>

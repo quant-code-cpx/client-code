@@ -105,6 +105,7 @@ const routeMap: Record<string, unknown> = {
   '/api/market/change-distribution': r(marketData, 'changeDistribution'),
   '/api/market/sentiment-trend': r(marketData, 'sentimentTrend'),
   '/api/market/sector-ranking': r(marketData, 'sectorRanking'),
+  '/api/market/sector-top-bottom': r(marketData, 'sectorTopBottom'),
   '/api/market/volume-overview': r(marketData, 'volumeOverview'),
   '/api/market/market-breadth': r(marketData, 'marketBreadth'),
   '/api/market/index-quote-with-sparkline': r(marketData, 'indexQuoteWithSparkline'),

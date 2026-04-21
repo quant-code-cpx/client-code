@@ -96,7 +96,7 @@ export function MarketIndexTrendChart({ tradeDate: _tradeDate }: Props) {
   const series = [{ name: INDEX_TABS[tabIndex]?.label ?? '', data: closes }];
 
   return (
-    <Card>
+    <Card sx={{ height: '100%' }}>
       <CardContent>
         <Stack
           direction={{ xs: 'column', sm: 'row' }}
@@ -142,11 +142,11 @@ export function MarketIndexTrendChart({ tradeDate: _tradeDate }: Props) {
         )}
 
         {loading ? (
-          <Skeleton variant="rectangular" height={320} />
+          <Skeleton variant="rectangular" height={265} />
         ) : data.length === 0 ? (
           <Box
             sx={{
-              height: 320,
+              height: 265,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -156,7 +156,7 @@ export function MarketIndexTrendChart({ tradeDate: _tradeDate }: Props) {
             <Typography variant="body2">暂无数据</Typography>
           </Box>
         ) : (
-          <Chart type="area" series={series} options={chartOptions} sx={{ height: 320 }} />
+          <Chart type="area" series={series} options={chartOptions} sx={{ height: 265 }} />
         )}
       </CardContent>
     </Card>

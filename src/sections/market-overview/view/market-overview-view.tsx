@@ -1,6 +1,8 @@
 import type { Dayjs } from 'dayjs';
+import type { HsgtTrendItem } from 'src/api/market';
 
-import { useState, useCallback } from 'react';
+import dayjs from 'dayjs';
+import { useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
@@ -10,38 +12,43 @@ import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
+import { fetchHsgtFlow } from 'src/api/market';
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Iconify } from 'src/components/iconify';
 
 import { MarketQuickLinks } from '../market-quick-links';
 import { MarketVolumeChart } from '../market-volume-chart';
+import { MarketSectorPanel } from '../market-sector-panel';
 import { MarketHsgtMiniCard } from '../market-hsgt-mini-card';
 import { MarketValuationCard } from '../market-valuation-card';
+import { MarketHeroNarrative } from '../market-hero-narrative';
 import { MarketIndexTrendChart } from '../market-index-trend-chart';
 import { MarketDailySnapshotCard } from '../market-daily-snapshot-card';
-import { MarketValuationTrendChart } from '../market-valuation-trend-chart';
-import { MarketSentimentTrendChart } from '../market-sentiment-trend-chart';
 import { MarketChangeDistributionChart } from '../market-change-distribution-chart';
 
 // ── Section Header ─────────────────────────────────────────────
 
-function SectionHeader({ title }: { title: string }) {
+function SectionHeader({ title, action }: { title: string; action?: React.ReactNode }) {
   return (
-    <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mt: 5, mb: 2.5 }}>
+    <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mt: 4.5, mb: 2 }}>
       <Box
         sx={{
-          width: 4,
-          height: 20,
-          borderRadius: 0.5,
+          width: 3,
+          height: 16,
+          borderRadius: 1,
           bgcolor: 'primary.main',
           flexShrink: 0,
         }}
       />
-      <Typography variant="subtitle1" sx={{ fontWeight: 700, letterSpacing: 0.5 }}>
+      <Typography
+        variant="overline"
+        sx={{ fontWeight: 700, letterSpacing: 1.2, color: 'text.secondary' }}
+      >
         {title}
       </Typography>
       <Box sx={{ flex: 1, height: '1px', bgcolor: 'divider' }} />
+      {action}
     </Stack>
   );
 }
@@ -49,37 +56,68 @@ function SectionHeader({ title }: { title: string }) {
 // ----------------------------------------------------------------------
 
 export function MarketOverviewView() {
-  const [tradeDate, setTradeDate] = useState<Dayjs | null>(null);
+  // displayDate: what the DatePicker shows (auto-filled by Hero callback)
+  const [displayDate, setDisplayDate] = useState<Dayjs | null>(null);
+  // apiFetchDate: drives all API calls (only changes on user interaction)
+  const [apiFetchDate, setApiFetchDate] = useState<string | undefined>(undefined);
   const [refreshKey, setRefreshKey] = useState(0);
-  const tradeDateStr = tradeDate ? tradeDate.format('YYYYMMDD') : undefined;
+  // Shared HSGT history — fetched once here, passed to Hero + HsgtMiniCard
+  const [hsgtHistory, setHsgtHistory] = useState<HsgtTrendItem[]>([]);
+
   const handleRefresh = useCallback(() => setRefreshKey((k) => k + 1), []);
+
+  // User explicitly picks a date — update both display and API fetch date
+  const handleDateChange = useCallback((newVal: Dayjs | null) => {
+    setDisplayDate(newVal);
+    setApiFetchDate(newVal ? newVal.format('YYYYMMDD') : undefined);
+  }, []);
+
+  // Lift fetchHsgtFlow here to avoid duplicate calls from Hero + HsgtMiniCard.
+  // Depends only on apiFetchDate (user-driven) and refreshKey — NOT on the auto-filled
+  // displayDate — so Hero's onTradeDateResolved callback does NOT trigger a refetch.
+  useEffect(() => {
+    let cancelled = false;
+    fetchHsgtFlow({ trade_date: apiFetchDate, days: 10 })
+      .then((res) => {
+        if (!cancelled) setHsgtHistory(res?.history ?? []);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [apiFetchDate, refreshKey]);
+
+  // Called once by Hero after it resolves the latest tradeDate from market-breadth.
+  // Only updates the DatePicker display — does NOT change apiFetchDate, so no refetch.
+  const handleTradeDateResolved = useCallback((date: string) => {
+    setDisplayDate((prev) => prev ?? dayjs(date, 'YYYYMMDD'));
+  }, []);
 
   return (
     <DashboardContent>
-      {/* ── Header ── */}
+      {/* ── Page Header ── */}
       <Stack
         direction={{ xs: 'column', sm: 'row' }}
         alignItems={{ sm: 'center' }}
         justifyContent="space-between"
         spacing={2}
-        sx={{ mb: 3 }}
+        sx={{ mb: 2.5 }}
       >
         <Box>
           <Typography variant="h4">市场总览</Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.25 }}>
-            A股当日全景深度分析
+            A股当日全景 · 叙事驱动
           </Typography>
         </Box>
 
         <Stack direction="row" spacing={1} alignItems="center">
           <DatePicker
             label="交易日期"
-            value={tradeDate}
-            onChange={(newVal) => setTradeDate(newVal)}
+            value={displayDate}
+            onChange={handleDateChange}
             format="YYYY-MM-DD"
             slotProps={{
-              textField: { size: 'small', sx: { width: 200 } },
-              field: { clearable: true },
+              textField: { size: 'small', sx: { width: 215 } },
             }}
           />
           <Tooltip title="刷新数据">
@@ -90,37 +128,53 @@ export function MarketOverviewView() {
         </Stack>
       </Stack>
 
-      {/* ── 市场脉搏 ── */}
-      <MarketDailySnapshotCard key={`snapshot-${refreshKey}`} tradeDate={tradeDateStr} />
+      {/* ── 今日叙事 Hero ── */}
+      <MarketHeroNarrative
+        key={`hero-${refreshKey}`}
+        tradeDate={apiFetchDate}
+        hsgtHistory={hsgtHistory}
+        onTradeDateResolved={handleTradeDateResolved}
+      />
+
+      {/* ── 指数行情 ── */}
+      <SectionHeader title="指数行情" />
+      <MarketDailySnapshotCard key={`snapshot-${refreshKey}`} tradeDate={apiFetchDate} />
 
       {/* ── 趋势分析 ── */}
       <SectionHeader title="趋势分析" />
-      <Grid container spacing={3} sx={{ alignItems: 'flex-start' }}>
-        <Grid size={{ xs: 12, md: 8 }}>
-          <MarketIndexTrendChart key={`trend-${refreshKey}`} tradeDate={tradeDateStr} />
+      <Grid container spacing={3} alignItems="stretch">
+        <Grid size={{ xs: 12, md: 7 }}>
+          <MarketIndexTrendChart key={`trend-${refreshKey}`} tradeDate={apiFetchDate} />
         </Grid>
-        <Grid size={{ xs: 12, md: 4 }}>
-          <MarketVolumeChart key={`volume-${refreshKey}`} tradeDate={tradeDateStr} />
-        </Grid>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <MarketChangeDistributionChart key={`dist-${refreshKey}`} tradeDate={tradeDateStr} />
-        </Grid>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <MarketSentimentTrendChart key={`sent-${refreshKey}`} tradeDate={tradeDateStr} />
+        <Grid size={{ xs: 12, md: 5 }}>
+          <MarketVolumeChart key={`volume-${refreshKey}`} tradeDate={apiFetchDate} />
         </Grid>
       </Grid>
 
-      {/* ── 资金 & 估值 ── */}
-      <SectionHeader title="资金 & 估值" />
-      <Grid container spacing={3} sx={{ alignItems: 'flex-start' }}>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <MarketHsgtMiniCard key={`hsgt-${refreshKey}`} tradeDate={tradeDateStr} />
+      {/* ── 行业资金 ── */}
+      <SectionHeader title="行业资金" />
+      <Grid container spacing={3} alignItems="stretch">
+        <Grid size={{ xs: 12, md: 7 }}>
+          <MarketSectorPanel key={`sector-${refreshKey}`} tradeDate={apiFetchDate} />
         </Grid>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <MarketValuationCard key={`val-${refreshKey}`} tradeDate={tradeDateStr} />
+        <Grid size={{ xs: 12, md: 5 }}>
+          {/* history prop avoids duplicate fetchHsgtFlow */}
+          <MarketHsgtMiniCard
+            key={`hsgt-${refreshKey}`}
+            tradeDate={apiFetchDate}
+            history={hsgtHistory}
+          />
         </Grid>
-        <Grid size={{ xs: 12 }}>
-          <MarketValuationTrendChart key={`valtrend-${refreshKey}`} tradeDate={tradeDateStr} />
+      </Grid>
+
+      {/* ── 估值概览 ── */}
+      <SectionHeader title="估值概览" />
+      <Grid container spacing={3}>
+        <Grid size={{ xs: 12, md: 5 }}>
+          <MarketValuationCard key={`val-${refreshKey}`} tradeDate={apiFetchDate} />
+        </Grid>
+        <Grid size={{ xs: 12, md: 7 }}>
+          <MarketChangeDistributionChart key={`dist-${refreshKey}`} tradeDate={apiFetchDate} />
         </Grid>
       </Grid>
 
