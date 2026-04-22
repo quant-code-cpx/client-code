@@ -265,16 +265,23 @@ function ToneChip({ tone }: { tone: MarketTone }) {
 
 type Props = {
   tradeDate?: string;
-  /** Shared HSGT history from parent — avoids duplicate API call */
-  hsgtHistory?: HsgtTrendItem[];
+  refreshKey?: number;
+  /** Shared HSGT history from parent — null/undefined means fetch not yet done or failed */
+  hsgtHistory?: HsgtTrendItem[] | null;
   /** Called once after initial load so parent DatePicker can back-fill */
   onTradeDateResolved?: (date: string) => void;
 };
 
-export function MarketHeroNarrative({ tradeDate, hsgtHistory, onTradeDateResolved }: Props) {
+export function MarketHeroNarrative({
+  tradeDate,
+  refreshKey,
+  hsgtHistory,
+  onTradeDateResolved,
+}: Props) {
   const theme = useTheme();
   const [data, setData] = useState<HeroData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(false);
 
   // Derive north money at render time from shared prop — no extra API call needed
   const todayHsgt = (hsgtHistory ?? []).slice(-1)[0] ?? null;
@@ -283,6 +290,7 @@ export function MarketHeroNarrative({ tradeDate, hsgtHistory, onTradeDateResolve
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
+    setFetchError(false);
 
     Promise.allSettled([
       fetchMarketBreadth({ trade_date: tradeDate }),
@@ -296,6 +304,7 @@ export function MarketHeroNarrative({ tradeDate, hsgtHistory, onTradeDateResolve
       const sent: SentimentResult | null = sentRes.status === 'fulfilled' ? sentRes.value : null;
 
       if (!breadth) {
+        setFetchError(true);
         setLoading(false);
         return;
       }
@@ -334,13 +343,29 @@ export function MarketHeroNarrative({ tradeDate, hsgtHistory, onTradeDateResolve
     return () => {
       cancelled = true;
     };
-  }, [tradeDate, onTradeDateResolved]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tradeDate, refreshKey]);
 
   if (loading) {
     return <Skeleton variant="rectangular" height={148} sx={{ borderRadius: 2 }} />;
   }
 
-  if (!data) return null;
+  if (fetchError || !data) {
+    return (
+      <Box
+        sx={{
+          borderRadius: 2,
+          border: '1px solid',
+          borderColor: 'divider',
+          p: 2.5,
+          textAlign: 'center',
+          color: 'text.secondary',
+        }}
+      >
+        <Typography variant="body2">市场叙事数据加载失败，请点击刷新重试</Typography>
+      </Box>
+    );
+  }
 
   // Compute headline at render time so it picks up latest northMoney from prop
   const headline = buildHeadline(data.tone, data.breadth, data.moneyFlowYi, northMoneyYi);

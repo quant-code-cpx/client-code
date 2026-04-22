@@ -132,7 +132,7 @@ function RunCard({ run, onClick }: RunCardProps) {
 
 // ----------------------------------------------------------------------
 
-export function DashboardRecentBacktests() {
+export function DashboardRecentBacktests({ refreshKey }: { refreshKey?: number }) {
   const router = useRouter();
   const [runs, setRuns] = useState<BacktestRunListItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -157,7 +157,7 @@ export function DashboardRecentBacktests() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [refreshKey]);
 
   return (
     <Card sx={{ display: 'flex', flexDirection: 'column' }}>

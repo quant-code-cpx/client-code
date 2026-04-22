@@ -45,9 +45,10 @@ const PERIODS: Array<{ value: NonNullable<IndexTrendQuery['period']>; label: str
 
 type Props = {
   tradeDate?: string;
+  refreshKey?: number;
 };
 
-export function MarketIndexTrendChart({ tradeDate: _tradeDate }: Props) {
+export function MarketIndexTrendChart({ tradeDate: _tradeDate, refreshKey }: Props) {
   const [tabIndex, setTabIndex] = useState(0);
   const [period, setPeriod] = useState<IndexTrendQuery['period']>('3m');
   const [data, setData] = useState<IndexTrendItem[]>([]);
@@ -75,7 +76,7 @@ export function MarketIndexTrendChart({ tradeDate: _tradeDate }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [selectedCode, period]);
+  }, [selectedCode, period, refreshKey]);
 
   const categories = data.map((d) => fmtDate(d.tradeDate));
   const closes = data.map((d) => d.close);

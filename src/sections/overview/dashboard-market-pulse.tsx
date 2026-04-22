@@ -18,11 +18,13 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import FormControlLabel from '@mui/material/FormControlLabel';
 
+import { INDEX_NAME_MAP } from 'src/utils/market-index-names';
 import { fPercent, fShortenNumber } from 'src/utils/format-number';
 
 import { fetchIndexQuoteWithSparkline } from 'src/api/market';
 
 import { Iconify } from 'src/components/iconify';
+import { ChartSparkline } from 'src/components/chart-sparkline';
 
 // ----------------------------------------------------------------------
 
@@ -47,6 +49,7 @@ const MAX_SELECTED = 6;
 const STORAGE_KEY = 'dashboard.pulse-selection';
 const DEFAULT_CODES = ['000001.SH', '399001.SZ', '399006.SZ', '000688.SH'];
 
+// INDEX_NAME_MAP imported from src/utils/market-index-names; kept local catalog for selection UI
 const CODE_TO_NAME = Object.fromEntries(INDEX_CATALOG.map(({ code, name }) => [code, name]));
 
 function loadSelected(): string[] {
@@ -75,37 +78,7 @@ function saveSelected(codes: string[]) {
 
 // ----------------------------------------------------------------------
 
-function MiniSparkline({ data, color }: { data: (number | null)[]; color: string }) {
-  const filtered = data.filter((v): v is number => v !== null);
-  if (filtered.length < 2) return null;
-
-  const min = Math.min(...filtered);
-  const max = Math.max(...filtered);
-  const range = max - min || 1;
-  const w = 120;
-  const h = 28;
-  const step = w / (filtered.length - 1);
-
-  const points = filtered
-    .map((v, i) => `${(i * step).toFixed(1)},${(h - ((v - min) / range) * h).toFixed(1)}`)
-    .join(' ');
-
-  return (
-    <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} style={{ display: 'block' }}>
-      <defs>
-        <linearGradient id={`spark-${color.replace('#', '')}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity={0.3} />
-          <stop offset="100%" stopColor={color} stopOpacity={0} />
-        </linearGradient>
-      </defs>
-      <polygon
-        points={`0,${h} ${points} ${w},${h}`}
-        fill={`url(#spark-${color.replace('#', '')})`}
-      />
-      <polyline points={points} fill="none" stroke={color} strokeWidth={1.5} />
-    </svg>
-  );
-}
+// ----------------------------------------------------------------------
 
 function PulseCard({ item }: { item: IndexQuoteWithSparklineItem }) {
   const theme = useTheme();
@@ -118,7 +91,7 @@ function PulseCard({ item }: { item: IndexQuoteWithSparklineItem }) {
       ? theme.palette.error.main
       : theme.palette.success.main;
 
-  const name = item.name || CODE_TO_NAME[item.tsCode] || item.tsCode;
+  const name = item.name || INDEX_NAME_MAP[item.tsCode] || CODE_TO_NAME[item.tsCode] || item.tsCode;
 
   return (
     <Card
@@ -165,7 +138,7 @@ function PulseCard({ item }: { item: IndexQuoteWithSparklineItem }) {
         </Box>
 
         <Box sx={{ flexShrink: 0, opacity: 0.75 }}>
-          <MiniSparkline data={item.sparkline ?? []} color={color} />
+          <ChartSparkline data={item.sparkline ?? []} color={color} height={28} />
         </Box>
       </Stack>
     </Card>
@@ -247,18 +220,20 @@ function PulseSelectionDialog({ open, selected, onClose, onConfirm }: SelectionD
 
 // ----------------------------------------------------------------------
 
-export function DashboardMarketPulse() {
+export function DashboardMarketPulse({ refreshKey }: { refreshKey?: number }) {
   const [allIndices, setAllIndices] = useState<IndexQuoteWithSparklineItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCodes, setSelectedCodes] = useState<string[]>(loadSelected);
   const [dialogOpen, setDialogOpen] = useState(false);
 
   useEffect(() => {
+    setLoading(true);
     fetchIndexQuoteWithSparkline({ sparkline_period: '1m' })
       .then((res) => setAllIndices(res.indices ?? []))
       .catch(() => setAllIndices([]))
       .finally(() => setLoading(false));
-  }, []);
+     
+  }, [refreshKey]);
 
   const handleConfirm = (codes: string[]) => {
     saveSelected(codes);

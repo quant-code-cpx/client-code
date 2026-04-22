@@ -25,7 +25,7 @@ type PortfolioSnapshot = PortfolioListItem & {
   pnl: PnlToday | null;
 };
 
-export function DashboardPortfolioGlance() {
+export function DashboardPortfolioGlance({ refreshKey }: { refreshKey?: number }) {
   const theme = useTheme();
   const router = useRouter();
 
@@ -33,6 +33,7 @@ export function DashboardPortfolioGlance() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    setLoading(true);
     listPortfolios()
       .then(async (list) => {
         if (!list || list.length === 0) {
@@ -55,17 +56,22 @@ export function DashboardPortfolioGlance() {
       })
       .catch(() => setPortfolios([]))
       .finally(() => setLoading(false));
-  }, []);
+     
+  }, [refreshKey]);
 
   if (loading) {
     return <Skeleton variant="rounded" height={200} />;
   }
 
   const totalPnl = portfolios.reduce((sum, p) => sum + (p.pnl?.todayPnl ?? 0), 0);
-  const totalPnlPct =
-    portfolios.length > 0
-      ? portfolios.reduce((sum, p) => sum + (p.pnl?.todayPnlPct ?? 0), 0) / portfolios.length
-      : 0;
+  // Weighted-average PnL%: derive each portfolio's base value from abs/pct,
+  // then weight by those values to avoid misleading equal-weight average.
+  const totalBase = portfolios.reduce((sum, p) => {
+    const pct = p.pnl?.todayPnlPct ?? 0;
+    if (pct === 0) return sum;
+    return sum + Math.abs((p.pnl?.todayPnl ?? 0) / pct);
+  }, 0);
+  const totalPnlPct = totalBase > 0 ? totalPnl / totalBase : 0;
   const isUp = totalPnl >= 0;
 
   return (

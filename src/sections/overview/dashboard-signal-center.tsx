@@ -30,7 +30,9 @@ const ACTION_CONFIG: Record<string, { label: string; color: string; icon: string
 
 // ----------------------------------------------------------------------
 
-export function DashboardSignalCenter() {
+type DashboardSignalCenterProps = { refreshKey?: number };
+
+export function DashboardSignalCenter({ refreshKey }: DashboardSignalCenterProps) {
   const theme = useTheme();
   const router = useRouter();
 
@@ -40,6 +42,7 @@ export function DashboardSignalCenter() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    setLoading(true);
     Promise.all([listSignalActivations(), getLatestSignals({}), alertApi.getPriceRules()])
       .then(([activations, latestRes, rules]) => {
         // Count active strategy activations
@@ -63,7 +66,8 @@ export function DashboardSignalCenter() {
       })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, []);
+     
+  }, [refreshKey]);
 
   if (loading) {
     return <Skeleton variant="rounded" height={260} />;

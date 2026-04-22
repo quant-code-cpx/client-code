@@ -8,6 +8,27 @@ description: >
 
 # Quant Client — Project Coding Skill
 
+## ⚡ TL;DR — Critical Rules (Read First)
+
+1. **No business logic in `pages/`** — all JSX and logic go in `sections/*/view/`
+2. **All API calls use `apiClient.post()`** — no GET, no query strings, params in body
+3. **`trade_date` always `YYYYMMDD`** string format (e.g. `'20240101'`)
+4. **Never hardcode colors** — always `theme.palette.*` or `varAlpha(...)`
+5. **MUI imports from subpaths**: `import Box from '@mui/material/Box'`, not barrel imports
+6. **`import type`** for all type-only imports; remove all unused imports
+7. **No shorthand boolean JSX props**: `<Comp disabled={true} />` not `<Comp disabled />`
+8. **Arrow functions**: expression form preferred: `(x) => x * 2` not `(x) => { return x * 2; }`
+9. **`fontSize` minimum 12px** — never 10 or 11 in sx props
+10. **After every code change**: run ESLint → then `yarn build` → confirm `✓ built in ...`
+
+> For **full ESLint rules** (18 rules with examples): load [resources/eslint-rules.md](resources/eslint-rules.md)
+> For **testing guide** (principles, templates, scripts): load [resources/testing.md](resources/testing.md)
+> For **feature iteration workflow** (三段式 + skill invocation): load [resources/workflow.md](resources/workflow.md)
+
+---
+
+## Stack
+
 This is a financial/quant dashboard frontend built on:
 
 - **React 19.1.0** + **TypeScript 5.8.2**
@@ -193,6 +214,165 @@ import { SvgColor } from 'src/components/svg-color';
 <SvgColor src="/assets/icons/navbar/ic-dashboard.svg" />;
 ```
 
+### ConfirmDialog (shared destructive action confirmation)
+
+```tsx
+import { ConfirmDialog } from 'src/components/confirm-dialog';
+
+// Props: open, title, content, onClose, onConfirm, submitting?, confirmLabel?, confirmColor?, cancelLabel?
+<ConfirmDialog
+  open={deleteOpen}
+  title="删除确认"
+  content={`确定删除「${target?.name}」吗？此操作不可恢复。`}
+  onClose={() => setDeleteOpen(false)}
+  onConfirm={handleDelete}
+  submitting={deleteLoading}
+  confirmColor="error"
+  confirmLabel="删除"
+/>;
+```
+
+### Dialog / Drawer state pattern
+
+The codebase uses plain `useState` for dialog state (not `useBoolean`):
+
+```tsx
+// Single dialog
+const [editOpen, setEditOpen] = useState(false);
+const [editTarget, setEditTarget] = useState<SomeItem | null>(null);
+
+// Open with context
+const handleEditClick = (item: SomeItem) => {
+  setEditTarget(item);
+  setEditOpen(true);
+};
+
+// Render
+<SomeEditDialog
+  open={editOpen}
+  target={editTarget}
+  onClose={() => setEditOpen(false)}
+  onSuccess={handleEditSuccess}
+/>;
+```
+
+`useBoolean` (from `src/hooks/use-boolean`) is available for simple boolean toggles:
+
+```tsx
+import { useBoolean } from 'src/hooks/use-boolean';
+
+const dialog = useBoolean();
+// dialog.value / dialog.onTrue() / dialog.onFalse() / dialog.onToggle()
+<Button onClick={dialog.onTrue}>Open</Button>
+<SomeDialog open={dialog.value} onClose={dialog.onFalse} />
+```
+
+---
+
+## Data Fetching Patterns
+
+All data fetching uses plain `useState` + `useCallback` + `useEffect` (no React Query / SWR).
+
+### Pattern A — Refetchable data (list views, detail views)
+
+```tsx
+const [data, setData] = useState<SomeType | null>(null);
+const [loading, setLoading] = useState(true);
+const [error, setError] = useState('');
+
+const fetchData = useCallback(async () => {
+  setLoading(true);
+  setError('');
+  try {
+    const result = await someApi.getData({ param });
+    setData(result);
+  } catch (err) {
+    setError(err instanceof Error ? err.message : '加载数据失败');
+  } finally {
+    setLoading(false);
+  }
+}, [param]);
+
+useEffect(() => {
+  fetchData();
+}, [fetchData]);
+```
+
+### Pattern B — Simple read-once with cleanup (sub-components, charts)
+
+```tsx
+useEffect(() => {
+  let cancelled = false;
+  setLoading(true);
+  setError('');
+
+  someApi
+    .getData({ param })
+    .then((res) => {
+      if (!cancelled) setData(res ?? null);
+    })
+    .catch((err: unknown) => {
+      if (!cancelled) setError(err instanceof Error ? err.message : '加载失败');
+    })
+    .finally(() => {
+      if (!cancelled) setLoading(false);
+    });
+
+  return () => {
+    cancelled = true;
+  };
+}, [param]);
+```
+
+### Loading / Error / Empty UI
+
+```tsx
+// While loading — show Skeleton (preferred over spinner for content areas)
+if (loading) return <Skeleton variant="rectangular" height={300} sx={{ borderRadius: 1.5 }} />;
+
+// On error
+if (error) return <Alert severity="error">{error}</Alert>;
+
+// No data
+if (!data) return null;
+```
+
+For **inline loading** inside a Card (don't block the whole page):
+
+```tsx
+{
+  loading && <Skeleton variant="rectangular" height={280} />;
+}
+{
+  !loading && error && <Alert severity="error">{error}</Alert>;
+}
+{
+  !loading && !error && data && <ActualContent data={data} />;
+}
+```
+
+### Pagination state
+
+```tsx
+const [page, setPage] = useState(0); // 0-indexed for MUI TablePagination
+const [rowsPerPage, setRowsPerPage] = useState(10);
+
+// API call uses 1-indexed page:
+someApi.getList({ page: page + 1, pageSize: rowsPerPage });
+
+<TablePagination
+  component="div"
+  count={total}
+  page={page}
+  rowsPerPage={rowsPerPage}
+  onPageChange={(_, newPage) => setPage(newPage)}
+  onRowsPerPageChange={(e) => {
+    setRowsPerPage(parseInt(e.target.value, 10));
+    setPage(0);
+  }}
+/>;
+```
+
 ---
 
 ## Chart Components
@@ -272,391 +452,68 @@ import { RouterLink } from 'src/routes/components';
 
 ## Code Style & ESLint Rules
 
-> All rules below are **enforced by ESLint** (`eslint.config.mjs`). Violations will cause lint errors or warnings. Always run `npm run lint` before committing.
+> All rules are enforced by ESLint (`eslint.config.mjs`). The "What NOT to Do" section below summarizes the most common violations. For **detailed examples of all 18 rules**, load [resources/eslint-rules.md](resources/eslint-rules.md).
 
----
+Auto-fix command:
 
-### 1. Import Order (ERROR — `perfectionist/sort-imports`)
+```bash
+node_modules/.bin/eslint --fix "src/**/*.{ts,tsx}"
+```
 
-Imports must follow this exact group order, with a **blank line between each group**:
+### Import Order (ERROR — must know this for every new file)
+
+Imports must follow this exact group order with a **blank line between groups**:
 
 ```tsx
-// ── Group 1: style / CSS ──────────────────────────────────
+// Group 1: style/CSS
 import 'src/global.css';
 
-// ── Group 2: side-effect imports ─────────────────────────
+// Group 2: side-effect imports
 import 'reflect-metadata';
 
-// ── Group 3: type-only imports ───────────────────────────
+// Group 3: type-only imports
 import type { FC } from 'react';
-import type { User } from 'src/types/user';
 
-// ── Group 4: external (builtins + npm packages) ───────────
-import { useState, useEffect } from 'react';
+// Group 4: external npm packages
+import { useState } from 'react';
 import dayjs from 'dayjs';
 
-// ── Group 5: @mui/* ───────────────────────────────────────
+// Group 5: @mui/*
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
 
-// ── Group 6: src/routes/* ─────────────────────────────────
+// Group 6: src/routes/*
 import { paths } from 'src/routes/paths';
-import { useRouter } from 'src/routes/hooks';
 
-// ── Group 7: src/hooks/* ──────────────────────────────────
+// Group 7: src/hooks/*
 import { useBoolean } from 'src/hooks/use-boolean';
 
-// ── Group 8: src/utils/* ──────────────────────────────────
+// Group 8: src/utils/*
 import { fDate } from 'src/utils/format-time';
 
-// ── Group 9: other src/* internals (src/api, src/config…) ─
+// Group 9: other src/* internals (src/api, src/config…)
 import { userApi } from 'src/api/user';
 import { CONFIG } from 'src/config-global';
 
-// ── Group 10: src/components/* ───────────────────────────
+// Group 10: src/components/*
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
 
-// ── Group 11: src/sections/* ─────────────────────────────
+// Group 11: src/sections/*
 import { UserTableRow } from 'src/sections/user';
 
-// ── Group 12: src/auth/* ──────────────────────────────────
+// Group 12: src/auth/*
 import { useAuthContext } from 'src/auth/hooks';
 
-// ── Group 13: src/types/* ─────────────────────────────────
+// Group 13: src/types/*
 import type { UserItem } from 'src/types/user';
 
-// ── Group 14: relative imports (parent / sibling / index) ─
+// Group 14: relative imports
 import { MyHelper } from '../utils';
 import type { MyProps } from './types';
 ```
 
-Within each group, imports are sorted by **line length ascending**.
-
-**Named imports** within a single `import { … }` statement are also sorted by line length ascending:
-
-```tsx
-// ✅ Correct
-import { fDate, fToNow, fDateTime } from 'src/utils/format-time';
-
-// ❌ Wrong order
-import { fDateTime, fDate, fToNow } from 'src/utils/format-time';
-```
-
----
-
-### 2. `import type` for type-only imports (WARN — `@typescript-eslint/consistent-type-imports`)
-
-Use `import type` whenever importing only TypeScript types/interfaces:
-
-```tsx
-// ✅ Correct
-import type { BoxProps } from '@mui/material/Box';
-import type { UserItem } from 'src/types/user';
-
-// ❌ Wrong — regular import used for a type
-import { BoxProps } from '@mui/material/Box';
-```
-
----
-
-### 3. Newline after import block (ERROR — `import/newline-after-import`)
-
-There must be exactly one blank line between the last `import` statement and the first non-import code:
-
-```tsx
-// ✅ Correct
-import Box from '@mui/material/Box';
-
-export function MyComponent() { … }
-
-// ❌ Wrong — no blank line
-import Box from '@mui/material/Box';
-export function MyComponent() { … }
-```
-
----
-
-### 4. MUI Import Style (enforced by import grouping)
-
-Always import from the specific subpath (better tree-shaking):
-
-```tsx
-// ✅ Correct
-import Box from '@mui/material/Box';
-import Stack from '@mui/material/Stack';
-import Typography from '@mui/material/Typography';
-import { useTheme } from '@mui/material/styles';
-
-// ❌ Avoid — barrel import
-import { Box, Stack, Typography } from '@mui/material';
-```
-
----
-
-### 5. JSX — Self-closing components (ERROR — `react/self-closing-comp`)
-
-```tsx
-// ✅ Correct
-<Box />
-<Divider />
-
-// ❌ Wrong
-<Box></Box>
-```
-
----
-
-### 6. JSX — Explicit boolean props (ERROR — `react/jsx-boolean-value`)
-
-```tsx
-// ✅ Correct
-<TextField disabled={true} />
-<Switch checked={false} />
-
-// ❌ Wrong — shorthand boolean
-<TextField disabled />
-```
-
----
-
-### 7. JSX — No useless fragments (WARN — `react/jsx-no-useless-fragment`)
-
-```tsx
-// ✅ Correct — no wrapping fragment needed
-return <Box>{content}</Box>;
-
-// ❌ Wrong — unnecessary fragment
-return (
-  <>
-    <Box>{content}</Box>
-  </>
-);
-```
-
-Fragments are allowed when wrapping multiple siblings or inside expressions (e.g. `condition && <>{a}{b}</>`).
-
----
-
-### 8. JSX — No unnecessary curly braces (ERROR — `react/jsx-curly-brace-presence`)
-
-Do not wrap string literals or non-dynamic values in curly braces in JSX props or children:
-
-```tsx
-// ✅ Correct
-<Typography variant="h4">Hello</Typography>
-<Box className="my-class" />
-
-// ❌ Wrong — unnecessary curly braces around string
-<Typography variant={"h4"}>{"Hello"}</Typography>
-<Box className={"my-class"} />
-```
-
----
-
-### 9. Arrow function body style (ERROR — `arrow-body-style`)
-
-Omit curly braces and `return` for arrow functions that return a single expression:
-
-```tsx
-// ✅ Correct
-const double = (x: number) => x * 2;
-const getLabel = (item: Item) => item.label;
-const rows = items.map((item) => <Row key={item.id} item={item} />);
-
-// ❌ Wrong — unnecessary block body
-const double = (x: number) => {
-  return x * 2;
-};
-const rows = items.map((item) => {
-  return <Row key={item.id} item={item} />;
-});
-```
-
-Exception: when the function body contains multiple statements or side effects, the block body is required.
-
----
-
-### 10. Object shorthand (WARN — `object-shorthand`)
-
-Use shorthand property and method syntax:
-
-```tsx
-// ✅ Correct
-const obj = { name, value, onClick };
-const api = { fetchUser() { … } };
-
-// ❌ Wrong
-const obj = { name: name, value: value, onClick: onClick };
-const api = { fetchUser: function() { … } };
-```
-
----
-
-### 11. No useless renaming (WARN — `no-useless-rename`)
-
-Don't rename imports, exports, or destructured vars to the same name:
-
-```tsx
-// ✅ Correct
-import { foo } from './foo';
-const { bar } = obj;
-export { baz };
-
-// ❌ Wrong
-import { foo as foo } from './foo';
-const { bar: bar } = obj;
-export { baz as baz };
-```
-
----
-
-### 12. No unused imports (WARN — `unused-imports/no-unused-imports`)
-
-Remove any import that is never referenced in the file:
-
-```tsx
-// ✅ Correct — all imports are used
-import Box from '@mui/material/Box';
-import { fDate } from 'src/utils/format-time';
-
-// ❌ Wrong — fDate imported but never used
-import Box from '@mui/material/Box';
-import { fDate } from 'src/utils/format-time';
-// (fDate never appears in the file)
-```
-
----
-
-### 13. No unused variables (WARN — `@typescript-eslint/no-unused-vars`)
-
-Variables that are declared but never used trigger a warning (function arguments are excluded):
-
-```tsx
-// ✅ Correct
-const [open, setOpen] = useState(false);
-// both open and setOpen are used
-
-// ❌ Wrong — value declared but never read
-const unusedVar = computeSomething();
-```
-
-Prefix with `_` to intentionally suppress the warning: `const _unused = …`.
-
----
-
-### 14. No variable shadowing (ERROR — `@typescript-eslint/no-shadow`)
-
-Do not declare a variable with the same name as one in an outer scope:
-
-```tsx
-// ✅ Correct — different names
-function outer() {
-  const userId = 1;
-  function inner(currentUserId: number) { … }
-}
-
-// ❌ Wrong — inner userId shadows outer userId
-function outer() {
-  const userId = 1;
-  function inner(userId: number) { … }  // shadows outer userId
-}
-```
-
----
-
-### 15. Consistent return (ERROR — `consistent-return`)
-
-All code paths in a function must either always return a value or never return one:
-
-```tsx
-// ✅ Correct — always returns
-function getLabel(type: string): string {
-  if (type === 'a') return 'Alpha';
-  return 'Unknown';
-}
-
-// ✅ Correct — never returns (void)
-function logMessage(msg: string) {
-  console.log(msg);
-}
-
-// ❌ Wrong — some paths return, others don't
-function getLabel(type: string) {
-  if (type === 'a') return 'Alpha';
-  // missing return on other paths
-}
-```
-
----
-
-### 16. Lines around directives (ERROR — `lines-around-directive`)
-
-`'use client'` and similar directives must have a blank line **before and after** them when they appear alongside other code:
-
-```tsx
-// ✅ Correct — blank line after the directive, before imports
-
-'use client';
-
-import { useState } from 'react';
-
-// ✅ Also correct — if preceding content exists, blank line before AND after
-// (In practice this rule fires when mixing directives with other statements.)
-```
-
----
-
-### 17. No bitwise operators (ERROR — `no-bitwise`)
-
-Bitwise operators (`&`, `|`, `^`, `~`, `<<`, `>>`, `>>>`) are not allowed. Use logical operators instead:
-
-```tsx
-// ✅ Correct
-const isActive = status === 1 || status === 2;
-
-// ❌ Wrong
-const flags = a | b;
-```
-
----
-
-### 18. Default case placement & requirement (`default-case-last` + `default-case`)
-
-Two rules work together here:
-
-- **`default-case-last`** (ERROR): the `default` clause must always be the **last** case in a `switch` statement.
-- **`default-case`** (ERROR): every `switch` statement must have a `default` case, **unless** you explicitly opt out with a `// no default` comment.
-
-```tsx
-// ✅ Correct — default last
-switch (status) {
-  case 'active':
-    return 'Active';
-  case 'banned':
-    return 'Banned';
-  default:
-    return 'Unknown';
-}
-
-// ❌ Wrong — default not last (violates default-case-last)
-switch (status) {
-  default:
-    return 'Unknown';
-  case 'active':
-    return 'Active';
-}
-
-// ✅ Correct — intentionally omitted default with opt-out comment
-switch (action.type) {
-  case 'INCREMENT':
-    return state + 1;
-  case 'DECREMENT':
-    return state - 1;
-  // no default
-}
-```
+Within each group, sort by **line length ascending**. Named imports within one statement also sorted by line length ascending.
 
 ---
 
@@ -814,16 +671,6 @@ const color = flowColor(data.netAmount); // flowColor 接受 number | null
 
 ---
 
-## 文档管理约定
-
-项目设计文档统一存放在 `docs/` 目录下：
-
-- **文件名使用中文**，格式为 `<模块名>-<文档类型>.md`（如 `首页仪表盘-前端设计.md`）
-- **每次新增或修改文档后，必须同步更新 `docs/readme.md`**，保持导航索引与实际文件一致
-- `docs/readme.md` 按"设计文档"和"规划与待办"两个分类列出所有文档及简要说明
-
----
-
 ## 功能迭代三段式工作流（必须遵守）
 
 本项目所有新功能的开发，**严格按照「设计 → 实现 → 文档更新」三个阶段推进**，每个阶段各自独立，由用户用明确指令触发，不得跨阶段操作。
@@ -946,211 +793,34 @@ IDE 的 TypeScript 检查无法捕获所有错误，`tsc && vite build` 流水�
 
 ## 测试规范（必须遵守）
 
-### 测试用例设计原则（最高优先级）
+> **完整测试规范请加载 [resources/testing.md](resources/testing.md)**，包含：设计原则详解、禁止的测试类型、组件测试模板（含 MSW）、代码修改时同步要求。
 
-**测试用例必须基于业务逻辑进行设计，绝对不允许默认现有代码都是无 BUG 的代码，从而写一堆无意义的测试用例。** 此原则适用于所有测试（单元测试、组件测试、集成测试、E2E）。
+**核心原则（不可违背）：**
 
-具体要求：
+- **基于业务逻辑**设计测试用例，不默认现有代码无 Bug，独立思考正确行为，不抄代码输出作断言
+- **测试文件放在 `__tests__/` 子目录**，命名 `<模块名>.test.ts` / `<组件名>.test.tsx`
+- **import 用 `../`**（从 `__tests__/` 向上一层引用源文件，非 `./`）
+- **每次修改源文件，必须同步检查并更新对应测试文件**
 
-1. **以业务行为为出发点**：每个测试用例必须对应一个真实的业务场景或规则，而非简单验证"代码能跑"。先理解被测模块的业务目的，再设计测试用例。
-2. **不信任现有实现**：编写测试时必须独立思考正确的业务行为是什么，不能直接看现有代码的输出来写断言。如果现有代码的行为与业务预期不符，测试应当体现正确的预期（测试失败 = 发现了 Bug）。
-3. **覆盖边界与异常路径**：除了 happy path，必须覆盖业务上有意义的边界值、错误输入、并发场景和异常流程。例如：
-   - 401 token 过期时的刷新/重试/登出流程
-   - 并发请求只触发一次 refresh（而非 N 次）
-   - `canManage('SUPER_ADMIN')` 对任何人（包括 SUPER_ADMIN 自身）都应返回 `false`
-   - `signOut` 即使 API 失败也必须清除本地状态
-   - API 参数命名（`code` vs `tsCode`）是否与后端 DTO 一致
-4. **禁止无意义测试**：以下类型的测试是被禁止的：
-   - 仅验证函数"不抛异常"而不检查返回值的正确性
-   - 仅验证 mock 被调用了而不检查调用参数是否正确
-   - 把现有代码的输出直接 copy 为期望值（snapshot-style，除非明确标注为回归测试）
-   - 测试内部实现细节（如检查 `useState` 被调用几次）而非外部可观测行为
-5. **测试即文档**：每个 `describe` / `it` 的描述应清晰表达业务含义，让不熟悉代码的人也能理解这个测试在验证什么业务规则。
-
-**示例 — ✅ 正确（基于业务逻辑）：**
-
-```ts
-// 业务规则：SUPER_ADMIN 账号受保护，任何人都不能对其进行管理操作
-it('SUPER_ADMIN CANNOT manage another SUPER_ADMIN', () => {
-  setRole('SUPER_ADMIN');
-  const { result } = renderHook(() => usePermission());
-  expect(result.current.canManage('SUPER_ADMIN')).toBe(false);
-});
-
-// 业务规则：signOut 即使 logout API 失败也必须清除本地状态
-it('signOut clears state even when authApi.logout throws', async () => {
-  vi.mocked(authApi.logout).mockRejectedValue(new Error('network error'));
-  // ... signOut 后断言 token 已清除、isAuthenticated 为 false
-});
-```
-
-**示例 — ❌ 禁止（无意义测试）：**
-
-```ts
-// 仅验证函数存在且不报错，完全没有检查业务行为
-it('should work', () => {
-  expect(() => formatNumber(123)).not.toThrow();
-});
-
-// 直接抄现有代码输出作为断言，没有独立思考正确结果
-it('returns correct value', () => {
-  // 开发者直接运行了 formatNumber(123) 得到 '123'，然后写下了这个断言
-  // 如果 formatNumber 有 bug（比如应该返回 '123.00'），这个测试永远不会发现
-  expect(formatNumber(123)).toBe('123');
-});
-```
-
----
-
-### 测试文件目录约定
-
-**测试文件必须放在与源文件同目录下的 `__tests__/` 子文件夹中，禁止与源文件同级放置。**
-
-```
-src/
-├── utils/
-│   ├── format-number.ts         ← 源文件
-│   ├── format-time.ts           ← 源文件
-│   └── __tests__/               ← 测试子目录
-│       ├── format-number.test.ts
-│       └── format-time.test.ts
-├── api/
-│   ├── client.ts
-│   └── __tests__/
-│       └── client.test.ts
-├── auth/
-│   ├── auth-reducer.ts
-│   └── __tests__/
-│       └── auth-reducer.test.ts
-└── test/                        ← 测试基础设施（setup、工具函数）
-    ├── setup.ts
-    └── test-utils.tsx
-```
-
-**命名规则：**
-
-| 测试类型 | 文件名格式          | 示例                    |
-| -------- | ------------------- | ----------------------- |
-| 单元测试 | `<模块名>.test.ts`  | `format-number.test.ts` |
-| 组件测试 | `<组件名>.test.tsx` | `label.test.tsx`        |
-
-测试文件内 import 源文件时使用**相对路径 `../`**（因为 `__tests__/` 是子目录）：
-
-```ts
-// ✅ 正确（从 __tests__/ 向上一层引用源文件）
-import { fNumber } from '../format-number';
-import { tokenStorage } from '../client';
-
-// ❌ 错误（同级路径，测试文件不与源文件同级）
-import { fNumber } from './format-number';
-```
-
-### 测试脚本
+测试脚本速查：
 
 ```bash
-npm test              # 运行全部测试（CI 使用）
-npm run test:watch    # 开发时 watch 模式
-npm run test:coverage # 生成覆盖率报告（html + lcov）
-npm run test:ui       # Vitest 可视化 UI
-```
-
-### 修改代码时必须同步更新测试（强制要求）
-
-**每次修改源文件，必须同步检查并更新对应的测试文件。** 具体规则：
-
-1. **新增导出函数/方法** → 在对应 `__tests__/` 文件中新增测试用例
-2. **修改函数签名或行为** → 更新受影响的测试断言
-3. **删除函数/方法** → 删除对应测试用例，避免死代码
-4. **新增源文件模块** → 在同目录创建 `__tests__/<模块名>.test.ts`，至少覆盖主要路径和 null/边界值
-5. **修改类型定义**（如 `AuthState`、`UserProfile`）→ 检查测试中的 mock 对象是否仍符合新类型
-
-**工作流要求：**
-
-- 实现阶段（阶段二）完成功能代码后，**构建验证之前**，必须检查是否需要新增或更新测试
-- 提交 PR 时，涉及源文件的变更应当有对应的 `__tests__/` 文件变更（新增或修改）
-- 如果某个变更确实不需要测试（如纯文档修改、类型别名），需在 PR 描述中明确说明原因
-
-**示例：**
-
-```ts
-// 原函数
-export function fWanYuan(value: InputNumberValue, decimals = 2): string { … }
-
-// 修改后新增 suffix 参数
-export function fWanYuan(value: InputNumberValue, decimals = 2, suffix = ''): string { … }
-
-// 必须同步更新 __tests__/format-number.test.ts，添加 suffix 参数的测试用例
-it('appends suffix', () => {
-  expect(fWanYuan(50000, 2, '元')).toBe('5.00亿元');
-});
+npm test              # 运行全部测试
+npm run test:watch    # watch 模式
+npm run test:coverage # 覆盖率报告
 ```
 
 ---
 
-## 设计与代码审查技能调用规范
+## 关联技能调用速查
 
-本项目集成了以下外部技能，每个技能在工作流中有明确的**触发时机**，不应互换或叠加调用。
+| 技能                          | 触发时机                                      |
+| ----------------------------- | --------------------------------------------- |
+| `frontend-design`             | 阶段一：规划 UI 方案、设计页面布局时          |
+| `web-design-guidelines`       | 阶段二末：`yarn build` 通过后自动运行合规审查 |
+| `mui`                         | 阶段二：编写 MUI 组件、sx 样式时              |
+| `vercel-react-best-practices` | 阶段二：编写 React 组件、数据获取时           |
 
-### 技能一览
+**关键原则**：`frontend-design` 管视觉方向（阶段一），`web-design-guidelines` 管技术合规（阶段二末），两者职责不重叠、顺序不可颠倒。
 
-| 技能                          | 路径                                                    | 触发时机                             |
-| ----------------------------- | ------------------------------------------------------- | ------------------------------------ |
-| `frontend-design`             | `~/.agents/skills/frontend-design/SKILL.md`             | 设计阶段（阶段一）规划 UI 方案时     |
-| `web-design-guidelines`       | `~/.agents/skills/web-design-guidelines/SKILL.md`       | 实现完成后（阶段二末尾）自动审查代码 |
-| `mui`                         | `~/.agents/skills/mui/SKILL.md`                         | 实现阶段编写 MUI 组件代码时          |
-| `vercel-react-best-practices` | `~/.agents/skills/vercel-react-best-practices/SKILL.md` | 编写 React 组件/数据获取时           |
-
----
-
-### 调用规则（防冲突）
-
-#### `frontend-design` — 仅在设计阶段调用
-
-- **触发条件**：用户要求"设计 XX 页面方案"、"设计 XX 组件"、"规划 UI 布局"等。
-- **调用时机**：阶段一（产出设计文档），**不在实现阶段调用**。
-- **职责**：确定视觉方向、组件层级、色调选择、排版风格、空间结构。对于金融量化仪表盘，应偏向精炼专业的风格而非实验性设计，以信息密度和可读性优先。
-- **输出**：写入设计文档（`docs/design/`），作为阶段二实现的输入。
-
-#### `web-design-guidelines` — 仅在实现完成后调用
-
-- **触发条件**：阶段二代码实现完毕，构建通过后自动触发；或用户要求"审查 UI"、"检查合规"时。
-- **调用时机**：阶段二末尾（yarn build 通过后）或用户单独触发审查。
-- **职责**：检查已实现代码是否符合 Web Interface Guidelines（dark mode、tabular-nums、prefers-reduced-motion、aria 标签、transition 反模式等技术合规项）。
-- **输出**：以 `file:line — 问题描述` 格式输出审查结果，不重新设计视觉方向。
-
-#### 防止冲突的关键原则
-
-1. **职责不重叠**：`frontend-design` 管"长什么样"（美学方向），`web-design-guidelines` 管"代码写得对不对"（技术合规）。设计文档不涉及合规检查，代码审查不重新定义视觉风格。
-2. **顺序不可颠倒**：先 `frontend-design`（设计）→ 再实现 → 再 `web-design-guidelines`（审查）。不在设计阶段运行合规审查，不在审查阶段重做视觉设计。
-3. **设计文档是边界**：`frontend-design` 的输出（设计文档）是阶段二的约束条件，`web-design-guidelines` 的审查不得否定设计文档中已确定的视觉方向，只纠正实现层面的技术问题。
-
----
-
-### 功能迭代中的完整技能调用流程
-
-```
-阶段一（设计）
-  └─ 读取 frontend-design skill
-  └─ 结合 quant-client 风格约束（专业金融、信息密度优先）
-  └─ 产出设计文档
-
-阶段二（实现）
-  └─ 读取 mui skill（编写 MUI 组件时）
-  └─ 读取 vercel-react-best-practices skill（数据获取/性能敏感代码时）
-  └─ 完成实现 → ESLint → yarn build
-
-阶段二完成后（代码审查）
-  └─ 读取 web-design-guidelines skill
-  └─ fetch https://raw.githubusercontent.com/vercel-labs/web-interface-guidelines/main/command.md
-  └─ 输出 file:line 格式的审查报告
-  └─ 修复技术合规问题（不改动视觉方向）
-
-阶段三（文档更新）
-  └─ 更新 docs/ 状态标记
-```
-
-> **注意**：`web-design-guidelines` 里会 fetch 远端规则文件，需要网络连接。如果网络不通，可跳过 fetch 步骤，使用上次已知的规则（涵盖 dark mode、animation、typography、accessibility 等核心规则）。
-
-```
-
-```
+> 完整的防冲突规则和调用流程见 [resources/workflow.md](resources/workflow.md)。

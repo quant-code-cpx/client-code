@@ -62,7 +62,7 @@ function SectorBar({
 
 // ----------------------------------------------------------------------
 
-export function DashboardSectorWind() {
+export function DashboardSectorWind({ refreshKey }: { refreshKey?: number }) {
   const theme = useTheme();
   const router = useRouter();
 
@@ -71,6 +71,7 @@ export function DashboardSectorWind() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    setLoading(true);
     Promise.all([
       fetchSectorRanking({ limit: 10, sort_by: 'pct_change' }),
       fetchSectorFlowRanking({ limit: 10, order: 'desc', sort_by: 'net_amount' }),
@@ -81,7 +82,8 @@ export function DashboardSectorWind() {
       })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, []);
+     
+  }, [refreshKey]);
 
   if (loading) {
     return <Skeleton variant="rounded" height={320} />;

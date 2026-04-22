@@ -28,7 +28,9 @@ function flowColor(v: number): 'error.main' | 'success.main' {
 
 // ----------------------------------------------------------------------
 
-export function DashboardCapitalRadar() {
+type DashboardCapitalRadarProps = { refreshKey?: number };
+
+export function DashboardCapitalRadar({ refreshKey }: DashboardCapitalRadarProps) {
   const theme = useTheme();
   const router = useRouter();
 
@@ -37,6 +39,7 @@ export function DashboardCapitalRadar() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    setLoading(true);
     const loadHsgt = fetchHsgtFlow({ days: 5 })
       .then((h) => {
         const hsgtData = h.history ?? [];
@@ -49,7 +52,8 @@ export function DashboardCapitalRadar() {
       .catch(() => {});
 
     Promise.all([loadHsgt, loadMoneyFlow]).finally(() => setLoading(false));
-  }, []);
+     
+  }, [refreshKey]);
 
   if (loading) {
     return <Skeleton variant="rounded" height={260} />;

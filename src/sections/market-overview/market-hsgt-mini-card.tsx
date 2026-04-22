@@ -115,22 +115,23 @@ function FlowChannel({ label, value, history }: ChannelProps) {
 
 type Props = {
   tradeDate?: string;
-  /** If provided by parent, skip internal fetch (avoids duplicate API call) */
-  history?: HsgtTrendItem[];
+  refreshKey?: number;
+  /** Parent-lifted HSGT history. null/undefined = fetch not yet done or failed; use internal fetch. */
+  history?: HsgtTrendItem[] | null;
 };
 
-export function MarketHsgtMiniCard({ tradeDate, history: externalHistory }: Props) {
+export function MarketHsgtMiniCard({ tradeDate, refreshKey, history: externalHistory }: Props) {
   const theme = useTheme();
   const [fetchedHistory, setFetchedHistory] = useState<HsgtTrendItem[]>([]);
-  const [loading, setLoading] = useState(!externalHistory);
+  const [loading, setLoading] = useState(externalHistory == null);
   const [error, setError] = useState('');
 
-  // Use externally provided history when available
-  const history = externalHistory ?? fetchedHistory;
+  // Use externally provided history only when it is a real array (not null/undefined)
+  const history = externalHistory != null ? externalHistory : fetchedHistory;
 
   useEffect(() => {
-    // Skip internal fetch when parent is providing data
-    if (externalHistory !== undefined) {
+    // Skip internal fetch only when parent provided a valid (non-null) array
+    if (externalHistory != null) {
       setLoading(false);
       return () => {};
     }
@@ -153,7 +154,7 @@ export function MarketHsgtMiniCard({ tradeDate, history: externalHistory }: Prop
     return () => {
       cancelled = true;
     };
-  }, [tradeDate, externalHistory]);
+  }, [tradeDate, externalHistory, refreshKey]);
 
   const today = history[history.length - 1] ?? null;
   const northHistory = history.map((d) => toYi(d.northMoney));

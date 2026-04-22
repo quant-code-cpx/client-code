@@ -26,6 +26,7 @@ type ViewDim = 'pct_change' | 'net_amount';
 
 type Props = {
   tradeDate?: string;
+  refreshKey?: number;
 };
 
 // ── Sector Row ─────────────────────────────────────────────────
@@ -123,7 +124,7 @@ function SectorRow({
 
 // ── Main Component ──────────────────────────────────────────────
 
-export function MarketSectorPanel({ tradeDate }: Props) {
+export function MarketSectorPanel({ tradeDate, refreshKey }: Props) {
   const theme = useTheme();
   // Toggle only switches the DISPLAYED dimension — no re-fetch
   const [viewDim, setViewDim] = useState<ViewDim>('pct_change');
@@ -151,7 +152,7 @@ export function MarketSectorPanel({ tradeDate }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [tradeDate]);
+  }, [tradeDate, refreshKey]);
 
   // Derive displayed lists and value formatter from viewDim — no API call
   const gainers =

@@ -35,9 +35,10 @@ function sma(arr: number[], n: number): (number | null)[] {
 
 type Props = {
   tradeDate?: string;
+  refreshKey?: number;
 };
 
-export function MarketVolumeChart({ tradeDate }: Props) {
+export function MarketVolumeChart({ tradeDate, refreshKey }: Props) {
   const [data, setData] = useState<VolumeOverviewItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -61,7 +62,7 @@ export function MarketVolumeChart({ tradeDate }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [tradeDate]);
+  }, [tradeDate, refreshKey]);
 
   const categories = data.map((d) => fmtDate(d.tradeDate));
   const amounts = data.map((d) => roundYi(d.totalAmount));

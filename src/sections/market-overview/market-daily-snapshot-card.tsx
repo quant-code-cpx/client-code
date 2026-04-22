@@ -1,7 +1,7 @@
 import type { IndexQuoteWithSparklineItem } from 'src/api/market';
 
+import { useState, useEffect } from 'react';
 import { varAlpha } from 'minimal-shared/utils';
-import { useId, useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -15,11 +15,13 @@ import Typography from '@mui/material/Typography';
 import { RouterLink } from 'src/routes/components';
 
 import { fQianYuan } from 'src/utils/format-number';
+import { INDEX_NAME_MAP } from 'src/utils/market-index-names';
 
 import { fetchIndexQuoteWithSparkline } from 'src/api/market';
 
 import { Iconify } from 'src/components/iconify';
 import { ColoredNumber } from 'src/components/colored-number';
+import { ChartSparkline } from 'src/components/chart-sparkline';
 
 // ── Constants ──────────────────────────────────────────────────
 
@@ -32,82 +34,6 @@ const DEFAULT_INDEX_CODES = [
   '000905.SH', // 中证500
   '000852.SH', // 中证1000
 ];
-
-const INDEX_NAME_MAP: Record<string, string> = {
-  '000300.SH': '沪深300',
-  '000016.SH': '上证50',
-  '000903.SH': '中证100',
-  '000905.SH': '中证500',
-  '000852.SH': '中证1000',
-  '932000.CSI': '中证2000',
-  '000985.SH': '中证全指',
-  '000001.SH': '上证指数',
-  '000010.SH': '上证180',
-  '000688.SH': '科创50',
-  '000698.SH': '科创100',
-  '399001.SZ': '深证成指',
-  '399107.SZ': '深证综指',
-  '399330.SZ': '深证100',
-  '399006.SZ': '创业板指',
-  '399673.SZ': '创业板50',
-  '399005.SZ': '中小100',
-  '899050.BJ': '北证50',
-};
-
-// ── SVG Sparkline ──────────────────────────────────────────────
-
-function Sparkline({
-  data,
-  color,
-  height = 40,
-}: {
-  data: number[];
-  color: string;
-  height?: number;
-}) {
-  const gradientId = useId();
-  if (data.length < 2) return null;
-
-  const min = Math.min(...data);
-  const max = Math.max(...data);
-  const range = max - min || 1;
-  const w = 200;
-
-  const points = data
-    .map((v, i) => {
-      const x = (i / (data.length - 1)) * w;
-      const y = height - ((v - min) / range) * (height - 4) - 2;
-      return `${x},${y}`;
-    })
-    .join(' ');
-
-  return (
-    <svg
-      width="100%"
-      height={height}
-      viewBox={`0 0 ${w} ${height}`}
-      preserveAspectRatio="none"
-      style={{ display: 'block' }}
-    >
-      <defs>
-        <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity="0.2" />
-          <stop offset="100%" stopColor={color} stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <polygon points={`0,${height} ${points} ${w},${height}`} fill={`url(#${gradientId})`} />
-      <polyline
-        points={points}
-        fill="none"
-        stroke={color}
-        strokeWidth="1.5"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        vectorEffect="non-scaling-stroke"
-      />
-    </svg>
-  );
-}
 
 // ── Index Card ─────────────────────────────────────────────────
 
@@ -184,10 +110,7 @@ function IndexCard({ item }: { item: IndexQuoteWithSparklineItem }) {
           pointerEvents: 'none',
         }}
       >
-        <Sparkline
-          data={(item.sparkline ?? []).filter((v): v is number => v != null)}
-          color={accentColor}
-        />
+        <ChartSparkline data={item.sparkline ?? []} color={accentColor} height={40} />
       </Box>
     </Box>
   );
@@ -197,9 +120,10 @@ function IndexCard({ item }: { item: IndexQuoteWithSparklineItem }) {
 
 type Props = {
   tradeDate?: string;
+  refreshKey?: number;
 };
 
-export function MarketDailySnapshotCard({ tradeDate }: Props) {
+export function MarketDailySnapshotCard({ tradeDate, refreshKey }: Props) {
   const theme = useTheme();
   const [indices, setIndices] = useState<IndexQuoteWithSparklineItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -220,7 +144,7 @@ export function MarketDailySnapshotCard({ tradeDate }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [tradeDate]);
+  }, [tradeDate, refreshKey]);
 
   // Preserve explicit ordering defined in DEFAULT_INDEX_CODES
   const defaultIndices = DEFAULT_INDEX_CODES.map((code) =>

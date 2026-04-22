@@ -40,10 +40,44 @@ function getGreeting(): string {
   return '晚上好';
 }
 
+// Known A-share market closure dates for 2026.
+// Update annually or replace with a /api/trading-calendar fetch.
+const MARKET_HOLIDAYS_2026 = new Set([
+  '20260101', // 元旦
+  '20260216',
+  '20260217',
+  '20260218',
+  '20260219',
+  '20260220',
+  '20260223', // 春节
+  '20260406', // 清明
+  '20260501',
+  '20260502',
+  '20260504',
+  '20260505', // 劳动节
+  '20260619', // 端午
+  '20260924',
+  '20260925', // 中秋
+  '20261001',
+  '20261002',
+  '20261003',
+  '20261006',
+  '20261007',
+  '20261008', // 国庆
+]);
+
 function isMarketOpen(): boolean {
   const now = new Date();
   const day = now.getDay();
   if (day === 0 || day === 6) return false;
+
+  const y = now.getFullYear();
+  const mo = String(now.getMonth() + 1).padStart(2, '0');
+  const d = String(now.getDate()).padStart(2, '0');
+  const dateStr = `${y}${mo}${d}`;
+  const holidays = y === 2026 ? MARKET_HOLIDAYS_2026 : new Set<string>();
+  if (holidays.has(dateStr)) return false;
+
   const h = now.getHours();
   const m = now.getMinutes();
   const mins = h * 60 + m;
@@ -155,7 +189,7 @@ export function OverviewDashboardView() {
         </Tooltip>
       </Box>
 
-      <Box key={refreshKey}>
+      <Box>
         {/* ═══ Row 0: Quick Navigation Grid ═══ */}
         <Box sx={{ mb: 3 }}>
           <DashboardQuickNav />
@@ -163,39 +197,42 @@ export function OverviewDashboardView() {
 
         {/* ═══ Row 1: Market Pulse — Compact Index Ticker ═══ */}
         <Box sx={{ mb: 3 }}>
-          <DashboardMarketPulse />
+          <DashboardMarketPulse refreshKey={refreshKey} />
         </Box>
 
         {/* ═══ Row 2: Three Intelligence Cards ═══ */}
         <Grid container spacing={3} sx={{ mb: 3 }} alignItems="stretch">
           <Grid size={{ xs: 12, md: 4 }}>
-            <DashboardMarketTemperature onTradeDateResolved={handleTradeDateResolved} />
+            <DashboardMarketTemperature
+              refreshKey={refreshKey}
+              onTradeDateResolved={handleTradeDateResolved}
+            />
           </Grid>
           <Grid size={{ xs: 12, md: 4 }}>
-            <DashboardCapitalRadar />
+            <DashboardCapitalRadar refreshKey={refreshKey} />
           </Grid>
           <Grid size={{ xs: 12, md: 4 }}>
-            <DashboardSignalCenter />
+            <DashboardSignalCenter refreshKey={refreshKey} />
           </Grid>
         </Grid>
 
         {/* ═══ Row 3: Sector Wind + Main Flow Tracker ═══ */}
         <Grid container spacing={3} sx={{ mb: 3 }} alignItems="stretch">
           <Grid size={{ xs: 12, md: 5 }}>
-            <DashboardSectorWind />
+            <DashboardSectorWind refreshKey={refreshKey} />
           </Grid>
           <Grid size={{ xs: 12, md: 7 }}>
-            <DashboardMainFlowRanking />
+            <DashboardMainFlowRanking refreshKey={refreshKey} />
           </Grid>
         </Grid>
 
         {/* ═══ Row 4: My Workspace — Portfolio + Backtests ═══ */}
         <Grid container spacing={3} sx={{ mb: 3 }} alignItems="stretch">
           <Grid size={{ xs: 12, md: 5 }}>
-            <DashboardPortfolioGlance />
+            <DashboardPortfolioGlance refreshKey={refreshKey} />
           </Grid>
           <Grid size={{ xs: 12, md: 7 }}>
-            <DashboardRecentBacktests />
+            <DashboardRecentBacktests refreshKey={refreshKey} />
           </Grid>
         </Grid>
 

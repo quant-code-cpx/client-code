@@ -85,9 +85,10 @@ function PercentileRow({ label, pct }: { label: string; pct: number | null }) {
 
 type Props = {
   tradeDate?: string;
+  refreshKey?: number;
 };
 
-export function MarketValuationCard({ tradeDate }: Props) {
+export function MarketValuationCard({ tradeDate, refreshKey }: Props) {
   const [data, setData] = useState<ValuationResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -111,10 +112,10 @@ export function MarketValuationCard({ tradeDate }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [tradeDate]);
+  }, [tradeDate, refreshKey]);
 
   return (
-    <Card sx={{ height: 456 }}>
+    <Card sx={{ height: '100%' }}>
       <CardContent>
         <Typography variant="h6" sx={{ mb: 2 }}>
           市场估值（全A中位数）

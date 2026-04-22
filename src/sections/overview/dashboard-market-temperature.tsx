@@ -154,10 +154,12 @@ function SentimentGauge({
 type DashboardMarketTemperatureProps = {
   /** Called once with the latest trade date after sentiment data loads */
   onTradeDateResolved?: (date: string) => void;
+  refreshKey?: number;
 };
 
 export function DashboardMarketTemperature({
   onTradeDateResolved,
+  refreshKey,
 }: DashboardMarketTemperatureProps) {
   const theme = useTheme();
   const [sentiment, setSentiment] = useState<SentimentResult | null>(null);
@@ -166,6 +168,7 @@ export function DashboardMarketTemperature({
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    setLoading(true);
     Promise.all([fetchSentiment(), fetchVolumeOverview({ days: 10 }), fetchChangeDistribution()])
       .then(([s, v, cd]) => {
         setSentiment(s);
@@ -175,10 +178,11 @@ export function DashboardMarketTemperature({
       })
       .catch(() => {})
       .finally(() => setLoading(false));
-  }, [onTradeDateResolved]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refreshKey]);
 
   if (loading) {
-    return <Skeleton variant="rounded" height={260} />;
+    return <Skeleton variant="rounded" height={320} />;
   }
 
   if (!sentiment) return null;

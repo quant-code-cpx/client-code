@@ -19,9 +19,10 @@ import { Chart, useChart } from 'src/components/chart';
 
 type Props = {
   tradeDate?: string;
+  refreshKey?: number;
 };
 
-export function MarketChangeDistributionChart({ tradeDate }: Props) {
+export function MarketChangeDistributionChart({ tradeDate, refreshKey }: Props) {
   const theme = useTheme();
   const [data, setData] = useState<ChangeDistributionResult | null>(null);
   const [loading, setLoading] = useState(true);
@@ -46,7 +47,7 @@ export function MarketChangeDistributionChart({ tradeDate }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [tradeDate]);
+  }, [tradeDate, refreshKey]);
 
   const distribution = data?.distribution ?? [];
 

@@ -44,6 +44,27 @@ const LINKS: LinkItem[] = [
     href: '/market/industry?tab=0',
     accentChannel: 'info',
   },
+  {
+    icon: 'solar:filter-bold',
+    title: '选股器',
+    description: '多因子条件筛股 · 保存订阅',
+    href: '/stock',
+    accentChannel: 'primary',
+  },
+  {
+    icon: 'solar:graph-up-bold',
+    title: '回测工作台',
+    description: '策略历史验证 · 绩效分析',
+    href: '/backtest',
+    accentChannel: 'info',
+  },
+  {
+    icon: 'solar:star-bold',
+    title: '自选股',
+    description: '关注列表 · 研究笔记',
+    href: '/research/watchlist',
+    accentChannel: 'warning',
+  },
 ];
 
 // ----------------------------------------------------------------------

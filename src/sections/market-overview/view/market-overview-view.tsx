@@ -61,8 +61,9 @@ export function MarketOverviewView() {
   // apiFetchDate: drives all API calls (only changes on user interaction)
   const [apiFetchDate, setApiFetchDate] = useState<string | undefined>(undefined);
   const [refreshKey, setRefreshKey] = useState(0);
-  // Shared HSGT history — fetched once here, passed to Hero + HsgtMiniCard
-  const [hsgtHistory, setHsgtHistory] = useState<HsgtTrendItem[]>([]);
+  // Shared HSGT history — fetched once here, passed to Hero + HsgtMiniCard.
+  // null = initial/error (child will fall back to its own fetch); [] or items = fetched.
+  const [hsgtHistory, setHsgtHistory] = useState<HsgtTrendItem[] | null>(null);
 
   const handleRefresh = useCallback(() => setRefreshKey((k) => k + 1), []);
 
@@ -77,11 +78,14 @@ export function MarketOverviewView() {
   // displayDate — so Hero's onTradeDateResolved callback does NOT trigger a refetch.
   useEffect(() => {
     let cancelled = false;
+    setHsgtHistory(null); // reset so children fall back to their own fetch until resolved
     fetchHsgtFlow({ trade_date: apiFetchDate, days: 10 })
       .then((res) => {
         if (!cancelled) setHsgtHistory(res?.history ?? []);
       })
-      .catch(() => {});
+      .catch(() => {
+        if (!cancelled) setHsgtHistory(null); // stay null on error — children fetch themselves
+      });
     return () => {
       cancelled = true;
     };
@@ -116,6 +120,7 @@ export function MarketOverviewView() {
             value={displayDate}
             onChange={handleDateChange}
             format="YYYY-MM-DD"
+            shouldDisableDate={(day) => day.day() === 0 || day.day() === 6}
             slotProps={{
               textField: { size: 'small', sx: { width: 215 } },
             }}
@@ -130,7 +135,7 @@ export function MarketOverviewView() {
 
       {/* ── 今日叙事 Hero ── */}
       <MarketHeroNarrative
-        key={`hero-${refreshKey}`}
+        refreshKey={refreshKey}
         tradeDate={apiFetchDate}
         hsgtHistory={hsgtHistory}
         onTradeDateResolved={handleTradeDateResolved}
@@ -138,16 +143,16 @@ export function MarketOverviewView() {
 
       {/* ── 指数行情 ── */}
       <SectionHeader title="指数行情" />
-      <MarketDailySnapshotCard key={`snapshot-${refreshKey}`} tradeDate={apiFetchDate} />
+      <MarketDailySnapshotCard refreshKey={refreshKey} tradeDate={apiFetchDate} />
 
       {/* ── 趋势分析 ── */}
       <SectionHeader title="趋势分析" />
       <Grid container spacing={3} alignItems="stretch">
         <Grid size={{ xs: 12, md: 7 }}>
-          <MarketIndexTrendChart key={`trend-${refreshKey}`} tradeDate={apiFetchDate} />
+          <MarketIndexTrendChart refreshKey={refreshKey} tradeDate={apiFetchDate} />
         </Grid>
         <Grid size={{ xs: 12, md: 5 }}>
-          <MarketVolumeChart key={`volume-${refreshKey}`} tradeDate={apiFetchDate} />
+          <MarketVolumeChart refreshKey={refreshKey} tradeDate={apiFetchDate} />
         </Grid>
       </Grid>
 
@@ -155,12 +160,12 @@ export function MarketOverviewView() {
       <SectionHeader title="行业资金" />
       <Grid container spacing={3} alignItems="stretch">
         <Grid size={{ xs: 12, md: 7 }}>
-          <MarketSectorPanel key={`sector-${refreshKey}`} tradeDate={apiFetchDate} />
+          <MarketSectorPanel refreshKey={refreshKey} tradeDate={apiFetchDate} />
         </Grid>
         <Grid size={{ xs: 12, md: 5 }}>
           {/* history prop avoids duplicate fetchHsgtFlow */}
           <MarketHsgtMiniCard
-            key={`hsgt-${refreshKey}`}
+            refreshKey={refreshKey}
             tradeDate={apiFetchDate}
             history={hsgtHistory}
           />
@@ -171,10 +176,10 @@ export function MarketOverviewView() {
       <SectionHeader title="估值概览" />
       <Grid container spacing={3}>
         <Grid size={{ xs: 12, md: 5 }}>
-          <MarketValuationCard key={`val-${refreshKey}`} tradeDate={apiFetchDate} />
+          <MarketValuationCard refreshKey={refreshKey} tradeDate={apiFetchDate} />
         </Grid>
         <Grid size={{ xs: 12, md: 7 }}>
-          <MarketChangeDistributionChart key={`dist-${refreshKey}`} tradeDate={apiFetchDate} />
+          <MarketChangeDistributionChart refreshKey={refreshKey} tradeDate={apiFetchDate} />
         </Grid>
       </Grid>
 

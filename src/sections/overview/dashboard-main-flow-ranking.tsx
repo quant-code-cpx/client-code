@@ -35,7 +35,7 @@ function flowColor(v: number | null): 'error.main' | 'success.main' | 'text.seco
 
 // ----------------------------------------------------------------------
 
-export function DashboardMainFlowRanking() {
+export function DashboardMainFlowRanking({ refreshKey }: { refreshKey?: number }) {
   const router = useRouter();
   const [order, setOrder] = useState<'desc' | 'asc'>('desc');
   const [data, setData] = useState<MainFlowRankingItem[]>([]);
@@ -61,7 +61,7 @@ export function DashboardMainFlowRanking() {
     return () => {
       cancelled = true;
     };
-  }, [order]);
+  }, [order, refreshKey]);
 
   return (
     <Card>
