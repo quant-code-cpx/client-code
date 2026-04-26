@@ -62,7 +62,6 @@ export function RotationValuationChart({ tradeDate, onSectorClick }: Props) {
 
   const categories = sorted.map((s) => s.name);
   const percentiles = sorted.map((s) => (valMode === 'pe' ? s.pePercentile : s.pbPercentile));
-  const currentValues = sorted.map((s) => (valMode === 'pe' ? s.peTtm : s.pbMrq));
 
   const series = [{ name: valMode === 'pe' ? 'PE分位' : 'PB分位', data: percentiles }];
 
@@ -70,7 +69,7 @@ export function RotationValuationChart({ tradeDate, onSectorClick }: Props) {
     chart: {
       type: 'bar',
       toolbar: { show: false },
-       
+
       events: {
         dataPointSelection: (_e: unknown, _chart: unknown, opts: any) => {
           const idx = (opts as { dataPointIndex: number })?.dataPointIndex;
@@ -113,7 +112,7 @@ export function RotationValuationChart({ tradeDate, onSectorClick }: Props) {
     tooltip: {
       shared: false,
       intersect: true,
-       
+
       custom: ({ dataPointIndex }: any) => {
         const item = sorted[dataPointIndex];
         if (!item) return '';

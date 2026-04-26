@@ -49,7 +49,7 @@ export function DashboardMainFlowRanking({ refreshKey }: { refreshKey?: number }
 
     fetchMainFlowRanking({ order, limit: 10 })
       .then((res) => {
-        if (!cancelled) setData(res?.data ?? []);
+        if (!cancelled) setData(res != null && 'data' in res ? (res.data ?? []) : []);
       })
       .catch((err: unknown) => {
         if (!cancelled) setError(err instanceof Error ? err.message : '加载主力排名失败');

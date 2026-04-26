@@ -1,3 +1,7 @@
+import type { Dayjs } from 'dayjs';
+import type { MarketMoneyFlowDetail } from 'src/api/market';
+
+import dayjs from 'dayjs';
 import { useState, useCallback } from 'react';
 import { varAlpha } from 'minimal-shared/utils';
 
@@ -7,40 +11,77 @@ import Grid from '@mui/material/Grid';
 import Tabs from '@mui/material/Tabs';
 import Stack from '@mui/material/Stack';
 import { useTheme } from '@mui/material/styles';
-import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Iconify } from 'src/components/iconify';
 
+import { PulseHeadline } from '../pulse-headline';
 import { HsgtTrendChart } from '../hsgt-trend-chart';
+import { ConceptExplorer } from '../concept-explorer';
 import { HsgtSummaryCard } from '../hsgt-summary-card';
-import { SectorFlowPanel } from '../sector-flow-panel';
-import { ConceptBoardPanel } from '../concept-board-panel';
 import { MainFlowRankingTable } from '../main-flow-ranking-table';
 import { CapitalFlowTrendChart } from '../capital-flow-trend-chart';
 import { CapitalFlowSummaryCard } from '../capital-flow-summary-card';
 import { SectorFlowRankingPanel } from '../sector-flow-ranking-panel';
 
+import type { ContentType } from '../sector-flow-ranking-panel';
+
 // ----------------------------------------------------------------------
 
 const TABS = [
-  { label: '大盘趋势', icon: 'solar:chart-2-bold' },
+  { label: '大盘资金', icon: 'solar:chart-2-bold' },
   { label: '沪深港通', icon: 'solar:shuffle-bold' },
-  { label: '板块资金', icon: 'solar:layers-bold' },
-  { label: '主力追踪', icon: 'solar:target-bold' },
+  { label: '板块轮动', icon: 'solar:layers-bold' },
+  { label: '个股资金榜', icon: 'solar:target-bold' },
 ] as const;
 
 // ----------------------------------------------------------------------
 
 export function MarketMoneyFlowView() {
   const theme = useTheme();
-  const [tradeDate, setTradeDate] = useState('');
+  // displayDate: 日期选择器展示值（首次由概要卡片回填后端返回的 tradeDate）
+  const [displayDate, setDisplayDate] = useState<Dayjs | null>(null);
+  // apiFetchDate: 真正驱动所有 API 请求的日期；只在用户主动选日期时改变
+  const [apiFetchDate, setApiFetchDate] = useState<string | undefined>(undefined);
   const [currentTab, setCurrentTab] = useState(0);
+  const [summaryData, setSummaryData] = useState<MarketMoneyFlowDetail | null>(null);
+  const [summaryLoading, setSummaryLoading] = useState(true);
+  // Tab 3 下从 A 区升级上来的状态（选中概念 + 当前序 content_type）
+  const [sectorContentType, setSectorContentType] = useState<ContentType>('INDUSTRY');
+  const [selectedConcept, setSelectedConcept] = useState<{ tsCode: string; name: string } | null>(
+    null
+  );
 
   const handleTabChange = useCallback((_: React.SyntheticEvent, newValue: number) => {
     setCurrentTab(newValue);
+  }, []);
+
+  const handleDateChange = useCallback((newVal: Dayjs | null) => {
+    setDisplayDate(newVal);
+    setApiFetchDate(newVal ? newVal.format('YYYYMMDD') : undefined);
+  }, []);
+
+  // 概要卡解析出后端最新交易日后回填到选择器（不触发重新请求）
+  const handleTradeDateResolved = useCallback(
+    (resolved: string) => {
+      if (!resolved) return;
+      // 仅在用户尚未选择且当前展示与解析值不同时回填
+      if (apiFetchDate == null) {
+        const next = dayjs(resolved, 'YYYYMMDD');
+        if (next.isValid() && (!displayDate || !displayDate.isSame(next, 'day'))) {
+          setDisplayDate(next);
+        }
+      }
+    },
+    [apiFetchDate, displayDate]
+  );
+
+  const handleDataResolved = useCallback((data: MarketMoneyFlowDetail) => {
+    setSummaryData(data);
+    setSummaryLoading(false);
   }, []);
 
   return (
@@ -58,23 +99,30 @@ export function MarketMoneyFlowView() {
             资金动态
           </Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-            大盘资金流向、沪深港通、板块资金与主力追踪
+            大盘资金流向、沪深港通、板块轮动与个股资金追踪
           </Typography>
         </Box>
 
-        <TextField
-          size="small"
-          label="交易日期（YYYYMMDD）"
-          placeholder="不填则取最新"
-          value={tradeDate}
-          onChange={(e) => setTradeDate(e.target.value)}
-          sx={{ width: 200 }}
+        <DatePicker
+          label="交易日期"
+          value={displayDate}
+          onChange={handleDateChange}
+          format="YYYY-MM-DD"
+          slotProps={{
+            textField: { size: 'small', sx: { width: 200 } },
+            field: { clearable: true },
+          }}
         />
       </Stack>
 
       {/* ── 大盘资金流概要（始终可见）── */}
       <Box sx={{ mb: 3 }}>
-        <CapitalFlowSummaryCard tradeDate={tradeDate || undefined} />
+        <CapitalFlowSummaryCard
+          tradeDate={apiFetchDate}
+          onTradeDateResolved={handleTradeDateResolved}
+          onDataResolved={handleDataResolved}
+        />
+        <PulseHeadline data={summaryData} loading={summaryLoading} tradeDate={apiFetchDate} />
       </Box>
 
       {/* ── Tab 导航 ── */}
@@ -111,36 +159,35 @@ export function MarketMoneyFlowView() {
         </Tabs>
       </Box>
 
-      {/* ── Tab 0: 大盘趋势 ── */}
-      {currentTab === 0 && (
-        <Grid container spacing={3}>
-          <Grid size={{ xs: 12, md: 8 }}>
-            <CapitalFlowTrendChart tradeDate={tradeDate || undefined} />
-          </Grid>
+      {/* ── Tab 0: 大盘资金 ── */}
+      {currentTab === 0 && <CapitalFlowTrendChart tradeDate={apiFetchDate} />}
+
+      {/* ── Tab 1: 沪深港通 ── */}
+      {currentTab === 1 && (
+        <Grid container spacing={3} alignItems="stretch">
           <Grid size={{ xs: 12, md: 4 }}>
-            <HsgtSummaryCard tradeDate={tradeDate || undefined} />
+            <HsgtSummaryCard tradeDate={apiFetchDate} />
+          </Grid>
+          <Grid size={{ xs: 12, md: 8 }}>
+            <HsgtTrendChart tradeDate={apiFetchDate} />
           </Grid>
         </Grid>
       )}
 
-      {/* ── Tab 1: 沪深港通 ── */}
-      {currentTab === 1 && <HsgtTrendChart tradeDate={tradeDate || undefined} />}
-
-      {/* ── Tab 2: 板块资金 ── */}
+      {/* ── Tab 2: 板块轮动 ── */}
       {currentTab === 2 && (
         <Stack spacing={3}>
-          <SectorFlowRankingPanel tradeDate={tradeDate || undefined} />
-          <SectorFlowPanel tradeDate={tradeDate || undefined} />
+          <SectorFlowRankingPanel
+            tradeDate={apiFetchDate}
+            onConceptSelected={setSelectedConcept}
+            onContentTypeChange={setSectorContentType}
+          />
+          {sectorContentType === 'CONCEPT' && <ConceptExplorer initialConcept={selectedConcept} />}
         </Stack>
       )}
 
-      {/* ── Tab 3: 主力追踪 ── */}
-      {currentTab === 3 && (
-        <Stack spacing={3}>
-          <MainFlowRankingTable tradeDate={tradeDate || undefined} />
-          <ConceptBoardPanel tradeDate={tradeDate || undefined} />
-        </Stack>
-      )}
+      {/* ── Tab 3: 个股资金榜 ── */}
+      {currentTab === 3 && <MainFlowRankingTable tradeDate={apiFetchDate} />}
     </DashboardContent>
   );
 }

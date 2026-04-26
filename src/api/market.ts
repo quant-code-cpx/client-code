@@ -20,6 +20,8 @@ export type IndexQuoteItem = {
   vol: number | null;
   /** 成交额（千元） */
   amount: number | null;
+  baseDate: string | null;
+  basePoint: number | null;
 };
 
 export type IndexTrendQuery = {
@@ -210,7 +212,7 @@ export type MarketMoneyFlowDetail = {
   pctChangeSz: number | null;
   /** 全市场单边总成交金额（元）= 四层买入之和 */
   totalAmount: number | null;
-  /** 逐笔主力净流入汇总（元，独立算法，最接近「真实主力净流入」） */
+  /** 逐笔资金净流入汇总（元，按逐笔成交方向汇总，不等同于主力资金） */
   netMfAmount: number | null;
   /** 主力资金（超大单 + 大单）汇总 */
   main: TierFlow;
@@ -298,6 +300,10 @@ export type MainFlowRankingItem = {
   elgNetInflow: number;
   /** 大单净流入（万元） */
   lgNetInflow: number;
+  /** 中单净流入（万元）— 后端待支持，现返回 undefined */
+  mdNetInflow?: number;
+  /** 小单净流入（万元）— 后端待支持，现返回 undefined */
+  smNetInflow?: number;
   /** 当日涨跌幅 % */
   pctChg: number | null;
   /** 当日成交额（千元） */
@@ -356,15 +362,21 @@ export function fetchMoneyFlowTrend(query?: { trade_date?: string; days?: number
 export function fetchSectorFlowRanking(query?: {
   trade_date?: string;
   content_type?: 'INDUSTRY' | 'CONCEPT' | 'REGION';
-  sort_by?: 'net_amount' | 'pct_change' | 'buy_elg_amount';
+  sort_by?: 'net_amount' | 'pct_change' | 'buy_elg_amount' | 'buy_lg_amount';
   order?: 'asc' | 'desc';
   limit?: number;
+  /** 后端支持双榜合并返回，dual=true 时响应包含 topInflow + topOutflow，忽略 order 参数 */
+  dual?: boolean;
 }) {
-  return apiClient.post<{
-    tradeDate: string;
-    contentType: string;
-    sectors: SectorFlowRankingItem[];
-  }>('/api/market/sector-flow-ranking', query ?? {});
+  return apiClient.post<
+    | { tradeDate: string; contentType: string; sectors: SectorFlowRankingItem[] }
+    | {
+        tradeDate: string;
+        contentType: string;
+        topInflow: SectorFlowRankingItem[];
+        topOutflow: SectorFlowRankingItem[];
+      }
+  >('/api/market/sector-flow-ranking', query ?? {});
 }
 
 export function fetchSectorFlowTrend(query: {
@@ -385,22 +397,27 @@ export function fetchHsgtFlow(query?: { trade_date?: string; days?: number }) {
   );
 }
 
-export function fetchHsgtTrend(query?: { period?: string }) {
+export function fetchHsgtTrend(query?: { period?: string; trade_date?: string }) {
   return apiClient.post<{ period: string; data: HsgtTrendItem[] }>(
     '/api/market/hsgt-trend',
     query ?? {}
   );
 }
 
+export type MainFlowRankingResponse =
+  | { tradeDate: string; data: MainFlowRankingItem[] }
+  | { tradeDate: string; topInflow: MainFlowRankingItem[]; topOutflow: MainFlowRankingItem[] };
+
 export function fetchMainFlowRanking(query?: {
   trade_date?: string;
+  /** 后端待支持：排序维度 */
+  sort_by?: string;
+  /** 后端待支持：dual=true 时单次返回 topInflow + topOutflow */
+  dual?: boolean;
   order?: string;
   limit?: number;
 }) {
-  return apiClient.post<{ tradeDate: string; data: MainFlowRankingItem[] }>(
-    '/api/market/main-flow-ranking',
-    query ?? {}
-  );
+  return apiClient.post<MainFlowRankingResponse>('/api/market/main-flow-ranking', query ?? {});
 }
 
 export function fetchStockFlowDetail(query: { ts_code: string; days?: number }) {
@@ -900,6 +917,8 @@ export type ConceptMembersResult = {
   conceptCode: string;
   conceptName: string;
   tradeDate: string;
+  /** 服务端返回的成分股总数（用于分页） */
+  total: number;
   members: ConceptMemberItem[];
 };
 
@@ -967,6 +986,7 @@ export async function fetchConceptMembers(query: {
     conceptCode: res?.tsCode ?? '',
     conceptName: res?.name ?? '',
     tradeDate: '',
+    total: res?.total ?? 0,
     members: (res?.items ?? []).map((it) => ({
       tsCode: it.conCode,
       name: it.conName ?? '',

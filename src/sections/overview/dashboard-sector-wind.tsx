@@ -78,11 +78,10 @@ export function DashboardSectorWind({ refreshKey }: { refreshKey?: number }) {
     ])
       .then(([ranking, flow]) => {
         setSectors(ranking.sectors ?? []);
-        setFlowSectors(flow.sectors ?? []);
+        setFlowSectors('sectors' in flow ? (flow.sectors ?? []) : []);
       })
       .catch(() => {})
       .finally(() => setLoading(false));
-     
   }, [refreshKey]);
 
   if (loading) {
@@ -168,7 +167,7 @@ export function DashboardSectorWind({ refreshKey }: { refreshKey?: number }) {
           variant="caption"
           sx={{ color: 'text.disabled', fontWeight: 600, mb: 0.75, display: 'block', fontSize: 12 }}
         >
-          资金流入领先
+          主力净流入领先
         </Typography>
         <Stack spacing={0.25}>
           {flowSectors.map((s) => {

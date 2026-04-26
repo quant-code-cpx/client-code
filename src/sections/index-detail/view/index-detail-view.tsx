@@ -72,7 +72,7 @@ export function IndexDetailView() {
       {tsCode && (
         <Grid container spacing={3}>
           <Grid size={{ xs: 12 }}>
-            <IndexOverviewCard tsCode={tsCode} indexInfo={selected} />
+            <IndexOverviewCard tsCode={tsCode} />
           </Grid>
 
           <Grid size={{ xs: 12 }}>

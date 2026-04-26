@@ -1,5 +1,5 @@
 import type { IconifyProps } from 'src/components/iconify';
-import type { MarketMoneyFlowDetail } from 'src/api/market';
+import type { IndexQuoteItem, MarketMoneyFlowDetail } from 'src/api/market';
 
 import { useState, useEffect } from 'react';
 import { varAlpha } from 'minimal-shared/utils';
@@ -9,13 +9,14 @@ import Card from '@mui/material/Card';
 import Grid from '@mui/material/Grid';
 import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
+import Tooltip from '@mui/material/Tooltip';
 import Skeleton from '@mui/material/Skeleton';
 import { useTheme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 
 import { fPctChg } from 'src/utils/format-number';
 
-import { fetchMoneyFlow } from 'src/api/market';
+import { fetchMoneyFlow, fetchIndexQuote } from 'src/api/market';
 
 import { Iconify } from 'src/components/iconify';
 
@@ -49,9 +50,11 @@ type MetricCardProps = {
   rate: number | null;
   icon: IconifyProps['icon'];
   hero?: boolean;
+  /** 问号图标悬停时展示的补充说明（主要用于解释 + - 百分比含义） */
+  hint?: string;
 };
 
-function MetricCard({ label, amount, rate, icon, hero }: MetricCardProps) {
+function MetricCard({ label, amount, rate, icon, hero, hint }: MetricCardProps) {
   const theme = useTheme();
   const color = flowColor(amount);
   const palette = flowPalette(amount);
@@ -60,7 +63,7 @@ function MetricCard({ label, amount, rate, icon, hero }: MetricCardProps) {
       ? theme.vars.palette.text.secondaryChannel
       : theme.vars.palette[palette].mainChannel;
 
-  return (
+  const inner = (
     <Box
       sx={{
         p: hero ? 2.5 : 2,
@@ -78,14 +81,45 @@ function MetricCard({ label, amount, rate, icon, hero }: MetricCardProps) {
         },
       }}
     >
-      <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1 }}>
-        <Iconify icon={icon} width={18} sx={{ color, opacity: 0.72 }} />
+      <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mb: 1 }}>
+        <Iconify icon={icon} width={16} sx={{ color, opacity: 0.72, flexShrink: 0 }} />
         <Typography
           variant="caption"
-          sx={{ color: 'text.secondary', fontWeight: 'fontWeightMedium' }}
+          sx={{
+            color: 'text.secondary',
+            fontWeight: 'fontWeightMedium',
+            fontSize: '0.875rem',
+            lineHeight: 1,
+          }}
         >
           {label}
         </Typography>
+        {hint && (
+          <Tooltip placement="top" title={hint}>
+            <Box
+              component="span"
+              sx={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                ml: 'auto',
+                flexShrink: 0,
+                cursor: 'help',
+                width: 14,
+                height: 14,
+                borderRadius: '50%',
+                bgcolor: 'text.disabled',
+                color: 'background.paper',
+                fontSize: '9px',
+                fontWeight: 700,
+                lineHeight: '14px',
+                userSelect: 'none',
+              }}
+            >
+              ?
+            </Box>
+          </Tooltip>
+        )}
       </Stack>
 
       <Typography
@@ -109,17 +143,38 @@ function MetricCard({ label, amount, rate, icon, hero }: MetricCardProps) {
       </Typography>
     </Box>
   );
+
+  return inner;
 }
 
 // ----------------------------------------------------------------------
 
 type Props = {
   tradeDate?: string;
+  /** 后端解析出的实际 tradeDate，用于默认回填页面日期选择器 */
+  onTradeDateResolved?: (tradeDate: string) => void;
+  /** 数据加载完成后的回调，可用于 PulseHeadline 等展示 */
+  onDataResolved?: (data: MarketMoneyFlowDetail) => void;
 };
 
-export function CapitalFlowSummaryCard({ tradeDate }: Props) {
+/** 同时展示的主要广基指数（上证 / 深证 / 创业板 / 科创50） */
+const INDEX_CODES = ['000001.SH', '399001.SZ', '399006.SZ', '000688.SH'] as const;
+const INDEX_NAMES: Record<string, string> = {
+  '000001.SH': '上证指数',
+  '399001.SZ': '深证成指',
+  '399006.SZ': '创业板指',
+  '000688.SH': '科创50',
+};
+
+const NET_RATE_HINT =
+  '净流入率 = 该档位净流入金额 ÷ 全市场单边总成交额。\n正值表示主动买入资金占成交比重（主动占优），\n负值表示主动卖出资金占成交比重。\n该指标可判断该档位资金在全市场中的主导强度。';
+const HERO_RATE_HINT =
+  '逐笔资金净流入 = 全市场每只股票（主动买入 － 主动卖出）的累加。\n与主力资金不同，它不区分资金大小，\n反映全市场所有逐笔成交的主动买卖方向合力。\n下方百分比 = 逐笔净流入 ÷ 全市场单边总成交额，\n衡量全市场主动买卖的净偏向强度。';
+
+export function CapitalFlowSummaryCard({ tradeDate, onTradeDateResolved, onDataResolved }: Props) {
   const theme = useTheme();
   const [data, setData] = useState<MarketMoneyFlowDetail | null>(null);
+  const [indices, setIndices] = useState<IndexQuoteItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -128,9 +183,16 @@ export function CapitalFlowSummaryCard({ tradeDate }: Props) {
     setLoading(true);
     setError('');
 
-    fetchMoneyFlow({ trade_date: tradeDate })
-      .then((res) => {
-        if (!cancelled) setData(res ?? null);
+    Promise.all([
+      fetchMoneyFlow({ trade_date: tradeDate }),
+      fetchIndexQuote({ trade_date: tradeDate, ts_codes: [...INDEX_CODES] }),
+    ])
+      .then(([flowRes, indexRes]) => {
+        if (cancelled) return;
+        setData(flowRes ?? null);
+        setIndices(indexRes ?? []);
+        if (flowRes?.tradeDate) onTradeDateResolved?.(flowRes.tradeDate);
+        if (flowRes) onDataResolved?.(flowRes);
       })
       .catch((err: unknown) => {
         if (!cancelled) setError(err instanceof Error ? err.message : '加载大盘资金流数据失败');
@@ -142,6 +204,8 @@ export function CapitalFlowSummaryCard({ tradeDate }: Props) {
     return () => {
       cancelled = true;
     };
+    // onTradeDateResolved 是父级 useCallback 稳定引用，省略依赖避免重复请求
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tradeDate]);
 
   if (error) {
@@ -168,7 +232,7 @@ export function CapitalFlowSummaryCard({ tradeDate }: Props) {
           <Grid container spacing={2}>
             <Grid size={{ xs: 12, sm: 6, md: 4 }}>
               <MetricCard
-                label="逐笔主力净流入"
+                label="逐笔资金净流入"
                 amount={data.netMfAmount}
                 rate={
                   data.netMfAmount != null && data.totalAmount != null && data.totalAmount !== 0
@@ -177,6 +241,7 @@ export function CapitalFlowSummaryCard({ tradeDate }: Props) {
                 }
                 icon="solar:wallet-bold"
                 hero
+                hint={HERO_RATE_HINT}
               />
             </Grid>
 
@@ -186,6 +251,7 @@ export function CapitalFlowSummaryCard({ tradeDate }: Props) {
                 amount={data.elg.netAmount}
                 rate={data.elg.netRate}
                 icon="solar:star-bold"
+                hint={NET_RATE_HINT}
               />
             </Grid>
 
@@ -195,6 +261,7 @@ export function CapitalFlowSummaryCard({ tradeDate }: Props) {
                 amount={data.lg.netAmount}
                 rate={data.lg.netRate}
                 icon="solar:graph-up-bold"
+                hint={NET_RATE_HINT}
               />
             </Grid>
 
@@ -204,6 +271,7 @@ export function CapitalFlowSummaryCard({ tradeDate }: Props) {
                 amount={data.md.netAmount}
                 rate={data.md.netRate}
                 icon="solar:filter-bold"
+                hint={NET_RATE_HINT}
               />
             </Grid>
 
@@ -213,15 +281,18 @@ export function CapitalFlowSummaryCard({ tradeDate }: Props) {
                 amount={data.sm.netAmount}
                 rate={data.sm.netRate}
                 icon="solar:alt-arrow-down-bold"
+                hint={NET_RATE_HINT}
               />
             </Grid>
           </Grid>
 
-          {/* 沪深指数行 */}
+          {/* 主要广基指数行：上证 / 深证 / 创业板 / 科创50 */}
           <Stack
             direction="row"
-            spacing={3}
+            spacing={{ xs: 1.5, sm: 3 }}
             justifyContent="center"
+            flexWrap="wrap"
+            useFlexGap
             sx={{
               mt: 2,
               pt: 2,
@@ -229,35 +300,28 @@ export function CapitalFlowSummaryCard({ tradeDate }: Props) {
               borderColor: varAlpha(theme.vars.palette.grey['500Channel'], 0.2),
             }}
           >
-            <Stack direction="row" alignItems="center" spacing={1}>
-              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                沪市
-              </Typography>
-              <Typography
-                variant="subtitle2"
-                sx={{ color: flowColor(data.pctChangeSh), fontWeight: 'fontWeightBold' }}
-              >
-                {data.closeSh?.toFixed(2) ?? '-'}
-              </Typography>
-              <Typography variant="caption" sx={{ color: flowColor(data.pctChangeSh) }}>
-                {fPctChg(data.pctChangeSh)}
-              </Typography>
-            </Stack>
-
-            <Stack direction="row" alignItems="center" spacing={1}>
-              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                深市
-              </Typography>
-              <Typography
-                variant="subtitle2"
-                sx={{ color: flowColor(data.pctChangeSz), fontWeight: 'fontWeightBold' }}
-              >
-                {data.closeSz?.toFixed(2) ?? '-'}
-              </Typography>
-              <Typography variant="caption" sx={{ color: flowColor(data.pctChangeSz) }}>
-                {fPctChg(data.pctChangeSz)}
-              </Typography>
-            </Stack>
+            {INDEX_CODES.map((code) => {
+              const item = indices.find((it) => it.tsCode === code);
+              return (
+                <Stack key={code} direction="row" alignItems="center" spacing={1}>
+                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                    {INDEX_NAMES[code]}
+                  </Typography>
+                  <Typography
+                    variant="subtitle2"
+                    sx={{
+                      color: flowColor(item?.pctChg ?? null),
+                      fontWeight: 'fontWeightBold',
+                    }}
+                  >
+                    {item?.close != null ? item.close.toFixed(2) : '-'}
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: flowColor(item?.pctChg ?? null) }}>
+                    {fPctChg(item?.pctChg ?? null)}
+                  </Typography>
+                </Stack>
+              );
+            })}
           </Stack>
         </>
       )}

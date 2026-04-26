@@ -66,7 +66,10 @@ export function IndexWeightDistribution({ constituents }: Props) {
     labels: pieLabels,
     legend: { position: 'bottom', horizontalAlign: 'center' },
     dataLabels: { enabled: true, formatter: (v: number) => `${v.toFixed(1)}%` },
-    tooltip: { y: { formatter: (v: number) => `${v.toFixed(2)}%` } },
+    tooltip: {
+      followCursor: true,
+      y: { formatter: (v: number) => `${v.toFixed(2)}%` },
+    },
   });
 
   if (!constituents.length) return null;
@@ -84,7 +87,12 @@ export function IndexWeightDistribution({ constituents }: Props) {
             <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1.5 }}>
               Top 10 成分股权重
             </Typography>
-            <Chart type="pie" series={pieSeries} options={chartOptions} sx={{ height: 320 }} />
+            <Chart
+              type="pie"
+              series={pieSeries}
+              options={chartOptions}
+              sx={{ height: 320, overflow: 'visible' }}
+            />
           </Grid>
 
           {/* Industry summary table */}

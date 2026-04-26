@@ -53,8 +53,8 @@ export function MarketChangeDistributionChart({ tradeDate, refreshKey }: Props) 
 
   // Build bar colors: red for positive intervals, green for negative
   const barColors = distribution.map((d) => {
-    // Negative-only intervals (e.g. "-9~-8", "-1~0") → green (跌)
-    if (/^-\d/.test(d.label)) return theme.palette.success.main;
+    // Negative-only intervals (e.g. "-9~-8", "-1~0", "<-10%") → green (跌)
+    if (/^-|^<-/.test(d.label)) return theme.palette.success.main;
     // Zero-crossing interval "0~1" or near-zero → neutral
     if (d.label === '0~1') return theme.palette.text.disabled;
     return theme.palette.error.main;

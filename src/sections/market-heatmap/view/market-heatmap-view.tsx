@@ -185,7 +185,7 @@ export function MarketHeatmapView() {
         // 后端按 contentType 分字段返回：industry / concept / region
         const flowKey = contentType.toLowerCase() as 'industry' | 'concept' | 'region';
         setSectorFlows(flowRes?.[flowKey] ?? []);
-        setMainFlowRanking(rankRes?.data ?? []);
+        setMainFlowRanking(rankRes != null && 'data' in rankRes ? (rankRes.data ?? []) : []);
       })
       .catch((err: unknown) => {
         if (!cancelled) setScatterError(err instanceof Error ? err.message : '散点图数据加载失败');

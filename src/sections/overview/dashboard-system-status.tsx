@@ -70,7 +70,7 @@ function cronToChinese(cron: string): string {
   const parts = cron.trim().split(/\s+/);
   if (parts.length !== 6) return cron;
 
-  const [_sec, min, hour, dom, _mon, dow] = parts;
+  const [, min, hour, dom, , dow] = parts;
 
   // Build time string
   let timeStr = '';

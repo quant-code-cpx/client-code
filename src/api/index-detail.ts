@@ -5,12 +5,6 @@ import { apiClient } from './client';
 export type IndexInfo = {
   tsCode: string;
   name: string;
-  market: string;
-  category: string;
-  publishDate: string;
-  baseDate: string;
-  basePoint: number;
-  listDate: string;
 };
 
 export function fetchIndexList() {
@@ -88,7 +82,12 @@ export async function fetchIndexConstituents(
     constituents: Array<{
       conCode: string;
       name: string | null;
+      industry: string | null;
       weight: number | null;
+      close: number | null;
+      pctChg: number | null;
+      totalMv: number | null;
+      circMv: number | null;
       tradeDate: string;
     }>;
   }>('/api/index/constituents', query);
@@ -101,12 +100,12 @@ export async function fetchIndexConstituents(
     constituents: (res?.constituents ?? []).map((c) => ({
       tsCode: c.conCode,
       name: c.name ?? '',
-      industry: '',
+      industry: c.industry ?? '',
       weight: c.weight,
-      close: null,
-      pctChg: null,
-      totalMv: null,
-      circMv: null,
+      close: c.close,
+      pctChg: c.pctChg,
+      totalMv: c.totalMv,
+      circMv: c.circMv,
     })),
   };
 }

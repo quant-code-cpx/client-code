@@ -1,6 +1,6 @@
 import type { IndexQuoteItem } from 'src/api/market';
-import type { IndexInfo } from 'src/api/index-detail';
 
+import dayjs from 'dayjs';
 import { useState, useEffect } from 'react';
 
 import Card from '@mui/material/Card';
@@ -52,10 +52,9 @@ function MetricSkeleton() {
 
 type Props = {
   tsCode: string;
-  indexInfo: IndexInfo | null;
 };
 
-export function IndexOverviewCard({ tsCode, indexInfo }: Props) {
+export function IndexOverviewCard({ tsCode }: Props) {
   const [quote, setQuote] = useState<IndexQuoteItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -124,12 +123,16 @@ export function IndexOverviewCard({ tsCode, indexInfo }: Props) {
             <MetricCard label="成交额" value={fQianYuan(quote?.amount)} />
           </Grid>
           <Grid size={{ xs: 6, sm: 4, md: 2 }}>
-            <MetricCard label="基期" value={indexInfo?.baseDate ?? '-'} color="text.secondary" />
+            <MetricCard
+              label="基期"
+              value={quote?.baseDate ? dayjs(quote.baseDate, 'YYYYMMDD').format('YYYY-MM-DD') : '-'}
+              color="text.secondary"
+            />
           </Grid>
           <Grid size={{ xs: 6, sm: 4, md: 2 }}>
             <MetricCard
               label="基点"
-              value={indexInfo?.basePoint != null ? String(indexInfo.basePoint) : '-'}
+              value={quote?.basePoint != null ? String(quote.basePoint) : '-'}
               color="text.secondary"
             />
           </Grid>

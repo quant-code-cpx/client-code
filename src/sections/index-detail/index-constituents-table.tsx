@@ -1,6 +1,6 @@
 import type { IndexConstituentItem, IndexConstituentResult } from 'src/api/index-detail';
 
-import { useMemo, useState, useEffect } from 'react';
+import { useRef, useMemo, useState, useEffect } from 'react';
 
 import Card from '@mui/material/Card';
 import Alert from '@mui/material/Alert';
@@ -17,6 +17,9 @@ import CardContent from '@mui/material/CardContent';
 import Autocomplete from '@mui/material/Autocomplete';
 import TableContainer from '@mui/material/TableContainer';
 import TableSortLabel from '@mui/material/TableSortLabel';
+import TablePagination from '@mui/material/TablePagination';
+
+import { RouterLink } from 'src/routes/components';
 
 import { fPctChg, fWanYuan } from 'src/utils/format-number';
 
@@ -41,9 +44,27 @@ export function IndexConstituentsTable({ tsCode, onDataLoaded }: Props) {
   const [error, setError] = useState('');
 
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [industries, setIndustries] = useState<string[]>([]);
+
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    },
+    []
+  );
+
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => setDebouncedSearch(value), 300);
+  };
   const [sortKey, setSortKey] = useState<SortKey>('weight');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
+
+  const [page, setPage] = useState(0);
+  const rowsPerPage = 100;
 
   useEffect(() => {
     let cancelled = false;
@@ -79,8 +100,8 @@ export function IndexConstituentsTable({ tsCode, onDataLoaded }: Props) {
     if (!result?.constituents) return [];
     let list = result.constituents;
 
-    if (search) {
-      const q = search.toLowerCase();
+    if (debouncedSearch) {
+      const q = debouncedSearch.toLowerCase();
       list = list.filter(
         (c) => c.tsCode.toLowerCase().includes(q) || c.name.toLowerCase().includes(q)
       );
@@ -97,7 +118,17 @@ export function IndexConstituentsTable({ tsCode, onDataLoaded }: Props) {
     });
 
     return list;
-  }, [result, search, industries, sortKey, sortDir]);
+  }, [result, debouncedSearch, industries, sortKey, sortDir]);
+
+  // 筛选条件变化时重置到第一页
+  useEffect(() => {
+    setPage(0);
+  }, [debouncedSearch, industries, sortKey, sortDir]);
+
+  const pagedRows = useMemo(
+    () => filtered.slice(page * rowsPerPage, (page + 1) * rowsPerPage),
+    [filtered, page, rowsPerPage]
+  );
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -136,7 +167,7 @@ export function IndexConstituentsTable({ tsCode, onDataLoaded }: Props) {
               size="small"
               placeholder="搜索代码/名称"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => handleSearchChange(e.target.value)}
               sx={{ width: 180 }}
             />
             <Autocomplete
@@ -161,109 +192,139 @@ export function IndexConstituentsTable({ tsCode, onDataLoaded }: Props) {
         {loading ? (
           <Skeleton variant="rectangular" height={400} sx={{ borderRadius: 1 }} />
         ) : (
-          <Scrollbar>
-            <TableContainer>
-              <Table size="small" sx={{ minWidth: 800 }}>
-                <TableHead>
-                  <TableRow>
-                    <TableCell align="center" sx={{ width: 50 }}>
-                      排名
-                    </TableCell>
-                    <TableCell>代码</TableCell>
-                    <TableCell>名称</TableCell>
-                    <TableCell>行业</TableCell>
-                    <TableCell align="right">
-                      <TableSortLabel
-                        active={sortKey === 'weight'}
-                        direction={sortKey === 'weight' ? sortDir : 'desc'}
-                        onClick={() => handleSort('weight')}
-                      >
-                        权重（%）
-                      </TableSortLabel>
-                    </TableCell>
-                    <TableCell align="right">收盘价</TableCell>
-                    <TableCell align="right">
-                      <TableSortLabel
-                        active={sortKey === 'pctChg'}
-                        direction={sortKey === 'pctChg' ? sortDir : 'desc'}
-                        onClick={() => handleSort('pctChg')}
-                      >
-                        涨跌幅
-                      </TableSortLabel>
-                    </TableCell>
-                    <TableCell align="right">
-                      <TableSortLabel
-                        active={sortKey === 'totalMv'}
-                        direction={sortKey === 'totalMv' ? sortDir : 'desc'}
-                        onClick={() => handleSort('totalMv')}
-                      >
-                        总市值
-                      </TableSortLabel>
-                    </TableCell>
-                    <TableCell align="right">流通市值</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {filtered.map((c, idx) => {
-                    const pctColor =
-                      (c.pctChg ?? 0) > 0
-                        ? 'error.main'
-                        : (c.pctChg ?? 0) < 0
-                          ? 'success.main'
-                          : 'text.secondary';
-                    return (
-                      <TableRow key={c.tsCode} hover>
-                        <TableCell align="center">
-                          <Typography variant="caption">{idx + 1}</Typography>
-                        </TableCell>
-                        <TableCell>
-                          <Typography variant="caption" sx={{ fontWeight: 600 }}>
-                            {c.tsCode}
+          <>
+            <Scrollbar sx={{ maxHeight: 600 }}>
+              <TableContainer>
+                <Table size="small" sx={{ minWidth: 800 }}>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell align="center" sx={{ width: 50 }}>
+                        排名
+                      </TableCell>
+                      <TableCell>代码</TableCell>
+                      <TableCell>名称</TableCell>
+                      <TableCell>行业</TableCell>
+                      <TableCell align="right">
+                        <TableSortLabel
+                          active={sortKey === 'weight'}
+                          direction={sortKey === 'weight' ? sortDir : 'desc'}
+                          onClick={() => handleSort('weight')}
+                        >
+                          权重（%）
+                        </TableSortLabel>
+                      </TableCell>
+                      <TableCell align="right">收盘价</TableCell>
+                      <TableCell align="right">
+                        <TableSortLabel
+                          active={sortKey === 'pctChg'}
+                          direction={sortKey === 'pctChg' ? sortDir : 'desc'}
+                          onClick={() => handleSort('pctChg')}
+                        >
+                          涨跌幅
+                        </TableSortLabel>
+                      </TableCell>
+                      <TableCell align="right">
+                        <TableSortLabel
+                          active={sortKey === 'totalMv'}
+                          direction={sortKey === 'totalMv' ? sortDir : 'desc'}
+                          onClick={() => handleSort('totalMv')}
+                        >
+                          总市值
+                        </TableSortLabel>
+                      </TableCell>
+                      <TableCell align="right">流通市值</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {pagedRows.map((c, idx) => {
+                      const globalIdx = page * rowsPerPage + idx;
+                      const pctColor =
+                        (c.pctChg ?? 0) > 0
+                          ? 'error.main'
+                          : (c.pctChg ?? 0) < 0
+                            ? 'success.main'
+                            : 'text.secondary';
+                      return (
+                        <TableRow key={c.tsCode} hover>
+                          <TableCell align="center">
+                            <Typography variant="caption">{globalIdx + 1}</Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Typography
+                              component={RouterLink}
+                              href={`/stock/detail?code=${encodeURIComponent(c.tsCode)}`}
+                              variant="caption"
+                              sx={{
+                                fontWeight: 600,
+                                color: 'primary.main',
+                                textDecoration: 'none',
+                                '&:hover': { textDecoration: 'underline' },
+                              }}
+                            >
+                              {c.tsCode}
+                            </Typography>
+                          </TableCell>
+                          <TableCell>
+                            <Typography variant="caption">{c.name}</Typography>
+                          </TableCell>
+                          <TableCell>
+                            {c.industry ? (
+                              <Label color="default" variant="soft">
+                                {c.industry}
+                              </Label>
+                            ) : (
+                              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                -
+                              </Typography>
+                            )}
+                          </TableCell>
+                          <TableCell align="right">
+                            <Typography variant="caption" sx={{ fontWeight: 600 }}>
+                              {c.weight != null ? c.weight.toFixed(2) : '-'}
+                            </Typography>
+                          </TableCell>
+                          <TableCell align="right">
+                            <Typography variant="caption">
+                              {c.close != null ? c.close.toFixed(2) : '-'}
+                            </Typography>
+                          </TableCell>
+                          <TableCell align="right">
+                            <Typography variant="caption" sx={{ color: pctColor, fontWeight: 600 }}>
+                              {fPctChg(c.pctChg)}
+                            </Typography>
+                          </TableCell>
+                          <TableCell align="right">
+                            <Typography variant="caption">{fWanYuan(c.totalMv)}</Typography>
+                          </TableCell>
+                          <TableCell align="right">
+                            <Typography variant="caption">{fWanYuan(c.circMv)}</Typography>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                    {filtered.length === 0 && !loading && (
+                      <TableRow>
+                        <TableCell colSpan={9} align="center" sx={{ py: 4 }}>
+                          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                            暂无数据
                           </Typography>
-                        </TableCell>
-                        <TableCell>
-                          <Typography variant="caption">{c.name}</Typography>
-                        </TableCell>
-                        <TableCell>
-                          <Label color="default" variant="soft">
-                            {c.industry}
-                          </Label>
-                        </TableCell>
-                        <TableCell align="right">
-                          <Typography variant="caption" sx={{ fontWeight: 600 }}>
-                            {(c.weight ?? 0).toFixed(2)}
-                          </Typography>
-                        </TableCell>
-                        <TableCell align="right">
-                          <Typography variant="caption">{(c.close ?? 0).toFixed(2)}</Typography>
-                        </TableCell>
-                        <TableCell align="right">
-                          <Typography variant="caption" sx={{ color: pctColor, fontWeight: 600 }}>
-                            {fPctChg(c.pctChg)}
-                          </Typography>
-                        </TableCell>
-                        <TableCell align="right">
-                          <Typography variant="caption">{fWanYuan(c.totalMv)}</Typography>
-                        </TableCell>
-                        <TableCell align="right">
-                          <Typography variant="caption">{fWanYuan(c.circMv)}</Typography>
                         </TableCell>
                       </TableRow>
-                    );
-                  })}
-                  {filtered.length === 0 && !loading && (
-                    <TableRow>
-                      <TableCell colSpan={9} align="center" sx={{ py: 4 }}>
-                        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                          暂无数据
-                        </Typography>
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Scrollbar>
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Scrollbar>
+            <TablePagination
+              component="div"
+              count={filtered.length}
+              page={page}
+              rowsPerPage={rowsPerPage}
+              rowsPerPageOptions={[rowsPerPage]}
+              onPageChange={(_, p) => setPage(p)}
+              labelDisplayedRows={({ from, to, count }) => `${from}–${to} / 共 ${count} 只`}
+            />
+          </>
         )}
       </CardContent>
     </Card>

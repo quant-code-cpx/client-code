@@ -40,9 +40,10 @@ type Props = {
   tradeDate?: string;
 };
 
-export function HsgtTrendChart({ tradeDate: _tradeDate }: Props) {
+export function HsgtTrendChart({ tradeDate }: Props) {
   const [period, setPeriod] = useState('3m');
   const [tabIndex, setTabIndex] = useState(0); // 0=北向, 1=南向
+  const [viewMode, setViewMode] = useState<'total' | 'split'>('total');
   const [data, setData] = useState<HsgtTrendItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -52,7 +53,7 @@ export function HsgtTrendChart({ tradeDate: _tradeDate }: Props) {
     setLoading(true);
     setError('');
 
-    fetchHsgtTrend({ period })
+    fetchHsgtTrend({ period, trade_date: tradeDate })
       .then((res) => {
         if (!cancelled) setData(res?.data ?? []);
       })
@@ -66,51 +67,69 @@ export function HsgtTrendChart({ tradeDate: _tradeDate }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [period]);
+  }, [period, tradeDate]);
 
   const categories = data.map((d) => fmtDate(d.tradeDate));
   const isNorth = tabIndex === 0;
 
-  const dailyValues = data.map((d) => toYi(isNorth ? d.northMoney : d.southMoney));
+  // 合计：单条柱
+  const totalValues = data.map((d) => toYi(isNorth ? d.northMoney : d.southMoney));
 
-  const chartOptions = useChart({
-    chart: { type: 'bar', stacked: false },
-    stroke: { width: [0], curve: 'smooth' },
+  // 通道拆分：沪股通+深股通（北向），港股通沪+港股通深（南向）
+  const channelA = data.map((d) => toYi(isNorth ? d.hgt : d.ggtSs));
+  const channelB = data.map((d) => toYi(isNorth ? d.sgt : d.ggtSz));
+  const channelALabel = isNorth ? '沪股通' : '港股通(沪)';
+  const channelBLabel = isNorth ? '深股通' : '港股通(深)';
+
+  const totalSeries = [
+    {
+      name: `${isNorth ? '北向' : '南向'}成交额`,
+      type: 'column' as const,
+      data: totalValues,
+    },
+  ];
+
+  const splitSeries = [
+    { name: channelALabel, type: 'column' as const, data: channelA },
+    { name: channelBLabel, type: 'column' as const, data: channelB },
+  ];
+
+  const baseChartOpts = {
+    chart: { stacked: false },
+    stroke: { width: [0], curve: 'smooth' as const },
     plotOptions: {
       bar: {
         columnWidth: '60%',
         borderRadius: 2,
-        colors: {
-          ranges: [
-            { from: -9999999, to: 0, color: '#00B746' },
-            { from: 0, to: 9999999, color: '#FF4560' },
-          ],
-        },
       },
     },
-    xaxis: {
-      categories,
-      labels: { rotate: -30 },
-    },
+    xaxis: { categories, labels: { rotate: -30 } },
     yaxis: [
       {
-        title: { text: `每日成交额(亿)` },
-        labels: {
-          formatter: (v: number) => `${v.toFixed(0)}亿`,
-        },
+        title: { text: '每日成交额(亿)' },
+        labels: { formatter: (v: number) => `${v.toFixed(0)}亿` },
       },
     ],
     tooltip: { shared: true, intersect: false },
     legend: { show: true },
+  };
+
+  const totalOptions = useChart({
+    ...baseChartOpts,
+    chart: { type: 'bar' as const, stacked: false },
+  });
+  const splitOptions = useChart({
+    ...baseChartOpts,
+    chart: { type: 'bar' as const, stacked: true },
+    stroke: { width: [0, 0] },
   });
 
-  const series = [
-    { name: `${isNorth ? '北向' : '南向'}每日成交额`, type: 'column', data: dailyValues },
-  ];
+  const activeSeries = viewMode === 'split' ? splitSeries : totalSeries;
+  const activeOptions = viewMode === 'split' ? splitOptions : totalOptions;
 
   return (
     <Card>
-      <CardContent>
+      <CardContent sx={{ pb: '16px !important' }}>
         <Stack
           direction={{ xs: 'column', sm: 'row' }}
           alignItems={{ sm: 'center' }}
@@ -118,22 +137,36 @@ export function HsgtTrendChart({ tradeDate: _tradeDate }: Props) {
           spacing={1}
           sx={{ mb: 2 }}
         >
-          <Typography variant="h6">沪深港通资金趋势</Typography>
+          <Typography variant="h6">沪深港通成交额趋势</Typography>
 
-          <ToggleButtonGroup
-            exclusive
-            value={period}
-            size="small"
-            onChange={(_, v) => {
-              if (v) setPeriod(v);
-            }}
-          >
-            {PERIODS.map((p) => (
-              <ToggleButton key={p.value} value={p.value}>
-                {p.label}
-              </ToggleButton>
-            ))}
-          </ToggleButtonGroup>
+          <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+            <ToggleButtonGroup
+              exclusive
+              value={viewMode}
+              size="small"
+              onChange={(_, v) => {
+                if (v) setViewMode(v);
+              }}
+            >
+              <ToggleButton value="total">合计</ToggleButton>
+              <ToggleButton value="split">通道拆分</ToggleButton>
+            </ToggleButtonGroup>
+
+            <ToggleButtonGroup
+              exclusive
+              value={period}
+              size="small"
+              onChange={(_, v) => {
+                if (v) setPeriod(v);
+              }}
+            >
+              {PERIODS.map((p) => (
+                <ToggleButton key={p.value} value={p.value}>
+                  {p.label}
+                </ToggleButton>
+              ))}
+            </ToggleButtonGroup>
+          </Stack>
         </Stack>
 
         <Tabs value={tabIndex} onChange={(_, v) => setTabIndex(v)} sx={{ mb: 2 }}>
@@ -162,7 +195,7 @@ export function HsgtTrendChart({ tradeDate: _tradeDate }: Props) {
             <Typography variant="body2">暂无数据</Typography>
           </Box>
         ) : (
-          <Chart type="line" series={series} options={chartOptions} sx={{ height: 320 }} />
+          <Chart type="bar" series={activeSeries} options={activeOptions} sx={{ height: 320 }} />
         )}
       </CardContent>
     </Card>

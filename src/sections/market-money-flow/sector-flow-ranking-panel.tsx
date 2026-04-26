@@ -1,6 +1,6 @@
 import type { SectorFlowRankingItem } from 'src/api/market';
 
-import { useState, useEffect } from 'react';
+import { useRef, useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Tab from '@mui/material/Tab';
@@ -25,11 +25,12 @@ import { fPctChg } from 'src/utils/format-number';
 
 import { fetchSectorFlowRanking } from 'src/api/market';
 
+import { MiniTierBar } from './mini-tier-bar';
 import { SectorFlowTrendChart } from './sector-flow-trend-chart';
 
 // ----------------------------------------------------------------------
 
-type ContentType = 'INDUSTRY' | 'CONCEPT' | 'REGION';
+export type ContentType = 'INDUSTRY' | 'CONCEPT' | 'REGION';
 type SortBy = 'net_amount' | 'pct_change' | 'buy_elg_amount';
 
 const CONTENT_TABS: Array<{ value: ContentType; label: string }> = [
@@ -43,6 +44,16 @@ const SORT_OPTIONS: Array<{ value: SortBy; label: string }> = [
   { value: 'pct_change', label: '涨跌幅' },
   { value: 'buy_elg_amount', label: '超大单' },
 ];
+
+/** 根据排序维度决定双榜标题 */
+const SORT_TABLE_LABELS: Record<SortBy, { inflow: string; outflow: string }> = {
+  net_amount: { inflow: '净流入', outflow: '净流出' },
+  pct_change: { inflow: '涨幅', outflow: '跌幅' },
+  buy_elg_amount: { inflow: '超大单流入', outflow: '超大单流出' },
+};
+
+const TOP_N_OPTIONS = [10, 20, 30] as const;
+type TopN = (typeof TOP_N_OPTIONS)[number];
 
 function flowColor(value: number): 'error.main' | 'success.main' | 'text.secondary' {
   if (value > 0) return 'error.main';
@@ -79,6 +90,9 @@ function SectorTable({ title, rows, selectedCode, onRowClick }: SectorTableProps
               <TableCell align="right">涨跌幅</TableCell>
               <TableCell align="right">净流入</TableCell>
               <TableCell align="right">超大单</TableCell>
+              <TableCell align="right" sx={{ minWidth: 96, pr: 1 }}>
+                分层
+              </TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -117,12 +131,22 @@ function SectorTable({ title, rows, selectedCode, onRowClick }: SectorTableProps
                       {toYiStr(row.buyElgAmount)}
                     </Typography>
                   </TableCell>
+                  <TableCell align="right" sx={{ pr: 1 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                      <MiniTierBar
+                        elg={row.buyElgAmount}
+                        lg={row.buyLgAmount}
+                        md={row.buyMdAmount}
+                        sm={row.buySmAmount}
+                      />
+                    </Box>
+                  </TableCell>
                 </TableRow>
               );
             })}
             {rows.length === 0 && (
               <TableRow>
-                <TableCell colSpan={5} align="center">
+                <TableCell colSpan={6} align="center">
                   <Typography variant="body2" sx={{ color: 'text.secondary', py: 2 }}>
                     暂无数据
                   </Typography>
@@ -140,33 +164,62 @@ function SectorTable({ title, rows, selectedCode, onRowClick }: SectorTableProps
 
 type Props = {
   tradeDate?: string;
+  /** 当前选中的“概念”板块；其他类型下以 null 冲出 */
+  onConceptSelected?: (concept: { tsCode: string; name: string } | null) => void;
+  /** A 区内部当前 content_type 向外同步，供父决定是否挂载 B 区 */
+  onContentTypeChange?: (contentType: ContentType) => void;
 };
 
-export function SectorFlowRankingPanel({ tradeDate }: Props) {
+export function SectorFlowRankingPanel({
+  tradeDate,
+  onConceptSelected,
+  onContentTypeChange,
+}: Props) {
   const [contentTypeIndex, setContentTypeIndex] = useState(0);
   const [sortBy, setSortBy] = useState<SortBy>('net_amount');
-  const [sectors, setSectors] = useState<SectorFlowRankingItem[]>([]);
+  const [topN, setTopN] = useState<TopN>(10);
+  const [inflowSectors, setInflowSectors] = useState<SectorFlowRankingItem[]>([]);
+  const [outflowSectors, setOutflowSectors] = useState<SectorFlowRankingItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [selectedSector, setSelectedSector] = useState<SectorFlowRankingItem | null>(null);
 
   const contentType = CONTENT_TABS[contentTypeIndex]?.value ?? 'INDUSTRY';
 
+  // 使用 ref 持有最新回调，避免父组件未做 useCallback 时反复触发 effect
+  const onConceptSelectedRef = useRef(onConceptSelected);
+  const onContentTypeChangeRef = useRef(onContentTypeChange);
+  useEffect(() => {
+    onConceptSelectedRef.current = onConceptSelected;
+  }, [onConceptSelected]);
+  useEffect(() => {
+    onContentTypeChangeRef.current = onContentTypeChange;
+  }, [onContentTypeChange]);
+
+  // 同步向外暴露 contentType
+  useEffect(() => {
+    onContentTypeChangeRef.current?.(contentType);
+  }, [contentType]);
+
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
     setError('');
     setSelectedSector(null);
+    onConceptSelectedRef.current?.(null);
 
     fetchSectorFlowRanking({
       trade_date: tradeDate,
       content_type: contentType,
       sort_by: sortBy,
-      order: 'desc',
-      limit: 30,
+      dual: true,
+      limit: topN,
     })
       .then((res) => {
-        if (!cancelled) setSectors(res?.sectors ?? []);
+        if (!cancelled && res != null && 'topInflow' in res) {
+          setInflowSectors(res.topInflow);
+          setOutflowSectors(res.topOutflow);
+        }
       })
       .catch((err: unknown) => {
         if (!cancelled) setError(err instanceof Error ? err.message : '加载板块资金排行失败');
@@ -178,15 +231,19 @@ export function SectorFlowRankingPanel({ tradeDate }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [tradeDate, contentType, sortBy]);
+  }, [tradeDate, contentType, sortBy, topN]);
 
-  // Sort descending and ascending for top10 each
-  const sorted = [...sectors].sort((a, b) => b.netAmount - a.netAmount);
-  const top10Inflow = sorted.slice(0, 10);
-  const top10Outflow = [...sectors].sort((a, b) => a.netAmount - b.netAmount).slice(0, 10);
+  const topInflow = inflowSectors;
+  const topOutflow = outflowSectors;
 
   const handleRowClick = (item: SectorFlowRankingItem) => {
-    setSelectedSector((prev) => (prev?.tsCode === item.tsCode ? null : item));
+    setSelectedSector((prev) => {
+      const next = prev?.tsCode === item.tsCode ? null : item;
+      if (contentType === 'CONCEPT') {
+        onConceptSelectedRef.current?.(next ? { tsCode: next.tsCode, name: next.name } : null);
+      }
+      return next;
+    });
   };
 
   return (
@@ -202,20 +259,37 @@ export function SectorFlowRankingPanel({ tradeDate }: Props) {
           >
             <Typography variant="h6">板块资金流向</Typography>
 
-            <ToggleButtonGroup
-              exclusive
-              value={sortBy}
-              size="small"
-              onChange={(_, v) => {
-                if (v) setSortBy(v);
-              }}
-            >
-              {SORT_OPTIONS.map((opt) => (
-                <ToggleButton key={opt.value} value={opt.value}>
-                  {opt.label}
-                </ToggleButton>
-              ))}
-            </ToggleButtonGroup>
+            <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+              <ToggleButtonGroup
+                exclusive
+                value={sortBy}
+                size="small"
+                onChange={(_, v) => {
+                  if (v) setSortBy(v);
+                }}
+              >
+                {SORT_OPTIONS.map((opt) => (
+                  <ToggleButton key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </ToggleButton>
+                ))}
+              </ToggleButtonGroup>
+
+              <ToggleButtonGroup
+                exclusive
+                value={topN}
+                size="small"
+                onChange={(_, v: TopN | null) => {
+                  if (v != null) setTopN(v);
+                }}
+              >
+                {TOP_N_OPTIONS.map((n) => (
+                  <ToggleButton key={n} value={n}>
+                    Top{n}
+                  </ToggleButton>
+                ))}
+              </ToggleButtonGroup>
+            </Stack>
           </Stack>
 
           <Tabs value={contentTypeIndex} onChange={(_, v) => setContentTypeIndex(v)} sx={{ mb: 2 }}>
@@ -236,16 +310,16 @@ export function SectorFlowRankingPanel({ tradeDate }: Props) {
             <Grid container spacing={2}>
               <Grid size={{ xs: 12, md: 6 }}>
                 <SectorTable
-                  title="净流入 Top 10"
-                  rows={top10Inflow}
+                  title={`${SORT_TABLE_LABELS[sortBy].inflow} Top ${topN}`}
+                  rows={topInflow}
                   selectedCode={selectedSector?.tsCode ?? null}
                   onRowClick={handleRowClick}
                 />
               </Grid>
               <Grid size={{ xs: 12, md: 6 }}>
                 <SectorTable
-                  title="净流出 Top 10"
-                  rows={top10Outflow}
+                  title={`${SORT_TABLE_LABELS[sortBy].outflow} Top ${topN}`}
+                  rows={topOutflow}
                   selectedCode={selectedSector?.tsCode ?? null}
                   onRowClick={handleRowClick}
                 />

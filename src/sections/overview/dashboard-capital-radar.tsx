@@ -52,7 +52,6 @@ export function DashboardCapitalRadar({ refreshKey }: DashboardCapitalRadarProps
       .catch(() => {});
 
     Promise.all([loadHsgt, loadMoneyFlow]).finally(() => setLoading(false));
-     
   }, [refreshKey]);
 
   if (loading) {
@@ -61,7 +60,7 @@ export function DashboardCapitalRadar({ refreshKey }: DashboardCapitalRadarProps
 
   // ── Derived metrics ──────────────────────────────────────────────
 
-  // 逐笔主力净流入（独立算法，元 → 亿元）
+  // 逐笔资金净流入（独立算法，元 → 亿元）
   const mfNet = moneyFlow?.netMfAmount ?? 0;
   const mfNetYi = mfNet / 1e8;
   const mfIsPos = mfNetYi >= 0;
@@ -101,12 +100,26 @@ export function DashboardCapitalRadar({ refreshKey }: DashboardCapitalRadarProps
               title="各股逐笔净流入（net_mf_amount）全市场汇总，独立算法估算；与下方「按单量分层」的买卖差汇总口径不同"
               arrow
             >
-              <Box component="span" sx={{ display: 'flex', alignItems: 'center', cursor: 'help' }}>
-                <Iconify
-                  icon="solar:question-circle-bold"
-                  width={14}
-                  sx={{ color: 'text.disabled' }}
-                />
+              <Box
+                component="span"
+                sx={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'help',
+                  width: 14,
+                  height: 14,
+                  borderRadius: '50%',
+                  bgcolor: 'text.disabled',
+                  color: 'background.paper',
+                  fontSize: '9px',
+                  fontWeight: 700,
+                  lineHeight: '14px',
+                  userSelect: 'none',
+                  flexShrink: 0,
+                }}
+              >
+                ?
               </Box>
             </Tooltip>
           </Stack>
@@ -181,12 +194,26 @@ export function DashboardCapitalRadar({ refreshKey }: DashboardCapitalRadarProps
             按单量分层
           </Typography>
           <Tooltip title="同一层内：买入额占比（红）vs 卖出额占比（绿）" arrow>
-            <Box component="span" sx={{ display: 'flex', alignItems: 'center', cursor: 'help' }}>
-              <Iconify
-                icon="solar:question-circle-bold"
-                width={13}
-                sx={{ color: 'text.disabled' }}
-              />
+            <Box
+              component="span"
+              sx={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'help',
+                width: 13,
+                height: 13,
+                borderRadius: '50%',
+                bgcolor: 'text.disabled',
+                color: 'background.paper',
+                fontSize: '9px',
+                fontWeight: 700,
+                lineHeight: '13px',
+                userSelect: 'none',
+                flexShrink: 0,
+              }}
+            >
+              ?
             </Box>
           </Tooltip>
         </Stack>
