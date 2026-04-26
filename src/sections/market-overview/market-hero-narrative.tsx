@@ -52,8 +52,7 @@ function deriveTone(breadth: MarketBreadthResult, moneyFlowYi: number | null): M
 function buildHeadline(
   tone: MarketTone,
   breadth: MarketBreadthResult,
-  moneyFlowYi: number | null,
-  northMoneyYi: number | null
+  moneyFlowYi: number | null
 ): string {
   const total = breadth.total || 1;
   const riseRatio = (breadth.bigRise + breadth.rise) / total;
@@ -368,7 +367,7 @@ export function MarketHeroNarrative({
   }
 
   // Compute headline at render time so it picks up latest northMoney from prop
-  const headline = buildHeadline(data.tone, data.breadth, data.moneyFlowYi, northMoneyYi);
+  const headline = buildHeadline(data.tone, data.breadth, data.moneyFlowYi);
 
   const toneConfig: Record<MarketTone, { color: string; channel: string }> = {
     bullish: { color: theme.palette.error.main, channel: theme.vars.palette.error.mainChannel },
