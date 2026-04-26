@@ -51,8 +51,9 @@ function NetCell({ value, maxAbs, posColor, negColor }: NetCellProps) {
           position: 'absolute',
           top: '20%',
           bottom: '20%',
-          right: 0,
-          width: `${pct}%`,
+          right: 4,
+          width: `calc(${pct}% - 4px)`,
+          maxWidth: 'calc(100% - 8px)',
           bgcolor: isPos ? `${posColor}26` : `${negColor}26`,
           borderRadius: '2px 0 0 2px',
         }}
