@@ -20,6 +20,7 @@ type Props = {
   tradeDate?: string;
   period?: string;
   onSectorClick?: (name: string) => void;
+  refreshKey?: number;
 };
 
 const LIMIT_OPTIONS = [10, 15, 20, 0] as const; // 0 = 全部
@@ -30,7 +31,7 @@ const LIMIT_LABELS: Record<number, string> = {
   0: '全部',
 };
 
-export function RotationMomentumChart({ tradeDate, period, onSectorClick }: Props) {
+export function RotationMomentumChart({ tradeDate, period, onSectorClick, refreshKey }: Props) {
   const theme = useTheme();
   const [limit, setLimit] = useState<number>(15);
   const [rankings, setRankings] = useState<MomentumRankingItem[]>([]);
@@ -56,7 +57,7 @@ export function RotationMomentumChart({ tradeDate, period, onSectorClick }: Prop
     return () => {
       cancelled = true;
     };
-  }, [tradeDate, period, limit]);
+  }, [tradeDate, period, limit, refreshKey]);
 
   const handleLimitChange = useCallback((e: { target: { value: unknown } }) => {
     setLimit(Number(e.target.value));
@@ -78,7 +79,6 @@ export function RotationMomentumChart({ tradeDate, period, onSectorClick }: Prop
       type: 'bar',
       toolbar: { show: false },
       events: {
-         
         dataPointSelection: (_event: unknown, _chartCtx: unknown, config: any) => {
           const name = sorted[(config as { dataPointIndex: number })?.dataPointIndex]?.name;
           if (name && onSectorClick) onSectorClick(name);
@@ -103,7 +103,7 @@ export function RotationMomentumChart({ tradeDate, period, onSectorClick }: Prop
       enabled: true,
       offsetX: 8,
       style: { fontSize: '12px', colors: [theme.palette.text.primary] },
-       
+
       formatter: (val: unknown, opts: any) => {
         const numVal = typeof val === 'number' ? val : Number(val);
         const item = sorted[(opts as { dataPointIndex: number })?.dataPointIndex];
@@ -125,14 +125,18 @@ export function RotationMomentumChart({ tradeDate, period, onSectorClick }: Prop
         if (!item) return '';
         const sign = item.momentum > 0 ? '+' : '';
         const rankColor =
-          item.rankChange > 0 ? '#22C55E' : item.rankChange < 0 ? '#FF5630' : '#919EAB';
+          item.rankChange > 0
+            ? theme.palette.success.main
+            : item.rankChange < 0
+              ? theme.palette.error.main
+              : theme.palette.grey[500];
         const arrow = item.rankChange > 0 ? '↑' : item.rankChange < 0 ? '↓' : '—';
         const amountStr =
           item.amount != null ? `成交额：${(item.amount / 10000).toFixed(2)} 亿<br/>` : '';
         return [
           '<div style="padding:8px 12px;font-size:13px;">',
           `<b>${item.name}</b><br/>`,
-          `动量值：<span style="color:${item.momentum >= 0 ? '#FF5630' : '#22C55E'}">${sign}${item.momentum.toFixed(2)}%</span><br/>`,
+          `动量值：<span style="color:${item.momentum >= 0 ? theme.palette.error.main : theme.palette.success.main}">${sign}${item.momentum.toFixed(2)}%</span><br/>`,
           amountStr,
           `当前排名：${item.rank} <span style="color:${rankColor}">${arrow} ${Math.abs(item.rankChange)}</span><br/>`,
           `上期排名：${item.prevRank}`,

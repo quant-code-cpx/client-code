@@ -21,9 +21,10 @@ type ValMode = 'pe' | 'pb';
 type Props = {
   tradeDate?: string;
   onSectorClick?: (name: string) => void;
+  refreshKey?: number;
 };
 
-export function RotationValuationChart({ tradeDate, onSectorClick }: Props) {
+export function RotationValuationChart({ tradeDate, onSectorClick, refreshKey }: Props) {
   const theme = useTheme();
   const [valMode, setValMode] = useState<ValMode>('pe');
   const [sectors, setSectors] = useState<SectorValuationItem[]>([]);
@@ -49,7 +50,7 @@ export function RotationValuationChart({ tradeDate, onSectorClick }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [tradeDate]);
+  }, [tradeDate, refreshKey]);
 
   const handleTabChange = useCallback((_: React.SyntheticEvent, val: ValMode) => {
     setValMode(val);

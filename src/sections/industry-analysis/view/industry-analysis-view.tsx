@@ -1,3 +1,6 @@
+import type { Dayjs } from 'dayjs';
+import type { HeatmapItem } from 'src/api/heatmap';
+
 import { useState, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
@@ -5,14 +8,27 @@ import Box from '@mui/material/Box';
 import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
 import Stack from '@mui/material/Stack';
+import Button from '@mui/material/Button';
+import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
+import IconButton from '@mui/material/IconButton';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+
+import { useIndustryDictMapping } from 'src/hooks/use-industry-dict-mapping';
+
+import {
+  formatIndustryDictStatus,
+  resolveDcTsCodeFromHeatmapItem,
+} from 'src/utils/industry-mapping';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Iconify } from 'src/components/iconify';
 
-import { MarketHeatmapView } from '../../market-heatmap/view/market-heatmap-view';
-import { IndustryRotationView } from '../../industry-rotation/view/industry-rotation-view';
+import { MarketHeatmapView } from '../heatmap/view/market-heatmap-view';
+import { IndustryRotationView } from '../rotation/view/industry-rotation-view';
+
+import type { FocusedSector } from '../rotation/view/industry-rotation-view';
 
 // ----------------------------------------------------------------------
 
@@ -20,21 +36,6 @@ const TABS = [
   { label: '全景热力图', icon: 'solar:fire-bold' },
   { label: '行业轮动', icon: 'solar:shuffle-bold' },
 ] as const;
-
-// ── Strip embedded DashboardContent padding ───────────────────────
-//
-// MarketHeatmapView / IndustryRotationView wrap their body in DashboardContent
-// (a MUI Container with class "minimal__layout__main__content").
-// We reset that padding so the tab panel doesn't add extra whitespace.
-const EMBED_SX = {
-  '& .minimal__layout__main__content': {
-    pt: '0 !important',
-    pb: '0 !important',
-    px: '0 !important',
-    maxWidth: '100% !important',
-    flex: 'none',
-  },
-} as const;
 
 // ----------------------------------------------------------------------
 
@@ -45,6 +46,21 @@ export function IndustryAnalysisView() {
     tabParam >= 0 && tabParam < TABS.length ? tabParam : 1
   );
 
+  // ── 共享状态 ─────────────────────────────────
+  const [tradeDate, setTradeDate] = useState<string | undefined>(undefined);
+  const [displayDate, setDisplayDate] = useState<Dayjs | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const [focusedSector, setFocusedSector] = useState<FocusedSector | null>(null);
+  const [headlineHint, setHeadlineHint] = useState<string | null>(null);
+
+  // ── 行业字典 ─────────────────────────────────
+  const { indexes, coverage, status: dictStatus } = useIndustryDictMapping();
+  const dictInfo = formatIndustryDictStatus({
+    coverage: coverage ?? null,
+    failed: dictStatus === 'error',
+  });
+
+  // ── 事件处理 ─────────────────────────────────
   const handleTabChange = useCallback(
     (_: React.SyntheticEvent, value: number) => {
       setCurrentTab(value);
@@ -53,14 +69,114 @@ export function IndustryAnalysisView() {
     [setSearchParams]
   );
 
+  const handleRefresh = useCallback(() => {
+    setRefreshKey((k) => k + 1);
+  }, []);
+
+  const handleSectorSelected = useCallback(
+    (item: HeatmapItem) => {
+      const resolved = resolveDcTsCodeFromHeatmapItem(item, indexes);
+      if (!resolved.dcTsCode) {
+        setHeadlineHint('该行业在轮动数据中暂未找到对应板块（行业字典差异）');
+        return;
+      }
+      setHeadlineHint(null);
+      setFocusedSector({
+        dcTsCode: resolved.dcTsCode ?? undefined,
+        swName: resolved.swName ?? undefined,
+        dcName: resolved.dcName ?? undefined,
+      });
+      setCurrentTab(1);
+      setSearchParams({ tab: '1' });
+    },
+    [indexes, setSearchParams]
+  );
+
+  // ── 副标题 ───────────────────────────────────
+  const subtitle =
+    headlineHint ?? (currentTab === 0 ? '全景 · 当日行业涨跌一览' : '轮动 · 周期强弱多维对比');
+
   return (
     <DashboardContent>
       {/* ── Page Header ── */}
-      <Stack sx={{ mb: 3 }}>
-        <Typography variant="h4">行业分析</Typography>
-        <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.25 }}>
-          全景热力图 · 行业轮动 · 强弱一览
-        </Typography>
+      <Stack
+        direction={{ xs: 'column', sm: 'row' }}
+        alignItems={{ xs: 'flex-start', sm: 'center' }}
+        justifyContent="space-between"
+        spacing={2}
+        sx={{ mb: 3 }}
+      >
+        <Box>
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <Typography variant="h4">行业分析</Typography>
+            {dictInfo.text && (
+              <Tooltip
+                title={
+                  <Typography variant="caption" sx={{ display: 'block', maxWidth: 300 }}>
+                    主字典 SW2021，热力图按申万一级分组；点击行业后后端返回东财板块 ts_code 作跨 Tab
+                    跳转。
+                  </Typography>
+                }
+                arrow
+              >
+                <IconButton size="small" sx={{ color: 'text.secondary' }}>
+                  <Iconify icon="solar:question-circle-bold" width={16} />
+                </IconButton>
+              </Tooltip>
+            )}
+          </Stack>
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <Typography
+              variant="body2"
+              sx={{
+                color: headlineHint ? 'warning.main' : 'text.secondary',
+                mt: 0.25,
+              }}
+            >
+              {subtitle}
+            </Typography>
+            {dictInfo.text && (
+              <Typography
+                variant="caption"
+                sx={{
+                  color:
+                    dictInfo.tone === 'warning'
+                      ? 'warning.main'
+                      : dictInfo.tone === 'error'
+                        ? 'text.disabled'
+                        : 'text.secondary',
+                  ml: 1,
+                }}
+              >
+                {dictInfo.text}
+              </Typography>
+            )}
+          </Stack>
+        </Box>
+
+        <Stack direction="row" spacing={1.5} alignItems="center">
+          <DatePicker
+            label="交易日期"
+            value={displayDate}
+            onChange={(newVal) => {
+              setDisplayDate(newVal);
+              setTradeDate(newVal ? newVal.format('YYYYMMDD') : undefined);
+            }}
+            format="YYYY-MM-DD"
+            slotProps={{
+              textField: { size: 'small', sx: { width: 190 } },
+              field: { clearable: true },
+            }}
+          />
+          <Button
+            variant="outlined"
+            size="small"
+            startIcon={<Iconify icon="solar:refresh-bold" />}
+            onClick={handleRefresh}
+          >
+            刷新
+          </Button>
+        </Stack>
       </Stack>
 
       {/* ── Tab Bar ── */}
@@ -103,15 +219,21 @@ export function IndustryAnalysisView() {
 
       {/* ── Tab Panels ── */}
       {currentTab === 0 && (
-        <Box sx={EMBED_SX}>
-          <MarketHeatmapView />
-        </Box>
+        <MarketHeatmapView
+          tradeDate={tradeDate}
+          refreshKey={refreshKey}
+          embedded
+          onSectorSelected={handleSectorSelected}
+        />
       )}
 
       {currentTab === 1 && (
-        <Box sx={EMBED_SX}>
-          <IndustryRotationView />
-        </Box>
+        <IndustryRotationView
+          tradeDate={tradeDate}
+          refreshKey={refreshKey}
+          embedded
+          focusedSector={focusedSector}
+        />
       )}
     </DashboardContent>
   );

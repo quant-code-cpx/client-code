@@ -19,7 +19,7 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogActions from '@mui/material/DialogActions';
 import TableContainer from '@mui/material/TableContainer';
 
-import { useRouter } from 'src/routes/hooks';
+import { Iconify } from 'src/components/iconify';
 
 import { toYi, yuanToYi } from './utils';
 
@@ -31,12 +31,21 @@ type Props = {
   sector: SectorFlowItem | null;
   stocks: HeatmapItem[];
   stockFlows: MainFlowRankingItem[];
+  heatmapItem?: HeatmapItem | null;
+  onSwitchToRotation?: (item: HeatmapItem) => void;
 };
 
 // ----------------------------------------------------------------------
 
-export function HeatmapSectorDetailDialog({ open, onClose, sector, stocks, stockFlows }: Props) {
-  const router = useRouter();
+export function HeatmapSectorDetailDialog({
+  open,
+  onClose,
+  sector,
+  stocks,
+  stockFlows,
+  heatmapItem,
+  onSwitchToRotation,
+}: Props) {
   const [tab, setTab] = useState(0);
 
   const handleTabChange = useCallback((_: React.SyntheticEvent, newVal: number) => {
@@ -172,15 +181,15 @@ export function HeatmapSectorDetailDialog({ open, onClose, sector, stocks, stock
       </DialogContent>
 
       <DialogActions>
-        <Button
-          variant="outlined"
-          onClick={() => {
-            router.push('/industry-rotation');
-            onClose();
-          }}
-        >
-          查看行业轮动详情
-        </Button>
+        {onSwitchToRotation && heatmapItem && (
+          <Button
+            variant="outlined"
+            startIcon={<Iconify icon="solar:graph-up-bold" />}
+            onClick={() => onSwitchToRotation(heatmapItem)}
+          >
+            查看 N 日轮动
+          </Button>
+        )}
         <Button onClick={onClose}>关闭</Button>
       </DialogActions>
     </Dialog>

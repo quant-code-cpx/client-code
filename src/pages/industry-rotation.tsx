@@ -1,6 +1,6 @@
 import { CONFIG } from 'src/config-global';
 
-import { IndustryRotationView } from 'src/sections/industry-rotation/view';
+import { IndustryRotationView } from 'src/sections/industry-analysis/rotation/view';
 
 // ----------------------------------------------------------------------
 

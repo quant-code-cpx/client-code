@@ -777,7 +777,8 @@ export async function fetchSectorValuation(query?: {
 /** BE returns { industry, returnTrend, flowTrend, valuation, topStocks };
  *  adapter maps to FE RotationDetailResult */
 export async function fetchRotationDetail(query: {
-  industry: string;
+  tsCode?: string;
+  industry?: string;
   days?: number;
 }): Promise<RotationDetailResult> {
   const res = await apiClient.post<{

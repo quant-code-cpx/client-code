@@ -4,6 +4,7 @@ import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Alert from '@mui/material/Alert';
 import Skeleton from '@mui/material/Skeleton';
+import { useTheme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 import ToggleButton from '@mui/material/ToggleButton';
@@ -11,7 +12,11 @@ import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
 import { periodToDays } from 'src/utils/format-time';
 
-import { fetchFlowAnalysis, fetchRotationHeatmap, type RotationHeatmapSector } from 'src/api/market';
+import {
+  fetchFlowAnalysis,
+  fetchRotationHeatmap,
+  type RotationHeatmapSector,
+} from 'src/api/market';
 
 import { Chart, useChart } from 'src/components/chart';
 
@@ -23,9 +28,11 @@ type Props = {
   tradeDate?: string;
   period?: string;
   onSectorClick?: (name: string) => void;
+  refreshKey?: number;
 };
 
-export function RotationHeatmapChart({ tradeDate, period, onSectorClick }: Props) {
+export function RotationHeatmapChart({ tradeDate, period, onSectorClick, refreshKey }: Props) {
+  const theme = useTheme();
   const [colorMode, setColorMode] = useState<ColorMode>('pctChange');
   const [sectors, setSectors] = useState<RotationHeatmapSector[]>([]);
   // Map<sectorName, netAmount in yuan (元)> — populated from flow-analysis endpoint
@@ -39,7 +46,10 @@ export function RotationHeatmapChart({ tradeDate, period, onSectorClick }: Props
     setLoading(true);
     setError('');
 
-    fetchRotationHeatmap({ trade_date: tradeDate, periods: period ? [periodToDays(period)] : undefined })
+    fetchRotationHeatmap({
+      trade_date: tradeDate,
+      periods: period ? [periodToDays(period)] : undefined,
+    })
       .then((res) => {
         if (!cancelled) setSectors(res?.sectors ?? []);
       })
@@ -53,7 +63,7 @@ export function RotationHeatmapChart({ tradeDate, period, onSectorClick }: Props
     return () => {
       cancelled = true;
     };
-  }, [tradeDate, period]);
+  }, [tradeDate, period, refreshKey]);
 
   // Secondary: fetch flow analysis to populate netAmount per sector (best-effort, silent on error)
   useEffect(() => {
@@ -68,9 +78,13 @@ export function RotationHeatmapChart({ tradeDate, period, onSectorClick }: Props
           setFlowMap(map);
         }
       })
-      .catch(() => {/* silently ignore — heatmap still works without flow data */});
-    return () => { cancelled = true; };
-  }, [tradeDate, period]);
+      .catch(() => {
+        /* silently ignore — heatmap still works without flow data */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [tradeDate, period, refreshKey]);
 
   const handleColorModeChange = useCallback(
     (_: React.MouseEvent<HTMLElement>, val: ColorMode | null) => {
@@ -94,24 +108,24 @@ export function RotationHeatmapChart({ tradeDate, period, onSectorClick }: Props
 
   // A-share convention: 红涨绿跌 (red = gain/inflow, green = drop/outflow)
   const pctRanges = [
-    { from: -100, to: -7,  color: '#1A7A55' },
-    { from: -7,   to: -3,  color: '#36B37E' },
-    { from: -3,   to: -1,  color: '#86EFAC' },
-    { from: -1,   to:  1,  color: '#919EAB' },
-    { from:  1,   to:  3,  color: '#FFAC82' },
-    { from:  3,   to:  7,  color: '#FF5630' },
-    { from:  7,   to: 100, color: '#B72136' },
+    { from: -100, to: -7, color: theme.palette.success.darker },
+    { from: -7, to: -3, color: theme.palette.success.dark },
+    { from: -3, to: -1, color: theme.palette.success.light },
+    { from: -1, to: 1, color: theme.palette.grey[500] },
+    { from: 1, to: 3, color: theme.palette.error.light },
+    { from: 3, to: 7, color: theme.palette.error.main },
+    { from: 7, to: 100, color: theme.palette.error.dark },
   ];
 
   // Net flow ranges in 亿 (same color convention)
   const flowRanges = [
-    { from: -1e6, to: -50, color: '#1A7A55' },
-    { from: -50,  to: -10, color: '#36B37E' },
-    { from: -10,  to:  -2, color: '#86EFAC' },
-    { from:  -2,  to:   2, color: '#919EAB' },
-    { from:   2,  to:  10, color: '#FFAC82' },
-    { from:  10,  to:  50, color: '#FF5630' },
-    { from:  50,  to: 1e6, color: '#B72136' },
+    { from: -1e6, to: -50, color: theme.palette.success.darker },
+    { from: -50, to: -10, color: theme.palette.success.dark },
+    { from: -10, to: -2, color: theme.palette.success.light },
+    { from: -2, to: 2, color: theme.palette.grey[500] },
+    { from: 2, to: 10, color: theme.palette.error.light },
+    { from: 10, to: 50, color: theme.palette.error.main },
+    { from: 50, to: 1e6, color: theme.palette.error.dark },
   ];
 
   const chartOptions = useChart({
@@ -151,13 +165,7 @@ export function RotationHeatmapChart({ tradeDate, period, onSectorClick }: Props
     tooltip: {
       shared: false,
       intersect: true,
-      custom: ({
-        dataPointIndex,
-      }: {
-        seriesIndex: number;
-        dataPointIndex: number;
-        w: unknown;
-      }) => {
+      custom: ({ dataPointIndex }: { seriesIndex: number; dataPointIndex: number; w: unknown }) => {
         const sector = sectors[dataPointIndex];
         if (!sector) return '';
         const netYuan = flowMap.get(sector.name) ?? 0;
@@ -167,8 +175,8 @@ export function RotationHeatmapChart({ tradeDate, period, onSectorClick }: Props
         return [
           '<div style="padding:8px 12px;font-size:13px;">',
           `<b>${sector.name}</b><br/>`,
-          `涨跌幅：<span style="color:${sector.pctChange >= 0 ? '#FF5630' : '#1A7A55'}">${pctSign}${sector.pctChange.toFixed(2)}%</span><br/>`,
-          `区间净流入：<span style="color:${netYuan >= 0 ? '#FF5630' : '#1A7A55'}">${flowSign}${netYi} 亿</span>`,
+          `涨跌幅：<span style="color:${sector.pctChange >= 0 ? theme.palette.error.main : theme.palette.success.dark}">${pctSign}${sector.pctChange.toFixed(2)}%</span><br/>`,
+          `区间净流入：<span style="color:${netYuan >= 0 ? theme.palette.error.main : theme.palette.success.dark}">${flowSign}${netYi} 亿</span>`,
           '</div>',
         ].join('');
       },
@@ -213,4 +221,3 @@ export function RotationHeatmapChart({ tradeDate, period, onSectorClick }: Props
     </Card>
   );
 }
-

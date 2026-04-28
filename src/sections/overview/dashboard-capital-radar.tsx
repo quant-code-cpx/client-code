@@ -65,9 +65,8 @@ export function DashboardCapitalRadar({ refreshKey }: DashboardCapitalRadarProps
   const mfNetYi = mfNet / 1e8;
   const mfIsPos = mfNetYi >= 0;
 
-  // 主力/散户汇总口径（按单量分层：超大+大单 vs 中+小单，元）
+  // 主力汇总口径（超大+大单，元）
   const mainNet = moneyFlow?.main?.netAmount ?? 0;
-  const retailNet = moneyFlow?.retail?.netAmount ?? 0;
 
   // 四层明细（元）
   const tiers = [
@@ -81,7 +80,7 @@ export function DashboardCapitalRadar({ refreshKey }: DashboardCapitalRadarProps
   const northAmount = hsgt?.northMoney != null ? hsgt.northMoney / 100 : null;
 
   return (
-    <Card sx={{ height: '100%' }}>
+    <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <CardHeader
         title="资金雷达"
         titleTypographyProps={{ variant: 'subtitle1', fontWeight: 700 }}
@@ -89,7 +88,7 @@ export function DashboardCapitalRadar({ refreshKey }: DashboardCapitalRadarProps
         sx={{ pb: 0.5 }}
       />
 
-      <Box sx={{ px: 3, pb: 2.5 }}>
+      <Box sx={{ px: 3, pb: 2.5, flex: 1, display: 'flex', flexDirection: 'column' }}>
         {/* ── Hero: 全市场净流入 ── */}
         <Box sx={{ textAlign: 'center', mb: 2 }}>
           <Stack direction="row" alignItems="center" justifyContent="center" spacing={0.5}>
@@ -143,48 +142,45 @@ export function DashboardCapitalRadar({ refreshKey }: DashboardCapitalRadarProps
           </Typography>
         </Box>
 
-        {/* ── 主力 vs 散户（按单量汇总口径） ── */}
-        <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
-          {[
-            { label: '主力', desc: '超大+大单', val: mainNet },
-            { label: '散户', desc: '中+小单', val: retailNet },
-          ].map((g) => {
-            const yi = g.val / 1e8;
-            const isPos = yi >= 0;
-            return (
-              <Box
-                key={g.label}
-                sx={{
-                  flex: 1,
-                  p: 1.25,
-                  borderRadius: 1.5,
-                  bgcolor: varAlpha(
-                    isPos
-                      ? theme.vars.palette.error.mainChannel
-                      : theme.vars.palette.success.mainChannel,
-                    0.06
-                  ),
-                }}
+        {/* ── 主力净流入（超大+大单；散户方向必然相反，不重复展示） ── */}
+        {(() => {
+          const yi = mainNet / 1e8;
+          const isPos = yi >= 0;
+          return (
+            <Box
+              sx={{
+                p: 1.25,
+                mb: 2,
+                borderRadius: 1.5,
+                bgcolor: varAlpha(
+                  isPos
+                    ? theme.vars.palette.error.mainChannel
+                    : theme.vars.palette.success.mainChannel,
+                  0.06
+                ),
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
+            >
+              <Tooltip
+                title="超大单（≥100万）+ 大单（20~100万）净流入；散户方向与主力相反，数值互为镜像"
+                arrow
               >
-                <Tooltip title={g.desc} arrow>
-                  <Typography
-                    variant="caption"
-                    sx={{ color: 'text.secondary', fontWeight: 600, cursor: 'help' }}
-                  >
-                    {g.label}
-                  </Typography>
-                </Tooltip>
                 <Typography
-                  variant="subtitle2"
-                  sx={{ fontWeight: 700, color: flowColor(yi), mt: 0.25 }}
+                  variant="caption"
+                  sx={{ color: 'text.secondary', fontWeight: 600, cursor: 'help' }}
                 >
-                  {isPos ? '+' : ''}
-                  {yi.toFixed(2)}亿
+                  主力净流入
                 </Typography>
-              </Box>
-            );
-          })}
-        </Stack>
+              </Tooltip>
+              <Typography variant="subtitle2" sx={{ fontWeight: 700, color: flowColor(yi) }}>
+                {isPos ? '+' : ''}
+                {yi.toFixed(2)}亿
+              </Typography>
+            </Box>
+          );
+        })()}
 
         <Divider sx={{ mb: 1.5 }} />
 
@@ -218,7 +214,7 @@ export function DashboardCapitalRadar({ refreshKey }: DashboardCapitalRadarProps
           </Tooltip>
         </Stack>
 
-        <Stack spacing={1}>
+        <Stack sx={{ flex: 1, justifyContent: 'space-evenly' }}>
           {tiers.map((t) => {
             const buy = t.tier?.buyAmount ?? 0;
             const sell = t.tier?.sellAmount ?? 0;
@@ -322,7 +318,7 @@ export function DashboardCapitalRadar({ refreshKey }: DashboardCapitalRadarProps
           justifyContent="space-between"
           alignItems="center"
           sx={{
-            mt: 1.5,
+            mt: 0,
             pt: 1.5,
             borderTop: `1px dashed ${varAlpha(theme.vars.palette.text.disabledChannel, 0.16)}`,
           }}

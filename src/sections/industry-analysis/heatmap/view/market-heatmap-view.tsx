@@ -45,12 +45,27 @@ const GROUP_OPTIONS: GroupConfig[] = [
   { value: 'cyb', label: '创业板', groupBy: 'index', indexCode: '399006.SZ' },
 ];
 
-export function MarketHeatmapView() {
-  // ── 共享状态 ─────────────────────────────────
-  const [tradeDate, setTradeDate] = useState<Dayjs | null>(null);
-  const [viewMode, setViewMode] = useState<ViewMode>('scatter');
+// ----------------------------------------------------------------------
 
-  const tradeDateStr = tradeDate ? tradeDate.format('YYYYMMDD') : undefined;
+export type MarketHeatmapViewProps = {
+  tradeDate?: string;
+  refreshKey?: number;
+  embedded?: boolean;
+  onSectorSelected?: (item: HeatmapItem) => void;
+};
+
+export function MarketHeatmapView({
+  tradeDate: externalTradeDate,
+  refreshKey,
+  embedded = false,
+  onSectorSelected,
+}: MarketHeatmapViewProps = {}) {
+  // ── 内部日期状态（仅独立模式使用）──────────────
+  const [internalDate, setInternalDate] = useState<Dayjs | null>(null);
+  const tradeDateStr = embedded ? externalTradeDate : (internalDate ? internalDate.format('YYYYMMDD') : undefined);
+
+  // ── 共享状态 ─────────────────────────────────
+  const [viewMode, setViewMode] = useState<ViewMode>('scatter');
 
   // ── 热力图（TreeMap + 下方统计图）数据 ───────
   // 仅在 treemap 模式下加载 5000 股数据，避免散点图模式下浪费
@@ -144,6 +159,8 @@ export function MarketHeatmapView() {
       trade_date: tradeDateStr,
       group_by: cfg.groupBy,
       index_code: cfg.indexCode,
+      industry_source: 'sw_l1',
+      include_mapping: true,
     })
       .then((result) => {
         if (!cancelled) setItems(result);
@@ -158,7 +175,7 @@ export function MarketHeatmapView() {
     return () => {
       cancelled = true;
     };
-  }, [viewMode, tradeDateStr, groupBy]);
+  }, [viewMode, tradeDateStr, groupBy, refreshKey]);
 
   // ── 数据加载：散点图数据 ──────────────────────
   useEffect(() => {
@@ -197,7 +214,7 @@ export function MarketHeatmapView() {
     return () => {
       cancelled = true;
     };
-  }, [viewMode, tradeDateStr, contentType]);
+  }, [viewMode, tradeDateStr, contentType, refreshKey]);
 
   // ── 事件处理 ─────────────────────────────────
   const handleViewModeChange = useCallback(
@@ -230,6 +247,14 @@ export function MarketHeatmapView() {
     setDetailOpen(true);
   }, []);
 
+  const handleSwitchToRotation = useCallback(
+    (item: HeatmapItem) => {
+      setDetailOpen(false);
+      onSectorSelected?.(item);
+    },
+    [onSectorSelected]
+  );
+
   const activeGroupBy = GROUP_OPTIONS.find((o) => o.value === groupBy)!.groupBy;
 
   // ── 弹窗数据：按行业筛选个股 ─────────────────
@@ -244,144 +269,176 @@ export function MarketHeatmapView() {
     [mainFlowRanking, detailSector]
   );
 
-  return (
-    <DashboardContent>
+  // 查找与 detailSector 对应的 HeatmapItem（用于传递 swCode/dcTsCode 等映射字段）
+  const detailHeatmapItem = useMemo(
+    () => (detailSector ? items.find((s) => (s.groupName ?? s.industry) === detailSector.name) ?? null : null),
+    [items, detailSector]
+  );
+
+  // ── 工具栏 ───────────────────────────────────
+  const toolbar = (
+    <Stack
+      direction={{ xs: 'column', sm: 'row' }}
+      alignItems={{ xs: 'flex-start', sm: 'center' }}
+      justifyContent="space-between"
+      spacing={2}
+      sx={{ mb: 3 }}
+    >
+      {!embedded && <Typography variant="h4">市场热力图</Typography>}
+
       <Stack
         direction={{ xs: 'column', sm: 'row' }}
-        alignItems={{ xs: 'flex-start', sm: 'center' }}
-        justifyContent="space-between"
         spacing={2}
-        sx={{ mb: 3 }}
+        alignItems="center"
+        flexWrap="wrap"
+        useFlexGap
       >
-        <Typography variant="h4">市场热力图</Typography>
-
-        <Stack
-          direction={{ xs: 'column', sm: 'row' }}
-          spacing={2}
-          alignItems="center"
-          flexWrap="wrap"
-          useFlexGap
-        >
+        {!embedded && (
           <DatePicker
             label="交易日期"
-            value={tradeDate}
-            onChange={(newVal) => setTradeDate(newVal)}
+            value={internalDate}
+            onChange={(newVal) => setInternalDate(newVal)}
             format="YYYY-MM-DD"
             slotProps={{
               textField: { size: 'small', sx: { width: 190 } },
               field: { clearable: true },
             }}
           />
+        )}
 
-          {/* 视图切换 */}
+        {/* 视图切换 */}
+        <ToggleButtonGroup
+          size="small"
+          exclusive
+          value={viewMode}
+          onChange={handleViewModeChange}
+        >
+          <ToggleButton value="scatter">散点图</ToggleButton>
+          <ToggleButton value="treemap">TreeMap</ToggleButton>
+        </ToggleButtonGroup>
+
+        {/* 散点图：板块类型切换 */}
+        {viewMode === 'scatter' && (
           <ToggleButtonGroup
             size="small"
             exclusive
-            value={viewMode}
-            onChange={handleViewModeChange}
+            value={contentType}
+            onChange={handleContentTypeChange}
           >
-            <ToggleButton value="scatter">散点图</ToggleButton>
-            <ToggleButton value="treemap">TreeMap</ToggleButton>
+            <ToggleButton value="INDUSTRY">行业</ToggleButton>
+            <ToggleButton value="CONCEPT">概念</ToggleButton>
+            <ToggleButton value="REGION">地域</ToggleButton>
           </ToggleButtonGroup>
+        )}
 
-          {/* 散点图：板块类型切换 */}
-          {viewMode === 'scatter' && (
+        {/* TreeMap：分组 + 大小维度 */}
+        {viewMode === 'treemap' && (
+          <>
             <ToggleButtonGroup
               size="small"
               exclusive
-              value={contentType}
-              onChange={handleContentTypeChange}
+              value={groupBy}
+              onChange={handleGroupByChange}
             >
-              <ToggleButton value="INDUSTRY">行业</ToggleButton>
-              <ToggleButton value="CONCEPT">概念</ToggleButton>
-              <ToggleButton value="REGION">地域</ToggleButton>
+              {GROUP_OPTIONS.map((opt) => (
+                <ToggleButton key={opt.value} value={opt.value}>
+                  {opt.label}
+                </ToggleButton>
+              ))}
             </ToggleButtonGroup>
-          )}
 
-          {/* TreeMap：分组 + 大小维度 */}
-          {viewMode === 'treemap' && (
-            <>
-              <ToggleButtonGroup
-                size="small"
-                exclusive
-                value={groupBy}
-                onChange={handleGroupByChange}
-              >
-                {GROUP_OPTIONS.map((opt) => (
-                  <ToggleButton key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </ToggleButton>
-                ))}
-              </ToggleButtonGroup>
-
-              <ToggleButtonGroup
-                size="small"
-                exclusive
-                value={sizeBy}
-                onChange={handleSizeByChange}
-              >
-                <ToggleButton value="totalMv">总市值</ToggleButton>
-                <ToggleButton value="amount">成交额</ToggleButton>
-              </ToggleButtonGroup>
-            </>
-          )}
-        </Stack>
+            <ToggleButtonGroup
+              size="small"
+              exclusive
+              value={sizeBy}
+              onChange={handleSizeByChange}
+            >
+              <ToggleButton value="totalMv">总市值</ToggleButton>
+              <ToggleButton value="amount">成交额</ToggleButton>
+            </ToggleButtonGroup>
+          </>
+        )}
       </Stack>
+    </Stack>
+  );
 
-      <Grid container spacing={3}>
-        {/* 主图区 */}
-        <Grid size={{ xs: 12 }}>
-          {viewMode === 'scatter' ? (
-            <HeatmapScatterChart
-              sectors={sectorFlows}
-              topGainersByGroup={topGainersByGroup}
-              topInflowByGroup={topInflowByGroup}
-              loading={scatterLoading}
-              error={scatterError}
-              onSectorClick={handleSectorClick}
-            />
-          ) : (
-            <HeatmapTreemapChart
-              items={items}
-              distribution={items.length > 0 ? distribution : null}
-              loading={loading}
-              error={error}
-              groupBy={activeGroupBy}
-              sizeBy={sizeBy}
-            />
-          )}
-        </Grid>
-
-        {/* 下方统计图 — 始终显示 */}
-        <Grid size={{ xs: 12, md: 7 }}>
-          <HeatmapSectorBarChart
-            sectors={viewMode === 'scatter' ? scatterSectors : sectors}
-            loading={viewMode === 'scatter' ? scatterLoading : loading}
-            error={viewMode === 'scatter' ? scatterError : error}
+  // ── 主内容 ───────────────────────────────────
+  const content = (
+    <Grid container spacing={3}>
+      {/* 主图区 */}
+      <Grid size={{ xs: 12 }}>
+        {viewMode === 'scatter' ? (
+          <HeatmapScatterChart
+            sectors={sectorFlows}
+            topGainersByGroup={topGainersByGroup}
+            topInflowByGroup={topInflowByGroup}
+            loading={scatterLoading}
+            error={scatterError}
+            onSectorClick={handleSectorClick}
           />
-        </Grid>
-
-        <Grid size={{ xs: 12, md: 5 }}>
-          <HeatmapDistributionChart
-            distribution={viewMode === 'treemap' && items.length > 0 ? distribution : null}
-            loading={viewMode === 'treemap' ? loading : false}
-            error={viewMode === 'treemap' ? error : ''}
+        ) : (
+          <HeatmapTreemapChart
+            items={items}
+            distribution={items.length > 0 ? distribution : null}
+            loading={loading}
+            error={error}
+            groupBy={activeGroupBy}
+            sizeBy={sizeBy}
           />
-        </Grid>
-
-        <Grid size={{ xs: 12 }}>
-          <HeatmapSnapshotPanel />
-        </Grid>
+        )}
       </Grid>
 
-      {/* 行业详情弹窗 */}
-      <HeatmapSectorDetailDialog
-        open={detailOpen}
-        onClose={() => setDetailOpen(false)}
-        sector={detailSector}
-        stocks={detailStocks}
-        stockFlows={detailStockFlows}
-      />
+      {/* 下方统计图 — 始终显示 */}
+      <Grid size={{ xs: 12, md: 7 }}>
+        <HeatmapSectorBarChart
+          sectors={viewMode === 'scatter' ? scatterSectors : sectors}
+          loading={viewMode === 'scatter' ? scatterLoading : loading}
+          error={viewMode === 'scatter' ? scatterError : error}
+        />
+      </Grid>
+
+      <Grid size={{ xs: 12, md: 5 }}>
+        <HeatmapDistributionChart
+          distribution={viewMode === 'treemap' && items.length > 0 ? distribution : null}
+          loading={viewMode === 'treemap' ? loading : false}
+          error={viewMode === 'treemap' ? error : ''}
+        />
+      </Grid>
+
+      <Grid size={{ xs: 12 }}>
+        <HeatmapSnapshotPanel />
+      </Grid>
+    </Grid>
+  );
+
+  // ── 行业详情弹窗 ─────────────────────────────
+  const detailDialog = (
+    <HeatmapSectorDetailDialog
+      open={detailOpen}
+      onClose={() => setDetailOpen(false)}
+      sector={detailSector}
+      stocks={detailStocks}
+      stockFlows={detailStockFlows}
+      heatmapItem={detailHeatmapItem}
+      onSwitchToRotation={onSectorSelected ? handleSwitchToRotation : undefined}
+    />
+  );
+
+  if (embedded) {
+    return (
+      <>
+        {toolbar}
+        {content}
+        {detailDialog}
+      </>
+    );
+  }
+
+  return (
+    <DashboardContent>
+      {toolbar}
+      {content}
+      {detailDialog}
     </DashboardContent>
   );
 }

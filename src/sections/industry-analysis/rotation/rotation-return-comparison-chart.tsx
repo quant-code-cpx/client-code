@@ -70,9 +70,10 @@ function periodLabel(key: string): string {
 type Props = {
   tradeDate?: string;
   period?: string;
+  refreshKey?: number;
 };
 
-export function RotationReturnComparisonChart({ tradeDate, period }: Props) {
+export function RotationReturnComparisonChart({ tradeDate, period, refreshKey }: Props) {
   const theme = useTheme();
   const [selectedSectors, setSelectedSectors] = useState<string[]>([]);
   const [data, setData] = useState<ReturnComparisonResult | null>(null);
@@ -101,7 +102,7 @@ export function RotationReturnComparisonChart({ tradeDate, period }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [tradeDate, period]);
+  }, [tradeDate, period, refreshKey]);
 
   const handleSectorChange = useCallback((_: unknown, value: string[]) => {
     if (value.length <= MAX_SECTORS) setSelectedSectors(value);

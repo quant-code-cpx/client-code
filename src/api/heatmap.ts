@@ -14,6 +14,12 @@ export type HeatmapItem = {
   totalMv: number | null;
   /** 当日成交额（千元） */
   amount: number | null;
+  // ── 行业字典映射字段（当 industry_source + include_mapping 启用时携带）──
+  swCode?: string | null;
+  swName?: string | null;
+  dcTsCode?: string | null;
+  dcBoardCode?: string | null;
+  dcName?: string | null;
 };
 
 /** 快照历史响应（对应后端 HeatmapHistoryResponse） */
@@ -62,6 +68,8 @@ export function fetchHeatmapData(query?: {
   trade_date?: string;
   group_by?: 'industry' | 'index' | 'concept';
   index_code?: string;
+  industry_source?: 'sw_l1';
+  include_mapping?: boolean;
 }) {
   return apiClient.post<HeatmapItem[]>('/api/heatmap/data', query ?? {});
 }

@@ -16,9 +16,10 @@ import { fetchRotationOverview, type RotationOverviewResult } from 'src/api/mark
 type Props = {
   tradeDate?: string;
   period?: string;
+  refreshKey?: number;
 };
 
-export function RotationOverviewCards({ tradeDate, period }: Props) {
+export function RotationOverviewCards({ tradeDate, period, refreshKey }: Props) {
   const theme = useTheme();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<RotationOverviewResult | null>(null);
@@ -41,7 +42,7 @@ export function RotationOverviewCards({ tradeDate, period }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [tradeDate, period]);
+  }, [tradeDate, period, refreshKey]);
 
   const riseRatio =
     data && data.totalCount > 0 ? Math.round((data.riseCount / data.totalCount) * 100) : 0;

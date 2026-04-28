@@ -27,9 +27,10 @@ type Props = {
   tradeDate?: string;
   period?: string;
   onSectorClick?: (name: string) => void;
+  refreshKey?: number;
 };
 
-export function RotationFlowAnalysisChart({ tradeDate, period, onSectorClick }: Props) {
+export function RotationFlowAnalysisChart({ tradeDate, period, onSectorClick, refreshKey }: Props) {
   const theme = useTheme();
   const [flows, setFlows] = useState<FlowAnalysisItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -54,7 +55,7 @@ export function RotationFlowAnalysisChart({ tradeDate, period, onSectorClick }: 
     return () => {
       cancelled = true;
     };
-  }, [tradeDate, period]);
+  }, [tradeDate, period, refreshKey]);
 
   // Sort by net inflow descending, take top MAX_SECTORS
   const displayed = [...flows].sort((a, b) => b.netInflow - a.netInflow).slice(0, MAX_SECTORS);

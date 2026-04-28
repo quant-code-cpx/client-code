@@ -54,6 +54,7 @@ type Props = {
   open: boolean;
   onClose: () => void;
   sectorName: string | null;
+  tsCode?: string;
   tradeDate?: string;
   period?: string;
 };
@@ -178,9 +179,8 @@ const SectorKlineChart = memo(function SectorKlineChart({
     fetchSectorDaily({ trade_date: td })
       .then((items) => {
         if (!cancelled) {
-          // filter to only this sector's data or show all sorted by pctChg
           const filtered = (items ?? []).filter((it) => it.name === name);
-          setData(filtered.length > 0 ? filtered : (items ?? []));
+          setData(filtered);
         }
       })
       .catch(() => {
@@ -217,7 +217,14 @@ const SectorKlineChart = memo(function SectorKlineChart({
 
 // ----------------------------------------------------------------------
 
-export function RotationDetailDrawer({ open, onClose, sectorName, tradeDate, period }: Props) {
+export function RotationDetailDrawer({
+  open,
+  onClose,
+  sectorName,
+  tsCode,
+  tradeDate,
+  period,
+}: Props) {
   const theme = useTheme();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<DrawerTab>('return');
@@ -233,7 +240,11 @@ export function RotationDetailDrawer({ open, onClose, sectorName, tradeDate, per
     setError('');
     setDetail(null);
 
-    fetchRotationDetail({ industry: sectorName, days: period ? periodToDays(period) : undefined })
+    fetchRotationDetail({
+      tsCode: tsCode ?? undefined,
+      industry: sectorName ?? undefined,
+      days: period ? periodToDays(period) : undefined,
+    })
       .then((res) => {
         if (!cancelled) setDetail(res ?? null);
       })
@@ -247,7 +258,7 @@ export function RotationDetailDrawer({ open, onClose, sectorName, tradeDate, per
     return () => {
       cancelled = true;
     };
-  }, [open, sectorName, tradeDate, period]);
+  }, [open, sectorName, tsCode, period]);
 
   const handleTabChange = useCallback((_: React.SyntheticEvent, val: DrawerTab) => {
     setActiveTab(val);
