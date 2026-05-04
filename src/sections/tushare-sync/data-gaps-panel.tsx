@@ -5,13 +5,10 @@ import { useState } from 'react';
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
-import Select from '@mui/material/Select';
 import Button from '@mui/material/Button';
-import MenuItem from '@mui/material/MenuItem';
+import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import InputLabel from '@mui/material/InputLabel';
-import FormControl from '@mui/material/FormControl';
-import ListSubheader from '@mui/material/ListSubheader';
+import Autocomplete from '@mui/material/Autocomplete';
 import CircularProgress from '@mui/material/CircularProgress';
 
 import { tushareSyncApi } from 'src/api/tushare-sync';
@@ -57,29 +54,15 @@ const DATA_SET_OPTIONS: Array<{ label: string; value: string; group: string }> =
   { label: '指数权重 (indexWeight)', value: 'indexWeight', group: '因子' },
 ];
 
-// Group options by category
-function groupBy<T extends { group: string }>(arr: T[]): Map<string, T[]> {
-  const map = new Map<string, T[]>();
-  for (const item of arr) {
-    const existing = map.get(item.group);
-    if (existing) {
-      existing.push(item);
-    } else {
-      map.set(item.group, [item]);
-    }
-  }
-  return map;
-}
-
 export function DataGapsPanel() {
-  const [dataSet, setDataSet] = useState('daily');
+  const [selectedOption, setSelectedOption] = useState(DATA_SET_OPTIONS[0]);
   const [result, setResult] = useState<DataGapsResult | null>(null);
   const [loading, setLoading] = useState(false);
 
   const handleQuery = async () => {
     setLoading(true);
     try {
-      const data = await tushareSyncApi.getDataGaps(dataSet);
+      const data = await tushareSyncApi.getDataGaps(selectedOption.value);
       setResult(data);
     } catch {
       // ignore
@@ -88,31 +71,25 @@ export function DataGapsPanel() {
     }
   };
 
-  const grouped = groupBy(DATA_SET_OPTIONS);
-
   return (
     <Box>
       <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems="flex-end">
-        <FormControl size="small" sx={{ minWidth: 260 }}>
-          <InputLabel>数据集</InputLabel>
-          <Select
-            label="数据集"
-            value={dataSet}
-            onChange={(e) => {
-              setDataSet(e.target.value);
-              setResult(null);
-            }}
-          >
-            {Array.from(grouped.entries()).flatMap(([group, options]) => [
-              <ListSubheader key={`header-${group}`}>{group}</ListSubheader>,
-              ...options.map((opt) => (
-                <MenuItem key={opt.value} value={opt.value}>
-                  {opt.label}
-                </MenuItem>
-              )),
-            ])}
-          </Select>
-        </FormControl>
+        <Autocomplete
+          size="small"
+          disablePortal
+          options={DATA_SET_OPTIONS}
+          value={selectedOption}
+          groupBy={(option) => option.group}
+          getOptionLabel={(option) => option.label}
+          isOptionEqualToValue={(option, value) => option.value === value.value}
+          onChange={(_, value) => {
+            if (!value) return;
+            setSelectedOption(value);
+            setResult(null);
+          }}
+          renderInput={(params) => <TextField {...params} label="数据集" />}
+          sx={{ width: { xs: 1, sm: 360 } }}
+        />
         <Button
           variant="outlined"
           size="small"

@@ -1,4 +1,4 @@
-import type { AuditAction, AuditLogItem } from 'src/api/user-manage';
+import type { AuditAction, AuditResult, AuditLogItem } from 'src/api/user-manage';
 
 import { useState } from 'react';
 
@@ -13,7 +13,6 @@ import TableHead from '@mui/material/TableHead';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import TableContainer from '@mui/material/TableContainer';
-import TableSortLabel from '@mui/material/TableSortLabel';
 import TablePagination from '@mui/material/TablePagination';
 
 import { fDateTime } from 'src/utils/format-time';
@@ -24,17 +23,40 @@ import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
 import { Scrollbar } from 'src/components/scrollbar';
 
+import { AuditLogDetailDiff } from './audit-log-detail-diff';
+
 // ----------------------------------------------------------------------
 
 const AUDIT_ACTION_COLOR: Record<
   AuditAction,
-  'info' | 'error' | 'warning' | 'success' | 'primary'
+  'default' | 'info' | 'error' | 'warning' | 'success' | 'primary' | 'secondary'
 > = {
   USER_CREATE: 'success',
   USER_DELETE: 'error',
+  USER_RESTORE: 'success',
+  USER_UNLOCK: 'warning',
+  USER_UPDATE_ROLE: 'secondary',
   USER_UPDATE_STATUS: 'warning',
   USER_UPDATE_INFO: 'info',
   USER_RESET_PASSWORD: 'primary',
+  LOGIN_SUCCESS: 'success',
+  LOGIN_FAILED: 'error',
+  LOGOUT: 'default',
+  TOKEN_REFRESH: 'info',
+  USER_BULK_UPDATE_STATUS: 'warning',
+  USER_BULK_UPDATE_QUOTA: 'primary',
+};
+
+const AUDIT_RESULT_LABEL: Record<AuditResult, string> = {
+  success: '成功',
+  failure: '失败',
+  blocked: '拦截',
+};
+
+const AUDIT_RESULT_COLOR: Record<AuditResult, 'success' | 'error' | 'warning'> = {
+  success: 'success',
+  failure: 'error',
+  blocked: 'warning',
 };
 
 const TABLE_HEAD = [
@@ -43,6 +65,7 @@ const TABLE_HEAD = [
   { id: 'operatorAccount', label: '操作者', minWidth: 120 },
   { id: 'action', label: '操作类型', width: 130 },
   { id: 'targetAccount', label: '目标用户', minWidth: 120 },
+  { id: 'result', label: '结果', width: 90 },
   { id: 'ipAddress', label: 'IP 地址', width: 140 },
   { id: 'createdAt', label: '操作时间', width: 160 },
 ];
@@ -52,13 +75,18 @@ const TABLE_HEAD = [
 function ExpandableRow({ row }: { row: AuditLogItem }) {
   const [open, setOpen] = useState(false);
   const hasDetails = !!row.details && Object.keys(row.details).length > 0;
+  const result = row.result ?? row.details?.result;
 
   return (
     <>
       <TableRow hover>
         <TableCell sx={{ width: 48, px: 1 }}>
           {hasDetails && (
-            <IconButton size="small" onClick={() => setOpen(!open)}>
+            <IconButton
+              size="small"
+              onClick={() => setOpen(!open)}
+              aria-label={open ? '收起审计详情' : '展开审计详情'}
+            >
               <Iconify
                 icon={open ? 'solar:alt-arrow-up-bold' : 'solar:alt-arrow-down-bold'}
                 width={16}
@@ -74,6 +102,15 @@ function ExpandableRow({ row }: { row: AuditLogItem }) {
           </Label>
         </TableCell>
         <TableCell sx={{ minWidth: 120 }}>{row.targetAccount ?? '—'}</TableCell>
+        <TableCell sx={{ width: 90 }}>
+          {result ? (
+            <Label color={AUDIT_RESULT_COLOR[result]} variant="soft">
+              {AUDIT_RESULT_LABEL[result]}
+            </Label>
+          ) : (
+            '—'
+          )}
+        </TableCell>
         <TableCell sx={{ width: 140, display: { xs: 'none', md: 'table-cell' } }}>
           {row.ipAddress ?? '—'}
         </TableCell>
@@ -85,23 +122,14 @@ function ExpandableRow({ row }: { row: AuditLogItem }) {
           <TableCell colSpan={TABLE_HEAD.length} sx={{ py: 0, borderBottom: 'none' }}>
             <Collapse in={open} timeout="auto" unmountOnExit>
               <Box sx={{ py: 1.5, px: 2 }}>
-                <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ mb: 0.5, display: 'block' }}
+                >
                   操作详情
                 </Typography>
-                <Box
-                  component="pre"
-                  sx={{
-                    fontSize: 12,
-                    bgcolor: 'action.hover',
-                    borderRadius: 1,
-                    p: 1.5,
-                    overflow: 'auto',
-                    maxHeight: 240,
-                    m: 0,
-                  }}
-                >
-                  {JSON.stringify(row.details, null, 2)}
-                </Box>
+                <AuditLogDetailDiff details={row.details} />
               </Box>
             </Collapse>
           </TableCell>
@@ -140,15 +168,8 @@ export function AuditLogTable({
             <TableHead>
               <TableRow>
                 {TABLE_HEAD.map((col) => (
-                  <TableCell
-                    key={col.id}
-                    sx={{ width: col.width, minWidth: col.minWidth }}
-                  >
-                    {col.id && col.id !== 'expand' ? (
-                      <TableSortLabel hideSortIcon>{col.label}</TableSortLabel>
-                    ) : (
-                      col.label
-                    )}
+                  <TableCell key={col.id} sx={{ width: col.width, minWidth: col.minWidth }}>
+                    {col.label}
                   </TableCell>
                 ))}
               </TableRow>

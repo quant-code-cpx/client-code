@@ -1,6 +1,7 @@
 import type { BacktestReportData } from 'src/api/report';
 
 import { useMemo, useState } from 'react';
+import { varAlpha } from 'minimal-shared/utils';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -83,8 +84,12 @@ function NavCurveChart({ points }: NavCurveChartProps) {
           净值曲线
         </Typography>
         {points.length === 0 ? (
-          <Box sx={{ height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Typography variant="body2" sx={{ color: 'text.secondary' }}>暂无数据</Typography>
+          <Box
+            sx={{ height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          >
+            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+              暂无数据
+            </Typography>
           </Box>
         ) : (
           <Chart type="area" series={series} options={chartOptions} sx={{ height: 300 }} />
@@ -112,7 +117,11 @@ function DrawdownCurveChart({ points }: DrawdownCurveChartProps) {
     dataLabels: { enabled: false },
     xaxis: { type: 'category', categories: points.map((p) => p.date), tickAmount: 8 },
     yaxis: { labels: { formatter: (v: number) => `${v.toFixed(1)}%` } },
-    tooltip: { shared: true, intersect: false, y: { formatter: (v: number) => `${v.toFixed(2)}%` } },
+    tooltip: {
+      shared: true,
+      intersect: false,
+      y: { formatter: (v: number) => `${v.toFixed(2)}%` },
+    },
   });
 
   return (
@@ -122,8 +131,12 @@ function DrawdownCurveChart({ points }: DrawdownCurveChartProps) {
           回撤曲线
         </Typography>
         {points.length === 0 ? (
-          <Box sx={{ height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Typography variant="body2" sx={{ color: 'text.secondary' }}>暂无数据</Typography>
+          <Box
+            sx={{ height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          >
+            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+              暂无数据
+            </Typography>
           </Box>
         ) : (
           <Chart type="area" series={series} options={chartOptions} sx={{ height: 200 }} />
@@ -135,13 +148,27 @@ function DrawdownCurveChart({ points }: DrawdownCurveChartProps) {
 
 // ─── Sub-component: Monthly Returns Heatmap ──────────────────────────────────
 
-const MONTH_LABELS = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+const MONTH_LABELS = [
+  '1月',
+  '2月',
+  '3月',
+  '4月',
+  '5月',
+  '6月',
+  '7月',
+  '8月',
+  '9月',
+  '10月',
+  '11月',
+  '12月',
+];
 
 type MonthlyHeatmapProps = {
   rows: { month: string; return: number }[];
 };
 
 function MonthlyHeatmap({ rows }: MonthlyHeatmapProps) {
+  const theme = useTheme();
   // Build year → month-index → return value map
   const data = useMemo(() => {
     const map: Record<string, Record<string, number>> = {};
@@ -159,7 +186,9 @@ function MonthlyHeatmap({ rows }: MonthlyHeatmapProps) {
     if (val == null) return 'transparent';
     const abs = Math.min(Math.abs(val), 0.15) / 0.15;
     const alpha = 0.1 + abs * 0.5;
-    return val > 0 ? `rgba(255, 72, 66, ${alpha})` : `rgba(54, 179, 126, ${alpha})`;
+    return val > 0
+      ? varAlpha(theme.vars.palette.error.mainChannel, alpha)
+      : varAlpha(theme.vars.palette.success.mainChannel, alpha);
   };
 
   if (rows.length === 0) return null;
@@ -177,7 +206,9 @@ function MonthlyHeatmap({ rows }: MonthlyHeatmapProps) {
                 <TableRow>
                   <TableCell sx={{ fontWeight: 600, minWidth: 60 }}>年份</TableCell>
                   {MONTH_LABELS.map((m) => (
-                    <TableCell key={m} align="center" sx={{ minWidth: 52 }}>{m}</TableCell>
+                    <TableCell key={m} align="center" sx={{ minWidth: 52 }}>
+                      {m}
+                    </TableCell>
                   ))}
                 </TableRow>
               </TableHead>
@@ -189,13 +220,26 @@ function MonthlyHeatmap({ rows }: MonthlyHeatmapProps) {
                       const month = String(i + 1).padStart(2, '0');
                       const val = data[year]?.[month];
                       return (
-                        <TableCell key={month} align="center" sx={{ bgcolor: getCellBg(val), p: 0.5 }}>
+                        <TableCell
+                          key={month}
+                          align="center"
+                          sx={{ bgcolor: getCellBg(val), p: 0.5 }}
+                        >
                           {val != null ? (
-                            <Typography variant="caption" sx={{ color: val >= 0 ? 'error.dark' : 'success.dark', fontWeight: 600 }}>
-                              {val >= 0 ? '+' : ''}{(val * 100).toFixed(1)}%
+                            <Typography
+                              variant="caption"
+                              sx={{
+                                color: val >= 0 ? 'error.dark' : 'success.dark',
+                                fontWeight: 600,
+                              }}
+                            >
+                              {val >= 0 ? '+' : ''}
+                              {(val * 100).toFixed(1)}%
                             </Typography>
                           ) : (
-                            <Typography variant="caption" sx={{ color: 'text.disabled' }}>-</Typography>
+                            <Typography variant="caption" sx={{ color: 'text.disabled' }}>
+                              -
+                            </Typography>
                           )}
                         </TableCell>
                       );
@@ -247,24 +291,45 @@ function TradesTable({ trades }: TradesTableProps) {
               <TableBody>
                 {slice.map((t, idx) => (
                   <TableRow key={idx} hover>
-                    <TableCell><Typography variant="caption">{t.date}</Typography></TableCell>
-                    <TableCell><Typography variant="caption">{t.tsCode}</Typography></TableCell>
-                    <TableCell><Typography variant="caption">{t.name ?? '-'}</Typography></TableCell>
+                    <TableCell>
+                      <Typography variant="caption">{t.date}</Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="caption">{t.tsCode}</Typography>
+                    </TableCell>
+                    <TableCell>
+                      <Typography variant="caption">{t.name ?? '-'}</Typography>
+                    </TableCell>
                     <TableCell>
                       <Label color={t.direction === 'BUY' ? 'error' : 'success'} variant="soft">
                         {t.direction === 'BUY' ? '买入' : '卖出'}
                       </Label>
                     </TableCell>
-                    <TableCell align="right"><Typography variant="caption">{t.price.toFixed(2)}</Typography></TableCell>
-                    <TableCell align="right"><Typography variant="caption">{fNumber(t.quantity)}</Typography></TableCell>
-                    <TableCell align="right"><Typography variant="caption">{fNumber(Math.round(t.amount))}</Typography></TableCell>
+                    <TableCell align="right">
+                      <Typography variant="caption">{t.price.toFixed(2)}</Typography>
+                    </TableCell>
+                    <TableCell align="right">
+                      <Typography variant="caption">{fNumber(t.quantity)}</Typography>
+                    </TableCell>
+                    <TableCell align="right">
+                      <Typography variant="caption">{fNumber(Math.round(t.amount))}</Typography>
+                    </TableCell>
                     <TableCell align="right">
                       {t.pnl != null ? (
-                        <Typography variant="caption" sx={{ color: t.pnl >= 0 ? 'error.main' : 'success.main', fontWeight: 600 }}>
-                          {t.pnl >= 0 ? '+' : ''}{fNumber(Math.round(t.pnl))}
+                        <Typography
+                          variant="caption"
+                          sx={{
+                            color: t.pnl >= 0 ? 'error.main' : 'success.main',
+                            fontWeight: 600,
+                          }}
+                        >
+                          {t.pnl >= 0 ? '+' : ''}
+                          {fNumber(Math.round(t.pnl))}
                         </Typography>
                       ) : (
-                        <Typography variant="caption" sx={{ color: 'text.disabled' }}>-</Typography>
+                        <Typography variant="caption" sx={{ color: 'text.disabled' }}>
+                          -
+                        </Typography>
                       )}
                     </TableCell>
                   </TableRow>
@@ -272,7 +337,9 @@ function TradesTable({ trades }: TradesTableProps) {
                 {slice.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={8} align="center" sx={{ py: 4 }}>
-                      <Typography variant="body2" sx={{ color: 'text.secondary' }}>暂无交易记录</Typography>
+                      <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                        暂无交易记录
+                      </Typography>
                     </TableCell>
                   </TableRow>
                 )}
@@ -287,7 +354,10 @@ function TradesTable({ trades }: TradesTableProps) {
           rowsPerPage={rowsPerPage}
           rowsPerPageOptions={[10, 20, 50]}
           onPageChange={(_, p) => setPage(p)}
-          onRowsPerPageChange={(e) => { setRowsPerPage(Number(e.target.value)); setPage(0); }}
+          onRowsPerPageChange={(e) => {
+            setRowsPerPage(Number(e.target.value));
+            setPage(0);
+          }}
         />
       </CardContent>
     </Card>
@@ -308,7 +378,9 @@ function PositionsTable({ positions }: PositionsTableProps) {
           期末持仓
         </Typography>
         {positions.length === 0 ? (
-          <Typography variant="body2" sx={{ color: 'text.secondary' }}>暂无持仓</Typography>
+          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+            暂无持仓
+          </Typography>
         ) : (
           <Scrollbar>
             <TableContainer>
@@ -326,11 +398,23 @@ function PositionsTable({ positions }: PositionsTableProps) {
                 <TableBody>
                   {positions.map((pos, idx) => (
                     <TableRow key={idx} hover>
-                      <TableCell><Typography variant="caption">{pos.tsCode}</Typography></TableCell>
-                      <TableCell><Typography variant="caption">{pos.name ?? '-'}</Typography></TableCell>
-                      <TableCell align="right"><Typography variant="caption">{fNumber(pos.quantity)}</Typography></TableCell>
-                      <TableCell align="right"><Typography variant="caption">{pos.avgCost.toFixed(2)}</Typography></TableCell>
-                      <TableCell align="right"><Typography variant="caption">{fNumber(Math.round(pos.marketValue))}</Typography></TableCell>
+                      <TableCell>
+                        <Typography variant="caption">{pos.tsCode}</Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="caption">{pos.name ?? '-'}</Typography>
+                      </TableCell>
+                      <TableCell align="right">
+                        <Typography variant="caption">{fNumber(pos.quantity)}</Typography>
+                      </TableCell>
+                      <TableCell align="right">
+                        <Typography variant="caption">{pos.avgCost.toFixed(2)}</Typography>
+                      </TableCell>
+                      <TableCell align="right">
+                        <Typography variant="caption">
+                          {fNumber(Math.round(pos.marketValue))}
+                        </Typography>
+                      </TableCell>
                       <TableCell align="right">
                         <Typography variant="caption">{fPercent(pos.weight)}</Typography>
                       </TableCell>
@@ -384,16 +468,28 @@ export function BacktestReportViewer({ data }: BacktestReportViewerProps) {
       {/* Metrics */}
       <Grid container spacing={2}>
         <Grid size={{ xs: 6, sm: 4, md: 3 }}>
-          <MetricCard label="总收益率" value={pctStr(metrics.totalReturn)} color={pctColor(metrics.totalReturn)} />
+          <MetricCard
+            label="总收益率"
+            value={pctStr(metrics.totalReturn)}
+            color={pctColor(metrics.totalReturn)}
+          />
         </Grid>
         <Grid size={{ xs: 6, sm: 4, md: 3 }}>
-          <MetricCard label="年化收益率" value={pctStr(metrics.annualReturn)} color={pctColor(metrics.annualReturn)} />
+          <MetricCard
+            label="年化收益率"
+            value={pctStr(metrics.annualReturn)}
+            color={pctColor(metrics.annualReturn)}
+          />
         </Grid>
         <Grid size={{ xs: 6, sm: 4, md: 3 }}>
           <MetricCard label="夏普比率" value={metrics.sharpe.toFixed(2)} />
         </Grid>
         <Grid size={{ xs: 6, sm: 4, md: 3 }}>
-          <MetricCard label="最大回撤" value={pctStr(metrics.maxDrawdown)} color={pctColor(metrics.maxDrawdown, true)} />
+          <MetricCard
+            label="最大回撤"
+            value={pctStr(metrics.maxDrawdown)}
+            color={pctColor(metrics.maxDrawdown, true)}
+          />
         </Grid>
         <Grid size={{ xs: 6, sm: 4, md: 3 }}>
           <MetricCard label="胜率" value={fPercent(metrics.winRate)} />

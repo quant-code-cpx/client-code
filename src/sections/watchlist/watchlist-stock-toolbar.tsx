@@ -11,19 +11,19 @@ import { Iconify } from 'src/components/iconify';
 type WatchlistStockToolbarProps = {
   selectedCount: number;
   onAdd: () => void;
-  onBatchImport: () => void;
   onBatchRemove: () => void;
   search: string;
   onSearchChange: (value: string) => void;
+  searchPlaceholder?: string;
 };
 
 export function WatchlistStockToolbar({
   selectedCount,
   onAdd,
-  onBatchImport,
   onBatchRemove,
   search,
   onSearchChange,
+  searchPlaceholder = '搜索代码 / 备注 / 标签...',
 }: WatchlistStockToolbarProps) {
   return (
     <Toolbar
@@ -46,15 +46,6 @@ export function WatchlistStockToolbar({
         添加股票
       </Button>
 
-      <Button
-        variant="outlined"
-        size="small"
-        startIcon={<Iconify icon="solar:import-bold" width={16} />}
-        onClick={onBatchImport}
-      >
-        批量导入
-      </Button>
-
       {selectedCount > 0 && (
         <Button
           variant="outlined"
@@ -71,7 +62,7 @@ export function WatchlistStockToolbar({
 
       <TextField
         size="small"
-        placeholder="搜索股票代码..."
+        placeholder={searchPlaceholder}
         value={search}
         onChange={(e) => onSearchChange(e.target.value)}
         sx={{ width: 220 }}

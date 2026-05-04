@@ -19,12 +19,13 @@ import { cloneStrategy, createStrategy, deleteStrategy, listStrategies } from 's
 import { Iconify } from 'src/components/iconify';
 
 import { StrategyCard } from '../strategy-card';
+import { StrategyTable } from '../components/strategy-table';
 import { StrategyCloneDialog } from '../strategy-clone-dialog';
 import { StrategyListToolbar } from '../strategy-list-toolbar';
 import { StrategyCreateDialog } from '../strategy-create-dialog';
 import { StrategyDeleteDialog } from '../strategy-delete-dialog';
-
-import type { StrategyListFilter } from '../strategy-list-toolbar';
+import { StrategySummaryBar } from '../components/strategy-summary-bar';
+import { useStrategyListFilters } from '../hooks/use-strategy-list-filters';
 
 // ----------------------------------------------------------------------
 
@@ -32,6 +33,7 @@ const PAGE_SIZE = 12;
 
 export function StrategyListView() {
   const router = useRouter();
+  const { filter, setFilter, resetFilter, isFiltered } = useStrategyListFilters();
 
   const [strategies, setStrategies] = useState<Strategy[]>([]);
   const [total, setTotal] = useState(0);
@@ -39,12 +41,6 @@ export function StrategyListView() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
-
-  const [filter, setFilter] = useState<StrategyListFilter>({
-    strategyType: '',
-    keyword: '',
-    tags: [],
-  });
 
   // Dialog states
   const [createOpen, setCreateOpen] = useState(false);
@@ -64,10 +60,15 @@ export function StrategyListView() {
       setLoading(true);
       setError('');
       try {
+        const minReturn = filter.minTotalReturn ? parseFloat(filter.minTotalReturn) / 100 : undefined;
+        const minSharpe = filter.minSharpeRatio ? parseFloat(filter.minSharpeRatio) : undefined;
         const res = await listStrategies({
           strategyType: filter.strategyType || undefined,
           tags: filter.tags.length > 0 ? filter.tags : undefined,
           keyword: filter.keyword || undefined,
+          minTotalReturn: minReturn,
+          minSharpeRatio: minSharpe,
+          hasActiveSignal: filter.hasActiveSignal || undefined,
           page: overridePage ?? page,
           pageSize: PAGE_SIZE,
         });
@@ -187,6 +188,9 @@ export function StrategyListView() {
         </Button>
       </Box>
 
+      {/* Summary bar */}
+      <StrategySummaryBar />
+
       {error && (
         <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError('')}>
           {error}
@@ -194,54 +198,61 @@ export function StrategyListView() {
       )}
 
       {/* Filter toolbar */}
-      <StrategyListToolbar filter={filter} allTags={allTags} onFilterChange={(f) => setFilter(f)} />
+      <StrategyListToolbar
+        filter={filter}
+        allTags={allTags}
+        isFiltered={isFiltered}
+        onFilterChange={setFilter}
+        onReset={resetFilter}
+      />
 
-      {/* Strategy card grid */}
-      {loading ? (
-        <Grid container spacing={2.5} sx={{ mt: 0.5 }}>
-          {Array.from({ length: PAGE_SIZE }).map((_, i) => (
-            <Grid key={i} size={{ xs: 12, sm: 6, md: 4 }}>
-              <Skeleton variant="rounded" height={200} />
-            </Grid>
-          ))}
-        </Grid>
-      ) : strategies.length === 0 ? (
-        <Box sx={{ py: 12, textAlign: 'center', color: 'text.secondary' }}>
-          <Iconify icon="solar:document-text-bold" width={48} sx={{ mb: 2, opacity: 0.3 }} />
-          <Typography variant="h6" sx={{ mb: 1 }}>
-            {filter.strategyType || filter.keyword || filter.tags.length > 0
-              ? '没有匹配的策略'
-              : '还没有策略，点击右上角创建第一个'}
-          </Typography>
-          {(filter.strategyType || filter.keyword || filter.tags.length > 0) && (
-            <Button
-              variant="outlined"
-              size="small"
-              onClick={() => setFilter({ strategyType: '', keyword: '', tags: [] })}
-            >
-              清除筛选
-            </Button>
-          )}
-        </Box>
+      {/* Strategy content — card or table */}
+      {filter.view === 'table' ? (
+        /* Table view */
+        loading ? (
+          <Skeleton variant="rounded" height={300} sx={{ mt: 1 }} />
+        ) : strategies.length === 0 ? (
+          <EmptyState isFiltered={isFiltered} onReset={resetFilter} />
+        ) : (
+          <StrategyTable
+            strategies={strategies}
+            onView={handleView}
+            onClone={(s) => setCloneTarget(s)}
+            onDelete={(s) => setDeleteTarget(s)}
+          />
+        )
       ) : (
-        <Grid container spacing={2.5} sx={{ mt: 0.5 }}>
-          {strategies.map((strategy) => (
-            <Grid key={strategy.id} size={{ xs: 12, sm: 6, md: 4 }}>
-              <StrategyCard
-                strategy={strategy}
-                onView={handleView}
-                onRun={handleRun}
-                onEdit={handleEdit}
-                onClone={(s) => setCloneTarget(s)}
-                onDelete={(s) => setDeleteTarget(s)}
-                menuAnchorEl={menuAnchorEl}
-                menuStrategyId={menuStrategyId}
-                onMenuOpen={handleMenuOpen}
-                onMenuClose={handleMenuClose}
-              />
-            </Grid>
-          ))}
-        </Grid>
+        /* Card view */
+        loading ? (
+          <Grid container spacing={2.5} sx={{ mt: 0.5 }}>
+            {Array.from({ length: PAGE_SIZE }).map((_, i) => (
+              <Grid key={i} size={{ xs: 12, sm: 6, md: 4 }}>
+                <Skeleton variant="rounded" height={200} />
+              </Grid>
+            ))}
+          </Grid>
+        ) : strategies.length === 0 ? (
+          <EmptyState isFiltered={isFiltered} onReset={resetFilter} />
+        ) : (
+          <Grid container spacing={2.5} sx={{ mt: 0.5 }}>
+            {strategies.map((strategy) => (
+              <Grid key={strategy.id} size={{ xs: 12, sm: 6, md: 4 }}>
+                <StrategyCard
+                  strategy={strategy}
+                  onView={handleView}
+                  onRun={handleRun}
+                  onEdit={handleEdit}
+                  onClone={(s) => setCloneTarget(s)}
+                  onDelete={(s) => setDeleteTarget(s)}
+                  menuAnchorEl={menuAnchorEl}
+                  menuStrategyId={menuStrategyId}
+                  onMenuOpen={handleMenuOpen}
+                  onMenuClose={handleMenuClose}
+                />
+              </Grid>
+            ))}
+          </Grid>
+        )
       )}
 
       {/* Pagination */}
@@ -289,5 +300,23 @@ export function StrategyListView() {
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       />
     </DashboardContent>
+  );
+}
+
+// ----------------------------------------------------------------------
+
+function EmptyState({ isFiltered, onReset }: { isFiltered: boolean; onReset: () => void }) {
+  return (
+    <Box sx={{ py: 12, textAlign: 'center', color: 'text.secondary' }}>
+      <Iconify icon="solar:document-text-bold" width={48} sx={{ mb: 2, opacity: 0.3 }} />
+      <Typography variant="h6" sx={{ mb: 1 }}>
+        {isFiltered ? '没有匹配的策略' : '还没有策略，点击右上角创建第一个'}
+      </Typography>
+      {isFiltered && (
+        <Button variant="outlined" size="small" onClick={onReset}>
+          清除筛选
+        </Button>
+      )}
+    </Box>
   );
 }

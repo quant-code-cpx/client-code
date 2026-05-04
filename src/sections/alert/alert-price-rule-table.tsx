@@ -25,7 +25,7 @@ import { ConfirmDialog } from 'src/components/confirm-dialog';
 
 // ----------------------------------------------------------------------
 
-type RuleTypeConfig = { text: string; color: 'error' | 'success' };
+type RuleTypeConfig = { text: string; color: 'error' | 'success' | 'info' | 'warning' };
 
 const RULE_TYPE_CONFIG: Record<PriceAlertRuleType, RuleTypeConfig> = {
   PCT_CHANGE_UP: { text: '涨幅超过', color: 'error' },
@@ -34,6 +34,14 @@ const RULE_TYPE_CONFIG: Record<PriceAlertRuleType, RuleTypeConfig> = {
   PRICE_BELOW: { text: '价格低于', color: 'success' },
   LIMIT_UP: { text: '涨停', color: 'error' },
   LIMIT_DOWN: { text: '跌停', color: 'success' },
+  EVENT_DISCLOSURE: { text: '事件:财报披露', color: 'info' },
+  EVENT_FLOAT: { text: '事件:限售解禁', color: 'warning' },
+  EVENT_DIVIDEND: { text: '事件:除权除息', color: 'success' },
+  EVENT_FORECAST: { text: '事件:业绩预告', color: 'info' },
+  EVENT_IPO: { text: '事件:新股发行', color: 'info' },
+  EVENT_CONVERTIBLE: { text: '事件:可转债', color: 'info' },
+  EVENT_SHAREHOLDER: { text: '事件:股东增减持', color: 'error' },
+  EVENT_ANY: { text: '事件:全部类型', color: 'info' },
 };
 
 function formatThreshold(rule: PriceAlertRule): string {

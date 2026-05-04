@@ -14,6 +14,7 @@ import FormHelperText from '@mui/material/FormHelperText';
 import { Iconify } from 'src/components/iconify';
 
 import { PARAM_SEARCH_TYPE_OPTIONS } from './constants';
+import { computeTotalParamCombinations } from './walk-forward-utils';
 
 import type { ParamSearchSpaceItemLocal } from './types';
 
@@ -33,25 +34,8 @@ type Props = {
   onChange: (next: Record<string, ParamSearchSpaceItemLocal>) => void;
 };
 
-function computeTotalCombos(space: Record<string, ParamSearchSpaceItemLocal>): number {
-  let total = 1;
-  for (const item of Object.values(space)) {
-    if (item.type === 'range') {
-      const { min = 0, max = 0, step = 1 } = item;
-      const count = Math.max(1, Math.floor((max - min) / step) + 1);
-      total *= count;
-    } else if (item.type === 'enum') {
-      const count = (item.values ?? []).length;
-      total *= Math.max(1, count);
-    }
-  }
-  return total;
-}
-
-// ----------------------------------------------------------------------
-
 export function WalkForwardParamSpaceEditor({ availableParams, value, onChange }: Props) {
-  const totalCombos = useMemo(() => computeTotalCombos(value), [value]);
+  const totalCombos = useMemo(() => computeTotalParamCombinations(value), [value]);
 
   const enabledKeys = Object.keys(value);
 

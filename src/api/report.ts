@@ -10,6 +10,22 @@ export type ReportStatus = 'PENDING' | 'GENERATING' | 'COMPLETED' | 'FAILED';
 
 // ── Report Model ──────────────────────────────────────────────
 
+/**
+ * Generation progress payload (v2). Only present while status is
+ * `PENDING` / `GENERATING`. Backend emits stage transitions so the UI can
+ * show fine-grained progress instead of a generic spinner.
+ */
+export type ReportProgress = {
+  /** machine-readable stage key, e.g. 'loading' / 'computing' / 'rendering' / 'persisting' */
+  stage: string;
+  /** 0–100 (not 0–1) */
+  percent: number;
+  /** optional human-readable label, e.g. "渲染图表中" */
+  label?: string | null;
+  /** optional ETA seconds */
+  etaSeconds?: number | null;
+};
+
 export type Report = {
   id: string;
   userId: number;
@@ -24,6 +40,18 @@ export type Report = {
   fileSize: number | null;
   createdAt: string;
   completedAt: string | null;
+  // ── v2 optional fields (degrade gracefully if absent) ───────────
+  /** Hash of canonicalised params, used for grouping versions of the same series */
+  paramsHash?: string | null;
+  /** Version number within the same (type, paramsHash) series, 1-indexed */
+  version?: number | null;
+  /** Machine-readable error code (see resources/format-error dictionary) */
+  errorCode?: string | null;
+  /** Generation progress, only when status is PENDING/GENERATING */
+  progress?: ReportProgress | null;
+  /** User markdown notes attached to this report */
+  notes?: string | null;
+  notesUpdatedAt?: string | null;
 };
 
 export type ReportListItem = {
@@ -35,6 +63,10 @@ export type ReportListItem = {
   fileSize: number | null;
   createdAt: string;
   completedAt: string | null;
+  // v2 optional
+  paramsHash?: string | null;
+  version?: number | null;
+  errorCode?: string | null;
 };
 
 // ── Report Data Types ─────────────────────────────────────────
@@ -55,6 +87,16 @@ export type BacktestReportData = {
     tradeCount: number;
     calmarRatio: number | null;
     sortinoRatio: number | null;
+    // ── v2 optional risk / benchmark metrics (null when missing) ──
+    volatility?: number | null;
+    downsideDeviation?: number | null;
+    informationRatio?: number | null;
+    beta?: number | null;
+    alpha?: number | null;
+    benchmarkReturn?: number | null;
+    benchmarkAnnualReturn?: number | null;
+    turnover?: number | null;
+    hhi?: number | null;
   };
   navCurve: { date: string; nav: number }[];
   drawdownCurve: { date: string; drawdown: number }[];
@@ -68,6 +110,11 @@ export type BacktestReportData = {
     quantity: number;
     amount: number;
     pnl: number | null;
+    // v2 optional
+    commission?: number | null;
+    slippage?: number | null;
+    tax?: number | null;
+    fillType?: 'OPEN' | 'CLOSE' | 'VWAP' | 'TWAP' | null;
   }[];
   endPositions: {
     tsCode: string;
@@ -77,6 +124,9 @@ export type BacktestReportData = {
     marketValue: number;
     weight: number;
   }[];
+  // ── v2 optional sections ─────────────────────────────────────
+  benchmarkCurve?: { date: string; nav: number }[] | null;
+  yearlyReturns?: { year: string; strategy: number; benchmark: number | null }[] | null;
 };
 
 export type StockReportData = {
@@ -119,6 +169,24 @@ export type StockReportData = {
     cashDiv: number | null;
     stkDiv: number | null;
   }[];
+  // ── v2 optional sections ─────────────────────────────────────
+  valuation?: {
+    history: { date: string; pe: number | null; pb: number | null; ps: number | null }[];
+    industryPercentile: { pe: number | null; pb: number | null; ps: number | null };
+  } | null;
+  peerComparison?: {
+    industry: string;
+    peers: {
+      tsCode: string;
+      name: string;
+      marketCap: number | null;
+      pe: number | null;
+      pb: number | null;
+      revenueGrowthYoy: number | null;
+      netProfitGrowthYoy: number | null;
+      roe: number | null;
+    }[];
+  } | null;
 };
 
 export type PortfolioReportData = {
@@ -149,6 +217,20 @@ export type PortfolioReportData = {
     totalMarketValue: number | null;
     weight: number | null;
   }[];
+  // ── v2 optional sections ─────────────────────────────────────
+  attribution?: {
+    byIndustry: { industry: string; contribution: number }[];
+    byStock: { tsCode: string; name: string; contribution: number }[];
+    totalReturn: number;
+    benchmarkReturn: number | null;
+  } | null;
+  tracking?: {
+    benchmark: string | null;
+    trackingError: number | null;
+    informationRatio: number | null;
+    maxRelativeDrawdown: number | null;
+    relativeNavCurve: { date: string; relative: number }[] | null;
+  } | null;
 };
 
 export type StrategyResearchReportData = {
@@ -202,6 +284,24 @@ export type StrategyResearchReportData = {
       amount: number;
       pnl: number | null;
     }[];
+    // ── v2 optional sections ─────────────────────────────────────
+    factorExposure?: {
+      factors: { name: string; exposure: number; tStat: number | null }[];
+    } | null;
+    parameterSensitivity?: {
+      metric: 'sharpe' | 'totalReturn' | 'maxDrawdown';
+      axis: { paramName: string; values: (number | string)[] };
+      series?: { paramName: string; values: (number | string)[]; matrix: number[][] } | null;
+    } | null;
+    rollingStability?: {
+      windowDays: number;
+      series: {
+        end: string;
+        sharpe: number | null;
+        annualReturn: number | null;
+        maxDrawdown: number | null;
+      }[];
+    } | null;
   };
 };
 
@@ -236,6 +336,10 @@ export type CreateStrategyResearchReportParams = {
     holdings?: boolean;
     riskAssessment?: boolean;
     tradeLog?: boolean;
+    // v2 optional sections
+    factorExposure?: boolean;
+    parameterSensitivity?: boolean;
+    rollingStability?: boolean;
   };
 };
 
@@ -243,6 +347,12 @@ export type ListReportsParams = {
   type?: ReportType;
   page?: number;
   pageSize?: number;
+  // v2 optional server-side filters; UI degrades to client-side filtering when absent
+  keyword?: string;
+  statuses?: ReportStatus[];
+  from?: string;
+  to?: string;
+  groupBy?: 'paramsHash';
 };
 
 export type ListReportsResult = {
@@ -287,6 +397,65 @@ export function getReportDetail(params: { reportId: string }) {
 /** 删除报告 */
 export function deleteReport(params: { reportId: string }) {
   return apiClient.post<{ deleted: true }>('/api/report/delete', params);
+}
+
+// ── v2 endpoints ──────────────────────────────────────────────
+
+/** 保存报告批注（Markdown） */
+export function saveReportNotes(params: { reportId: string; notes: string }) {
+  return apiClient.post<{ notesUpdatedAt: string }>('/api/report/notes/save', params);
+}
+
+/** 重新生成（基于原 params 提交新版本） */
+export function regenerateReport(params: { reportId: string }) {
+  return apiClient.post<Report>('/api/report/regenerate', params);
+}
+
+export type ReportShareLink = {
+  token: string;
+  url: string;
+  reportId: string;
+  createdAt: string;
+  expiresAt: string | null;
+  allowDownload: boolean;
+  revoked: boolean;
+};
+
+/** 创建只读分享链接 */
+export function createReportShareLink(params: {
+  reportId: string;
+  ttlHours: number | null;
+  allowDownload: boolean;
+}) {
+  return apiClient.post<ReportShareLink>('/api/report/share/create', params);
+}
+
+/** 查询本报告下的全部分享链接 */
+export function listReportShareLinks(params: { reportId: string }) {
+  return apiClient.post<ReportShareLink[]>('/api/report/share/list', params);
+}
+
+/** 吊销分享链接 */
+export function revokeReportShareLink(params: { token: string }) {
+  return apiClient.post<{ revoked: true }>('/api/report/share/revoke', params);
+}
+
+export type ReportDiffField = {
+  key: string;
+  label?: string;
+  leftValue: number | string | null;
+  rightValue: number | string | null;
+  delta: number | null;
+};
+
+export type ReportDiffResult = {
+  fields: ReportDiffField[];
+  notes?: string;
+};
+
+/** 与另一份报告的对比 */
+export function diffReports(params: { leftReportId: string; rightReportId: string }) {
+  return apiClient.post<ReportDiffResult>('/api/report/diff', params);
 }
 
 // ── Scheduled Reports ─────────────────────────────────────────

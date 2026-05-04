@@ -43,6 +43,7 @@ export const ProfilePage = lazy(() => import('src/pages/profile'));
 export const WalkForwardListPage = lazy(() => import('src/pages/backtest-walk-forward'));
 export const WalkForwardCreatePage = lazy(() => import('src/pages/backtest-walk-forward-create'));
 export const WalkForwardDetailPage = lazy(() => import('src/pages/backtest-walk-forward-detail'));
+export const ComparisonListPage = lazy(() => import('src/pages/backtest-comparison-list'));
 export const ComparisonCreatePage = lazy(() => import('src/pages/backtest-comparison-create'));
 export const ComparisonDetailPage = lazy(() => import('src/pages/backtest-comparison-detail'));
 export const PortfolioPage = lazy(() => import('src/pages/portfolio'));
@@ -53,6 +54,7 @@ export const AlertAnomaliesPage = lazy(() => import('src/pages/alert-anomalies')
 export const AlertLimitListPage = lazy(() => import('src/pages/alert-limit-list'));
 export const SignalLatestPage = lazy(() => import('src/pages/signal-latest'));
 export const SignalHistoryPage = lazy(() => import('src/pages/signal-history'));
+export const SignalHistoryComparePage = lazy(() => import('src/pages/signal-history-compare'));
 export const EventStudyPage = lazy(() => import('src/pages/event-study'));
 export const IndustryRotationPage = lazy(() => import('src/pages/industry-rotation'));
 export const MarketHeatmapPage = lazy(() => import('src/pages/market-heatmap'));
@@ -105,7 +107,10 @@ export const routesSection: RouteObject[] = [
       { path: 'market/industry', element: <IndustryAnalysisPage /> },
       { path: 'market/index', element: <IndexDetailPage /> },
       // ─── backward-compat: old market routes redirect to new combined page ───
-      { path: 'market/industry-rotation', element: <Navigate to="/market/industry?tab=1" replace /> },
+      {
+        path: 'market/industry-rotation',
+        element: <Navigate to="/market/industry?tab=1" replace />,
+      },
       { path: 'market/heatmap', element: <Navigate to="/market/industry?tab=0" replace /> },
       { path: 'tushare-sync', element: <TushareSyncPage /> },
       { path: 'factor/library', element: <FactorLibraryPage /> },
@@ -122,6 +127,7 @@ export const routesSection: RouteObject[] = [
       { path: 'backtest/walk-forward', element: <WalkForwardListPage /> },
       { path: 'backtest/walk-forward/create', element: <WalkForwardCreatePage /> },
       { path: 'backtest/walk-forward/:wfRunId', element: <WalkForwardDetailPage /> },
+      { path: 'backtest/comparison', element: <ComparisonListPage /> },
       { path: 'backtest/comparison/create', element: <ComparisonCreatePage /> },
       { path: 'backtest/comparison/:groupId', element: <ComparisonDetailPage /> },
       { path: 'research/watchlist', element: <WatchlistPage /> },
@@ -138,20 +144,24 @@ export const routesSection: RouteObject[] = [
       { path: 'alert/limit-list', element: <AlertLimitListPage /> },
       { path: 'strategy/signal', element: <SignalLatestPage /> },
       { path: 'strategy/signal/history', element: <SignalHistoryPage /> },
+      { path: 'strategy/signal/history/compare', element: <SignalHistoryComparePage /> },
       { path: 'research/event-study', element: <EventStudyPage /> },
       { path: 'research/report', element: <ReportListPage /> },
       { path: 'research/report/:id', element: <ReportDetailPage /> },
       { path: 'stock/pattern', element: <PatternPage /> },
       { path: 'admin/user-manage', element: <UserManagePage /> },
-      { path: 'admin/tushare-sync', element: <TushareSyncPage /> },
+      { path: 'admin/tushare-sync', element: <Navigate to="/tushare-sync" replace /> },
       // ─── backward-compat redirects ───────────────────────
       { path: 'signal', element: <Navigate to="/strategy/signal" replace /> },
       { path: 'signal/history', element: <Navigate to="/strategy/signal/history" replace /> },
+      {
+        path: 'signal/history/compare',
+        element: <Navigate to="/strategy/signal/history/compare" replace />,
+      },
       { path: 'event-study', element: <Navigate to="/research/event-study" replace /> },
       { path: 'report', element: <Navigate to="/research/report" replace /> },
       { path: 'report/:id', element: <Navigate to="/research/report/:id" replace /> },
       { path: 'pattern', element: <Navigate to="/stock/pattern" replace /> },
-      { path: 'tushare-sync', element: <Navigate to="/admin/tushare-sync" replace /> },
       { path: 'user-manage', element: <Navigate to="/admin/user-manage" replace /> },
     ],
   },

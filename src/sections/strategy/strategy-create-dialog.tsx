@@ -60,6 +60,8 @@ const DEFAULT_BACKTEST_FORM: BacktestRunForm = {
   rebalanceFrequency: 'MONTHLY',
   priceMode: 'NEXT_OPEN',
   enableTradeConstraints: true,
+  enableT1Restriction: true,
+  partialFillEnabled: true,
   commissionRate: 0.0003,
   stampDutyRate: 0.0005,
   minCommission: 5,

@@ -1,30 +1,51 @@
-import { useState } from 'react';
+import type {
+  ReportType,
+  ReportFormat,
+  CreateStrategyResearchReportParams,
+} from 'src/api/report';
+
+import { useMemo, useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
+import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
-import Checkbox from '@mui/material/Checkbox';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import DialogTitle from '@mui/material/DialogTitle';
 import ToggleButton from '@mui/material/ToggleButton';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
-import FormControlLabel from '@mui/material/FormControlLabel';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
 import {
-  type ReportType,
   createStockReport,
-  type ReportFormat,
   createBacktestReport,
   createPortfolioReport,
   createStrategyResearchReport,
 } from 'src/api/report';
 
-// ── Types ─────────────────────────────────────────────────────
+import { GenerateFormStock } from './generate/generate-form-stock';
+import { GenerateFormBacktest } from './generate/generate-form-backtest';
+import { GenerateFormStrategy } from './generate/generate-form-strategy';
+import { GenerateFormPortfolio } from './generate/generate-form-portfolio';
+import {
+  REPORT_TYPE_OPTIONS,
+  REPORT_FORMAT_OPTIONS,
+} from './generate/types';
 
-type ReportGenerateDialogProps = {
+import type {
+  GenerateParams,
+  GenerateStockParams,
+  GenerateBacktestParams,
+  GenerateStrategyParams,
+  GeneratePortfolioParams,
+} from './generate/types';
+
+// ─── Public props ──────────────────────────────────────────────────────────
+
+export type ReportGenerateDialogProps = {
   open: boolean;
   onClose: () => void;
   onGenerated: () => void;
@@ -32,7 +53,7 @@ type ReportGenerateDialogProps = {
   defaultParams?: Record<string, unknown>;
 };
 
-// ── Component ─────────────────────────────────────────────────
+// ─── Component ─────────────────────────────────────────────────────────────
 
 export function ReportGenerateDialog({
   open,
@@ -47,77 +68,80 @@ export function ReportGenerateDialog({
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
 
-  // Backtest
-  const [runId, setRunId] = useState((defaultParams?.runId as string) ?? '');
-  // Stock
-  const [tsCode, setTsCode] = useState((defaultParams?.tsCode as string) ?? '');
-  // Portfolio
-  const [portfolioId, setPortfolioId] = useState((defaultParams?.portfolioId as string) ?? '');
-  // Strategy research
-  const [backtestRunId, setBacktestRunId] = useState(
-    (defaultParams?.backtestRunId as string) ?? ''
-  );
-  const [strategyId, setStrategyId] = useState((defaultParams?.strategyId as string) ?? '');
-  const [srPortfolioId, setSrPortfolioId] = useState(
-    (defaultParams?.srPortfolioId as string) ?? ''
-  );
-  const [secPerformance, setSecPerformance] = useState(true);
-  const [secHoldings, setSecHoldings] = useState(true);
-  const [secRisk, setSecRisk] = useState(true);
-  const [secTradeLog, setSecTradeLog] = useState(true);
+  const [backtestParams, setBacktestParams] = useState<GenerateBacktestParams>({
+    runId: (defaultParams?.runId as string) ?? '',
+  });
+  const [stockParams, setStockParams] = useState<GenerateStockParams>({
+    tsCode: (defaultParams?.tsCode as string) ?? '',
+  });
+  const [portfolioParams, setPortfolioParams] = useState<GeneratePortfolioParams>({
+    portfolioId: (defaultParams?.portfolioId as string) ?? '',
+  });
+  const [strategyParams, setStrategyParams] = useState<GenerateStrategyParams>({
+    backtestRunId:
+      (defaultParams?.backtestRunId as string) ?? (defaultParams?.runId as string) ?? '',
+    strategyId: (defaultParams?.strategyId as string) ?? undefined,
+    portfolioId:
+      (defaultParams?.srPortfolioId as string) ??
+      (defaultParams?.portfolioId as string) ??
+      undefined,
+    sections: {
+      performance: true,
+      holdings: true,
+      riskAssessment: true,
+      tradeLog: true,
+    },
+  });
+
+  const [valid, setValid] = useState(false);
+
+  // Reset state when dialog opens
+  useEffect(() => {
+    if (!open) return;
+    setReportType(defaultType);
+    setTitle('');
+    setFormat('JSON');
+    setErrorMsg('');
+  }, [open, defaultType]);
+
+  const submitDisabled = useMemo(() => submitting || !valid, [submitting, valid]);
 
   const handleSubmit = async () => {
     setErrorMsg('');
     setSubmitting(true);
     try {
       if (reportType === 'BACKTEST') {
-        if (!runId.trim()) {
-          setErrorMsg('请填写回测运行 ID');
-          return;
-        }
-        await createBacktestReport({ runId: runId.trim(), title: title || undefined, format });
+        await createBacktestReport({
+          runId: backtestParams.runId.trim(),
+          title: title || undefined,
+          format,
+        });
       } else if (reportType === 'STOCK') {
-        if (!tsCode.trim()) {
-          setErrorMsg('请填写股票代码');
-          return;
-        }
         await createStockReport({
-          tsCode: tsCode.trim(),
+          tsCode: stockParams.tsCode.trim(),
           title: title || undefined,
           format,
         });
       } else if (reportType === 'PORTFOLIO') {
-        if (!portfolioId.trim()) {
-          setErrorMsg('请填写组合 ID');
-          return;
-        }
         await createPortfolioReport({
-          portfolioId: portfolioId.trim(),
+          portfolioId: portfolioParams.portfolioId.trim(),
           title: title || undefined,
           format,
         });
       } else if (reportType === 'STRATEGY_RESEARCH') {
-        if (!backtestRunId.trim()) {
-          setErrorMsg('请填写回测运行 ID');
-          return;
-        }
-        await createStrategyResearchReport({
-          backtestRunId: backtestRunId.trim(),
-          strategyId: strategyId.trim() || undefined,
-          portfolioId: srPortfolioId.trim() || undefined,
+        const payload: CreateStrategyResearchReportParams = {
+          backtestRunId: strategyParams.backtestRunId.trim(),
+          strategyId: strategyParams.strategyId || undefined,
+          portfolioId: strategyParams.portfolioId || undefined,
           title: title || undefined,
           format,
-          sections: {
-            performance: secPerformance,
-            holdings: secHoldings,
-            riskAssessment: secRisk,
-            tradeLog: secTradeLog,
-          },
-        });
+          sections: strategyParams.sections,
+        };
+        await createStrategyResearchReport(payload);
       }
       onGenerated();
-    } catch (err: any) {
-      setErrorMsg(err?.message ?? '生成失败，请稍后重试');
+    } catch (err) {
+      setErrorMsg(err instanceof Error ? err.message : '生成失败，请稍后重试');
     } finally {
       setSubmitting(false);
     }
@@ -126,174 +150,135 @@ export function ReportGenerateDialog({
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle>生成量化报告</DialogTitle>
-      <DialogContent>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
-          {/* 报告类型 */}
+      <DialogContent dividers>
+        <Stack spacing={2.5} sx={{ pt: 0.5 }}>
+          {/* Type picker */}
           <Box>
-            <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
+            <Typography variant="caption" color="text.secondary" sx={{ mb: 0.75, display: 'block' }}>
               报告类型
             </Typography>
             <ToggleButtonGroup
               exclusive
-              value={reportType}
-              onChange={(_, v) => v && setReportType(v)}
               size="small"
+              value={reportType}
+              onChange={(_, v) => {
+                if (v) setReportType(v as ReportType);
+              }}
               fullWidth
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(2, 1fr)',
+                gap: 1,
+                '& .MuiToggleButton-root': { borderRadius: 1, textTransform: 'none' },
+              }}
             >
-              <ToggleButton value="BACKTEST">回测报告</ToggleButton>
-              <ToggleButton value="STOCK">个股研报</ToggleButton>
-              <ToggleButton value="PORTFOLIO">组合报告</ToggleButton>
-              <ToggleButton value="STRATEGY_RESEARCH">策略研究</ToggleButton>
+              {REPORT_TYPE_OPTIONS.map((opt) => (
+                <ToggleButton key={opt.value} value={opt.value}>
+                  <Box sx={{ textAlign: 'left', width: '100%' }}>
+                    <Typography variant="body2" sx={{ fontWeight: 600, fontSize: 13 }}>
+                      {opt.label}
+                    </Typography>
+                    <Typography
+                      variant="caption"
+                      sx={{ color: 'text.secondary', display: 'block', fontSize: 12 }}
+                    >
+                      {opt.description}
+                    </Typography>
+                  </Box>
+                </ToggleButton>
+              ))}
             </ToggleButtonGroup>
           </Box>
 
-          {/* 报告标题（可选） */}
+          {/* Title */}
           <TextField
             label="报告标题（可选）"
             size="small"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             fullWidth
+            placeholder="留空将由系统自动生成"
           />
 
-          {/* 输出格式 */}
+          {/* Format picker */}
           <Box>
-            <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
+            <Typography variant="caption" color="text.secondary" sx={{ mb: 0.75, display: 'block' }}>
               输出格式
             </Typography>
             <ToggleButtonGroup
               exclusive
-              value={format}
-              onChange={(_, v) => v && setFormat(v)}
               size="small"
+              value={format}
+              onChange={(_, v) => {
+                if (v) setFormat(v as ReportFormat);
+              }}
+              fullWidth
+              sx={{
+                '& .MuiToggleButton-root': { borderRadius: 1, textTransform: 'none' },
+              }}
             >
-              <ToggleButton value="JSON">JSON（在线查看）</ToggleButton>
-              <ToggleButton value="HTML">HTML（网页）</ToggleButton>
-              <ToggleButton value="PDF">PDF（文档）</ToggleButton>
+              {REPORT_FORMAT_OPTIONS.map((opt) => (
+                <ToggleButton key={opt.value} value={opt.value}>
+                  <Box sx={{ textAlign: 'center' }}>
+                    <Typography variant="body2" sx={{ fontWeight: 600, fontSize: 13 }}>
+                      {opt.label}
+                    </Typography>
+                    <Typography
+                      variant="caption"
+                      sx={{ color: 'text.secondary', display: 'block', fontSize: 11 }}
+                    >
+                      {opt.description}
+                    </Typography>
+                  </Box>
+                </ToggleButton>
+              ))}
             </ToggleButtonGroup>
           </Box>
 
-          {/* 类型专属字段 */}
+          {/* Type-specific form */}
           {reportType === 'BACKTEST' && (
-            <TextField
-              label="回测运行 ID"
-              size="small"
-              value={runId}
-              onChange={(e) => setRunId(e.target.value)}
-              fullWidth
-              required
+            <GenerateFormBacktest
+              value={backtestParams}
+              onChange={setBacktestParams}
+              onValidChange={setValid}
             />
           )}
-
           {reportType === 'STOCK' && (
-            <TextField
-              label="股票代码"
-              size="small"
-              placeholder="如 000001.SZ"
-              value={tsCode}
-              onChange={(e) => setTsCode(e.target.value)}
-              fullWidth
-              required
+            <GenerateFormStock
+              value={stockParams}
+              onChange={setStockParams}
+              onValidChange={setValid}
             />
           )}
-
           {reportType === 'PORTFOLIO' && (
-            <TextField
-              label="组合 ID"
-              size="small"
-              value={portfolioId}
-              onChange={(e) => setPortfolioId(e.target.value)}
-              fullWidth
-              required
+            <GenerateFormPortfolio
+              value={portfolioParams}
+              onChange={setPortfolioParams}
+              onValidChange={setValid}
+            />
+          )}
+          {reportType === 'STRATEGY_RESEARCH' && (
+            <GenerateFormStrategy
+              value={strategyParams}
+              onChange={setStrategyParams}
+              onValidChange={setValid}
             />
           )}
 
-          {reportType === 'STRATEGY_RESEARCH' && (
-            <>
-              <TextField
-                label="回测运行 ID"
-                size="small"
-                value={backtestRunId}
-                onChange={(e) => setBacktestRunId(e.target.value)}
-                fullWidth
-                required
-              />
-              <TextField
-                label="策略 ID（可选）"
-                size="small"
-                value={strategyId}
-                onChange={(e) => setStrategyId(e.target.value)}
-                fullWidth
-              />
-              <TextField
-                label="组合 ID（可选）"
-                size="small"
-                value={srPortfolioId}
-                onChange={(e) => setSrPortfolioId(e.target.value)}
-                fullWidth
-              />
-              <Box>
-                <Typography
-                  variant="caption"
-                  color="text.secondary"
-                  sx={{ mb: 0.5, display: 'block' }}
-                >
-                  包含章节
-                </Typography>
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0 }}>
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={secPerformance}
-                        onChange={(e) => setSecPerformance(e.target.checked)}
-                      />
-                    }
-                    label="回测表现"
-                  />
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={secHoldings}
-                        onChange={(e) => setSecHoldings(e.target.checked)}
-                      />
-                    }
-                    label="持仓分析"
-                  />
-                  <FormControlLabel
-                    control={
-                      <Checkbox checked={secRisk} onChange={(e) => setSecRisk(e.target.checked)} />
-                    }
-                    label="风险评估"
-                  />
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={secTradeLog}
-                        onChange={(e) => setSecTradeLog(e.target.checked)}
-                      />
-                    }
-                    label="交易日志"
-                  />
-                </Box>
-              </Box>
-            </>
-          )}
-
-          {errorMsg && (
-            <Typography variant="body2" color="error">
-              {errorMsg}
-            </Typography>
-          )}
-        </Box>
+          {errorMsg && <Alert severity="error">{errorMsg}</Alert>}
+        </Stack>
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose} disabled={submitting}>
           取消
         </Button>
-        <Button variant="contained" onClick={handleSubmit} disabled={submitting}>
+        <Button variant="contained" onClick={handleSubmit} disabled={submitDisabled}>
           {submitting ? '提交中…' : '生成'}
         </Button>
       </DialogActions>
     </Dialog>
   );
 }
+
+// Re-export types so callers can keep current import path working
+export type { GenerateParams };

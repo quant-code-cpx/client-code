@@ -5,6 +5,7 @@ import { useState } from 'react';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
+import { useTheme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 import ToggleButton from '@mui/material/ToggleButton';
@@ -33,12 +34,12 @@ const EXTENDED_INDICATORS = [
 
 type Props = { history: TechnicalDataPoint[] };
 
-function zeroLine() {
-  return [{ y: 0, borderColor: '#999', strokeDashArray: 3 }];
+function zeroLine(borderColor: string) {
+  return [{ y: 0, borderColor, strokeDashArray: 3 }];
 }
 
-function refLines(...values: number[]) {
-  return values.map((y) => ({ y, borderColor: '#999', strokeDashArray: 3 }));
+function refLines(borderColor: string, ...values: number[]) {
+  return values.map((y) => ({ y, borderColor, strokeDashArray: 3 }));
 }
 
 function IndicatorChart({
@@ -48,6 +49,15 @@ function IndicatorChart({
   activeIndicator: string;
   history: TechnicalDataPoint[];
 }) {
+  const theme = useTheme();
+
+  const riseColor = theme.palette.error.main;
+  const fallColor = theme.palette.success.main;
+  const primaryColor = theme.palette.primary.main;
+  const warningColor = theme.palette.warning.main;
+  const textColor = theme.palette.text.primary;
+  const guideColor = theme.palette.text.disabled;
+
   const commonOpts = {
     xaxis: { type: 'category' as const, tickAmount: 8, labels: { rotate: -30 } },
     legend: { show: true },
@@ -78,18 +88,18 @@ function IndicatorChart({
     extraOpts = {
       chart: { type: 'bar' },
       stroke: { width: [0, 2, 2] },
-      colors: ['#EF5350', '#1877F2', '#FF9800'],
+      colors: [riseColor, primaryColor, warningColor],
       plotOptions: {
         bar: {
           colors: {
             ranges: [
-              { from: -1e9, to: 0, color: '#26A69A' },
-              { from: 0, to: 1e9, color: '#EF5350' },
+              { from: -1e9, to: 0, color: fallColor },
+              { from: 0, to: 1e9, color: riseColor },
             ],
           },
         },
       },
-      annotations: { yaxis: zeroLine() },
+      annotations: { yaxis: zeroLine(guideColor) },
       yaxis: { labels: { formatter: (v: number) => v.toFixed(3) } },
     };
   } else if (activeIndicator === 'KDJ') {
@@ -99,8 +109,8 @@ function IndicatorChart({
       { name: 'J', data: history.map((d) => ({ x: fmtD(d.tradeDate), y: d.kdjJ })) }
     );
     extraOpts = {
-      colors: ['#EF5350', '#1877F2', '#FF9800'],
-      annotations: { yaxis: refLines(20, 80) },
+      colors: [riseColor, primaryColor, warningColor],
+      annotations: { yaxis: refLines(guideColor, 20, 80) },
       yaxis: { min: 0, max: 100, labels: { formatter: (v: number) => v.toFixed(1) } },
     };
   } else if (activeIndicator === 'RSI') {
@@ -110,8 +120,8 @@ function IndicatorChart({
       { name: 'RSI24', data: history.map((d) => ({ x: fmtD(d.tradeDate), y: d.rsi24 })) }
     );
     extraOpts = {
-      colors: ['#EF5350', '#1877F2', '#FF9800'],
-      annotations: { yaxis: refLines(20, 30, 70, 80) },
+      colors: [riseColor, primaryColor, warningColor],
+      annotations: { yaxis: refLines(guideColor, 20, 30, 70, 80) },
       yaxis: { min: 0, max: 100, labels: { formatter: (v: number) => v.toFixed(1) } },
     };
   } else if (activeIndicator === 'BOLL') {
@@ -122,7 +132,7 @@ function IndicatorChart({
       { name: '下轨', data: history.map((d) => ({ x: fmtD(d.tradeDate), y: d.bollLower })) }
     );
     extraOpts = {
-      colors: ['#333333', '#EF5350', '#1877F2', '#26A69A'],
+      colors: [textColor, riseColor, primaryColor, fallColor],
       stroke: { width: [2, 1, 1, 1], curve: 'smooth' },
       yaxis: { labels: { formatter: (v: number) => v.toFixed(2) } },
     };
@@ -132,15 +142,15 @@ function IndicatorChart({
       { name: 'WR10', data: history.map((d) => ({ x: fmtD(d.tradeDate), y: d.wr10 })) }
     );
     extraOpts = {
-      colors: ['#EF5350', '#1877F2'],
-      annotations: { yaxis: refLines(-20, -80) },
+      colors: [riseColor, primaryColor],
+      annotations: { yaxis: refLines(guideColor, -20, -80) },
       yaxis: { min: -100, max: 0, labels: { formatter: (v: number) => v.toFixed(1) } },
     };
   } else if (activeIndicator === 'CCI') {
     series.push({ name: 'CCI', data: history.map((d) => ({ x: fmtD(d.tradeDate), y: d.cci })) });
     extraOpts = {
-      colors: ['#1877F2'],
-      annotations: { yaxis: refLines(100, -100) },
+      colors: [primaryColor],
+      annotations: { yaxis: refLines(guideColor, 100, -100) },
       yaxis: { labels: { formatter: (v: number) => v.toFixed(1) } },
     };
   } else if (activeIndicator === 'DMI') {
@@ -151,8 +161,8 @@ function IndicatorChart({
       { name: 'ADXR', data: history.map((d) => ({ x: fmtD(d.tradeDate), y: d.dmiAdxr })) }
     );
     extraOpts = {
-      colors: ['#EF5350', '#26A69A', '#1877F2', '#FF9800'],
-      annotations: { yaxis: refLines(25) },
+      colors: [riseColor, fallColor, primaryColor, warningColor],
+      annotations: { yaxis: refLines(guideColor, 25) },
       yaxis: { labels: { formatter: (v: number) => v.toFixed(2) } },
     };
   } else if (activeIndicator === 'TRIX') {
@@ -161,8 +171,8 @@ function IndicatorChart({
       { name: 'MATRIX', data: history.map((d) => ({ x: fmtD(d.tradeDate), y: d.trixMa })) }
     );
     extraOpts = {
-      colors: ['#EF5350', '#1877F2'],
-      annotations: { yaxis: zeroLine() },
+      colors: [riseColor, primaryColor],
+      annotations: { yaxis: zeroLine(guideColor) },
       yaxis: { labels: { formatter: (v: number) => v.toFixed(4) } },
     };
   } else if (activeIndicator === 'DMA') {
@@ -171,8 +181,8 @@ function IndicatorChart({
       { name: 'AMA', data: history.map((d) => ({ x: fmtD(d.tradeDate), y: d.dmaMa })) }
     );
     extraOpts = {
-      colors: ['#EF5350', '#1877F2'],
-      annotations: { yaxis: zeroLine() },
+      colors: [riseColor, primaryColor],
+      annotations: { yaxis: zeroLine(guideColor) },
       yaxis: { labels: { formatter: (v: number) => v.toFixed(2) } },
     };
   } else if (activeIndicator === 'BIAS') {
@@ -182,8 +192,8 @@ function IndicatorChart({
       { name: 'BIAS24', data: history.map((d) => ({ x: fmtD(d.tradeDate), y: d.bias24 })) }
     );
     extraOpts = {
-      colors: ['#EF5350', '#1877F2', '#FF9800'],
-      annotations: { yaxis: zeroLine() },
+      colors: [riseColor, primaryColor, warningColor],
+      annotations: { yaxis: zeroLine(guideColor) },
       yaxis: { labels: { formatter: (v: number) => v.toFixed(2) } },
     };
   } else if (activeIndicator === 'OBV') {
@@ -192,14 +202,14 @@ function IndicatorChart({
       { name: 'OBVMA', data: history.map((d) => ({ x: fmtD(d.tradeDate), y: d.obvMa })) }
     );
     extraOpts = {
-      colors: ['#1877F2', '#FF9800'],
+      colors: [primaryColor, warningColor],
       yaxis: { labels: { formatter: (v: number) => v.toFixed(0) } },
     };
   } else if (activeIndicator === 'VR') {
     series.push({ name: 'VR', data: history.map((d) => ({ x: fmtD(d.tradeDate), y: d.vr })) });
     extraOpts = {
-      colors: ['#1877F2'],
-      annotations: { yaxis: refLines(70, 150, 450) },
+      colors: [primaryColor],
+      annotations: { yaxis: refLines(guideColor, 70, 150, 450) },
       yaxis: { labels: { formatter: (v: number) => v.toFixed(1) } },
     };
   } else if (activeIndicator === 'EMV') {
@@ -208,8 +218,8 @@ function IndicatorChart({
       { name: 'EMVMA', data: history.map((d) => ({ x: fmtD(d.tradeDate), y: d.emvMa })) }
     );
     extraOpts = {
-      colors: ['#1877F2', '#FF9800'],
-      annotations: { yaxis: zeroLine() },
+      colors: [primaryColor, warningColor],
+      annotations: { yaxis: zeroLine(guideColor) },
       yaxis: { labels: { formatter: (v: number) => v.toFixed(4) } },
     };
   } else if (activeIndicator === 'ROC') {
@@ -218,8 +228,8 @@ function IndicatorChart({
       { name: 'ROCMA', data: history.map((d) => ({ x: fmtD(d.tradeDate), y: d.rocMa })) }
     );
     extraOpts = {
-      colors: ['#1877F2', '#FF9800'],
-      annotations: { yaxis: zeroLine() },
+      colors: [primaryColor, warningColor],
+      annotations: { yaxis: zeroLine(guideColor) },
       yaxis: { labels: { formatter: (v: number) => v.toFixed(2) } },
     };
   } else if (activeIndicator === 'PSY') {
@@ -228,8 +238,8 @@ function IndicatorChart({
       { name: 'PSYMA', data: history.map((d) => ({ x: fmtD(d.tradeDate), y: d.psyMa })) }
     );
     extraOpts = {
-      colors: ['#1877F2', '#FF9800'],
-      annotations: { yaxis: refLines(25, 75) },
+      colors: [primaryColor, warningColor],
+      annotations: { yaxis: refLines(guideColor, 25, 75) },
       yaxis: { min: 0, max: 100, labels: { formatter: (v: number) => v.toFixed(1) } },
     };
   } else if (activeIndicator === 'BR/AR') {
@@ -238,15 +248,15 @@ function IndicatorChart({
       { name: 'AR', data: history.map((d) => ({ x: fmtD(d.tradeDate), y: d.ar })) }
     );
     extraOpts = {
-      colors: ['#EF5350', '#1877F2'],
-      annotations: { yaxis: refLines(50, 150, 300) },
+      colors: [riseColor, primaryColor],
+      annotations: { yaxis: refLines(guideColor, 50, 150, 300) },
       yaxis: { labels: { formatter: (v: number) => v.toFixed(1) } },
     };
   } else if (activeIndicator === 'CR') {
     series.push({ name: 'CR', data: history.map((d) => ({ x: fmtD(d.tradeDate), y: d.cr })) });
     extraOpts = {
-      colors: ['#1877F2'],
-      annotations: { yaxis: refLines(40, 200) },
+      colors: [primaryColor],
+      annotations: { yaxis: refLines(guideColor, 40, 200) },
       yaxis: { labels: { formatter: (v: number) => v.toFixed(1) } },
     };
   } else if (activeIndicator === 'SAR') {
@@ -263,7 +273,7 @@ function IndicatorChart({
       }
     );
     extraOpts = {
-      colors: ['#EF5350', '#333333'],
+      colors: [riseColor, textColor],
       markers: { size: [4, 0] },
       stroke: { width: [0, 2] },
       yaxis: { labels: { formatter: (v: number) => v.toFixed(2) } },

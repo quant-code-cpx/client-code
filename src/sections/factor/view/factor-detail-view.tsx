@@ -19,7 +19,7 @@ import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Iconify } from 'src/components/iconify';
 
-import { CATEGORY_LABELS } from '../factor-library-card';
+import { CATEGORY_LABELS } from '../constants';
 import { FactorBacktestPanel } from '../factor-backtest-panel';
 import { FactorDetailIcChart } from '../factor-detail-ic-chart';
 import { FactorDetailDecayChart } from '../factor-detail-decay-chart';

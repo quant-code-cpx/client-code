@@ -1,59 +1,95 @@
-import type { EventType, CalendarEvent } from 'src/api/alert';
+import type { CalendarEvent } from 'src/api/alert';
 
 import dayjs from 'dayjs';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 
+import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
 import Alert from '@mui/material/Alert';
+import Snackbar from '@mui/material/Snackbar';
 import Typography from '@mui/material/Typography';
+import LinearProgress from '@mui/material/LinearProgress';
 
-import { alertApi } from 'src/api/alert';
 import { DashboardContent } from 'src/layouts/dashboard';
 
-import { AlertCalendarStats } from '../alert-calendar-stats';
-import { AlertCalendarFilters } from '../alert-calendar-filters';
-import { AlertCalendarTimeline } from '../alert-calendar-timeline';
+import {
+  ExportDialog,
+  CalendarFilters,
+  SubscribeDialog,
+  CalendarGridView,
+  CalendarStatsRow,
+  useCalendarState,
+  CalendarTableView,
+  EventDetailDrawer,
+  useCalendarEvents,
+  CalendarTimelineView,
+} from '../calendar';
 
 // ----------------------------------------------------------------------
 
 export function AlertCalendarView() {
-  const defaultStart = dayjs().subtract(30, 'day').format('YYYYMMDD');
-  const defaultEnd = dayjs().format('YYYYMMDD');
+  const { filters, update, reset } = useCalendarState();
+  const { events, totalCount, truncated, dataAsOf, loading, error, refresh } =
+    useCalendarEvents(filters);
 
-  const [startDate, setStartDate] = useState(defaultStart);
-  const [endDate, setEndDate] = useState(defaultEnd);
-  const [tsCode, setTsCode] = useState<string | undefined>();
-  const [selectedTypes, setSelectedTypes] = useState<EventType[]>([]);
-  const [events, setEvents] = useState<CalendarEvent[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [detailEvent, setDetailEvent] = useState<CalendarEvent | null>(null);
+  const [exportOpen, setExportOpen] = useState(false);
+  const [subscribeEvents, setSubscribeEvents] = useState<CalendarEvent[]>([]);
+  const [subscribeOpen, setSubscribeOpen] = useState(false);
+  const [snackbar, setSnackbar] = useState<{ msg: string; severity: 'success' | 'info' } | null>(
+    null
+  );
 
-  const fetchEvents = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const data = await alertApi.getCalendar({
-        startDate,
-        endDate,
-        tsCode,
-        types: selectedTypes.length > 0 ? selectedTypes : undefined,
-      });
-      setEvents(data.events ?? []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '加载事件数据失败');
-    } finally {
-      setLoading(false);
-    }
-  }, [startDate, endDate, tsCode, selectedTypes]);
+  const handleSelectEvent = useCallback((event: CalendarEvent) => {
+    setDetailEvent(event);
+  }, []);
 
-  useEffect(() => {
-    fetchEvents();
-  }, [fetchEvents]);
+  const handleCloseDetail = useCallback(() => setDetailEvent(null), []);
+
+  const handleSelectDay = useCallback(
+    (date: string) => {
+      update({ view: 'timeline', startDate: date, endDate: date });
+    },
+    [update]
+  );
+
+  const handleCardClick = useCallback(
+    (key: string) => {
+      const today = dayjs().format('YYYYMMDD');
+      if (key === 'today') {
+        update({ startDate: today, endDate: today, impactLevels: [] });
+      } else if (key === 'week') {
+        update({ startDate: today, endDate: dayjs().add(6, 'day').format('YYYYMMDD') });
+      } else if (key === 'high-impact') {
+        update({ impactLevels: ['HIGH'] });
+      } else if (key === 'watchlist') {
+        update({ scope: 'WATCHLIST' });
+      }
+    },
+    [update]
+  );
+
+  const handleSubscribeOne = useCallback((event: CalendarEvent) => {
+    setSubscribeEvents([event]);
+    setSubscribeOpen(true);
+  }, []);
+
+  const handleBatchSubscribe = useCallback((selectedEvents: CalendarEvent[]) => {
+    setSubscribeEvents(selectedEvents);
+    setSubscribeOpen(true);
+  }, []);
 
   return (
     <DashboardContent maxWidth="xl">
-      <Typography variant="h4" sx={{ mb: 3 }}>
-        事件日历
-      </Typography>
+      <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 2 }}>
+        <Typography variant="h4">事件日历</Typography>
+        <Box sx={{ flexGrow: 1 }} />
+        <Typography variant="caption" color="text.secondary">
+          共 {totalCount} 项事件
+          {truncated && '（已截断 1000 项）'}
+          {dataAsOf && ` · 数据更新于 ${dataAsOf}`}
+        </Typography>
+      </Stack>
 
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
@@ -61,20 +97,65 @@ export function AlertCalendarView() {
         </Alert>
       )}
 
-      <AlertCalendarFilters
-        startDate={startDate}
-        endDate={endDate}
-        selectedTypes={selectedTypes}
-        tsCode={tsCode}
-        onStartDateChange={setStartDate}
-        onEndDateChange={setEndDate}
-        onTypesChange={setSelectedTypes}
-        onTsCodeChange={setTsCode}
+      <CalendarFilters
+        filters={filters}
+        onChange={update}
+        onReset={reset}
+        onRefresh={refresh}
+        onExport={() => setExportOpen(true)}
       />
 
-      <AlertCalendarStats events={events} loading={loading} />
+      <CalendarStatsRow events={events} loading={loading} onCardClick={handleCardClick} />
 
-      <AlertCalendarTimeline events={events} loading={loading} />
+      {loading && <LinearProgress sx={{ mb: 1.5 }} />}
+
+      {filters.view === 'grid' && (
+        <CalendarGridView
+          events={events}
+          startDate={filters.startDate}
+          onSelectDay={handleSelectDay}
+          onSelectEvent={handleSelectEvent}
+        />
+      )}
+      {filters.view === 'timeline' && (
+        <CalendarTimelineView events={events} onSelectEvent={handleSelectEvent} />
+      )}
+      {filters.view === 'table' && (
+        <CalendarTableView
+          events={events}
+          onSelectEvent={handleSelectEvent}
+          onBatchSubscribe={handleBatchSubscribe}
+        />
+      )}
+
+      <EventDetailDrawer
+        open={!!detailEvent}
+        event={detailEvent}
+        onClose={handleCloseDetail}
+        onSubscribe={handleSubscribeOne}
+      />
+
+      <ExportDialog open={exportOpen} filters={filters} onClose={() => setExportOpen(false)} />
+
+      <SubscribeDialog
+        open={subscribeOpen}
+        events={subscribeEvents}
+        onClose={() => setSubscribeOpen(false)}
+        onSuccess={() => setSnackbar({ msg: '订阅成功', severity: 'success' })}
+      />
+
+      <Snackbar
+        open={!!snackbar}
+        autoHideDuration={3000}
+        onClose={() => setSnackbar(null)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        {snackbar ? (
+          <Alert severity={snackbar.severity} variant="filled">
+            {snackbar.msg}
+          </Alert>
+        ) : undefined}
+      </Snackbar>
     </DashboardContent>
   );
 }

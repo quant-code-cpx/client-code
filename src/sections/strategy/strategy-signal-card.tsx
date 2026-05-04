@@ -1,13 +1,15 @@
-import type { SignalActivationItem } from 'src/api/signal';
 import type { PortfolioListItem } from 'src/api/portfolio';
+import type { SignalActivationItem, LatestSignalResponse } from 'src/api/signal';
 
 import { useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
+import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Slider from '@mui/material/Slider';
+import Divider from '@mui/material/Divider';
 import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
 import CardHeader from '@mui/material/CardHeader';
@@ -18,7 +20,7 @@ import { useRouter } from 'src/routes/hooks';
 import { fmtTradeDate } from 'src/utils/format-time';
 
 import { listPortfolios } from 'src/api/portfolio';
-import { activateSignal, deactivateSignal, listSignalActivations } from 'src/api/signal';
+import { activateSignal, deactivateSignal, getLatestSignals, listSignalActivations } from 'src/api/signal';
 
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
@@ -38,6 +40,9 @@ export function StrategySignalCard({ strategyId, strategyName }: Props) {
   const [submitting, setSubmitting] = useState(false);
   const [editing, setEditing] = useState(false);
 
+  // 今日信号摘要
+  const [latestSignal, setLatestSignal] = useState<LatestSignalResponse | null>(null);
+
   // Form state
   const [portfolioId, setPortfolioId] = useState('');
   const [universe, setUniverse] = useState('ALL_A');
@@ -45,7 +50,7 @@ export function StrategySignalCard({ strategyId, strategyName }: Props) {
   const [alertThreshold, setAlertThreshold] = useState(0.3);
 
   // Portfolio list for dropdown
-  const [portfolios, setPortfolios] = useState<PortfolioListItem[]>([]);
+  const [portfolios, setPortfolios] = useState<PortfolioListItem[]>([]); 
 
   const fetchActivation = useCallback(async () => {
     setLoading(true);
@@ -69,6 +74,20 @@ export function StrategySignalCard({ strategyId, strategyName }: Props) {
   useEffect(() => {
     fetchActivation();
   }, [fetchActivation]);
+
+  // 激活后加载今日信号摘要
+  useEffect(() => {
+    if (activation?.isActive) {
+      getLatestSignals({ strategyId })
+        .then((list) => {
+          const found = list.find((s) => s.strategyId === strategyId) ?? list[0] ?? null;
+          setLatestSignal(found);
+        })
+        .catch(() => {});
+    } else {
+      setLatestSignal(null);
+    }
+  }, [activation, strategyId]);
 
   useEffect(() => {
     listPortfolios()
@@ -153,6 +172,57 @@ export function StrategySignalCard({ strategyId, strategyName }: Props) {
       />
 
       <Box sx={{ p: 3 }}>
+        {/* 今日信号摘要（仅激活状态下显示） */}
+        {isActive && latestSignal && (
+          <>
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
+                最新信号日期：{fmtTradeDate(latestSignal.tradeDate)}
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                {(() => {
+                  const buyCount = latestSignal.signals.filter((s) => s.action === 'BUY').length;
+                  const sellCount = latestSignal.signals.filter((s) => s.action === 'SELL').length;
+                  const holdCount = latestSignal.signals.filter((s) => s.action === 'HOLD').length;
+                  return (
+                    <>
+                      {buyCount > 0 && (
+                        <Chip
+                          size="small"
+                          label={`买入 ${buyCount}`}
+                          sx={(theme) => ({
+                            bgcolor: theme.palette.error.light,
+                            color: theme.palette.error.dark,
+                          })}
+                        />
+                      )}
+                      {sellCount > 0 && (
+                        <Chip
+                          size="small"
+                          label={`卖出 ${sellCount}`}
+                          sx={(theme) => ({
+                            bgcolor: theme.palette.success.light,
+                            color: theme.palette.success.dark,
+                          })}
+                        />
+                      )}
+                      {holdCount > 0 && (
+                        <Chip size="small" label={`持有 ${holdCount}`} variant="outlined" />
+                      )}
+                      {latestSignal.signals.length === 0 && (
+                        <Typography variant="caption" color="text.secondary">
+                          当日无信号
+                        </Typography>
+                      )}
+                    </>
+                  );
+                })()}
+              </Box>
+            </Box>
+            <Divider sx={{ mb: 2 }} />
+          </>
+        )}
+
         {showForm ? (
           <Stack spacing={2}>
             {!isActive && (

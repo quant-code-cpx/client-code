@@ -1,22 +1,442 @@
 {
   "activations": {
     "code": 0,
-    "data": [],
+    "data": [
+      {
+        "id": "act-001",
+        "strategyId": "strat-momentum-v2",
+        "strategyName": "动量精选 v2",
+        "portfolioId": "pf-001",
+        "portfolioName": "沪深进取组合",
+        "isActive": true,
+        "universe": "HS300",
+        "benchmarkTsCode": "000300.SH",
+        "lookbackDays": 60,
+        "alertThreshold": 0.6,
+        "lastSignalDate": "20260430",
+        "lastRunAt": "2026-04-30T15:32:14+08:00",
+        "lastSignalCount": 8,
+        "status": "ok",
+        "lastRunError": null,
+        "createdAt": "2026-03-12T10:00:00+08:00",
+        "updatedAt": "2026-04-30T15:32:14+08:00"
+      },
+      {
+        "id": "act-002",
+        "strategyId": "strat-rotation",
+        "strategyName": "行业轮动",
+        "portfolioId": "pf-002",
+        "portfolioName": "行业轮动组合",
+        "isActive": true,
+        "universe": "ALL",
+        "benchmarkTsCode": "000905.SH",
+        "lookbackDays": 90,
+        "alertThreshold": 0.55,
+        "lastSignalDate": "20260430",
+        "lastRunAt": "2026-04-30T15:32:14+08:00",
+        "lastSignalCount": 5,
+        "status": "ok",
+        "lastRunError": null,
+        "createdAt": "2026-02-20T10:00:00+08:00",
+        "updatedAt": "2026-04-30T15:32:14+08:00"
+      },
+      {
+        "id": "act-003",
+        "strategyId": "strat-reversal",
+        "strategyName": "短期反转",
+        "portfolioId": null,
+        "portfolioName": null,
+        "isActive": false,
+        "universe": "ZZ500",
+        "benchmarkTsCode": "000905.SH",
+        "lookbackDays": 30,
+        "alertThreshold": 0.5,
+        "lastSignalDate": "20260422",
+        "lastRunAt": "2026-04-22T15:30:00+08:00",
+        "lastSignalCount": 0,
+        "status": "stale",
+        "lastRunError": null,
+        "createdAt": "2026-01-10T10:00:00+08:00",
+        "updatedAt": "2026-04-22T15:30:00+08:00"
+      }
+    ],
     "message": ""
   },
   "latest": {
     "code": 0,
-    "data": [],
+    "data": [
+      {
+        "strategyId": "strat-momentum-v2",
+        "strategyName": "动量精选 v2",
+        "tradeDate": "20260430",
+        "generatedAt": "2026-04-30T15:32:14+08:00",
+        "status": "ok",
+        "lastRunAt": "2026-04-30T15:32:14+08:00",
+        "lastRunError": null,
+        "portfolioId": "pf-001",
+        "portfolioName": "沪深进取组合",
+        "portfolioMarketValue": 12000000,
+        "benchmarkTsCode": "000300.SH",
+        "benchmarkName": "沪深300",
+        "diffFromPrev": {
+          "prevTradeDate": "20260429",
+          "added": [
+            {
+              "tsCode": "600519.SH",
+              "stockName": "贵州茅台",
+              "action": "BUY",
+              "targetWeight": 0.08,
+              "confidence": 0.78,
+              "consecutiveDays": 1,
+              "isNew": true,
+              "currentWeight": 0,
+              "estimatedShares": 100,
+              "confidenceMethod": "综合得分"
+            },
+            {
+              "tsCode": "000333.SZ",
+              "stockName": "美的集团",
+              "action": "BUY",
+              "targetWeight": 0.05,
+              "confidence": 0.65,
+              "consecutiveDays": 1,
+              "isNew": true,
+              "currentWeight": 0,
+              "estimatedShares": 60,
+              "confidenceMethod": "综合得分"
+            }
+          ],
+          "removed": [
+            {
+              "tsCode": "002475.SZ",
+              "stockName": "立讯精密",
+              "action": "SELL",
+              "targetWeight": 0,
+              "confidence": 0.7,
+              "consecutiveDays": 1,
+              "isNew": true,
+              "currentWeight": 0.06,
+              "estimatedShares": -200,
+              "confidenceMethod": "综合得分"
+            }
+          ],
+          "rebalanced": [
+            {
+              "tsCode": "601318.SH",
+              "stockName": "中国平安",
+              "prevWeight": 0.04,
+              "newWeight": 0.06,
+              "delta": 0.02
+            }
+          ]
+        },
+        "signals": [
+          {
+            "tsCode": "600519.SH",
+            "stockName": "贵州茅台",
+            "action": "BUY",
+            "targetWeight": 0.08,
+            "confidence": 0.78,
+            "consecutiveDays": 1,
+            "isNew": true,
+            "currentWeight": 0,
+            "estimatedShares": 100,
+            "confidenceMethod": "综合得分"
+          },
+          {
+            "tsCode": "000333.SZ",
+            "stockName": "美的集团",
+            "action": "BUY",
+            "targetWeight": 0.05,
+            "confidence": 0.65,
+            "consecutiveDays": 1,
+            "isNew": true,
+            "currentWeight": 0,
+            "estimatedShares": 60,
+            "confidenceMethod": "综合得分"
+          },
+          {
+            "tsCode": "601318.SH",
+            "stockName": "中国平安",
+            "action": "BUY",
+            "targetWeight": 0.06,
+            "confidence": 0.91,
+            "consecutiveDays": 2,
+            "isNew": false,
+            "currentWeight": 0.04,
+            "estimatedShares": 200,
+            "confidenceMethod": "综合得分"
+          },
+          {
+            "tsCode": "002475.SZ",
+            "stockName": "立讯精密",
+            "action": "SELL",
+            "targetWeight": 0,
+            "confidence": 0.7,
+            "consecutiveDays": 1,
+            "isNew": true,
+            "currentWeight": 0.06,
+            "estimatedShares": -200,
+            "confidenceMethod": "综合得分"
+          },
+          {
+            "tsCode": "600036.SH",
+            "stockName": "招商银行",
+            "action": "HOLD",
+            "targetWeight": 0.05,
+            "confidence": 0.6,
+            "consecutiveDays": 5,
+            "isNew": false,
+            "currentWeight": 0.05,
+            "estimatedShares": 0,
+            "confidenceMethod": "综合得分"
+          },
+          {
+            "tsCode": "601012.SH",
+            "stockName": "隆基绿能",
+            "action": "HOLD",
+            "targetWeight": 0.04,
+            "confidence": 0.55,
+            "consecutiveDays": 8,
+            "isNew": false,
+            "currentWeight": 0.04,
+            "estimatedShares": 0,
+            "confidenceMethod": "综合得分"
+          }
+        ]
+      }
+    ],
     "message": ""
   },
   "history": {
     "code": 0,
     "data": {
-      "strategyId": "any",
-      "total": 0,
+      "strategyId": "strat-momentum-v2",
+      "total": 10,
       "page": 1,
       "pageSize": 20,
-      "groups": []
+      "aggregateStats": {
+        "totalSignals": 10,
+        "buyCount": 5,
+        "sellCount": 2,
+        "holdCount": 3,
+        "avgConfidence": 0.69,
+        "accuracy": {
+          "window": 5,
+          "rate": 0.625,
+          "sampleSize": 8
+        },
+        "avgExcessReturn": {
+          "window": 5,
+          "value": 1.18
+        }
+      },
+      "groups": [
+        {
+          "tradeDate": "20260430",
+          "generatedAt": "2026-04-30T15:32:14+08:00",
+          "signalCount": 5,
+          "diffFromPrev": {
+            "added": 2,
+            "removed": 1,
+            "weightChanged": 1
+          },
+          "signals": [
+            {
+              "tsCode": "600519.SH",
+              "stockName": "贵州茅台",
+              "action": "BUY",
+              "targetWeight": 0.08,
+              "currentWeight": 0,
+              "confidence": 0.78,
+              "forwardReturn": { "d1": 1.2, "d5": 3.8, "d20": null },
+              "excessReturn": { "d1": 0.6, "d5": 2.1, "d20": null },
+              "isFirstOccurrence": true,
+              "reason": [
+                { "factor": "动量强度", "contribution": 0.42 },
+                { "factor": "资金流", "contribution": 0.18 }
+              ]
+            },
+            {
+              "tsCode": "000333.SZ",
+              "stockName": "美的集团",
+              "action": "BUY",
+              "targetWeight": 0.05,
+              "currentWeight": 0,
+              "confidence": 0.65,
+              "forwardReturn": { "d1": -0.4, "d5": 1.1, "d20": null },
+              "excessReturn": { "d1": -0.8, "d5": 0.2, "d20": null },
+              "isFirstOccurrence": true,
+              "reason": [{ "factor": "估值修复", "contribution": 0.23 }]
+            },
+            {
+              "tsCode": "601318.SH",
+              "stockName": "中国平安",
+              "action": "BUY",
+              "targetWeight": 0.06,
+              "currentWeight": 0.04,
+              "confidence": 0.91,
+              "forwardReturn": { "d1": 0.8, "d5": 2.4, "d20": null },
+              "excessReturn": { "d1": 0.3, "d5": 1.5, "d20": null },
+              "isFirstOccurrence": false,
+              "reason": [{ "factor": "低波红利", "contribution": 0.31 }]
+            },
+            {
+              "tsCode": "002475.SZ",
+              "stockName": "立讯精密",
+              "action": "SELL",
+              "targetWeight": 0,
+              "currentWeight": 0.06,
+              "confidence": 0.7,
+              "forwardReturn": { "d1": -0.9, "d5": -2.3, "d20": null },
+              "excessReturn": { "d1": -0.2, "d5": -1.0, "d20": null },
+              "isFirstOccurrence": true,
+              "reason": [{ "factor": "趋势转弱", "contribution": -0.36 }]
+            },
+            {
+              "tsCode": "600036.SH",
+              "stockName": "招商银行",
+              "action": "HOLD",
+              "targetWeight": 0.05,
+              "currentWeight": 0.05,
+              "confidence": 0.6,
+              "forwardReturn": { "d1": 0.2, "d5": 0.6, "d20": null },
+              "excessReturn": { "d1": -0.1, "d5": 0.1, "d20": null },
+              "isFirstOccurrence": false,
+              "reason": []
+            }
+          ]
+        },
+        {
+          "tradeDate": "20260429",
+          "generatedAt": "2026-04-29T15:31:50+08:00",
+          "signalCount": 3,
+          "diffFromPrev": {
+            "added": 1,
+            "removed": 1,
+            "weightChanged": 2
+          },
+          "signals": [
+            {
+              "tsCode": "601012.SH",
+              "stockName": "隆基绿能",
+              "action": "BUY",
+              "targetWeight": 0.04,
+              "currentWeight": 0.02,
+              "confidence": 0.62,
+              "forwardReturn": { "d1": 2.1, "d5": 4.5, "d20": 6.2 },
+              "excessReturn": { "d1": 1.4, "d5": 2.8, "d20": 3.9 },
+              "isFirstOccurrence": true,
+              "reason": [{ "factor": "景气反转", "contribution": 0.28 }]
+            },
+            {
+              "tsCode": "300750.SZ",
+              "stockName": "宁德时代",
+              "action": "SELL",
+              "targetWeight": 0,
+              "currentWeight": 0.05,
+              "confidence": 0.66,
+              "forwardReturn": { "d1": -1.1, "d5": -3.4, "d20": -4.2 },
+              "excessReturn": { "d1": -0.7, "d5": -1.9, "d20": -2.6 },
+              "isFirstOccurrence": true,
+              "reason": [{ "factor": "波动放大", "contribution": -0.22 }]
+            },
+            {
+              "tsCode": "600036.SH",
+              "stockName": "招商银行",
+              "action": "HOLD",
+              "targetWeight": 0.05,
+              "currentWeight": 0.05,
+              "confidence": 0.58,
+              "forwardReturn": { "d1": 0.3, "d5": 1.0, "d20": 1.8 },
+              "excessReturn": { "d1": 0.1, "d5": 0.5, "d20": 0.7 },
+              "isFirstOccurrence": false,
+              "reason": []
+            }
+          ]
+        },
+        {
+          "tradeDate": "20260428",
+          "generatedAt": "2026-04-28T15:30:42+08:00",
+          "signalCount": 2,
+          "diffFromPrev": null,
+          "signals": [
+            {
+              "tsCode": "000858.SZ",
+              "stockName": "五粮液",
+              "action": "BUY",
+              "targetWeight": 0.05,
+              "currentWeight": 0,
+              "confidence": 0.73,
+              "forwardReturn": { "d1": 0.9, "d5": 2.2, "d20": 3.6 },
+              "excessReturn": { "d1": 0.4, "d5": 1.2, "d20": 2.0 },
+              "isFirstOccurrence": true,
+              "reason": [{ "factor": "消费修复", "contribution": 0.25 }]
+            },
+            {
+              "tsCode": "600900.SH",
+              "stockName": "长江电力",
+              "action": "HOLD",
+              "targetWeight": 0.04,
+              "currentWeight": 0.04,
+              "confidence": 0.52,
+              "forwardReturn": { "d1": 0.1, "d5": 0.4, "d20": 1.2 },
+              "excessReturn": { "d1": -0.1, "d5": 0.0, "d20": 0.3 },
+              "isFirstOccurrence": false,
+              "reason": []
+            }
+          ]
+        }
+      ]
+    },
+    "message": ""
+  },
+  "detail": {
+    "code": 0,
+    "data": {
+      "strategyId": "strat-momentum-v2",
+      "tradeDate": "20260430",
+      "generatedAt": "2026-04-30T15:32:14+08:00",
+      "diffFromPrev": {
+        "added": 2,
+        "removed": 1,
+        "weightChanged": 1
+      },
+      "signals": []
+    },
+    "message": ""
+  },
+  "compare": {
+    "code": 0,
+    "data": {
+      "items": [
+        {
+          "strategyId": "strat-momentum-v2",
+          "strategyName": "动量精选 v2",
+          "aggregateStats": {
+            "totalSignals": 10,
+            "buyCount": 5,
+            "sellCount": 2,
+            "holdCount": 3,
+            "avgConfidence": 0.69,
+            "accuracy": { "window": 5, "rate": 0.625, "sampleSize": 8 },
+            "avgExcessReturn": { "window": 5, "value": 1.18 }
+          }
+        },
+        {
+          "strategyId": "strat-rotation",
+          "strategyName": "行业轮动",
+          "aggregateStats": {
+            "totalSignals": 7,
+            "buyCount": 3,
+            "sellCount": 2,
+            "holdCount": 2,
+            "avgConfidence": 0.64,
+            "accuracy": { "window": 5, "rate": 0.571, "sampleSize": 7 },
+            "avgExcessReturn": { "window": 5, "value": 0.72 }
+          }
+        }
+      ]
     },
     "message": ""
   }

@@ -8,6 +8,11 @@ export type BacktestProgressEvent = {
   jobId: string;
   progress: number;
   step: string;
+  stage?: 'PARAM_SEARCH' | 'IS_FIT' | 'OOS_EVAL' | 'AGGREGATE';
+  windowIndex?: number;
+  completedWindows?: number;
+  windowCount?: number;
+  etaSeconds?: number;
 };
 
 export type BacktestCompletedEvent = {

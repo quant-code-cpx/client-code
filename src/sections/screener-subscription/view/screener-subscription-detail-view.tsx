@@ -1,13 +1,15 @@
 import type { SubscriptionLog, ScreenerSubscription } from 'src/api/screener-subscription';
 
 import { useParams } from 'react-router-dom';
-import { useState, useEffect, useCallback } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
+import Stack from '@mui/material/Stack';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
+import Snackbar from '@mui/material/Snackbar';
 import Skeleton from '@mui/material/Skeleton';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
@@ -16,9 +18,9 @@ import { useRouter } from 'src/routes/hooks';
 
 import { fDate, fToNow, fDateTime } from 'src/utils/format-time';
 
+import { getSocket } from 'src/lib/socket';
 import { DashboardContent } from 'src/layouts/dashboard';
 import {
-  runSubscription,
   pauseSubscription,
   resumeSubscription,
   getSubscriptionById,
@@ -29,6 +31,7 @@ import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
 
 import { SubscriptionLogTable } from '../subscription-log-table';
+import { SubscriptionRunButton } from '../subscription-run-button';
 import { SubscriptionEditDialog } from '../subscription-edit-dialog';
 import { SubscriptionStatusLabel } from '../subscription-status-label';
 import { SubscriptionMatchPreview } from '../subscription-match-preview';
@@ -37,6 +40,10 @@ import { SubscriptionFiltersSummary } from '../subscription-filters-summary';
 // ----------------------------------------------------------------------
 
 const FREQUENCY_LABELS = { DAILY: '每日', WEEKLY: '每周', MONTHLY: '每月' } as const;
+
+type ScreenerSubscriptionAlertPayload = {
+  subscriptionId: number;
+};
 
 export function ScreenerSubscriptionDetailView() {
   const { id } = useParams<{ id: string }>();
@@ -49,41 +56,51 @@ export function ScreenerSubscriptionDetailView() {
   const [logs, setLogs] = useState<SubscriptionLog[]>([]);
   const [logsTotal, setLogsTotal] = useState(0);
   const [logsPage, setLogsPage] = useState(1);
-  const logsPageSize = 20;
   const [logsLoading, setLogsLoading] = useState(false);
+  const [logsError, setLogsError] = useState('');
+  const logsPageSize = 20;
 
   const [editOpen, setEditOpen] = useState(false);
   const [actionError, setActionError] = useState('');
+  const [actionInfo, setActionInfo] = useState('');
 
+  const numericId = id ? Number(id) : NaN;
+  const isValidId = Number.isFinite(numericId) && numericId > 0;
+
+  // ── 拉取详情 ──
   const fetchDetail = useCallback(async () => {
-    if (!id) return;
+    if (!isValidId) {
+      setDetailError('订阅 ID 无效');
+      return;
+    }
     setLoadingDetail(true);
     setDetailError('');
     try {
-      const data = await getSubscriptionById(Number(id));
+      const data = await getSubscriptionById(numericId);
       setSubscription(data);
     } catch (err) {
       setDetailError(err instanceof Error ? err.message : '获取订阅详情失败');
     } finally {
       setLoadingDetail(false);
     }
-  }, [id]);
+  }, [isValidId, numericId]);
 
   const fetchLogs = useCallback(
     async (page: number) => {
-      if (!id) return;
+      if (!isValidId) return;
       setLogsLoading(true);
+      setLogsError('');
       try {
-        const res = await getSubscriptionLogs(Number(id), page, logsPageSize);
+        const res = await getSubscriptionLogs(numericId, page, logsPageSize);
         setLogs(res.logs);
         setLogsTotal(res.total);
-      } catch {
-        // silently fail logs
+      } catch (err) {
+        setLogsError(err instanceof Error ? err.message : '加载执行历史失败');
       } finally {
         setLogsLoading(false);
       }
     },
-    [id, logsPageSize]
+    [isValidId, numericId]
   );
 
   useEffect(() => {
@@ -94,31 +111,56 @@ export function ScreenerSubscriptionDetailView() {
     fetchLogs(logsPage);
   }, [fetchLogs, logsPage]);
 
+  // ── WebSocket 推送：本订阅命中新股票时刷新 ──
+  const refetchAllRef = useRef<() => void>(() => {});
+  refetchAllRef.current = () => {
+    fetchDetail();
+    fetchLogs(logsPage);
+  };
+  useEffect(() => {
+    if (!isValidId) return undefined;
+    const socket = getSocket();
+    socket.connect();
+    const handler = (payload: ScreenerSubscriptionAlertPayload) => {
+      if (payload.subscriptionId === numericId) {
+        refetchAllRef.current();
+      }
+    };
+    socket.on('screener_subscription_alert', handler);
+    return () => {
+      socket.off('screener_subscription_alert', handler);
+    };
+  }, [isValidId, numericId]);
+
+  // ── 暂停 / 恢复 ──
   const handlePauseResume = async () => {
     if (!subscription) return;
     setActionError('');
+    const next = subscription.status === 'ACTIVE' ? 'PAUSED' : 'ACTIVE';
+    setSubscription({ ...subscription, status: next });
     try {
-      const updated =
-        subscription.status === 'ACTIVE'
-          ? await pauseSubscription(subscription.id)
-          : await resumeSubscription(subscription.id);
-      setSubscription(updated);
+      if (subscription.status === 'ACTIVE') {
+        await pauseSubscription(subscription.id);
+      } else {
+        await resumeSubscription(subscription.id);
+      }
+      fetchDetail();
     } catch (err) {
+      setSubscription(subscription);
       setActionError(err instanceof Error ? err.message : '操作失败');
     }
   };
 
-  const handleRun = async () => {
-    if (!subscription) return;
-    setActionError('');
-    try {
-      await runSubscription(subscription.id);
-    } catch (err) {
-      setActionError(err instanceof Error ? err.message : '手动执行失败');
-    }
-  };
+  // ── 渲染分支 ──
+  if (!isValidId) {
+    return (
+      <DashboardContent>
+        <Alert severity="error">订阅 ID 无效，请通过列表页打开。</Alert>
+      </DashboardContent>
+    );
+  }
 
-  if (loadingDetail) {
+  if (loadingDetail && !subscription) {
     return (
       <DashboardContent>
         <Skeleton variant="rounded" height={200} />
@@ -126,10 +168,19 @@ export function ScreenerSubscriptionDetailView() {
     );
   }
 
-  if (detailError) {
+  if (detailError && !subscription) {
     return (
       <DashboardContent>
-        <Alert severity="error">{detailError}</Alert>
+        <Alert
+          severity="error"
+          action={
+            <Button color="inherit" size="small" onClick={fetchDetail}>
+              重试
+            </Button>
+          }
+        >
+          {detailError}
+        </Alert>
       </DashboardContent>
     );
   }
@@ -139,7 +190,15 @@ export function ScreenerSubscriptionDetailView() {
   return (
     <DashboardContent>
       {/* Header */}
-      <Box sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 2 }}>
+      <Box
+        sx={{
+          mb: 3,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 2,
+          flexWrap: 'wrap',
+        }}
+      >
         <Button
           startIcon={<Iconify icon="solar:arrow-left-bold" />}
           onClick={() => router.push('/stock/subscription')}
@@ -152,24 +211,32 @@ export function ScreenerSubscriptionDetailView() {
         <Button variant="outlined" onClick={handlePauseResume}>
           {subscription.status === 'ACTIVE' ? '暂停' : '恢复'}
         </Button>
-        <Button variant="outlined" onClick={handleRun}>
-          手动执行
-        </Button>
+        <SubscriptionRunButton
+          subscriptionId={subscription.id}
+          lastRunAt={subscription.lastRunAt}
+          onSuccess={(msg) => {
+            setActionInfo(msg);
+            // 触发后日志可能稍后产出，等待 WebSocket 或下次刷新
+            fetchLogs(logsPage);
+          }}
+          onError={(msg) => setActionError(msg)}
+          label="手动执行"
+          size="medium"
+        />
         <Button variant="contained" onClick={() => setEditOpen(true)}>
           编辑
         </Button>
       </Box>
 
-      {actionError && (
-        <Alert severity="error" sx={{ mb: 3 }} onClose={() => setActionError('')}>
-          {actionError}
-        </Alert>
-      )}
-
       {/* Info row */}
       <Card sx={{ mb: 3 }}>
         <CardContent>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, alignItems: 'center', mb: 2 }}>
+          <Stack
+            direction={{ xs: 'column', sm: 'row' }}
+            spacing={3}
+            alignItems={{ sm: 'center' }}
+            sx={{ flexWrap: 'wrap', mb: 2 }}
+          >
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                 状态
@@ -184,6 +251,16 @@ export function ScreenerSubscriptionDetailView() {
                 {FREQUENCY_LABELS[subscription.frequency]}
               </Label>
             </Box>
+            {subscription.strategyId !== null && (
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                  来源策略
+                </Typography>
+                <Label color="info" variant="soft">
+                  策略 #{subscription.strategyId}（按创建时快照运行）
+                </Label>
+              </Box>
+            )}
             <Box>
               <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                 创建时间：{fDate(subscription.createdAt, 'YYYY-MM-DD')}
@@ -196,12 +273,19 @@ export function ScreenerSubscriptionDetailView() {
                 </Typography>
               </Box>
             )}
-          </Box>
+          </Stack>
+
+          {subscription.status === 'ERROR' && subscription.consecutiveFails > 0 && (
+            <Alert severity="error" sx={{ mb: 2 }}>
+              连续失败 {subscription.consecutiveFails}{' '}
+              次，已自动暂停。点击「恢复」会清零失败计数并重新加入调度。
+            </Alert>
+          )}
 
           <Divider sx={{ my: 1.5 }} />
 
           <Typography variant="subtitle2" sx={{ mb: 1 }}>
-            筛选条件
+            筛选条件快照
           </Typography>
           <SubscriptionFiltersSummary
             filters={subscription.filters}
@@ -218,7 +302,7 @@ export function ScreenerSubscriptionDetailView() {
             <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 2 }}>
               最近一次执行结果（{fDate(subscription.lastRunResult.tradeDate, 'YYYY-MM-DD')}）
             </Typography>
-            <Box sx={{ display: 'flex', gap: 4, mb: 2 }}>
+            <Box sx={{ display: 'flex', gap: 4, mb: 2, flexWrap: 'wrap' }}>
               <Typography variant="body2">
                 匹配 <strong>{subscription.lastRunResult.matchCount}</strong> 只
               </Typography>
@@ -229,10 +313,23 @@ export function ScreenerSubscriptionDetailView() {
                 退出 <strong>{subscription.lastRunResult.exitCount}</strong> 只
               </Typography>
             </Box>
-            <SubscriptionMatchPreview
-              newEntryCodes={logs[0]?.newEntryCodes ?? []}
-              exitCodes={logs[0]?.exitCodes ?? []}
-            />
+            {logsError ? (
+              <Alert
+                severity="warning"
+                action={
+                  <Button color="inherit" size="small" onClick={() => fetchLogs(logsPage)}>
+                    重试
+                  </Button>
+                }
+              >
+                变化明细加载失败：{logsError}
+              </Alert>
+            ) : (
+              <SubscriptionMatchPreview
+                newEntryCodes={logs[0]?.newEntryCodes ?? []}
+                exitCodes={logs[0]?.exitCodes ?? []}
+              />
+            )}
           </CardContent>
         </Card>
       )}
@@ -240,17 +337,35 @@ export function ScreenerSubscriptionDetailView() {
       {/* Log table */}
       <Card>
         <CardContent>
-          <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 2 }}>
-            执行历史
-          </Typography>
-          <SubscriptionLogTable
-            logs={logs}
-            total={logsTotal}
-            page={logsPage}
-            pageSize={logsPageSize}
-            loading={logsLoading}
-            onPageChange={(p) => setLogsPage(p)}
-          />
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              mb: 2,
+            }}
+          >
+            <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+              执行历史
+            </Typography>
+            {logsError && (
+              <Button size="small" onClick={() => fetchLogs(logsPage)}>
+                重试
+              </Button>
+            )}
+          </Box>
+          {logsError ? (
+            <Alert severity="error">{logsError}</Alert>
+          ) : (
+            <SubscriptionLogTable
+              logs={logs}
+              total={logsTotal}
+              page={logsPage}
+              pageSize={logsPageSize}
+              loading={logsLoading}
+              onPageChange={(p) => setLogsPage(p)}
+            />
+          )}
         </CardContent>
       </Card>
 
@@ -263,6 +378,28 @@ export function ScreenerSubscriptionDetailView() {
           setEditOpen(false);
         }}
       />
+
+      <Snackbar
+        open={Boolean(actionError)}
+        autoHideDuration={5000}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        onClose={() => setActionError('')}
+      >
+        <Alert severity="error" onClose={() => setActionError('')} sx={{ width: '100%' }}>
+          {actionError}
+        </Alert>
+      </Snackbar>
+
+      <Snackbar
+        open={Boolean(actionInfo)}
+        autoHideDuration={3500}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        onClose={() => setActionInfo('')}
+      >
+        <Alert severity="success" onClose={() => setActionInfo('')} sx={{ width: '100%' }}>
+          {actionInfo}
+        </Alert>
+      </Snackbar>
     </DashboardContent>
   );
 }

@@ -52,5 +52,80 @@
       }
     ],
     "message": ""
+  },
+  "searchResult": {
+    "code": 0,
+    "data": {
+      "patternLength": 15,
+      "algorithm": "NED",
+      "candidateCount": 4326,
+      "elapsedMs": 187,
+      "querySeries": [
+        0.1, 0.3, 0.55, 0.78, 0.92, 0.85, 0.66, 0.48, 0.55, 0.72, 0.88, 0.95, 0.8, 0.55, 0.3
+      ],
+      "matches": [
+        {
+          "tsCode": "600519.SH",
+          "name": "贵州茅台",
+          "startDate": "20240115",
+          "endDate": "20240205",
+          "distance": 0.082,
+          "similarity": 91.8,
+          "futureReturns": [3.2, 5.8, 9.4],
+          "normalizedSeries": [
+            0.12, 0.32, 0.5, 0.74, 0.9, 0.84, 0.68, 0.5, 0.58, 0.74, 0.9, 1.0, 0.82, 0.58, 0.32
+          ]
+        },
+        {
+          "tsCode": "000858.SZ",
+          "name": "五粮液",
+          "startDate": "20240220",
+          "endDate": "20240312",
+          "distance": 0.105,
+          "similarity": 89.5,
+          "futureReturns": [2.4, 4.1, 6.8],
+          "normalizedSeries": [
+            0.08, 0.28, 0.52, 0.76, 0.94, 0.88, 0.7, 0.52, 0.58, 0.74, 0.86, 0.92, 0.78, 0.5, 0.28
+          ]
+        },
+        {
+          "tsCode": "300750.SZ",
+          "name": "宁德时代",
+          "startDate": "20240320",
+          "endDate": "20240409",
+          "distance": 0.143,
+          "similarity": 85.7,
+          "futureReturns": [-1.2, 2.6, 4.5],
+          "normalizedSeries": [
+            0.15, 0.35, 0.58, 0.8, 0.88, 0.82, 0.62, 0.45, 0.52, 0.7, 0.86, 0.94, 0.76, 0.52, 0.3
+          ]
+        },
+        {
+          "tsCode": "601318.SH",
+          "name": "中国平安",
+          "startDate": "20240505",
+          "endDate": "20240524",
+          "distance": 0.182,
+          "similarity": 81.8,
+          "futureReturns": [1.8, 0.6, -2.3],
+          "normalizedSeries": [
+            0.18, 0.38, 0.55, 0.72, 0.86, 0.8, 0.62, 0.5, 0.6, 0.78, 0.92, 0.96, 0.78, 0.54, 0.36
+          ]
+        },
+        {
+          "tsCode": "002594.SZ",
+          "name": "比亚迪",
+          "startDate": "20240610",
+          "endDate": "20240701",
+          "distance": 0.225,
+          "similarity": 77.5,
+          "futureReturns": [-2.5, -0.8, 3.1],
+          "normalizedSeries": [
+            0.1, 0.26, 0.48, 0.7, 0.85, 0.82, 0.7, 0.55, 0.6, 0.72, 0.84, 0.9, 0.74, 0.5, 0.32
+          ]
+        }
+      ]
+    },
+    "message": ""
   }
 }

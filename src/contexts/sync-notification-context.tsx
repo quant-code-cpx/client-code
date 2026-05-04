@@ -1,10 +1,11 @@
 import type { Socket } from 'socket.io-client';
+import type { SocketStatus } from 'src/lib/socket';
 import type { ViolationItem } from 'src/api/portfolio';
 import type { RepairSummary, QualityCheckSummary } from 'src/api/tushare-sync';
 
 import { useRef, useState, useEffect, useContext, useCallback, createContext } from 'react';
 
-import { getSocket, destroySocket } from 'src/lib/socket';
+import { getSocket, destroySocket, getSocketStatus, onSocketStatusChange } from 'src/lib/socket';
 
 // ----------------------------------------------------------------------
 // WebSocket 推送的同步事件类型定义
@@ -40,21 +41,45 @@ export type RiskViolationPayload = {
   checkedAt: string;
 };
 
+// 条件订阅命中推送
+export type ScreenerSubscriptionAlertPayload = {
+  subscriptionId: number;
+  subscriptionName?: string;
+  tradeDate?: string;
+  newEntryCodes?: string[];
+  exitCodes?: string[];
+  totalMatch?: number;
+};
+
 // 通知列表条目类型，与 NotificationsPopover 保持一致
 export type SyncNotificationItem = {
   id: string;
-  type: 'tushare-sync-completed' | 'tushare-sync-failed' | 'risk-violation';
+  type:
+    | 'tushare-sync-completed'
+    | 'tushare-sync-failed'
+    | 'risk-violation'
+    | 'screener-subscription-alert';
   title: string;
   description: string;
   avatarUrl: string | null;
   isUnRead: boolean;
   postedAt: number;
-  payload: SyncCompletedPayload | SyncFailedPayload | RiskViolationPayload;
+  payload:
+    | SyncCompletedPayload
+    | SyncFailedPayload
+    | RiskViolationPayload
+    | ScreenerSubscriptionAlertPayload;
 };
 
 // ----------------------------------------------------------------------
 
 type SyncNotificationContextValue = {
+  /** 当前 WebSocket 连接状态 */
+  socketStatus: SocketStatus;
+  /** WebSocket 是否在线 */
+  isConnected: boolean;
+  /** 主动发起重连 */
+  reconnect: () => void;
   /** 当前是否有同步正在进行（通过 WebSocket started/completed/failed 维护） */
   isSyncing: boolean;
   /** 最新同步完成的结果（null 表示尚无结果） */
@@ -105,6 +130,7 @@ type ProviderProps = {
 };
 
 export function SyncNotificationProvider({ children }: ProviderProps) {
+  const [socketStatus, setSocketStatus] = useState<SocketStatus>(getSocketStatus());
   const [isSyncing, setIsSyncing] = useState(false);
   const [lastSyncResult, setLastSyncResult] = useState<SyncCompletedPayload | null>(null);
   const [lastSyncError, setLastSyncError] = useState<SyncFailedPayload | null>(null);
@@ -119,6 +145,8 @@ export function SyncNotificationProvider({ children }: ProviderProps) {
     socketRef.current = socket;
 
     socket.connect();
+    setSocketStatus(getSocketStatus());
+    const offStatus = onSocketStatusChange(setSocketStatus);
 
     const handleStarted = (_payload: SyncStartedPayload) => {
       setIsSyncing(true);
@@ -210,6 +238,33 @@ export function SyncNotificationProvider({ children }: ProviderProps) {
 
     socket.on('risk_violation', handleRiskViolation);
 
+    // ── 条件订阅命中推送（全局通知） ──
+    const handleScreenerSubscriptionAlert = (payload: ScreenerSubscriptionAlertPayload) => {
+      const newCount = payload.newEntryCodes?.length ?? 0;
+      const exitCount = payload.exitCodes?.length ?? 0;
+      const subName = payload.subscriptionName ?? `订阅 #${payload.subscriptionId}`;
+      const desc =
+        `${payload.tradeDate ? `${payload.tradeDate} ` : ''}` +
+        `命中 ${payload.totalMatch ?? 0} 只，` +
+        `新增 ${newCount} 只` +
+        (exitCount > 0 ? `，退出 ${exitCount} 只` : '');
+
+      const item: SyncNotificationItem = {
+        id: generateId(),
+        type: 'screener-subscription-alert',
+        title: `条件订阅「${subName}」有新进入股票`,
+        description: desc,
+        avatarUrl: null,
+        isUnRead: true,
+        postedAt: Date.now(),
+        payload,
+      };
+
+      setNotifications((prev) => [item, ...prev.slice(0, MAX_NOTIFICATIONS - 1)]);
+    };
+
+    socket.on('screener_subscription_alert', handleScreenerSubscriptionAlert);
+
     return () => {
       socket.off('tushare_sync_started', handleStarted);
       socket.off('tushare_sync_completed', handleCompleted);
@@ -217,8 +272,16 @@ export function SyncNotificationProvider({ children }: ProviderProps) {
       socket.off('data_quality_completed', handleQualityCompleted);
       socket.off('auto_repair_queued', handleAutoRepairQueued);
       socket.off('risk_violation', handleRiskViolation);
+      socket.off('screener_subscription_alert', handleScreenerSubscriptionAlert);
+      offStatus();
       destroySocket();
     };
+  }, []);
+
+  const reconnect = useCallback(() => {
+    const socket = socketRef.current ?? getSocket();
+    socketRef.current = socket;
+    if (!socket.connected) socket.connect();
   }, []);
 
   const markNotificationRead = useCallback((id: string) => {
@@ -237,6 +300,9 @@ export function SyncNotificationProvider({ children }: ProviderProps) {
   return (
     <SyncNotificationContext.Provider
       value={{
+        socketStatus,
+        isConnected: socketStatus === 'connected',
+        reconnect,
         isSyncing,
         lastSyncResult,
         lastSyncError,

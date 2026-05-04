@@ -2,6 +2,7 @@ import type { RelativeStrengthPoint } from 'src/api/stock';
 
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
+import { useTheme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 
@@ -17,6 +18,8 @@ type Props = {
 };
 
 export function AnalysisRelativeStrengthChart({ history, benchmarkName }: Props) {
+  const theme = useTheme();
+
   const cumulativeSeries = [
     {
       name: '个股收益',
@@ -31,12 +34,14 @@ export function AnalysisRelativeStrengthChart({ history, benchmarkName }: Props)
   const cumulativeOptions = useChart({
     chart: { type: 'line', id: 'cum-return' },
     stroke: { width: [2, 2], curve: 'smooth' },
-    colors: ['#EF5350', '#1877F2'],
+    colors: [theme.palette.error.main, theme.palette.primary.main],
     xaxis: { type: 'category', tickAmount: 8, labels: { rotate: -30 } },
     yaxis: {
       labels: { formatter: (v: number) => `${v.toFixed(2)}%` },
     },
-    annotations: { yaxis: [{ y: 0, borderColor: '#999', strokeDashArray: 3 }] },
+    annotations: {
+      yaxis: [{ y: 0, borderColor: theme.palette.text.disabled, strokeDashArray: 3 }],
+    },
     legend: { show: true },
     tooltip: { shared: true, y: { formatter: (v: number) => `${v.toFixed(2)}%` } },
   });
@@ -51,13 +56,15 @@ export function AnalysisRelativeStrengthChart({ history, benchmarkName }: Props)
   const excessOptions = useChart({
     chart: { type: 'area', id: 'excess-return' },
     stroke: { width: [2], curve: 'smooth' },
-    colors: ['#EF5350'],
+    colors: [theme.palette.error.main],
     fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.4, opacityTo: 0 } },
     xaxis: { type: 'category', tickAmount: 8, labels: { rotate: -30 } },
     yaxis: {
       labels: { formatter: (v: number) => `${v.toFixed(2)}%` },
     },
-    annotations: { yaxis: [{ y: 0, borderColor: '#999', strokeDashArray: 3 }] },
+    annotations: {
+      yaxis: [{ y: 0, borderColor: theme.palette.text.disabled, strokeDashArray: 3 }],
+    },
     legend: { show: false },
     tooltip: { y: { formatter: (v: number) => `${v.toFixed(2)}%` } },
   });

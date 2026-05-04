@@ -16,6 +16,12 @@ type Props = {
 export function WalkForwardEquityChart({ points }: Props) {
   const categories = points.map((p) => p.tradeDate);
   const navData = points.map((p) => Number(p.nav.toFixed(4)));
+  const hasBenchmark = points.some((p) => p.benchmarkNav !== null && p.benchmarkNav !== undefined);
+  const benchmarkData = points.map((p) =>
+    p.benchmarkNav !== null && p.benchmarkNav !== undefined
+      ? Number(p.benchmarkNav.toFixed(4))
+      : null
+  );
 
   const chartOptions = useChart({
     chart: { type: 'area', toolbar: { show: false }, zoom: { enabled: false } },
@@ -52,7 +58,10 @@ export function WalkForwardEquityChart({ points }: Props) {
   return (
     <Chart
       type="area"
-      series={[{ name: 'OOS 净值', data: navData }]}
+      series={[
+        { name: 'OOS 净值', data: navData },
+        ...(hasBenchmark ? [{ name: '基准净值', data: benchmarkData }] : []),
+      ]}
       options={chartOptions}
       height={280}
     />

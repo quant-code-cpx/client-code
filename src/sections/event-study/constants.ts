@@ -1,4 +1,4 @@
-import type { EventType, SignalType } from 'src/api/event-study';
+import type { EventType, SignalType, MarketCapBucket } from 'src/api/event-study';
 
 // ----------------------------------------------------------------------
 
@@ -107,3 +107,89 @@ export const BENCHMARK_OPTIONS = [
   { value: '399001.SZ', label: '深证成指' },
   { value: '399006.SZ', label: '创业板指' },
 ];
+
+// ── v2 重构新增 ─────────────────────────────────────────────────────
+
+
+/** 市值档位选项 */
+export const MARKET_CAP_BUCKETS: Array<{ value: MarketCapBucket; label: string; hint: string }> = [
+  { value: 'small', label: '小盘', hint: '< 50 亿' },
+  { value: 'mid', label: '中盘', hint: '50 - 500 亿' },
+  { value: 'large', label: '大盘', hint: '> 500 亿' },
+];
+
+/** 行业候选清单（与后端 calendar / segment 维度一致；亦可改为后端字典） */
+export const INDUSTRY_OPTIONS = [
+  '半导体',
+  '银行',
+  '医药生物',
+  '电力设备',
+  '食品饮料',
+  '机械',
+  '电子',
+  '通信',
+  '计算机',
+  '军工',
+  '新能源',
+  '汽车',
+  '建材',
+  '钢铁',
+  '化工',
+];
+
+/** 按字段类型动态过滤可用运算符 */
+export const OPERATORS_BY_FIELD_TYPE: Record<
+  'number' | 'date' | 'enum' | 'string',
+  Array<{ value: string; label: string }>
+> = {
+  number: [
+    { value: 'gte', label: '≥' },
+    { value: 'lte', label: '≤' },
+    { value: 'gt', label: '>' },
+    { value: 'lt', label: '<' },
+    { value: 'eq', label: '=' },
+  ],
+  date: [
+    { value: 'gte', label: '≥' },
+    { value: 'lte', label: '≤' },
+  ],
+  enum: [
+    { value: 'in', label: '∈' },
+    { value: 'eq', label: '=' },
+  ],
+  string: [
+    { value: 'eq', label: '=' },
+    { value: 'contains', label: '包含' },
+  ],
+};
+
+/** 信号规则向导步骤 */
+export const SIGNAL_RULE_WIZARD_STEPS = ['基本信息', '条件构建', '预览', '确认'];
+
+/** 统一术语 / 口径 Tooltip 文案 */
+export const TERMS: Record<string, { title: string; desc: string }> = {
+  AR: { title: 'AR (异常收益)', desc: '个股日收益 − 基准日收益。' },
+  AAR: { title: 'AAR (平均异常收益)', desc: '所有样本同一相对日的 AR 均值。' },
+  CAR: { title: 'CAR (累计异常收益)', desc: '单样本事件窗内 AR 累加。' },
+  CAAR: {
+    title: 'CAAR (累计平均异常收益)',
+    desc: '所有样本 CAR 的均值；本页主指标。',
+  },
+  T_STAT: {
+    title: 't 统计量',
+    desc: 'CAAR / (σ/√n)；|t| > 1.96 时双侧 p < 0.05。',
+  },
+  P_VALUE: {
+    title: 'p 值',
+    desc: '原假设 "CAAR=0" 被拒绝的最小显著性水平。',
+  },
+  CLUSTER: {
+    title: '聚簇窗口',
+    desc: '同一标的相邻事件去重的最小间隔天数（学术常用 ±10）。',
+  },
+  SIGNIFICANT_RATIO: {
+    title: '显著样本占比',
+    desc: '样本中 |CAR| 超出 ±2σ 的比例。',
+  },
+};
+

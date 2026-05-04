@@ -7,6 +7,10 @@ export type StrategyTemplate = {
   name: string;
   description: string;
   category: 'TECHNICAL' | 'SCREENING' | 'FACTOR' | 'CUSTOM';
+  defaultConfig?: Record<string, unknown>;
+  recommendedRange?: { years: number };
+  tags?: string[];
+  difficulty?: 'BASIC' | 'STANDARD' | 'ADVANCED';
   parameterSchema: Array<{
     field: string;
     label: string;
@@ -36,12 +40,30 @@ export type ValidateBacktestRunQuery = {
   rebalanceFrequency?: string;
   priceMode?: string;
   enableTradeConstraints?: boolean;
+  enableT1Restriction?: boolean;
+  partialFillEnabled?: boolean;
 };
 
 export type ValidateBacktestRunResponse = {
   isValid: boolean;
   warnings: string[];
   errors: string[];
+  fieldErrors?: Array<{
+    path: string;
+    message: string;
+  }>;
+  estimatedRebalanceCount?: number;
+  estimatedTradeCount?: number;
+  estimatedRuntimeSeconds?: number;
+  dataGapPercentage?: number;
+  recommendedBenchmark?: string;
+  similarCompletedRuns?: Array<{
+    runId: string;
+    name: string | null;
+    createdAt: string;
+    totalReturn: number | null;
+    similarityScore: number;
+  }>;
   dataReadiness: {
     hasDaily: boolean;
     hasAdjFactor: boolean;
@@ -93,6 +115,7 @@ export type CreateBacktestRunResponse = {
 
 export type BacktestRunListItem = {
   runId: string;
+  jobId?: string | null;
   name: string | null;
   strategyType: string;
   status: string;
@@ -105,7 +128,57 @@ export type BacktestRunListItem = {
   sharpeRatio: number | null;
   progress: number;
   createdAt: string;
+  startedAt?: string | null;
   completedAt: string | null;
+  durationSeconds?: number | null;
+  failedReason?: string | null;
+  failedReasonCode?: string | null;
+  failedReasonLabel?: string | null;
+  strategyConfigSummary?: Record<string, unknown> | null;
+  source?: string | null;
+  creatorId?: number | null;
+  creatorName?: string | null;
+  starred?: boolean;
+  archived?: boolean;
+  tags?: BacktestRunTag[];
+  queuePosition?: number | null;
+  etaSeconds?: number | null;
+};
+
+export type BacktestRunTag = {
+  id: string;
+  name: string;
+  color?: 'default' | 'primary' | 'secondary' | 'info' | 'success' | 'warning' | 'error' | string;
+  runCount?: number;
+  sortOrder?: number;
+};
+
+export type BacktestRunSortField =
+  | 'createdAt'
+  | 'totalReturn'
+  | 'annualizedReturn'
+  | 'maxDrawdown'
+  | 'sharpeRatio'
+  | 'durationSeconds';
+
+export type BacktestRunListQuery = {
+  page?: number;
+  pageSize?: number;
+  status?: string;
+  statuses?: string[];
+  strategyType?: string;
+  strategyId?: string;
+  keyword?: string;
+  createdStart?: string;
+  createdEnd?: string;
+  sort?: BacktestRunSortField;
+  order?: 'asc' | 'desc';
+  archived?: boolean;
+  starred?: boolean;
+  failedReasonCode?: string;
+  tagIds?: string[];
+  creatorId?: number;
+  mineOnly?: boolean;
 };
 
 export type BacktestRunListResponse = {
@@ -113,6 +186,22 @@ export type BacktestRunListResponse = {
   pageSize: number;
   total: number;
   items: BacktestRunListItem[];
+};
+
+export type BacktestRunStatsResponse = {
+  totalCount: number;
+  completedCount?: number;
+  failedCount?: number;
+  runningCount?: number;
+  queuedCount?: number;
+  completedRate: number;
+  avgDurationSeconds: number | null;
+  bestSharpeRatio?: number | null;
+  failedReasonTop3: Array<{
+    code: string;
+    label: string;
+    count: number;
+  }>;
 };
 
 export type BacktestRunDetailResponse = {
@@ -220,14 +309,12 @@ export function createRun(query: CreateBacktestRunQuery) {
   return apiClient.post<CreateBacktestRunResponse>('/api/backtests/runs', query);
 }
 
-export function listRuns(query: {
-  page?: number;
-  pageSize?: number;
-  status?: string;
-  strategyType?: string;
-  keyword?: string;
-}) {
+export function listRuns(query: BacktestRunListQuery) {
   return apiClient.post<BacktestRunListResponse>('/api/backtests/runs/list', query);
+}
+
+export function getRunStats(query: BacktestRunListQuery) {
+  return apiClient.post<BacktestRunStatsResponse>('/api/backtests/runs/stats', query);
 }
 
 export function getRunDetail(runId: string) {
@@ -267,6 +354,57 @@ export function cancelRun(runId: string) {
   });
 }
 
+export function renameRun(query: { runId: string; name: string }) {
+  return apiClient.post<{ runId: string; name: string; updatedAt?: string }>(
+    '/api/backtests/runs/rename',
+    query
+  );
+}
+
+export function deleteRun(query: { runId: string; hard?: boolean }) {
+  return apiClient.post<{ runId: string; deletedAt?: string; archived?: boolean }>(
+    '/api/backtests/runs/delete',
+    query
+  );
+}
+
+export function archiveRun(query: { runId: string; archived: boolean }) {
+  return apiClient.post<{ runId: string; archived: boolean }>('/api/backtests/runs/archive', query);
+}
+
+export function starRun(query: { runId: string; starred: boolean }) {
+  return apiClient.post<{ runId: string; starred: boolean }>('/api/backtests/runs/star', query);
+}
+
+export function retryRun(query: { runId: string }) {
+  return apiClient.post<{ sourceRunId?: string; runId: string; jobId: string; status: string }>(
+    '/api/backtests/runs/retry',
+    query
+  );
+}
+
+export function exportRunsCsv(query: BacktestRunListQuery & { scope?: 'page' | 'filtered' }) {
+  return apiClient.post<{ downloadUrl?: string } | null>('/api/backtests/runs/export', query);
+}
+
+export function listRunTags(query: { keyword?: string; includeCount?: boolean } = {}) {
+  return apiClient.post<{ items: BacktestRunTag[] }>('/api/backtests/runs/tags/list', query);
+}
+
+export function setRunTags(query: { runId: string; tagIds: string[] }) {
+  return apiClient.post<{ runId: string; tags: BacktestRunTag[] }>(
+    '/api/backtests/runs/tags/set-for-run',
+    query
+  );
+}
+
+export function batchAttachRunTags(query: { runIds: string[]; tagIds: string[] }) {
+  return apiClient.post<{
+    successCount: number;
+    failed: Array<{ runId: string; message: string }>;
+  }>('/api/backtests/runs/tags/batch-attach', query);
+}
+
 // ─── Walk-Forward 类型 ────────────────────────────
 
 export type StrategyTypeValue =
@@ -285,6 +423,8 @@ export type ParamSearchSpaceItem = {
 
 export type CreateWalkForwardRunQuery = {
   name?: string;
+  mode?: 'WF' | 'ROLLING';
+  windowMode?: 'ROLLING' | 'ANCHORED' | 'EXPANDING';
   baseStrategyType: StrategyTypeValue;
   baseStrategyConfig: Record<string, unknown>;
   paramSearchSpace: Record<string, ParamSearchSpaceItem>;
@@ -298,6 +438,9 @@ export type CreateWalkForwardRunQuery = {
   universe?: string; // 默认 'ALL_A'
   initialCapital: number; // 最小 1000
   rebalanceFrequency?: string; // 默认 'MONTHLY'
+  purgeDays?: number;
+  embargoDays?: number;
+  minOosTrades?: number;
 };
 
 export type CreateWalkForwardRunResponse = {
@@ -310,15 +453,29 @@ export type WalkForwardRunSummary = {
   wfRunId: string;
   name: string | null;
   baseStrategyType: string;
+  windowMode?: 'ROLLING' | 'ANCHORED' | 'EXPANDING' | null;
   status: string;
   fullStartDate: string;
   fullEndDate: string;
   oosSharpeRatio: number | null;
   oosAnnualizedReturn: number | null;
   oosMaxDrawdown: number | null;
+  wfe?: number | null;
+  robustnessLevel?: 'GREEN' | 'YELLOW' | 'RED' | null;
+  oosNegativeWindowRate?: number | null;
   progress: number;
   createdAt: string;
   completedAt: string | null;
+};
+
+export type WalkForwardRunListQuery = {
+  page?: number;
+  pageSize?: number;
+  q?: string;
+  statuses?: string[];
+  strategyTypes?: string[];
+  sortBy?: 'createdAt' | 'oosSharpeRatio' | 'oosAnnualizedReturn' | 'oosMaxDrawdown' | 'wfe';
+  sortDir?: 'asc' | 'desc';
 };
 
 export type WalkForwardRunListResponse = {
@@ -326,6 +483,12 @@ export type WalkForwardRunListResponse = {
   pageSize: number;
   total: number;
   items: WalkForwardRunSummary[];
+  aggregates?: {
+    total: number;
+    running: number;
+    avgOosSharpe: number | null;
+    lastCompletedAt: string | null;
+  };
 };
 
 export type WalkForwardWindow = {
@@ -340,6 +503,9 @@ export type WalkForwardWindow = {
   oosReturn: number | null;
   oosSharpe: number | null;
   oosMaxDrawdown: number | null;
+  status?: 'OK' | 'FAILED' | null;
+  errorReason?: string | null;
+  oosTrades?: number | null;
 };
 
 export type WalkForwardRunDetail = {
@@ -347,6 +513,15 @@ export type WalkForwardRunDetail = {
   jobId?: string;
   name: string | null;
   baseStrategyType: string;
+  baseStrategyConfig?: Record<string, unknown> | null;
+  paramSearchSpace?: Record<string, ParamSearchSpaceItem> | null;
+  windowMode?: 'ROLLING' | 'ANCHORED' | 'EXPANDING' | null;
+  purgeDays?: number | null;
+  embargoDays?: number | null;
+  minOosTrades?: number | null;
+  robustnessLevel?: 'GREEN' | 'YELLOW' | 'RED' | null;
+  wfe?: number | null;
+  oosNegativeWindowRate?: number | null;
   status: string;
   progress: number;
   failedReason: string | null;
@@ -356,6 +531,10 @@ export type WalkForwardRunDetail = {
   outOfSampleDays: number;
   stepDays: number;
   optimizeMetric: string;
+  benchmarkTsCode?: string | null;
+  universe?: string | null;
+  initialCapital?: number | null;
+  rebalanceFrequency?: string | null;
   windowCount: number | null;
   completedWindows: number | null;
   oosAnnualizedReturn: number | null;
@@ -370,11 +549,39 @@ export type WalkForwardRunDetail = {
 export type WalkForwardEquityPoint = {
   tradeDate: string;
   nav: number;
+  benchmarkNav?: number | null;
   windowIndex: number;
 };
 
 export type WalkForwardEquityResponse = {
   points: WalkForwardEquityPoint[];
+  windows?: Array<{
+    windowIndex: number;
+    isStartDate: string;
+    isEndDate: string;
+    oosStartDate: string;
+    oosEndDate: string;
+  }>;
+};
+
+export type WalkForwardWindowDetailResponse = {
+  wfRunId: string;
+  windowIndex: number;
+  window: WalkForwardWindow;
+  equity?: WalkForwardEquityPoint[];
+};
+
+export type WalkForwardWindowTrade = BacktestTradeItem & {
+  wfRunId?: string;
+  windowIndex?: number;
+};
+
+export type WalkForwardWindowPosition = BacktestPositionItem & {
+  tradeDate?: string;
+};
+
+export type WalkForwardWindowRebalanceLog = BacktestRebalanceLogItem & {
+  windowIndex?: number;
 };
 
 // ─── Walk-Forward API ─────────────────────────────
@@ -383,7 +590,7 @@ export function createWalkForwardRun(query: CreateWalkForwardRunQuery) {
   return apiClient.post<CreateWalkForwardRunResponse>('/api/backtests/walk-forward/runs', query);
 }
 
-export function listWalkForwardRuns(query: { page?: number; pageSize?: number }) {
+export function listWalkForwardRuns(query: WalkForwardRunListQuery) {
   return apiClient.post<WalkForwardRunListResponse>('/api/backtests/walk-forward/runs/list', query);
 }
 
@@ -399,13 +606,84 @@ export function getWalkForwardEquity(wfRunId: string) {
   });
 }
 
+export function cancelWalkForwardRun(wfRunId: string) {
+  return apiClient.post<{ wfRunId: string; status: string }>('/api/backtests/walk-forward/runs/cancel', {
+    wfRunId,
+  });
+}
+
+export function deleteWalkForwardRun(wfRunId: string) {
+  return apiClient.post<{ wfRunId: string; deletedAt?: string }>('/api/backtests/walk-forward/runs/delete', {
+    wfRunId,
+  });
+}
+
+export function cloneWalkForwardRun(wfRunId: string, name?: string) {
+  return apiClient.post<CreateWalkForwardRunQuery | { wfRunId: string; jobId?: string; status?: string }>(
+    '/api/backtests/walk-forward/runs/clone',
+    name ? { wfRunId, name } : { wfRunId }
+  );
+}
+
+export function getWalkForwardWindowDetail(wfRunId: string, windowIndex: number) {
+  return apiClient.post<WalkForwardWindowDetailResponse>(
+    '/api/backtests/walk-forward/runs/window-detail',
+    { wfRunId, windowIndex }
+  );
+}
+
+export function getWalkForwardWindowTrades(wfRunId: string, windowIndex: number) {
+  return apiClient.post<{ items: WalkForwardWindowTrade[] }>(
+    '/api/backtests/walk-forward/runs/window-trades',
+    { wfRunId, windowIndex }
+  );
+}
+
+export function getWalkForwardWindowPositions(
+  wfRunId: string,
+  windowIndex: number,
+  tradeDate?: string
+) {
+  return apiClient.post<{ items: WalkForwardWindowPosition[] }>(
+    '/api/backtests/walk-forward/runs/window-positions',
+    tradeDate ? { wfRunId, windowIndex, tradeDate } : { wfRunId, windowIndex }
+  );
+}
+
+export function getWalkForwardWindowRebalanceLogs(wfRunId: string, windowIndex: number) {
+  return apiClient.post<{ items: WalkForwardWindowRebalanceLog[] }>(
+    '/api/backtests/walk-forward/runs/window-rebalance-logs',
+    { wfRunId, windowIndex }
+  );
+}
+
 // ─── 多策略对比类型 ────────────────────────────────
 
 export type ComparisonStrategyItem = {
   label?: string;
-  strategyType: StrategyTypeValue;
+  strategyType: StrategyTypeValue | string;
   strategyConfig: Record<string, unknown>;
   rebalanceFrequency?: string;
+  priceMode?: string;
+  costOverride?: Partial<ComparisonCostConfig>;
+  constraintOverride?: Partial<ComparisonConstraintConfig>;
+};
+
+export type ComparisonCostConfig = {
+  priceMode?: string | null;
+  commissionRate?: number | null;
+  stampDutyRate?: number | null;
+  minCommission?: number | null;
+  slippageBps?: number | null;
+};
+
+export type ComparisonConstraintConfig = {
+  maxPositions?: number | null;
+  maxWeightPerStock?: number | null;
+  minDaysListed?: number | null;
+  enableTradeConstraints?: boolean | null;
+  enableT1Restriction?: boolean | null;
+  partialFillEnabled?: boolean | null;
 };
 
 export type CreateComparisonQuery = {
@@ -416,6 +694,14 @@ export type CreateComparisonQuery = {
   benchmarkTsCode?: string;
   universe?: string;
   initialCapital: number;
+  priceMode?: string;
+  commissionRate?: number;
+  stampDutyRate?: number;
+  minCommission?: number;
+  slippageBps?: number;
+  maxPositions?: number;
+  maxWeightPerStock?: number;
+  minDaysListed?: number;
 };
 
 export type CreateComparisonResponse = {
@@ -443,28 +729,160 @@ export type ComparisonMetricsRow = {
   winRate: number | null;
   turnoverRate: number | null;
   tradeCount: number | null;
+  recoveryDays?: number | null;
+  longestDrawdownDays?: number | null;
+  downsideDeviation?: number | null;
+  ulcerIndex?: number | null;
+};
+
+export type ComparisonFailure = {
+  runId?: string | null;
+  label?: string | null;
+  errorCode?: string | null;
+  errorMessage?: string | null;
 };
 
 export type ComparisonGroupDetail = {
   groupId: string;
   name: string | null;
-  status: string;
+  status: 'QUEUED' | 'RUNNING' | 'COMPLETED' | 'PARTIAL' | 'FAILED' | 'CANCELLED' | string;
   startDate: string;
   endDate: string;
   benchmarkTsCode: string;
   metrics: ComparisonMetricsRow[];
   createdAt: string;
   completedAt: string | null;
+  etaSeconds?: number | null;
+  failures?: ComparisonFailure[];
+  progress?: number | null;
+  strategyCount?: number | null;
+  completedCount?: number | null;
+  costConfig?: ComparisonCostConfig | null;
+  constraintConfig?: ComparisonConstraintConfig | null;
 };
 
 export type ComparisonEquitySeries = {
   runId: string;
   label: string | null;
-  points: Array<{ tradeDate: string; nav: number }>;
+  points: Array<{
+    tradeDate: string;
+    nav?: number | null;
+    value?: number | null;
+    dailyReturn?: number | null;
+    benchmarkNav?: number | null;
+    benchmarkReturn?: number | null;
+  }>;
 };
 
 export type ComparisonEquityResponse = {
   series: ComparisonEquitySeries[];
+};
+
+export type ComparisonEquityQuery = {
+  mode?: 'NAV' | 'CUM_RET' | 'EXCESS';
+  maxPoints?: number;
+};
+
+export type ComparisonListQuery = {
+  page?: number;
+  pageSize?: number;
+  status?: string;
+  keyword?: string;
+  startDate?: string;
+  endDate?: string;
+  strategyType?: string;
+};
+
+export type ComparisonListItem = {
+  groupId: string;
+  name: string | null;
+  status: string;
+  strategyCount: number;
+  startDate: string;
+  endDate: string;
+  benchmarkTsCode: string;
+  createdAt: string;
+  completedAt?: string | null;
+  bestSharpe?: number | null;
+  bestStrategyLabel?: string | null;
+  progress?: number | null;
+  failedCount?: number | null;
+  etaSeconds?: number | null;
+  creatorName?: string | null;
+};
+
+export type ComparisonListResponse = {
+  page: number;
+  pageSize: number;
+  total: number;
+  items: ComparisonListItem[];
+};
+
+export type ComparisonConfigStrategy = {
+  label?: string | null;
+  strategyType?: StrategyTypeValue | string;
+  type?: StrategyTypeValue | string;
+  strategyConfig?: Record<string, unknown> | null;
+  config?: Record<string, unknown> | null;
+  rebalanceFrequency?: string | null;
+  freq?: string | null;
+  costOverride?: Partial<ComparisonCostConfig> | null;
+  constraintOverride?: Partial<ComparisonConstraintConfig> | null;
+};
+
+export type ComparisonConfigResponse = {
+  groupId?: string;
+  commonConfig: {
+    name?: string | null;
+    startDate: string;
+    endDate: string;
+    benchmarkTsCode?: string | null;
+    universe?: string | null;
+    initialCapital?: number | null;
+    priceMode?: string | null;
+  };
+  costConfig?: ComparisonCostConfig | null;
+  constraintConfig?: ComparisonConstraintConfig | null;
+  strategies: ComparisonConfigStrategy[];
+};
+
+export type ComparisonRollingQuery = {
+  groupId: string;
+  window: 60 | 120 | 252;
+  metric: 'sharpe' | 'volatility' | 'beta' | 'vol';
+};
+
+export type ComparisonRollingResponse = {
+  series: Array<{
+    runId: string;
+    label: string | null;
+    points: Array<{ tradeDate: string; value: number | null }>;
+  }>;
+};
+
+export type ComparisonMonthlyResponse = {
+  matrix: Array<{
+    runId: string;
+    label: string | null;
+    monthly: Array<{ ym: string; ret: number | null }>;
+    yearly: Array<{ y: string; ret: number | null }>;
+  }>;
+};
+
+export type ComparisonCorrelationResponse = {
+  matrix: Array<{
+    rowRunId: string;
+    colRunId: string;
+    correlation: number | null;
+    sampleSize: number;
+    missingRatio: number | null;
+  }>;
+  warnings?: Array<{ runId?: string | null; code: string; message: string }>;
+};
+
+export type ComparisonEnvelopeResponse = {
+  series: Array<{ tradeDate: string; nav: number | null; dailyReturn: number | null }>;
+  constituents: Array<{ runId: string; label: string | null; weight: number | null }>;
 };
 
 // ─── 多策略对比 API ────────────────────────────────
@@ -473,12 +891,73 @@ export function createComparison(query: CreateComparisonQuery) {
   return apiClient.post<CreateComparisonResponse>('/api/backtests/comparisons', query);
 }
 
+export function listComparisons(query: ComparisonListQuery) {
+  return apiClient.post<ComparisonListResponse>('/api/backtests/comparisons/list', query);
+}
+
 export function getComparisonDetail(groupId: string) {
   return apiClient.post<ComparisonGroupDetail>('/api/backtests/comparisons/detail', { groupId });
 }
 
-export function getComparisonEquity(groupId: string) {
-  return apiClient.post<ComparisonEquityResponse>('/api/backtests/comparisons/equity', { groupId });
+export function getComparisonEquity(groupId: string, query: ComparisonEquityQuery = {}) {
+  return apiClient.post<ComparisonEquityResponse>('/api/backtests/comparisons/equity', {
+    groupId,
+    ...query,
+  });
+}
+
+export function getComparisonConfig(groupId: string) {
+  return apiClient.post<ComparisonConfigResponse>('/api/backtests/comparisons/config', { groupId });
+}
+
+export function getComparisonRolling(query: ComparisonRollingQuery) {
+  return apiClient.post<ComparisonRollingResponse>('/api/backtests/comparisons/rolling', query);
+}
+
+export function getComparisonMonthly(groupId: string) {
+  return apiClient.post<ComparisonMonthlyResponse>('/api/backtests/comparisons/monthly', { groupId });
+}
+
+export function getComparisonCorrelation(query: {
+  groupId: string;
+  method?: 'pearson';
+  minSamples?: number;
+}) {
+  return apiClient.post<ComparisonCorrelationResponse>(
+    '/api/backtests/comparisons/correlation',
+    query
+  );
+}
+
+export function getComparisonEnvelope(query: {
+  groupId: string;
+  mode?: 'EQUAL_WEIGHT_DAILY_REBALANCE';
+}) {
+  return apiClient.post<ComparisonEnvelopeResponse>('/api/backtests/comparisons/envelope', query);
+}
+
+export function appendComparisonStrategies(query: {
+  groupId: string;
+  strategies: ComparisonStrategyItem[];
+}) {
+  return apiClient.post<{ jobId: string; status: string; addedRunIds?: string[] }>(
+    '/api/backtests/comparisons/append',
+    query
+  );
+}
+
+export function cancelComparison(groupId: string) {
+  return apiClient.post<{ groupId: string; status: string; cancelledCount?: number }>(
+    '/api/backtests/comparisons/cancel',
+    { groupId }
+  );
+}
+
+export function deleteComparison(groupId: string) {
+  return apiClient.post<{ groupId: string; success?: boolean; deletedAt?: string }>(
+    '/api/backtests/comparisons/delete',
+    { groupId }
+  );
 }
 
 // ─── 滚动窗口回测类型 ──────────────────────────────

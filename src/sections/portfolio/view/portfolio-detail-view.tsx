@@ -1,4 +1,9 @@
-import type { PortfolioDetail, PortfolioListItem, UpdatePortfolioRequest } from 'src/api/portfolio';
+import type {
+  PnlToday,
+  PortfolioDetail,
+  PortfolioListItem,
+  UpdatePortfolioRequest,
+} from 'src/api/portfolio';
 
 import { useParams } from 'react-router-dom';
 import { useRef, useState, useEffect, useCallback } from 'react';
@@ -14,7 +19,12 @@ import Skeleton from '@mui/material/Skeleton';
 import { useRouter } from 'src/routes/hooks';
 
 import { DashboardContent } from 'src/layouts/dashboard';
-import { deletePortfolio, updatePortfolio, getPortfolioDetail } from 'src/api/portfolio';
+import {
+  getPnlToday,
+  deletePortfolio,
+  updatePortfolio,
+  getPortfolioDetail,
+} from 'src/api/portfolio';
 
 import { ReportGenerateDialog } from 'src/sections/report/report-generate-dialog';
 
@@ -37,9 +47,11 @@ export function PortfolioDetailView() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const [detail, setDetail] = useState<PortfolioDetail | null>(null);
+  const [pnlToday, setPnlToday] = useState<PnlToday | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('holdings');
+  const [refreshKey, setRefreshKey] = useState(0);
   const visitedTabs = useRef<Set<string>>(new Set(['holdings']));
 
   const [editOpen, setEditOpen] = useState(false);
@@ -49,12 +61,26 @@ export function PortfolioDetailView() {
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
 
   const fetchDetail = useCallback(async () => {
-    if (!id) return;
+    if (!id) {
+      setError('组合不存在');
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     setError('');
     try {
-      const data = await getPortfolioDetail({ portfolioId: id });
-      setDetail(data);
+      const [detailResult, pnlResult] = await Promise.allSettled([
+        getPortfolioDetail({ portfolioId: id }),
+        getPnlToday({ portfolioId: id }),
+      ]);
+
+      if (detailResult.status === 'rejected') {
+        throw detailResult.reason;
+      }
+
+      setDetail(detailResult.value);
+      setPnlToday(pnlResult.status === 'fulfilled' ? pnlResult.value : null);
     } catch {
       setError('加载组合详情失败');
     } finally {
@@ -71,12 +97,17 @@ export function PortfolioDetailView() {
     visitedTabs.current.add(newValue);
   };
 
+  const handleRefreshAll = useCallback(async () => {
+    await fetchDetail();
+    setRefreshKey((key) => key + 1);
+  }, [fetchDetail]);
+
   const handleEdit = async (data: UpdatePortfolioRequest) => {
     setEditSubmitting(true);
     try {
       await updatePortfolio(data);
       setEditOpen(false);
-      await fetchDetail();
+      await handleRefreshAll();
     } finally {
       setEditSubmitting(false);
     }
@@ -113,7 +144,7 @@ export function PortfolioDetailView() {
   const portfolioAsListItem: PortfolioListItem = {
     ...detail.portfolio,
     holdingCount: detail.holdings.length,
-    updatedAt: detail.portfolio.createdAt,
+    updatedAt: detail.portfolio.lastUpdated ?? detail.portfolio.createdAt,
   };
 
   return (
@@ -125,7 +156,7 @@ export function PortfolioDetailView() {
         onGenerateReport={() => setReportDialogOpen(true)}
       />
 
-      <PortfolioSummaryCards summary={detail.summary} />
+      <PortfolioSummaryCards summary={detail.summary} pnlToday={pnlToday} />
 
       <TabContext value={activeTab}>
         <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
@@ -138,31 +169,42 @@ export function PortfolioDetailView() {
         <TabPanel value="holdings" sx={{ p: 0 }}>
           {visitedTabs.current.has('holdings') && (
             <PortfolioHoldingTab
+              key={`holdings-${refreshKey}`}
               portfolioId={id!}
               holdings={detail.holdings}
-              onRefresh={fetchDetail}
+              onRefresh={handleRefreshAll}
             />
           )}
         </TabPanel>
         <TabPanel value="pnl" sx={{ p: 0 }}>
-          {visitedTabs.current.has('pnl') && <PortfolioPnlTab portfolioId={id!} />}
+          {visitedTabs.current.has('pnl') && (
+            <PortfolioPnlTab key={`pnl-${refreshKey}`} portfolioId={id!} />
+          )}
         </TabPanel>
         <TabPanel value="risk" sx={{ p: 0 }}>
-          {visitedTabs.current.has('risk') && <PortfolioRiskTab portfolioId={id!} />}
+          {visitedTabs.current.has('risk') && (
+            <PortfolioRiskTab key={`risk-${refreshKey}`} portfolioId={id!} />
+          )}
         </TabPanel>
         <TabPanel value="rules" sx={{ p: 0 }}>
-          {visitedTabs.current.has('rules') && <PortfolioRiskRuleTab portfolioId={id!} />}
+          {visitedTabs.current.has('rules') && (
+            <PortfolioRiskRuleTab key={`rules-${refreshKey}`} portfolioId={id!} />
+          )}
         </TabPanel>
         <TabPanel value="performance" sx={{ p: 0 }}>
           {visitedTabs.current.has('performance') && (
-            <PortfolioPerformanceTab portfolioId={id!} />
+            <PortfolioPerformanceTab key={`performance-${refreshKey}`} portfolioId={id!} />
           )}
         </TabPanel>
         <TabPanel value="trade-log" sx={{ p: 0 }}>
-          {visitedTabs.current.has('trade-log') && <PortfolioTradeLogTab portfolioId={id!} />}
+          {visitedTabs.current.has('trade-log') && (
+            <PortfolioTradeLogTab key={`trade-log-${refreshKey}`} portfolioId={id!} />
+          )}
         </TabPanel>
         <TabPanel value="drift" sx={{ p: 0 }}>
-          {visitedTabs.current.has('drift') && <PortfolioDriftTab portfolioId={id!} />}
+          {visitedTabs.current.has('drift') && (
+            <PortfolioDriftTab key={`drift-${refreshKey}`} portfolioId={id!} />
+          )}
         </TabPanel>
       </TabContext>
 

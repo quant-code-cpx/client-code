@@ -35,6 +35,22 @@ import researchNoteData from './data/research-note.json';
 import strategyDraftData from './data/strategy-draft.json';
 import screenerSubData from './data/screener-subscription.json';
 import industryRotationData from './data/industry-rotation.json';
+import {
+  getMockEvents,
+  getMockAnalyze,
+  getMockSegment,
+  getMockPreview,
+  getMockScanJob,
+  getMockCalendar,
+  getMockBacktest,
+  getMockRuleStats,
+  startMockScanJob,
+  getMockEventSchema,
+  getMockSignalHistory,
+  listMockAnalysisPlans,
+  createMockAnalysisPlan,
+  deleteMockAnalysisPlan,
+} from './event-study-mocks';
 
 // ---------------------------------------------------------------------------
 // URL → response mapping
@@ -86,7 +102,6 @@ const routeMap: Record<string, unknown> = {
   '/api/stock/detail/analysis/factors/latest': r(stockData, 'detail_factorsLatest'),
 
   '/api/stock/detail/dividend-financing': ok({ tsCode: '', dividends: [], allotments: [] }),
-  '/api/stock/minute-kline': ok([]),
 
   // ── Screener ──
   '/api/stock/screener': r(screenerData, 'screener'),
@@ -165,9 +180,16 @@ const routeMap: Record<string, unknown> = {
   '/api/factor/custom/delete': ok({ success: true }),
   '/api/factor/custom/test': ok(null),
   '/api/factor/custom/precompute': ok({ success: true }),
-  '/api/factor/admin/backfill': ok({ success: true }),
-  '/api/factor/admin/precompute': ok({ success: true }),
-  '/api/factor/admin/precompute/status': ok({ status: 'idle' }),
+  '/api/factor/admin/backfill': ok({ jobId: 'job-mock-backfill-new', success: true }),
+  '/api/factor/admin/precompute': ok({ jobId: 'job-mock-precompute-new', success: true }),
+  '/api/factor/admin/precompute/status': r(factorData, 'adminStatus'),
+  '/api/factor/admin/jobs': r(factorData, 'adminJobs'),
+  '/api/factor/admin/jobs/detail': r(factorData, 'adminJobDetail'),
+  '/api/factor/admin/jobs/cancel': ok({ success: true, message: '任务已取消' }),
+  '/api/factor/admin/jobs/retry': ok({ jobId: 'job-mock-retry-new', success: true }),
+  '/api/factor/admin/toggle': ok({ success: true }),
+  '/api/factor/admin/audit': r(factorData, 'adminAudit'),
+  '/api/factor/admin/schedule': r(factorData, 'adminSchedule'),
 
   // ── Backtest ──
   '/api/backtests/strategy-templates': r(backtestData, 'strategyTemplates'),
@@ -292,25 +314,28 @@ const routeMap: Record<string, unknown> = {
   '/api/alert/price-rules/update': ok({ success: true }),
   '/api/alert/price-rules/delete': ok({ success: true }),
   '/api/alert/price-rules/scan': ok({ success: true }),
-  '/api/alert/limit-list': ok({ items: [], total: 0 }),
+  '/api/alert/limit-list': ok({ items: [] }),
+  '/api/alert/limit-summary': ok([]),
+  '/api/alert/limit-next-day-perf': ok({ date: '', rows: [] }),
 
   // ── Signal ──
   '/api/signal/strategies/list': r(signalData, 'activations'),
   '/api/signal/latest': r(signalData, 'latest'),
   '/api/signal/history': r(signalData, 'history'),
+  '/api/signal/history/detail': r(signalData, 'detail'),
+  '/api/signal/history/compare': r(signalData, 'compare'),
   '/api/signal/strategies/activate': ok({ success: true }),
   '/api/signal/strategies/deactivate': ok({ success: true }),
 
   // ── Event Study ──
   '/api/event-study/event-types/list': r(eventStudyData, 'eventTypes'),
-  '/api/event-study/signal-rules/list': r(eventStudyData, 'signalRules'),
-  '/api/event-study/events': ok([]),
-  '/api/event-study/signals': ok([]),
-  '/api/event-study/analyze': ok(null),
-  '/api/event-study/signal-rules': ok({ id: 'mock-rule-1' }),
+  // dynamic handlers below override these for: signal-rules/list, events, signals,
+  // analyze, analyze/by-segment, calendar, schema, preview, backtest, scan/async,
+  // scan/jobs/get, analyses/*, signal-rules/stats
+  '/api/event-study/signal-rules': ok({ id: 1 }),
   '/api/event-study/signal-rules/update': ok({ success: true }),
   '/api/event-study/signal-rules/delete': ok({ success: true }),
-  '/api/event-study/signal-rules/scan': ok({ success: true }),
+  '/api/event-study/signal-rules/scan': ok({ success: true, signalsGenerated: 0 }),
 
   // ── Report ──
   '/api/report/list': r(reportData, 'list'),
@@ -337,18 +362,25 @@ const routeMap: Record<string, unknown> = {
 
   // ── Pattern ──
   '/api/pattern/templates/list': r(patternData, 'templates'),
-  '/api/pattern/search': ok({ matches: [] }),
-  '/api/pattern/search-by-series': ok({ matches: [] }),
+  '/api/pattern/search': r(patternData, 'searchResult'),
+  '/api/pattern/search-by-series': r(patternData, 'searchResult'),
 
   // ── User Management ──
   '/api/user/list': r(userManageData, 'list'),
   '/api/user/detail': r(userManageData, 'detail'),
+  '/api/user/stats': r(userManageData, 'stats'),
+  '/api/user/search': r(userManageData, 'search'),
   '/api/user/audit-log/list': r(userManageData, 'auditLogs'),
-  '/api/user/create': ok({ id: 2 }),
-  '/api/user/update': ok({ success: true }),
+  '/api/user/create': r(userManageData, 'created'),
+  '/api/user/update': r(userManageData, 'updated'),
+  '/api/user/update-role': r(userManageData, 'updated'),
   '/api/user/delete': ok({ success: true }),
+  '/api/user/restore': r(userManageData, 'updated'),
+  '/api/user/unlock': r(userManageData, 'updated'),
+  '/api/user/delete-impact': r(userManageData, 'deleteImpact'),
+  '/api/user/bulk-update-status': ok({ success: [2], failed: [] }),
   '/api/user/update-status': ok({ success: true }),
-  '/api/user/reset-password': ok({ success: true }),
+  '/api/user/reset-password': ok({ newPassword: 'MockPass2026!' }),
   '/api/user/profile/update': ok({ success: true }),
   '/api/user/profile/change-password': ok({ success: true }),
 
@@ -450,5 +482,243 @@ const dataHandlers = Object.entries(routeMap)
     })
   );
 
+// ---------------------------------------------------------------------------
+// Event Study v2 — dynamic handlers (registered before dataHandlers)
+// ---------------------------------------------------------------------------
+
+type EventStudyBody = Record<string, unknown>;
+
+async function readEventStudyBody(request: Request): Promise<EventStudyBody> {
+  try {
+    const text = await request.clone().text();
+    if (!text) return {};
+    return JSON.parse(text) as EventStudyBody;
+  } catch {
+    return {};
+  }
+}
+
+const inMemoryRules: Array<{
+  id: number;
+  userId: number;
+  name: string;
+  description: string | null;
+  eventType: string;
+  conditions: Record<string, unknown>;
+  signalType: 'BUY' | 'SELL' | 'WATCH';
+  status: 'ACTIVE' | 'PAUSED' | 'DELETED';
+  createdAt: string;
+  updatedAt: string;
+}> = [
+  {
+    id: 1,
+    userId: 1,
+    name: '业绩预增 BUY',
+    description: '业绩预告同比增长 ≥30% 触发',
+    eventType: 'FORECAST',
+    conditions: { p_change_min: { gte: 30 } },
+    signalType: 'BUY',
+    status: 'ACTIVE',
+    createdAt: new Date(Date.now() - 86400_000 * 12).toISOString(),
+    updatedAt: new Date(Date.now() - 86400_000 * 2).toISOString(),
+  },
+  {
+    id: 2,
+    userId: 1,
+    name: '股东大额减持 SELL',
+    description: '减持比例 ≥1% 触发',
+    eventType: 'HOLDER_DECREASE',
+    conditions: { change_ratio: { gte: 1 } },
+    signalType: 'SELL',
+    status: 'PAUSED',
+    createdAt: new Date(Date.now() - 86400_000 * 30).toISOString(),
+    updatedAt: new Date(Date.now() - 86400_000 * 5).toISOString(),
+  },
+];
+let ruleSeq = 3;
+
+const eventStudyDynamicHandlers = [
+  http.post('*/api/event-study/signal-rules/list', async () => {
+    await delay(80);
+    return HttpResponse.json({
+      code: 0,
+      data: { items: inMemoryRules, total: inMemoryRules.length, page: 1, pageSize: 20 },
+      message: '',
+    } as JsonBodyType);
+  }),
+
+  http.post('*/api/event-study/signal-rules', async ({ request }) => {
+    const body = await readEventStudyBody(request);
+    const now = new Date().toISOString();
+    const rule = {
+      id: ruleSeq++,
+      userId: 1,
+      name: String(body.name ?? '未命名'),
+      description: (body.description as string | undefined) ?? null,
+      eventType: String(body.eventType ?? 'FORECAST'),
+      conditions: (body.conditions as Record<string, unknown>) ?? {},
+      signalType: ((body.signalType as 'BUY' | 'SELL' | 'WATCH') ?? 'BUY') as 'BUY',
+      status: 'ACTIVE' as const,
+      createdAt: now,
+      updatedAt: now,
+    };
+    inMemoryRules.unshift(rule);
+    return HttpResponse.json({ code: 0, data: rule, message: '' } as JsonBodyType);
+  }),
+
+  http.post('*/api/event-study/signal-rules/update', async ({ request }) => {
+    const body = await readEventStudyBody(request);
+    const id = Number(body.id);
+    const rule = inMemoryRules.find((row) => row.id === id);
+    if (rule) {
+      if (body.name !== undefined) rule.name = String(body.name);
+      if (body.description !== undefined)
+        rule.description = (body.description as string | null) ?? null;
+      if (body.conditions !== undefined)
+        rule.conditions = body.conditions as Record<string, unknown>;
+      if (body.signalType !== undefined)
+        rule.signalType = body.signalType as 'BUY' | 'SELL' | 'WATCH';
+      if (body.status !== undefined) rule.status = body.status as 'ACTIVE' | 'PAUSED';
+      rule.updatedAt = new Date().toISOString();
+    }
+    return HttpResponse.json({ code: 0, data: rule ?? null, message: '' } as JsonBodyType);
+  }),
+
+  http.post('*/api/event-study/signal-rules/delete', async ({ request }) => {
+    const body = await readEventStudyBody(request);
+    const id = Number(body.id);
+    const idx = inMemoryRules.findIndex((row) => row.id === id);
+    if (idx >= 0) inMemoryRules.splice(idx, 1);
+    return HttpResponse.json({ code: 0, data: { success: true }, message: '' } as JsonBodyType);
+  }),
+
+  http.post('*/api/event-study/signal-rules/stats', async ({ request }) => {
+    const body = await readEventStudyBody(request);
+    return HttpResponse.json({
+      code: 0,
+      data: getMockRuleStats(Number(body.id) || 1),
+      message: '',
+    } as JsonBodyType);
+  }),
+
+  http.post('*/api/event-study/signal-rules/preview', async () => {
+    await delay(180);
+    return HttpResponse.json({ code: 0, data: getMockPreview(), message: '' } as JsonBodyType);
+  }),
+
+  http.post('*/api/event-study/signal-rules/backtest', async () => {
+    await delay(220);
+    return HttpResponse.json({ code: 0, data: getMockBacktest(), message: '' } as JsonBodyType);
+  }),
+
+  http.post('*/api/event-study/signal-rules/scan/async', async () => {
+    await delay(80);
+    return HttpResponse.json({ code: 0, data: startMockScanJob(), message: '' } as JsonBodyType);
+  }),
+
+  http.post('*/api/event-study/signal-rules/scan/jobs/get', async ({ request }) => {
+    const body = await readEventStudyBody(request);
+    return HttpResponse.json({
+      code: 0,
+      data: getMockScanJob(String(body.jobId ?? '')),
+      message: '',
+    } as JsonBodyType);
+  }),
+
+  http.post('*/api/event-study/event-schemas/get', async ({ request }) => {
+    const body = await readEventStudyBody(request);
+    return HttpResponse.json({
+      code: 0,
+      data: getMockEventSchema(body.eventType as Parameters<typeof getMockEventSchema>[0]),
+      message: '',
+    } as JsonBodyType);
+  }),
+
+  http.post('*/api/event-study/events/calendar', async () => {
+    await delay(120);
+    return HttpResponse.json({ code: 0, data: getMockCalendar(), message: '' } as JsonBodyType);
+  }),
+
+  http.post('*/api/event-study/events', async ({ request }) => {
+    const body = await readEventStudyBody(request);
+    const page = Number(body.page ?? 1) - 1;
+    const pageSize = Number(body.pageSize ?? 20);
+    return HttpResponse.json({
+      code: 0,
+      data: getMockEvents(
+        (body.eventType as Parameters<typeof getMockEvents>[0]) ?? 'FORECAST',
+        page,
+        pageSize
+      ),
+      message: '',
+    } as JsonBodyType);
+  }),
+
+  http.post('*/api/event-study/analyze', async ({ request }) => {
+    await delay(220);
+    const body = await readEventStudyBody(request);
+    return HttpResponse.json({
+      code: 0,
+      data: getMockAnalyze(
+        (body.eventType as Parameters<typeof getMockAnalyze>[0]) ?? 'FORECAST',
+        Number(body.preDays ?? 10),
+        Number(body.postDays ?? 30)
+      ),
+      message: '',
+    } as JsonBodyType);
+  }),
+
+  http.post('*/api/event-study/analyze/by-segment', async ({ request }) => {
+    await delay(180);
+    const body = await readEventStudyBody(request);
+    return HttpResponse.json({
+      code: 0,
+      data: getMockSegment(
+        (body.groupBy as 'industry' | 'marketCapBucket' | 'stFlag') ?? 'industry'
+      ),
+      message: '',
+    } as JsonBodyType);
+  }),
+
+  http.post('*/api/event-study/signals', async ({ request }) => {
+    const body = await readEventStudyBody(request);
+    const page = Number(body.page ?? 1) - 1;
+    const pageSize = Number(body.pageSize ?? 50);
+    return HttpResponse.json({
+      code: 0,
+      data: getMockSignalHistory(page, pageSize),
+      message: '',
+    } as JsonBodyType);
+  }),
+
+  http.post('*/api/event-study/analyses/list', async () => {
+    await delay(60);
+    return HttpResponse.json({
+      code: 0,
+      data: listMockAnalysisPlans(),
+      message: '',
+    } as JsonBodyType);
+  }),
+
+  http.post('*/api/event-study/analyses/create', async ({ request }) => {
+    const body = await readEventStudyBody(request);
+    const plan = createMockAnalysisPlan(
+      String(body.name ?? '未命名方案'),
+      body.description as string | undefined,
+      (body.params as Parameters<typeof createMockAnalysisPlan>[2]) ?? { eventType: 'FORECAST' }
+    );
+    return HttpResponse.json({ code: 0, data: plan, message: '' } as JsonBodyType);
+  }),
+
+  http.post('*/api/event-study/analyses/delete', async ({ request }) => {
+    const body = await readEventStudyBody(request);
+    return HttpResponse.json({
+      code: 0,
+      data: deleteMockAnalysisPlan(Number(body.id ?? 0)),
+      message: '',
+    } as JsonBodyType);
+  }),
+];
+
 // Auth handlers first (higher priority in MSW)
-export const handlers = [...authHandlers, ...dataHandlers];
+export const handlers = [...authHandlers, ...eventStudyDynamicHandlers, ...dataHandlers];

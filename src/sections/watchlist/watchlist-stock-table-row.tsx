@@ -6,6 +6,7 @@ import { useSortable } from '@dnd-kit/sortable';
 
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
+import Tooltip from '@mui/material/Tooltip';
 import Collapse from '@mui/material/Collapse';
 import Checkbox from '@mui/material/Checkbox';
 import TableRow from '@mui/material/TableRow';
@@ -17,21 +18,28 @@ import { RouterLink } from 'src/routes/components';
 
 import { fWanYi, fPctChg } from 'src/utils/format-number';
 
+import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
 
+import { computeTargetDistance } from './utils';
+
 // ----------------------------------------------------------------------
+
+const COLUMN_COUNT = 11;
 
 type WatchlistStockTableRowProps = {
   row: WatchlistStock;
   selected: boolean;
+  dragDisabled?: boolean;
   onSelect: (id: number) => void;
   onEdit: (row: WatchlistStock) => void;
-  onRemove: (id: number) => void;
+  onRemove: (row: WatchlistStock) => void;
 };
 
 export function WatchlistStockTableRow({
   row,
   selected,
+  dragDisabled = false,
   onSelect,
   onEdit,
   onRemove,
@@ -40,6 +48,7 @@ export function WatchlistStockTableRow({
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: row.id,
+    disabled: dragDisabled,
   });
 
   const style = {
@@ -51,25 +60,51 @@ export function WatchlistStockTableRow({
   const hasDetail = !!(row.notes || (row.tags && row.tags.length > 0));
 
   const { quote } = row;
+  const close = quote?.close ?? null;
   const pctChg = quote?.pctChg ?? null;
+  const vol = quote?.vol ?? null;
+  const pe = quote?.pe ?? null;
+  const pb = quote?.pb ?? null;
+
   const pctChgColor =
-    pctChg === null ? 'text.secondary' : pctChg > 0 ? 'error.main' : pctChg < 0 ? 'success.main' : 'text.secondary';
+    pctChg === null
+      ? 'text.secondary'
+      : pctChg > 0
+        ? 'error.main'
+        : pctChg < 0
+          ? 'success.main'
+          : 'text.secondary';
+
+  const distance = computeTargetDistance(row);
+  const distanceColor = distance ? (distance.hit ? 'error.main' : 'text.primary') : 'text.disabled';
+  const quoteStatus = !quote || close == null ? 'MISSING' : distance?.hit ? 'HIT' : 'OK';
+
+  const dragSx = {
+    width: 36,
+    px: 1,
+    cursor: dragDisabled ? 'not-allowed' : isDragging ? 'grabbing' : 'grab',
+    color: 'text.disabled',
+  };
+  const dragTooltip = dragDisabled ? '清除筛选后可拖拽排序' : '拖拽排序';
 
   return (
     <>
       <TableRow ref={setNodeRef} style={style} hover selected={selected}>
-        {/* 拖拽手柄 */}
-        <TableCell sx={{ width: 36, px: 1, cursor: isDragging ? 'grabbing' : 'grab' }} {...attributes} {...listeners}>
-          <Iconify icon="solar:menu-dots-bold" sx={{ color: 'text.disabled', display: 'block' }} />
+        <TableCell
+          sx={dragSx}
+          {...(dragDisabled ? {} : attributes)}
+          {...(dragDisabled ? {} : listeners)}
+        >
+          <Tooltip title={dragTooltip}>
+            <Box component="span" sx={{ display: 'inline-flex' }}>
+              <Iconify icon="solar:menu-dots-bold" sx={{ display: 'block' }} />
+            </Box>
+          </Tooltip>
         </TableCell>
 
         <TableCell padding="checkbox">
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Checkbox
-              checked={selected}
-              onChange={() => onSelect(row.id)}
-              size="small"
-            />
+            <Checkbox checked={selected} onChange={() => onSelect(row.id)} size="small" />
             {hasDetail && (
               <IconButton size="small" onClick={() => setOpen((v) => !v)}>
                 <Iconify
@@ -98,15 +133,7 @@ export function WatchlistStockTableRow({
         </TableCell>
 
         <TableCell align="right">
-          {quote ? (
-            <Typography variant="body2" sx={{ fontWeight: 500 }}>
-              {quote.close.toFixed(2)}
-            </Typography>
-          ) : (
-            <Typography variant="body2" sx={{ color: 'text.disabled' }}>
-              -
-            </Typography>
-          )}
+          <NumericCell value={close} render={(v) => v.toFixed(2)} />
         </TableCell>
 
         <TableCell align="right">
@@ -122,8 +149,28 @@ export function WatchlistStockTableRow({
         </TableCell>
 
         <TableCell align="right">
-          {quote ? (
-            <Typography variant="body2">{fWanYi(quote.vol, '手')}</Typography>
+          <NumericCell value={vol} render={(v) => fWanYi(v, '手')} />
+        </TableCell>
+
+        <TableCell align="right">
+          <NumericCell value={pe} render={(v) => v.toFixed(2)} />
+        </TableCell>
+
+        <TableCell align="right">
+          <NumericCell value={pb} render={(v) => v.toFixed(2)} />
+        </TableCell>
+
+        <TableCell align="right">
+          <NumericCell value={row.targetPrice} render={(v) => v.toFixed(2)} />
+        </TableCell>
+
+        <TableCell align="right">
+          {distance ? (
+            <Typography variant="body2" sx={{ color: distanceColor, fontWeight: 500 }}>
+              {distance.hit
+                ? '已触达'
+                : `${distance.pct >= 0 ? '+' : ''}${distance.pct.toFixed(2)}%`}
+            </Typography>
           ) : (
             <Typography variant="body2" sx={{ color: 'text.disabled' }}>
               -
@@ -132,54 +179,49 @@ export function WatchlistStockTableRow({
         </TableCell>
 
         <TableCell align="right">
-          {quote?.pe != null ? (
-            <Typography variant="body2">{quote.pe.toFixed(2)}</Typography>
-          ) : (
-            <Typography variant="body2" sx={{ color: 'text.disabled' }}>
-              -
-            </Typography>
-          )}
-        </TableCell>
-
-        <TableCell align="right">
-          {quote?.pb != null ? (
-            <Typography variant="body2">{quote.pb.toFixed(2)}</Typography>
-          ) : (
-            <Typography variant="body2" sx={{ color: 'text.disabled' }}>
-              -
-            </Typography>
-          )}
-        </TableCell>
-
-        <TableCell align="right">
-          {row.targetPrice != null ? (
-            <Typography variant="body2">{row.targetPrice.toFixed(2)}</Typography>
-          ) : (
-            <Typography variant="body2" sx={{ color: 'text.disabled' }}>
-              -
-            </Typography>
-          )}
-        </TableCell>
-
-        <TableCell align="right">
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 0.5 }}>
-            <IconButton size="small" onClick={() => onEdit(row)}>
-              <Iconify icon="solar:pen-bold" width={16} />
-            </IconButton>
-            <IconButton size="small" sx={{ color: 'error.main' }} onClick={() => onRemove(row.id)}>
-              <Iconify icon="solar:trash-bin-trash-bold" width={16} />
-            </IconButton>
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 0.5 }}>
+            {quoteStatus === 'HIT' && (
+              <Tooltip title="现价已达到或超过目标价">
+                <Box component="span" sx={{ display: 'inline-flex' }}>
+                  <Label color="error" variant="soft">
+                    触达
+                  </Label>
+                </Box>
+              </Tooltip>
+            )}
+            {quoteStatus === 'MISSING' && (
+              <Tooltip title="暂无最新行情，可能停牌或数据未同步">
+                <Box component="span" sx={{ display: 'inline-flex' }}>
+                  <Label color="warning" variant="soft">
+                    缺失
+                  </Label>
+                </Box>
+              </Tooltip>
+            )}
+            <Tooltip title="编辑">
+              <IconButton size="small" onClick={() => onEdit(row)}>
+                <Iconify icon="solar:pen-bold" width={16} />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="从自选组移除">
+              <IconButton size="small" sx={{ color: 'error.main' }} onClick={() => onRemove(row)}>
+                <Iconify icon="solar:trash-bin-trash-bold" width={16} />
+              </IconButton>
+            </Tooltip>
           </Box>
         </TableCell>
       </TableRow>
 
       {hasDetail && (
         <TableRow>
-          <TableCell colSpan={10} sx={{ py: 0, borderBottom: open ? undefined : 'none' }}>
+          <TableCell colSpan={COLUMN_COUNT} sx={{ py: 0, borderBottom: open ? undefined : 'none' }}>
             <Collapse in={open} timeout="auto" unmountOnExit>
               <Box sx={{ py: 1.5, px: 1 }}>
                 {row.notes && (
-                  <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}>
+                  <Typography
+                    variant="caption"
+                    sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}
+                  >
                     备注：{row.notes}
                   </Typography>
                 )}
@@ -199,3 +241,21 @@ export function WatchlistStockTableRow({
   );
 }
 
+// ----------------------------------------------------------------------
+
+function NumericCell({
+  value,
+  render,
+}: {
+  value: number | null;
+  render: (value: number) => string;
+}) {
+  if (value === null || Number.isNaN(value)) {
+    return (
+      <Typography variant="body2" sx={{ color: 'text.disabled' }}>
+        -
+      </Typography>
+    );
+  }
+  return <Typography variant="body2">{render(value)}</Typography>;
+}

@@ -182,6 +182,11 @@ export const navData = [
         path: '/strategy/signal/history',
         icon: <Iconify icon="solar:history-bold" width={24} />,
       },
+      {
+        title: '历史对比',
+        path: '/strategy/signal/history/compare',
+        icon: <Iconify icon="solar:copy-bold" width={24} />,
+      },
     ],
   },
   {
@@ -205,9 +210,14 @@ export const navData = [
         icon: <Iconify icon="solar:shuffle-bold" width={24} />,
       },
       {
-        title: '多策略对比',
-        path: '/backtest/comparison/create',
+        title: '对比历史',
+        path: '/backtest/comparison',
         icon: <Iconify icon="solar:copy-bold" width={24} />,
+      },
+      {
+        title: '新建对比',
+        path: '/backtest/comparison/create',
+        icon: <Iconify icon="solar:add-circle-bold" width={24} />,
       },
     ],
   },
@@ -216,6 +226,11 @@ export const navData = [
     title: '我的组合',
     path: '/portfolio',
     icon: <Iconify icon="solar:chart-bold" width={24} />,
+  },
+  {
+    title: '数据运维',
+    path: '/tushare-sync',
+    icon: <Iconify icon="solar:restart-bold" width={24} />,
   },
   // ─── 系统 ────────────────────────────────────────────────
   {
@@ -227,11 +242,6 @@ export const navData = [
         title: '用户管理',
         path: '/admin/user-manage',
         icon: icon('ic-user'),
-      },
-      {
-        title: '数据同步',
-        path: '/admin/tushare-sync',
-        icon: <Iconify icon="solar:restart-bold" width={24} />,
       },
     ],
   },

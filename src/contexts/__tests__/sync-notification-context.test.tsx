@@ -75,10 +75,10 @@ describe('SyncNotificationProvider', () => {
       expect(mockSocket.connect).toHaveBeenCalledTimes(1);
     });
 
-    it('mount 时注册全部 6 个事件监听器', () => {
+    it('mount 时注册全部 7 个事件监听器', () => {
       renderHook(useSyncNotification, { wrapper });
 
-      expect(mockSocket.on).toHaveBeenCalledTimes(6);
+      expect(mockSocket.on).toHaveBeenCalledTimes(7);
 
       const registeredEvents = (mockSocket.on.mock.calls as [string, ...unknown[]][]).map(
         ([event]) => event
@@ -89,6 +89,7 @@ describe('SyncNotificationProvider', () => {
       expect(registeredEvents).toContain('data_quality_completed');
       expect(registeredEvents).toContain('auto_repair_queued');
       expect(registeredEvents).toContain('risk_violation');
+      expect(registeredEvents).toContain('screener_subscription_alert');
     });
 
     it('unmount 时移除全部事件监听器并调用 destroySocket()', () => {
@@ -96,7 +97,7 @@ describe('SyncNotificationProvider', () => {
 
       unmount();
 
-      expect(mockSocket.off).toHaveBeenCalledTimes(6);
+      expect(mockSocket.off).toHaveBeenCalledTimes(7);
       expect(mockDestroySocket).toHaveBeenCalledTimes(1);
     });
   });
@@ -372,10 +373,7 @@ describe('SyncNotificationProvider', () => {
 
       act(() => {
         for (let i = 0; i < 51; i += 1) {
-          emitSocket(
-            'tushare_sync_completed',
-            createSyncCompletedPayload({ elapsedSeconds: i })
-          );
+          emitSocket('tushare_sync_completed', createSyncCompletedPayload({ elapsedSeconds: i }));
         }
       });
 

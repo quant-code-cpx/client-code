@@ -14,16 +14,26 @@ import LinearProgress from '@mui/material/LinearProgress';
 
 import { RouterLink } from 'src/routes/components';
 
+import { fDate } from 'src/utils/format-time';
+
 import { DashboardContent } from 'src/layouts/dashboard';
 import { getComparisonDetail, getComparisonEquity } from 'src/api/backtest';
 
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
 
-import { STATUS_COLOR, STATUS_LABEL } from '../constants';
 import { useBacktestJob } from '../hooks/use-backtest-job';
 import { ComparisonEquityChart } from '../comparison-equity-chart';
 import { ComparisonMetricsTable } from '../comparison-metrics-table';
+import { STATUS_COLOR, STATUS_LABEL, normalizeDisplayDate } from '../constants';
+
+// ----------------------------------------------------------------------
+
+function formatRangeDate(value: string) {
+  const normalized = normalizeDisplayDate(value);
+  if (!normalized) return '—';
+  return fDate(normalized, 'YYYY-MM-DD');
+}
 
 // ----------------------------------------------------------------------
 
@@ -45,7 +55,7 @@ export function ComparisonDetailView() {
       const d = await getComparisonDetail(groupId);
       setDetail(d);
 
-      if (d.status === 'COMPLETED') {
+      if (d.status === 'COMPLETED' || d.status === 'PARTIAL') {
         setLoadingEquity(true);
         try {
           const eq = await getComparisonEquity(groupId);
@@ -70,8 +80,15 @@ export function ComparisonDetailView() {
   // Track jobId from the create response via router state
   useEffect(() => {
     const state = window.history.state?.usr as { jobId?: string } | undefined;
-    if (state?.jobId) setJobId(state.jobId);
-  }, []);
+    if (state?.jobId) {
+      setJobId(state.jobId);
+      return;
+    }
+
+    if (!groupId) return;
+    const storedJobId = window.sessionStorage.getItem(`compare:job:${groupId}`) ?? undefined;
+    setJobId(storedJobId);
+  }, [groupId]);
 
   useBacktestJob(jobId, {
     onProgress: () => {
@@ -111,13 +128,13 @@ export function ComparisonDetailView() {
       <Box sx={{ mb: 3, display: 'flex', alignItems: 'flex-start', gap: 2 }}>
         <Button
           component={RouterLink}
-          href="/backtest"
+          href="/backtest/comparison"
           startIcon={<Iconify icon="solar:arrow-left-bold" width={18} />}
           variant="text"
           size="small"
           sx={{ mt: 0.5 }}
         >
-          工作台
+          对比历史
         </Button>
         <Box sx={{ flex: 1 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
@@ -127,7 +144,8 @@ export function ComparisonDetailView() {
             </Label>
           </Box>
           <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
-            {detail.startDate} ~ {detail.endDate} · 基准: {detail.benchmarkTsCode}
+            {formatRangeDate(detail.startDate)} ~ {formatRangeDate(detail.endDate)} · 基准:{' '}
+            {detail.benchmarkTsCode}
           </Typography>
         </Box>
         <Button
@@ -151,14 +169,17 @@ export function ComparisonDetailView() {
         </Box>
       )}
 
-      {detail.status === 'FAILED' && (
+      {(detail.status === 'FAILED' || detail.status === 'PARTIAL') && (
         <Alert severity="error" sx={{ mb: 3 }}>
-          对比任务执行失败
+          {detail.status === 'PARTIAL'
+            ? '部分策略执行失败，其余结果仍可查看。'
+            : '对比任务执行失败'}
+          {detail.failures?.length ? ` 失败数量：${detail.failures.length}` : ''}
         </Alert>
       )}
 
       {/* Equity chart */}
-      {detail.status === 'COMPLETED' && (
+      {(detail.status === 'COMPLETED' || detail.status === 'PARTIAL') && (
         <Card sx={{ mb: 3 }}>
           <CardContent>
             <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>
@@ -174,16 +195,18 @@ export function ComparisonDetailView() {
       )}
 
       {/* Metrics table */}
-      {detail.status === 'COMPLETED' && detail.metrics && detail.metrics.length > 0 && (
-        <Card>
-          <CardContent>
-            <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>
-              指标对比 (最优值高亮)
-            </Typography>
-            <ComparisonMetricsTable rows={detail.metrics} />
-          </CardContent>
-        </Card>
-      )}
+      {(detail.status === 'COMPLETED' || detail.status === 'PARTIAL') &&
+        detail.metrics &&
+        detail.metrics.length > 0 && (
+          <Card>
+            <CardContent>
+              <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>
+                指标对比 (最优值高亮)
+              </Typography>
+              <ComparisonMetricsTable rows={detail.metrics} />
+            </CardContent>
+          </Card>
+        )}
     </DashboardContent>
   );
 }

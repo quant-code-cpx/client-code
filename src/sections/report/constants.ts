@@ -35,11 +35,6 @@ export const REPORT_STATUS_CONFIG: Record<ReportStatus, { label: string; color: 
   FAILED: { label: '失败', color: 'error' },
 };
 
-// ── 文件大小格式化 ────────────────────────────────────────────
+// ── 文件大小格式化（重导出，保持调用点兼容） ──────────────────
 
-export function formatFileSize(bytes: number | null): string {
-  if (bytes === null || bytes === undefined) return '-';
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
+export { formatFileSize } from './utils/format-file-size';

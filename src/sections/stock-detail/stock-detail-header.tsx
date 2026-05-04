@@ -143,11 +143,7 @@ export function StockDetailHeader({ tsCode, overview, loading }: Props) {
       {/* 股票名称 + 代码 */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap', mb: 1 }}>
         <IconButton onClick={() => navigate(-1)} size="small" sx={{ mr: 0.5 }}>
-          <Iconify
-            icon="eva:arrow-ios-forward-fill"
-            width={22}
-            sx={{ transform: 'rotate(180deg)' }}
-          />
+          <Iconify icon="eva:arrow-back-fill" width={22} />
         </IconButton>
         <Typography variant="h4">{name}</Typography>
         <Typography variant="body1" sx={{ color: 'text.secondary' }}>

@@ -3,6 +3,7 @@ import type { DataQualityCheckItem } from 'src/api/tushare-sync';
 import Box from '@mui/material/Box';
 import Table from '@mui/material/Table';
 import Alert from '@mui/material/Alert';
+import Tooltip from '@mui/material/Tooltip';
 import Skeleton from '@mui/material/Skeleton';
 import TableRow from '@mui/material/TableRow';
 import TableBody from '@mui/material/TableBody';
@@ -50,6 +51,8 @@ type Props = {
   loading: boolean;
   triggering: boolean;
   mode: 'recent' | 'full';
+  disabled?: boolean;
+  disabledReason?: string;
   onModeChange: (mode: 'recent' | 'full') => void;
   onRunCheck: () => void;
 };
@@ -59,6 +62,8 @@ export function CrossTableCheckPanel({
   loading,
   triggering,
   mode,
+  disabled = false,
+  disabledReason = '',
   onModeChange,
   onRunCheck,
 }: Props) {
@@ -71,22 +76,28 @@ export function CrossTableCheckPanel({
         <ToggleButtonGroup
           value={mode}
           exclusive
+          disabled={disabled}
           onChange={(_, v) => v && onModeChange(v)}
           size="small"
         >
           <ToggleButton value="recent">近期（默认）</ToggleButton>
           <ToggleButton value="full">全量（耗时较长）</ToggleButton>
         </ToggleButtonGroup>
-        <LoadingButton
-          loading={triggering}
-          variant="outlined"
-          color="info"
-          size="small"
-          startIcon={<Iconify icon="solar:restart-bold" />}
-          onClick={onRunCheck}
-        >
-          立即执行对账
-        </LoadingButton>
+        <Tooltip title={disabled ? disabledReason : ''}>
+          <span>
+            <LoadingButton
+              loading={triggering}
+              variant="outlined"
+              color="info"
+              size="small"
+              disabled={disabled}
+              startIcon={<Iconify icon="solar:restart-bold" />}
+              onClick={onRunCheck}
+            >
+              立即执行对账
+            </LoadingButton>
+          </span>
+        </Tooltip>
       </Box>
 
       <Scrollbar>

@@ -3,7 +3,10 @@ import type { UserManageItem } from 'src/api/user-manage';
 import { useState, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
+import Tooltip from '@mui/material/Tooltip';
 import Popover from '@mui/material/Popover';
+import Checkbox from '@mui/material/Checkbox';
 import MenuList from '@mui/material/MenuList';
 import TableRow from '@mui/material/TableRow';
 import TableCell from '@mui/material/TableCell';
@@ -12,20 +15,29 @@ import MenuItem, { menuItemClasses } from '@mui/material/MenuItem';
 
 import { fDate } from 'src/utils/format-time';
 
+import { useAuth } from 'src/auth';
+import { CONFIG } from 'src/config-global';
 import { usePermission } from 'src/permission';
 import { ROLE_LABEL, STATUS_LABEL } from 'src/api/user-manage';
 
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
 
+import { formatQuota, isLockedUser } from './user-manage-utils';
+
 // ----------------------------------------------------------------------
 
 type UserManageTableRowProps = {
   row: UserManageItem;
+  selected: boolean;
+  onSelect: (row: UserManageItem, checked: boolean) => void;
   onEdit: (row: UserManageItem) => void;
+  onUpdateRole: (row: UserManageItem) => void;
   onToggleStatus: (row: UserManageItem) => void;
+  onUnlock: (row: UserManageItem) => void;
   onResetPassword: (row: UserManageItem) => void;
   onDelete: (row: UserManageItem) => void;
+  onRestore: (row: UserManageItem) => void;
 };
 
 const ROLE_COLOR: Record<string, 'default' | 'primary' | 'warning'> = {
@@ -42,13 +54,19 @@ const STATUS_COLOR: Record<string, 'success' | 'error' | 'default'> = {
 
 export function UserManageTableRow({
   row,
+  selected,
+  onSelect,
   onEdit,
+  onUpdateRole,
   onToggleStatus,
+  onUnlock,
   onResetPassword,
   onDelete,
+  onRestore,
 }: UserManageTableRowProps) {
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
   const { canManage } = usePermission();
+  const { userProfile } = useAuth();
 
   const handleOpen = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(e.currentTarget);
@@ -57,14 +75,39 @@ export function UserManageTableRow({
   const handleClose = useCallback(() => setAnchorEl(null), []);
 
   const canAct = canManage(row.role);
+  const isSelf = userProfile?.id === row.id;
+  const locked = isLockedUser(row);
+  const deleted = row.status === 'DELETED';
+  const actionTip = isSelf
+    ? '请通过个人资料页修改自身信息'
+    : row.role === 'SUPER_ADMIN'
+      ? '不允许操作超级管理员账号'
+      : '当前账号无权操作该用户';
 
   return (
     <>
-      <TableRow hover tabIndex={-1}>
+      <TableRow
+        hover
+        tabIndex={-1}
+        selected={selected}
+        sx={deleted ? { bgcolor: 'action.disabledBackground' } : undefined}
+      >
+        <TableCell padding="checkbox">
+          <Checkbox
+            checked={selected}
+            disabled={!canAct || deleted}
+            onChange={(event) => onSelect(row, event.target.checked)}
+            slotProps={{ input: { 'aria-label': `选择 ${row.account}` } }}
+          />
+        </TableCell>
+
         <TableCell sx={{ color: 'text.secondary', fontSize: 12 }}>{row.id}</TableCell>
 
         <TableCell>
-          <Box sx={{ fontWeight: 600 }}>{row.account}</Box>
+          <Stack direction="row" spacing={1} alignItems="center">
+            <Box sx={{ fontWeight: 600 }}>{row.account}</Box>
+            {isSelf && <Label color="info">本人</Label>}
+          </Stack>
           {row.nickname && <Box sx={{ color: 'text.secondary', fontSize: 12 }}>{row.nickname}</Box>}
         </TableCell>
 
@@ -73,23 +116,46 @@ export function UserManageTableRow({
         </TableCell>
 
         <TableCell>
-          <Label color={STATUS_COLOR[row.status] ?? 'default'}>{STATUS_LABEL[row.status]}</Label>
+          <Stack direction="row" spacing={0.75} alignItems="center">
+            <Label color={locked ? 'warning' : (STATUS_COLOR[row.status] ?? 'default')}>
+              {locked ? '已锁定' : STATUS_LABEL[row.status]}
+            </Label>
+            {locked && row.lockedUntil && (
+              <Tooltip title={`锁定至 ${fDate(row.lockedUntil, 'YYYY-MM-DD HH:mm')}`}>
+                <Box component="span" sx={{ lineHeight: 0, color: 'warning.main' }}>
+                  <Iconify icon="solar:lock-keyhole-bold" width={16} />
+                </Box>
+              </Tooltip>
+            )}
+          </Stack>
         </TableCell>
 
         <TableCell sx={{ color: 'text.secondary' }}>{row.email ?? '—'}</TableCell>
 
-        <TableCell align="center">{row.backtestQuota}</TableCell>
+        <TableCell align="center">{formatQuota(row.backtestQuota)}</TableCell>
 
-        <TableCell align="center">{row.watchlistLimit}</TableCell>
+        <TableCell align="center">{formatQuota(row.watchlistLimit)}</TableCell>
+
+        <TableCell sx={{ color: 'text.secondary', fontSize: 12 }}>
+          {row.lastLoginAt ? fDate(row.lastLoginAt, 'YYYY-MM-DD') : '未登录'}
+        </TableCell>
 
         <TableCell sx={{ color: 'text.secondary', fontSize: 12 }}>
           {row.createdAt ? fDate(row.createdAt, 'YYYY-MM-DD') : '—'}
         </TableCell>
 
         <TableCell align="right">
-          <IconButton onClick={handleOpen} disabled={!canAct}>
-            <Iconify icon="eva:more-vertical-fill" />
-          </IconButton>
+          <Tooltip title={!canAct ? actionTip : ''}>
+            <Box component="span">
+              <IconButton
+                onClick={handleOpen}
+                disabled={!canAct}
+                aria-label={`打开 ${row.account} 的操作菜单`}
+              >
+                <Iconify icon="eva:more-vertical-fill" />
+              </IconButton>
+            </Box>
+          </Tooltip>
         </TableCell>
       </TableRow>
 
@@ -125,22 +191,49 @@ export function UserManageTableRow({
             编辑信息
           </MenuItem>
 
-          <MenuItem
-            onClick={() => {
-              handleClose();
-              onToggleStatus(row);
-            }}
-            sx={{ color: row.status === 'ACTIVE' ? 'warning.main' : 'success.main' }}
-          >
-            <Iconify
-              icon={
-                row.status === 'ACTIVE'
-                  ? 'solar:shield-keyhole-bold-duotone'
-                  : 'solar:check-circle-bold'
-              }
-            />
-            {row.status === 'ACTIVE' ? '禁用账号' : '启用账号'}
-          </MenuItem>
+          {CONFIG.userManageFeatures.updateRole && !isSelf && !deleted && (
+            <MenuItem
+              onClick={() => {
+                handleClose();
+                onUpdateRole(row);
+              }}
+            >
+              <Iconify icon="solar:user-id-bold" />
+              调整角色
+            </MenuItem>
+          )}
+
+          {!deleted && (
+            <MenuItem
+              onClick={() => {
+                handleClose();
+                onToggleStatus(row);
+              }}
+              sx={{ color: row.status === 'ACTIVE' ? 'warning.main' : 'success.main' }}
+            >
+              <Iconify
+                icon={
+                  row.status === 'ACTIVE'
+                    ? 'solar:shield-keyhole-bold-duotone'
+                    : 'solar:check-circle-bold'
+                }
+              />
+              {row.status === 'ACTIVE' ? '禁用账号' : '启用账号'}
+            </MenuItem>
+          )}
+
+          {CONFIG.userManageFeatures.unlock && locked && (
+            <MenuItem
+              onClick={() => {
+                handleClose();
+                onUnlock(row);
+              }}
+              sx={{ color: 'warning.main' }}
+            >
+              <Iconify icon="solar:lock-keyhole-unlocked-bold" />
+              解锁账号
+            </MenuItem>
+          )}
 
           <MenuItem
             onClick={() => {
@@ -153,16 +246,31 @@ export function UserManageTableRow({
             重置密码
           </MenuItem>
 
-          <MenuItem
-            onClick={() => {
-              handleClose();
-              onDelete(row);
-            }}
-            sx={{ color: 'error.main' }}
-          >
-            <Iconify icon="solar:trash-bin-trash-bold" />
-            删除用户
-          </MenuItem>
+          {deleted ? (
+            CONFIG.userManageFeatures.restore && (
+              <MenuItem
+                onClick={() => {
+                  handleClose();
+                  onRestore(row);
+                }}
+                sx={{ color: 'success.main' }}
+              >
+                <Iconify icon="solar:refresh-circle-bold" />
+                恢复用户
+              </MenuItem>
+            )
+          ) : (
+            <MenuItem
+              onClick={() => {
+                handleClose();
+                onDelete(row);
+              }}
+              sx={{ color: 'error.main' }}
+            >
+              <Iconify icon="solar:trash-bin-trash-bold" />
+              删除用户
+            </MenuItem>
+          )}
         </MenuList>
       </Popover>
     </>

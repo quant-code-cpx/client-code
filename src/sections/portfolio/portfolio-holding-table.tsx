@@ -1,17 +1,23 @@
 import type { HoldingDetailItem } from 'src/api/portfolio';
 
 import Paper from '@mui/material/Paper';
+import Stack from '@mui/material/Stack';
 import Table from '@mui/material/Table';
 import Button from '@mui/material/Button';
+import Tooltip from '@mui/material/Tooltip';
 import TableRow from '@mui/material/TableRow';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
+import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import TableContainer from '@mui/material/TableContainer';
 
+import { useRouter } from 'src/routes/hooks';
+
 import { fCurrency } from 'src/utils/format-number';
 
+import { Iconify } from 'src/components/iconify';
 import { TableEmptyRow } from 'src/components/empty-content';
 import { ColoredNumber } from 'src/components/colored-number';
 
@@ -24,6 +30,16 @@ interface PortfolioHoldingTableProps {
 }
 
 export function PortfolioHoldingTable({ holdings, onEdit, onDelete }: PortfolioHoldingTableProps) {
+  const router = useRouter();
+
+  const handleCopyCode = async (tsCode: string) => {
+    try {
+      await navigator.clipboard.writeText(tsCode);
+    } catch {
+      /* ignore clipboard failure */
+    }
+  };
+
   return (
     <TableContainer component={Paper}>
       <Table size="small">
@@ -47,7 +63,11 @@ export function PortfolioHoldingTable({ holdings, onEdit, onDelete }: PortfolioH
               holding.weight === null ? '-' : `${(holding.weight * 100).toFixed(2)}%`;
 
             return (
-              <TableRow key={holding.id} hover>
+              <TableRow
+                key={holding.id}
+                hover
+                sx={{ '&:hover .holding-row-actions': { opacity: 1 } }}
+              >
                 <TableCell>
                   <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
                     {holding.tsCode}
@@ -67,12 +87,35 @@ export function PortfolioHoldingTable({ holdings, onEdit, onDelete }: PortfolioH
                 </TableCell>
                 <TableCell align="right">{weightText}</TableCell>
                 <TableCell align="center">
-                  <Button size="small" onClick={() => onEdit(holding)}>
-                    编辑
-                  </Button>
-                  <Button size="small" color="error" onClick={() => onDelete(holding)}>
-                    删除
-                  </Button>
+                  <Stack
+                    direction="row"
+                    spacing={0.25}
+                    justifyContent="center"
+                    className="holding-row-actions"
+                    sx={{ opacity: { xs: 1, md: 0 }, transition: 'opacity 150ms' }}
+                  >
+                    <Tooltip title="复制代码">
+                      <IconButton size="small" onClick={() => handleCopyCode(holding.tsCode)}>
+                        <Iconify icon="solar:copy-bold" width={16} />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="查看个股详情">
+                      <IconButton
+                        size="small"
+                        onClick={() =>
+                          router.push(`/stock/detail?code=${encodeURIComponent(holding.tsCode)}`)
+                        }
+                      >
+                        <Iconify icon="solar:eye-bold" width={16} />
+                      </IconButton>
+                    </Tooltip>
+                    <Button size="small" onClick={() => onEdit(holding)}>
+                      编辑
+                    </Button>
+                    <Button size="small" color="error" onClick={() => onDelete(holding)}>
+                      删除
+                    </Button>
+                  </Stack>
                 </TableCell>
               </TableRow>
             );

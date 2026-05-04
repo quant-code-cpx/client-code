@@ -24,6 +24,7 @@ import { DashboardMarketPulse } from '../dashboard-market-pulse';
 import { DashboardSystemStatus } from '../dashboard-system-status';
 import { DashboardCapitalRadar } from '../dashboard-capital-radar';
 import { DashboardSignalCenter } from '../dashboard-signal-center';
+import { DashboardRecentReports } from '../dashboard-recent-reports';
 import { DashboardRecentBacktests } from '../dashboard-recent-backtests';
 import { DashboardPortfolioGlance } from '../dashboard-portfolio-glance';
 import { DashboardMainFlowRanking } from '../dashboard-main-flow-ranking';
@@ -226,13 +227,16 @@ export function OverviewDashboardView() {
           </Grid>
         </Grid>
 
-        {/* ═══ Row 4: My Workspace — Portfolio + Backtests ═══ */}
+        {/* ═══ Row 4: My Workspace — Portfolio + Backtests + Reports ═══ */}
         <Grid container spacing={3} sx={{ mb: 3 }} alignItems="stretch">
-          <Grid size={{ xs: 12, md: 5 }}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <DashboardPortfolioGlance refreshKey={refreshKey} />
           </Grid>
-          <Grid size={{ xs: 12, md: 7 }}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <DashboardRecentBacktests refreshKey={refreshKey} />
+          </Grid>
+          <Grid size={{ xs: 12, md: 4 }}>
+            <DashboardRecentReports refreshKey={refreshKey} />
           </Grid>
         </Grid>
 

@@ -13,6 +13,7 @@ import TableRow from '@mui/material/TableRow';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
+import { useTheme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 import TableContainer from '@mui/material/TableContainer';
@@ -48,6 +49,8 @@ function StatCard({ label, value, positive }: StatCardProps) {
 type Props = { tsCode: string };
 
 export function AnalysisMainMoneyFlowTab({ tsCode }: Props) {
+  const theme = useTheme();
+
   const [data, setData] = useState<StockMainMoneyFlowData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -93,8 +96,8 @@ export function AnalysisMainMoneyFlowTab({ tsCode }: Props) {
         columnWidth: '60%',
         colors: {
           ranges: [
-            { from: -Infinity, to: 0, color: '#00A76F' },
-            { from: 0, to: Infinity, color: '#FF5630' },
+            { from: -Infinity, to: 0, color: theme.palette.success.main },
+            { from: 0, to: Infinity, color: theme.palette.error.main },
           ],
         },
       },

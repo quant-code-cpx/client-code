@@ -1,3 +1,4 @@
+export { ComparisonListView } from './comparison-list-view';
 export { BacktestRunListView } from './backtest-run-list-view';
 export { WalkForwardListView } from './walk-forward-list-view';
 export { ComparisonCreateView } from './comparison-create-view';

@@ -4,11 +4,14 @@ import dayjs from 'dayjs';
 import { useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
+import Chip from '@mui/material/Chip';
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
 import Table from '@mui/material/Table';
+import Drawer from '@mui/material/Drawer';
 import Select from '@mui/material/Select';
 import Button from '@mui/material/Button';
+import Divider from '@mui/material/Divider';
 import Skeleton from '@mui/material/Skeleton';
 import MenuItem from '@mui/material/MenuItem';
 import TableRow from '@mui/material/TableRow';
@@ -16,6 +19,7 @@ import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
 import TextField from '@mui/material/TextField';
+import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import InputLabel from '@mui/material/InputLabel';
 import FormControl from '@mui/material/FormControl';
@@ -28,9 +32,8 @@ import { fDateTime } from 'src/utils/format-time';
 import { tushareSyncApi } from 'src/api/tushare-sync';
 
 import { Label } from 'src/components/label';
+import { Iconify } from 'src/components/iconify';
 import { Scrollbar } from 'src/components/scrollbar';
-
-import { SyncLogSummaryTable } from './sync-log-summary-table';
 
 // ----------------------------------------------------------------------
 
@@ -46,9 +49,23 @@ const SYNC_STATUS_LABEL: Record<string, string> = {
   SKIPPED: '跳过',
 };
 
+type Props = {
+  refreshKey?: number;
+};
+
+function escapeCsv(value: unknown): string {
+  const text = value === null || value === undefined ? '' : String(value);
+  return `"${text.replace(/"/g, '""')}"`;
+}
+
+function formatPayload(payload: Record<string, unknown> | null): string {
+  if (!payload) return '';
+  return JSON.stringify(payload, null, 2);
+}
+
 // ----------------------------------------------------------------------
 
-export function SyncLogTab() {
+export function SyncLogTab({ refreshKey = 0 }: Props) {
   // 总览数据
   const [summary, setSummary] = useState<SyncLogSummaryItem[]>([]);
   const [summaryLoading, setSummaryLoading] = useState(true);
@@ -65,6 +82,7 @@ export function SyncLogTab() {
   const [filterStatus, setFilterStatus] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [payloadDrawer, setPayloadDrawer] = useState<SyncLogItem | null>(null);
 
   // 统计卡片数据（from summary）
   const successCount = summary.filter((s) => s.lastStatus === 'SUCCESS').length;
@@ -106,15 +124,56 @@ export function SyncLogTab() {
 
   useEffect(() => {
     fetchSummary();
-  }, [fetchSummary]);
+  }, [fetchSummary, refreshKey]);
 
   useEffect(() => {
     fetchLogs();
-  }, [fetchLogs]);
+  }, [fetchLogs, refreshKey]);
 
   const handleSearch = () => {
     setPage(0);
     fetchLogs();
+  };
+
+  const handleTodayFilter = () => {
+    const today = dayjs().format('YYYY-MM-DD');
+    setStartDate(today);
+    setEndDate(today);
+    setPage(0);
+  };
+
+  const handleRecentFilter = () => {
+    setStartDate(dayjs().subtract(6, 'day').format('YYYY-MM-DD'));
+    setEndDate(dayjs().format('YYYY-MM-DD'));
+    setPage(0);
+  };
+
+  const handleClearFilters = () => {
+    setFilterTask('');
+    setFilterStatus('');
+    setStartDate('');
+    setEndDate('');
+    setPage(0);
+  };
+
+  const handleExportCsv = () => {
+    const header = ['任务', '状态', '交易日', '消息', '开始时间', '结束时间'];
+    const rows = logs.map((log) => [
+      log.task,
+      log.status,
+      log.tradeDate ?? '',
+      log.message ?? '',
+      fDateTime(log.startedAt),
+      log.finishedAt ? fDateTime(log.finishedAt) : '',
+    ]);
+    const csv = [header, ...rows].map((row) => row.map(escapeCsv).join(',')).join('\n');
+    const blob = new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `sync-logs-${dayjs().format('YYYYMMDD-HHmmss')}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
   };
 
   return (
@@ -144,23 +203,55 @@ export function SyncLogTab() {
         ))}
       </Stack>
 
-      {/* 各任务最后状态汇总 */}
-      <Card sx={{ mb: 3 }}>
-        <Box sx={{ px: 3, py: 2 }}>
-          <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-            各任务最后同步状态
-          </Typography>
-        </Box>
-        <SyncLogSummaryTable rows={summary} loading={summaryLoading} />
-      </Card>
-
       {/* 日志过滤 */}
       <Card>
         <Box sx={{ px: 3, py: 2 }}>
-          <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
-            同步日志详情
-          </Typography>
-          <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ mb: 2, flexWrap: 'wrap' }}>
+          <Stack
+            direction={{ xs: 'column', md: 'row' }}
+            spacing={2}
+            alignItems={{ xs: 'flex-start', md: 'center' }}
+            sx={{ mb: 2 }}
+          >
+            <Box sx={{ flexGrow: 1 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                同步日志详情
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                快捷过滤 + 高级字段组合，payload 可展开查看。
+              </Typography>
+            </Box>
+            <Button
+              size="small"
+              variant="outlined"
+              disabled={logs.length === 0}
+              onClick={handleExportCsv}
+              startIcon={<Iconify icon="solar:download-bold" />}
+            >
+              导出 CSV
+            </Button>
+          </Stack>
+
+          <Stack direction="row" spacing={1} sx={{ mb: 2, flexWrap: 'wrap', gap: 1 }}>
+            <Chip label="今天" clickable variant="outlined" onClick={handleTodayFilter} />
+            <Chip
+              label="失败"
+              clickable
+              color={filterStatus === 'FAILED' ? 'error' : 'default'}
+              variant="outlined"
+              onClick={() => {
+                setFilterStatus('FAILED');
+                setPage(0);
+              }}
+            />
+            <Chip label="近 7 天" clickable variant="outlined" onClick={handleRecentFilter} />
+            <Chip label="清空" clickable variant="outlined" onClick={handleClearFilters} />
+          </Stack>
+
+          <Stack
+            direction={{ xs: 'column', sm: 'row' }}
+            spacing={2}
+            sx={{ mb: 2, flexWrap: 'wrap' }}
+          >
             <TextField
               size="small"
               label="任务类型"
@@ -218,6 +309,7 @@ export function SyncLogTab() {
                   <TableCell>状态</TableCell>
                   <TableCell>交易日</TableCell>
                   <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>消息</TableCell>
+                  <TableCell>Payload</TableCell>
                   <TableCell>开始时间</TableCell>
                   <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>结束时间</TableCell>
                 </TableRow>
@@ -239,6 +331,9 @@ export function SyncLogTab() {
                           <Skeleton width={200} />
                         </TableCell>
                         <TableCell>
+                          <Skeleton width={72} />
+                        </TableCell>
+                        <TableCell>
                           <Skeleton width={130} />
                         </TableCell>
                         <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>
@@ -254,10 +349,7 @@ export function SyncLogTab() {
                           </Typography>
                         </TableCell>
                         <TableCell>
-                          <Label
-                            color={SYNC_STATUS_COLOR[log.status] ?? 'default'}
-                            variant="soft"
-                          >
+                          <Label color={SYNC_STATUS_COLOR[log.status] ?? 'default'} variant="soft">
                             {SYNC_STATUS_LABEL[log.status] ?? log.status}
                           </Label>
                         </TableCell>
@@ -281,6 +373,21 @@ export function SyncLogTab() {
                           </Typography>
                         </TableCell>
                         <TableCell>
+                          {log.payload ? (
+                            <Button
+                              size="small"
+                              variant="text"
+                              onClick={() => setPayloadDrawer(log)}
+                            >
+                              查看 ({formatPayload(log.payload).length})
+                            </Button>
+                          ) : (
+                            <Typography variant="body2" color="text.disabled">
+                              —
+                            </Typography>
+                          )}
+                        </TableCell>
+                        <TableCell>
                           <Typography variant="body2" sx={{ color: 'text.secondary' }}>
                             {fDateTime(log.startedAt)}
                           </Typography>
@@ -294,7 +401,7 @@ export function SyncLogTab() {
                     ))}
                 {!logsLoading && logs.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
+                    <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
                       <Typography variant="body2" sx={{ color: 'text.disabled' }}>
                         暂无同步日志记录
                       </Typography>
@@ -319,6 +426,39 @@ export function SyncLogTab() {
           }
         />
       </Card>
+
+      <Drawer anchor="right" open={payloadDrawer !== null} onClose={() => setPayloadDrawer(null)}>
+        <Box sx={{ width: { xs: 320, sm: 480 }, p: 3 }}>
+          <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
+            <Box>
+              <Typography variant="h6">Payload</Typography>
+              <Typography variant="caption" color="text.secondary">
+                {payloadDrawer?.task ?? '—'}
+              </Typography>
+            </Box>
+            <IconButton onClick={() => setPayloadDrawer(null)} aria-label="关闭 payload 抽屉">
+              <Iconify icon="solar:close-circle-bold" />
+            </IconButton>
+          </Stack>
+          <Divider sx={{ mb: 2 }} />
+          <Box
+            component="pre"
+            sx={{
+              m: 0,
+              p: 2,
+              borderRadius: 1,
+              overflow: 'auto',
+              fontSize: 13,
+              bgcolor: 'background.neutral',
+              color: 'text.primary',
+              whiteSpace: 'pre-wrap',
+              fontFamily: 'monospace',
+            }}
+          >
+            {formatPayload(payloadDrawer?.payload ?? null) || '—'}
+          </Box>
+        </Box>
+      </Drawer>
     </Box>
   );
 }

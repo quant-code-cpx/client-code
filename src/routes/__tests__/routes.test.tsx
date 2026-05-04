@@ -78,6 +78,7 @@ describe('路由结构 — 静态配置断言', () => {
     it.each([
       ['signal', '/strategy/signal'],
       ['signal/history', '/strategy/signal/history'],
+      ['signal/history/compare', '/strategy/signal/history/compare'],
       ['event-study', '/research/event-study'],
       ['report', '/research/report'],
       ['pattern', '/stock/pattern'],

@@ -1,3 +1,4 @@
+import type { SyntheticEvent } from 'react';
 import type {
   RepairSummary,
   ValidationLogItem,
@@ -15,10 +16,13 @@ import Alert from '@mui/material/Alert';
 import Divider from '@mui/material/Divider';
 import Tooltip from '@mui/material/Tooltip';
 import Snackbar from '@mui/material/Snackbar';
+import Accordion from '@mui/material/Accordion';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import LoadingButton from '@mui/lab/LoadingButton';
 import ToggleButton from '@mui/material/ToggleButton';
+import AccordionSummary from '@mui/material/AccordionSummary';
+import AccordionDetails from '@mui/material/AccordionDetails';
 import CircularProgress from '@mui/material/CircularProgress';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
@@ -37,7 +41,27 @@ import { DataQualityReportTable } from './data-quality-report-table';
 
 // ----------------------------------------------------------------------
 
-export function DataQualityTab() {
+type Props = {
+  isReadOnly?: boolean;
+  refreshKey?: number;
+};
+
+type QualityPanel = 'health' | 'tools' | 'results';
+
+const READ_ONLY_TOOLTIP = '仅 SUPER_ADMIN 可执行';
+const QUALITY_PANEL_STORAGE_KEY = 'tushare-sync:quality-panel:v2';
+
+function getInitialPanel(): QualityPanel {
+  try {
+    const saved = sessionStorage.getItem(QUALITY_PANEL_STORAGE_KEY);
+    if (saved === 'tools' || saved === 'results') return saved;
+  } catch {
+    // ignore storage unavailable
+  }
+  return 'health';
+}
+
+export function DataQualityTab({ isReadOnly = false, refreshKey = 0 }: Props) {
   // ── 原有状态 ──
   const [qualityDays, setQualityDays] = useState(7);
   const [qualityReport, setQualityReport] = useState<DataQualityCheckItem[]>([]);
@@ -62,6 +86,7 @@ export function DataQualityTab() {
   const [repairLoading, setRepairLoading] = useState(false);
   const [repairStatus, setRepairStatus] = useState<RepairQueueStatus | null>(null);
   const [repairStatusLoading, setRepairStatusLoading] = useState(true);
+  const [expandedPanel, setExpandedPanel] = useState<QualityPanel>(getInitialPanel);
 
   // ── Toast ──
   const [snackbar, setSnackbar] = useState<{
@@ -76,6 +101,16 @@ export function DataQualityTab() {
 
   // ── WebSocket context ──
   const { lastQualitySummary } = useSyncNotification();
+
+  const handlePanelChange = (panel: QualityPanel) => (_: SyntheticEvent, expanded: boolean) => {
+    if (!expanded) return;
+    setExpandedPanel(panel);
+    try {
+      sessionStorage.setItem(QUALITY_PANEL_STORAGE_KEY, panel);
+    } catch {
+      // ignore storage unavailable
+    }
+  };
 
   // ── Data fetchers ──
 
@@ -146,12 +181,15 @@ export function DataQualityTab() {
     fetchQualityReport(qualityDays);
     fetchValidationLogs();
     fetchRepairStatus();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    fetchQualityReport(qualityDays);
-  }, [qualityDays, fetchQualityReport]);
+  }, [
+    fetchHealthStatus,
+    fetchQualityReport,
+    fetchQualitySummary,
+    fetchRepairStatus,
+    fetchValidationLogs,
+    qualityDays,
+    refreshKey,
+  ]);
 
   // ── WebSocket 推送的摘要实时更新 ──
   useEffect(() => {
@@ -166,6 +204,7 @@ export function DataQualityTab() {
   // ── 操作处理器 ──
 
   const handleTriggerCheck = async () => {
+    if (isReadOnly) return;
     setCheckTriggering(true);
     try {
       const res = await tushareSyncApi.triggerQualityCheck();
@@ -178,6 +217,7 @@ export function DataQualityTab() {
   };
 
   const handleRunCrossCheck = async () => {
+    if (isReadOnly) return;
     setCrossCheckTriggering(true);
     try {
       const result = await tushareSyncApi.runCrossTableCheck(crossCheckMode);
@@ -191,6 +231,7 @@ export function DataQualityTab() {
   };
 
   const handleTriggerRepair = async () => {
+    if (isReadOnly) return;
     if (
       !window.confirm(
         '将根据最近一轮质量检查结果，对 fail 状态的数据集自动生成补数任务并入队，是否继续？'
@@ -216,123 +257,162 @@ export function DataQualityTab() {
 
   return (
     <Box sx={{ mt: 3 }}>
-      {/* 区块 0：健康状态栏 */}
-      <QualityHealthBanner health={healthStatus} loading={healthLoading} />
-
-      {/* 区块 0：质量摘要卡片 */}
-      <QualitySummaryCards summary={qualitySummary} loading={summaryLoading} />
-
-      {/* 操作栏 */}
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3, flexWrap: 'wrap' }}>
-        <LoadingButton
-          loading={checkTriggering}
-          variant="outlined"
-          size="small"
-          startIcon={<Iconify icon="solar:shield-check-bold" />}
-          onClick={handleTriggerCheck}
+      <Accordion
+        expanded={expandedPanel === 'health'}
+        onChange={handlePanelChange('health')}
+        slotProps={{ transition: { unmountOnExit: true } }}
+      >
+        <AccordionSummary
+          expandIcon={<Iconify icon="solar:alt-arrow-down-bold" />}
+          aria-controls="quality-health-content"
+          id="quality-health-header"
         >
-          触发质量检查
-        </LoadingButton>
-
-        <ToggleButtonGroup
-          value={qualityDays}
-          exclusive
-          onChange={(_, v) => v && setQualityDays(v)}
-          size="small"
-        >
-          <ToggleButton value={7}>7天</ToggleButton>
-          <ToggleButton value={14}>14天</ToggleButton>
-          <ToggleButton value={30}>30天</ToggleButton>
-        </ToggleButtonGroup>
-
-        <Divider orientation="vertical" flexItem />
-
-        <ToggleButtonGroup
-          value={crossCheckMode}
-          exclusive
-          onChange={(_, v) => v && setCrossCheckMode(v)}
-          size="small"
-        >
-          <ToggleButton value="recent">近期对账</ToggleButton>
-          <ToggleButton value="full">全量对账</ToggleButton>
-        </ToggleButtonGroup>
-        <LoadingButton
-          loading={crossCheckTriggering}
-          variant="outlined"
-          color="info"
-          size="small"
-          startIcon={<Iconify icon="solar:restart-bold" />}
-          onClick={handleRunCrossCheck}
-        >
-          执行跨表对账
-        </LoadingButton>
-
-        <Divider orientation="vertical" flexItem />
-
-        <LoadingButton
-          loading={repairLoading}
-          variant="outlined"
-          color="warning"
-          size="small"
-          startIcon={<Iconify icon="solar:restart-bold" />}
-          onClick={handleTriggerRepair}
-        >
-          手动触发补数
-        </LoadingButton>
-
-        <Tooltip title="刷新补数队列状态">
-          <IconButton onClick={fetchRepairStatus} size="small">
-            {repairStatusLoading ? (
-              <CircularProgress size={16} />
-            ) : (
-              <Iconify icon="solar:refresh-bold" />
-            )}
-          </IconButton>
-        </Tooltip>
-      </Box>
-
-      {/* 区块 1：质量检查报告（单表） */}
-      <Card sx={{ mb: 3 }}>
-        <Box sx={{ px: 3, py: 2 }}>
           <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-            质量检查报告
+            健康总览
           </Typography>
-        </Box>
-        <DataQualityReportTable rows={nonCrossRows} loading={reportLoading} days={qualityDays} />
-      </Card>
+        </AccordionSummary>
+        <AccordionDetails>
+          <QualityHealthBanner health={healthStatus} loading={healthLoading} />
+          <QualitySummaryCards summary={qualitySummary} loading={summaryLoading} />
+        </AccordionDetails>
+      </Accordion>
 
-      {/* 区块 2：跨表对账面板 */}
-      <Card sx={{ mb: 3, px: 3, py: 2 }}>
-        <CrossTableCheckPanel
-          rows={crossTableRows}
-          loading={reportLoading}
-          triggering={crossCheckTriggering}
-          mode={crossCheckMode}
-          onModeChange={setCrossCheckMode}
-          onRunCheck={handleRunCrossCheck}
-        />
-      </Card>
-
-      {/* 区块 3：自动补数面板 */}
-      <Card sx={{ mb: 3, px: 3, py: 2 }}>
-        <AutoRepairPanel
-          summary={repairSummary}
-          queueStatus={repairStatus}
-          queueLoading={repairStatusLoading}
-          repairing={repairLoading}
-          onTriggerRepair={handleTriggerRepair}
-        />
-      </Card>
-
-      {/* 区块 4：数据缺口查询 */}
-      <Card sx={{ mb: 3 }}>
-        <Box sx={{ px: 3, py: 2 }}>
-          <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
-            数据缺口查询
+      <Accordion
+        expanded={expandedPanel === 'tools'}
+        onChange={handlePanelChange('tools')}
+        slotProps={{ transition: { unmountOnExit: true } }}
+      >
+        <AccordionSummary
+          expandIcon={<Iconify icon="solar:alt-arrow-down-bold" />}
+          aria-controls="quality-tools-content"
+          id="quality-tools-header"
+        >
+          <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+            主动检查工具
           </Typography>
-          <DataGapsPanel />
-        </Box>
-      </Card>
+        </AccordionSummary>
+        <AccordionDetails>
+          {isReadOnly && (
+            <Alert severity="info" sx={{ mb: 2 }}>
+              当前为只读模式，可查看检查工具配置；执行检查和补数需 SUPER_ADMIN 权限。
+            </Alert>
+          )}
+
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3, flexWrap: 'wrap' }}>
+            <Tooltip title={isReadOnly ? READ_ONLY_TOOLTIP : ''}>
+              <span>
+                <LoadingButton
+                  loading={checkTriggering}
+                  variant="outlined"
+                  size="small"
+                  disabled={isReadOnly}
+                  startIcon={<Iconify icon="solar:shield-check-bold" />}
+                  onClick={handleTriggerCheck}
+                >
+                  触发质量检查
+                </LoadingButton>
+              </span>
+            </Tooltip>
+
+            <ToggleButtonGroup
+              value={qualityDays}
+              exclusive
+              onChange={(_, v) => v && setQualityDays(v)}
+              size="small"
+            >
+              <ToggleButton value={7}>7天</ToggleButton>
+              <ToggleButton value={14}>14天</ToggleButton>
+              <ToggleButton value={30}>30天</ToggleButton>
+            </ToggleButtonGroup>
+
+            <Divider orientation="vertical" flexItem />
+
+            <Tooltip title="刷新补数队列状态">
+              <IconButton onClick={fetchRepairStatus} size="small" aria-label="刷新补数队列状态">
+                {repairStatusLoading ? (
+                  <CircularProgress size={16} />
+                ) : (
+                  <Iconify icon="solar:refresh-bold" />
+                )}
+              </IconButton>
+            </Tooltip>
+          </Box>
+
+          <Card sx={{ mb: 3, px: 3, py: 2 }}>
+            <CrossTableCheckPanel
+              rows={crossTableRows}
+              loading={reportLoading}
+              triggering={crossCheckTriggering}
+              mode={crossCheckMode}
+              disabled={isReadOnly}
+              disabledReason={READ_ONLY_TOOLTIP}
+              onModeChange={setCrossCheckMode}
+              onRunCheck={handleRunCrossCheck}
+            />
+          </Card>
+
+          <Card sx={{ mb: 3, px: 3, py: 2 }}>
+            <AutoRepairPanel
+              summary={repairSummary}
+              queueStatus={repairStatus}
+              queueLoading={repairStatusLoading}
+              repairing={repairLoading}
+              disabled={isReadOnly}
+              disabledReason={READ_ONLY_TOOLTIP}
+              onTriggerRepair={handleTriggerRepair}
+            />
+          </Card>
+
+          <Card>
+            <Box sx={{ px: 3, py: 2 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 2 }}>
+                数据缺口查询
+              </Typography>
+              <DataGapsPanel />
+            </Box>
+          </Card>
+        </AccordionDetails>
+      </Accordion>
+
+      <Accordion
+        expanded={expandedPanel === 'results'}
+        onChange={handlePanelChange('results')}
+        slotProps={{ transition: { unmountOnExit: true } }}
+      >
+        <AccordionSummary
+          expandIcon={<Iconify icon="solar:alt-arrow-down-bold" />}
+          aria-controls="quality-results-content"
+          id="quality-results-header"
+        >
+          <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+            检查结果与异常
+          </Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          <Card sx={{ mb: 3 }}>
+            <Box sx={{ px: 3, py: 2 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                质量检查报告
+              </Typography>
+            </Box>
+            <DataQualityReportTable
+              rows={nonCrossRows}
+              loading={reportLoading}
+              days={qualityDays}
+            />
+          </Card>
+
+          <Card>
+            <Box sx={{ px: 3, py: 2 }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+                校验异常日志（最近 100 条）
+              </Typography>
+            </Box>
+            <Divider />
+            <ValidationLogTable rows={validationLogs} loading={validationLoading} />
+          </Card>
+        </AccordionDetails>
+      </Accordion>
 
       {/* Toast */}
       <Snackbar
@@ -349,17 +429,6 @@ export function DataQualityTab() {
           {snackbar.message}
         </Alert>
       </Snackbar>
-
-      {/* 区块 5：校验异常日志 */}
-      <Card>
-        <Box sx={{ px: 3, py: 2 }}>
-          <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-            校验异常日志（最近 100 条）
-          </Typography>
-        </Box>
-        <Divider />
-        <ValidationLogTable rows={validationLogs} loading={validationLoading} />
-      </Card>
     </Box>
   );
 }

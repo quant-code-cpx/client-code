@@ -1,4 +1,4 @@
-import type { AuditAction } from 'src/api/user-manage';
+import type { AuditAction, AuditResult } from 'src/api/user-manage';
 
 import dayjs from 'dayjs';
 
@@ -19,11 +19,13 @@ interface AuditLogToolbarProps {
   filterOperatorId: number | '';
   filterTargetId: number | '';
   filterAction: AuditAction | '';
+  filterResult: AuditResult | '';
   startDate: string;
   endDate: string;
   onFilterOperatorId: (value: number | '') => void;
   onFilterTargetId: (value: number | '') => void;
   onFilterAction: (value: AuditAction | '') => void;
+  onFilterResult: (value: AuditResult | '') => void;
   onStartDate: (value: string) => void;
   onEndDate: (value: string) => void;
   onSearch: () => void;
@@ -34,11 +36,13 @@ export function AuditLogToolbar({
   filterOperatorId,
   filterTargetId,
   filterAction,
+  filterResult,
   startDate,
   endDate,
   onFilterOperatorId,
   onFilterTargetId,
   onFilterAction,
+  onFilterResult,
   onStartDate,
   onEndDate,
   onSearch,
@@ -112,6 +116,20 @@ export function AuditLogToolbar({
         ))}
       </TextField>
 
+      <TextField
+        select
+        size="small"
+        label="结果"
+        value={filterResult}
+        onChange={(e) => onFilterResult(e.target.value as AuditResult | '')}
+        sx={{ width: 120 }}
+      >
+        <MenuItem value="">全部</MenuItem>
+        <MenuItem value="success">成功</MenuItem>
+        <MenuItem value="failure">失败</MenuItem>
+        <MenuItem value="blocked">拦截</MenuItem>
+      </TextField>
+
       <DatePicker
         label="开始日期"
         value={startDate ? dayjs(startDate) : null}
@@ -133,6 +151,40 @@ export function AuditLogToolbar({
           field: { clearable: true },
         }}
       />
+
+      <Button
+        variant="outlined"
+        color="inherit"
+        onClick={() => {
+          const today = dayjs().format('YYYY-MM-DD');
+          onStartDate(today);
+          onEndDate(today);
+        }}
+      >
+        今日
+      </Button>
+
+      <Button
+        variant="outlined"
+        color="inherit"
+        onClick={() => {
+          onStartDate(dayjs().subtract(6, 'day').format('YYYY-MM-DD'));
+          onEndDate(dayjs().format('YYYY-MM-DD'));
+        }}
+      >
+        7日
+      </Button>
+
+      <Button
+        variant="outlined"
+        color="inherit"
+        onClick={() => {
+          onStartDate(dayjs().subtract(29, 'day').format('YYYY-MM-DD'));
+          onEndDate(dayjs().format('YYYY-MM-DD'));
+        }}
+      >
+        30日
+      </Button>
 
       <Button
         variant="contained"

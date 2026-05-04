@@ -1,10 +1,17 @@
 import { apiClient } from './client';
 
 export type StrategyDraft = {
-  id: number;
+  id: number | string;
   name: string;
   config: Record<string, unknown>;
   createdAt: string;
+  updatedAt: string;
+  isAutoSave?: boolean;
+};
+
+export type AutoSavedStrategyDraft = {
+  id: string;
+  config: Record<string, unknown>;
   updatedAt: string;
 };
 
@@ -33,4 +40,12 @@ export function submitDraft(draftId: number, name?: string) {
     '/api/strategy-draft/submit',
     { id: draftId, name }
   );
+}
+
+export function autoSaveDraft(data: { config: Record<string, unknown> }) {
+  return apiClient.post<{ id: string; updatedAt: string }>('/api/strategy-draft/auto-save', data);
+}
+
+export function getAutoSavedDraft() {
+  return apiClient.post<AutoSavedStrategyDraft | null>('/api/strategy-draft/auto-save/get', {});
 }

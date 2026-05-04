@@ -1,4 +1,4 @@
-import type { StockChartItem , MinuteKlineFreq, StockMoneyFlowData, StockTodayFlowData } from 'src/api/stock';
+import type { StockChartItem, StockMoneyFlowData, StockTodayFlowData } from 'src/api/stock';
 
 import dayjs from 'dayjs';
 import { useRef, useState, useEffect, useCallback } from 'react';
@@ -16,6 +16,7 @@ import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
 import TextField from '@mui/material/TextField';
+import { useTheme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 import ToggleButton from '@mui/material/ToggleButton';
@@ -25,7 +26,7 @@ import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import { fPctChg, fWanYuan } from 'src/utils/format-number';
 import { fmtTradeDate as fmtD } from 'src/utils/format-time';
 
-import { stockDetailApi, fetchMinuteKline } from 'src/api/stock';
+import { stockDetailApi } from 'src/api/stock';
 
 import { Chart, useChart } from 'src/components/chart';
 
@@ -92,10 +93,8 @@ function formatPctLabel(value: unknown): string {
 
 // ----------------------------------------------------------------------
 
-type Period = '1min' | '5min' | '15min' | '30min' | '60min' | 'D' | 'W' | 'M';
+type Period = 'D' | 'W' | 'M';
 type AdjustType = 'none' | 'qfq' | 'hfq';
-
-const isMinutePeriod = (p: Period): boolean => p.endsWith('min');
 
 type Props = {
   tsCode: string;
@@ -288,9 +287,16 @@ function SummaryCard({
 // ----------------------------------------------------------------------
 
 export function StockDetailMarketTab({ tsCode }: Props) {
+  const theme = useTheme();
+
   const [period, setPeriod] = useState<Period>('D');
   const [adjustType, setAdjustType] = useState<AdjustType>('qfq');
-  const [minuteDate, setMinuteDate] = useState(() => dayjs().format('YYYYMMDD'));
+
+  const riseColor = theme.palette.error.main;
+  const fallColor = theme.palette.success.main;
+  const primaryColor = theme.palette.primary.main;
+  const warningColor = theme.palette.warning.main;
+  const secondaryColor = theme.palette.secondary.main;
 
   // ── K 线：所有已加载的 bar（从旧到新） ──────────────────────────────
   const [allItems, setAllItems] = useState<StockChartItem[]>([]);
@@ -327,7 +333,6 @@ export function StockDetailMarketTab({ tsCode }: Props) {
   // ── 加载更早的历史数据（向左滚动触发） ──────────────────────────────
   const loadMore = useCallback(async () => {
     if (isFetchingMore.current || !hasMore.current) return;
-    if (isMinutePeriod(period)) return;
     const items = allItemsRef.current;
     if (!items.length) return;
 
@@ -337,7 +342,7 @@ export function StockDetailMarketTab({ tsCode }: Props) {
       const oldest = items[0].tradeDate;
       const endDate = dayjs(oldest, 'YYYYMMDD').subtract(1, 'day').format('YYYYMMDD');
 
-      const data = await stockDetailApi.chart({ tsCode, period: period as 'D' | 'W' | 'M', adjustType, limit: 100, endDate });
+      const data = await stockDetailApi.chart({ tsCode, period, adjustType, limit: 100, endDate });
       if (!data.items.length) {
         hasMore.current = false;
         return;
@@ -373,41 +378,16 @@ export function StockDetailMarketTab({ tsCode }: Props) {
     pendingZoom.current = null;
     setAllItems([]);
     try {
-      if (isMinutePeriod(period)) {
-        const items = await fetchMinuteKline({
-          ts_code: tsCode,
-          freq: period as MinuteKlineFreq,
-          trade_date: minuteDate,
-        });
-        const mapped: StockChartItem[] = items.map((m) => ({
-          tradeDate: m.datetime,
-          open: m.open,
-          high: m.high,
-          low: m.low,
-          close: m.close,
-          vol: m.vol,
-          amount: m.amount,
-          pctChg: null,
-          ma5: null,
-          ma10: null,
-          ma20: null,
-          ma60: null,
-        }));
-        allItemsRef.current = mapped;
-        hasMore.current = false;
-        setAllItems(mapped);
-      } else {
-        const data = await stockDetailApi.chart({ tsCode, period: period as 'D' | 'W' | 'M', adjustType, limit: 150 });
-        allItemsRef.current = data.items;
-        hasMore.current = data.hasMore ?? data.items.length >= 150;
-        setAllItems(data.items);
-      }
+      const data = await stockDetailApi.chart({ tsCode, period, adjustType, limit: 150 });
+      allItemsRef.current = data.items;
+      hasMore.current = data.hasMore ?? data.items.length >= 150;
+      setAllItems(data.items);
     } catch (err) {
       setChartError(err instanceof Error ? err.message : '获取K线数据失败');
     } finally {
       setChartLoading(false);
     }
-  }, [tsCode, period, adjustType, minuteDate]);
+  }, [tsCode, period, adjustType]);
 
   const fetchMoneyFlow = useCallback(async () => {
     if (!tsCode) return;
@@ -479,13 +459,7 @@ export function StockDetailMarketTab({ tsCode }: Props) {
 
   // ── 图表 Series ───────────────────────────────────────────────────────
   // Use canonical strings for series x values and categories
-  // For minute data show HH:mm, for daily data show YYYY-MM-DD
-  const isMinute = isMinutePeriod(period);
-  const categories = allItems.map((item) =>
-    isMinute
-      ? dayjs(item.tradeDate).format('HH:mm')
-      : fmtD(String(item.tradeDate))
-  );
+  const categories = allItems.map((item) => fmtD(String(item.tradeDate)));
 
   // 混合图：K 线 + MA 均线（均在同一图表，点击图例可控制显隐）
   // 均线系列使用 color 属性直接指定颜色，而非依赖 colors 数组（混合图下 colors 数组不可靠）
@@ -501,25 +475,25 @@ export function StockDetailMarketTab({ tsCode }: Props) {
     {
       name: '5日均线',
       type: 'line',
-      color: '#2196F3',
+      color: primaryColor,
       data: allItems.map((item, i) => ({ x: categories[i], y: item.ma5 ?? null })),
     },
     {
       name: '10日均线',
       type: 'line',
-      color: '#FF9800',
+      color: warningColor,
       data: allItems.map((item, i) => ({ x: categories[i], y: item.ma10 ?? null })),
     },
     {
       name: '20日均线',
       type: 'line',
-      color: '#9C27B0',
+      color: secondaryColor,
       data: allItems.map((item, i) => ({ x: categories[i], y: item.ma20 ?? null })),
     },
     {
       name: '60日均线',
       type: 'line',
-      color: '#F44336',
+      color: riseColor,
       data: allItems.map((item, i) => ({ x: categories[i], y: item.ma60 ?? null })),
     },
   ];
@@ -596,7 +570,7 @@ export function StockDetailMarketTab({ tsCode }: Props) {
     },
     plotOptions: {
       candlestick: {
-        colors: { upward: '#EF5350', downward: '#26A69A' },
+        colors: { upward: riseColor, downward: fallColor },
         wick: { useFillColor: true },
       },
     },
@@ -609,8 +583,6 @@ export function StockDetailMarketTab({ tsCode }: Props) {
         rotateAlways: false,
         formatter: (val: string) => {
           if (!val) return val;
-          // Minute data already formatted as HH:mm
-          if (isMinute) return val;
           // Normalize to YYYYMMDD digits
           const dateStr = fmtD(String(val));
           const digits = dateStr.replace(/[^0-9]/g, '');
@@ -647,8 +619,8 @@ export function StockDetailMarketTab({ tsCode }: Props) {
         const c = (g.seriesCandleC as number[][])?.[0]?.[dataPointIndex];
 
         const up = (c ?? 0) >= (o ?? 0);
-        const clr = up ? '#EF5350' : '#26A69A';
-        const dateLabel = isMinute ? date : fmtD(String(date));
+        const clr = up ? riseColor : fallColor;
+        const dateLabel = fmtD(String(date));
         const lines: string[] = [
           `<div style="font-weight:600;margin-bottom:4px">${dateLabel}</div>`,
           `开: ${o?.toFixed(2) ?? '--'}`,
@@ -658,7 +630,7 @@ export function StockDetailMarketTab({ tsCode }: Props) {
         ];
 
         const maNames = ['5日均线', '10日均线', '20日均线', '60日均线'];
-        const maColors = ['#2196F3', '#FF9800', '#9C27B0', '#F44336'];
+        const maColors = [primaryColor, warningColor, secondaryColor, riseColor];
         const series = g.series as number[][];
         for (let i = 1; i <= 4; i += 1) {
           const val = series?.[i]?.[dataPointIndex];
@@ -678,10 +650,10 @@ export function StockDetailMarketTab({ tsCode }: Props) {
     },
     colors: [
       'transparent', // K 线颜色由 plotOptions 控制
-      '#2196F3', // 5日均线
-      '#FF9800', // 10日均线
-      '#9C27B0', // 20日均线
-      '#F44336', // 60日均线
+      primaryColor, // 5日均线
+      warningColor, // 10日均线
+      secondaryColor, // 20日均线
+      riseColor, // 60日均线
     ],
     legend: {
       show: true,
@@ -717,7 +689,6 @@ export function StockDetailMarketTab({ tsCode }: Props) {
         rotateAlways: false,
         formatter: (val: string) => {
           if (!val) return val;
-          if (isMinute) return val;
           const dateStr = fmtD(String(val));
           const digits = dateStr.replace(/[^0-9]/g, '');
           if (digits.length === 8) return `${digits.slice(4, 6)}-${digits.slice(6, 8)}`;
@@ -736,7 +707,7 @@ export function StockDetailMarketTab({ tsCode }: Props) {
       },
     },
     tooltip: {
-      x: { formatter: (val: unknown) => (isMinute ? String(val) : fmtD(String(val))) },
+      x: { formatter: (val: unknown) => fmtD(String(val)) },
       y: {
         formatter: (val: number) => formatVolumeAxisLabel(val),
         title: { formatter: () => '成交量: ' },
@@ -755,7 +726,7 @@ export function StockDetailMarketTab({ tsCode }: Props) {
     return {
       x: fmtD(item.tradeDate),
       y: val,
-      fillColor: val >= 0 ? '#EF5350' : '#26A69A',
+      fillColor: val >= 0 ? riseColor : fallColor,
       strokeColor: 'transparent',
     };
   });
@@ -769,7 +740,7 @@ export function StockDetailMarketTab({ tsCode }: Props) {
   // 合并图：净流入柱（左轴）+ 涨跌幅线（右轴）
   const mfMixedSeries = [
     { name: '净流入', type: 'bar', data: mfSeriesData },
-    { name: '涨跌幅', type: 'line', color: '#1877F2', data: mfLineSeries },
+    { name: '涨跌幅', type: 'line', color: primaryColor, data: mfLineSeries },
   ];
 
   const moneyFlowChartOptions = useChart({
@@ -843,21 +814,6 @@ export function StockDetailMarketTab({ tsCode }: Props) {
                 if (v) setPeriod(v as Period);
               }}
             >
-              <ToggleButton value="1min" sx={{ fontSize: 12 }}>
-                1分
-              </ToggleButton>
-              <ToggleButton value="5min" sx={{ fontSize: 12 }}>
-                5分
-              </ToggleButton>
-              <ToggleButton value="15min" sx={{ fontSize: 12 }}>
-                15分
-              </ToggleButton>
-              <ToggleButton value="30min" sx={{ fontSize: 12 }}>
-                30分
-              </ToggleButton>
-              <ToggleButton value="60min" sx={{ fontSize: 12 }}>
-                60分
-              </ToggleButton>
               <ToggleButton value="D" sx={{ fontSize: 12 }}>
                 日
               </ToggleButton>
@@ -868,21 +824,6 @@ export function StockDetailMarketTab({ tsCode }: Props) {
                 月
               </ToggleButton>
             </ToggleButtonGroup>
-
-            {isMinute && (
-              <TextField
-                size="small"
-                type="date"
-                label="选择日期"
-                value={dayjs(minuteDate, 'YYYYMMDD').format('YYYY-MM-DD')}
-                onChange={(e) => {
-                  const d = dayjs(e.target.value);
-                  if (d.isValid()) setMinuteDate(d.format('YYYYMMDD'));
-                }}
-                slotProps={{ inputLabel: { shrink: true } }}
-                sx={{ minWidth: 150 }}
-              />
-            )}
 
             <TextField
               select

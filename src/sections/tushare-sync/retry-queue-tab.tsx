@@ -10,7 +10,9 @@ import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import Select from '@mui/material/Select';
 import Divider from '@mui/material/Divider';
+import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
+import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import InputLabel from '@mui/material/InputLabel';
 import DialogTitle from '@mui/material/DialogTitle';
@@ -29,13 +31,20 @@ import { RetryQueueTable } from './retry-queue-table';
 
 // ----------------------------------------------------------------------
 
-export function RetryQueueTab() {
+type Props = {
+  isReadOnly?: boolean;
+  refreshKey?: number;
+};
+
+export function RetryQueueTab({ isReadOnly = false, refreshKey = 0 }: Props) {
   const [retryItems, setRetryItems] = useState<RetryQueueItem[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
   const pageSize = 20;
   const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState('');
+  const [filterTask, setFilterTask] = useState('');
+  const [selectedIds, setSelectedIds] = useState<Set<number>>(new Set());
   const [resetting, setResetting] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [resetAlert, setResetAlert] = useState('');
@@ -59,9 +68,14 @@ export function RetryQueueTab() {
 
   useEffect(() => {
     fetchQueue();
-  }, [fetchQueue]);
+  }, [fetchQueue, refreshKey]);
+
+  useEffect(() => {
+    setSelectedIds(new Set());
+  }, [filterStatus, filterTask, page]);
 
   const handleReset = async () => {
+    if (isReadOnly) return;
     setConfirmOpen(false);
     setResetting(true);
     setResetAlert('');
@@ -74,6 +88,34 @@ export function RetryQueueTab() {
     } finally {
       setResetting(false);
     }
+  };
+
+  const filteredItems = retryItems.filter((item) =>
+    item.task.toLowerCase().includes(filterTask.trim().toLowerCase())
+  );
+  const visibleIds = filteredItems.map((item) => item.id);
+  const actionDisabledReason = isReadOnly
+    ? '仅 SUPER_ADMIN 可执行'
+    : '等待后端单条/批量队列接口启用';
+
+  const toggleRow = (id: number) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleAll = () => {
+    const allVisibleSelected =
+      visibleIds.length > 0 && visibleIds.every((id) => selectedIds.has(id));
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (allVisibleSelected) visibleIds.forEach((id) => next.delete(id));
+      else visibleIds.forEach((id) => next.add(id));
+      return next;
+    });
   };
 
   return (
@@ -99,6 +141,16 @@ export function RetryQueueTab() {
             失败重试队列
           </Typography>
           <Stack direction="row" spacing={2} alignItems="center">
+            <TextField
+              size="small"
+              label="任务名搜索"
+              value={filterTask}
+              onChange={(event) => {
+                setFilterTask(event.target.value);
+                setPage(0);
+              }}
+              sx={{ minWidth: 180 }}
+            />
             <FormControl size="small" sx={{ minWidth: 160 }}>
               <InputLabel>状态过滤</InputLabel>
               <Select
@@ -116,28 +168,71 @@ export function RetryQueueTab() {
                 <MenuItem value="SUCCEEDED">已成功 (SUCCEEDED)</MenuItem>
               </Select>
             </FormControl>
-            <Button
-              variant="outlined"
-              color="warning"
-              size="small"
-              onClick={() => setConfirmOpen(true)}
-              disabled={resetting}
-              startIcon={
-                resetting ? <CircularProgress size={14} /> : <Iconify icon="solar:refresh-bold" />
-              }
-            >
-              {resetting ? '重置中...' : '重置耗尽记录'}
-            </Button>
+            <Tooltip title={isReadOnly ? '仅 SUPER_ADMIN 可执行' : ''}>
+              <span>
+                <Button
+                  variant="outlined"
+                  color="warning"
+                  size="small"
+                  onClick={() => setConfirmOpen(true)}
+                  disabled={resetting || isReadOnly}
+                  startIcon={
+                    resetting ? (
+                      <CircularProgress size={14} />
+                    ) : (
+                      <Iconify icon="solar:refresh-bold" />
+                    )
+                  }
+                >
+                  {resetting ? '重置中...' : '重置耗尽记录'}
+                </Button>
+              </span>
+            </Tooltip>
           </Stack>
         </Box>
 
         <Divider />
 
-        <RetryQueueTable rows={retryItems} loading={loading} />
+        {selectedIds.size > 0 && (
+          <Alert
+            severity="info"
+            sx={{ mx: 3, mt: 2 }}
+            action={
+              <Stack direction="row" spacing={1}>
+                <Tooltip title={actionDisabledReason}>
+                  <span>
+                    <Button size="small" disabled>
+                      批量重试
+                    </Button>
+                  </span>
+                </Tooltip>
+                <Tooltip title={actionDisabledReason}>
+                  <span>
+                    <Button size="small" color="error" disabled>
+                      批量删除
+                    </Button>
+                  </span>
+                </Tooltip>
+              </Stack>
+            }
+          >
+            已选择 {selectedIds.size} 条重试记录
+          </Alert>
+        )}
+
+        <RetryQueueTable
+          rows={filteredItems}
+          loading={loading}
+          selectedIds={selectedIds}
+          actionDisabled
+          actionDisabledReason={actionDisabledReason}
+          onToggleRow={toggleRow}
+          onToggleAll={toggleAll}
+        />
 
         <TablePagination
           component="div"
-          count={total}
+          count={filterTask ? filteredItems.length : total}
           page={page}
           rowsPerPage={pageSize}
           rowsPerPageOptions={[20]}
@@ -160,7 +255,7 @@ export function RetryQueueTab() {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setConfirmOpen(false)}>取消</Button>
-          <Button onClick={handleReset} color="warning" variant="contained">
+          <Button onClick={handleReset} color="warning" variant="contained" disabled={isReadOnly}>
             确认重置
           </Button>
         </DialogActions>

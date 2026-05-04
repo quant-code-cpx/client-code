@@ -2,6 +2,7 @@ import type { ApexOptions } from 'apexcharts';
 import type { ChipDistributionBin } from 'src/api/stock';
 
 import Card from '@mui/material/Card';
+import { useTheme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 
@@ -18,6 +19,8 @@ type Props = {
 };
 
 export function AnalysisChipDistributionChart({ distribution, currentPrice, avgCost }: Props) {
+  const theme = useTheme();
+
   const bins = [...distribution].sort((a, b) => a.priceLow - b.priceLow);
 
   const series = [
@@ -29,18 +32,36 @@ export function AnalysisChipDistributionChart({ distribution, currentPrice, avgC
 
   const xaxisAnnotations: XAxisAnnotation[] = [];
   if (currentPrice != null) {
-    xaxisAnnotations.push({ x: currentPrice, borderColor: '#FF9800', label: { text: `当前价 ${currentPrice.toFixed(2)}`, style: { color: '#fff', background: '#FF9800' } } });
+    xaxisAnnotations.push({
+      x: currentPrice,
+      borderColor: theme.palette.warning.main,
+      label: {
+        text: `当前价 ${currentPrice.toFixed(2)}`,
+        style: { color: theme.palette.common.white, background: theme.palette.warning.main },
+      },
+    });
   }
   if (avgCost != null) {
-    xaxisAnnotations.push({ x: avgCost, borderColor: '#7E57C2', label: { text: `平均成本 ${avgCost.toFixed(2)}`, style: { color: '#fff', background: '#7E57C2' } } });
+    xaxisAnnotations.push({
+      x: avgCost,
+      borderColor: theme.palette.secondary.main,
+      label: {
+        text: `平均成本 ${avgCost.toFixed(2)}`,
+        style: { color: theme.palette.common.white, background: theme.palette.secondary.main },
+      },
+    });
   }
-  const annotations: ApexOptions['annotations'] = xaxisAnnotations.length > 0 ? { xaxis: xaxisAnnotations } : {};
+  const annotations: ApexOptions['annotations'] =
+    xaxisAnnotations.length > 0 ? { xaxis: xaxisAnnotations } : {};
 
   const chartOptions = useChart({
     chart: { type: 'bar' },
     plotOptions: { bar: { horizontal: true, barHeight: '80%', distributed: true } },
-    colors: bins.map((b) => (b.isProfit ? '#EF5350' : '#42A5F5')),
-    xaxis: { categories: bins.map((b) => `${b.priceLow.toFixed(2)}-${b.priceHigh.toFixed(2)}`), title: { text: '筹码占比 (%)' } },
+    colors: bins.map((b) => (b.isProfit ? theme.palette.error.main : theme.palette.info.main)),
+    xaxis: {
+      categories: bins.map((b) => `${b.priceLow.toFixed(2)}-${b.priceHigh.toFixed(2)}`),
+      title: { text: '筹码占比 (%)' },
+    },
     yaxis: {},
     legend: { show: false },
     tooltip: { y: { formatter: (v: number) => `${v.toFixed(2)}%` } },
@@ -51,7 +72,9 @@ export function AnalysisChipDistributionChart({ distribution, currentPrice, avgC
     return (
       <Card>
         <CardContent>
-          <Typography color="text.secondary" textAlign="center" py={4}>暂无筹码数据</Typography>
+          <Typography color="text.secondary" textAlign="center" py={4}>
+            暂无筹码数据
+          </Typography>
         </CardContent>
       </Card>
     );
@@ -60,8 +83,15 @@ export function AnalysisChipDistributionChart({ distribution, currentPrice, avgC
   return (
     <Card>
       <CardContent>
-        <Typography variant="subtitle1" sx={{ mb: 2 }}>筹码分布</Typography>
-        <Chart type="bar" series={series} options={chartOptions} sx={{ height: Math.max(300, bins.length * 14) }} />
+        <Typography variant="subtitle1" sx={{ mb: 2 }}>
+          筹码分布
+        </Typography>
+        <Chart
+          type="bar"
+          series={series}
+          options={chartOptions}
+          sx={{ height: Math.max(300, bins.length * 14) }}
+        />
       </CardContent>
     </Card>
   );

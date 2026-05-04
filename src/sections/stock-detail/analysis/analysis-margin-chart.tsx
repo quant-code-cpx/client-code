@@ -2,6 +2,7 @@ import type { MarginDailyItem } from 'src/api/stock';
 
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
+import { useTheme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 
@@ -14,6 +15,8 @@ import { Chart, useChart } from 'src/components/chart';
 type Props = { history: MarginDailyItem[] };
 
 function RzyeTrendChart({ history }: Props) {
+  const theme = useTheme();
+
   const seriesRzye = [
     {
       name: '融资余额',
@@ -33,7 +36,7 @@ function RzyeTrendChart({ history }: Props) {
   const options = useChart({
     chart: { type: 'area' },
     stroke: { width: [2, 2], curve: 'smooth' },
-    colors: ['#1877F2', '#EF5350'],
+    colors: [theme.palette.primary.main, theme.palette.error.main],
     fill: { type: ['gradient', 'solid'], opacity: [0.2, 1] },
     xaxis: { type: 'category', tickAmount: 8, labels: { rotate: -30 } },
     yaxis: [
@@ -67,6 +70,8 @@ function RzyeTrendChart({ history }: Props) {
 }
 
 function RzjmreChart({ history }: Props) {
+  const theme = useTheme();
+
   const upNet = history.map((d) => ({
     x: fmtD(d.tradeDate),
     y: d.rzjmre != null && d.rzjmre >= 0 ? d.rzjmre / 10000 : null,
@@ -84,7 +89,7 @@ function RzjmreChart({ history }: Props) {
   const options = useChart({
     chart: { type: 'bar', stacked: true },
     stroke: { width: [0, 0] },
-    colors: ['#EF5350', '#26A69A'],
+    colors: [theme.palette.error.main, theme.palette.success.main],
     xaxis: { type: 'category', tickAmount: 8, labels: { rotate: -30 } },
     yaxis: {
       labels: {
@@ -94,7 +99,9 @@ function RzjmreChart({ history }: Props) {
         },
       },
     },
-    annotations: { yaxis: [{ y: 0, borderColor: '#999', strokeDashArray: 3 }] },
+    annotations: {
+      yaxis: [{ y: 0, borderColor: theme.palette.text.disabled, strokeDashArray: 3 }],
+    },
     legend: { show: true },
     tooltip: { shared: true },
   });
@@ -110,6 +117,8 @@ function RzjmreChart({ history }: Props) {
 }
 
 function RqyeChart({ history }: Props) {
+  const theme = useTheme();
+
   const series = [
     {
       name: '融券余额',
@@ -123,7 +132,7 @@ function RqyeChart({ history }: Props) {
   const options = useChart({
     chart: { type: 'line' },
     stroke: { width: [2], curve: 'smooth' },
-    colors: ['#AB47BC'],
+    colors: [theme.palette.secondary.main],
     xaxis: { type: 'category', tickAmount: 8, labels: { rotate: -30 } },
     yaxis: {
       labels: {

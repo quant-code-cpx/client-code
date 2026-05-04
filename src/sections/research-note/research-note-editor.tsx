@@ -1,46 +1,110 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 
 import Box from '@mui/material/Box';
 import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
-import TextField from '@mui/material/TextField';
 import { useTheme } from '@mui/material/styles';
 import useMediaQuery from '@mui/material/useMediaQuery';
 
 import { ResearchNotePreview } from './research-note-preview';
+import { ResearchNoteEditorToolbar } from './research-note-editor-toolbar';
 
 // ----------------------------------------------------------------------
 
 type Props = {
   content: string;
   onChange: (content: string) => void;
+  onImagePaste?: () => void;
 };
 
-export function ResearchNoteEditor({ content, onChange }: Props) {
+const SHORTCUT_WRAPS: Record<string, { before: string; after: string }> = {
+  b: { before: '**', after: '**' },
+  i: { before: '*', after: '*' },
+  k: { before: '[', after: '](url)' },
+};
+
+export function ResearchNoteEditor({ content, onChange, onImagePaste }: Props) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [mobileTab, setMobileTab] = useState(0);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (!(event.metaKey || event.ctrlKey)) return;
+    const key = event.key.toLowerCase();
+    const wrap = SHORTCUT_WRAPS[key];
+    if (!wrap) return;
+    event.preventDefault();
+    const ta = event.currentTarget;
+    const { selectionStart: start, selectionEnd: end, value } = ta;
+    const selected = value.slice(start, end);
+    const next = `${value.slice(0, start)}${wrap.before}${selected}${wrap.after}${value.slice(end)}`;
+    onChange(next);
+    queueMicrotask(() => {
+      ta.focus();
+      const cursor = start + wrap.before.length + selected.length;
+      ta.setSelectionRange(cursor, cursor);
+    });
+  };
+
+  const handlePaste = (event: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    // 占位：检测到图片时提示后端未就绪
+    const items = event.clipboardData?.items;
+    if (!items) return;
+    for (let i = 0; i < items.length; i += 1) {
+      if (items[i].type.startsWith('image/')) {
+        event.preventDefault();
+        onImagePaste?.();
+        return;
+      }
+    }
+  };
 
   const editorPane = (
-    <TextField
-      multiline
-      minRows={20}
-      fullWidth
-      value={content}
-      onChange={(e) => onChange(e.target.value)}
-      placeholder="使用 Markdown 格式撰写笔记内容..."
-      sx={{
-        '& .MuiInputBase-root': { fontFamily: 'monospace', fontSize: 13 },
-        '& .MuiOutlinedInput-root': { height: '100%', alignItems: 'flex-start' },
-      }}
-    />
+    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+      <ResearchNoteEditorToolbar
+        textareaRef={textareaRef}
+        onChange={onChange}
+        onImagePlaceholder={onImagePaste}
+      />
+      <Box
+        component="textarea"
+        ref={textareaRef}
+        value={content}
+        onChange={(e) => onChange((e.target as HTMLTextAreaElement).value)}
+        onKeyDown={handleKeyDown}
+        onPaste={handlePaste}
+        placeholder="使用 Markdown 撰写笔记...  ⌘B 加粗 / ⌘I 斜体 / ⌘K 链接"
+        sx={{
+          width: '100%',
+          minHeight: 460,
+          p: 2,
+          fontSize: 14,
+          lineHeight: 1.7,
+          fontFamily: 'ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, monospace',
+          color: 'text.primary',
+          bgcolor: 'background.paper',
+          border: '1px solid',
+          borderColor: 'divider',
+          borderRadius: 1,
+          resize: 'vertical',
+          outline: 'none',
+          transition: theme.transitions.create(['border-color', 'box-shadow'], {
+            duration: theme.transitions.duration.shorter,
+          }),
+          '&:focus': {
+            borderColor: 'primary.main',
+          },
+        }}
+      />
+    </Box>
   );
 
   const previewPane = (
     <Box
       sx={{
         p: 2,
-        minHeight: 400,
+        minHeight: 460,
         borderRadius: 1,
         border: '1px solid',
         borderColor: 'divider',

@@ -12,16 +12,19 @@ import Typography from '@mui/material/Typography';
 import { getEventTypes } from 'src/api/event-study';
 import { DashboardContent } from 'src/layouts/dashboard';
 
+import { OverviewTab } from '../overview-tab';
 import { EventQueryTab } from '../event-query-tab';
 import { SignalRulesTab } from '../signal-rules-tab';
 import { EventAnalysisTab } from '../event-analysis-tab';
 import { SignalHistoryTab } from '../signal-history-tab';
+import { EventStudyProvider } from '../context/event-study-context';
 
 // ----------------------------------------------------------------------
 
-type TabValue = 'query' | 'analysis' | 'rules' | 'history';
+type TabValue = 'overview' | 'query' | 'analysis' | 'rules' | 'history';
 
 const TABS: Array<{ value: TabValue; label: string }> = [
+  { value: 'overview', label: '概览' },
   { value: 'query', label: '事件查询' },
   { value: 'analysis', label: '事件分析' },
   { value: 'rules', label: '信号规则' },
@@ -31,7 +34,7 @@ const TABS: Array<{ value: TabValue; label: string }> = [
 // ----------------------------------------------------------------------
 
 export function EventStudyView() {
-  const [tab, setTab] = useState<TabValue>('query');
+  const [tab, setTab] = useState<TabValue>('overview');
   const [eventTypes, setEventTypes] = useState<EventTypeItem[]>([]);
   const [loadingTypes, setLoadingTypes] = useState(true);
   const [loadError, setLoadError] = useState('');
@@ -79,12 +82,15 @@ export function EventStudyView() {
         </Tabs>
       )}
 
-      <Box>
-        {tab === 'query' && <EventQueryTab eventTypes={eventTypes} />}
-        {tab === 'analysis' && <EventAnalysisTab eventTypes={eventTypes} />}
-        {tab === 'rules' && <SignalRulesTab eventTypes={eventTypes} />}
-        {tab === 'history' && <SignalHistoryTab />}
-      </Box>
+      <EventStudyProvider eventTypes={eventTypes}>
+        <Box>
+          {tab === 'overview' && <OverviewTab />}
+          {tab === 'query' && <EventQueryTab eventTypes={eventTypes} />}
+          {tab === 'analysis' && <EventAnalysisTab eventTypes={eventTypes} />}
+          {tab === 'rules' && <SignalRulesTab eventTypes={eventTypes} />}
+          {tab === 'history' && <SignalHistoryTab />}
+        </Box>
+      </EventStudyProvider>
     </DashboardContent>
   );
 }

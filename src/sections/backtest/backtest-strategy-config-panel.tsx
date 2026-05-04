@@ -1,8 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 import Card from '@mui/material/Card';
 import Grid from '@mui/material/Grid';
+import Alert from '@mui/material/Alert';
 import Table from '@mui/material/Table';
+import Button from '@mui/material/Button';
 import Select from '@mui/material/Select';
 import Switch from '@mui/material/Switch';
 import MenuItem from '@mui/material/MenuItem';
@@ -13,7 +15,6 @@ import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
 import Typography from '@mui/material/Typography';
 import InputLabel from '@mui/material/InputLabel';
-import IconButton from '@mui/material/IconButton';
 import FormControl from '@mui/material/FormControl';
 import CardContent from '@mui/material/CardContent';
 import Autocomplete from '@mui/material/Autocomplete';
@@ -22,8 +23,6 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
 import { stockApi } from 'src/api/stock';
-
-import { Iconify } from 'src/components/iconify';
 
 import { RANK_BY_OPTIONS } from './constants';
 
@@ -371,44 +370,23 @@ function FactorRankingPanel({
 
 function CustomPoolPanel({
   config,
+  availableTsCodes,
   onChange,
 }: {
   config: CustomPoolConfig;
+  availableTsCodes: string[];
   onChange: (c: CustomPoolConfig) => void;
 }) {
-  const { options, loading, search } = useStockSearch();
-  const [inputValue, setInputValue] = useState('');
-
-  const selectedOptions: StockOption[] = config.tsCodes.map((code) => ({
-    tsCode: code,
-    label: code,
-  }));
+  const tsCodes = availableTsCodes.length > 0 ? availableTsCodes : config.tsCodes;
 
   return (
     <Grid container spacing={2}>
       <Grid size={{ xs: 12 }}>
-        <Autocomplete
-          multiple
-          options={options}
-          loading={loading}
-          filterOptions={(x) => x}
-          getOptionLabel={(o) => o.label}
-          inputValue={inputValue}
-          onInputChange={(_, v) => {
-            setInputValue(v);
-            search(v);
-          }}
-          value={selectedOptions}
-          onChange={(_, v) => onChange({ ...config, tsCodes: v.map((o) => o.tsCode) })}
-          renderInput={(params) => (
-            <TextField
-              {...params}
-              label="股票池"
-              size="small"
-              helperText="输入代码或名称搜索并添加"
-            />
-          )}
-        />
+        <Alert severity={tsCodes.length > 0 ? 'info' : 'warning'}>
+          {tsCodes.length > 0
+            ? `已从「基础配置 → 股票池」读取 ${tsCodes.length} 只股票。股票代码请在基础配置卡片中维护。`
+            : '请先在「基础配置 → 股票池」中选择「自定义股票池」并添加股票代码。'}
+        </Alert>
       </Grid>
 
       <Grid size={{ xs: 12 }}>
@@ -420,7 +398,7 @@ function CustomPoolPanel({
           exclusive
           size="small"
           onChange={(_, v) => {
-            if (v) onChange({ ...config, weightMode: v as 'EQUAL' | 'CUSTOM' });
+            if (v) onChange({ ...config, tsCodes, weightMode: v as 'EQUAL' | 'CUSTOM' });
           }}
         >
           <ToggleButton value="EQUAL" sx={{ px: 2 }}>
@@ -432,7 +410,7 @@ function CustomPoolPanel({
         </ToggleButtonGroup>
       </Grid>
 
-      {config.weightMode === 'CUSTOM' && config.tsCodes.length > 0 && (
+      {config.weightMode === 'CUSTOM' && tsCodes.length > 0 && (
         <Grid size={{ xs: 12 }}>
           <Typography variant="caption" sx={{ color: 'text.secondary', mb: 1, display: 'block' }}>
             自定义权重（总和应为 100%）
@@ -446,7 +424,7 @@ function CustomPoolPanel({
               </TableRow>
             </TableHead>
             <TableBody>
-              {config.tsCodes.map((code) => (
+              {tsCodes.map((code) => (
                 <TableRow key={code}>
                   <TableCell>{code}</TableCell>
                   <TableCell>
@@ -462,26 +440,14 @@ function CustomPoolPanel({
                         const updated = config.customWeights.filter((w) => w.tsCode !== code);
                         onChange({
                           ...config,
+                          tsCodes,
                           customWeights: [...updated, { tsCode: code, weight: newWeight }],
                         });
                       }}
                       slotProps={{ htmlInput: { min: 0, max: 100, step: 1 } }}
                     />
                   </TableCell>
-                  <TableCell padding="checkbox">
-                    <IconButton
-                      size="small"
-                      onClick={() =>
-                        onChange({
-                          ...config,
-                          tsCodes: config.tsCodes.filter((c) => c !== code),
-                          customWeights: config.customWeights.filter((w) => w.tsCode !== code),
-                        })
-                      }
-                    >
-                      <Iconify icon="solar:trash-bin-trash-bold" width={16} />
-                    </IconButton>
-                  </TableCell>
+                  <TableCell padding="checkbox" />
                 </TableRow>
               ))}
             </TableBody>
@@ -500,9 +466,11 @@ export function BacktestStrategyConfigPanel({
   onChange,
 }: BacktestStrategyConfigPanelProps) {
   const [factorOptions, setFactorOptions] = useState<string[]>([]);
+  const [factorError, setFactorError] = useState('');
 
-  useEffect(() => {
+  const loadFactorOptions = useCallback(() => {
     if (selectedTemplateId === 'FACTOR_RANKING') {
+      setFactorError('');
       import('src/api/factor')
         .then(({ factorApi }) =>
           factorApi.library().then((res) => {
@@ -510,9 +478,18 @@ export function BacktestStrategyConfigPanel({
             setFactorOptions(names);
           })
         )
-        .catch(() => {});
+        .catch((err: unknown) => {
+          setFactorOptions([]);
+          setFactorError(err instanceof Error ? err.message : '因子列表加载失败');
+        });
+      return;
     }
+    setFactorError('');
   }, [selectedTemplateId]);
+
+  useEffect(() => {
+    loadFactorOptions();
+  }, [loadFactorOptions]);
 
   const strategyConfig = form.strategyConfig as Record<string, unknown>;
 
@@ -570,6 +547,7 @@ export function BacktestStrategyConfigPanel({
                 (strategyConfig.customWeights as Array<{ tsCode: string; weight: number }>) ?? [],
             }}
             onChange={(c) => onChange({ strategyConfig: c as unknown as Record<string, unknown> })}
+            availableTsCodes={form.customUniverseTsCodes}
           />
         );
 
@@ -588,6 +566,19 @@ export function BacktestStrategyConfigPanel({
         <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
           策略参数
         </Typography>
+        {factorError ? (
+          <Alert
+            severity="warning"
+            sx={{ mb: 2 }}
+            action={
+              <Button size="small" color="inherit" onClick={loadFactorOptions}>
+                重试
+              </Button>
+            }
+          >
+            {factorError}
+          </Alert>
+        ) : null}
         {renderPanel()}
       </CardContent>
     </Card>

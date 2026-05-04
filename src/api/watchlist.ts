@@ -12,14 +12,14 @@ export type Watchlist = {
 };
 
 export type StockQuote = {
-  close: number;
-  pctChg: number;
-  vol: number;
-  amount: number;
+  close: number | null;
+  pctChg: number | null;
+  vol: number | null;
+  amount: number | null;
   pe: number | null;
   pb: number | null;
   totalMv: number | null;
-  tradeDate: string;
+  tradeDate: string | null;
 };
 
 export type WatchlistStock = {
@@ -45,6 +45,10 @@ export type WatchlistSummary = {
 
 export type WatchlistOverviewItem = Watchlist & {
   summary: WatchlistSummary | null;
+};
+
+export type WatchlistOverviewResponse = {
+  watchlists: WatchlistOverviewItem[];
 };
 
 export function getWatchlists() {
@@ -130,5 +134,9 @@ export function getWatchlistSummary(watchlistId: number) {
   return apiClient.post<WatchlistSummary>('/api/watchlist/summary', { id: watchlistId });
 }
 export function getWatchlistOverview() {
-  return apiClient.post<WatchlistOverviewItem[]>('/api/watchlist/overview');
+  // 后端推荐响应：{ watchlists: WatchlistOverviewItem[] }
+  // 兼容旧版直接返回数组的实现
+  return apiClient.post<WatchlistOverviewResponse | WatchlistOverviewItem[]>(
+    '/api/watchlist/overview'
+  );
 }

@@ -16,6 +16,8 @@ import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
 import { updateSubscription } from 'src/api/screener-subscription';
 
+import { SubscriptionFiltersSummary } from './subscription-filters-summary';
+
 // ----------------------------------------------------------------------
 
 type SubscriptionEditDialogProps = {
@@ -33,12 +35,6 @@ export function SubscriptionEditDialog({
 }: SubscriptionEditDialogProps) {
   const [name, setName] = useState('');
   const [frequency, setFrequency] = useState<SubscriptionFrequency>('DAILY');
-  const [minPeTtm, setMinPeTtm] = useState('');
-  const [maxPeTtm, setMaxPeTtm] = useState('');
-  const [minRoe, setMinRoe] = useState('');
-  const [minRevenueYoy, setMinRevenueYoy] = useState('');
-  const [minTotalMv, setMinTotalMv] = useState('');
-  const [maxTotalMv, setMaxTotalMv] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -46,13 +42,6 @@ export function SubscriptionEditDialog({
     if (!subscription) return;
     setName(subscription.name);
     setFrequency(subscription.frequency);
-    const f = subscription.filters;
-    setMinPeTtm(f.minPeTtm != null ? String(f.minPeTtm) : '');
-    setMaxPeTtm(f.maxPeTtm != null ? String(f.maxPeTtm) : '');
-    setMinRoe(f.minRoe != null ? String(f.minRoe) : '');
-    setMinRevenueYoy(f.minRevenueYoy != null ? String(f.minRevenueYoy) : '');
-    setMinTotalMv(f.minTotalMv != null ? String(f.minTotalMv / 10000) : '');
-    setMaxTotalMv(f.maxTotalMv != null ? String(f.maxTotalMv / 10000) : '');
   }, [subscription]);
 
   const handleClose = () => {
@@ -69,19 +58,10 @@ export function SubscriptionEditDialog({
     setLoading(true);
     setError('');
     try {
-      const filters = {
-        ...(minPeTtm ? { minPeTtm: Number(minPeTtm) } : {}),
-        ...(maxPeTtm ? { maxPeTtm: Number(maxPeTtm) } : {}),
-        ...(minRoe ? { minRoe: Number(minRoe) } : {}),
-        ...(minRevenueYoy ? { minRevenueYoy: Number(minRevenueYoy) } : {}),
-        ...(minTotalMv ? { minTotalMv: Number(minTotalMv) * 10000 } : {}),
-        ...(maxTotalMv ? { maxTotalMv: Number(maxTotalMv) * 10000 } : {}),
-      };
       const result = await updateSubscription({
         id: subscription.id,
         name: name.trim(),
         frequency,
-        filters,
       });
       handleClose();
       onSuccess(result);
@@ -131,60 +111,25 @@ export function SubscriptionEditDialog({
             </ToggleButtonGroup>
           </Box>
 
-          <Typography variant="subtitle2">筛选条件</Typography>
+          <Alert severity="info" variant="outlined">
+            目前后端仅支持修改名称与频率。如需调整筛选条件，请删除此订阅后重新创建。
+          </Alert>
 
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            <TextField
-              label="PE 最小值"
-              type="number"
-              value={minPeTtm}
-              onChange={(e) => setMinPeTtm(e.target.value)}
-              disabled={loading}
-              size="small"
-            />
-            <TextField
-              label="PE 最大值"
-              type="number"
-              value={maxPeTtm}
-              onChange={(e) => setMaxPeTtm(e.target.value)}
-              disabled={loading}
-              size="small"
-            />
-          </Box>
-          <TextField
-            label="ROE 最小值 (%)"
-            type="number"
-            value={minRoe}
-            onChange={(e) => setMinRoe(e.target.value)}
-            disabled={loading}
-            size="small"
-          />
-          <TextField
-            label="营收增速最小值 (%)"
-            type="number"
-            value={minRevenueYoy}
-            onChange={(e) => setMinRevenueYoy(e.target.value)}
-            disabled={loading}
-            size="small"
-          />
-          <Box sx={{ display: 'flex', gap: 2 }}>
-            <TextField
-              label="市值最小值 (亿)"
-              type="number"
-              value={minTotalMv}
-              onChange={(e) => setMinTotalMv(e.target.value)}
-              disabled={loading}
-              size="small"
-            />
-            <TextField
-              label="市值最大值 (亿)"
-              type="number"
-              value={maxTotalMv}
-              onChange={(e) => setMaxTotalMv(e.target.value)}
-              disabled={loading}
-              size="small"
-            />
-          </Box>
+          {subscription && (
+            <Box>
+              <Typography
+                variant="caption"
+                sx={{ color: 'text.secondary', mb: 1, display: 'block' }}
+              >
+                当前筛选条件（只读）
+              </Typography>
+              <SubscriptionFiltersSummary
+                filters={subscription.filters}
+                sortBy={subscription.sortBy}
+                sortOrder={subscription.sortOrder}
+              />
+            </Box>
+          )}
         </Box>
       </DialogContent>
 

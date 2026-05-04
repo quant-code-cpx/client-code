@@ -1,6 +1,7 @@
 import type { TechnicalDataPoint } from 'src/api/stock';
 
 import Card from '@mui/material/Card';
+import { useTheme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 
@@ -13,6 +14,8 @@ import { Chart, useChart } from 'src/components/chart';
 type Props = { history: TechnicalDataPoint[] };
 
 export function AnalysisTechnicalVolumeCard({ history }: Props) {
+  const theme = useTheme();
+
   const upVol = history.map((d) => ({
     x: fmtD(d.tradeDate),
     y: (d.pctChg ?? 0) >= 0 ? d.vol : null,
@@ -45,7 +48,13 @@ export function AnalysisTechnicalVolumeCard({ history }: Props) {
   const chartOptions = useChart({
     chart: { type: 'bar', stacked: true },
     stroke: { width: [0, 0, 1.5, 1.5, 1.5] },
-    colors: ['#EF5350', '#26A69A', '#FF9800', '#1877F2', '#AB47BC'],
+    colors: [
+      theme.palette.error.main,
+      theme.palette.success.main,
+      theme.palette.warning.main,
+      theme.palette.primary.main,
+      theme.palette.secondary.main,
+    ],
     xaxis: { type: 'category', tickAmount: 8, labels: { rotate: -30 } },
     yaxis: {
       labels: {

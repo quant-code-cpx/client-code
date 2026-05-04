@@ -1,87 +1,168 @@
-import type { Watchlist, WatchlistStock, WatchlistOverviewItem } from 'src/api/watchlist';
+import type { AlertColor } from '@mui/material/Alert';
+import type {
+  Watchlist,
+  WatchlistStock,
+  WatchlistSummary,
+  WatchlistOverviewItem,
+  WatchlistOverviewResponse,
+} from 'src/api/watchlist';
 
 import { useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
+import Snackbar from '@mui/material/Snackbar';
 import Skeleton from '@mui/material/Skeleton';
 import Typography from '@mui/material/Typography';
 
+import { useAuth } from 'src/auth';
 import { DashboardContent } from 'src/layouts/dashboard';
 import {
   deleteWatchlist,
   getWatchlistStocks,
+  getWatchlistSummary,
   getWatchlistOverview,
 } from 'src/api/watchlist';
 
 import { Iconify } from 'src/components/iconify';
+import { ConfirmDialog } from 'src/components/confirm-dialog';
 
+import { WatchlistHealthBar } from '../watchlist-health-bar';
 import { WatchlistEditDialog } from '../watchlist-edit-dialog';
 import { WatchlistDetailPanel } from '../watchlist-detail-panel';
 import { WatchlistCreateDialog } from '../watchlist-create-dialog';
 import { WatchlistOverviewCards } from '../watchlist-overview-cards';
 import { WatchlistAddStockDialog } from '../watchlist-add-stock-dialog';
-import { WatchlistBatchImportDialog } from '../watchlist-batch-import-dialog';
+
+import type { StatusFilter } from '../watchlist-detail-panel';
 
 // ----------------------------------------------------------------------
 
+type FeedbackState = {
+  open: boolean;
+  severity: AlertColor;
+  message: string;
+};
+
+const INITIAL_FEEDBACK: FeedbackState = { open: false, severity: 'info', message: '' };
+
+/**
+ * 兼容后端两种 overview 响应：
+ *   1. `{ watchlists: WatchlistOverviewItem[] }`（推荐契约）
+ *   2. `WatchlistOverviewItem[]`（旧版直接数组）
+ */
+function normalizeOverview(
+  raw: WatchlistOverviewResponse | WatchlistOverviewItem[] | null | undefined
+): WatchlistOverviewItem[] {
+  if (!raw) return [];
+  if (Array.isArray(raw)) return raw;
+  if (Array.isArray(raw.watchlists)) return raw.watchlists;
+  return [];
+}
+
 export function WatchlistView() {
+  const { userProfile } = useAuth();
+  const watchlistLimit = userProfile?.watchlistLimit ?? null;
+
   const [watchlists, setWatchlists] = useState<WatchlistOverviewItem[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [stocks, setStocks] = useState<WatchlistStock[]>([]);
   const [loading, setLoading] = useState(true);
   const [stocksLoading, setStocksLoading] = useState(false);
+  const [summaryLoading, setSummaryLoading] = useState(false);
   const [error, setError] = useState('');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogWatchlist, setEditDialogWatchlist] = useState<Watchlist | null>(null);
   const [addStockDialogOpen, setAddStockDialogOpen] = useState(false);
-  const [batchImportDialogOpen, setBatchImportDialogOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<WatchlistOverviewItem | null>(null);
+  const [deleteSubmitting, setDeleteSubmitting] = useState(false);
+
+  const [feedback, setFeedback] = useState<FeedbackState>(INITIAL_FEEDBACK);
+
+  const notify = useCallback((severity: AlertColor, message: string) => {
+    setFeedback({ open: true, severity, message });
+  }, []);
+
+  const closeFeedback = useCallback(() => {
+    setFeedback((prev) => ({ ...prev, open: false }));
+  }, []);
+
+  const enrichSummariesIfNeeded = useCallback(async (items: WatchlistOverviewItem[]) => {
+    const missing = items.filter((w) => !w.summary);
+    if (missing.length === 0) return;
+    setSummaryLoading(true);
+    try {
+      const results = await Promise.allSettled(
+        missing.map((w) => getWatchlistSummary(w.id).then((summary) => ({ id: w.id, summary })))
+      );
+      const map = new Map<number, WatchlistSummary>();
+      results.forEach((r) => {
+        if (r.status === 'fulfilled') map.set(r.value.id, r.value.summary);
+      });
+      if (map.size > 0) {
+        setWatchlists((prev) =>
+          prev.map((w) => (map.has(w.id) ? { ...w, summary: map.get(w.id)! } : w))
+        );
+      }
+    } finally {
+      setSummaryLoading(false);
+    }
+  }, []);
 
   const loadOverview = useCallback(async () => {
     setLoading(true);
     setError('');
     try {
-      const rawData = await getWatchlistOverview();
-      const data: WatchlistOverviewItem[] = Array.isArray(rawData)
-        ? rawData
-        : ((rawData as any)?.items ?? []);
+      const raw = await getWatchlistOverview();
+      const data = normalizeOverview(raw);
       setWatchlists(data);
-      if (data.length > 0 && selectedId === null) {
+      setSelectedId((prev) => {
+        if (prev !== null && data.some((w) => w.id === prev)) return prev;
+        if (data.length === 0) return null;
         const defaultWl = data.find((w) => w.isDefault) ?? data[0];
-        setSelectedId(defaultWl.id);
-      }
+        return defaultWl.id;
+      });
+      // 若 overview 未返回 summary，前端并发 summary 接口降级填充
+      void enrichSummariesIfNeeded(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : '获取自选组失败');
     } finally {
       setLoading(false);
     }
-  }, [selectedId]);
+  }, [enrichSummariesIfNeeded]);
 
-  const loadStocks = useCallback(async (watchlistId: number) => {
-    setStocksLoading(true);
-    try {
-      const data = await getWatchlistStocks(watchlistId);
-      setStocks(data.stocks);
-    } catch {
-      setStocks([]);
-    } finally {
-      setStocksLoading(false);
-    }
-  }, []);
+  const loadStocks = useCallback(
+    async (watchlistId: number) => {
+      setStocksLoading(true);
+      try {
+        const data = await getWatchlistStocks(watchlistId);
+        setStocks(data.stocks);
+      } catch (err) {
+        setStocks([]);
+        notify('error', err instanceof Error ? err.message : '加载股票失败');
+      } finally {
+        setStocksLoading(false);
+      }
+    },
+    [notify]
+  );
 
   useEffect(() => {
-    loadOverview();
+    void loadOverview();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     if (selectedId !== null) {
-      loadStocks(selectedId);
+      void loadStocks(selectedId);
     } else {
       setStocks([]);
     }
+    // 切组重置 status filter
+    setStatusFilter('all');
   }, [selectedId, loadStocks]);
 
   const selectedWatchlist = watchlists.find((w) => w.id === selectedId) ?? null;
@@ -90,23 +171,34 @@ export function WatchlistView() {
     const newItem: WatchlistOverviewItem = { ...watchlist, summary: null };
     setWatchlists((prev) => [...prev, newItem]);
     setSelectedId(watchlist.id);
+    notify('success', `已创建自选组「${watchlist.name}」`);
   };
 
   const handleEditSuccess = (updated: Watchlist) => {
-    setWatchlists((prev) =>
-      prev.map((w) => (w.id === updated.id ? { ...w, ...updated } : w))
-    );
+    setWatchlists((prev) => prev.map((w) => (w.id === updated.id ? { ...w, ...updated } : w)));
+    notify('success', '自选组已更新');
   };
 
-  const handleDelete = async (watchlist: WatchlistOverviewItem) => {
+  const handleRequestDelete = (watchlist: WatchlistOverviewItem) => {
+    setDeleteTarget(watchlist);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleteSubmitting(true);
     try {
-      await deleteWatchlist(watchlist.id);
-      setWatchlists((prev) => prev.filter((w) => w.id !== watchlist.id));
-      if (selectedId === watchlist.id) {
+      await deleteWatchlist(deleteTarget.id);
+      const removedId = deleteTarget.id;
+      setWatchlists((prev) => prev.filter((w) => w.id !== removedId));
+      if (selectedId === removedId) {
         setSelectedId(null);
       }
+      notify('success', `已删除自选组「${deleteTarget.name}」`);
+      setDeleteTarget(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : '删除失败');
+      notify('error', err instanceof Error ? err.message : '删除失败');
+    } finally {
+      setDeleteSubmitting(false);
     }
   };
 
@@ -116,21 +208,44 @@ export function WatchlistView() {
 
   const handleRemoveStock = (stockId: number) => {
     setStocks((prev) => prev.filter((s) => s.id !== stockId));
+    setWatchlists((prev) =>
+      prev.map((w) =>
+        w.id === selectedId ? { ...w, _count: { stocks: Math.max(0, w._count.stocks - 1) } } : w
+      )
+    );
   };
 
   const handleBatchRemoveStocks = (stockIds: number[]) => {
     setStocks((prev) => prev.filter((s) => !stockIds.includes(s.id)));
+    setWatchlists((prev) =>
+      prev.map((w) =>
+        w.id === selectedId
+          ? { ...w, _count: { stocks: Math.max(0, w._count.stocks - stockIds.length) } }
+          : w
+      )
+    );
   };
 
   const handleReorderStocks = (reordered: WatchlistStock[]) => {
     setStocks(reordered);
   };
 
-  const handleStockRefresh = () => {
+  const handleAddStockSuccess = () => {
+    setAddStockDialogOpen(false);
     if (selectedId !== null) {
-      loadStocks(selectedId);
+      void loadStocks(selectedId);
+      // 同步刷新当前组 summary
+      void getWatchlistSummary(selectedId)
+        .then((summary) => {
+          setWatchlists((prev) => prev.map((w) => (w.id === selectedId ? { ...w, summary } : w)));
+        })
+        .catch(() => undefined);
     }
+    notify('success', '股票已加入自选组');
   };
+
+  const limitReached =
+    watchlistLimit !== null && watchlistLimit > 0 && watchlists.length >= watchlistLimit;
 
   return (
     <DashboardContent>
@@ -142,8 +257,9 @@ export function WatchlistView() {
           variant="contained"
           startIcon={<Iconify icon="solar:add-circle-bold" width={18} />}
           onClick={() => setCreateDialogOpen(true)}
+          disabled={limitReached}
         >
-          新建自选组
+          {limitReached ? '已达自选组上限' : '新建自选组'}
         </Button>
       </Box>
 
@@ -153,23 +269,43 @@ export function WatchlistView() {
         </Alert>
       )}
 
+      {!loading && watchlists.length > 0 && (
+        <WatchlistHealthBar
+          watchlists={watchlists}
+          selectedWatchlist={selectedWatchlist}
+          stocks={stocks}
+          groupLimit={watchlistLimit}
+          onClickTargetHit={() => setStatusFilter('hit')}
+          onClickQuoteMissing={() => setStatusFilter('missing')}
+        />
+      )}
+
       {loading ? (
         <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
           {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} variant="rectangular" width={200} height={110} sx={{ borderRadius: 2 }} />
+            <Skeleton
+              key={i}
+              variant="rectangular"
+              width={200}
+              height={110}
+              sx={{ borderRadius: 2 }}
+            />
           ))}
         </Box>
       ) : (
-        <Box sx={{ mb: 3 }}>
-          <WatchlistOverviewCards
-            watchlists={watchlists}
-            selectedId={selectedId}
-            onSelect={setSelectedId}
-            onEdit={(wl) => setEditDialogWatchlist(wl)}
-            onDelete={handleDelete}
-            onCreate={() => setCreateDialogOpen(true)}
-          />
-        </Box>
+        watchlists.length > 0 && (
+          <Box sx={{ mb: 3 }}>
+            <WatchlistOverviewCards
+              watchlists={watchlists}
+              selectedId={selectedId}
+              summaryLoading={summaryLoading}
+              onSelect={setSelectedId}
+              onEdit={(wl) => setEditDialogWatchlist(wl)}
+              onDelete={handleRequestDelete}
+              onCreate={() => setCreateDialogOpen(true)}
+            />
+          </Box>
+        )
       )}
 
       {!loading && watchlists.length === 0 && (
@@ -196,21 +332,24 @@ export function WatchlistView() {
           watchlist={selectedWatchlist}
           stocks={stocks}
           stocksLoading={stocksLoading}
-          onEdit={() => setEditDialogWatchlist(selectedWatchlist)}
-          onDelete={() => handleDelete(selectedWatchlist)}
+          statusFilter={statusFilter}
+          onStatusFilterChange={setStatusFilter}
           onAddStock={() => setAddStockDialogOpen(true)}
-          onBatchImport={() => setBatchImportDialogOpen(true)}
           onUpdateStock={handleUpdateStock}
           onRemoveStock={handleRemoveStock}
           onBatchRemoveStocks={handleBatchRemoveStocks}
           onReorderStocks={handleReorderStocks}
+          onNotify={notify}
         />
       )}
 
       <WatchlistCreateDialog
         open={createDialogOpen}
         onClose={() => setCreateDialogOpen(false)}
-        onSuccess={handleCreateSuccess}
+        onSuccess={(wl) => {
+          setCreateDialogOpen(false);
+          handleCreateSuccess(wl);
+        }}
       />
 
       <WatchlistEditDialog
@@ -228,24 +367,40 @@ export function WatchlistView() {
           open={addStockDialogOpen}
           watchlistId={selectedId}
           onClose={() => setAddStockDialogOpen(false)}
-          onSuccess={() => {
-            setAddStockDialogOpen(false);
-            handleStockRefresh();
-          }}
+          onSuccess={handleAddStockSuccess}
         />
       )}
 
-      {selectedId !== null && (
-        <WatchlistBatchImportDialog
-          open={batchImportDialogOpen}
-          watchlistId={selectedId}
-          onClose={() => setBatchImportDialogOpen(false)}
-          onSuccess={() => {
-            setBatchImportDialogOpen(false);
-            handleStockRefresh();
-          }}
-        />
-      )}
+      <ConfirmDialog
+        open={deleteTarget !== null}
+        title="删除自选组"
+        content={
+          deleteTarget
+            ? `确认删除自选组「${deleteTarget.name}」？该组内 ${deleteTarget._count.stocks} 只股票将一并移除，不影响股票基础数据。`
+            : ''
+        }
+        onClose={() => (deleteSubmitting ? undefined : setDeleteTarget(null))}
+        onConfirm={handleConfirmDelete}
+        submitting={deleteSubmitting}
+        confirmColor="error"
+        confirmLabel="删除"
+      />
+
+      <Snackbar
+        open={feedback.open}
+        autoHideDuration={3000}
+        onClose={closeFeedback}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={closeFeedback}
+          severity={feedback.severity}
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {feedback.message}
+        </Alert>
+      </Snackbar>
     </DashboardContent>
   );
 }

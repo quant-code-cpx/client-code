@@ -1,55 +1,138 @@
-import { useState, useEffect } from 'react';
+import type { AreaItem, IndustryItem } from 'src/api/screener';
+
+import { useRef, useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
-import Button from '@mui/material/Button';
 import Select from '@mui/material/Select';
+import Button from '@mui/material/Button';
 import Toolbar from '@mui/material/Toolbar';
 import MenuItem from '@mui/material/MenuItem';
+import TextField from '@mui/material/TextField';
 import InputLabel from '@mui/material/InputLabel';
 import FormControl from '@mui/material/FormControl';
+import Autocomplete from '@mui/material/Autocomplete';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import InputAdornment from '@mui/material/InputAdornment';
 
 import { Iconify } from 'src/components/iconify';
-import { ExportButton } from 'src/components/export-button';
 
-import { MARKET_OPTIONS, EXCHANGE_OPTIONS } from './constants';
+import { StockColumnSettings } from './stock-column-settings';
+import {
+  IS_HS_LABEL,
+  IS_HS_OPTIONS,
+  MARKET_OPTIONS,
+  EXCHANGE_LABEL,
+  EXCHANGE_OPTIONS,
+} from './constants';
 
-import type { StockFilters } from './types';
+import type { ColumnId, StockFilters } from './types';
 
 // ----------------------------------------------------------------------
 
 type StockTableToolbarProps = {
   filters: StockFilters;
   onFilterChange: (changed: Partial<StockFilters>) => void;
+  onResetFilters: () => void;
   onOpenScreener: () => void;
+  industries: IndustryItem[];
+  areas: AreaItem[];
+  visibleColumns: ColumnId[];
+  onVisibleColumnsChange: (next: ColumnId[]) => void;
 };
 
 export function StockTableToolbar({
   filters,
   onFilterChange,
+  onResetFilters,
   onOpenScreener,
+  industries,
+  areas,
+  visibleColumns,
+  onVisibleColumnsChange,
 }: StockTableToolbarProps) {
   const [localKeyword, setLocalKeyword] = useState(filters.keyword);
+  const isFirstRun = useRef(true);
 
-  // 防抖：400ms 后才将关键词提交给父组件触发请求
+  // 防抖：400ms 后才将关键词提交给父组件触发请求；首次挂载不重复请求
   useEffect(() => {
+    if (isFirstRun.current === true) {
+      isFirstRun.current = false;
+      return undefined;
+    }
     const timer = setTimeout(() => {
       onFilterChange({ keyword: localKeyword });
     }, 400);
     return () => clearTimeout(timer);
   }, [localKeyword, onFilterChange]);
 
-  const activeChips = [
-    filters.exchange
-      ? `交易所: ${EXCHANGE_OPTIONS.find((o) => o.value === filters.exchange)?.label ?? filters.exchange}`
-      : '',
-    filters.market ? `板块: ${filters.market}` : '',
-    filters.industry ? `行业: ${filters.industry}` : '',
-    filters.area ? `地区: ${filters.area}` : '',
-  ].filter(Boolean);
+  // 当父级 filters.keyword 通过「清空」被重置时，本地输入也跟随重置
+  useEffect(() => {
+    if (filters.keyword === '' && localKeyword !== '') {
+      isFirstRun.current = true;
+      setLocalKeyword('');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters.keyword]);
+
+  const conditionChips: Array<{ key: string; label: string; onDelete: () => void }> = [];
+  if (filters.exchange !== '') {
+    conditionChips.push({
+      key: 'exchange',
+      label: `交易所：${EXCHANGE_LABEL[filters.exchange] ?? filters.exchange}`,
+      onDelete: () => onFilterChange({ exchange: '' }),
+    });
+  }
+  if (filters.market !== '') {
+    conditionChips.push({
+      key: 'market',
+      label: `板块：${filters.market}`,
+      onDelete: () => onFilterChange({ market: '' }),
+    });
+  }
+  if (filters.isHs !== '') {
+    conditionChips.push({
+      key: 'isHs',
+      label: `沪深港通：${IS_HS_LABEL[filters.isHs] ?? filters.isHs}`,
+      onDelete: () => onFilterChange({ isHs: '' }),
+    });
+  }
+  filters.industries.forEach((name) => {
+    conditionChips.push({
+      key: `industry-${name}`,
+      label: `行业：${name}`,
+      onDelete: () => onFilterChange({ industries: filters.industries.filter((n) => n !== name) }),
+    });
+  });
+  filters.areas.forEach((name) => {
+    conditionChips.push({
+      key: `area-${name}`,
+      label: `地域：${name}`,
+      onDelete: () => onFilterChange({ areas: filters.areas.filter((n) => n !== name) }),
+    });
+  });
+  if (filters.highLiquidity === true) {
+    conditionChips.push({
+      key: 'highLiquidity',
+      label: '高流动性（成交额>1亿）',
+      onDelete: () => onFilterChange({ highLiquidity: false }),
+    });
+  }
+  if (filters.largeCap === true) {
+    conditionChips.push({
+      key: 'largeCap',
+      label: '百亿以上',
+      onDelete: () => onFilterChange({ largeCap: false }),
+    });
+  }
+  if (filters.highDividend === true) {
+    conditionChips.push({
+      key: 'highDividend',
+      label: '高股息（≥3%）',
+      onDelete: () => onFilterChange({ highDividend: false }),
+    });
+  }
 
   return (
     <Box sx={{ px: 2.5, py: 2 }}>
@@ -103,27 +186,91 @@ export function StockTableToolbar({
           </Select>
         </FormControl>
 
-        {/* 行业（后端模糊匹配，文本输入） */}
-        <OutlinedInput
+        {/* 沪深港通 */}
+        <FormControl size="small" sx={{ minWidth: 120 }}>
+          <InputLabel>沪深港通</InputLabel>
+          <Select
+            label="沪深港通"
+            value={filters.isHs}
+            onChange={(e) => onFilterChange({ isHs: e.target.value })}
+          >
+            {IS_HS_OPTIONS.map((opt) => (
+              <MenuItem key={opt.value} value={opt.value}>
+                {opt.label}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
+        {/* 行业（多选） */}
+        <Autocomplete
+          multiple
           size="small"
-          value={filters.industry}
-          onChange={(e) => onFilterChange({ industry: e.target.value })}
-          placeholder="行业（如：银行）"
-          sx={{ maxWidth: 140 }}
+          disableCloseOnSelect
+          options={industries.map((it) => it.name)}
+          getOptionLabel={(opt) => opt}
+          value={filters.industries}
+          onChange={(_, value) => onFilterChange({ industries: value })}
+          renderOption={(props, option) => {
+            const target = industries.find((it) => it.name === option);
+            return (
+              <li {...props} key={option}>
+                <Box
+                  sx={{
+                    flexGrow: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                  }}
+                >
+                  <span>{option}</span>
+                  <Box component="span" sx={{ color: 'text.secondary', fontSize: 12 }}>
+                    {target ? target.count : ''}
+                  </Box>
+                </Box>
+              </li>
+            );
+          }}
+          renderInput={(params) => <TextField {...params} label="行业" placeholder="多选" />}
+          sx={{ minWidth: 200 }}
         />
 
-        {/* 地区（后端模糊匹配，文本输入） */}
-        <OutlinedInput
+        {/* 地域（多选） */}
+        <Autocomplete
+          multiple
           size="small"
-          value={filters.area}
-          onChange={(e) => onFilterChange({ area: e.target.value })}
-          placeholder="省份/地区"
-          sx={{ maxWidth: 120 }}
+          disableCloseOnSelect
+          options={areas.map((it) => it.name)}
+          getOptionLabel={(opt) => opt}
+          value={filters.areas}
+          onChange={(_, value) => onFilterChange({ areas: value })}
+          renderOption={(props, option) => {
+            const target = areas.find((it) => it.name === option);
+            return (
+              <li {...props} key={option}>
+                <Box
+                  sx={{
+                    flexGrow: 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                  }}
+                >
+                  <span>{option}</span>
+                  <Box component="span" sx={{ color: 'text.secondary', fontSize: 12 }}>
+                    {target ? target.count : ''}
+                  </Box>
+                </Box>
+              </li>
+            );
+          }}
+          renderInput={(params) => <TextField {...params} label="地域" placeholder="多选" />}
+          sx={{ minWidth: 180 }}
         />
 
         <Box sx={{ flexGrow: 1 }} />
 
-        <ExportButton source="stock_list" params={filters} />
+        <StockColumnSettings visibleColumns={visibleColumns} onChange={onVisibleColumnsChange} />
 
         <Button
           variant="outlined"
@@ -134,13 +281,57 @@ export function StockTableToolbar({
         </Button>
       </Toolbar>
 
-      {activeChips.length > 0 && (
-        <Stack direction="row" spacing={1} sx={{ mt: 1, flexWrap: 'wrap', gap: 1 }}>
-          {activeChips.map((label) => (
-            <Chip key={label} label={label} size="small" variant="outlined" />
-          ))}
-        </Stack>
-      )}
+      {/* 第二行：快捷条件 + 已选条件 chips + 一键清空 */}
+      <Stack
+        direction="row"
+        spacing={1}
+        sx={{ mt: 1.5, flexWrap: 'wrap', gap: 1, alignItems: 'center' }}
+      >
+        <Chip
+          label="高流动性"
+          size="small"
+          variant={filters.highLiquidity === true ? 'filled' : 'outlined'}
+          color={filters.highLiquidity === true ? 'primary' : 'default'}
+          onClick={() => onFilterChange({ highLiquidity: !filters.highLiquidity })}
+        />
+        <Chip
+          label="百亿以上"
+          size="small"
+          variant={filters.largeCap === true ? 'filled' : 'outlined'}
+          color={filters.largeCap === true ? 'primary' : 'default'}
+          onClick={() => onFilterChange({ largeCap: !filters.largeCap })}
+        />
+        <Chip
+          label="高股息"
+          size="small"
+          variant={filters.highDividend === true ? 'filled' : 'outlined'}
+          color={filters.highDividend === true ? 'primary' : 'default'}
+          onClick={() => onFilterChange({ highDividend: !filters.highDividend })}
+        />
+
+        {conditionChips.length > 0 && (
+          <>
+            <Box sx={{ width: 1, height: 20, bgcolor: 'divider', mx: 0.5 }} />
+            {conditionChips.map((c) => (
+              <Chip
+                key={c.key}
+                label={c.label}
+                size="small"
+                variant="outlined"
+                onDelete={c.onDelete}
+              />
+            ))}
+            <Button
+              size="small"
+              color="inherit"
+              startIcon={<Iconify icon="mingcute:close-line" width={14} />}
+              onClick={onResetFilters}
+            >
+              清空全部
+            </Button>
+          </>
+        )}
+      </Stack>
     </Box>
   );
 }

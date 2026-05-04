@@ -609,8 +609,107 @@
     "data": {
       "page": 1,
       "pageSize": 20,
-      "total": 98,
+      "total": 110,
+      "dataAsOf": "2026-04-13T11:05:00.000Z",
+      "stats": {
+        "total": 110,
+        "totalDeltaVsPrev": 12,
+        "newCount": 27,
+        "multiTypeStockCount": 4,
+        "watchlistCount": 9,
+        "byType": [
+          { "type": "VOLUME_SURGE", "count": 98 },
+          { "type": "CONSECUTIVE_LIMIT_UP", "count": 6 },
+          { "type": "LARGE_NET_INFLOW", "count": 6 }
+        ]
+      },
       "items": [
+        {
+          "id": 9001,
+          "tradeDate": "20260413",
+          "tsCode": "688690.SH",
+          "stockName": "纳微科技",
+          "anomalyType": "CONSECUTIVE_LIMIT_UP",
+          "value": 4,
+          "threshold": 2,
+          "severity": "HIGH",
+          "isNew": true,
+          "continuedDays": 4,
+          "industryCode": "I001",
+          "industryName": "医疗器械",
+          "isInWatchlist": true,
+          "coincidentTypes": ["VOLUME_SURGE"],
+          "detail": {
+            "consecutiveDays": 4,
+            "tradeDateStr": "20260413"
+          },
+          "scannedAt": "2026-04-13T11:00:03.500Z"
+        },
+        {
+          "id": 9002,
+          "tradeDate": "20260413",
+          "tsCode": "002962.SZ",
+          "stockName": "五方光电",
+          "anomalyType": "LARGE_NET_INFLOW",
+          "value": 0.2734,
+          "threshold": 0.15,
+          "severity": "HIGH",
+          "isNew": true,
+          "continuedDays": 1,
+          "industryCode": "I042",
+          "industryName": "光学元件",
+          "isInWatchlist": false,
+          "coincidentTypes": ["VOLUME_SURGE"],
+          "detail": {
+            "buyElgAmount": 18234.5,
+            "sellElgAmount": 4123.6,
+            "netElg": 14110.9,
+            "amount": 51612.0,
+            "tradeDateStr": "20260413"
+          },
+          "scannedAt": "2026-04-13T11:00:03.520Z"
+        },
+        {
+          "id": 9003,
+          "tradeDate": "20260413",
+          "tsCode": "601398.SH",
+          "stockName": null,
+          "anomalyType": "LARGE_NET_INFLOW",
+          "value": 0.187,
+          "threshold": 0.15,
+          "severity": "MEDIUM",
+          "isNew": false,
+          "continuedDays": 2,
+          "industryCode": "I101",
+          "industryName": "国有大行",
+          "isInWatchlist": false,
+          "detail": {
+            "buyElgAmount": 64200.0,
+            "sellElgAmount": 28350.0,
+            "netElg": 35850.0,
+            "amount": 191711.2,
+            "tradeDateStr": "20260413"
+          },
+          "scannedAt": "2026-04-13T11:00:03.530Z"
+        },
+        {
+          "id": 9004,
+          "tradeDate": "20260413",
+          "tsCode": "300750.SZ",
+          "stockName": "宁德时代",
+          "anomalyType": "CONSECUTIVE_LIMIT_UP",
+          "value": 2,
+          "threshold": 2,
+          "severity": "LOW",
+          "isNew": true,
+          "continuedDays": 2,
+          "isInWatchlist": true,
+          "detail": {
+            "consecutiveDays": 2,
+            "tradeDateStr": "20260413"
+          },
+          "scannedAt": "2026-04-13T11:00:03.540Z"
+        },
         {
           "id": 82,
           "tradeDate": "20260413",
@@ -619,6 +718,10 @@
           "anomalyType": "VOLUME_SURGE",
           "value": 7.758542015946751,
           "threshold": 3,
+          "severity": "HIGH",
+          "isNew": true,
+          "isInWatchlist": true,
+          "coincidentTypes": ["CONSECUTIVE_LIMIT_UP"],
           "detail": {
             "vol": 385852.63,
             "avg20Vol": 49732.62105263158,

@@ -48,6 +48,8 @@ export function StrategyConfigCard({ strategy, onUpdate }: StrategyConfigCardPro
     rebalanceFrequency: 'MONTHLY',
     priceMode: 'NEXT_OPEN',
     enableTradeConstraints: true,
+    enableT1Restriction: true,
+    partialFillEnabled: true,
     commissionRate: 0.0003,
     stampDutyRate: 0.0005,
     minCommission: 5,

@@ -16,7 +16,7 @@ import { Iconify } from 'src/components/iconify';
 import { BacktestStrategyConfigPanel } from './backtest-strategy-config-panel';
 import { STRATEGY_TYPE_OPTIONS, REBALANCE_FREQUENCY_OPTIONS } from './constants';
 
-import type { BacktestRunForm , ComparisonStrategyFormItem } from './types';
+import type { BacktestRunForm, ComparisonStrategyFormItem } from './types';
 
 // ----------------------------------------------------------------------
 
@@ -41,6 +41,8 @@ export function ComparisonStrategyCard({ index, item, onChange, onRemove, canRem
     rebalanceFrequency: item.rebalanceFrequency,
     priceMode: 'NEXT_OPEN',
     enableTradeConstraints: false,
+    enableT1Restriction: true,
+    partialFillEnabled: true,
     commissionRate: 0.0003,
     stampDutyRate: 0.0005,
     minCommission: 5,
@@ -68,7 +70,12 @@ export function ComparisonStrategyCard({ index, item, onChange, onRemove, canRem
             策略 {index + 1}
           </Typography>
           {canRemove && (
-            <IconButton size="small" color="error" onClick={onRemove}>
+            <IconButton
+              size="small"
+              color="error"
+              aria-label={`删除策略 ${index + 1}`}
+              onClick={onRemove}
+            >
               <Iconify icon="solar:trash-bin-trash-bold" width={18} />
             </IconButton>
           )}
@@ -81,7 +88,7 @@ export function ComparisonStrategyCard({ index, item, onChange, onRemove, canRem
             label="策略标签 (可选)"
             value={item.label}
             onChange={(e) => onChange({ label: e.target.value })}
-            placeholder={`策略 ${index + 1}`}
+            placeholder={`策略 ${index + 1}…`}
           />
 
           <Box sx={{ display: 'flex', gap: 2 }}>

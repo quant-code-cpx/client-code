@@ -30,14 +30,18 @@ import { WatchlistStockTableRow } from './watchlist-stock-table-row';
 
 // ----------------------------------------------------------------------
 
+const COLUMN_COUNT = 11;
+
 type WatchlistStockTableProps = {
   stocks: WatchlistStock[];
   loading: boolean;
   selectedIds: number[];
+  dragDisabled?: boolean;
+  emptyText?: string;
   onSelectAll: (checked: boolean) => void;
   onSelect: (id: number) => void;
   onEdit: (row: WatchlistStock) => void;
-  onRemove: (id: number) => void;
+  onRemove: (row: WatchlistStock) => void;
   onReorder: (reordered: WatchlistStock[]) => void;
 };
 
@@ -45,6 +49,8 @@ export function WatchlistStockTable({
   stocks,
   loading,
   selectedIds,
+  dragDisabled = false,
+  emptyText = '暂无自选股，点击「添加股票」开始添加',
   onSelectAll,
   onSelect,
   onEdit,
@@ -63,6 +69,7 @@ export function WatchlistStockTable({
 
   const handleDragEnd = useCallback(
     (event: DragEndEvent) => {
+      if (dragDisabled) return;
       const { active, over } = event;
       if (!over || active.id === over.id) return;
       const oldIndex = stocks.findIndex((s) => s.id === active.id);
@@ -70,7 +77,7 @@ export function WatchlistStockTable({
       if (oldIndex === -1 || newIndex === -1) return;
       onReorder(arrayMove(stocks, oldIndex, newIndex));
     },
-    [stocks, onReorder]
+    [stocks, onReorder, dragDisabled]
   );
 
   return (
@@ -82,10 +89,10 @@ export function WatchlistStockTable({
     >
       <Scrollbar>
         <TableContainer sx={{ overflow: 'unset' }}>
-          <Table sx={{ minWidth: 840 }}>
+          <Table sx={{ minWidth: 960 }}>
             <TableHead>
               <TableRow>
-                <TableCell sx={{ width: 36, px: 1 }} /> {/* 拖拽手柄列 */}
+                <TableCell sx={{ width: 36, px: 1 }} />
                 <TableCell padding="checkbox" sx={{ width: 80 }}>
                   <Checkbox
                     checked={allSelected}
@@ -101,6 +108,7 @@ export function WatchlistStockTable({
                 <TableCell align="right">PE</TableCell>
                 <TableCell align="right">PB</TableCell>
                 <TableCell align="right">目标价</TableCell>
+                <TableCell align="right">目标距离</TableCell>
                 <TableCell align="right">操作</TableCell>
               </TableRow>
             </TableHead>
@@ -110,9 +118,9 @@ export function WatchlistStockTable({
                 {loading
                   ? Array.from({ length: 6 }).map((_, i) => (
                       <TableRow key={i}>
-                        {Array.from({ length: 10 }).map((__, j) => (
+                        {Array.from({ length: COLUMN_COUNT }).map((__, j) => (
                           <TableCell key={j}>
-                            <Skeleton width={j === 9 ? 60 : '80%'} />
+                            <Skeleton width={j === COLUMN_COUNT - 1 ? 60 : '80%'} />
                           </TableCell>
                         ))}
                       </TableRow>
@@ -122,6 +130,7 @@ export function WatchlistStockTable({
                         key={stock.id}
                         row={stock}
                         selected={selectedIds.includes(stock.id)}
+                        dragDisabled={dragDisabled}
                         onSelect={onSelect}
                         onEdit={onEdit}
                         onRemove={onRemove}
@@ -131,10 +140,10 @@ export function WatchlistStockTable({
 
               {!loading && stocks.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={10} align="center" sx={{ py: 6 }}>
+                  <TableCell colSpan={COLUMN_COUNT} align="center" sx={{ py: 6 }}>
                     <Box sx={{ textAlign: 'center' }}>
                       <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                        暂无自选股，点击「添加股票」开始添加
+                        {emptyText}
                       </Typography>
                     </Box>
                   </TableCell>

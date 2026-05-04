@@ -6,6 +6,7 @@ import Grid from '@mui/material/Grid';
 import Alert from '@mui/material/Alert';
 import Table from '@mui/material/Table';
 import Divider from '@mui/material/Divider';
+import Tooltip from '@mui/material/Tooltip';
 import Skeleton from '@mui/material/Skeleton';
 import TableRow from '@mui/material/TableRow';
 import TableBody from '@mui/material/TableBody';
@@ -50,6 +51,8 @@ type Props = {
   queueStatus: RepairQueueStatus | null;
   queueLoading: boolean;
   repairing: boolean;
+  disabled?: boolean;
+  disabledReason?: string;
   onTriggerRepair: () => void;
 };
 
@@ -58,6 +61,8 @@ export function AutoRepairPanel({
   queueStatus,
   queueLoading,
   repairing,
+  disabled = false,
+  disabledReason = '',
   onTriggerRepair,
 }: Props) {
   return (
@@ -66,16 +71,21 @@ export function AutoRepairPanel({
         <Typography variant="subtitle2" sx={{ flexGrow: 1 }}>
           补数队列状态
         </Typography>
-        <LoadingButton
-          loading={repairing}
-          variant="outlined"
-          color="warning"
-          size="small"
-          startIcon={<Iconify icon="solar:restart-bold" />}
-          onClick={onTriggerRepair}
-        >
-          手动触发补数
-        </LoadingButton>
+        <Tooltip title={disabled ? disabledReason : ''}>
+          <span>
+            <LoadingButton
+              loading={repairing}
+              variant="outlined"
+              color="warning"
+              size="small"
+              disabled={disabled}
+              startIcon={<Iconify icon="solar:restart-bold" />}
+              onClick={onTriggerRepair}
+            >
+              手动触发补数
+            </LoadingButton>
+          </span>
+        </Tooltip>
       </Box>
 
       {/* 队列状态卡片 */}

@@ -7,6 +7,13 @@ export type PortfolioRiskRuleType =
   | 'MAX_INDUSTRY_WEIGHT'
   | 'MAX_DRAWDOWN_STOP';
 
+export type PortfolioKind = 'PAPER' | 'LIVE';
+
+export type PortfolioSparklinePoint = {
+  date: string;
+  nav: number | null;
+};
+
 // ---- 组合类型 ----
 
 export type PortfolioCreated = {
@@ -15,6 +22,9 @@ export type PortfolioCreated = {
   initialCash: number;
   description: string | null;
   createdAt: string;
+  kind?: PortfolioKind;
+  isArchived?: boolean;
+  lastUpdated?: string | null;
 };
 
 export type PortfolioListItem = {
@@ -25,6 +35,15 @@ export type PortfolioListItem = {
   holdingCount: number;
   createdAt: string;
   updatedAt: string;
+  kind?: PortfolioKind;
+  todayPnl?: number | null;
+  todayPnlPct?: number | null;
+  isArchived?: boolean;
+  lastUpdated?: string | null;
+  isTradingDay?: boolean;
+  totalMarketValue?: number | null;
+  cumulativeReturn?: number | null;
+  sparkline?: PortfolioSparklinePoint[];
 };
 
 export type PortfolioUpdated = {
@@ -56,6 +75,11 @@ export type PortfolioSummary = {
   totalUnrealizedPnl: number;
   totalPnlPct: number;
   cashBalance: number;
+  todayPnl?: number | null;
+  todayPnlPct?: number | null;
+  lastUpdated?: string | null;
+  isTradingDay?: boolean;
+  cumulativeReturn?: number | null;
 };
 
 export type PortfolioDetail = {
@@ -75,8 +99,10 @@ export type PnlByHoldingItem = {
 
 export type PnlToday = {
   tradeDate: string | null;
-  todayPnl: number;
-  todayPnlPct: number;
+  todayPnl: number | null;
+  todayPnlPct: number | null;
+  isTradingDay?: boolean;
+  lastUpdated?: string | null;
   byHolding: PnlByHoldingItem[];
 };
 

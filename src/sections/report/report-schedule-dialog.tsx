@@ -6,23 +6,38 @@ import type {
   ReportScheduleFrequency,
 } from 'src/api/report';
 
-import { useState, useEffect } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 
+import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
+import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
+import Typography from '@mui/material/Typography';
 import InputLabel from '@mui/material/InputLabel';
 import FormControl from '@mui/material/FormControl';
 import DialogTitle from '@mui/material/DialogTitle';
+import ToggleButton from '@mui/material/ToggleButton';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
 import { createSchedule, updateSchedule } from 'src/api/report';
 
-// ----------------------------------------------------------------------
+import { GenerateFormStock } from './generate/generate-form-stock';
+import { GenerateFormBacktest } from './generate/generate-form-backtest';
+import { GenerateFormStrategy } from './generate/generate-form-strategy';
+import { GenerateFormPortfolio } from './generate/generate-form-portfolio';
+
+import type {
+  GenerateStockParams,
+  GenerateBacktestParams,
+  GenerateStrategyParams,
+  GeneratePortfolioParams,
+} from './generate/types';
 
 const REPORT_TYPES: Array<{ value: ReportType; label: string }> = [
   { value: 'BACKTEST', label: '回测报告' },
@@ -58,13 +73,42 @@ export function ReportScheduleDialog({ open, onClose, onSaved, editingSchedule }
   const [dayOfWeek, setDayOfWeek] = useState('1');
   const [dayOfMonth, setDayOfMonth] = useState('1');
   const [saving, setSaving] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+
+  // Per-type params
+  const [backtestParams, setBacktestParams] = useState<GenerateBacktestParams>({ runId: '' });
+  const [stockParams, setStockParams] = useState<GenerateStockParams>({ tsCode: '' });
+  const [portfolioParams, setPortfolioParams] = useState<GeneratePortfolioParams>({ portfolioId: '' });
+  const [strategyParams, setStrategyParams] = useState<GenerateStrategyParams>({
+    backtestRunId: '',
+    sections: { performance: true, holdings: true, riskAssessment: true, tradeLog: true },
+  });
+  const [formValid, setFormValid] = useState(false);
 
   useEffect(() => {
+    if (!open) return;
+    setErrorMsg('');
     if (editingSchedule) {
       setTitle(editingSchedule.title);
       setType(editingSchedule.type);
       setFormat(editingSchedule.format);
       setFrequency(editingSchedule.frequency);
+      const p = (editingSchedule.params ?? {}) as Record<string, unknown>;
+      // hydrate per-type params
+      setBacktestParams({ runId: (p.runId as string) ?? '' });
+      setStockParams({ tsCode: (p.tsCode as string) ?? '' });
+      setPortfolioParams({ portfolioId: (p.portfolioId as string) ?? '' });
+      setStrategyParams({
+        backtestRunId: (p.backtestRunId as string) ?? '',
+        strategyId: p.strategyId as string | undefined,
+        portfolioId: p.portfolioId as string | undefined,
+        sections: (p.sections as GenerateStrategyParams['sections']) ?? {
+          performance: true,
+          holdings: true,
+          riskAssessment: true,
+          tradeLog: true,
+        },
+      });
     } else {
       setTitle('');
       setType('BACKTEST');
@@ -73,8 +117,22 @@ export function ReportScheduleDialog({ open, onClose, onSaved, editingSchedule }
       setHour('18');
       setDayOfWeek('1');
       setDayOfMonth('1');
+      setBacktestParams({ runId: '' });
+      setStockParams({ tsCode: '' });
+      setPortfolioParams({ portfolioId: '' });
+      setStrategyParams({
+        backtestRunId: '',
+        sections: { performance: true, holdings: true, riskAssessment: true, tradeLog: true },
+      });
     }
   }, [editingSchedule, open]);
+
+  const currentParams = useMemo<Record<string, unknown>>(() => {
+    if (type === 'BACKTEST') return backtestParams as unknown as Record<string, unknown>;
+    if (type === 'STOCK') return stockParams as unknown as Record<string, unknown>;
+    if (type === 'PORTFOLIO') return portfolioParams as unknown as Record<string, unknown>;
+    return strategyParams as unknown as Record<string, unknown>;
+  }, [type, backtestParams, stockParams, portfolioParams, strategyParams]);
 
   const buildCron = (): string => {
     const h = parseInt(hour, 10) || 18;
@@ -85,11 +143,12 @@ export function ReportScheduleDialog({ open, onClose, onSaved, editingSchedule }
 
   const handleSubmit = async () => {
     setSaving(true);
+    setErrorMsg('');
     try {
       const body: CreateScheduleBody = {
         type,
         title,
-        params: {},
+        params: currentParams,
         format,
         frequency,
         cronExpression: buildCron(),
@@ -102,7 +161,7 @@ export function ReportScheduleDialog({ open, onClose, onSaved, editingSchedule }
       onSaved();
       onClose();
     } catch (err) {
-      console.error('保存定时报告失败', err);
+      setErrorMsg(err instanceof Error ? err.message : '保存定时报告失败');
     } finally {
       setSaving(false);
     }
@@ -110,34 +169,81 @@ export function ReportScheduleDialog({ open, onClose, onSaved, editingSchedule }
 
   const weekDays = ['一', '二', '三', '四', '五', '六', '日'];
 
+  const submitDisabled = saving || !title.trim() || !formValid;
+
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle>{editingSchedule ? '编辑定时报告' : '新建定时报告'}</DialogTitle>
 
-      <DialogContent>
-        <Stack spacing={2.5} sx={{ mt: 1 }}>
+      <DialogContent dividers>
+        <Stack spacing={2.5} sx={{ mt: 0.5 }}>
           <TextField
             label="报告名称"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             fullWidth
             size="small"
+            required
           />
 
-          <FormControl size="small" fullWidth>
-            <InputLabel>报告类型</InputLabel>
-            <Select
+          <Box>
+            <Typography variant="caption" color="text.secondary" sx={{ mb: 0.75, display: 'block' }}>
+              报告类型
+            </Typography>
+            <ToggleButtonGroup
+              exclusive
+              size="small"
               value={type}
-              label="报告类型"
-              onChange={(e) => setType(e.target.value as ReportType)}
+              onChange={(_, v) => {
+                if (v) setType(v as ReportType);
+              }}
+              fullWidth
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(2, 1fr)',
+                gap: 1,
+                '& .MuiToggleButton-root': { borderRadius: 1, textTransform: 'none' },
+              }}
             >
               {REPORT_TYPES.map((t) => (
-                <MenuItem key={t.value} value={t.value}>
+                <ToggleButton key={t.value} value={t.value}>
                   {t.label}
-                </MenuItem>
+                </ToggleButton>
               ))}
-            </Select>
-          </FormControl>
+            </ToggleButtonGroup>
+          </Box>
+
+          {/* Per-type params (smart pickers) */}
+          {type === 'BACKTEST' && (
+            <GenerateFormBacktest
+              value={backtestParams}
+              onChange={setBacktestParams}
+              onValidChange={setFormValid}
+              compact
+            />
+          )}
+          {type === 'STOCK' && (
+            <GenerateFormStock
+              value={stockParams}
+              onChange={setStockParams}
+              onValidChange={setFormValid}
+            />
+          )}
+          {type === 'PORTFOLIO' && (
+            <GenerateFormPortfolio
+              value={portfolioParams}
+              onChange={setPortfolioParams}
+              onValidChange={setFormValid}
+              compact
+            />
+          )}
+          {type === 'STRATEGY_RESEARCH' && (
+            <GenerateFormStrategy
+              value={strategyParams}
+              onChange={setStrategyParams}
+              onValidChange={setFormValid}
+            />
+          )}
 
           <FormControl size="small" fullWidth>
             <InputLabel>输出格式</InputLabel>
@@ -205,13 +311,17 @@ export function ReportScheduleDialog({ open, onClose, onSaved, editingSchedule }
               slotProps={{ htmlInput: { min: 1, max: 28 } }}
             />
           )}
+
+          {errorMsg && <Alert severity="error">{errorMsg}</Alert>}
         </Stack>
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={onClose}>取消</Button>
-        <Button variant="contained" onClick={handleSubmit} disabled={saving || !title.trim()}>
-          {saving ? '保存中...' : '保存'}
+        <Button onClick={onClose} disabled={saving}>
+          取消
+        </Button>
+        <Button variant="contained" onClick={handleSubmit} disabled={submitDisabled}>
+          {saving ? '保存中…' : '保存'}
         </Button>
       </DialogActions>
     </Dialog>

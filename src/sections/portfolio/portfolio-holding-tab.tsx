@@ -28,7 +28,11 @@ interface PortfolioHoldingTabProps {
   onRefresh: () => void;
 }
 
-export function PortfolioHoldingTab({ portfolioId, holdings, onRefresh }: PortfolioHoldingTabProps) {
+export function PortfolioHoldingTab({
+  portfolioId,
+  holdings,
+  onRefresh,
+}: PortfolioHoldingTabProps) {
   const [addOpen, setAddOpen] = useState(false);
   const [addSubmitting, setAddSubmitting] = useState(false);
 
@@ -148,6 +152,7 @@ export function PortfolioHoldingTab({ portfolioId, holdings, onRefresh }: Portfo
         open={rebalanceOpen}
         onClose={() => setRebalanceOpen(false)}
         portfolioId={portfolioId}
+        holdings={holdings}
       />
     </Box>
   );

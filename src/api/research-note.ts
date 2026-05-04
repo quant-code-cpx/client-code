@@ -11,6 +11,10 @@ export type ResearchNote = {
   isPinned: boolean;
   createdAt: string;
   updatedAt: string;
+  /** v2 字段；后端就绪前可能为 undefined */
+  deletedAt?: string | null;
+  wordCount?: number;
+  versionCount?: number;
 };
 
 export type ResearchNoteListResult = {
@@ -28,6 +32,10 @@ export type ResearchNoteQuery = {
   pageSize?: number;
   sortBy?: 'createdAt' | 'updatedAt';
   sortOrder?: 'asc' | 'desc';
+  /** v2 扩展，等后端就绪后启用 */
+  dateRange?: 'today' | '7d' | '30d' | 'month';
+  pinnedOnly?: boolean;
+  hasStock?: boolean;
 };
 
 export function listNotes(query: ResearchNoteQuery) {

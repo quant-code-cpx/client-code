@@ -8,6 +8,8 @@ import type {
 import { useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
+import Alert from '@mui/material/Alert';
+import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import Select from '@mui/material/Select';
@@ -27,6 +29,16 @@ import { usePermission } from 'src/permission';
 import { ROLE_LABEL } from 'src/api/user-manage';
 
 import { Iconify } from 'src/components/iconify';
+
+import { QuotaField } from './quota-field';
+import {
+  validateQuota,
+  validateEmail,
+  validateAccount,
+  validateNickname,
+  validatePassword,
+  generateStrongPassword,
+} from './user-manage-utils';
 
 // ----------------------------------------------------------------------
 
@@ -71,6 +83,7 @@ export function UserManageFormDialog({
   const [showConfirm, setShowConfirm] = useState(false);
   /** 创建成功后的初始密码，显示给管理员 */
   const [createResult, setCreateResult] = useState('');
+  const [clearCountdown, setClearCountdown] = useState(30);
 
   // 编辑模式字段
   const [nickname, setNickname] = useState('');
@@ -81,6 +94,23 @@ export function UserManageFormDialog({
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!createResult) return undefined;
+    setClearCountdown(30);
+    const timer = window.setInterval(() => {
+      setClearCountdown((current) => {
+        if (current <= 1) {
+          window.clearInterval(timer);
+          setCreateResult('');
+          return 0;
+        }
+        return current - 1;
+      });
+    }, 1000);
+
+    return () => window.clearInterval(timer);
+  }, [createResult]);
 
   // 打开编辑对话框时，回填已有数据
   useEffect(() => {
@@ -101,6 +131,7 @@ export function UserManageFormDialog({
       setShowPassword(false);
       setShowConfirm(false);
       setCreateResult('');
+      setClearCountdown(30);
       setError('');
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -109,20 +140,16 @@ export function UserManageFormDialog({
   const handleSubmit = async () => {
     setError('');
     if (mode === 'create') {
-      if (!account.trim()) {
-        setError('账号不能为空');
+      if (!validateAccount(account.trim())) {
+        setError('账号需为 4–32 位字母、数字或下划线');
         return;
       }
-      if (!newNickname.trim()) {
-        setError('昵称不能为空');
+      if (!validateNickname(newNickname)) {
+        setError('昵称需为 1–32 个字符');
         return;
       }
-      if (!password.trim()) {
-        setError('密码不能为空');
-        return;
-      }
-      if (password.trim().length < 8) {
-        setError('密码至少需要8位');
+      if (!validatePassword(password.trim())) {
+        setError('密码至少 8 位，且需包含字母和数字');
         return;
       }
       if (password.trim() !== confirmPassword.trim()) {
@@ -145,6 +172,22 @@ export function UserManageFormDialog({
       }
     } else {
       if (!row) return;
+      if (nickname.trim() && !validateNickname(nickname)) {
+        setError('昵称需为 1–32 个字符');
+        return;
+      }
+      if (!validateEmail(email.trim())) {
+        setError('邮箱格式不正确');
+        return;
+      }
+      if (!validateQuota(backtestQuota)) {
+        setError('回测配额需为“不限”或大于等于 0 的整数');
+        return;
+      }
+      if (!validateQuota(watchlistLimit)) {
+        setError('监控股票数上限需为“不限”或大于等于 0 的整数');
+        return;
+      }
       setSubmitting(true);
       try {
         await onUpdate({
@@ -166,6 +209,14 @@ export function UserManageFormDialog({
 
   const isCreate = mode === 'create';
 
+  const handleGeneratePassword = () => {
+    const nextPassword = generateStrongPassword();
+    setPassword(nextPassword);
+    setConfirmPassword(nextPassword);
+    setShowPassword(true);
+    setShowConfirm(true);
+  };
+
   return (
     <Dialog open={open} onClose={onClose} maxWidth="xs" fullWidth>
       <DialogTitle>{isCreate ? '创建用户' : '编辑用户信息'}</DialogTitle>
@@ -176,9 +227,7 @@ export function UserManageFormDialog({
             createResult ? (
               /* ── 创建成功：展示初始密码 ── */
               <>
-                <Typography variant="body2" color="text.secondary">
-                  用户创建成功！初始密码如下，请妥善告知用户：
-                </Typography>
+                <Alert severity="success">用户创建成功！初始密码仅本次可见，请妥善告知用户。</Alert>
                 <Box
                   sx={{
                     display: 'flex',
@@ -200,13 +249,24 @@ export function UserManageFormDialog({
                     size="small"
                     onClick={() => navigator.clipboard.writeText(createResult)}
                     title="复制密码"
+                    aria-label="复制初始密码"
                   >
                     <Iconify icon="solar:copy-bold" width={18} />
                   </IconButton>
                 </Box>
-                <Typography variant="caption" color="warning.main">
-                  此密码仅显示一次，关闭后将无法再次查看
-                </Typography>
+                <Stack
+                  direction="row"
+                  spacing={1}
+                  alignItems="center"
+                  justifyContent="space-between"
+                >
+                  <Typography variant="caption" color="warning.main">
+                    {clearCountdown}s 后自动清除，关闭后将无法再次查看
+                  </Typography>
+                  <Button size="small" color="warning" onClick={() => setCreateResult('')}>
+                    立即清除
+                  </Button>
+                </Stack>
               </>
             ) : (
               /* ── 创建表单 ── */
@@ -241,6 +301,14 @@ export function UserManageFormDialog({
                     ))}
                   </Select>
                 </FormControl>
+                <Button
+                  variant="outlined"
+                  color="info"
+                  onClick={handleGeneratePassword}
+                  startIcon={<Iconify icon="solar:shield-keyhole-bold-duotone" />}
+                >
+                  随机生成强密码
+                </Button>
                 <TextField
                   label="初始密码"
                   type={showPassword ? 'text' : 'password'}
@@ -256,6 +324,7 @@ export function UserManageFormDialog({
                             size="small"
                             edge="end"
                             onClick={() => setShowPassword((v) => !v)}
+                            aria-label={showPassword ? '隐藏初始密码' : '显示初始密码'}
                           >
                             <Iconify
                               icon={showPassword ? 'solar:eye-closed-bold' : 'solar:eye-bold'}
@@ -282,6 +351,7 @@ export function UserManageFormDialog({
                             size="small"
                             edge="end"
                             onClick={() => setShowConfirm((v) => !v)}
+                            aria-label={showConfirm ? '隐藏确认密码' : '显示确认密码'}
                           >
                             <Iconify
                               icon={showConfirm ? 'solar:eye-closed-bold' : 'solar:eye-bold'}
@@ -315,24 +385,16 @@ export function UserManageFormDialog({
                 onChange={(e) => setWechat(e.target.value)}
                 slotProps={{ inputLabel: { shrink: true } }}
               />
-              <TextField
-                label="回测配额"
-                type="number"
-                value={backtestQuota}
-                onChange={(e) => setBacktestQuota(e.target.value)}
-                slotProps={{ inputLabel: { shrink: true }, htmlInput: { min: 0 } }}
-              />
-              <TextField
+              <QuotaField label="回测配额" value={backtestQuota} onChange={setBacktestQuota} />
+              <QuotaField
                 label="监控股票数上限"
-                type="number"
                 value={watchlistLimit}
-                onChange={(e) => setWatchlistLimit(e.target.value)}
-                slotProps={{ inputLabel: { shrink: true }, htmlInput: { min: 0 } }}
+                onChange={setWatchlistLimit}
               />
             </>
           )}
 
-          {error && <Box sx={{ color: 'error.main', fontSize: 13 }}>{error}</Box>}
+          {error && <Alert severity="error">{error}</Alert>}
         </Box>
       </DialogContent>
 

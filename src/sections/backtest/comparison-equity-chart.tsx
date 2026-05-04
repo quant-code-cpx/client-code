@@ -32,7 +32,10 @@ export function ComparisonEquityChart({ series }: Props) {
 
   const chartSeries = series.map((s, i) => ({
     name: s.label ?? `策略 ${i + 1}`,
-    data: s.points.map((p) => Number(p.nav.toFixed(4))),
+    data: s.points.map((p) => {
+      const value = p.value ?? p.nav;
+      return value === null || value === undefined ? null : Number(value.toFixed(4));
+    }),
   }));
 
   const chartOptions = useChart({

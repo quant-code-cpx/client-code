@@ -17,10 +17,45 @@
     },
     "message": ""
   },
+  "stats": {
+    "code": 0,
+    "data": {
+      "total": 4,
+      "todayNew": 1,
+      "active30d": 3,
+      "deactivated": 1,
+      "locked": 1
+    },
+    "message": ""
+  },
+  "search": {
+    "code": 0,
+    "data": [
+      {
+        "id": 1,
+        "account": "superadmin",
+        "nickname": "超级管理员",
+        "role": "SUPER_ADMIN"
+      },
+      {
+        "id": 2,
+        "account": "ops_admin",
+        "nickname": "运营管理员",
+        "role": "ADMIN"
+      },
+      {
+        "id": 3,
+        "account": "locked_user",
+        "nickname": "锁定用户",
+        "role": "USER"
+      }
+    ],
+    "message": ""
+  },
   "list": {
     "code": 0,
     "data": {
-      "total": 1,
+      "total": 4,
       "page": 1,
       "pageSize": 20,
       "items": [
@@ -37,18 +72,151 @@
           "watchlistLimit": -1,
           "createdAt": "2026-04-12T16:02:51.110Z",
           "updatedAt": "2026-04-17T17:08:53.346Z"
+        },
+        {
+          "id": 2,
+          "account": "ops_admin",
+          "nickname": "运营管理员",
+          "role": "ADMIN",
+          "status": "ACTIVE",
+          "email": "ops@example.com",
+          "wechat": null,
+          "lastLoginAt": "2026-05-01T09:12:33.000Z",
+          "backtestQuota": -1,
+          "watchlistLimit": 300,
+          "createdAt": "2026-04-20T08:00:00.000Z",
+          "updatedAt": "2026-05-01T09:12:33.000Z"
+        },
+        {
+          "id": 3,
+          "account": "locked_user",
+          "nickname": "锁定用户",
+          "role": "USER",
+          "status": "ACTIVE",
+          "email": null,
+          "wechat": null,
+          "lastLoginAt": "2026-04-30T08:55:01.000Z",
+          "lockedUntil": "2026-05-02T23:59:59.000Z",
+          "loginFailCount": 5,
+          "backtestQuota": 50,
+          "watchlistLimit": 100,
+          "createdAt": "2026-04-25T08:00:00.000Z",
+          "updatedAt": "2026-05-02T08:55:01.000Z"
+        },
+        {
+          "id": 4,
+          "account": "deleted_user",
+          "nickname": "已删除用户",
+          "role": "USER",
+          "status": "DELETED",
+          "email": null,
+          "wechat": null,
+          "lastLoginAt": null,
+          "backtestQuota": 20,
+          "watchlistLimit": 50,
+          "createdAt": "2026-04-10T08:00:00.000Z",
+          "updatedAt": "2026-05-01T08:00:00.000Z"
         }
       ]
+    },
+    "message": ""
+  },
+  "created": {
+    "code": 0,
+    "data": {
+      "id": 5,
+      "account": "new_user",
+      "nickname": "新用户",
+      "role": "USER",
+      "status": "ACTIVE",
+      "email": null,
+      "wechat": null,
+      "backtestQuota": 50,
+      "watchlistLimit": 100,
+      "createdAt": "2026-05-02T10:00:00.000Z",
+      "updatedAt": "2026-05-02T10:00:00.000Z",
+      "initialPassword": "MockPass2026!"
+    },
+    "message": ""
+  },
+  "updated": {
+    "code": 0,
+    "data": {
+      "id": 3,
+      "account": "locked_user",
+      "nickname": "锁定用户",
+      "role": "USER",
+      "status": "ACTIVE",
+      "email": null,
+      "wechat": null,
+      "lastLoginAt": "2026-04-30T08:55:01.000Z",
+      "backtestQuota": 50,
+      "watchlistLimit": 100,
+      "createdAt": "2026-04-25T08:00:00.000Z",
+      "updatedAt": "2026-05-02T08:55:01.000Z"
+    },
+    "message": ""
+  },
+  "deleteImpact": {
+    "code": 0,
+    "data": {
+      "watchlistCount": 12,
+      "strategyCount": 3,
+      "backtestCount": 21,
+      "subscriptionCount": 2,
+      "alertCount": 5
     },
     "message": ""
   },
   "auditLogs": {
     "code": 0,
     "data": {
-      "total": 0,
+      "total": 2,
       "page": 1,
       "pageSize": 20,
-      "items": []
+      "items": [
+        {
+          "id": 1001,
+          "operatorId": 1,
+          "operatorAccount": "superadmin",
+          "action": "USER_UPDATE_INFO",
+          "targetId": 3,
+          "targetAccount": "locked_user",
+          "result": "success",
+          "details": {
+            "changes": [
+              {
+                "field": "nickname",
+                "before": "旧昵称",
+                "after": "锁定用户"
+              },
+              {
+                "field": "backtestQuota",
+                "before": 20,
+                "after": 50
+              }
+            ],
+            "reason": "管理员修正资料"
+          },
+          "ipAddress": "10.0.0.12",
+          "createdAt": "2026-05-02T09:12:33.000Z"
+        },
+        {
+          "id": 1002,
+          "operatorId": 3,
+          "operatorAccount": "locked_user",
+          "action": "LOGIN_FAILED",
+          "targetId": 3,
+          "targetAccount": "locked_user",
+          "result": "failure",
+          "details": {
+            "reason": "密码错误",
+            "loginFailCount": 5
+          },
+          "ipAddress": "10.0.0.88",
+          "createdAt": "2026-05-02T08:55:01.000Z"
+        }
+      ]
     },
     "message": ""
   },

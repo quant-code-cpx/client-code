@@ -1,4 +1,10 @@
-import type { RebalanceAction, RebalancePlanResponse } from 'src/api/portfolio';
+import type { StockSearchItem } from 'src/api/stock';
+import type {
+  OmitAction,
+  RebalanceAction,
+  HoldingDetailItem,
+  RebalancePlanResponse,
+} from 'src/api/portfolio';
 
 import { useState } from 'react';
 
@@ -7,29 +13,40 @@ import Alert from '@mui/material/Alert';
 import Table from '@mui/material/Table';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
+import Select from '@mui/material/Select';
 import Divider from '@mui/material/Divider';
+import Collapse from '@mui/material/Collapse';
+import MenuItem from '@mui/material/MenuItem';
 import TableRow from '@mui/material/TableRow';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
 import TextField from '@mui/material/TextField';
+import InputLabel from '@mui/material/InputLabel';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
+import FormControl from '@mui/material/FormControl';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import TableContainer from '@mui/material/TableContainer';
 import CircularProgress from '@mui/material/CircularProgress';
 
+import { fCurrency } from 'src/utils/format-number';
+
 import { rebalancePlan } from 'src/api/portfolio';
 
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
+import {
+  stockItemFromCode,
+  StockSearchAutocomplete,
+} from 'src/components/stock-search-autocomplete';
 
 // ----------------------------------------------------------------------
 
 interface TargetRow {
-  tsCode: string;
+  stock: StockSearchItem | null;
   targetWeight: number; // 0~100 (百分比)
 }
 
@@ -37,6 +54,7 @@ interface RebalancePlanDialogProps {
   open: boolean;
   onClose: () => void;
   portfolioId: string;
+  holdings: HoldingDetailItem[];
 }
 
 const ACTION_LABELS: Record<string, string> = {
@@ -56,57 +74,140 @@ const ACTION_COLOR: Record<
   HOLD: 'default',
 };
 
-function fCurrency(v: number) {
-  return `¥${v.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}`;
+const EMPTY_TARGET: TargetRow = { stock: null, targetWeight: 0 };
+
+function toOptionalNumber(value: string): number | undefined {
+  const trimmed = value.trim();
+  if (!trimmed) return undefined;
+  return Number(trimmed);
 }
 
-export function PortfolioRebalanceDialog({ open, onClose, portfolioId }: RebalancePlanDialogProps) {
-  const [targets, setTargets] = useState<TargetRow[]>([{ tsCode: '', targetWeight: 0 }]);
+function stockFromHolding(holding: HoldingDetailItem): StockSearchItem {
+  return {
+    tsCode: holding.tsCode,
+    symbol: '',
+    name: holding.stockName,
+    market: null,
+    industry: holding.industry,
+    listStatus: null,
+  };
+}
+
+function buildOrderText(actions: RebalanceAction[]): string {
+  const rows = actions
+    .filter((action) => action.deltaQuantity !== 0)
+    .map((action) => {
+      const direction = action.deltaQuantity > 0 ? '买入' : '卖出';
+      return [direction, action.tsCode, action.stockName, Math.abs(action.deltaQuantity)].join(
+        '\t'
+      );
+    });
+
+  if (rows.length === 0) return '无需调仓，当前持仓已符合目标权重。';
+
+  return ['方向\t股票代码\t股票名称\t数量', ...rows].join('\n');
+}
+
+export function PortfolioRebalanceDialog({
+  open,
+  onClose,
+  holdings,
+  portfolioId,
+}: RebalancePlanDialogProps) {
+  const [targets, setTargets] = useState<TargetRow[]>([EMPTY_TARGET]);
+  const [omitUnspecified, setOmitUnspecified] = useState<OmitAction>('HOLD');
+  const [totalValue, setTotalValue] = useState('');
+  const [commissionRate, setCommissionRate] = useState('0.0003');
+  const [stampDutyRate, setStampDutyRate] = useState('0.0005');
+  const [minCommission, setMinCommission] = useState('5');
+  const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [copyMessage, setCopyMessage] = useState('');
   const [result, setResult] = useState<RebalancePlanResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const totalWeight = targets.reduce((sum, t) => sum + (t.targetWeight || 0), 0);
+  const totalWeight = targets.reduce((sum, target) => sum + (target.targetWeight || 0), 0);
   const weightOk = totalWeight > 0 && totalWeight <= 100;
 
   function addRow() {
-    setTargets((prev) => [...prev, { tsCode: '', targetWeight: 0 }]);
+    setTargets((prev) => [...prev, EMPTY_TARGET]);
   }
 
   function removeRow(idx: number) {
-    setTargets((prev) => prev.filter((_, i) => i !== idx));
+    setTargets((prev) => prev.filter((_, index) => index !== idx));
   }
 
   function updateRow(idx: number, patch: Partial<TargetRow>) {
-    setTargets((prev) => prev.map((row, i) => (i === idx ? { ...row, ...patch } : row)));
+    setTargets((prev) => prev.map((row, index) => (index === idx ? { ...row, ...patch } : row)));
+  }
+
+  function handleUseCurrentHoldings() {
+    if (holdings.length === 0) return;
+    setTargets(
+      holdings.map((holding) => ({
+        stock: stockFromHolding(holding),
+        targetWeight: Number(((holding.weight ?? 0) * 100).toFixed(2)),
+      }))
+    );
+    setResult(null);
+    setCopyMessage('');
   }
 
   function handleClose() {
-    setTargets([{ tsCode: '', targetWeight: 0 }]);
+    setTargets([EMPTY_TARGET]);
+    setOmitUnspecified('HOLD');
+    setTotalValue('');
+    setCommissionRate('0.0003');
+    setStampDutyRate('0.0005');
+    setMinCommission('5');
+    setAdvancedOpen(false);
+    setCopyMessage('');
     setResult(null);
     setError('');
     onClose();
   }
 
   const handleGenerate = async () => {
-    const validTargets = targets.filter((t) => t.tsCode.trim() && t.targetWeight > 0);
+    const validTargets = targets.filter(
+      (target) => target.stock?.tsCode && target.targetWeight > 0
+    );
+    const parsedTotalValue = toOptionalNumber(totalValue);
+    const parsedCommissionRate = toOptionalNumber(commissionRate);
+    const parsedStampDutyRate = toOptionalNumber(stampDutyRate);
+    const parsedMinCommission = toOptionalNumber(minCommission);
+
     if (validTargets.length === 0) {
-      setError('请至少添加一条有效的目标持仓');
+      setError('请至少选择一只股票并填写目标权重');
       return;
     }
     if (totalWeight > 100.01) {
       setError('目标权重合计不能超过 100%');
       return;
     }
+    if (
+      [parsedTotalValue, parsedCommissionRate, parsedStampDutyRate, parsedMinCommission].some(
+        (value) => value !== undefined && Number.isNaN(value)
+      )
+    ) {
+      setError('高级参数必须是有效数字');
+      return;
+    }
+
     setLoading(true);
     setError('');
+    setCopyMessage('');
     setResult(null);
     try {
       const res = await rebalancePlan({
         portfolioId,
-        targets: validTargets.map((t) => ({
-          tsCode: t.tsCode.trim().toUpperCase(),
-          targetWeight: t.targetWeight / 100,
+        omitUnspecified,
+        totalValue: parsedTotalValue,
+        commissionRate: parsedCommissionRate,
+        stampDutyRate: parsedStampDutyRate,
+        minCommission: parsedMinCommission,
+        targets: validTargets.map((target) => ({
+          tsCode: target.stock?.tsCode.trim().toUpperCase() ?? '',
+          targetWeight: target.targetWeight / 100,
         })),
       });
       setResult(res);
@@ -114,6 +215,16 @@ export function PortfolioRebalanceDialog({ open, onClose, portfolioId }: Rebalan
       setError(err instanceof Error ? err.message : '生成调仓计划失败');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCopyOrders = async () => {
+    if (!result) return;
+    try {
+      await navigator.clipboard.writeText(buildOrderText(result.actions));
+      setCopyMessage('委托清单已复制，可粘贴到券商或交易笔记中。');
+    } catch {
+      setCopyMessage('复制失败，请手动选择表格内容复制。');
     }
   };
 
@@ -126,18 +237,40 @@ export function PortfolioRebalanceDialog({ open, onClose, portfolioId }: Rebalan
       <DialogContent>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 1 }}>
           {error && <Alert severity="error">{error}</Alert>}
+          {copyMessage && (
+            <Alert severity={copyMessage.startsWith('复制失败') ? 'warning' : 'success'}>
+              {copyMessage}
+            </Alert>
+          )}
 
-          {/* Target weight editor */}
           <Box>
-            <Typography variant="subtitle2" sx={{ mb: 1.5 }}>
-              目标持仓权重
-            </Typography>
+            <Box
+              sx={{
+                mb: 1.5,
+                display: 'flex',
+                gap: 1,
+                flexWrap: 'wrap',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
+            >
+              <Typography variant="subtitle2">目标持仓权重</Typography>
+              <Button
+                size="small"
+                variant="outlined"
+                disabled={loading || holdings.length === 0}
+                onClick={handleUseCurrentHoldings}
+                startIcon={<Iconify icon="solar:wallet-bold" />}
+              >
+                从当前持仓带入
+              </Button>
+            </Box>
 
             <TableContainer>
               <Table size="small">
                 <TableHead>
                   <TableRow>
-                    <TableCell>股票代码</TableCell>
+                    <TableCell>股票</TableCell>
                     <TableCell align="right" sx={{ width: 150 }}>
                       目标权重 (%)
                     </TableCell>
@@ -146,16 +279,14 @@ export function PortfolioRebalanceDialog({ open, onClose, portfolioId }: Rebalan
                 </TableHead>
                 <TableBody>
                   {targets.map((row, idx) => (
-                    <TableRow key={idx}>
+                    <TableRow key={`${row.stock?.tsCode ?? 'empty'}-${idx}`}>
                       <TableCell>
-                        <TextField
-                          size="small"
-                          placeholder="如 000001.SZ"
-                          value={row.tsCode}
-                          onChange={(e) => updateRow(idx, { tsCode: e.target.value })}
+                        <StockSearchAutocomplete
+                          fullWidth
+                          value={row.stock ?? stockItemFromCode(null)}
                           disabled={loading}
-                          sx={{ width: 160 }}
-                          inputProps={{ style: { textTransform: 'uppercase' } }}
+                          placeholder="输入股票代码或名称"
+                          onChange={(stock) => updateRow(idx, { stock })}
                         />
                       </TableCell>
                       <TableCell align="right">
@@ -163,10 +294,12 @@ export function PortfolioRebalanceDialog({ open, onClose, portfolioId }: Rebalan
                           size="small"
                           type="number"
                           value={row.targetWeight}
-                          onChange={(e) => updateRow(idx, { targetWeight: Number(e.target.value) })}
+                          onChange={(event) =>
+                            updateRow(idx, { targetWeight: Number(event.target.value) })
+                          }
                           disabled={loading}
-                          inputProps={{ min: 0, max: 100, step: 1 }}
-                          sx={{ width: 100 }}
+                          inputProps={{ min: 0, max: 100, step: 0.5 }}
+                          sx={{ width: 112 }}
                         />
                       </TableCell>
                       <TableCell>
@@ -207,7 +340,73 @@ export function PortfolioRebalanceDialog({ open, onClose, portfolioId }: Rebalan
             </Box>
           </Box>
 
-          {/* Results */}
+          <Divider />
+
+          <Box>
+            <Button
+              size="small"
+              color="inherit"
+              onClick={() => setAdvancedOpen((value) => !value)}
+              endIcon={
+                <Iconify
+                  icon={advancedOpen ? 'solar:alt-arrow-up-bold' : 'solar:alt-arrow-down-bold'}
+                />
+              }
+            >
+              高级成本参数
+            </Button>
+            <Collapse in={advancedOpen}>
+              <Box
+                sx={{
+                  gap: 2,
+                  mt: 2,
+                  display: 'grid',
+                  gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' },
+                }}
+              >
+                <TextField
+                  size="small"
+                  label="佣金率"
+                  value={commissionRate}
+                  onChange={(event) => setCommissionRate(event.target.value)}
+                  helperText="默认 0.0003"
+                />
+                <TextField
+                  size="small"
+                  label="最小佣金"
+                  value={minCommission}
+                  onChange={(event) => setMinCommission(event.target.value)}
+                  helperText="默认 ¥5"
+                />
+                <TextField
+                  size="small"
+                  label="印花税率"
+                  value={stampDutyRate}
+                  onChange={(event) => setStampDutyRate(event.target.value)}
+                  helperText="卖出侧估算，默认 0.0005"
+                />
+                <TextField
+                  size="small"
+                  label="总市值覆盖"
+                  value={totalValue}
+                  onChange={(event) => setTotalValue(event.target.value)}
+                  helperText="不填则使用后端当前组合估值"
+                />
+                <FormControl size="small">
+                  <InputLabel>未指定持仓</InputLabel>
+                  <Select
+                    label="未指定持仓"
+                    value={omitUnspecified}
+                    onChange={(event) => setOmitUnspecified(event.target.value as OmitAction)}
+                  >
+                    <MenuItem value="HOLD">保持不动</MenuItem>
+                    <MenuItem value="SELL">卖出清仓</MenuItem>
+                  </Select>
+                </FormControl>
+              </Box>
+            </Collapse>
+          </Box>
+
           {result && (
             <>
               <Divider />
@@ -215,15 +414,21 @@ export function PortfolioRebalanceDialog({ open, onClose, portfolioId }: Rebalan
                 <Box
                   sx={{
                     display: 'flex',
+                    gap: 1,
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     mb: 1.5,
                   }}
                 >
                   <Typography variant="subtitle2">调仓操作清单</Typography>
-                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                    预估交易成本：{fCurrency(result.estimatedCost)}
-                  </Typography>
+                  <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                      预估交易成本：{fCurrency(result.estimatedCost)}
+                    </Typography>
+                    <Button size="small" variant="outlined" onClick={handleCopyOrders}>
+                      复制委托清单
+                    </Button>
+                  </Box>
                 </Box>
 
                 <TableContainer sx={{ maxHeight: 340 }}>
@@ -238,8 +443,8 @@ export function PortfolioRebalanceDialog({ open, onClose, portfolioId }: Rebalan
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {actions.map((action: RebalanceAction, idx: number) => (
-                        <TableRow key={idx} hover>
+                      {actions.map((action: RebalanceAction) => (
+                        <TableRow key={`${action.tsCode}-${action.action}`} hover>
                           <TableCell>{action.tsCode}</TableCell>
                           <TableCell>{action.stockName}</TableCell>
                           <TableCell>
@@ -279,7 +484,7 @@ export function PortfolioRebalanceDialog({ open, onClose, portfolioId }: Rebalan
                   variant="caption"
                   sx={{ display: 'block', mt: 1, color: 'text.secondary' }}
                 >
-                  说明：以上为参考计划，不会自动执行，请手动操作。估算基于当前市价。
+                  说明：以上为参考计划，不会自动执行。实盘组合请人工确认后下单，模拟盘执行接口后续开放。
                 </Typography>
               </Box>
             </>
@@ -308,6 +513,7 @@ export function PortfolioRebalanceDialog({ open, onClose, portfolioId }: Rebalan
             onClick={() => {
               setResult(null);
               setError('');
+              setCopyMessage('');
             }}
           >
             重新配置

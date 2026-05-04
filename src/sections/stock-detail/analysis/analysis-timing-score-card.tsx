@@ -4,6 +4,7 @@ import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Grid from '@mui/material/Grid';
 import Chip from '@mui/material/Chip';
+import { useTheme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 
@@ -14,8 +15,15 @@ import { Chart, useChart } from 'src/components/chart';
 type Props = { scoreSummary: TimingScoreSummary };
 
 export function AnalysisTimingScoreCard({ scoreSummary }: Props) {
+  const theme = useTheme();
+
   const { score, rating, bullishCount, bearishCount, neutralCount } = scoreSummary;
-  const scoreColor = score >= 70 ? '#EF5350' : score >= 50 ? '#FF9800' : '#26A69A';
+  const scoreColor =
+    score >= 70
+      ? theme.palette.error.main
+      : score >= 50
+        ? theme.palette.warning.main
+        : theme.palette.success.main;
 
   const series = [score];
   const chartOptions = useChart({
@@ -25,7 +33,7 @@ export function AnalysisTimingScoreCard({ scoreSummary }: Props) {
         startAngle: -135,
         endAngle: 135,
         dataLabels: {
-          name: { fontSize: '12px', color: '#999', offsetY: 20 },
+          name: { fontSize: '12px', color: theme.palette.text.secondary, offsetY: 20 },
           value: {
             fontSize: '24px',
             fontWeight: 700,
@@ -33,7 +41,7 @@ export function AnalysisTimingScoreCard({ scoreSummary }: Props) {
             formatter: (v: number) => String(Math.round(v)),
           },
         },
-        track: { background: '#f0f0f0', strokeWidth: '100%' },
+        track: { background: theme.palette.action.hover, strokeWidth: '100%' },
         hollow: { size: '60%' },
       },
     },
@@ -44,7 +52,9 @@ export function AnalysisTimingScoreCard({ scoreSummary }: Props) {
   return (
     <Card>
       <CardContent>
-        <Typography variant="subtitle1" sx={{ mb: 2 }}>综合择时评分</Typography>
+        <Typography variant="subtitle1" sx={{ mb: 2 }}>
+          综合择时评分
+        </Typography>
         <Grid container spacing={2} alignItems="center">
           <Grid size={{ xs: 12, sm: 5 }}>
             <Chart type="radialBar" series={series} options={chartOptions} sx={{ height: 260 }} />
@@ -52,8 +62,12 @@ export function AnalysisTimingScoreCard({ scoreSummary }: Props) {
           <Grid size={{ xs: 12, sm: 7 }}>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <Box>
-                <Typography variant="h4" sx={{ color: scoreColor }}>{score}</Typography>
-                <Typography variant="body2" color="text.secondary">综合评分</Typography>
+                <Typography variant="h4" sx={{ color: scoreColor }}>
+                  {score}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  综合评分
+                </Typography>
               </Box>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>

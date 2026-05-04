@@ -50,7 +50,10 @@ export function BacktestTemplateCards({
                 border: (theme) =>
                   selected ? `2px solid ${theme.palette.primary.main}` : '2px solid transparent',
                 boxShadow: selected ? 6 : 1,
-                transition: 'all 0.2s',
+                transition: (theme) =>
+                  theme.transitions.create(['border-color', 'box-shadow'], {
+                    duration: theme.transitions.duration.shorter,
+                  }),
               }}
             >
               <CardActionArea

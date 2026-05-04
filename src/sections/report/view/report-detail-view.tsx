@@ -1,31 +1,47 @@
+import type { SyntheticEvent } from 'react';
+import type { AlertColor } from '@mui/material/Alert';
+import type {
+  Report,
+  StockReportData,
+  BacktestReportData,
+  PortfolioReportData,
+  StrategyResearchReportData,
+} from 'src/api/report';
+
 import { useParams } from 'react-router-dom';
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
-import Card from '@mui/material/Card';
-import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
+import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
-import Typography from '@mui/material/Typography';
+import Tooltip from '@mui/material/Tooltip';
+import Snackbar from '@mui/material/Snackbar';
+import IconButton from '@mui/material/IconButton';
 import CircularProgress from '@mui/material/CircularProgress';
 
+import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
 
-import { fDateTime } from 'src/utils/format-time';
-
 import { DashboardContent } from 'src/layouts/dashboard';
-import { type Report, getReportDetail } from 'src/api/report';
+import { getReportDetail, regenerateReport as regenerateReportApi } from 'src/api/report';
 
-import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
 
 import { StockReportViewer } from '../report-stock-viewer';
 import { BacktestReportViewer } from '../report-backtest-viewer';
 import { StrategyReportViewer } from '../report-strategy-viewer';
+import { ReportErrorCard } from '../components/report-error-card';
+import { ReportProgressBar } from '../components/report-progress';
 import { PortfolioReportViewer } from '../report-portfolio-viewer';
-import { REPORT_TYPE_LABELS, REPORT_TYPE_COLORS, REPORT_STATUS_CONFIG } from '../constants';
+import { ReportNotesPanel } from '../components/report-notes-panel';
+import { ReportShareDialog } from '../components/report-share-dialog';
+import { ReportDetailHeader } from '../components/report-detail-header';
+import { reportToMarkdown, downloadMarkdown } from '../utils/to-markdown';
 
-// ── Component ─────────────────────────────────────────────────
+type SnackbarState = { open: boolean; message: string; severity: AlertColor };
+
+const initialSnackbar: SnackbarState = { open: false, message: '', severity: 'success' };
 
 export function ReportDetailView() {
   const { id } = useParams<{ id: string }>();
@@ -33,30 +49,46 @@ export function ReportDetailView() {
 
   const [report, setReport] = useState<Report | null>(null);
   const [loading, setLoading] = useState(true);
+  const [retrying, setRetrying] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [notesOpen, setNotesOpen] = useState(true);
+  const [snackbar, setSnackbar] = useState<SnackbarState>(initialSnackbar);
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const fetchDetail = async (reportId: string) => {
-    try {
-      const data = await getReportDetail({ reportId });
-      setReport(data);
-      return data;
-    } catch (err) {
-      console.error(err);
-      return null;
-    }
+  const showSnackbar = useCallback((message: string, severity: AlertColor = 'success') => {
+    setSnackbar({ open: true, message, severity });
+  }, []);
+
+  const handleSnackbarClose = (_e?: SyntheticEvent | Event, reason?: string) => {
+    if (reason === 'clickaway') return;
+    setSnackbar((s) => ({ ...s, open: false }));
   };
+
+  const fetchDetail = useCallback(
+    async (reportId: string) => {
+      try {
+        const data = await getReportDetail({ reportId });
+        setReport(data);
+        return data;
+      } catch (err) {
+        showSnackbar(err instanceof Error ? err.message : '加载失败', 'error');
+        return null;
+      }
+    },
+    [showSnackbar]
+  );
 
   // Initial load
   useEffect(() => {
     if (!id) return;
     setLoading(true);
     fetchDetail(id).finally(() => setLoading(false));
-  }, [id]);
+  }, [id, fetchDetail]);
 
   // Polling for PENDING / GENERATING
   useEffect(() => {
     if (!report?.id || !id) return undefined;
-    if (report?.status !== 'PENDING' && report?.status !== 'GENERATING') return undefined;
+    if (report.status !== 'PENDING' && report.status !== 'GENERATING') return undefined;
 
     pollingRef.current = setInterval(async () => {
       const updated = await fetchDetail(id);
@@ -68,7 +100,45 @@ export function ReportDetailView() {
     return () => {
       if (pollingRef.current) clearInterval(pollingRef.current);
     };
-  }, [report?.id, report?.status, id]);
+  }, [report?.id, report?.status, id, fetchDetail]);
+
+  const handleCopyLink = async () => {
+    if (!report) return;
+    const url = `${window.location.origin}${paths.research.report.detail(report.id)}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      showSnackbar('链接已复制');
+    } catch {
+      showSnackbar('复制失败，请手动复制', 'warning');
+    }
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const handleExportMarkdown = () => {
+    if (!report) return;
+    const md = reportToMarkdown(report);
+    const filename = `${report.title || report.id}.md`;
+    downloadMarkdown(filename, md);
+    showSnackbar('已导出 Markdown');
+  };
+
+  const handleRegenerate = async () => {
+    if (!report) return;
+    setRetrying(true);
+    try {
+      await regenerateReportApi({ reportId: report.id });
+      showSnackbar('已提交重新生成');
+      // Refresh after a short delay so the new status reflects
+      if (id) await fetchDetail(id);
+    } catch (err) {
+      showSnackbar(err instanceof Error ? err.message : '重新生成失败', 'error');
+    } finally {
+      setRetrying(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -88,86 +158,161 @@ export function ReportDetailView() {
     );
   }
 
-  const statusCfg = REPORT_STATUS_CONFIG[report.status];
+  const isInProgress = report.status === 'PENDING' || report.status === 'GENERATING';
+  const isFailed = report.status === 'FAILED';
+  const isCompleted = report.status === 'COMPLETED';
+
+  const headerActions = (
+    <Stack direction="row" spacing={0.5} className="report-detail-toolbar">
+      <Tooltip title="复制链接">
+        <IconButton size="small" onClick={handleCopyLink}>
+          <Iconify icon="solar:copy-bold" />
+        </IconButton>
+      </Tooltip>
+      <Tooltip title="分享">
+        <IconButton size="small" onClick={() => setShareOpen(true)}>
+          <Iconify icon="solar:share-bold" />
+        </IconButton>
+      </Tooltip>
+      <Tooltip title="打印">
+        <IconButton size="small" onClick={handlePrint} disabled={!isCompleted}>
+          <Iconify icon="solar:file-text-bold" />
+        </IconButton>
+      </Tooltip>
+      <Tooltip title="导出 Markdown">
+        <IconButton size="small" onClick={handleExportMarkdown} disabled={!isCompleted}>
+          <Iconify icon="solar:document-text-bold" />
+        </IconButton>
+      </Tooltip>
+      <Tooltip title="重新生成">
+        <IconButton size="small" onClick={handleRegenerate} disabled={retrying || isInProgress}>
+          <Iconify icon="solar:refresh-bold" />
+        </IconButton>
+      </Tooltip>
+      <Tooltip title={notesOpen ? '隐藏笔记' : '显示笔记'}>
+        <IconButton size="small" onClick={() => setNotesOpen((v) => !v)}>
+          <Iconify icon="solar:notebook-bold-duotone" />
+        </IconButton>
+      </Tooltip>
+    </Stack>
+  );
 
   return (
-    <DashboardContent>
-      {/* 顶部导航 */}
+    <DashboardContent
+      sx={{
+        '@media print': {
+          '& .report-detail-toolbar, & .report-back-button, & .report-notes-panel': {
+            display: 'none',
+          },
+        },
+      }}
+    >
       <Button
+        className="report-back-button"
         startIcon={<Iconify icon="solar:arrow-left-bold" />}
-        onClick={() => router.push('/research/report')}
+        onClick={() => router.push(paths.research.report.list)}
         sx={{ mb: 2 }}
       >
         返回列表
       </Button>
 
-      {/* 报告元信息 */}
-      <Card sx={{ p: 3, mb: 3 }}>
-        <Typography variant="h5" sx={{ mb: 2 }}>
-          {report.title}
-        </Typography>
-        <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ gap: 1 }}>
-          <Label color={REPORT_TYPE_COLORS[report.type] as any}>
-            {REPORT_TYPE_LABELS[report.type]}
-          </Label>
-          <Label color="default">{report.format}</Label>
-          <Label color={statusCfg.color as any}>{statusCfg.label}</Label>
-        </Stack>
-        <Stack direction="row" spacing={3} sx={{ mt: 2 }}>
-          <Typography variant="body2" color="text.secondary">
-            创建时间：{fDateTime(report.createdAt)}
-          </Typography>
-          {report.completedAt && (
-            <Typography variant="body2" color="text.secondary">
-              完成时间：{fDateTime(report.completedAt)}
-            </Typography>
-          )}
-        </Stack>
-      </Card>
+      <ReportDetailHeader report={report} actions={headerActions} />
 
-      {/* 内容区 */}
-      {(report.status === 'PENDING' || report.status === 'GENERATING') && (
-        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', py: 8, gap: 2 }}>
-          <CircularProgress />
-          <Typography color="text.secondary">报告正在生成中，请稍候…</Typography>
+      {isInProgress && (
+        <Box sx={{ mb: 3 }}>
+          <ReportProgressBar progress={report.progress} />
         </Box>
       )}
 
-      {report.status === 'FAILED' && (
-        <Alert severity="error" sx={{ mb: 3 }}>
-          报告生成失败：{report.errorMessage ?? '未知错误'}
+      {isFailed && (
+        <Box sx={{ mb: 3 }}>
+          <ReportErrorCard
+            report={report}
+            retrying={retrying}
+            onRetry={handleRegenerate}
+            onJump={(path) => router.push(path)}
+          />
+        </Box>
+      )}
+
+      {isCompleted && (
+        <Box
+          sx={{
+            display: 'grid',
+            gap: 3,
+            gridTemplateColumns: { xs: '1fr', lg: notesOpen ? '1fr 320px' : '1fr' },
+            alignItems: 'flex-start',
+          }}
+        >
+          <Box sx={{ minWidth: 0 }}>
+            {report.data ? (
+              <ReportContent report={report} />
+            ) : (
+              <Alert severity="info">此报告为文件格式，请使用下方链接下载查看。</Alert>
+            )}
+
+            {report.filePath && (
+              <Box sx={{ mt: 3, display: 'flex', gap: 1 }} className="report-detail-toolbar">
+                <Button
+                  variant="contained"
+                  startIcon={<Iconify icon="solar:download-bold" />}
+                  href={report.filePath}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  下载 {report.format}
+                </Button>
+              </Box>
+            )}
+          </Box>
+
+          {notesOpen && (
+            <Box className="report-notes-panel">
+              <ReportNotesPanel
+                report={report}
+                onSaved={(notes, updatedAt) =>
+                  setReport((prev) => (prev ? { ...prev, notes, notesUpdatedAt: updatedAt } : prev))
+                }
+              />
+            </Box>
+          )}
+        </Box>
+      )}
+
+      <ReportShareDialog
+        open={shareOpen}
+        reportId={report.id}
+        onClose={() => setShareOpen(false)}
+        onMessage={(msg, sev) => showSnackbar(msg, sev)}
+      />
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3500}
+        onClose={handleSnackbarClose}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert severity={snackbar.severity} variant="filled" onClose={handleSnackbarClose}>
+          {snackbar.message}
         </Alert>
-      )}
-
-      {report.status === 'COMPLETED' && report.data && (
-        <>
-          {report.type === 'BACKTEST' && <BacktestReportViewer data={report.data as any} />}
-          {report.type === 'STOCK' && <StockReportViewer data={report.data as any} />}
-          {report.type === 'PORTFOLIO' && <PortfolioReportViewer data={report.data as any} />}
-          {report.type === 'STRATEGY_RESEARCH' && (
-            <StrategyReportViewer data={report.data as any} />
-          )}
-        </>
-      )}
-
-      {report.status === 'COMPLETED' && !report.data && (
-        <Alert severity="info">此报告为文件格式，请使用下方链接下载查看。</Alert>
-      )}
-
-      {/* 下载按钮 */}
-      {report.filePath && (
-        <Box sx={{ mt: 3, display: 'flex', gap: 1 }}>
-          <Button
-            variant="contained"
-            startIcon={<Iconify icon="solar:download-bold" />}
-            href={report.filePath}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            下载 {report.format}
-          </Button>
-        </Box>
-      )}
+      </Snackbar>
     </DashboardContent>
   );
+}
+
+// ── Type-narrowed viewer router ─────────────────────────────────────────────
+
+function ReportContent({ report }: { report: Report }) {
+  switch (report.type) {
+    case 'BACKTEST':
+      return <BacktestReportViewer data={report.data as unknown as BacktestReportData} />;
+    case 'STOCK':
+      return <StockReportViewer data={report.data as unknown as StockReportData} />;
+    case 'PORTFOLIO':
+      return <PortfolioReportViewer data={report.data as unknown as PortfolioReportData} />;
+    case 'STRATEGY_RESEARCH':
+      return <StrategyReportViewer data={report.data as unknown as StrategyResearchReportData} />;
+    default:
+      return null;
+  }
 }

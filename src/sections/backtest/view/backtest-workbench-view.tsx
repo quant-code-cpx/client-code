@@ -1,147 +1,330 @@
-import type { StrategyTemplate, ValidateBacktestRunResponse } from 'src/api/backtest';
+import type { StrategyTemplate } from 'src/api/backtest';
+import type { StrategyDraft } from 'src/api/strategy-draft';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useMemo, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
+import Menu from '@mui/material/Menu';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
+import MenuItem from '@mui/material/MenuItem';
 import Skeleton from '@mui/material/Skeleton';
+import Snackbar from '@mui/material/Snackbar';
 import Typography from '@mui/material/Typography';
+import ListItemIcon from '@mui/material/ListItemIcon';
 
 import { useRouter } from 'src/routes/hooks';
 
+import { useAuth } from 'src/auth';
 import { DashboardContent } from 'src/layouts/dashboard';
-import { createRun, validateRun, getStrategyTemplates } from 'src/api/backtest';
+import { createRun, getStrategyTemplates } from 'src/api/backtest';
+import { autoSaveDraft, getAutoSavedDraft } from 'src/api/strategy-draft';
 
 import { Iconify } from 'src/components/iconify';
 
 import { BacktestConfigForm } from '../backtest-config-form';
+import { useAutoValidate } from '../hooks/use-auto-validate';
 import { BacktestDraftDrawer } from '../backtest-draft-drawer';
 import { BacktestTemplateCards } from '../backtest-template-cards';
 import { BacktestValidatePanel } from '../backtest-validate-panel';
 import { BacktestSubmitSummary } from '../backtest-submit-summary';
+import { BacktestRunningRunsBadge } from '../backtest-running-runs-badge';
 import { BacktestStrategyConfigPanel } from '../backtest-strategy-config-panel';
 import {
-  DEFAULT_FORM,
-  DEFAULT_MA_CONFIG,
-  DEFAULT_FACTOR_CONFIG,
-  DEFAULT_SCREENING_CONFIG,
-  DEFAULT_CUSTOM_POOL_CONFIG,
+  toApiDate,
+  buildDefaultForm,
+  BACKTEST_AUTOSAVE_ID,
+  buildDefaultStrategyConfig,
+  BACKTEST_AUTOSAVE_KEY_PREFIX,
 } from '../constants';
 
-import type { BacktestRunForm } from '../types';
+import type { BacktestRunForm, StrategyTemplateId } from '../types';
 
 // ----------------------------------------------------------------------
-
-const DEFAULT_STRATEGY_CONFIGS: Record<string, Record<string, unknown>> = {
-  MA_CROSS_SINGLE: DEFAULT_MA_CONFIG as unknown as Record<string, unknown>,
-  SCREENING_ROTATION: DEFAULT_SCREENING_CONFIG as unknown as Record<string, unknown>,
-  FACTOR_RANKING: DEFAULT_FACTOR_CONFIG as unknown as Record<string, unknown>,
-  CUSTOM_POOL_REBALANCE: DEFAULT_CUSTOM_POOL_CONFIG as unknown as Record<string, unknown>,
-};
 
 type BacktestWorkbenchState = Partial<BacktestRunForm> & {
   templateId?: string;
   strategyType?: string;
 };
 
+function buildInitialForm() {
+  return {
+    ...buildDefaultForm(),
+    strategyConfig: buildDefaultStrategyConfig('SCREENING_ROTATION'),
+  };
+}
+
+function toAutoSavedDraft(config: Record<string, unknown>, updatedAt: string): StrategyDraft {
+  return {
+    id: BACKTEST_AUTOSAVE_ID,
+    name: '上次编辑（自动保存）',
+    config,
+    createdAt: updatedAt,
+    updatedAt,
+    isAutoSave: true,
+  };
+}
+
+function readLocalAutoSavedDraft(storageKey: string) {
+  if (typeof window === 'undefined') return null;
+
+  try {
+    const raw = window.localStorage.getItem(storageKey);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as { config?: Record<string, unknown>; updatedAt?: string };
+    if (!parsed.config || !parsed.updatedAt) return null;
+    return toAutoSavedDraft(parsed.config, parsed.updatedAt);
+  } catch {
+    return null;
+  }
+}
+
+function writeLocalAutoSavedDraft(
+  storageKey: string,
+  config: Record<string, unknown>,
+  updatedAt: string
+) {
+  if (typeof window === 'undefined') return;
+
+  try {
+    window.localStorage.setItem(storageKey, JSON.stringify({ config, updatedAt }));
+  } catch {
+    // localStorage may be unavailable in private mode; backend auto-save is still attempted.
+  }
+}
+
+function normalizeTemplateId(templateId: string | undefined): StrategyTemplateId {
+  if (
+    templateId === 'MA_CROSS_SINGLE' ||
+    templateId === 'SCREENING_ROTATION' ||
+    templateId === 'FACTOR_RANKING' ||
+    templateId === 'CUSTOM_POOL_REBALANCE'
+  ) {
+    return templateId;
+  }
+  return 'SCREENING_ROTATION';
+}
+
 // ----------------------------------------------------------------------
 
 export function BacktestWorkbenchView() {
   const router = useRouter();
+  const { userProfile } = useAuth();
 
   const [templates, setTemplates] = useState<StrategyTemplate[]>([]);
   const [loadingTemplates, setLoadingTemplates] = useState(true);
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string>('SCREENING_ROTATION');
-
-  const [form, setForm] = useState<BacktestRunForm>({
-    ...DEFAULT_FORM,
-    strategyConfig: DEFAULT_SCREENING_CONFIG as unknown as Record<string, unknown>,
-  });
-
-  const [validation, setValidation] = useState<ValidateBacktestRunResponse | null>(null);
-  const [validating, setValidating] = useState(false);
+  const [templateError, setTemplateError] = useState('');
+  const [selectedTemplateId, setSelectedTemplateId] =
+    useState<StrategyTemplateId>('SCREENING_ROTATION');
+  const [form, setForm] = useState<BacktestRunForm>(buildInitialForm);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [draftDrawerOpen, setDraftDrawerOpen] = useState(false);
+  const [advancedAnchor, setAdvancedAnchor] = useState<HTMLElement | null>(null);
+  const [autoSavedDraft, setAutoSavedDraft] = useState<StrategyDraft | null>(null);
+  const [restoreSnackbarOpen, setRestoreSnackbarOpen] = useState(false);
+  const [submitSnackbarOpen, setSubmitSnackbarOpen] = useState(false);
+  const [submittedRunId, setSubmittedRunId] = useState('');
+  const [runningRefreshToken, setRunningRefreshToken] = useState(0);
 
-  // Prefill form from router state (for "copy & re-run" scenario)
+  const autoSaveStorageKey = `${BACKTEST_AUTOSAVE_KEY_PREFIX}:${userProfile?.id ?? 'anonymous'}`;
+
+  const currentConfig = useMemo(
+    () => ({ ...form, strategyType: selectedTemplateId }) as Record<string, unknown>,
+    [form, selectedTemplateId]
+  );
+
+  const validateQuery = useMemo(
+    () => ({
+      strategyType: selectedTemplateId,
+      strategyConfig:
+        selectedTemplateId === 'CUSTOM_POOL_REBALANCE'
+          ? { ...form.strategyConfig, tsCodes: form.customUniverseTsCodes }
+          : form.strategyConfig,
+      startDate: toApiDate(form.startDate),
+      endDate: toApiDate(form.endDate),
+      benchmarkTsCode: form.benchmarkTsCode,
+      universe: form.universe,
+      initialCapital: form.initialCapital,
+      rebalanceFrequency: form.rebalanceFrequency,
+      priceMode: form.priceMode,
+      enableTradeConstraints: form.enableTradeConstraints,
+      enableT1Restriction: form.enableT1Restriction,
+      partialFillEnabled: form.partialFillEnabled,
+    }),
+    [form, selectedTemplateId]
+  );
+
+  const { validation, validating, validateNow, validationStale, resetValidation } = useAutoValidate(
+    {
+      query: validateQuery,
+      enabled: Boolean(form.startDate && form.endDate && selectedTemplateId),
+      debounceMs: 800,
+      onError: setError,
+    }
+  );
+
+  const loadTemplates = useCallback(async () => {
+    setLoadingTemplates(true);
+    setTemplateError('');
+    try {
+      const response = await getStrategyTemplates();
+      const nextTemplates = response.templates ?? [];
+      setTemplates(nextTemplates);
+      setSelectedTemplateId((current) => {
+        if (
+          nextTemplates.length === 0 ||
+          nextTemplates.some((template) => template.id === current)
+        ) {
+          return current;
+        }
+
+        const firstTemplate = nextTemplates[0];
+        setForm((prev) => ({
+          ...prev,
+          strategyConfig: buildDefaultStrategyConfig(firstTemplate.id, firstTemplate.defaultConfig),
+        }));
+        return firstTemplate.id;
+      });
+    } catch (err) {
+      setTemplates([]);
+      setTemplateError(err instanceof Error ? err.message : '策略模板加载失败');
+    } finally {
+      setLoadingTemplates(false);
+    }
+  }, []);
+
   useEffect(() => {
-    const state = window.history.state?.usr as BacktestWorkbenchState | undefined;
-    if (state?.strategyType || state?.templateId) {
-      const { templateId, strategyType, ...formState } = state;
-      const nextTemplateId = templateId ?? strategyType ?? 'SCREENING_ROTATION';
+    loadTemplates();
+  }, [loadTemplates]);
 
+  const loadDraftConfig = useCallback(
+    (config: Record<string, unknown>, templateId: string) => {
+      const nextTemplateId = normalizeTemplateId(templateId);
+      const formFields = { ...config };
+      delete formFields.strategyType;
       setSelectedTemplateId(nextTemplateId);
       setForm((prev) => ({
         ...prev,
-        strategyConfig: DEFAULT_STRATEGY_CONFIGS[nextTemplateId] ?? prev.strategyConfig,
-        ...formState,
+        ...(formFields as Partial<BacktestRunForm>),
+        strategyConfig:
+          ((formFields as Partial<BacktestRunForm>).strategyConfig as Record<string, unknown>) ??
+          buildDefaultStrategyConfig(nextTemplateId),
       }));
-    }
-  }, []);
+      resetValidation();
+      setDraftDrawerOpen(false);
+      setRestoreSnackbarOpen(false);
+    },
+    [resetValidation]
+  );
 
-  // Load strategy templates
   useEffect(() => {
-    setLoadingTemplates(true);
-    getStrategyTemplates()
-      .then((res) => setTemplates(res.templates ?? []))
-      .catch(() => setTemplates([]))
-      .finally(() => setLoadingTemplates(false));
-  }, []);
-
-  const handleTemplateSelect = useCallback((templateId: string) => {
-    setSelectedTemplateId(templateId);
-    setValidation(null);
-    setForm((prev) => ({
-      ...prev,
-      strategyConfig: DEFAULT_STRATEGY_CONFIGS[templateId] ?? {},
-    }));
-  }, []);
-
-  const handleFormChange = useCallback((updates: Partial<BacktestRunForm>) => {
-    setForm((prev) => ({ ...prev, ...updates }));
-    setValidation(null);
-  }, []);
-
-  // Backend expects YYYYMMDD; form stores YYYY-MM-DD for date inputs
-  const toApiDate = (d: string) => d.replace(/-/g, '');
-
-  const handleValidate = useCallback(async () => {
-    setValidating(true);
-    setError('');
-    try {
-      const res = await validateRun({
-        strategyType: selectedTemplateId,
-        strategyConfig: form.strategyConfig,
-        startDate: toApiDate(form.startDate),
-        endDate: toApiDate(form.endDate),
-        benchmarkTsCode: form.benchmarkTsCode,
-        universe: form.universe,
-        initialCapital: form.initialCapital,
-        rebalanceFrequency: form.rebalanceFrequency,
-        priceMode: form.priceMode,
-        enableTradeConstraints: form.enableTradeConstraints,
-      });
-      setValidation(res);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '校验失败');
-    } finally {
-      setValidating(false);
+    const state = window.history.state?.usr as BacktestWorkbenchState | undefined;
+    if (state?.strategyType || state?.templateId) {
+      const nextTemplateId = normalizeTemplateId(state.templateId ?? state.strategyType);
+      loadDraftConfig(state as Record<string, unknown>, nextTemplateId);
     }
-  }, [form, selectedTemplateId]);
+  }, [loadDraftConfig]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    getAutoSavedDraft()
+      .then((remoteDraft) => {
+        if (cancelled || !remoteDraft?.config) return;
+        const draft = toAutoSavedDraft(remoteDraft.config, remoteDraft.updatedAt);
+        setAutoSavedDraft(draft);
+        setRestoreSnackbarOpen(true);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        const localDraft = readLocalAutoSavedDraft(autoSaveStorageKey);
+        if (localDraft) {
+          setAutoSavedDraft(localDraft);
+          setRestoreSnackbarOpen(true);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [autoSaveStorageKey]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      const updatedAt = new Date().toISOString();
+      const draft = toAutoSavedDraft(currentConfig, updatedAt);
+      autoSaveDraft({ config: currentConfig })
+        .then((response) => {
+          const nextUpdatedAt = response.updatedAt ?? updatedAt;
+          setAutoSavedDraft(toAutoSavedDraft(currentConfig, nextUpdatedAt));
+        })
+        .catch(() => {
+          writeLocalAutoSavedDraft(autoSaveStorageKey, currentConfig, updatedAt);
+          setAutoSavedDraft(draft);
+        });
+    }, 2000);
+
+    return () => {
+      window.clearTimeout(timer);
+    };
+  }, [autoSaveStorageKey, currentConfig]);
+
+  const fieldErrors = useMemo(
+    () =>
+      Object.fromEntries(
+        (validation?.fieldErrors ?? []).map((fieldError) => [fieldError.path, fieldError.message])
+      ),
+    [validation?.fieldErrors]
+  );
+
+  const handleTemplateSelect = useCallback(
+    (templateId: string) => {
+      const nextTemplateId = normalizeTemplateId(templateId);
+      const template = templates.find((item) => item.id === nextTemplateId);
+      setSelectedTemplateId(nextTemplateId);
+      setForm((prev) => ({
+        ...prev,
+        strategyConfig: buildDefaultStrategyConfig(nextTemplateId, template?.defaultConfig),
+      }));
+      resetValidation();
+    },
+    [resetValidation, templates]
+  );
+
+  const handleFormChange = useCallback(
+    (updates: Partial<BacktestRunForm>) => {
+      setForm((prev) => {
+        const next = { ...prev, ...updates };
+        if (updates.customUniverseTsCodes && selectedTemplateId === 'CUSTOM_POOL_REBALANCE') {
+          next.strategyConfig = { ...next.strategyConfig, tsCodes: updates.customUniverseTsCodes };
+        }
+        return next;
+      });
+    },
+    [selectedTemplateId]
+  );
+
+  const handleManualValidate = useCallback(() => {
+    validateNow();
+  }, [validateNow]);
 
   const handleSubmit = useCallback(async () => {
-    if (!validation || validation.errors.length > 0) return;
+    if (!validation || validation.errors.length > 0 || validationStale) return;
+
     setSubmitting(true);
     setError('');
     try {
-      const res = await createRun({
+      const strategyConfig =
+        selectedTemplateId === 'CUSTOM_POOL_REBALANCE'
+          ? { ...form.strategyConfig, tsCodes: form.customUniverseTsCodes }
+          : form.strategyConfig;
+      const response = await createRun({
         name: form.name || undefined,
         strategyType: selectedTemplateId,
-        strategyConfig: form.strategyConfig,
+        strategyConfig,
         startDate: toApiDate(form.startDate),
         endDate: toApiDate(form.endDate),
         benchmarkTsCode: form.benchmarkTsCode,
@@ -158,23 +341,26 @@ export function BacktestWorkbenchView() {
         maxWeightPerStock: form.maxWeightPerStock,
         minDaysListed: form.minDaysListed,
         enableTradeConstraints: form.enableTradeConstraints,
+        enableT1Restriction: form.enableT1Restriction,
+        partialFillEnabled: form.partialFillEnabled,
       });
-      router.push(`/backtest/runs/${res.runId}`);
+      setSubmittedRunId(response.runId);
+      setSubmitSnackbarOpen(true);
+      setRunningRefreshToken((value) => value + 1);
     } catch (err) {
       setError(err instanceof Error ? err.message : '提交失败');
     } finally {
       setSubmitting(false);
     }
-  }, [form, selectedTemplateId, validation, router]);
+  }, [form, selectedTemplateId, validation, validationStale]);
 
   return (
     <DashboardContent>
-      {/* Header */}
       <Box sx={{ mb: 4, display: 'flex', alignItems: 'flex-start', gap: 2 }}>
         <Box sx={{ flex: 1 }}>
           <Typography variant="h4">回测工作台</Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
-            配置策略参数，校验数据完备性，提交回测任务
+            配置策略参数，自动校验数据完备性，提交后可继续调参与追踪进度
           </Typography>
         </Box>
         <Button
@@ -186,6 +372,10 @@ export function BacktestWorkbenchView() {
         >
           草稿
         </Button>
+        <BacktestRunningRunsBadge
+          refreshToken={runningRefreshToken}
+          onOpenRun={(runId) => router.push(`/backtest/runs/${runId}`)}
+        />
         <Divider
           orientation="vertical"
           flexItem
@@ -195,91 +385,92 @@ export function BacktestWorkbenchView() {
           variant="outlined"
           size="small"
           color="secondary"
-          startIcon={<Iconify icon="solar:shuffle-bold" width={18} />}
-          onClick={() => router.push('/backtest/walk-forward')}
+          startIcon={<Iconify icon="solar:menu-dots-bold" width={18} />}
+          onClick={(event) => setAdvancedAnchor(event.currentTarget)}
           sx={{ mt: 0.5, flexShrink: 0 }}
         >
-          WF 验证
+          进阶
         </Button>
-        <Button
-          variant="outlined"
-          size="small"
-          color="secondary"
-          startIcon={<Iconify icon="solar:copy-bold" width={18} />}
-          onClick={() => router.push('/backtest/comparison/create')}
-          sx={{ mt: 0.5, flexShrink: 0 }}
+        <Menu
+          open={Boolean(advancedAnchor)}
+          anchorEl={advancedAnchor}
+          onClose={() => setAdvancedAnchor(null)}
         >
-          多策略对比
-        </Button>
+          <MenuItem
+            onClick={() => {
+              setAdvancedAnchor(null);
+              router.push('/backtest/walk-forward');
+            }}
+          >
+            <ListItemIcon>
+              <Iconify icon="solar:shuffle-bold" width={18} />
+            </ListItemIcon>
+            Walk-Forward 验证
+          </MenuItem>
+          <MenuItem
+            onClick={() => {
+              setAdvancedAnchor(null);
+              router.push('/backtest/comparison/create');
+            }}
+          >
+            <ListItemIcon>
+              <Iconify icon="solar:copy-bold" width={18} />
+            </ListItemIcon>
+            多策略对比
+          </MenuItem>
+        </Menu>
       </Box>
 
-      {error && (
+      {error ? (
         <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError('')}>
           {error}
         </Alert>
-      )}
+      ) : null}
 
-      {/* Strategy templates */}
       <Box sx={{ mb: 3 }}>
         <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
           选择策略模板
         </Typography>
         {loadingTemplates ? (
           <Grid container spacing={2}>
-            {Array.from({ length: 4 }).map((_, i) => (
-              <Grid key={i} size={{ xs: 12, sm: 6, md: 3 }}>
+            {Array.from({ length: 4 }).map((_, index) => (
+              <Grid key={index} size={{ xs: 12, sm: 6, md: 3 }}>
                 <Skeleton variant="rounded" height={120} />
               </Grid>
             ))}
           </Grid>
-        ) : (
+        ) : null}
+
+        {!loadingTemplates && templateError ? (
+          <Alert severity="error" action={<Button onClick={loadTemplates}>重试</Button>}>
+            {templateError}
+          </Alert>
+        ) : null}
+
+        {!loadingTemplates && !templateError && templates.length === 0 ? (
+          <Alert severity="warning" action={<Button onClick={loadTemplates}>重试</Button>}>
+            模板服务暂不可用，请稍后再试。
+          </Alert>
+        ) : null}
+
+        {!loadingTemplates && !templateError && templates.length > 0 ? (
           <BacktestTemplateCards
-            templates={
-              templates.length > 0
-                ? templates
-                : [
-                    {
-                      id: 'MA_CROSS_SINGLE',
-                      name: '均线择时',
-                      description: '基于双均线金叉死叉对单只股票进行择时',
-                      category: 'TECHNICAL',
-                      parameterSchema: [],
-                    },
-                    {
-                      id: 'SCREENING_ROTATION',
-                      name: '选股轮动',
-                      description: '定期选出满足条件的 Top N 只股票等权持有',
-                      category: 'SCREENING',
-                      parameterSchema: [],
-                    },
-                    {
-                      id: 'FACTOR_RANKING',
-                      name: '因子排序',
-                      description: '按因子得分对股票池排名，持有 Top N',
-                      category: 'FACTOR',
-                      parameterSchema: [],
-                    },
-                    {
-                      id: 'CUSTOM_POOL_REBALANCE',
-                      name: '自定义股票池',
-                      description: '指定股票池，定期按权重再平衡',
-                      category: 'CUSTOM',
-                      parameterSchema: [],
-                    },
-                  ]
-            }
+            templates={templates}
             selectedTemplateId={selectedTemplateId}
             onSelect={handleTemplateSelect}
           />
-        )}
+        ) : null}
       </Box>
 
-      {/* Main two-column layout */}
       <Grid container spacing={3}>
-        {/* Left: config forms */}
         <Grid size={{ xs: 12, md: 7 }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-            <BacktestConfigForm form={form} onChange={handleFormChange} />
+            <BacktestConfigForm
+              form={form}
+              fieldErrors={fieldErrors}
+              dateBounds={validation?.stats}
+              onChange={handleFormChange}
+            />
             <BacktestStrategyConfigPanel
               selectedTemplateId={selectedTemplateId}
               form={form}
@@ -288,19 +479,30 @@ export function BacktestWorkbenchView() {
           </Box>
         </Grid>
 
-        {/* Right: validate + submit */}
         <Grid size={{ xs: 12, md: 5 }}>
           <Box
-            sx={{ display: 'flex', flexDirection: 'column', gap: 3, position: 'sticky', top: 80 }}
+            sx={(theme) => ({
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 3,
+              position: 'sticky',
+              top: `calc(${theme.mixins.toolbar.minHeight}px + ${theme.spacing(2)})`,
+            })}
           >
-            <BacktestValidatePanel validation={validation} loading={validating} />
+            <BacktestValidatePanel
+              validation={validation}
+              loading={validating}
+              stale={validationStale}
+              onOpenRun={(runId) => router.push(`/backtest/runs/${runId}`)}
+            />
             <BacktestSubmitSummary
               form={form}
               selectedTemplateId={selectedTemplateId}
               validation={validation}
               validating={validating}
+              validationStale={validationStale}
               submitting={submitting}
-              onValidate={handleValidate}
+              onValidate={handleManualValidate}
               onSubmit={handleSubmit}
             />
           </Box>
@@ -310,16 +512,64 @@ export function BacktestWorkbenchView() {
       <BacktestDraftDrawer
         open={draftDrawerOpen}
         onClose={() => setDraftDrawerOpen(false)}
-        currentConfig={{ ...form, strategyType: selectedTemplateId } as Record<string, unknown>}
-        onLoadDraft={(config, templateId) => {
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
-          const { strategyType: _strategyType, ...formFields } = config;
-          setSelectedTemplateId(templateId);
-          setForm((prev) => ({ ...prev, ...(formFields as Partial<BacktestRunForm>) }));
-          setValidation(null);
-          setDraftDrawerOpen(false);
-        }}
+        currentConfig={currentConfig}
+        autoSavedDraft={autoSavedDraft}
+        onLoadDraft={loadDraftConfig}
       />
+
+      <Snackbar
+        open={restoreSnackbarOpen}
+        autoHideDuration={6000}
+        onClose={() => setRestoreSnackbarOpen(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert
+          severity="info"
+          onClose={() => setRestoreSnackbarOpen(false)}
+          action={
+            <Button
+              color="inherit"
+              size="small"
+              onClick={() => {
+                if (autoSavedDraft) {
+                  const { strategyType } = autoSavedDraft.config as { strategyType?: string };
+                  loadDraftConfig(autoSavedDraft.config, strategyType ?? 'SCREENING_ROTATION');
+                }
+              }}
+            >
+              恢复
+            </Button>
+          }
+        >
+          检测到上次未提交的配置，可一键恢复。
+        </Alert>
+      </Snackbar>
+
+      <Snackbar
+        open={submitSnackbarOpen}
+        autoHideDuration={6000}
+        onClose={() => setSubmitSnackbarOpen(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+      >
+        <Alert
+          severity="success"
+          onClose={() => setSubmitSnackbarOpen(false)}
+          action={
+            <Button
+              color="inherit"
+              size="small"
+              onClick={() => {
+                setSubmitSnackbarOpen(false);
+                router.push(`/backtest/runs/${submittedRunId}`);
+              }}
+            >
+              查看进度
+            </Button>
+          }
+        >
+          回测任务已提交，你可以继续调整参数。
+        </Alert>
+      </Snackbar>
     </DashboardContent>
   );
 }

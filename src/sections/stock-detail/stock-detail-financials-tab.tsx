@@ -150,7 +150,7 @@ function StatementTable({ periods, fields, unitNote = '单位: 元' }: Statement
                         sx={{
                           display: 'block',
                           lineHeight: 1.3,
-                          color: yoyVal >= 0 ? 'error.main' : 'success.main',
+                          color: yoyVal < 0 ? 'error.main' : 'success.main',
                         }}
                       >
                         同比 {fPctChg(yoyVal)}

@@ -23,7 +23,10 @@ import { StrategyDeleteDialog } from '../strategy-delete-dialog';
 import { StrategyDetailHeader } from '../strategy-detail-header';
 import { StrategyQuickRunPanel } from '../strategy-quick-run-panel';
 import { StrategyRunHistoryCard } from '../strategy-run-history-card';
+import { StrategyBannerArea } from '../components/strategy-banner-area';
+import { StrategyDetailProvider } from '../contexts/strategy-detail-context';
 import { StrategyBacktestDefaultsCard } from '../strategy-backtest-defaults-card';
+import { StrategyPerformanceCard } from '../components/strategy-performance-card';
 
 // ----------------------------------------------------------------------
 
@@ -102,52 +105,58 @@ export function StrategyDetailView() {
 
       {/* Content */}
       {!loading && !error && strategy && (
-        <>
-          <StrategyDetailHeader
-            strategy={strategy}
-            onClone={() => setCloneOpen(true)}
-            onDelete={() => setDeleteOpen(true)}
-          />
+        <StrategyDetailProvider strategy={strategy} onRefresh={fetchDetail}>
+          <>
+            <StrategyDetailHeader
+              strategy={strategy}
+              onClone={() => setCloneOpen(true)}
+              onDelete={() => setDeleteOpen(true)}
+            />
 
-          <Box sx={{ mt: 3 }}>
-            <Grid container spacing={3}>
-              {/* Left column */}
-              <Grid size={{ xs: 12, md: 7 }}>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                  <StrategyInfoCard strategy={strategy} onUpdate={setStrategy} />
-                  <StrategyConfigCard strategy={strategy} onUpdate={setStrategy} />
-                  <StrategyBacktestDefaultsCard strategy={strategy} onUpdate={setStrategy} />
-                </Box>
+            <Box sx={{ mt: 3 }}>
+              {/* Running / dirty banners */}
+              <StrategyBannerArea />
+
+              <Grid container spacing={3}>
+                {/* Left column */}
+                <Grid size={{ xs: 12, md: 7 }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    <StrategyInfoCard strategy={strategy} onUpdate={setStrategy} />
+                    <StrategyConfigCard strategy={strategy} onUpdate={setStrategy} />
+                    <StrategyBacktestDefaultsCard strategy={strategy} onUpdate={setStrategy} />
+                  </Box>
+                </Grid>
+
+                {/* Right column */}
+                <Grid size={{ xs: 12, md: 5 }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    <StrategyPerformanceCard strategy={strategy} />
+                    <StrategySignalCard strategyId={strategy.id} strategyName={strategy.name} />
+                    <StrategyQuickRunPanel strategy={strategy} />
+                    <StrategyRunHistoryCard strategy={strategy} />
+                    <StrategyVersionCard strategyId={strategy.id} />
+                  </Box>
+                </Grid>
               </Grid>
+            </Box>
 
-              {/* Right column */}
-              <Grid size={{ xs: 12, md: 5 }}>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-                  <StrategySignalCard strategyId={strategy.id} strategyName={strategy.name} />
-                  <StrategyQuickRunPanel strategy={strategy} />
-                  <StrategyRunHistoryCard strategy={strategy} />
-                  <StrategyVersionCard strategyId={strategy.id} />
-                </Box>
-              </Grid>
-            </Grid>
-          </Box>
-
-          {/* Dialogs */}
-          <StrategyCloneDialog
-            open={cloneOpen}
-            strategy={strategy}
-            onClose={() => setCloneOpen(false)}
-            onConfirm={handleCloneConfirm}
-            submitting={cloning}
-          />
-          <StrategyDeleteDialog
-            open={deleteOpen}
-            strategy={strategy}
-            onClose={() => setDeleteOpen(false)}
-            onConfirm={handleDeleteConfirm}
-            submitting={deleting}
-          />
-        </>
+            {/* Dialogs */}
+            <StrategyCloneDialog
+              open={cloneOpen}
+              strategy={strategy}
+              onClose={() => setCloneOpen(false)}
+              onConfirm={handleCloneConfirm}
+              submitting={cloning}
+            />
+            <StrategyDeleteDialog
+              open={deleteOpen}
+              strategy={strategy}
+              onClose={() => setDeleteOpen(false)}
+              onConfirm={handleDeleteConfirm}
+              submitting={deleting}
+            />
+          </>
+        </StrategyDetailProvider>
       )}
 
       {/* Not found */}

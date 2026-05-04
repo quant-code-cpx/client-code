@@ -8,17 +8,19 @@ import TableHead from '@mui/material/TableHead';
 import Typography from '@mui/material/Typography';
 import TableContainer from '@mui/material/TableContainer';
 
+import { Label } from 'src/components/label';
 import { Scrollbar as ScrollbarEl } from 'src/components/scrollbar';
+
+import { formatPercentValue, getEnabledParamKeys } from './walk-forward-utils';
 
 // ----------------------------------------------------------------------
 
 function pctCell(val: number | null) {
   if (val === null || val === undefined) return '—';
   const color = val >= 0 ? 'success.main' : 'error.main';
-  const str = `${val >= 0 ? '+' : ''}${(val * 100).toFixed(2)}%`;
   return (
     <Typography variant="body2" sx={{ color }}>
-      {str}
+      {formatPercentValue(val)}
     </Typography>
   );
 }
@@ -27,9 +29,19 @@ function pctCell(val: number | null) {
 
 type Props = {
   windows: WalkForwardWindow[];
+  onWindowClick?: (window: WalkForwardWindow) => void;
 };
 
-export function WalkForwardWindowTable({ windows }: Props) {
+function windowStatus(window: WalkForwardWindow) {
+  if (window.status === 'FAILED' || window.errorReason) return 'FAILED';
+  if (window.status === 'OK') return 'OK';
+  return 'UNKNOWN';
+}
+
+export function WalkForwardWindowTable({ windows, onWindowClick }: Props) {
+  const paramKeys = getEnabledParamKeys(windows).slice(0, 6);
+  const colSpan = 11 + paramKeys.length;
+
   return (
     <ScrollbarEl>
       <TableContainer>
@@ -37,6 +49,7 @@ export function WalkForwardWindowTable({ windows }: Props) {
           <TableHead>
             <TableRow>
               <TableCell>窗口</TableCell>
+              <TableCell>状态</TableCell>
               <TableCell>IS 区间</TableCell>
               <TableCell>OOS 区间</TableCell>
               <TableCell align="right">IS 年化收益</TableCell>
@@ -44,13 +57,27 @@ export function WalkForwardWindowTable({ windows }: Props) {
               <TableCell align="right">OOS 年化收益</TableCell>
               <TableCell align="right">OOS 夏普</TableCell>
               <TableCell align="right">OOS 最大回撤</TableCell>
-              <TableCell>最优参数</TableCell>
+              <TableCell align="right">OOS 成交</TableCell>
+              {paramKeys.map((key) => (
+                <TableCell key={key}>{key}</TableCell>
+              ))}
+              <TableCell>备注</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
             {windows.map((w) => (
-              <TableRow key={w.windowIndex} hover>
+              <TableRow
+                key={w.windowIndex}
+                hover={Boolean(onWindowClick)}
+                sx={{ cursor: onWindowClick ? 'pointer' : 'default' }}
+                onClick={() => onWindowClick?.(w)}
+              >
                 <TableCell>#{w.windowIndex + 1}</TableCell>
+                <TableCell>
+                  {windowStatus(w) === 'OK' && <Label color="success">OK</Label>}
+                  {windowStatus(w) === 'FAILED' && <Label color="error">失败</Label>}
+                  {windowStatus(w) === 'UNKNOWN' && <Label color="default">未知</Label>}
+                </TableCell>
                 <TableCell>
                   <Typography variant="caption" noWrap>
                     {w.isStartDate} ~ {w.isEndDate}
@@ -70,20 +97,27 @@ export function WalkForwardWindowTable({ windows }: Props) {
                   {w.oosSharpe !== null ? w.oosSharpe.toFixed(3) : '—'}
                 </TableCell>
                 <TableCell align="right">{pctCell(w.oosMaxDrawdown)}</TableCell>
-                <TableCell>
-                  {w.optimizedParams ? (
+                <TableCell align="right">{w.oosTrades ?? '—'}</TableCell>
+                {paramKeys.map((key) => (
+                  <TableCell key={key}>
                     <Typography variant="caption" sx={{ fontFamily: 'monospace' }}>
-                      {JSON.stringify(w.optimizedParams)}
+                      {String(w.optimizedParams?.[key] ?? '—')}
                     </Typography>
-                  ) : (
-                    '—'
-                  )}
+                  </TableCell>
+                ))}
+                <TableCell>
+                  <Typography
+                    variant="caption"
+                    color={w.errorReason ? 'error.main' : 'text.disabled'}
+                  >
+                    {w.errorReason ?? '点击查看窗口详情'}
+                  </Typography>
                 </TableCell>
               </TableRow>
             ))}
             {windows.length === 0 && (
               <TableRow>
-                <TableCell colSpan={9} align="center" sx={{ py: 4, color: 'text.disabled' }}>
+                <TableCell colSpan={colSpan} align="center" sx={{ py: 4, color: 'text.disabled' }}>
                   窗口数据尚未生成
                 </TableCell>
               </TableRow>

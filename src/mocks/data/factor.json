@@ -3828,19 +3828,107 @@
       "tradeDate": "20260417",
       "method": "spearman",
       "factors": [
+        "ln_market_cap",
+        "pb",
         "pe_ttm",
-        "pb"
+        "ret_20d",
+        "roe"
+      ],
+      "factorLabels": [
+        "对数市值",
+        "市净率",
+        "市盈率TTM",
+        "20日动量",
+        "净资产收益率"
       ],
       "matrix": [
         [
           1,
-          0.534
+          -0.27,
+          -0.31,
+          0.04,
+          0.09
         ],
         [
-          0.534,
+          -0.27,
+          1,
+          0.72,
+          0.04,
+          -0.18
+        ],
+        [
+          -0.31,
+          0.72,
+          1,
+          0.08,
+          -0.12
+        ],
+        [
+          0.04,
+          0.04,
+          0.08,
+          1,
+          0.22
+        ],
+        [
+          0.09,
+          -0.18,
+          -0.12,
+          0.22,
           1
         ]
-      ]
+      ],
+      "nMatrix": [
+        [
+          4920,
+          4895,
+          4880,
+          4750,
+          3210
+        ],
+        [
+          4895,
+          4910,
+          4900,
+          4730,
+          3198
+        ],
+        [
+          4880,
+          4900,
+          4905,
+          4720,
+          3180
+        ],
+        [
+          4750,
+          4730,
+          4720,
+          4760,
+          2980
+        ],
+        [
+          3210,
+          3198,
+          3180,
+          2980,
+          3220
+        ]
+      ],
+      "coverage": [
+        0.99,
+        0.98,
+        0.97,
+        0.95,
+        0.65
+      ],
+      "meta": {
+        "universe": "",
+        "computedAt": "2026-04-17T19:05:00+08:00",
+        "matrixMode": "pairwise",
+        "minSampleForCorr": 3,
+        "rankTiesMethod": "ordinal"
+      }
     },
     "message": ""
   },
@@ -4017,5 +4105,662 @@
       ]
     },
     "message": ""
+  },
+  "adminStatus": {
+    "items": [
+      {
+        "factorName": "factor_000",
+        "factorLabel": "测试因子000",
+        "status": "UP_TO_DATE",
+        "staleDays": 10,
+        "lastComputeDate": "20250201",
+        "coverageRate": 0.845,
+        "rowCount": 133393,
+        "category": "MOMENTUM",
+        "sourceType": "FIELD_REF",
+        "isEnabled": true,
+        "firstComputeDate": null,
+        "failureReason": null
+      },
+      {
+        "factorName": "factor_001",
+        "factorLabel": "测试因子001",
+        "status": "STALE",
+        "staleDays": 2,
+        "lastComputeDate": "20251204",
+        "coverageRate": 0.806,
+        "rowCount": 472759,
+        "category": "REVERSAL",
+        "sourceType": "DERIVED",
+        "isEnabled": true,
+        "firstComputeDate": null,
+        "failureReason": null
+      },
+      {
+        "factorName": "factor_002",
+        "factorLabel": "测试因子002",
+        "status": "FAILED",
+        "staleDays": 9,
+        "lastComputeDate": "20250702",
+        "coverageRate": null,
+        "rowCount": 20622,
+        "category": "VALUE",
+        "sourceType": "CUSTOM_SQL",
+        "isEnabled": true,
+        "firstComputeDate": null,
+        "failureReason": "计算超时"
+      },
+      {
+        "factorName": "factor_003",
+        "factorLabel": "测试因子003",
+        "status": "NEVER",
+        "staleDays": null,
+        "lastComputeDate": null,
+        "coverageRate": null,
+        "rowCount": 119629,
+        "category": "GROWTH",
+        "sourceType": "FIELD_REF",
+        "isEnabled": true,
+        "firstComputeDate": null,
+        "failureReason": null
+      },
+      {
+        "factorName": "factor_004",
+        "factorLabel": "测试因子004",
+        "status": "RUNNING",
+        "staleDays": null,
+        "lastComputeDate": "20250920",
+        "coverageRate": 0.416,
+        "rowCount": 109248,
+        "category": "QUALITY",
+        "sourceType": "DERIVED",
+        "isEnabled": false,
+        "firstComputeDate": null,
+        "failureReason": null
+      },
+      {
+        "factorName": "factor_005",
+        "factorLabel": "测试因子005",
+        "status": "UP_TO_DATE",
+        "staleDays": 3,
+        "lastComputeDate": "20250819",
+        "coverageRate": 0.567,
+        "rowCount": 460763,
+        "category": "VOLATILITY",
+        "sourceType": "CUSTOM_SQL",
+        "isEnabled": true,
+        "firstComputeDate": null,
+        "failureReason": null
+      },
+      {
+        "factorName": "factor_006",
+        "factorLabel": "测试因子006",
+        "status": "STALE",
+        "staleDays": 2,
+        "lastComputeDate": "20251214",
+        "coverageRate": 0.604,
+        "rowCount": 86516,
+        "category": "LIQUIDITY",
+        "sourceType": "FIELD_REF",
+        "isEnabled": true,
+        "firstComputeDate": null,
+        "failureReason": null
+      },
+      {
+        "factorName": "factor_007",
+        "factorLabel": "测试因子007",
+        "status": "FAILED",
+        "staleDays": 5,
+        "lastComputeDate": "20250203",
+        "coverageRate": null,
+        "rowCount": 204191,
+        "category": "SIZE",
+        "sourceType": "DERIVED",
+        "isEnabled": true,
+        "firstComputeDate": null,
+        "failureReason": "计算超时"
+      },
+      {
+        "factorName": "factor_008",
+        "factorLabel": "测试因子008",
+        "status": "NEVER",
+        "staleDays": null,
+        "lastComputeDate": null,
+        "coverageRate": null,
+        "rowCount": 193208,
+        "category": "DIVIDEND",
+        "sourceType": "CUSTOM_SQL",
+        "isEnabled": true,
+        "firstComputeDate": null,
+        "failureReason": null
+      },
+      {
+        "factorName": "factor_009",
+        "factorLabel": "测试因子009",
+        "status": "RUNNING",
+        "staleDays": null,
+        "lastComputeDate": "20251009",
+        "coverageRate": 0.884,
+        "rowCount": 387589,
+        "category": "ANALYST",
+        "sourceType": "FIELD_REF",
+        "isEnabled": false,
+        "firstComputeDate": null,
+        "failureReason": null
+      },
+      {
+        "factorName": "factor_010",
+        "factorLabel": "测试因子010",
+        "status": "UP_TO_DATE",
+        "staleDays": 8,
+        "lastComputeDate": "20250213",
+        "coverageRate": 0.447,
+        "rowCount": 158709,
+        "category": "TECHNICAL",
+        "sourceType": "DERIVED",
+        "isEnabled": true,
+        "firstComputeDate": null,
+        "failureReason": null
+      },
+      {
+        "factorName": "factor_011",
+        "factorLabel": "测试因子011",
+        "status": "STALE",
+        "staleDays": 9,
+        "lastComputeDate": "20250423",
+        "coverageRate": 0.442,
+        "rowCount": 351692,
+        "category": "MACRO",
+        "sourceType": "CUSTOM_SQL",
+        "isEnabled": true,
+        "firstComputeDate": null,
+        "failureReason": null
+      },
+      {
+        "factorName": "factor_012",
+        "factorLabel": "测试因子012",
+        "status": "FAILED",
+        "staleDays": 4,
+        "lastComputeDate": "20250228",
+        "coverageRate": null,
+        "rowCount": 127049,
+        "category": "MOMENTUM",
+        "sourceType": "FIELD_REF",
+        "isEnabled": true,
+        "firstComputeDate": null,
+        "failureReason": "计算超时"
+      },
+      {
+        "factorName": "factor_013",
+        "factorLabel": "测试因子013",
+        "status": "NEVER",
+        "staleDays": null,
+        "lastComputeDate": null,
+        "coverageRate": null,
+        "rowCount": 204295,
+        "category": "REVERSAL",
+        "sourceType": "DERIVED",
+        "isEnabled": true,
+        "firstComputeDate": null,
+        "failureReason": null
+      },
+      {
+        "factorName": "factor_014",
+        "factorLabel": "测试因子014",
+        "status": "RUNNING",
+        "staleDays": null,
+        "lastComputeDate": "20250821",
+        "coverageRate": 0.9,
+        "rowCount": 90277,
+        "category": "VALUE",
+        "sourceType": "CUSTOM_SQL",
+        "isEnabled": true,
+        "firstComputeDate": null,
+        "failureReason": null
+      },
+      {
+        "factorName": "factor_015",
+        "factorLabel": "测试因子015",
+        "status": "UP_TO_DATE",
+        "staleDays": 5,
+        "lastComputeDate": "20250422",
+        "coverageRate": 0.56,
+        "rowCount": 496076,
+        "category": "GROWTH",
+        "sourceType": "FIELD_REF",
+        "isEnabled": true,
+        "firstComputeDate": null,
+        "failureReason": null
+      },
+      {
+        "factorName": "factor_016",
+        "factorLabel": "测试因子016",
+        "status": "STALE",
+        "staleDays": 9,
+        "lastComputeDate": "20251106",
+        "coverageRate": 0.72,
+        "rowCount": 133351,
+        "category": "QUALITY",
+        "sourceType": "DERIVED",
+        "isEnabled": true,
+        "firstComputeDate": null,
+        "failureReason": null
+      },
+      {
+        "factorName": "factor_017",
+        "factorLabel": "测试因子017",
+        "status": "FAILED",
+        "staleDays": 7,
+        "lastComputeDate": "20250709",
+        "coverageRate": null,
+        "rowCount": 490171,
+        "category": "VOLATILITY",
+        "sourceType": "CUSTOM_SQL",
+        "isEnabled": true,
+        "firstComputeDate": null,
+        "failureReason": "计算超时"
+      },
+      {
+        "factorName": "factor_018",
+        "factorLabel": "测试因子018",
+        "status": "NEVER",
+        "staleDays": null,
+        "lastComputeDate": null,
+        "coverageRate": null,
+        "rowCount": 363935,
+        "category": "LIQUIDITY",
+        "sourceType": "FIELD_REF",
+        "isEnabled": true,
+        "firstComputeDate": null,
+        "failureReason": null
+      },
+      {
+        "factorName": "factor_019",
+        "factorLabel": "测试因子019",
+        "status": "RUNNING",
+        "staleDays": null,
+        "lastComputeDate": "20250108",
+        "coverageRate": 0.893,
+        "rowCount": 427075,
+        "category": "SIZE",
+        "sourceType": "DERIVED",
+        "isEnabled": true,
+        "firstComputeDate": null,
+        "failureReason": null
+      }
+    ]
+  },
+  "adminJobs": {
+    "items": [
+      {
+        "jobId": "job-mock-0000-abcd",
+        "type": "PRECOMPUTE",
+        "tradeDate": "202500115",
+        "startDate": null,
+        "endDate": null,
+        "factorCount": 15,
+        "progress": {
+          "done": 15,
+          "total": 15
+        },
+        "status": "SUCCESS",
+        "durationMs": 36093,
+        "operator": "admin",
+        "createdAt": "2025-01-15T08:00:00Z",
+        "completedAt": "2025-01-15T08:30:00Z"
+      },
+      {
+        "jobId": "job-mock-0001-abcd",
+        "type": "BACKFILL",
+        "tradeDate": null,
+        "startDate": "20240101",
+        "endDate": "20240630",
+        "factorCount": 6,
+        "progress": {
+          "done": 5,
+          "total": 6
+        },
+        "status": "RUNNING",
+        "durationMs": null,
+        "operator": "scheduler",
+        "createdAt": "2025-02-15T08:00:00Z",
+        "completedAt": null
+      },
+      {
+        "jobId": "job-mock-0002-abcd",
+        "type": "PRECOMPUTE",
+        "tradeDate": "202500315",
+        "startDate": null,
+        "endDate": null,
+        "factorCount": 14,
+        "progress": {
+          "done": 13,
+          "total": 14
+        },
+        "status": "PENDING",
+        "durationMs": null,
+        "operator": "scheduler",
+        "createdAt": "2025-03-15T08:00:00Z",
+        "completedAt": null
+      },
+      {
+        "jobId": "job-mock-0003-abcd",
+        "type": "BACKFILL",
+        "tradeDate": null,
+        "startDate": "20240101",
+        "endDate": "20240630",
+        "factorCount": 21,
+        "progress": {
+          "done": 18,
+          "total": 21
+        },
+        "status": "FAILED",
+        "durationMs": 116957,
+        "operator": "admin",
+        "createdAt": "2025-04-15T08:00:00Z",
+        "completedAt": "2025-04-15T08:30:00Z"
+      },
+      {
+        "jobId": "job-mock-0004-abcd",
+        "type": "PRECOMPUTE",
+        "tradeDate": "202500515",
+        "startDate": null,
+        "endDate": null,
+        "factorCount": 18,
+        "progress": {
+          "done": 17,
+          "total": 18
+        },
+        "status": "PARTIAL",
+        "durationMs": 35718,
+        "operator": "scheduler",
+        "createdAt": "2025-05-15T08:00:00Z",
+        "completedAt": "2025-05-15T08:30:00Z"
+      },
+      {
+        "jobId": "job-mock-0005-abcd",
+        "type": "BACKFILL",
+        "tradeDate": null,
+        "startDate": "20240101",
+        "endDate": "20240630",
+        "factorCount": 8,
+        "progress": {
+          "done": 7,
+          "total": 8
+        },
+        "status": "CANCELLED",
+        "durationMs": 98647,
+        "operator": "scheduler",
+        "createdAt": "2025-06-15T08:00:00Z",
+        "completedAt": "2025-06-15T08:30:00Z"
+      },
+      {
+        "jobId": "job-mock-0006-abcd",
+        "type": "PRECOMPUTE",
+        "tradeDate": "202500715",
+        "startDate": null,
+        "endDate": null,
+        "factorCount": 20,
+        "progress": {
+          "done": 20,
+          "total": 20
+        },
+        "status": "SUCCESS",
+        "durationMs": 71644,
+        "operator": "admin",
+        "createdAt": "2025-07-15T08:00:00Z",
+        "completedAt": "2025-07-15T08:30:00Z"
+      },
+      {
+        "jobId": "job-mock-0007-abcd",
+        "type": "BACKFILL",
+        "tradeDate": null,
+        "startDate": "20240101",
+        "endDate": "20240630",
+        "factorCount": 16,
+        "progress": {
+          "done": 11,
+          "total": 16
+        },
+        "status": "RUNNING",
+        "durationMs": null,
+        "operator": "scheduler",
+        "createdAt": "2025-08-15T08:00:00Z",
+        "completedAt": null
+      }
+    ],
+    "total": 8
+  },
+  "adminJobDetail": {
+    "jobId": "job-mock-0000-abcd",
+    "type": "PRECOMPUTE",
+    "tradeDate": "20250115",
+    "startDate": null,
+    "endDate": null,
+    "factorCount": 5,
+    "progress": {
+      "done": 5,
+      "total": 5
+    },
+    "status": "SUCCESS",
+    "durationMs": 12500,
+    "operator": "admin",
+    "createdAt": "2025-01-15T08:00:00Z",
+    "completedAt": "2025-01-15T08:00:12Z",
+    "subItems": [
+      {
+        "factorName": "factor_000",
+        "status": "SUCCESS",
+        "rowCount": 4800,
+        "errorMessage": null
+      },
+      {
+        "factorName": "factor_001",
+        "status": "FAILED",
+        "rowCount": 0,
+        "errorMessage": "TimeoutError: exceeded 30s limit"
+      },
+      {
+        "factorName": "factor_002",
+        "status": "SUCCESS",
+        "rowCount": 5200,
+        "errorMessage": null
+      }
+    ],
+    "logs": "2025-01-15 08:00:01 INFO Starting precompute\n2025-01-15 08:00:12 INFO Done."
+  },
+  "adminAudit": {
+    "items": [
+      {
+        "id": "audit-0000",
+        "createdAt": "2025-01-15T08:00:00Z",
+        "operator": "scheduler",
+        "action": "PRECOMPUTE",
+        "factorNames": [
+          "factor_000"
+        ],
+        "ip": "192.168.1.10",
+        "success": true
+      },
+      {
+        "id": "audit-0001",
+        "createdAt": "2025-01-14T08:00:00Z",
+        "operator": "admin",
+        "action": "BACKFILL",
+        "factorNames": [
+          "factor_000",
+          "factor_001"
+        ],
+        "ip": "192.168.1.11",
+        "success": true
+      },
+      {
+        "id": "audit-0002",
+        "createdAt": "2025-01-13T08:00:00Z",
+        "operator": "admin",
+        "action": "TOGGLE_ENABLE",
+        "factorNames": [
+          "factor_000",
+          "factor_001",
+          "factor_002"
+        ],
+        "ip": "192.168.1.12",
+        "success": true
+      },
+      {
+        "id": "audit-0003",
+        "createdAt": "2025-01-12T08:00:00Z",
+        "operator": "scheduler",
+        "action": "TOGGLE_DISABLE",
+        "factorNames": [
+          "factor_000"
+        ],
+        "ip": "192.168.1.13",
+        "success": true
+      },
+      {
+        "id": "audit-0004",
+        "createdAt": "2025-01-11T08:00:00Z",
+        "operator": "admin",
+        "action": "SCHEDULE_UPDATE",
+        "factorNames": [
+          "factor_000",
+          "factor_001"
+        ],
+        "ip": "192.168.1.14",
+        "success": false
+      },
+      {
+        "id": "audit-0005",
+        "createdAt": "2025-01-10T08:00:00Z",
+        "operator": "admin",
+        "action": "FACTOR_DELETE",
+        "factorNames": [
+          "factor_000",
+          "factor_001",
+          "factor_002"
+        ],
+        "ip": "192.168.1.15",
+        "success": true
+      },
+      {
+        "id": "audit-0006",
+        "createdAt": "2025-01-09T08:00:00Z",
+        "operator": "scheduler",
+        "action": "PRECOMPUTE",
+        "factorNames": [
+          "factor_000"
+        ],
+        "ip": "192.168.1.16",
+        "success": true
+      },
+      {
+        "id": "audit-0007",
+        "createdAt": "2025-01-08T08:00:00Z",
+        "operator": "admin",
+        "action": "BACKFILL",
+        "factorNames": [
+          "factor_000",
+          "factor_001"
+        ],
+        "ip": "192.168.1.17",
+        "success": true
+      },
+      {
+        "id": "audit-0008",
+        "createdAt": "2025-01-07T08:00:00Z",
+        "operator": "admin",
+        "action": "TOGGLE_ENABLE",
+        "factorNames": [
+          "factor_000",
+          "factor_001",
+          "factor_002"
+        ],
+        "ip": "192.168.1.18",
+        "success": true
+      },
+      {
+        "id": "audit-0009",
+        "createdAt": "2025-01-06T08:00:00Z",
+        "operator": "scheduler",
+        "action": "TOGGLE_DISABLE",
+        "factorNames": [
+          "factor_000"
+        ],
+        "ip": "192.168.1.19",
+        "success": false
+      },
+      {
+        "id": "audit-0010",
+        "createdAt": "2025-01-05T08:00:00Z",
+        "operator": "admin",
+        "action": "SCHEDULE_UPDATE",
+        "factorNames": [
+          "factor_000",
+          "factor_001"
+        ],
+        "ip": "192.168.1.20",
+        "success": true
+      },
+      {
+        "id": "audit-0011",
+        "createdAt": "2025-01-04T08:00:00Z",
+        "operator": "admin",
+        "action": "FACTOR_DELETE",
+        "factorNames": [
+          "factor_000",
+          "factor_001",
+          "factor_002"
+        ],
+        "ip": "192.168.1.21",
+        "success": true
+      },
+      {
+        "id": "audit-0012",
+        "createdAt": "2025-01-03T08:00:00Z",
+        "operator": "scheduler",
+        "action": "PRECOMPUTE",
+        "factorNames": [
+          "factor_000"
+        ],
+        "ip": "192.168.1.22",
+        "success": true
+      },
+      {
+        "id": "audit-0013",
+        "createdAt": "2025-01-02T08:00:00Z",
+        "operator": "admin",
+        "action": "BACKFILL",
+        "factorNames": [
+          "factor_000",
+          "factor_001"
+        ],
+        "ip": "192.168.1.23",
+        "success": true
+      },
+      {
+        "id": "audit-0014",
+        "createdAt": "2025-01-01T08:00:00Z",
+        "operator": "admin",
+        "action": "TOGGLE_ENABLE",
+        "factorNames": [
+          "factor_000",
+          "factor_001",
+          "factor_002"
+        ],
+        "ip": "192.168.1.24",
+        "success": false
+      }
+    ],
+    "total": 15
+  },
+  "adminSchedule": {
+    "cron": "0 19 * * 1-5",
+    "enabled": true,
+    "lastTriggeredAt": "2025-01-15T19:00:00Z",
+    "nextTriggerAt": "2025-01-16T19:00:00Z",
+    "timezone": "Asia/Shanghai",
+    "healthy": true,
+    "lastError": null
   }
 }

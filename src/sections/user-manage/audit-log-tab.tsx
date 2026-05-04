@@ -1,6 +1,6 @@
-import type { AuditAction, AuditLogItem } from 'src/api/user-manage';
+import type { AuditAction, AuditResult, AuditLogItem } from 'src/api/user-manage';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 
 import Card from '@mui/material/Card';
 
@@ -17,11 +17,13 @@ export function AuditLogTab() {
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(20);
   const [loading, setLoading] = useState(true);
+  const abortRef = useRef<AbortController | null>(null);
 
   // 过滤条件（待应用）
   const [filterOperatorId, setFilterOperatorId] = useState<number | ''>('');
   const [filterTargetId, setFilterTargetId] = useState<number | ''>('');
   const [filterAction, setFilterAction] = useState<AuditAction | ''>('');
+  const [filterResult, setFilterResult] = useState<AuditResult | ''>('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 
@@ -30,42 +32,50 @@ export function AuditLogTab() {
     operatorId: '' as number | '',
     targetId: '' as number | '',
     action: '' as AuditAction | '',
+    result: '' as AuditResult | '',
     startDate: '',
     endDate: '',
   });
 
   const fetchLogs = useCallback(async () => {
-    let cancelled = false;
+    abortRef.current?.abort();
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
+
     setLoading(true);
     try {
-      const result = await userManageApi.getAuditLogs({
-        page: page + 1,
-        pageSize,
-        ...(appliedFilter.operatorId !== '' ? { operatorId: appliedFilter.operatorId as number } : {}),
-        ...(appliedFilter.targetId !== '' ? { targetId: appliedFilter.targetId as number } : {}),
-        ...(appliedFilter.action ? { action: appliedFilter.action } : {}),
-        ...(appliedFilter.startDate ? { startDate: appliedFilter.startDate } : {}),
-        ...(appliedFilter.endDate ? { endDate: appliedFilter.endDate } : {}),
-      });
-      if (!cancelled) {
+      const result = await userManageApi.getAuditLogs(
+        {
+          page: page + 1,
+          pageSize,
+          ...(appliedFilter.operatorId !== ''
+            ? { operatorId: appliedFilter.operatorId as number }
+            : {}),
+          ...(appliedFilter.targetId !== '' ? { targetId: appliedFilter.targetId as number } : {}),
+          ...(appliedFilter.action ? { action: appliedFilter.action } : {}),
+          ...(appliedFilter.result ? { result: appliedFilter.result } : {}),
+          ...(appliedFilter.startDate ? { startDate: appliedFilter.startDate } : {}),
+          ...(appliedFilter.endDate ? { endDate: appliedFilter.endDate } : {}),
+        },
+        ctrl.signal
+      );
+      if (!ctrl.signal.aborted) {
         setLogs(result.items);
         setTotal(result.total);
       }
     } catch {
-      if (!cancelled) {
+      if (!ctrl.signal.aborted) {
         setLogs([]);
         setTotal(0);
       }
     } finally {
-      if (!cancelled) setLoading(false);
+      if (!ctrl.signal.aborted) setLoading(false);
     }
-    return () => {
-      cancelled = true;
-    };
   }, [page, pageSize, appliedFilter]);
 
   useEffect(() => {
     fetchLogs();
+    return () => abortRef.current?.abort();
   }, [fetchLogs]);
 
   const handleSearch = () => {
@@ -74,6 +84,7 @@ export function AuditLogTab() {
       operatorId: filterOperatorId,
       targetId: filterTargetId,
       action: filterAction,
+      result: filterResult,
       startDate,
       endDate,
     });
@@ -83,6 +94,7 @@ export function AuditLogTab() {
     setFilterOperatorId('');
     setFilterTargetId('');
     setFilterAction('');
+    setFilterResult('');
     setStartDate('');
     setEndDate('');
     setPage(0);
@@ -90,6 +102,7 @@ export function AuditLogTab() {
       operatorId: '',
       targetId: '',
       action: '',
+      result: '',
       startDate: '',
       endDate: '',
     });
@@ -101,11 +114,13 @@ export function AuditLogTab() {
         filterOperatorId={filterOperatorId}
         filterTargetId={filterTargetId}
         filterAction={filterAction}
+        filterResult={filterResult}
         startDate={startDate}
         endDate={endDate}
         onFilterOperatorId={setFilterOperatorId}
         onFilterTargetId={setFilterTargetId}
         onFilterAction={setFilterAction}
+        onFilterResult={setFilterResult}
         onStartDate={setStartDate}
         onEndDate={setEndDate}
         onSearch={handleSearch}

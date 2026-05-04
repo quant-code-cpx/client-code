@@ -1,6 +1,8 @@
 import { useState } from 'react';
 
 import Box from '@mui/material/Box';
+import Alert from '@mui/material/Alert';
+import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import TextField from '@mui/material/TextField';
@@ -13,6 +15,8 @@ import InputAdornment from '@mui/material/InputAdornment';
 import CircularProgress from '@mui/material/CircularProgress';
 
 import { Iconify } from 'src/components/iconify';
+
+import { validatePassword, generateStrongPassword } from './user-manage-utils';
 
 // ----------------------------------------------------------------------
 
@@ -58,8 +62,8 @@ export function UserManageResetPasswordDialog({
       setError('密码不能为空');
       return;
     }
-    if (newPassword.trim().length < 8) {
-      setError('密码至少需要8位');
+    if (!validatePassword(newPassword.trim())) {
+      setError('密码至少 8 位，且需包含字母和数字');
       return;
     }
     if (newPassword.trim() !== confirmPassword.trim()) {
@@ -79,6 +83,14 @@ export function UserManageResetPasswordDialog({
     }
   };
 
+  const handleGeneratePassword = () => {
+    const nextPassword = generateStrongPassword();
+    setNewPassword(nextPassword);
+    setConfirmPassword(nextPassword);
+    setShowNew(true);
+    setShowConfirm(true);
+  };
+
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="xs" fullWidth>
       <DialogTitle>重置密码</DialogTitle>
@@ -87,9 +99,7 @@ export function UserManageResetPasswordDialog({
         {result ? (
           /* ── 重置成功：展示新密码 ── */
           <Box sx={{ pt: 1, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-            <Typography variant="body2" color="text.secondary">
-              账号「{account}」的密码已重置成功，新密码如下：
-            </Typography>
+            <Alert severity="success">账号「{account}」的密码已重置成功，新密码仅本次可见。</Alert>
             <Box
               sx={{
                 display: 'flex',
@@ -111,13 +121,19 @@ export function UserManageResetPasswordDialog({
                 size="small"
                 onClick={() => navigator.clipboard.writeText(result)}
                 title="复制密码"
+                aria-label="复制新密码"
               >
                 <Iconify icon="solar:copy-bold" width={18} />
               </IconButton>
             </Box>
-            <Typography variant="caption" color="warning.main">
-              此密码仅显示一次，关闭后将无法再次查看
-            </Typography>
+            <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between">
+              <Typography variant="caption" color="warning.main">
+                请通过安全渠道告知用户，关闭后将无法再次查看
+              </Typography>
+              <Button size="small" color="warning" onClick={() => setResult('')}>
+                立即清除
+              </Button>
+            </Stack>
           </Box>
         ) : (
           /* ── 重置表单 ── */
@@ -125,6 +141,14 @@ export function UserManageResetPasswordDialog({
             <Typography variant="body2" color="text.secondary">
               请输入账号「{account}」的新密码：
             </Typography>
+            <Button
+              variant="outlined"
+              color="info"
+              onClick={handleGeneratePassword}
+              startIcon={<Iconify icon="solar:shield-keyhole-bold-duotone" />}
+            >
+              随机生成强密码
+            </Button>
             <TextField
               label="新密码"
               type={showNew ? 'text' : 'password'}
@@ -136,7 +160,12 @@ export function UserManageResetPasswordDialog({
                 input: {
                   endAdornment: (
                     <InputAdornment position="end">
-                      <IconButton size="small" edge="end" onClick={() => setShowNew((v) => !v)}>
+                      <IconButton
+                        size="small"
+                        edge="end"
+                        onClick={() => setShowNew((v) => !v)}
+                        aria-label={showNew ? '隐藏新密码' : '显示新密码'}
+                      >
                         <Iconify
                           icon={showNew ? 'solar:eye-closed-bold' : 'solar:eye-bold'}
                           width={20}
@@ -158,7 +187,12 @@ export function UserManageResetPasswordDialog({
                 input: {
                   endAdornment: (
                     <InputAdornment position="end">
-                      <IconButton size="small" edge="end" onClick={() => setShowConfirm((v) => !v)}>
+                      <IconButton
+                        size="small"
+                        edge="end"
+                        onClick={() => setShowConfirm((v) => !v)}
+                        aria-label={showConfirm ? '隐藏确认密码' : '显示确认密码'}
+                      >
                         <Iconify
                           icon={showConfirm ? 'solar:eye-closed-bold' : 'solar:eye-bold'}
                           width={20}
@@ -169,7 +203,7 @@ export function UserManageResetPasswordDialog({
                 },
               }}
             />
-            {error && <Box sx={{ color: 'error.main', fontSize: 13 }}>{error}</Box>}
+            {error && <Alert severity="error">{error}</Alert>}
           </Box>
         )}
       </DialogContent>

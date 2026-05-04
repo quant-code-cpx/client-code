@@ -2,6 +2,15 @@ import { apiClient } from './client';
 
 // ----------------------------------------------------------------------
 
+export type LastRunSummary = {
+  runId: string;
+  runAt: string;
+  totalReturn: number | null;
+  sharpeRatio: number | null;
+  maxDrawdown: number | null;
+  status: string;
+};
+
 export type Strategy = {
   id: string;
   userId: number;
@@ -15,6 +24,8 @@ export type Strategy = {
   isPublic: boolean;
   createdAt: string;
   updatedAt: string;
+  lastRunSummary?: LastRunSummary;
+  hasActiveSignal?: boolean;
 };
 
 export type CreateStrategyRequest = {
@@ -32,6 +43,9 @@ export type ListStrategiesRequest = {
   keyword?: string;
   page?: number;
   pageSize?: number;
+  minTotalReturn?: number;
+  minSharpeRatio?: number;
+  hasActiveSignal?: boolean;
 };
 
 export type ListStrategiesResponse = {
@@ -158,4 +172,57 @@ export function listStrategyVersions(strategyId: string) {
 
 export function compareStrategyVersions(dto: CompareVersionsRequest) {
   return apiClient.post<CompareVersionsResponse>('/api/strategies/compare-versions', dto);
+}
+
+// ─── 新增 API：摘要 / 业绩快照 / 删除依赖检测 ──────────────────
+
+export type StrategySummary = {
+  totalCount: number;
+  activeSignalCount: number;
+  recent7dRunCount: number;
+  recent7dBestReturn: number | null;
+  recent7dWorstReturn: number | null;
+};
+
+export type StrategyPerformance = {
+  totalReturn: number | null;
+  annualizedReturn: number | null;
+  sharpeRatio: number | null;
+  maxDrawdown: number | null;
+  navSeries: Array<{ date: string; nav: number }>;
+  baseline: {
+    totalReturn: number | null;
+    navSeries: Array<{ date: string; nav: number }>;
+  } | null;
+};
+
+export type StrategyReference = {
+  type: 'signal' | 'portfolio';
+  id: string;
+  name: string;
+};
+
+export type DeleteStrategyResponse = {
+  message: string;
+  blocked?: boolean;
+  references?: StrategyReference[];
+};
+
+export function getStrategySummary() {
+  return apiClient.post<StrategySummary>('/api/strategies/summary', {});
+}
+
+export function getStrategyPerformance(strategyId: string) {
+  return apiClient.post<StrategyPerformance>('/api/strategies/performance', { strategyId });
+}
+
+export function deleteStrategyWithCheck(id: string, force = false) {
+  return apiClient.post<DeleteStrategyResponse>('/api/strategies/delete', { id, force });
+}
+
+export function checkStrategyName(name: string, excludeId?: string) {
+  return apiClient.post<{ available: boolean }>('/api/strategies/check-name', {
+    name,
+    ...(excludeId ? { excludeId } : {}),
+  });
 }

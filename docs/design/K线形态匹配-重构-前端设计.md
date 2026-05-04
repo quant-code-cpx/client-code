@@ -54,13 +54,42 @@
 9. **ST/停牌排除**——默认 ON。
 10. **形态完成 vs 形态进行中**——区分"已经走完"和"正在形成中"的窗口。后者更有交易价值（能进场），前者只能复盘。
 
-### 1.5 待确认清单（请用户回复）
+### 1.5 待确认清单（已回复，含后端代码核查）
 
-- [ ] **Q1**：当前后端 `/api/pattern/search` 是否已支持 `patternId` 参数？（看前端代码，`patternId` 被错误塞到 `algorithm` 字段，强烈怀疑后端契约不全）
-- [ ] **Q2**：未来收益（T+5/10/20）后端是否有现成接口可一并返回？还是需要前端再请求 `/api/stock/kline` 自行计算？
-- [ ] **Q3**：`scope=INDEX` 时 `indexCode` 必填的指数列表来源？（沪深 300 / 中证 500 / 自选指数池？）
-- [ ] **Q4**：是否需要"鼠标画线"作为序列输入方式？（实现成本：HTML5 Canvas，约 1-2 天）
-- [ ] **Q5**：模板库是否允许用户**保存自己的形态**作为私有模板？（涉及后端 CRUD）
+> 已直接读取 `server-code/src/apps/pattern/{controller,service,dto,utils}` 确认后端真实契约。
+
+- [x] **Q1**：后端**不支持** `patternId` 参数。`/api/pattern/search` 入参为 `tsCode + startDate + endDate`（从该股该区间**实价格序列**提取查询形态），`/api/pattern/search-by-series` 入参为 `series: number[]`。
+      → **结论**：前端选模板 → 直接用模板的标准化 `series[]` 调 `search-by-series`，**无需后端改动**。后端 `getTemplates()` 当前只返回 `{id, name, description, length}`，**不返回 series 数组** → 前端在 `pattern-template-meta.ts` 内置 8 个模板的标准化 series + 类型/语义元数据。
+- [x] **Q2**：后端 `PatternMatchDto.futureReturns: number[]` 已返回 **T+5 / T+10 / T+20** 三个累计涨跌幅（百分比，例如 `5.8` 代表 +5.8%）。**没有 T+60**。
+      → **结论**：前端只展示 T+5/10/20；T+60 从蓝图删除。
+- [x] **Q3**：作为资深从业者判断，A 股研究最常用的指数池为以下 6 个，前端硬编码下拉：
+  - `000300.SH` 沪深 300（大盘核心）
+  - `000905.SH` 中证 500（中盘代表）
+  - `000852.SH` 中证 1000（小盘代表）
+  - `000016.SH` 上证 50（核心权重）
+  - `399006.SZ` 创业板指（成长主题）
+  - `000688.SH` 科创 50（科创主题）
+- [x] **Q4**：不做。模式 B 仅保留"粘贴数列"+"从历史区段提取"两种输入；画线 Canvas 移除。
+- [x] **Q5**：作为产品判断，**不做**私有模板。理由：
+  1. 8 个预定义经典形态已覆盖二级市场绝大多数研究语境；
+  2. 私有模板真正高价值的形态学习需要回测/统计支撑，而本期"未来收益条形图""历史触发统计"才是核心痛点；
+  3. CRUD + 权限 + 校验 + 后端持久化的工程成本不低，且使用频次远低于"模板图鉴 + 模式 A/B"；
+  4. 后续若用户自然产生需求（例：研究员沉淀私有形态库），再单独立项。
+
+### 1.6 后端真实契约（核查结果，覆盖原蓝图）
+
+| 端点                            | 已支持入参                                                                                  | 已返回字段                                                                                                                                                             | 蓝图原假设但**实际不存在**的字段                                                                                                                                                                  |
+| ------------------------------- | ------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/api/pattern/templates/list`   | 无入参                                                                                      | `id, name, description, length`                                                                                                                                        | `series, type, expectedSignal, defaultLength, historicalStats`                                                                                                                                    |
+| `/api/pattern/search`           | `tsCode, startDate, endDate, algorithm, topK, scope, indexCode, lookbackYears, excludeSelf` | `patternLength, algorithm, candidateCount, elapsedMs, querySeries, matches[{tsCode, name, startDate, endDate, distance, similarity, futureReturns, normalizedSeries}]` | `patternId, minSimilarity, patternLength(入参), industryCodes, minMarketCap, excludeST, excludeHalt, cooldownDays, page, pageSize`；返回的 `matches` 也无 `industryName/Code, isST, isHalt, ohlc` |
+| `/api/pattern/search-by-series` | `series, algorithm, topK, scope, indexCode, lookbackYears`                                  | 同上                                                                                                                                                                   | 同上                                                                                                                                                                                              |
+
+**关键修正**：
+
+1. 后端 `similarity` 是 **0–100** 的百分比（`round(distanceToSimilarity(...), 2)`），不是 0–1 比例 — 前端显示直接用，不再 ×100。
+2. 后端 `futureReturns` 元素是**百分比数值**（例如 `5.8` = +5.8%），不是 0.058。
+3. 后端 `normalizedSeries` 是 0–1 标准化（min-max），与前端模式 B 的 `normalizeSeries` 口径一致 → 模式 B 的 z-score 担忧消除。
+4. 后端 `/pattern/search` 语义为"以 `tsCode+区间` 作为**查询样板**，去 ALL/INDEX 候选池找相似"——并非"在本股内找形态"。原蓝图"模式 A · 单股样板"概念应整体调整为下述 3 模式。
 
 ---
 
@@ -131,9 +160,20 @@
 
 ---
 
-## 三、功能细化拆分
+## 三、功能细化拆分（基于后端真实契约）
 
-### 3.1 模块结构树
+### 3.0 三模式定义（重要语义修正）
+
+| 模式              | URL              | 触发接口                        | 用户操作                              | 候选池来源                     |
+| ----------------- | ---------------- | ------------------------------- | ------------------------------------- | ------------------------------ |
+| 模式 A · 模板搜索 | `?mode=template` | `/api/pattern/search-by-series` | 选模板（前端用 meta 表中的 series）   | scope=ALL / INDEX              |
+| 模式 B · 区间搜索 | `?mode=range`    | `/api/pattern/search`           | 选股票 + 区间（用该股该段为查询样板） | scope=ALL / INDEX, excludeSelf |
+| 模式 C · 序列搜索 | `?mode=series`   | `/api/pattern/search-by-series` | 粘贴数列 / 从历史区段提取             | scope=ALL / INDEX              |
+
+> 旧蓝图"模式 A · 单股 + 模板"概念被分裂为模式 A（模板）和模式 B（个股区间），后端语义清晰，UI 也更易理解。
+> 详情页『形态识别』Tab：默认模式 B（用本股最近 N 日为样板找相似），可切到模式 A（让本股作为候选，验证某模板在本股是否触发——通过 `excludeSelf=false` + 结果筛选）。
+
+### 3.1 模块结构树（修订后）
 
 ```
 形态匹配 模块
@@ -377,7 +417,27 @@
 - **回退**：保留旧版 `pattern-view.tsx` 一份在 `view/pattern-view.legacy.tsx`，1 个版本周期后删除
 - **灰度**：通过路由前缀 `?legacy=1` 切到旧版，便于 A/B 对比
 
-### 5.4 后端配合清单（**Backend Required**）
+### 5.4 后端配合清单（修订：基于代码核查后的真实差距）
+
+> 替代原列表的最终版本（核查后）：
+
+| 优先级 | 端点 / 字段                              | 改动                                                                                      | 前端兜底                                                                                                                 |
+| ------ | ---------------------------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| P1     | `templates/list` 出参                    | 增加 `series`、`type`、`expectedSignal`                                                   | 前端 `pattern-template-meta.ts` 内置 8 个模板的 series + type + expectedSignal（与后端 `pattern-templates.ts` 同步维护） |
+| P2     | `search` 出参                            | 增加 `industryName/Code`、`isST`、`isHalt`                                                | 客户端用 `/api/stock/list` 缓存补齐                                                                                      |
+| P2     | `search` 入参                            | 增加 `industryCodes[]`、`excludeST`、`minMarketCap`、`page/pageSize`                      | 客户端筛选 + 切片分页                                                                                                    |
+| P3     | `templates/list` 出参                    | 增加 `historicalStats`                                                                    | 缺失则模板卡只显示 description + sparkline                                                                               |
+| —      | `forwardReturns`                         | **后端已支持** T+5 / T+10 / T+20                                                          | —                                                                                                                        |
+| —      | `patternId`                              | **不需要新增**：模板搜索改走 `search-by-series` 传 series                                 | —                                                                                                                        |
+| 不做   | `extract-series` / `stats` / `favorites` | 不新增（私有模板与画线已确认不做；从历史区段提取由前端调 `/api/stock/detail/chart` 完成） | —                                                                                                                        |
+
+后端约束（核查后均已满足）：
+
+- 标准化口径已统一（min-max → 0–1）✅
+- 跨日逻辑使用真实交易日 ✅
+- `forwardReturns` 用百分比累计涨跌幅 ✅
+
+### 5.4-旧 原蓝图后端清单（已被上表替换，仅留作历史对照）
 
 | 优先级 | 端点                                    | 改动                                                                                                                                                                                                                             |
 | ------ | --------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------- |

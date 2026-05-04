@@ -7,7 +7,9 @@ import Card from '@mui/material/Card';
 import Grid from '@mui/material/Grid';
 import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
+import Tooltip from '@mui/material/Tooltip';
 import Skeleton from '@mui/material/Skeleton';
+import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
 
@@ -21,9 +23,15 @@ import { CacheStatsTable } from './cache-stats-table';
 
 // ----------------------------------------------------------------------
 
-export function CacheStatsTab() {
+type Props = {
+  isReadOnly?: boolean;
+  refreshKey?: number;
+};
+
+export function CacheStatsTab({ isReadOnly = false, refreshKey = 0 }: Props) {
   const [cacheData, setCacheData] = useState<CacheMetricsData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [keyword, setKeyword] = useState('');
 
   const fetchStats = useCallback(async () => {
     setLoading(true);
@@ -39,9 +47,13 @@ export function CacheStatsTab() {
 
   useEffect(() => {
     fetchStats();
-  }, [fetchStats]);
+  }, [fetchStats, refreshKey]);
 
   const namespaces = cacheData?.namespaces ?? [];
+  const filteredNamespaces = namespaces.filter((item) =>
+    item.namespace.toLowerCase().includes(keyword.trim().toLowerCase())
+  );
+  const clearDisabledReason = isReadOnly ? '仅 SUPER_ADMIN 可执行' : '等待后端缓存清理接口启用';
 
   return (
     <Box sx={{ mt: 3 }}>
@@ -58,11 +70,7 @@ export function CacheStatsTab() {
         <Typography variant="subtitle1" sx={{ fontWeight: 600, flexGrow: 1 }}>
           缓存命中率统计
           {cacheData?.generatedAt && (
-            <Typography
-              component="span"
-              variant="body2"
-              sx={{ ml: 2, color: 'text.secondary' }}
-            >
+            <Typography component="span" variant="body2" sx={{ ml: 2, color: 'text.secondary' }}>
               统计时间：{fDateTime(cacheData.generatedAt)}
             </Typography>
           )}
@@ -73,16 +81,28 @@ export function CacheStatsTab() {
           onClick={fetchStats}
           disabled={loading}
           startIcon={
-            loading ? (
-              <CircularProgress size={14} />
-            ) : (
-              <Iconify icon="solar:refresh-bold" />
-            )
+            loading ? <CircularProgress size={14} /> : <Iconify icon="solar:refresh-bold" />
           }
         >
           {loading ? '加载中...' : '刷新'}
         </Button>
+        <Tooltip title={clearDisabledReason}>
+          <span>
+            <Button variant="outlined" color="warning" size="small" disabled>
+              清除全部缓存
+            </Button>
+          </span>
+        </Tooltip>
       </Box>
+
+      <TextField
+        fullWidth
+        size="small"
+        label="按命名空间搜索"
+        value={keyword}
+        onChange={(event) => setKeyword(event.target.value)}
+        sx={{ mb: 3 }}
+      />
 
       {/* Overview cards */}
       <Grid container spacing={2} sx={{ mb: 3 }}>
@@ -94,7 +114,7 @@ export function CacheStatsTab() {
                 </Card>
               </Grid>
             ))
-          : namespaces.map((ns) => (
+          : filteredNamespaces.map((ns) => (
               <Grid key={ns.namespace} size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
                 <Card sx={{ p: 3 }}>
                   <Typography variant="subtitle2" sx={{ mb: 1, color: 'text.secondary' }}>
@@ -122,25 +142,37 @@ export function CacheStatsTab() {
                   <Divider sx={{ my: 1.5 }} />
                   <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                     <Box>
-                      <Typography variant="caption" sx={{ color: 'text.disabled', display: 'block' }}>
+                      <Typography
+                        variant="caption"
+                        sx={{ color: 'text.disabled', display: 'block' }}
+                      >
                         键数
                       </Typography>
                       <Typography variant="body2">{ns.keyCount.toLocaleString()}</Typography>
                     </Box>
                     <Box>
-                      <Typography variant="caption" sx={{ color: 'text.disabled', display: 'block' }}>
+                      <Typography
+                        variant="caption"
+                        sx={{ color: 'text.disabled', display: 'block' }}
+                      >
                         命中
                       </Typography>
                       <Typography variant="body2">{ns.hits.toLocaleString()}</Typography>
                     </Box>
                     <Box>
-                      <Typography variant="caption" sx={{ color: 'text.disabled', display: 'block' }}>
+                      <Typography
+                        variant="caption"
+                        sx={{ color: 'text.disabled', display: 'block' }}
+                      >
                         未命中
                       </Typography>
                       <Typography variant="body2">{ns.misses.toLocaleString()}</Typography>
                     </Box>
                     <Box>
-                      <Typography variant="caption" sx={{ color: 'text.disabled', display: 'block' }}>
+                      <Typography
+                        variant="caption"
+                        sx={{ color: 'text.disabled', display: 'block' }}
+                      >
                         写入
                       </Typography>
                       <Typography variant="body2">{ns.writes.toLocaleString()}</Typography>
@@ -159,7 +191,12 @@ export function CacheStatsTab() {
           </Typography>
         </Box>
         <Divider />
-        <CacheStatsTable rows={namespaces} loading={loading} />
+        <CacheStatsTable
+          rows={filteredNamespaces}
+          loading={loading}
+          clearDisabled
+          clearDisabledReason={clearDisabledReason}
+        />
       </Card>
     </Box>
   );

@@ -4,6 +4,12 @@ import Card from '@mui/material/Card';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 
+import {
+  formatNumberValue,
+  formatPercentValue,
+  computeRobustnessStats,
+} from './walk-forward-utils';
+
 // ----------------------------------------------------------------------
 
 type MetricCardProps = {
@@ -25,11 +31,6 @@ function MetricCard({ label, value, color }: MetricCardProps) {
   );
 }
 
-function pctStr(val: number | null): string {
-  if (val === null || val === undefined) return '—';
-  return `${val >= 0 ? '+' : ''}${(val * 100).toFixed(2)}%`;
-}
-
 function pctColor(val: number | null): string | undefined {
   if (val === null || val === undefined) return undefined;
   return val >= 0 ? 'success.main' : 'error.main';
@@ -40,24 +41,28 @@ function pctColor(val: number | null): string | undefined {
 type Props = { detail: WalkForwardRunDetail };
 
 export function WalkForwardSummaryCards({ detail }: Props) {
-  const isOosCompareLabel =
-    detail.isOosReturnVsIs !== null
-      ? `${detail.isOosReturnVsIs >= 0 ? '+' : ''}${(detail.isOosReturnVsIs * 100).toFixed(2)}%`
-      : '—';
+  const stats = computeRobustnessStats(detail);
 
   return (
     <Grid container spacing={2}>
-      <Grid size={{ xs: 6, sm: 3 }}>
+      <Grid size={{ xs: 6, sm: 4, lg: 2 }}>
+        <MetricCard
+          label={stats.wfeEstimated ? 'WFE（估算）' : 'WFE'}
+          value={formatPercentValue(stats.wfe, 1)}
+          color={stats.wfe !== null && stats.wfe >= 0.7 ? 'success.main' : 'warning.main'}
+        />
+      </Grid>
+      <Grid size={{ xs: 6, sm: 4, lg: 2 }}>
         <MetricCard
           label="OOS 年化收益"
-          value={pctStr(detail.oosAnnualizedReturn)}
+          value={formatPercentValue(detail.oosAnnualizedReturn)}
           color={pctColor(detail.oosAnnualizedReturn)}
         />
       </Grid>
-      <Grid size={{ xs: 6, sm: 3 }}>
+      <Grid size={{ xs: 6, sm: 4, lg: 2 }}>
         <MetricCard
           label="OOS 夏普比率"
-          value={detail.oosSharpeRatio !== null ? detail.oosSharpeRatio.toFixed(3) : '—'}
+          value={formatNumberValue(detail.oosSharpeRatio, 3)}
           color={
             detail.oosSharpeRatio !== null
               ? detail.oosSharpeRatio >= 1
@@ -69,18 +74,33 @@ export function WalkForwardSummaryCards({ detail }: Props) {
           }
         />
       </Grid>
-      <Grid size={{ xs: 6, sm: 3 }}>
+      <Grid size={{ xs: 6, sm: 4, lg: 2 }}>
         <MetricCard
           label="OOS 最大回撤"
-          value={pctStr(detail.oosMaxDrawdown)}
+          value={formatPercentValue(detail.oosMaxDrawdown)}
           color={detail.oosMaxDrawdown !== null ? 'error.main' : undefined}
         />
       </Grid>
-      <Grid size={{ xs: 6, sm: 3 }}>
+      <Grid size={{ xs: 6, sm: 4, lg: 2 }}>
         <MetricCard
-          label="IS vs OOS 收益差"
-          value={isOosCompareLabel}
-          color={pctColor(detail.isOosReturnVsIs)}
+          label="负 OOS 窗口占比"
+          value={formatPercentValue(detail.oosNegativeWindowRate ?? stats.negativeWindowRate)}
+          color={
+            (detail.oosNegativeWindowRate ?? stats.negativeWindowRate ?? 1) <= 0.3
+              ? 'success.main'
+              : 'warning.main'
+          }
+        />
+      </Grid>
+      <Grid size={{ xs: 6, sm: 4, lg: 2 }}>
+        <MetricCard
+          label="IS-OOS 衰减"
+          value={formatPercentValue(stats.degradation)}
+          color={
+            stats.degradation !== null && stats.degradation <= 0.05
+              ? 'success.main'
+              : 'warning.main'
+          }
         />
       </Grid>
     </Grid>

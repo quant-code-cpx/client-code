@@ -1,3 +1,5 @@
+import type { StrategyTypeValue } from 'src/api/backtest';
+
 import dayjs from 'dayjs';
 import { useState, useCallback } from 'react';
 
@@ -19,14 +21,18 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { useRouter } from 'src/routes/hooks';
 import { RouterLink } from 'src/routes/components';
 
-import { createWalkForwardRun } from 'src/api/backtest';
 import { DashboardContent } from 'src/layouts/dashboard';
+import { createWalkForwardRun, createRollingBacktest } from 'src/api/backtest';
 
 import { Iconify } from 'src/components/iconify';
 
+import { WalkForwardWindowPreview } from '../walk-forward-window-preview';
+import { WalkForwardAdvancedFields } from '../walk-forward-advanced-fields';
+import { WalkForwardCreateModeTabs } from '../walk-forward-create-mode-tabs';
 import { BacktestStrategyConfigPanel } from '../backtest-strategy-config-panel';
 import { WalkForwardParamSpaceEditor } from '../walk-forward-param-space-editor';
 import {
+  toApiDate,
   DEFAULT_WF_FORM,
   UNIVERSE_OPTIONS,
   BENCHMARK_OPTIONS,
@@ -41,6 +47,7 @@ import {
 
 import type { ParamDefinition } from '../walk-forward-param-space-editor';
 import type { BacktestRunForm, CreateWalkForwardFormState } from '../types';
+import type { WalkForwardCreateMode } from '../walk-forward-create-mode-tabs';
 
 // ----------------------------------------------------------------------
 
@@ -86,6 +93,14 @@ export function WalkForwardCreateView() {
     }));
   }, []);
 
+  const handleModeChange = useCallback((mode: WalkForwardCreateMode) => {
+    setForm((prev) => ({
+      ...prev,
+      mode: mode === 'ROLLING' ? 'ROLLING' : 'WF',
+      windowMode: mode === 'WF_ANCHORED' ? 'ANCHORED' : 'ROLLING',
+    }));
+  }, []);
+
   // Adapter for BacktestStrategyConfigPanel
   const fakeForm: BacktestRunForm = {
     name: '',
@@ -98,6 +113,8 @@ export function WalkForwardCreateView() {
     rebalanceFrequency: form.rebalanceFrequency,
     priceMode: 'NEXT_OPEN',
     enableTradeConstraints: false,
+    enableT1Restriction: true,
+    partialFillEnabled: true,
     commissionRate: 0.0003,
     stampDutyRate: 0.0005,
     minCommission: 5,
@@ -109,8 +126,9 @@ export function WalkForwardCreateView() {
   };
 
   const handleStrategyConfigChange = useCallback((updates: Partial<BacktestRunForm>) => {
-    if (updates.strategyConfig !== undefined) {
-      setForm((prev) => ({ ...prev, baseStrategyConfig: updates.strategyConfig! }));
+    const strategyConfig = updates.strategyConfig;
+    if (strategyConfig !== undefined) {
+      setForm((prev) => ({ ...prev, baseStrategyConfig: strategyConfig }));
     }
   }, []);
 
@@ -118,10 +136,33 @@ export function WalkForwardCreateView() {
     setSubmitting(true);
     setError('');
     try {
-      const toApiDate = (d: string) => d.replace(/-/g, '');
+      const strategyType = form.baseStrategyType as StrategyTypeValue;
+
+      if (form.mode === 'ROLLING') {
+        const res = await createRollingBacktest({
+          name: form.name || undefined,
+          strategyType,
+          strategyConfig: form.baseStrategyConfig,
+          rollingParamSpace: form.paramSearchSpace,
+          startDate: toApiDate(form.fullStartDate),
+          endDate: toApiDate(form.fullEndDate),
+          lookbackDays: form.inSampleDays,
+          holdingPeriodDays: form.outOfSampleDays,
+          optimizeMetric: form.optimizeMetric,
+          benchmarkTsCode: form.benchmarkTsCode,
+          universe: form.universe,
+          initialCapital: form.initialCapital,
+          rebalanceFrequency: form.rebalanceFrequency,
+        });
+        router.push(`/backtest/walk-forward/${res.wfRunId}`);
+        return;
+      }
+
       const res = await createWalkForwardRun({
         name: form.name || undefined,
-        baseStrategyType: form.baseStrategyType as any,
+        mode: 'WF',
+        windowMode: form.windowMode,
+        baseStrategyType: strategyType,
         baseStrategyConfig: form.baseStrategyConfig,
         paramSearchSpace: form.paramSearchSpace,
         fullStartDate: toApiDate(form.fullStartDate),
@@ -134,6 +175,9 @@ export function WalkForwardCreateView() {
         universe: form.universe,
         initialCapital: form.initialCapital,
         rebalanceFrequency: form.rebalanceFrequency,
+        purgeDays: form.purgeDays,
+        embargoDays: form.embargoDays,
+        minOosTrades: form.minOosTrades,
       });
       router.push(`/backtest/walk-forward/${res.wfRunId}`);
     } catch (err) {
@@ -144,6 +188,14 @@ export function WalkForwardCreateView() {
   }, [form, router]);
 
   const availableParams = STRATEGY_PARAMS[form.baseStrategyType] ?? [];
+  const selectedMode: WalkForwardCreateMode =
+    form.mode === 'ROLLING'
+      ? 'ROLLING'
+      : form.windowMode === 'ANCHORED'
+        ? 'WF_ANCHORED'
+        : 'WF_ROLLING';
+  const isRollingMode = form.mode === 'ROLLING';
+  const hasSearchSpace = Object.keys(form.paramSearchSpace).length > 0;
 
   return (
     <DashboardContent>
@@ -157,7 +209,7 @@ export function WalkForwardCreateView() {
         >
           返回列表
         </Button>
-        <Typography variant="h4">新建 Walk-Forward 任务</Typography>
+        <Typography variant="h4">新建稳健性验证任务</Typography>
       </Box>
 
       {error && (
@@ -165,6 +217,8 @@ export function WalkForwardCreateView() {
           {error}
         </Alert>
       )}
+
+      <WalkForwardCreateModeTabs value={selectedMode} onChange={handleModeChange} />
 
       <Grid container spacing={3}>
         <Grid size={{ xs: 12, md: 7 }}>
@@ -225,7 +279,7 @@ export function WalkForwardCreateView() {
           <Card sx={{ mb: 3 }}>
             <CardContent>
               <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>
-                WF 窗口设置
+                {isRollingMode ? 'Rolling 窗口设置' : 'WF 窗口设置'}
               </Typography>
 
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
@@ -233,7 +287,9 @@ export function WalkForwardCreateView() {
                   <DatePicker
                     label="全量开始日期"
                     value={form.fullStartDate ? dayjs(form.fullStartDate) : null}
-                    onChange={(v) => setForm((prev) => ({ ...prev, fullStartDate: v?.format('YYYY-MM-DD') ?? '' }))}
+                    onChange={(v) =>
+                      setForm((prev) => ({ ...prev, fullStartDate: v?.format('YYYY-MM-DD') ?? '' }))
+                    }
                     format="YYYY-MM-DD"
                     sx={{ width: '100%' }}
                     slotProps={{
@@ -244,7 +300,9 @@ export function WalkForwardCreateView() {
                   <DatePicker
                     label="全量结束日期"
                     value={form.fullEndDate ? dayjs(form.fullEndDate) : null}
-                    onChange={(v) => setForm((prev) => ({ ...prev, fullEndDate: v?.format('YYYY-MM-DD') ?? '' }))}
+                    onChange={(v) =>
+                      setForm((prev) => ({ ...prev, fullEndDate: v?.format('YYYY-MM-DD') ?? '' }))
+                    }
                     format="YYYY-MM-DD"
                     sx={{ width: '100%' }}
                     slotProps={{
@@ -257,24 +315,24 @@ export function WalkForwardCreateView() {
                 <TextField
                   fullWidth
                   size="small"
-                  label="样本内天数"
+                  label={isRollingMode ? '回看天数' : '样本内天数'}
                   type="number"
                   value={form.inSampleDays}
                   onChange={(e) =>
                     setForm((prev) => ({ ...prev, inSampleDays: Number(e.target.value) }))
                   }
-                  helperText="60–2520 交易日"
+                  helperText={isRollingMode ? 'Rolling 优化回看窗口' : '60–2520 交易日'}
                 />
                 <TextField
                   fullWidth
                   size="small"
-                  label="样本外天数"
+                  label={isRollingMode ? '持有期天数' : '样本外天数'}
                   type="number"
                   value={form.outOfSampleDays}
                   onChange={(e) =>
                     setForm((prev) => ({ ...prev, outOfSampleDays: Number(e.target.value) }))
                   }
-                  helperText="20–504 交易日"
+                  helperText={isRollingMode ? 'Rolling 每段持有/评估周期' : '20–504 交易日'}
                 />
                 <TextField
                   fullWidth
@@ -307,6 +365,32 @@ export function WalkForwardCreateView() {
               </Box>
             </CardContent>
           </Card>
+
+          {!isRollingMode && (
+            <Card sx={{ mb: 3 }}>
+              <CardContent>
+                <WalkForwardAdvancedFields
+                  purgeDays={form.purgeDays}
+                  embargoDays={form.embargoDays}
+                  minOosTrades={form.minOosTrades}
+                  onChange={(patch) => setForm((prev) => ({ ...prev, ...patch }))}
+                />
+              </CardContent>
+            </Card>
+          )}
+
+          <Box sx={{ mb: 3 }}>
+            <WalkForwardWindowPreview
+              fullStartDate={form.fullStartDate}
+              fullEndDate={form.fullEndDate}
+              inSampleDays={form.inSampleDays}
+              outOfSampleDays={form.outOfSampleDays}
+              stepDays={form.stepDays}
+              purgeDays={isRollingMode ? 0 : form.purgeDays}
+              embargoDays={isRollingMode ? 0 : form.embargoDays}
+              paramSearchSpace={form.paramSearchSpace}
+            />
+          </Box>
 
           {/* Common params */}
           <Card sx={{ mb: 3 }}>
@@ -385,14 +469,18 @@ export function WalkForwardCreateView() {
             fullWidth
             variant="contained"
             size="large"
-            disabled={submitting || Object.keys(form.paramSearchSpace).length === 0}
+            disabled={submitting || !hasSearchSpace}
             onClick={handleSubmit}
             startIcon={<Iconify icon="solar:play-circle-bold" width={20} />}
           >
-            {submitting ? '提交中…' : '提交 Walk-Forward 任务'}
+            {submitting
+              ? '提交中…'
+              : isRollingMode
+                ? '提交 Rolling 任务'
+                : '提交 Walk-Forward 任务'}
           </Button>
 
-          {Object.keys(form.paramSearchSpace).length === 0 && (
+          {!hasSearchSpace && (
             <Typography
               variant="caption"
               color="text.disabled"

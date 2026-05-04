@@ -20,36 +20,43 @@ import { ReportGenerateDialog } from 'src/sections/report/report-generate-dialog
 
 import { StockDetailHeader } from '../stock-detail-header';
 import { StockDetailMarketTab } from '../stock-detail-market-tab';
-import { StockDetailCompanyTab } from '../stock-detail-company-tab';
-import { StockDetailDividendTab } from '../stock-detail-dividend-tab';
+import { StockDetailNotesDrawer } from '../stock-detail-notes-drawer';
 import { StockDetailAnalysisTab } from '../stock-detail-analysis-tab';
 import { StockDetailFinancialsTab } from '../stock-detail-financials-tab';
-import { StockDetailShareholdersTab } from '../stock-detail-shareholders-tab';
-import { StockDetailShareCapitalTab } from '../stock-detail-share-capital-tab';
+import { StockDetailCompanySuiteTab } from '../stock-detail-company-suite-tab';
 
 // ----------------------------------------------------------------------
 
-const TABS = [
+type MainTab = 'market' | 'analysis' | 'financials' | 'company';
+
+const TABS: { value: MainTab; label: string }[] = [
   { value: 'market', label: '行情' },
-  { value: 'company', label: '公司概况' },
   { value: 'analysis', label: '分析' },
   { value: 'financials', label: '财务' },
-  { value: 'shareholders', label: '股本股东' },
-  { value: 'share-capital', label: '股本结构' },
-  { value: 'dividend', label: '分红融资' },
+  { value: 'company', label: '公司与股本' },
 ];
+
+const normalizeStockDetailTab = (value: string | null): MainTab =>
+  TABS.some((tab) => tab.value === value) ? (value as MainTab) : 'market';
 
 // ----------------------------------------------------------------------
 
 export function StockDetailView() {
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabParam = searchParams.get('tab');
   const tsCode = searchParams.get('code') ?? '';
 
-  const [activeTab, setActiveTab] = useState('market');
+  const [activeTab, setActiveTab] = useState<MainTab>(() => normalizeStockDetailTab(tabParam));
   const [overview, setOverview] = useState<StockDetailOverviewData | null>(null);
   const [overviewLoading, setOverviewLoading] = useState(false);
   const [overviewError, setOverviewError] = useState('');
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
+  const [notesDrawerOpen, setNotesDrawerOpen] = useState(false);
+
+  const stockName = overview?.basic?.name ?? undefined;
+  const snapshotPrice = overview?.latestQuote?.close ?? null;
+  const snapshotTradeDate = overview?.latestQuote?.tradeDate ?? null;
+  const snapshotPctChg = overview?.latestQuote?.pctChg ?? null;
 
   const fetchOverview = useCallback(async () => {
     if (!tsCode) return;
@@ -68,6 +75,27 @@ export function StockDetailView() {
   useEffect(() => {
     fetchOverview();
   }, [fetchOverview]);
+
+  useEffect(() => {
+    if (tabParam === 'notes') {
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.set('tab', 'market');
+      setActiveTab('market');
+      setNotesDrawerOpen(true);
+      setSearchParams(nextParams);
+      return;
+    }
+
+    const nextTab = normalizeStockDetailTab(tabParam);
+    setActiveTab((prev) => (prev === nextTab ? prev : nextTab));
+  }, [searchParams, setSearchParams, tabParam]);
+
+  const handleTabChange = (_event: React.SyntheticEvent, value: MainTab) => {
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.set('tab', value);
+    setActiveTab(value);
+    setSearchParams(nextParams);
+  };
 
   if (!tsCode) {
     return (
@@ -88,7 +116,15 @@ export function StockDetailView() {
       {/* 头部基础数据 */}
       <StockDetailHeader tsCode={tsCode} overview={overview} loading={overviewLoading} />
 
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: -1, mb: 1 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: -1, mb: 1 }}>
+        <Button
+          size="small"
+          variant="outlined"
+          onClick={() => setNotesDrawerOpen(true)}
+          startIcon={<Iconify icon="solar:document-text-bold" width={14} />}
+        >
+          我的研究
+        </Button>
         <Button
           size="small"
           variant="outlined"
@@ -105,7 +141,7 @@ export function StockDetailView() {
       <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
         <Tabs
           value={activeTab}
-          onChange={(_, v) => setActiveTab(v)}
+          onChange={handleTabChange}
           variant="scrollable"
           scrollButtons="auto"
         >
@@ -120,11 +156,12 @@ export function StockDetailView() {
         {activeTab === 'analysis' && <StockDetailAnalysisTab tsCode={tsCode} />}
         {activeTab === 'financials' && <StockDetailFinancialsTab tsCode={tsCode} />}
         {activeTab === 'company' && (
-          <StockDetailCompanyTab tsCode={tsCode} overview={overview} loading={overviewLoading} />
+          <StockDetailCompanySuiteTab
+            tsCode={tsCode}
+            overview={overview}
+            loading={overviewLoading}
+          />
         )}
-        {activeTab === 'shareholders' && <StockDetailShareholdersTab tsCode={tsCode} />}
-        {activeTab === 'share-capital' && <StockDetailShareCapitalTab tsCode={tsCode} />}
-        {activeTab === 'dividend' && <StockDetailDividendTab tsCode={tsCode} />}
       </Box>
 
       {/* 底部说明 */}
@@ -140,6 +177,16 @@ export function StockDetailView() {
         onGenerated={() => setReportDialogOpen(false)}
         defaultType="STOCK"
         defaultParams={{ tsCode }}
+      />
+
+      <StockDetailNotesDrawer
+        open={notesDrawerOpen}
+        tsCode={tsCode}
+        stockName={stockName}
+        snapshotPrice={snapshotPrice}
+        snapshotTradeDate={snapshotTradeDate}
+        snapshotPctChg={snapshotPctChg}
+        onClose={() => setNotesDrawerOpen(false)}
       />
     </DashboardContent>
   );

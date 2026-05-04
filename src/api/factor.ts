@@ -20,6 +20,31 @@ export type FactorSourceType = 'FIELD_REF' | 'DERIVED' | 'CUSTOM_SQL';
 
 // ─── 因子库类型 ────────────────────────────────────────────────
 
+/** 因子预计算 / 启用状态徽标（库页显示 4+1 档） */
+export type FactorStatus = 'FRESH' | 'STALE' | 'FAILED' | 'NEVER' | 'DISABLED';
+
+/** 因子质量摘要（依赖后端 BE-1 / BE-11，全部 optional） */
+export type FactorSummary = {
+  /** 默认 10 日 IC 均值 */
+  ic10d?: number | null;
+  ic5d?: number | null;
+  ic20d?: number | null;
+  ir?: number | null;
+  /** 非空覆盖度（0~1） */
+  coverage?: number | null;
+  /** 最近预计算交易日 YYYYMMDD */
+  lastComputeDate?: string | null;
+  /** 最近预计算距今滞后天数 */
+  latencyDays?: number | null;
+};
+
+/** 因子库相关因子（依赖 BE-7，optional） */
+export type FactorRelatedItem = {
+  name: string;
+  label: string;
+  corr: number;
+};
+
 export type FactorDef = {
   id: string;
   name: string;
@@ -28,6 +53,20 @@ export type FactorDef = {
   category: FactorCategory;
   sourceType: FactorSourceType;
   isBuiltin: boolean;
+  /** 启用状态（自定义因子可切换；后端 P1） */
+  isEnabled?: boolean;
+  /** 质量摘要（BE-1） */
+  summary?: FactorSummary;
+  /** 状态徽标（BE-2） */
+  status?: FactorStatus;
+  /** LaTeX 公式（BE-6） */
+  formula?: string;
+  /** 文档链接（BE-6） */
+  docUrl?: string;
+  /** Top 相关因子（BE-7） */
+  topRelated?: FactorRelatedItem[];
+  /** 被引用次数（BE-8） */
+  usageCount?: number;
 };
 
 export type FactorCategoryGroup = {
@@ -36,8 +75,29 @@ export type FactorCategoryGroup = {
   factors: FactorDef[];
 };
 
+/** 因子库聚合摘要（BE-10，optional） */
+export type FactorLibraryMeta = {
+  totalCount: number;
+  enabledCount: number;
+  customCount: number;
+  staleCount: number;
+};
+
 export type FactorLibraryResult = {
   categories: FactorCategoryGroup[];
+  meta?: FactorLibraryMeta;
+};
+
+/** 因子库请求参数（BE-4 扩展，全部 optional） */
+export type FactorLibraryRequest = {
+  category?: FactorCategory;
+  enabledOnly?: boolean;
+  sourceType?: FactorSourceType;
+  status?: FactorStatus;
+  icMin?: number;
+  coverageMin?: number;
+  sortBy?: 'ir' | 'ic10d' | 'coverage' | 'lastComputeDate' | 'name';
+  sortOrder?: 'asc' | 'desc';
 };
 
 // ─── 因子截面值类型 ────────────────────────────────────────────
@@ -176,12 +236,34 @@ export type FactorDistributionResult = {
 
 // ─── 因子相关性类型 ────────────────────────────────────────────────
 
+export type FactorCorrelationMeta = {
+  /** 股票池代码（与请求参数一致） */
+  universe?: string;
+  /** 后端计算时间 ISO 字符串 */
+  computedAt?: string;
+  /** 矩阵计算口径：'pairwise' = 每对因子独立取交集 */
+  matrixMode?: 'pairwise' | 'intersection';
+  /** 触发 null 相关系数的最小有效样本阈值，后端默认 3 */
+  minSampleForCorr?: number;
+  /** Spearman 并列秩处理方式 */
+  rankTiesMethod?: 'ordinal' | 'average';
+};
+
 export type FactorCorrelationResult = {
   tradeDate: string;
   method: 'spearman' | 'pearson';
+  /** 因子英文名（后端按字母升序返回） */
   factors: string[];
+  /** 因子标签，长度与 factors 相同；后端查不到时 fallback 为因子名 */
   factorLabels: string[];
-  matrix: number[][];
+  /** 相关系数矩阵：null 表示样本 < 3 或常数序列，不可解读为"无相关" */
+  matrix: (number | null)[][];
+  /** 有效样本数矩阵（pairwise）；对角线为单因子有效值数 */
+  nMatrix?: number[][];
+  /** 单因子覆盖率：valid / 并集股票数 */
+  coverage?: number[];
+  /** 计算口径元信息 */
+  meta?: FactorCorrelationMeta;
 };
 
 // ─── 选股类型 ────────────────────────────────────────────────────
@@ -206,9 +288,95 @@ export type FactorCondition = {
 
 export type ScreeningItem = {
   tsCode: string;
-  name: string;
-  industry: string;
+  /** 后端在股票基本信息缺失时可能返回 null */
+  name: string | null;
+  /** 行业可能为 null */
+  industry: string | null;
+  /** 因子值表（key 为因子英文名） */
   factors: Record<string, number | null>;
+  /** 综合分（依赖 BE-8） */
+  score?: number | null;
+  /** 整体排名（依赖 BE-8 / 单因子排序） */
+  rank?: number | null;
+  /** 各因子分位（0~1，依赖 BE-3） */
+  factorPercentiles?: Record<string, number | null>;
+  /** 各因子在股票池中的排名（1-based，依赖 BE-3） */
+  factorRanks?: Record<string, number | null>;
+  /** 行级警告（如某因子缺失等） */
+  warnings?: string[];
+  /** 市场板块标识（主板/创业板/科创板/北交所等） */
+  market?: string | null;
+  area?: string | null;
+  /** 上市日期 YYYYMMDD */
+  listDate?: string | null;
+  /** 是否 ST */
+  isSt?: boolean;
+  /** 是否停牌 */
+  isSuspended?: boolean;
+  /** 最近行情日 YYYYMMDD */
+  latestQuoteDate?: string | null;
+};
+
+/** 单条条件命中漏斗（BE-3） */
+export type FactorScreeningConditionPassCount = {
+  factorName: string;
+  operator: FactorConditionOperator;
+  beforeCount: number;
+  passCount: number;
+  missingCount: number;
+  afterCount: number;
+  /** 后端返回 percent 类型条件的实际阈值（数值或字符串） */
+  threshold?: number | string | null;
+};
+
+/** 结果摘要（BE-2） */
+export type FactorScreeningSummary = {
+  universeCount: number;
+  matchedCount: number;
+  matchedRate: number;
+  missingRate: number;
+  asOfTradeDate: string;
+  dataFreshness?: 'FRESH' | 'STALE' | 'NEVER';
+  executionMs?: number;
+};
+
+/** 行业分布桶 */
+export type FactorScreeningIndustryBucket = {
+  industry: string | null;
+  count: number;
+  ratio: number;
+};
+
+/** 因子分布概览（BE-9） */
+export type FactorScreeningFactorPercentileSummary = {
+  factorName: string;
+  mean?: number | null;
+  q25?: number | null;
+  q75?: number | null;
+  min?: number | null;
+  max?: number | null;
+};
+
+/** 结果诊断（BE-9） */
+export type FactorScreeningDiagnostics = {
+  industryDistribution?: FactorScreeningIndustryBucket[];
+  factorPercentiles?: FactorScreeningFactorPercentileSummary[];
+};
+
+/** 综合分配置（BE-8） */
+export type FactorScoreConfig = {
+  weights: { factorName: string; weight: number; direction?: 'asc' | 'desc' }[];
+  standardize?: 'zscore' | 'rank' | 'none';
+  winsorize?: boolean;
+  industryNeutralize?: boolean;
+};
+
+/** 交易约束（Q6） */
+export type FactorScreeningTradeConstraints = {
+  excludeSt?: boolean;
+  excludeSuspended?: boolean;
+  excludeBse?: boolean;
+  minListDays?: number;
 };
 
 export type FactorScreeningResult = {
@@ -218,13 +386,25 @@ export type FactorScreeningResult = {
   page: number;
   pageSize: number;
   items: ScreeningItem[];
+  /** 条件数量（后端补） */
+  conditionCount?: number;
+  /** 当次请求快照 hash / id（BE-6） */
+  requestId?: string;
+  /** 结果摘要（BE-2） */
+  summary?: FactorScreeningSummary;
+  /** 条件命中漏斗（BE-3） */
+  conditionPassCounts?: FactorScreeningConditionPassCount[];
+  /** 诊断聚合（BE-9） */
+  diagnostics?: FactorScreeningDiagnostics;
+  /** 全局警告（数据缺失、被前端过滤等） */
+  warnings?: string[];
 };
 
 // ─── API 方法定义 ────────────────────────────────────────────────
 
 export const factorApi = {
   /** 获取因子库（按分类分组） */
-  library: (params: { category?: FactorCategory; enabledOnly?: boolean } = {}): Promise<FactorLibraryResult> =>
+  library: (params: FactorLibraryRequest = {}): Promise<FactorLibraryResult> =>
     apiClient.post('/api/factor/library', params),
 
   /** 获取单个因子详情 */
@@ -300,6 +480,18 @@ export const factorApi = {
     sortOrder?: 'asc' | 'desc';
     page?: number;
     pageSize?: number;
+    /** 综合分配置（BE-8） */
+    scoreConfig?: FactorScoreConfig;
+    /** 交易约束（Q6） */
+    tradeConstraints?: FactorScreeningTradeConstraints;
+    /** 是否要求后端返回 summary（BE-2） */
+    withSummary?: boolean;
+    /** 是否要求后端返回 conditionPassCounts（BE-3） */
+    withConditionPassCounts?: boolean;
+    /** 是否要求后端返回 diagnostics（BE-9） */
+    withDiagnostics?: boolean;
+    /** 复用条件快照（分页 / 导出 / 回测 共享，BE-6） */
+    requestId?: string;
   }): Promise<FactorScreeningResult> => apiClient.post('/api/factor/screening', params),
 };
 
@@ -339,6 +531,10 @@ export type FactorOptimizationRequest = {
   maxWeight?: number;
   minWeight?: number;
   enableLeverageConstraint?: boolean;
+  /** BE-4：协方差估计方式，未上线前下拉灰显 */
+  covMethod?: 'sample' | 'ledoit_wolf' | 'ewma';
+  /** BE-3：基准指数代码，用于 alpha/beta/TE */
+  benchmarkCode?: string;
 };
 
 export type OptimizationWeightItem = {
@@ -347,12 +543,42 @@ export type OptimizationWeightItem = {
   weight: number;
 };
 
+export type SectorExposureItem = {
+  industry: string;
+  weight: number;
+};
+
+export type RiskContributionItem = {
+  tsCode: string;
+  /** 边际风险贡献（绝对值） */
+  mrc: number;
+  /** 占总风险比例 ∈[0,1] */
+  pct: number;
+};
+
+export type BenchmarkComparison = {
+  benchmarkCode: string;
+  alpha: number | null;
+  beta: number | null;
+  trackingError: number | null;
+};
+
 export type FactorOptimizationResponse = {
   mode: OptimizationMode;
   weights: OptimizationWeightItem[];
   expectedReturn: number | null;
   expectedVolatility: number | null;
   sharpeRatio: number | null;
+  /** BE-3 */
+  sectorExposure?: SectorExposureItem[];
+  /** BE-3 */
+  riskContribution?: RiskContributionItem[];
+  /** BE-3 */
+  benchmarkComparison?: BenchmarkComparison;
+  /** BE-3：被剔除的样本（停牌过多等） */
+  excludedTsCodes?: Array<{ tsCode: string; reason: string }>;
+  /** BE-4：实际使用的协方差估计方式 */
+  covMethodUsed?: string;
 };
 
 // ─── 保存为策略 / 优化 API ────────────────────────────────────
@@ -469,7 +695,8 @@ export type OrthogonalizeRequest = {
   factorNames: string[];
   tradeDate: string;
   universe?: string;
-  method?: 'regression' | 'symmetric';
+  /** 'gram-schmidt' 见 BE-1，未上线前下拉灰显 */
+  method?: 'regression' | 'symmetric' | 'gram-schmidt';
 };
 
 export type OrthogonalizeResult = {
@@ -478,6 +705,8 @@ export type OrthogonalizeResult = {
   factors: string[];
   correlationBefore: number[][];
   correlationAfter: number[][];
+  /** BE-1：每个因子在正交化后保留下来的方差占比 ∈[0,1] */
+  residualVarianceRatio?: number[];
 };
 
 export type FamaMacBethRequest = {
@@ -486,6 +715,8 @@ export type FamaMacBethRequest = {
   endDate: string;
   universe?: string;
   forwardDays?: number;
+  /** BE-2：Newey-West lag；0 走 OLS-t，缺省走 forwardDays */
+  neweyWestLag?: number;
 };
 
 export type FamaMacBethFactorResult = {
@@ -495,6 +726,16 @@ export type FamaMacBethFactorResult = {
   tStat: number;
   pValue: number;
   significant: boolean;
+  /** BE-2 */
+  tStatNW?: number | null;
+  /** BE-2 */
+  pValueNW?: number | null;
+};
+
+export type FamaMacBethSeriesPoint = {
+  date: string;
+  rSquared: number;
+  coeffs: Record<string, number>;
 };
 
 export type FamaMacBethResponse = {
@@ -503,6 +744,8 @@ export type FamaMacBethResponse = {
   forwardDays: number;
   rSquaredMean: number;
   factors: FamaMacBethFactorResult[];
+  /** BE-2：每个截面交易日的 R² 与系数序列 */
+  seriesPerDate?: FamaMacBethSeriesPoint[];
 };
 
 // ─── Admin 类型 ───────────────────────────────────────────────
@@ -517,6 +760,10 @@ export type AdminPrecomputeResponse = {
   jobId: string;
   status: string;
   factorCount: number;
+  /** 预计耗时 ms（BE-9） */
+  expectedDurationMs?: number;
+  /** 当前队列位置（BE-9） */
+  queuePosition?: number;
   message: string;
 };
 
@@ -534,16 +781,147 @@ export type AdminBackfillResponse = {
   message: string;
 };
 
+/** BE-5 扩展：状态表 item 增加运维字段 */
 export type PrecomputeStatusItem = {
   factorName: string;
   factorLabel: string;
   lastComputeDate: string | null;
   rowCount: number;
+  /** 前端原有枚举：UP_TO_DATE / STALE / FAILED / NEVER / RUNNING */
   status: string;
+  /** BE-5 扩展 */
+  category?: FactorCategory;
+  sourceType?: FactorSourceType;
+  isEnabled?: boolean;
+  /** 覆盖度 0~1（nonNull / universeSize） */
+  coverageRate?: number | null;
+  /** 距今滞后交易日数（后端基于交易日历计算） */
+  staleDays?: number | null;
+  firstComputeDate?: string | null;
+  failureReason?: string | null;
 };
 
 export type AdminPrecomputeStatusResponse = {
   items: PrecomputeStatusItem[];
+};
+
+// ─── Admin Job 类型（BE-1/BE-2/BE-3/BE-4） ───────────────────
+
+export type AdminJobType = 'PRECOMPUTE' | 'BACKFILL';
+
+export type AdminJobStatus = 'PENDING' | 'RUNNING' | 'SUCCESS' | 'FAILED' | 'PARTIAL' | 'CANCELLED';
+
+export type AdminJobProgress = {
+  done: number;
+  total: number;
+};
+
+export type AdminJobItem = {
+  jobId: string;
+  type: AdminJobType;
+  /** 预计算目标交易日（PRECOMPUTE 时有） */
+  tradeDate?: string | null;
+  /** 回补区间起（BACKFILL 时有） */
+  startDate?: string | null;
+  endDate?: string | null;
+  factorCount: number;
+  progress: AdminJobProgress;
+  status: AdminJobStatus;
+  /** 总耗时 ms */
+  durationMs?: number | null;
+  operator: string;
+  createdAt: string;
+  completedAt?: string | null;
+};
+
+export type AdminJobListRequest = {
+  type?: AdminJobType;
+  status?: AdminJobStatus;
+  startDate?: string;
+  endDate?: string;
+  operatorId?: string;
+  page: number;
+  pageSize: number;
+};
+
+export type AdminJobListResponse = {
+  items: AdminJobItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+};
+
+export type AdminJobSubItem = {
+  factorName: string;
+  status: AdminJobStatus;
+  rowCount?: number | null;
+  errorMessage?: string | null;
+  durationMs?: number | null;
+};
+
+export type AdminJobDetailResponse = AdminJobItem & {
+  /** 原始请求参数 JSON */
+  params?: Record<string, unknown>;
+  subItems?: AdminJobSubItem[];
+  logs?: string | null;
+};
+
+export type AdminJobCancelRequest = { jobId: string };
+export type AdminJobCancelResponse = { success: boolean; message: string };
+
+export type AdminJobRetryRequest = { jobId: string; onlyFailed?: boolean };
+export type AdminJobRetryResponse = { jobId: string };
+
+// ─── Admin Toggle 类型（BE-6） ───────────────────────────────
+
+export type AdminToggleRequest = { factorNames: string[]; isEnabled: boolean };
+export type AdminToggleResponse = { success: boolean };
+
+// ─── Admin Audit 类型（BE-7） ────────────────────────────────
+
+export type AdminAuditAction =
+  | 'PRECOMPUTE'
+  | 'BACKFILL'
+  | 'TOGGLE_ENABLE'
+  | 'TOGGLE_DISABLE'
+  | 'JOB_CANCEL'
+  | 'JOB_RETRY';
+
+export type AdminAuditItem = {
+  createdAt: string;
+  operator: string;
+  action: AdminAuditAction;
+  factorNames: string[];
+  ip?: string | null;
+  success: boolean;
+  message?: string | null;
+};
+
+export type AdminAuditRequest = {
+  startDate?: string;
+  endDate?: string;
+  operatorId?: string;
+  action?: AdminAuditAction;
+  page: number;
+  pageSize: number;
+};
+
+export type AdminAuditResponse = {
+  items: AdminAuditItem[];
+  total: number;
+};
+
+// ─── Admin Schedule 类型（BE-8） ─────────────────────────────
+
+export type AdminScheduleResponse = {
+  cron: string;
+  enabled: boolean;
+  lastTriggeredAt: string | null;
+  nextTriggerAt: string | null;
+  lastJobId: string | null;
+  healthy: boolean;
+  timezone?: string | null;
+  lastError?: string | null;
 };
 
 // ─── 自定义因子 API ───────────────────────────────────────────
@@ -600,4 +978,61 @@ export function adminBackfill(dto: AdminBackfillRequest) {
 
 export function adminPrecomputeStatus() {
   return apiClient.post<AdminPrecomputeStatusResponse>('/api/factor/admin/precompute/status', {});
+}
+
+/** BE-1：任务列表 */
+export function adminJobList(dto: AdminJobListRequest) {
+  return apiClient.post<AdminJobListResponse>('/api/factor/admin/jobs', dto);
+}
+
+/** BE-2：任务详情 */
+export function adminJobDetail(dto: { jobId: string }) {
+  return apiClient.post<AdminJobDetailResponse>('/api/factor/admin/jobs/detail', dto);
+}
+
+/** BE-3：取消任务 */
+export function adminJobCancel(dto: AdminJobCancelRequest) {
+  return apiClient.post<AdminJobCancelResponse>('/api/factor/admin/jobs/cancel', dto);
+}
+
+/** BE-4：重试任务 */
+export function adminJobRetry(dto: AdminJobRetryRequest) {
+  return apiClient.post<AdminJobRetryResponse>('/api/factor/admin/jobs/retry', dto);
+}
+
+/** BE-6：启用/禁用因子 */
+export function adminToggleFactor(dto: AdminToggleRequest) {
+  return apiClient.post<AdminToggleResponse>('/api/factor/admin/toggle', dto);
+}
+
+/** BE-7：审计日志 */
+export function adminAuditLog(dto: AdminAuditRequest) {
+  return apiClient.post<AdminAuditResponse>('/api/factor/admin/audit', dto);
+}
+
+/** BE-8：调度配置（只读） */
+export function adminScheduleInfo() {
+  return apiClient.post<AdminScheduleResponse>('/api/factor/admin/schedule', {});
+}
+
+// ─── 批量预计算（BE-3，端点未就绪时调用方退化为串行） ────────────
+
+export type BatchPrecomputeRequest = {
+  factorNames: string[];
+  tradeDate?: string;
+};
+
+export type BatchPrecomputeItem = {
+  factorName: string;
+  status: string;
+  message?: string;
+};
+
+export type BatchPrecomputeResponse = {
+  jobId?: string;
+  items: BatchPrecomputeItem[];
+};
+
+export function batchPrecomputeFactors(dto: BatchPrecomputeRequest) {
+  return apiClient.post<BatchPrecomputeResponse>('/api/factor/admin/precompute-batch', dto);
 }

@@ -14,6 +14,7 @@ import { WatchlistGroupCard } from './watchlist-group-card';
 type WatchlistOverviewCardsProps = {
   watchlists: WatchlistOverviewItem[];
   selectedId: number | null;
+  summaryLoading?: boolean;
   onSelect: (id: number) => void;
   onEdit: (watchlist: WatchlistOverviewItem) => void;
   onDelete: (watchlist: WatchlistOverviewItem) => void;
@@ -23,6 +24,7 @@ type WatchlistOverviewCardsProps = {
 export function WatchlistOverviewCards({
   watchlists,
   selectedId,
+  summaryLoading = false,
   onSelect,
   onEdit,
   onDelete,
@@ -44,6 +46,7 @@ export function WatchlistOverviewCards({
           key={wl.id}
           watchlist={wl}
           selected={wl.id === selectedId}
+          summaryLoading={summaryLoading}
           onSelect={() => onSelect(wl.id)}
           onEdit={() => onEdit(wl)}
           onDelete={() => onDelete(wl)}

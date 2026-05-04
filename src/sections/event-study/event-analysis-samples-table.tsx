@@ -18,9 +18,11 @@ type Props = {
   title: string;
   samples: EventSample[];
   color: 'success' | 'error';
+  onSampleClick?: (sample: EventSample) => void;
 };
 
-export function EventAnalysisSamplesTable({ title, samples, color }: Props) {
+export function EventAnalysisSamplesTable({ title, samples, color, onSampleClick }: Props) {
+  void color; // color is reserved for future cell tinting
   return (
     <Card>
       <CardContent sx={{ p: 0 }}>
@@ -51,7 +53,12 @@ export function EventAnalysisSamplesTable({ title, samples, color }: Props) {
                   const carLabel = `${sample.car > 0 ? '+' : ''}${(sample.car * 100).toFixed(2)}%`;
                   const carColor = sample.car > 0 ? 'success' : 'error';
                   return (
-                    <TableRow key={`${sample.tsCode}-${sample.eventDate}`} hover>
+                    <TableRow
+                      key={`${sample.tsCode}-${sample.eventDate}`}
+                      hover
+                      sx={{ cursor: onSampleClick ? 'pointer' : 'default' }}
+                      onClick={() => onSampleClick?.(sample)}
+                    >
                       <TableCell>{sample.tsCode}</TableCell>
                       <TableCell>{sample.name ?? '-'}</TableCell>
                       <TableCell>{sample.eventDate}</TableCell>

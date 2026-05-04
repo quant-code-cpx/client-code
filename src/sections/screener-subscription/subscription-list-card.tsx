@@ -14,6 +14,7 @@ import { fDate, fToNow } from 'src/utils/format-time';
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
 
+import { SubscriptionRunButton } from './subscription-run-button';
 import { SubscriptionStatusLabel } from './subscription-status-label';
 
 // ----------------------------------------------------------------------
@@ -28,7 +29,8 @@ type SubscriptionListCardProps = {
   subscription: ScreenerSubscription;
   onView: () => void;
   onPauseResume: () => void;
-  onRun: () => void;
+  onRunSuccess: (message: string) => void;
+  onRunError: (message: string) => void;
   onEdit: () => void;
   onDelete: () => void;
 };
@@ -37,7 +39,8 @@ export function SubscriptionListCard({
   subscription,
   onView,
   onPauseResume,
-  onRun,
+  onRunSuccess,
+  onRunError,
   onEdit,
   onDelete,
 }: SubscriptionListCardProps) {
@@ -59,7 +62,7 @@ export function SubscriptionListCard({
 
         {/* Last run info */}
         {lastRunResult ? (
-          <Box sx={{ display: 'flex', gap: 3, mb: 1 }}>
+          <Box sx={{ display: 'flex', gap: 3, mb: 1, flexWrap: 'wrap' }}>
             <Typography variant="caption" sx={{ color: 'text.secondary' }}>
               上次执行：{fDate(lastRunResult.tradeDate, 'YYYY-MM-DD')}
             </Typography>
@@ -88,23 +91,26 @@ export function SubscriptionListCard({
         {/* Error warning */}
         {status === 'ERROR' && consecutiveFails > 0 && (
           <Typography variant="caption" sx={{ color: 'error.main', display: 'block', mb: 1 }}>
-            连续失败 {consecutiveFails} 次，已自动暂停
+            连续失败 {consecutiveFails} 次，已自动暂停；点击「恢复」会清零失败计数并重新加入调度
           </Typography>
         )}
 
         <Divider sx={{ my: 1 }} />
 
         {/* Action buttons */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
           <Button size="small" variant="outlined" onClick={onView}>
             查看详情
           </Button>
           <Button size="small" variant="outlined" onClick={onPauseResume}>
             {subscription.status === 'ACTIVE' ? '暂停' : '恢复'}
           </Button>
-          <Button size="small" variant="outlined" onClick={onRun}>
-            手动执行
-          </Button>
+          <SubscriptionRunButton
+            subscriptionId={subscription.id}
+            lastRunAt={subscription.lastRunAt}
+            onSuccess={(msg) => onRunSuccess(msg)}
+            onError={(msg) => onRunError(msg)}
+          />
           <Box sx={{ flexGrow: 1 }} />
           <Tooltip title="编辑">
             <IconButton size="small" onClick={onEdit}>

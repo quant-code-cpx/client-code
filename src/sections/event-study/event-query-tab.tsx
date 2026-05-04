@@ -1,11 +1,17 @@
 import type { Dayjs } from 'dayjs';
 import type { StockSearchItem } from 'src/api/stock';
-import type { EventType, EventTypeItem, EventsQueryResult } from 'src/api/event-study';
+import type {
+  EventType,
+  EventTypeItem,
+  MarketCapBucket,
+  EventsQueryResult,
+} from 'src/api/event-study';
 
 import { useState } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
+import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Alert from '@mui/material/Alert';
 import Table from '@mui/material/Table';
@@ -13,22 +19,24 @@ import Button from '@mui/material/Button';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import TableRow from '@mui/material/TableRow';
+import TextField from '@mui/material/TextField';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
 import InputLabel from '@mui/material/InputLabel';
-import Typography from '@mui/material/Typography';
 import FormControl from '@mui/material/FormControl';
+import Autocomplete from '@mui/material/Autocomplete';
 import TableContainer from '@mui/material/TableContainer';
 import TablePagination from '@mui/material/TablePagination';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import CircularProgress from '@mui/material/CircularProgress';
 
 import { queryEvents } from 'src/api/event-study';
 
 import { StockSearchAutocomplete } from 'src/components/stock-search-autocomplete';
 
-import { EVENT_TABLE_COLUMNS } from './constants';
+import { DataState } from './_shared/data-state';
+import { EventDetailDrawer } from './_shared/event-detail-drawer';
+import { INDUSTRY_OPTIONS, MARKET_CAP_BUCKETS, EVENT_TABLE_COLUMNS } from './constants';
 
 // ----------------------------------------------------------------------
 
@@ -39,6 +47,8 @@ type Props = {
 export function EventQueryTab({ eventTypes }: Props) {
   const [eventType, setEventType] = useState<EventType | ''>('');
   const [selectedStock, setSelectedStock] = useState<StockSearchItem | null>(null);
+  const [industry, setIndustry] = useState<string | null>(null);
+  const [marketCapBucket, setMarketCapBucket] = useState<MarketCapBucket | ''>('');
   const [startDate, setStartDate] = useState<Dayjs | null>(null);
   const [endDate, setEndDate] = useState<Dayjs | null>(null);
   const [page, setPage] = useState(0);
@@ -46,8 +56,11 @@ export function EventQueryTab({ eventTypes }: Props) {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<EventsQueryResult | null>(null);
   const [error, setError] = useState('');
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerRow, setDrawerRow] = useState<Record<string, unknown> | null>(null);
 
   const columns = eventType ? EVENT_TABLE_COLUMNS[eventType] : [];
+  const hasQueried = result !== null;
 
   const handleQuery = async (newPage = 0) => {
     if (!eventType) return;
@@ -57,6 +70,8 @@ export function EventQueryTab({ eventTypes }: Props) {
       const data = await queryEvents({
         eventType,
         tsCode: selectedStock?.tsCode || undefined,
+        industry: industry || undefined,
+        marketCapBucket: marketCapBucket || undefined,
         startDate: startDate ? startDate.format('YYYYMMDD') : undefined,
         endDate: endDate ? endDate.format('YYYYMMDD') : undefined,
         page: newPage + 1,
@@ -80,134 +95,177 @@ export function EventQueryTab({ eventTypes }: Props) {
     setPage(0);
   };
 
+  const handleRowClick = (row: Record<string, unknown>) => {
+    setDrawerRow(row);
+    setDrawerOpen(true);
+  };
+
   return (
     <Stack spacing={3}>
-      {/* 筛选栏 */}
       <Card sx={{ p: 3 }}>
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} flexWrap="wrap">
-          <FormControl sx={{ minWidth: 160 }} size="small">
-            <InputLabel>事件类型 *</InputLabel>
-            <Select
-              value={eventType}
-              label="事件类型 *"
-              onChange={(e) => {
-                setEventType(e.target.value as EventType);
-                setResult(null);
-                setPage(0);
+        <Grid container spacing={2}>
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <FormControl fullWidth size="small">
+              <InputLabel>事件类型 *</InputLabel>
+              <Select
+                value={eventType}
+                label="事件类型 *"
+                onChange={(e) => {
+                  setEventType(e.target.value as EventType);
+                  setResult(null);
+                  setPage(0);
+                }}
+              >
+                {eventTypes.map((et) => (
+                  <MenuItem key={et.type} value={et.type}>
+                    {et.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <StockSearchAutocomplete
+              label="股票代码"
+              value={selectedStock}
+              onChange={(item) => setSelectedStock(item)}
+              fullWidth
+            />
+          </Grid>
+
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <Autocomplete
+              size="small"
+              options={INDUSTRY_OPTIONS}
+              value={industry}
+              onChange={(_, v) => setIndustry(v)}
+              renderInput={(params) => <TextField {...params} label="行业" />}
+            />
+          </Grid>
+
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <FormControl fullWidth size="small">
+              <InputLabel>市值档位</InputLabel>
+              <Select
+                value={marketCapBucket}
+                label="市值档位"
+                onChange={(e) => setMarketCapBucket(e.target.value as MarketCapBucket | '')}
+              >
+                <MenuItem value="">不限</MenuItem>
+                {MARKET_CAP_BUCKETS.map((b) => (
+                  <MenuItem key={b.value} value={b.value}>
+                    {b.label}
+                    <Box component="span" sx={{ ml: 1, color: 'text.secondary', fontSize: 12 }}>
+                      {b.hint}
+                    </Box>
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          </Grid>
+
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <DatePicker
+              label="开始日期"
+              value={startDate}
+              onChange={(v) => setStartDate(v)}
+              format="YYYY-MM-DD"
+              slotProps={{
+                textField: { size: 'small', fullWidth: true },
+                field: { clearable: true },
               }}
-            >
-              {eventTypes.map((et) => (
-                <MenuItem key={et.type} value={et.type}>
-                  {et.label}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+            />
+          </Grid>
 
-          <StockSearchAutocomplete
-            label="股票代码"
-            value={selectedStock}
-            onChange={(item) => setSelectedStock(item)}
-            sx={{ minWidth: 200 }}
-          />
+          <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+            <DatePicker
+              label="结束日期"
+              value={endDate}
+              onChange={(v) => setEndDate(v)}
+              format="YYYY-MM-DD"
+              slotProps={{
+                textField: { size: 'small', fullWidth: true },
+                field: { clearable: true },
+              }}
+            />
+          </Grid>
 
-          <DatePicker
-            label="开始日期"
-            value={startDate}
-            onChange={(newVal) => setStartDate(newVal)}
-            format="YYYY-MM-DD"
-            slotProps={{
-              textField: { size: 'small', sx: { minWidth: 190 } },
-              field: { clearable: true },
-            }}
-          />
-
-          <DatePicker
-            label="结束日期"
-            value={endDate}
-            onChange={(newVal) => setEndDate(newVal)}
-            format="YYYY-MM-DD"
-            slotProps={{
-              textField: { size: 'small', sx: { minWidth: 190 } },
-              field: { clearable: true },
-            }}
-          />
-
-          <Button
-            variant="contained"
-            disabled={!eventType || loading}
-            onClick={() => handleQuery(0)}
-          >
-            查询
-          </Button>
-        </Stack>
+          <Grid size={{ xs: 12, sm: 6, md: 6 }}>
+            <Stack direction="row" justifyContent="flex-end">
+              <Button
+                variant="contained"
+                disabled={!eventType || loading}
+                onClick={() => handleQuery(0)}
+              >
+                查询
+              </Button>
+            </Stack>
+          </Grid>
+        </Grid>
       </Card>
 
-      {/* 错误提示 */}
       {error && <Alert severity="error">{error}</Alert>}
 
-      {/* 结果表格 */}
       <Card>
-        {loading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
-            <CircularProgress />
-          </Box>
-        ) : result ? (
-          <>
-            <TableContainer>
-              <Table size="small" stickyHeader>
-                <TableHead>
-                  <TableRow>
-                    {columns.map((col) => (
-                      <TableCell key={col.field} sx={{ minWidth: col.width ?? 100 }}>
-                        {col.headerName}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {result.items.length === 0 ? (
+        <DataState
+          loading={loading}
+          empty={hasQueried && (result?.items.length ?? 0) === 0}
+          emptyText={!eventType ? '请选择事件类型后点击查询' : '暂无匹配的事件记录'}
+        >
+          {hasQueried && result ? (
+            <>
+              <TableContainer>
+                <Table size="small" stickyHeader>
+                  <TableHead>
                     <TableRow>
-                      <TableCell colSpan={columns.length} align="center" sx={{ py: 4 }}>
-                        <Typography variant="body2" color="text.secondary">
-                          暂无匹配的事件记录
-                        </Typography>
-                      </TableCell>
+                      {columns.map((col) => (
+                        <TableCell key={col.field} sx={{ minWidth: col.width ?? 100 }}>
+                          {col.headerName}
+                        </TableCell>
+                      ))}
                     </TableRow>
-                  ) : (
-                    result.items.map((row, idx) => (
-                      <TableRow key={idx} hover>
+                  </TableHead>
+                  <TableBody>
+                    {result.items.map((row, idx) => (
+                      <TableRow
+                        key={idx}
+                        hover
+                        sx={{ cursor: 'pointer' }}
+                        onClick={() => handleRowClick(row)}
+                      >
                         {columns.map((col) => (
                           <TableCell key={col.field}>
                             {row[col.field] != null ? String(row[col.field]) : '-'}
                           </TableCell>
                         ))}
                       </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
 
-            <TablePagination
-              component="div"
-              count={result.total}
-              page={page}
-              rowsPerPage={pageSize}
-              rowsPerPageOptions={[20, 50, 100]}
-              onPageChange={handlePageChange}
-              onRowsPerPageChange={handleRowsPerPageChange}
-              labelRowsPerPage="每页行数"
-            />
-          </>
-        ) : (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
-            <Typography variant="body2" color="text.secondary">
-              请选择事件类型后点击查询
-            </Typography>
-          </Box>
-        )}
+              <TablePagination
+                component="div"
+                count={result.total}
+                page={page}
+                rowsPerPage={pageSize}
+                rowsPerPageOptions={[20, 50, 100]}
+                onPageChange={handlePageChange}
+                onRowsPerPageChange={handleRowsPerPageChange}
+                labelRowsPerPage="每页行数"
+              />
+            </>
+          ) : null}
+        </DataState>
       </Card>
+
+      <EventDetailDrawer
+        open={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+        eventType={eventType}
+        detail={drawerRow}
+      />
     </Stack>
   );
 }

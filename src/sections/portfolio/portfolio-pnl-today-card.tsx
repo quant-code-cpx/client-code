@@ -50,8 +50,15 @@ export function PortfolioPnlTodayCard({ portfolioId }: PortfolioPnlTodayCardProp
     fetchData();
   }, [fetchData]);
 
-  const pnlColor = data && data.todayPnl >= 0 ? 'success.main' : 'error.main';
-  const pnlPctColor = data && data.todayPnlPct >= 0 ? 'success.main' : 'error.main';
+  const pnlColor =
+    data?.todayPnl == null ? 'text.secondary' : data.todayPnl >= 0 ? 'success.main' : 'error.main';
+  const pnlPctColor =
+    data?.todayPnlPct == null
+      ? 'text.secondary'
+      : data.todayPnlPct >= 0
+        ? 'success.main'
+        : 'error.main';
+  const emptyHint = data?.isTradingDay === false ? '非交易日' : '--';
 
   return (
     <Card sx={{ mb: 3 }}>
@@ -82,8 +89,9 @@ export function PortfolioPnlTodayCard({ portfolioId }: PortfolioPnlTodayCardProp
                   今日盈亏
                 </Typography>
                 <Typography variant="h5" sx={{ color: pnlColor }}>
-                  {data.todayPnl >= 0 ? '+' : ''}
-                  {fCurrency(data.todayPnl)}
+                  {data.todayPnl === null
+                    ? emptyHint
+                    : `${data.todayPnl >= 0 ? '+' : ''}${fCurrency(data.todayPnl)}`}
                 </Typography>
               </Box>
               <Box>
@@ -91,8 +99,9 @@ export function PortfolioPnlTodayCard({ portfolioId }: PortfolioPnlTodayCardProp
                   今日涨幅
                 </Typography>
                 <Typography variant="h5" sx={{ color: pnlPctColor }}>
-                  {data.todayPnlPct >= 0 ? '+' : ''}
-                  {(data.todayPnlPct * 100).toFixed(2)}%
+                  {data.todayPnlPct === null
+                    ? emptyHint
+                    : `${data.todayPnlPct >= 0 ? '+' : ''}${(data.todayPnlPct * 100).toFixed(2)}%`}
                 </Typography>
               </Box>
             </Box>

@@ -245,6 +245,12 @@ function renderContent(notification: NotificationItemProps) {
       title,
     };
   }
+  if (notification.type === 'screener-subscription-alert') {
+    return {
+      avatarUrl: <Iconify icon="solar:bell-bold" sx={{ fontSize: 24, color: 'info.main' }} />,
+      title,
+    };
+  }
   if (notification.type === 'order-placed') {
     return {
       avatarUrl: (

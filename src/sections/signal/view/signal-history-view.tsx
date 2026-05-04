@@ -1,15 +1,14 @@
-import type { SignalActivationItem, SignalHistoryResponse } from 'src/api/signal';
+import type { SignalHistoryGroup, SignalActivationItem, SignalHistoryResponse } from 'src/api/signal';
 
-import { useState, useEffect, useCallback } from 'react';
+import dayjs from 'dayjs';
+import { useSearchParams } from 'react-router-dom';
+import { useMemo, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
-import Card from '@mui/material/Card';
-import Alert from '@mui/material/Alert';
-import Button from '@mui/material/Button';
-import Divider from '@mui/material/Divider';
+import Stack from '@mui/material/Stack';
+import Select from '@mui/material/Select';
 import Skeleton from '@mui/material/Skeleton';
 import MenuItem from '@mui/material/MenuItem';
-import TextField from '@mui/material/TextField';
 import Pagination from '@mui/material/Pagination';
 import Typography from '@mui/material/Typography';
 
@@ -17,55 +16,94 @@ import { DashboardContent } from 'src/layouts/dashboard';
 import { getSignalHistory, listSignalActivations } from 'src/api/signal';
 
 import { SignalEmptyState } from '../signal-empty-state';
-import { SignalHistoryGroup } from '../signal-history-group';
+import { SignalHistorySummary } from '../signal-history-summary';
+import { SignalHistoryToolbar } from '../signal-history-toolbar';
+import { SignalHistoryDayDrawer } from '../signal-history-day-drawer';
+import { SignalHistoryGroupCard } from '../signal-history-group-card';
+
+import type { SignalHistoryFilter } from '../signal-history-toolbar';
 
 // ----------------------------------------------------------------------
 
+const DEFAULT_PAGE_SIZE = 20;
+
 export function SignalHistoryView() {
+  const [searchParams, setSearchParams] = useSearchParams();
+
   const [activations, setActivations] = useState<SignalActivationItem[]>([]);
   const [loadingActivations, setLoadingActivations] = useState(true);
-
-  const [selectedStrategyId, setSelectedStrategyId] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [page, setPage] = useState(1);
-  const pageSize = 10;
+  const [activationsError, setActivationsError] = useState('');
 
   const [history, setHistory] = useState<SignalHistoryResponse | null>(null);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [historyError, setHistoryError] = useState('');
 
-  // Fetch activations for dropdown
-  useEffect(() => {
-    (async () => {
-      setLoadingActivations(true);
-      try {
-        const data = await listSignalActivations();
-        setActivations(data);
-        if (data.length > 0) {
-          const firstActive = data.find((a) => a.isActive) ?? data[0];
-          setSelectedStrategyId(firstActive.strategyId);
-        }
-      } catch {
-        // silently fail - activations dropdown just stays empty
-      } finally {
-        setLoadingActivations(false);
-      }
-    })();
+  const [drawerGroup, setDrawerGroup] = useState<SignalHistoryGroup | null>(null);
+
+  const defaultFilter = useMemo(() => createDefaultFilter(activations), [activations]);
+  const appliedFilter = useMemo(
+    () => parseFilter(searchParams, defaultFilter),
+    [defaultFilter, searchParams]
+  );
+  const [draft, setDraft] = useState<SignalHistoryFilter>(appliedFilter);
+
+  const currentActivation = activations.find(
+    (activation) => activation.strategyId === appliedFilter.strategyId
+  );
+  const hasDirty = !isSameFilter(draft, appliedFilter);
+
+  const writeFilterToUrl = useCallback(
+    (filter: SignalHistoryFilter, replace = true) => {
+      setSearchParams(serializeFilter(filter), { replace });
+    },
+    [setSearchParams]
+  );
+
+  const fetchActivations = useCallback(async () => {
+    setLoadingActivations(true);
+    setActivationsError('');
+    try {
+      const data = await listSignalActivations();
+      setActivations(data);
+    } catch (err) {
+      setActivationsError(err instanceof Error ? err.message : '获取策略信号列表失败');
+    } finally {
+      setLoadingActivations(false);
+    }
   }, []);
 
-  // Fetch history
+  useEffect(() => {
+    fetchActivations();
+  }, [fetchActivations]);
+
+  useEffect(() => {
+    setDraft(appliedFilter);
+  }, [appliedFilter]);
+
+  // 首次进入时把默认筛选写入 URL，后续刷新/分享都以 URL 为准
+  useEffect(() => {
+    if (loadingActivations || activations.length === 0 || searchParams.get('strategyId')) return;
+    writeFilterToUrl(createDefaultFilter(activations));
+  }, [activations, loadingActivations, searchParams, writeFilterToUrl]);
+
   const fetchHistory = useCallback(async () => {
-    if (!selectedStrategyId) return;
+    if (!appliedFilter.strategyId) return;
     setLoadingHistory(true);
     setHistoryError('');
     try {
       const data = await getSignalHistory({
-        strategyId: selectedStrategyId,
-        ...(startDate ? { startDate } : {}),
-        ...(endDate ? { endDate } : {}),
-        page,
-        pageSize,
+        strategyId: appliedFilter.strategyId,
+        startDate: appliedFilter.startDate || undefined,
+        endDate: appliedFilter.endDate || undefined,
+        actions: appliedFilter.actions.length > 0 ? appliedFilter.actions : undefined,
+        stockKeyword: appliedFilter.stockKeyword || undefined,
+        confidenceMin: appliedFilter.confidenceMin > 0 ? appliedFilter.confidenceMin : undefined,
+        confidenceMax: appliedFilter.confidenceMax < 1 ? appliedFilter.confidenceMax : undefined,
+        forwardWindow: appliedFilter.forwardWindow,
+        viewMode: appliedFilter.viewMode,
+        showHold: appliedFilter.showHold,
+        page: appliedFilter.page,
+        pageSize: appliedFilter.pageSize,
       });
       setHistory(data);
     } catch (err: unknown) {
@@ -73,127 +111,221 @@ export function SignalHistoryView() {
     } finally {
       setLoadingHistory(false);
     }
-  }, [selectedStrategyId, startDate, endDate, page, pageSize]);
+  }, [appliedFilter]);
 
   useEffect(() => {
     fetchHistory();
   }, [fetchHistory]);
 
-  const handleSearch = () => {
-    setPage(1);
-    fetchHistory();
+  const handleApply = () => {
+    writeFilterToUrl({ ...draft, page: 1 });
   };
 
-  const totalPages = history ? Math.ceil(history.total / pageSize) : 0;
-  const currentActivation = activations.find((a) => a.strategyId === selectedStrategyId);
+  const handleReset = () => {
+    writeFilterToUrl(createDefaultFilter(activations));
+  };
+
+  const handlePageChange = (page: number) => {
+    writeFilterToUrl({ ...appliedFilter, page });
+  };
+
+  const handlePageSizeChange = (pageSize: number) => {
+    writeFilterToUrl({ ...appliedFilter, page: 1, pageSize });
+  };
+
+  const totalPages = history ? Math.ceil(history.total / appliedFilter.pageSize) : 0;
 
   return (
     <DashboardContent>
-      <Typography variant="h4" sx={{ mb: 3 }}>
-        信号历史
-      </Typography>
-
-      {/* Filters */}
-      <Box sx={{ mb: 3, display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'flex-end' }}>
-        <TextField
-          select
-          size="small"
-          label="策略选择"
-          value={selectedStrategyId}
-          onChange={(e) => {
-            setSelectedStrategyId(e.target.value);
-            setPage(1);
-          }}
-          sx={{ minWidth: 200 }}
-          disabled={loadingActivations}
-        >
-          {activations.map((a) => (
-            <MenuItem key={a.strategyId} value={a.strategyId}>
-              {a.strategyName}
-            </MenuItem>
-          ))}
-        </TextField>
-
-        <TextField
-          size="small"
-          label="起始日期（YYYYMMDD）"
-          placeholder="如 20260401"
-          value={startDate}
-          onChange={(e) => setStartDate(e.target.value)}
-          sx={{ width: 180 }}
-        />
-
-        <TextField
-          size="small"
-          label="截止日期（YYYYMMDD）"
-          placeholder="如 20260411"
-          value={endDate}
-          onChange={(e) => setEndDate(e.target.value)}
-          sx={{ width: 180 }}
-        />
-
-        <Button variant="contained" onClick={handleSearch} disabled={!selectedStrategyId}>
-          查询
-        </Button>
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="h4">信号历史</Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+          {currentActivation
+            ? `${currentActivation.strategyName} · ${formatDateRange(appliedFilter.startDate, appliedFilter.endDate)} · 最新信号 ${formatDate(currentActivation.lastSignalDate ?? '')}`
+            : '按策略和日期复盘历史信号、前瞻收益与持仓变化'}
+        </Typography>
       </Box>
 
-      {/* Empty — no activations */}
-      {!loadingActivations && activations.length === 0 && <SignalEmptyState />}
+      <SignalHistoryToolbar
+        draft={draft}
+        activations={activations}
+        loadingActivations={loadingActivations}
+        activationsError={activationsError}
+        hasDirty={hasDirty}
+        onDraftChange={(patch) => setDraft((prev) => ({ ...prev, ...patch }))}
+        onApply={handleApply}
+        onReset={handleReset}
+        onRetryActivations={fetchActivations}
+      />
 
-      {/* Error */}
+      {!loadingActivations && activations.length === 0 && !activationsError && (
+        <SignalEmptyState variant="noActivation" />
+      )}
+
       {historyError && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {historyError}
-        </Alert>
+        <SignalEmptyState variant="error" message={historyError} onRetry={fetchHistory} />
       )}
 
-      {/* Loading */}
       {loadingHistory && (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <Skeleton height={32} width={200} />
-          <Skeleton variant="rounded" height={200} />
-          <Skeleton variant="rounded" height={200} />
-        </Box>
+        <Stack spacing={2}>
+          <Skeleton variant="rounded" height={86} />
+          <Skeleton variant="rounded" height={220} />
+          <Skeleton variant="rounded" height={220} />
+        </Stack>
       )}
 
-      {/* History groups */}
-      {!loadingHistory && history && (
+      {!loadingHistory && !historyError && history && (
         <>
-          <Typography variant="subtitle1" sx={{ mb: 2 }}>
-            策略：{currentActivation?.strategyName ?? selectedStrategyId} · 共 {history.total}{' '}
-            条记录
-          </Typography>
+          <SignalHistorySummary history={history} forwardWindow={appliedFilter.forwardWindow} />
 
           {history.groups.length === 0 ? (
-            <Typography variant="body2" color="text.secondary" sx={{ py: 4, textAlign: 'center' }}>
-              该日期范围内无信号记录
-            </Typography>
+            <SignalEmptyState variant="filterNoMatch" onReset={handleReset} />
           ) : (
-            <Card variant="outlined">
+            <Stack spacing={2}>
               {history.groups.map((group, index) => (
-                <Box key={group.tradeDate}>
-                  {index > 0 && <Divider />}
-                  <Box sx={{ p: 2 }}>
-                    <SignalHistoryGroup group={group} />
-                  </Box>
-                </Box>
+                <SignalHistoryGroupCard
+                  key={group.tradeDate}
+                  group={group}
+                  index={index}
+                  forwardWindow={appliedFilter.forwardWindow}
+                  showHold={appliedFilter.showHold}
+                  viewMode={appliedFilter.viewMode}
+                  alertThreshold={currentActivation?.alertThreshold}
+                  onOpenDay={setDrawerGroup}
+                />
               ))}
-            </Card>
+            </Stack>
           )}
 
-          {/* Pagination */}
           {totalPages > 1 && (
-            <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}>
+            <Box
+              sx={{
+                mt: 3,
+                display: 'flex',
+                gap: 2,
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexWrap: 'wrap',
+              }}
+            >
               <Pagination
-                count={totalPages}
-                page={page}
-                onChange={(_, value) => setPage(value)}
                 color="primary"
+                count={totalPages}
+                page={appliedFilter.page}
+                onChange={(_, value) => handlePageChange(value)}
               />
+              <Select
+                size="small"
+                value={appliedFilter.pageSize}
+                onChange={(event) => handlePageSizeChange(Number(event.target.value))}
+                sx={{ width: 96 }}
+              >
+                {[10, 20, 50].map((size) => (
+                  <MenuItem key={size} value={size}>
+                    每页 {size}
+                  </MenuItem>
+                ))}
+              </Select>
+              <Typography variant="body2" color="text.secondary">
+                共 {history.total} 条 · 第 {appliedFilter.page} / {totalPages} 页
+              </Typography>
             </Box>
           )}
         </>
       )}
+
+      <SignalHistoryDayDrawer
+        open={Boolean(drawerGroup)}
+        group={drawerGroup}
+        forwardWindow={appliedFilter.forwardWindow}
+        onClose={() => setDrawerGroup(null)}
+      />
     </DashboardContent>
   );
+}
+
+// ----------------------------------------------------------------------
+
+function createDefaultFilter(activations: SignalActivationItem[]): SignalHistoryFilter {
+  const today = dayjs();
+  const firstActive = activations.find((activation) => activation.isActive) ?? activations[0];
+
+  return {
+    strategyId: firstActive?.strategyId ?? '',
+    startDate: today.subtract(29, 'day').format('YYYYMMDD'),
+    endDate: today.format('YYYYMMDD'),
+    actions: [],
+    stockKeyword: '',
+    confidenceMin: 0,
+    confidenceMax: 1,
+    forwardWindow: 5,
+    viewMode: 'raw',
+    showHold: false,
+    page: 1,
+    pageSize: DEFAULT_PAGE_SIZE,
+  };
+}
+
+function parseFilter(params: URLSearchParams, fallback: SignalHistoryFilter): SignalHistoryFilter {
+  const actions = (params.get('actions') ?? '')
+    .split(',')
+    .filter((value): value is SignalHistoryFilter['actions'][number] =>
+      ['BUY', 'SELL', 'HOLD'].includes(value)
+    );
+  const forwardWindow = Number(params.get('forwardWindow'));
+  const viewMode = params.get('viewMode') === 'position' ? 'position' : 'raw';
+  const pageSize = Number(params.get('pageSize'));
+
+  return {
+    strategyId: params.get('strategyId') ?? fallback.strategyId,
+    startDate: params.get('startDate') ?? fallback.startDate,
+    endDate: params.get('endDate') ?? fallback.endDate,
+    actions,
+    stockKeyword: params.get('stockKeyword') ?? '',
+    confidenceMin: clamp01(Number(params.get('confidenceMin') ?? fallback.confidenceMin)),
+    confidenceMax: clamp01(Number(params.get('confidenceMax') ?? fallback.confidenceMax)),
+    forwardWindow: forwardWindow === 1 || forwardWindow === 20 ? forwardWindow : 5,
+    viewMode,
+    showHold: params.get('showHold') === '1',
+    page: Math.max(1, Number(params.get('page') ?? fallback.page)),
+    pageSize: [10, 20, 50].includes(pageSize) ? pageSize : fallback.pageSize,
+  };
+}
+
+function serializeFilter(filter: SignalHistoryFilter) {
+  const params = new URLSearchParams();
+  if (filter.strategyId) params.set('strategyId', filter.strategyId);
+  if (filter.startDate) params.set('startDate', filter.startDate);
+  if (filter.endDate) params.set('endDate', filter.endDate);
+  if (filter.actions.length > 0) params.set('actions', filter.actions.join(','));
+  if (filter.stockKeyword) params.set('stockKeyword', filter.stockKeyword);
+  if (filter.confidenceMin > 0) params.set('confidenceMin', String(filter.confidenceMin));
+  if (filter.confidenceMax < 1) params.set('confidenceMax', String(filter.confidenceMax));
+  if (filter.forwardWindow !== 5) params.set('forwardWindow', String(filter.forwardWindow));
+  if (filter.viewMode !== 'raw') params.set('viewMode', filter.viewMode);
+  if (filter.showHold) params.set('showHold', '1');
+  if (filter.page > 1) params.set('page', String(filter.page));
+  if (filter.pageSize !== DEFAULT_PAGE_SIZE) params.set('pageSize', String(filter.pageSize));
+  return params;
+}
+
+function isSameFilter(a: SignalHistoryFilter, b: SignalHistoryFilter) {
+  return (
+    JSON.stringify({ ...a, actions: [...a.actions].sort() }) ===
+    JSON.stringify({ ...b, actions: [...b.actions].sort() })
+  );
+}
+
+function clamp01(value: number) {
+  if (Number.isNaN(value)) return 0;
+  return Math.min(1, Math.max(0, value));
+}
+
+function formatDateRange(startDate: string, endDate: string) {
+  return `${formatDate(startDate)} → ${formatDate(endDate)}`;
+}
+
+function formatDate(value: string) {
+  if (!/^\d{8}$/.test(value)) return value || '—';
+  return `${value.slice(0, 4)}-${value.slice(4, 6)}-${value.slice(6, 8)}`;
 }

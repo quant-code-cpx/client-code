@@ -6,6 +6,7 @@ import Chip from '@mui/material/Chip';
 import Menu from '@mui/material/Menu';
 import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
+import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
@@ -17,6 +18,7 @@ import { fToNow } from 'src/utils/format-time';
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
 
+import { QuoteText } from './components/quote-text';
 import { STRATEGY_TYPE_COLOR, STRATEGY_TYPE_LABEL } from './constants';
 
 // ----------------------------------------------------------------------
@@ -49,9 +51,23 @@ export function StrategyCard({
   const isMenuOpen = menuStrategyId === strategy.id && Boolean(menuAnchorEl);
   const typeColor = STRATEGY_TYPE_COLOR[strategy.strategyType] ?? 'default';
   const typeLabel = STRATEGY_TYPE_LABEL[strategy.strategyType] ?? strategy.strategyType;
+  const perf = strategy.lastRunSummary;
 
   return (
-    <Card sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+    <Card
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100%',
+        position: 'relative',
+        borderLeft: (theme) =>
+          `2px solid ${theme.palette[typeColor as keyof typeof theme.palette] ? (theme.palette[typeColor as keyof typeof theme.palette] as { main: string }).main : theme.palette.primary.main}`,
+        transition: 'box-shadow 0.15s ease, border-color 0.15s ease',
+        '&:hover': {
+          boxShadow: (theme) => theme.customShadows?.z8 ?? theme.shadows[4],
+        },
+      }}
+    >
       <CardContent sx={{ flexGrow: 1, pb: 1 }}>
         {/* Header row: type label + version + public badge */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1, flexWrap: 'wrap' }}>
@@ -62,6 +78,12 @@ export function StrategyCard({
             v{strategy.version}
           </Typography>
           <Box sx={{ flexGrow: 1 }} />
+          {/* Signal active badge */}
+          {strategy.hasActiveSignal === true && (
+            <Label color="success" variant="soft" sx={{ fontSize: 11 }}>
+              ACTIVE
+            </Label>
+          )}
           {strategy.isPublic ? (
             <Iconify icon="solar:earth-bold" width={16} sx={{ color: 'info.main' }} />
           ) : (
@@ -70,21 +92,23 @@ export function StrategyCard({
         </Box>
 
         {/* Strategy name */}
-        <Typography
-          variant="subtitle1"
-          sx={{
-            mb: 0.5,
-            overflow: 'hidden',
-            display: '-webkit-box',
-            WebkitLineClamp: 1,
-            WebkitBoxOrient: 'vertical',
-            cursor: 'pointer',
-            '&:hover': { color: 'primary.main' },
-          }}
-          onClick={() => onView(strategy.id)}
-        >
-          {strategy.name}
-        </Typography>
+        <Tooltip title={strategy.name.length > 30 ? strategy.name : ''} placement="top">
+          <Typography
+            variant="subtitle1"
+            sx={{
+              mb: 0.5,
+              overflow: 'hidden',
+              display: '-webkit-box',
+              WebkitLineClamp: 1,
+              WebkitBoxOrient: 'vertical',
+              cursor: 'pointer',
+              '&:hover': { color: 'primary.main' },
+            }}
+            onClick={() => onView(strategy.id)}
+          >
+            {strategy.name}
+          </Typography>
+        </Tooltip>
 
         {/* Description */}
         {strategy.description && (
@@ -116,6 +140,39 @@ export function StrategyCard({
         <Typography variant="caption" color="text.disabled">
           更新于 {fToNow(strategy.updatedAt)}
         </Typography>
+
+        {/* Performance bar — 近一次回测摘要 */}
+        <Box
+          sx={{
+            mt: 1.5,
+            pt: 1.5,
+            borderTop: (theme) => `1px solid ${theme.palette.divider}`,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+          }}
+        >
+          <Typography variant="caption" sx={{ color: 'text.disabled', flexShrink: 0 }}>
+            近一次:
+          </Typography>
+          {perf ? (
+            <>
+              <QuoteText value={perf.totalReturn} variant="caption" />
+              {perf.sharpeRatio != null && (
+                <Typography variant="caption" sx={{ color: 'text.disabled' }}>
+                  夏普 {perf.sharpeRatio.toFixed(2)}
+                </Typography>
+              )}
+              <Typography variant="caption" sx={{ color: 'text.disabled', ml: 'auto' }}>
+                {fToNow(perf.runAt)}
+              </Typography>
+            </>
+          ) : (
+            <Typography variant="caption" sx={{ color: 'text.disabled' }}>
+              暂无回测
+            </Typography>
+          )}
+        </Box>
       </CardContent>
 
       <Divider />

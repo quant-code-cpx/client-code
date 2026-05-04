@@ -3,7 +3,7 @@ import type { FactorCategory, FactorCategoryGroup } from 'src/api/factor';
 import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
 
-import { CATEGORY_LABELS } from './factor-library-card';
+import { CATEGORY_LABELS } from './constants';
 
 // ----------------------------------------------------------------------
 

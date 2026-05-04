@@ -1,316 +1,45 @@
 import type { StockSearchItem } from 'src/api/stock';
-import type { PatternMatch, PatternTemplate, PatternSearchResult } from 'src/api/pattern';
+import type { PatternTemplate, PatternSearchResult, PatternTemplateType } from 'src/api/pattern';
 
 import dayjs from 'dayjs';
-import { varAlpha } from 'minimal-shared/utils';
-import { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'react-router';
+import { useRef, useMemo, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
-import Grid from '@mui/material/Grid';
-import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
+import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
-import Select from '@mui/material/Select';
-import MenuItem from '@mui/material/MenuItem';
-import Skeleton from '@mui/material/Skeleton';
-import { useTheme } from '@mui/material/styles';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import InputLabel from '@mui/material/InputLabel';
 import CardContent from '@mui/material/CardContent';
-import FormControl from '@mui/material/FormControl';
 import ToggleButton from '@mui/material/ToggleButton';
-import LinearProgress from '@mui/material/LinearProgress';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
-import { fmtTradeDate } from 'src/utils/format-time';
-
+import { stockDetailApi } from 'src/api/stock';
 import { DashboardContent } from 'src/layouts/dashboard';
-import { searchBySeries, searchPatterns, getPatternTemplates } from 'src/api/pattern';
+import { searchBySeries, searchPatterns, getPatternTemplatesRaw } from 'src/api/pattern';
 
-import { Label } from 'src/components/label';
-import { Chart, useChart } from 'src/components/chart';
 import { StockSearchAutocomplete } from 'src/components/stock-search-autocomplete';
 
-// ----------------------------------------------------------------------
+import {
+  PatternMiniChart,
+  PatternResultsList,
+  enrichPatternTemplate,
+  PatternAdvancedFilters,
+  PatternTemplateGallery,
+  DEFAULT_PATTERN_FILTERS,
+} from '../components';
 
-const TYPE_LABELS: Record<string, string> = {
-  reversal_top: '顶部反转',
-  reversal_bottom: '底部反转',
-  continuation: '持续形态',
-  bilateral: '双向形态',
-};
-
-const TYPE_COLORS: Record<string, 'error' | 'success' | 'info' | 'warning' | 'default'> = {
-  reversal_top: 'error',
-  reversal_bottom: 'success',
-  continuation: 'info',
-  bilateral: 'warning',
-};
+import type { PatternFiltersValue } from '../components';
 
 // ----------------------------------------------------------------------
 
-function PatternMiniChart({ series, height = 60 }: { series: number[]; height?: number }) {
-  const theme = useTheme();
-  const chartOptions = useChart({
-    chart: { type: 'line', sparkline: { enabled: true }, animations: { enabled: false } },
-    stroke: { width: 2, curve: 'smooth' },
-    tooltip: { enabled: false },
-    colors: [theme.palette.primary.main],
-  });
-  return <Chart type="line" series={[{ data: series }]} options={chartOptions} sx={{ height }} />;
-}
+type Mode = 'template' | 'range' | 'series';
+type TypeFilter = 'all' | PatternTemplateType;
 
-// ----------------------------------------------------------------------
-
-function MatchCard({ match }: { match: PatternMatch }) {
-  const pct = Math.round(match.similarity * 100);
-  const fmtDate = fmtTradeDate;
-
-  return (
-    <Card variant="outlined">
-      <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
-        <Grid container spacing={2} alignItems="center">
-          <Grid size={{ xs: 12, sm: 4 }}>
-            <Typography variant="subtitle2">{match.patternName}</Typography>
-            <Typography variant="body2" color="text.secondary">
-              {match.stockName || match.tsCode}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              {fmtDate(match.matchStartDate)} → {fmtDate(match.matchEndDate)}
-            </Typography>
-          </Grid>
-          <Grid size={{ xs: 12, sm: 4 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <LinearProgress
-                variant="determinate"
-                value={pct}
-                sx={{ flex: 1, height: 6, borderRadius: 1 }}
-              />
-              <Typography variant="body2" sx={{ minWidth: 40, fontWeight: 600 }}>
-                {pct}%
-              </Typography>
-            </Box>
-            <Typography variant="caption" color="text.secondary">
-              相似度
-            </Typography>
-          </Grid>
-          <Grid size={{ xs: 12, sm: 4 }}>
-            {match.series?.length > 0 && <PatternMiniChart series={match.series} height={50} />}
-          </Grid>
-        </Grid>
-      </CardContent>
-    </Card>
-  );
-}
-
-// ----------------------------------------------------------------------
-
-function ModeAPanel({ templates }: { templates: PatternTemplate[] }) {
-  const [selectedStock, setSelectedStock] = useState<StockSearchItem | null>(null);
-  const [selectedPatternId, setSelectedPatternId] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [topN, setTopN] = useState(10);
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<PatternSearchResult | null>(null);
-  const [error, setError] = useState('');
-
-  const canSearch = !!selectedPatternId && !!startDate && !!endDate && !loading;
-
-  const handleSearch = useCallback(async () => {
-    if (!canSearch) return;
-    setLoading(true);
-    setError('');
-    setResult(null);
-    try {
-      const data = await searchPatterns({
-        tsCode: selectedStock?.tsCode || '000001.SZ', // fallback for demo; server can handle empty tsCode
-        startDate,
-        endDate,
-        algorithm: selectedPatternId as 'NED' | 'DTW',
-        topK: topN,
-      });
-      setResult(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '搜索失败，请重试');
-    } finally {
-      setLoading(false);
-    }
-  }, [canSearch, selectedStock, startDate, endDate, selectedPatternId, topN]);
-
-  return (
-    <Stack spacing={3}>
-      <Card>
-        <CardContent sx={{ pb: '16px !important' }}>
-          <Typography variant="subtitle1" sx={{ mb: 2 }}>
-            搜索参数
-          </Typography>
-          <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'flex-end' }}>
-            <StockSearchAutocomplete
-              label="股票代码（可选）"
-              value={selectedStock}
-              onChange={(item) => setSelectedStock(item)}
-              sx={{ width: 220 }}
-            />
-            <FormControl size="small" sx={{ width: 200 }}>
-              <InputLabel>形态模板</InputLabel>
-              <Select
-                label="形态模板"
-                value={selectedPatternId}
-                onChange={(e) => {
-                  setSelectedPatternId(e.target.value);
-                  setResult(null);
-                }}
-              >
-                {templates.map((t) => (
-                  <MenuItem key={t.id} value={t.id}>
-                    {t.name}（{TYPE_LABELS[t.type] ?? t.type}）
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <DatePicker
-              label="开始日期"
-              value={startDate ? dayjs(startDate) : null}
-              onChange={(v) => setStartDate(v?.format('YYYY-MM-DD') ?? '')}
-              format="YYYY-MM-DD"
-              slotProps={{
-                textField: { size: 'small', sx: { minWidth: 190 } },
-                field: { clearable: true },
-              }}
-            />
-            <DatePicker
-              label="结束日期"
-              value={endDate ? dayjs(endDate) : null}
-              onChange={(v) => setEndDate(v?.format('YYYY-MM-DD') ?? '')}
-              format="YYYY-MM-DD"
-              slotProps={{
-                textField: { size: 'small', sx: { minWidth: 190 } },
-                field: { clearable: true },
-              }}
-            />
-            <FormControl size="small" sx={{ width: 110 }}>
-              <InputLabel>返回条数</InputLabel>
-              <Select
-                label="返回条数"
-                value={topN}
-                onChange={(e) => setTopN(Number(e.target.value))}
-              >
-                {[10, 20, 50].map((n) => (
-                  <MenuItem key={n} value={n}>
-                    {n} 条
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <Button variant="contained" disabled={!canSearch} onClick={handleSearch}>
-              搜索
-            </Button>
-          </Box>
-          {!selectedPatternId && (
-            <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-              请选择形态模板后搜索
-            </Typography>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Template gallery */}
-      <Card>
-        <CardContent sx={{ pb: '16px !important' }}>
-          <Typography variant="subtitle1" sx={{ mb: 1.5 }}>
-            形态模板库
-          </Typography>
-          <Grid container spacing={1.5}>
-            {templates.map((tpl) => {
-              const selected = selectedPatternId === tpl.id;
-              return (
-                <Grid key={tpl.id} size={{ xs: 6, sm: 4, md: 3, lg: 2 }}>
-                  <TemplateDisplayCard
-                    template={tpl}
-                    selected={selected}
-                    onSelect={() => {
-                      setSelectedPatternId(tpl.id === selectedPatternId ? '' : tpl.id);
-                      setResult(null);
-                    }}
-                  />
-                </Grid>
-              );
-            })}
-          </Grid>
-        </CardContent>
-      </Card>
-
-      {error && <Alert severity="error">{error}</Alert>}
-
-      {loading && (
-        <Stack spacing={1.5}>
-          {[...Array(3)].map((_, i) => (
-            <Skeleton key={i} variant="rectangular" height={80} sx={{ borderRadius: 1 }} />
-          ))}
-        </Stack>
-      )}
-
-      {!loading && result && (
-        <Stack spacing={1.5}>
-          <Typography variant="subtitle2" color="text.secondary">
-            共找到 {result.total} 个匹配
-          </Typography>
-          {result.matches.length === 0 ? (
-            <Alert severity="info">未找到匹配形态，请调整搜索条件。</Alert>
-          ) : (
-            result.matches.map((m, i) => (
-              <MatchCard key={`${m.tsCode}-${m.matchStartDate}-${i}`} match={m} />
-            ))
-          )}
-        </Stack>
-      )}
-    </Stack>
-  );
-}
-
-// ----------------------------------------------------------------------
-
-function TemplateDisplayCard({
-  template,
-  selected,
-  onSelect,
-}: {
-  template: PatternTemplate;
-  selected: boolean;
-  onSelect: () => void;
-}) {
-  const theme = useTheme();
-  return (
-    <Card
-      onClick={onSelect}
-      sx={{
-        cursor: 'pointer',
-        border: selected ? `2px solid ${theme.palette.primary.main}` : '2px solid transparent',
-        bgcolor: selected
-          ? varAlpha(theme.vars.palette.primary.mainChannel, 0.08)
-          : 'background.paper',
-        transition: 'border-color 0.15s, background-color 0.15s',
-        '&:hover': { border: `2px solid ${theme.palette.primary.light}` },
-      }}
-    >
-      <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
-        {template.series?.length > 0 && <PatternMiniChart series={template.series} />}
-        <Typography variant="subtitle2" noWrap sx={{ mt: 0.5, mb: 0.5 }}>
-          {template.name}
-        </Typography>
-        <Label color={TYPE_COLORS[template.type] ?? 'default'} variant="soft" sx={{ fontSize: 12 }}>
-          {TYPE_LABELS[template.type] ?? template.type}
-        </Label>
-      </CardContent>
-    </Card>
-  );
-}
-
-// ----------------------------------------------------------------------
+const dateToYmd = (s: string): string => s.replace(/-/g, '');
 
 function parseSeriesInput(raw: string): number[] {
   return raw
@@ -330,166 +59,49 @@ function normalizeSeries(values: number[]): number[] {
   return values.map((v) => (v - min) / range);
 }
 
-function ModeBPanel() {
-  const [rawInput, setRawInput] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [topN, setTopN] = useState(10);
-  const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<PatternSearchResult | null>(null);
-  const [error, setError] = useState('');
-
-  const parsedSeries = parseSeriesInput(rawInput);
-  const normalizedSeries = normalizeSeries(parsedSeries);
-  const tooFew = parsedSeries.length > 0 && parsedSeries.length < 5;
-  const hasEnough = parsedSeries.length >= 5;
-
-  const canSearch = hasEnough && !loading;
-
-  const handleSearch = useCallback(async () => {
-    if (!canSearch) return;
-    setLoading(true);
-    setError('');
-    setResult(null);
-    try {
-      const data = await searchBySeries({
-        series: normalizedSeries,
-        topK: topN,
-      });
-      setResult(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : '搜索失败，请重试');
-    } finally {
-      setLoading(false);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [canSearch, rawInput, topN, startDate, endDate]);
-
-  return (
-    <Stack spacing={3}>
-      <Card>
-        <CardContent sx={{ pb: '16px !important' }}>
-          <Typography variant="subtitle1" sx={{ mb: 2 }}>
-            自定义价格序列
-          </Typography>
-          <Stack spacing={2}>
-            <TextField
-              label="价格序列（逗号或换行分隔）"
-              multiline
-              rows={3}
-              value={rawInput}
-              onChange={(e) => {
-                setRawInput(e.target.value);
-                setResult(null);
-              }}
-              placeholder="e.g. 10, 11, 10.5, 12, 11.8, 13, 12.5"
-              fullWidth
-            />
-
-            {tooFew && (
-              <Alert severity="warning">
-                请至少输入 5 个价格点位（当前 {parsedSeries.length} 个）。
-              </Alert>
-            )}
-
-            {hasEnough && normalizedSeries.length > 0 && (
-              <Box>
-                <Typography
-                  variant="caption"
-                  color="text.secondary"
-                  sx={{ mb: 0.5, display: 'block' }}
-                >
-                  序列预览（{parsedSeries.length} 个点，已标准化）
-                </Typography>
-                <PatternMiniChart series={normalizedSeries} height={100} />
-              </Box>
-            )}
-
-            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'flex-end' }}>
-              <DatePicker
-                label="开始日期（可选）"
-                value={startDate ? dayjs(startDate) : null}
-                onChange={(v) => setStartDate(v?.format('YYYY-MM-DD') ?? '')}
-                format="YYYY-MM-DD"
-                slotProps={{
-                  textField: { size: 'small', sx: { minWidth: 190 } },
-                  field: { clearable: true },
-                }}
-              />
-              <DatePicker
-                label="结束日期（可选）"
-                value={endDate ? dayjs(endDate) : null}
-                onChange={(v) => setEndDate(v?.format('YYYY-MM-DD') ?? '')}
-                format="YYYY-MM-DD"
-                slotProps={{
-                  textField: { size: 'small', sx: { minWidth: 190 } },
-                  field: { clearable: true },
-                }}
-              />
-              <FormControl size="small" sx={{ width: 110 }}>
-                <InputLabel>返回条数</InputLabel>
-                <Select
-                  label="返回条数"
-                  value={topN}
-                  onChange={(e) => setTopN(Number(e.target.value))}
-                >
-                  {[10, 20, 50].map((n) => (
-                    <MenuItem key={n} value={n}>
-                      {n} 条
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-              <Button variant="contained" disabled={!canSearch} onClick={handleSearch}>
-                搜索相似形态
-              </Button>
-            </Box>
-          </Stack>
-        </CardContent>
-      </Card>
-
-      {error && <Alert severity="error">{error}</Alert>}
-
-      {loading && (
-        <Stack spacing={1.5}>
-          {[...Array(3)].map((_, i) => (
-            <Skeleton key={i} variant="rectangular" height={80} sx={{ borderRadius: 1 }} />
-          ))}
-        </Stack>
-      )}
-
-      {!loading && result && (
-        <Stack spacing={1.5}>
-          <Typography variant="subtitle2" color="text.secondary">
-            共找到 {result.total} 个匹配
-          </Typography>
-          {result.matches.length === 0 ? (
-            <Alert severity="info">未找到相似形态，请尝试调整序列或时间范围。</Alert>
-          ) : (
-            result.matches.map((m, i) => (
-              <MatchCard key={`${m.tsCode}-${m.matchStartDate}-${i}`} match={m} />
-            ))
-          )}
-        </Stack>
-      )}
-    </Stack>
-  );
-}
-
 // ----------------------------------------------------------------------
 
 export function PatternView() {
-  const [mode, setMode] = useState<'template' | 'series'>('template');
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const mode = ((searchParams.get('mode') as Mode | null) ?? 'template') as Mode;
+
+  const updateParam = useCallback(
+    (key: string, value: string | null) => {
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          if (value === null || value === '') next.delete(key);
+          else next.set(key, value);
+          return next;
+        },
+        { replace: true }
+      );
+    },
+    [setSearchParams]
+  );
+
+  const setMode = useCallback((next: Mode) => updateParam('mode', next), [updateParam]);
+
+  // ----- 模板加载（共享） -----
   const [templates, setTemplates] = useState<PatternTemplate[]>([]);
   const [templatesLoading, setTemplatesLoading] = useState(false);
+  const [templatesError, setTemplatesError] = useState('');
 
-  useEffect(() => {
+  const loadTemplates = useCallback(() => {
     setTemplatesLoading(true);
-    getPatternTemplates()
-      .then(setTemplates)
-      .catch(() => {})
+    setTemplatesError('');
+    getPatternTemplatesRaw()
+      .then((raws) => setTemplates(raws.map(enrichPatternTemplate)))
+      .catch((err: unknown) => {
+        setTemplatesError(err instanceof Error ? err.message : '加载模板失败');
+      })
       .finally(() => setTemplatesLoading(false));
   }, []);
+
+  useEffect(() => {
+    loadTemplates();
+  }, [loadTemplates]);
 
   return (
     <DashboardContent maxWidth="xl">
@@ -507,27 +119,503 @@ export function PatternView() {
         <ToggleButtonGroup
           value={mode}
           exclusive
-          onChange={(_, v) => {
+          onChange={(_, v: Mode | null) => {
             if (v) setMode(v);
           }}
           size="small"
         >
-          <ToggleButton value="template">按形态搜索</ToggleButton>
+          <ToggleButton value="template">按模板搜索</ToggleButton>
+          <ToggleButton value="range">按区间搜索</ToggleButton>
           <ToggleButton value="series">按序列搜索</ToggleButton>
         </ToggleButtonGroup>
       </Box>
 
-      {templatesLoading && mode === 'template' ? (
-        <Stack spacing={2}>
-          <Skeleton variant="rectangular" height={120} sx={{ borderRadius: 1.5 }} />
-          <Skeleton variant="rectangular" height={200} sx={{ borderRadius: 1.5 }} />
-        </Stack>
-      ) : (
-        <>
-          {mode === 'template' && <ModeAPanel templates={templates} />}
-          {mode === 'series' && <ModeBPanel />}
-        </>
+      {templatesError && (
+        <Alert
+          severity="error"
+          sx={{ mb: 2 }}
+          action={
+            <Button color="inherit" size="small" onClick={loadTemplates}>
+              重试
+            </Button>
+          }
+        >
+          {templatesError}
+        </Alert>
       )}
+
+      {mode === 'template' && (
+        <ModeTemplate
+          templates={templates}
+          templatesLoading={templatesLoading}
+          searchParams={searchParams}
+          updateParam={updateParam}
+        />
+      )}
+      {mode === 'range' && <ModeRange searchParams={searchParams} updateParam={updateParam} />}
+      {mode === 'series' && <ModeSeries />}
     </DashboardContent>
+  );
+}
+
+// ----------------------------------------------------------------------
+// Mode 1: 按模板搜索
+// ----------------------------------------------------------------------
+
+type ModeProps = {
+  searchParams: URLSearchParams;
+  updateParam: (key: string, value: string | null) => void;
+};
+
+type ModeTemplateProps = ModeProps & {
+  templates: PatternTemplate[];
+  templatesLoading: boolean;
+};
+
+function ModeTemplate({
+  templates,
+  templatesLoading,
+  searchParams,
+  updateParam,
+}: ModeTemplateProps) {
+  const selectedId = searchParams.get('pattern');
+  const typeFilter = (searchParams.get('type') as TypeFilter | null) ?? 'all';
+
+  const [filters, setFilters] = useState<PatternFiltersValue>(DEFAULT_PATTERN_FILTERS);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [result, setResult] = useState<PatternSearchResult | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
+
+  const selectedTemplate = useMemo(
+    () => templates.find((t) => t.id === selectedId) ?? null,
+    [templates, selectedId]
+  );
+
+  const handleSearch = useCallback(async () => {
+    if (!selectedTemplate || selectedTemplate.series.length === 0) return;
+    abortRef.current?.abort();
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
+
+    setLoading(true);
+    setError('');
+    setResult(null);
+    try {
+      const data = await searchBySeries(
+        {
+          series: selectedTemplate.series,
+          algorithm: filters.algorithm,
+          topK: filters.topK,
+          scope: filters.scope,
+          indexCode: filters.scope === 'INDEX' ? filters.indexCode : undefined,
+          lookbackYears: filters.lookbackYears,
+        },
+        ctrl.signal
+      );
+      if (!ctrl.signal.aborted) setResult(data);
+    } catch (err) {
+      if (!ctrl.signal.aborted) setError(err instanceof Error ? err.message : '搜索失败，请重试');
+    } finally {
+      if (!ctrl.signal.aborted) setLoading(false);
+    }
+  }, [selectedTemplate, filters]);
+
+  useEffect(() => () => abortRef.current?.abort(), []);
+
+  return (
+    <Stack spacing={3}>
+      <Card>
+        <CardContent>
+          <Typography variant="subtitle1" sx={{ mb: 1.5 }}>
+            形态模板库
+          </Typography>
+          <PatternTemplateGallery
+            templates={templates}
+            loading={templatesLoading}
+            selectedId={selectedId}
+            onSelect={(id) => {
+              updateParam('pattern', id);
+              setResult(null);
+            }}
+            typeFilter={typeFilter}
+            onTypeFilterChange={(v) => updateParam('type', v === 'all' ? null : v)}
+          />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent>
+          <Typography variant="subtitle1" sx={{ mb: 1.5 }}>
+            搜索参数
+          </Typography>
+          <Stack spacing={2}>
+            <PatternAdvancedFilters value={filters} onChange={setFilters} />
+            <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+              <Button
+                variant="contained"
+                disabled={!selectedTemplate || loading}
+                onClick={handleSearch}
+              >
+                {loading ? '搜索中...' : '搜索'}
+              </Button>
+              {!selectedTemplate && (
+                <Typography variant="caption" color="text.secondary">
+                  请先在上方选择一个形态模板
+                </Typography>
+              )}
+            </Box>
+          </Stack>
+        </CardContent>
+      </Card>
+
+      <PatternResultsList loading={loading} error={error} result={result} />
+    </Stack>
+  );
+}
+
+// ----------------------------------------------------------------------
+// Mode 2: 按区间搜索
+// ----------------------------------------------------------------------
+
+function ModeRange({ searchParams, updateParam }: ModeProps) {
+  const tsCode = searchParams.get('tsCode') ?? '';
+  const startDate = searchParams.get('start') ?? '';
+  const endDate = searchParams.get('end') ?? '';
+
+  const [stock, setStock] = useState<StockSearchItem | null>(
+    tsCode ? { tsCode, symbol: '', name: '', market: null, industry: null, listStatus: null } : null
+  );
+  const [filters, setFilters] = useState<PatternFiltersValue>(DEFAULT_PATTERN_FILTERS);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [result, setResult] = useState<PatternSearchResult | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
+
+  const canSearch = !!stock?.tsCode && !!startDate && !!endDate && !loading;
+
+  const handleSearch = useCallback(async () => {
+    if (!canSearch || !stock) return;
+    abortRef.current?.abort();
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
+
+    setLoading(true);
+    setError('');
+    setResult(null);
+    try {
+      const data = await searchPatterns(
+        {
+          tsCode: stock.tsCode,
+          startDate: dateToYmd(startDate),
+          endDate: dateToYmd(endDate),
+          algorithm: filters.algorithm,
+          topK: filters.topK,
+          scope: filters.scope,
+          indexCode: filters.scope === 'INDEX' ? filters.indexCode : undefined,
+          lookbackYears: filters.lookbackYears,
+          excludeSelf: filters.excludeSelf,
+        },
+        ctrl.signal
+      );
+      if (!ctrl.signal.aborted) setResult(data);
+    } catch (err) {
+      if (!ctrl.signal.aborted) setError(err instanceof Error ? err.message : '搜索失败，请重试');
+    } finally {
+      if (!ctrl.signal.aborted) setLoading(false);
+    }
+  }, [canSearch, stock, startDate, endDate, filters]);
+
+  useEffect(() => () => abortRef.current?.abort(), []);
+
+  return (
+    <Stack spacing={3}>
+      <Card>
+        <CardContent>
+          <Typography variant="subtitle1" sx={{ mb: 1.5 }}>
+            选择查询样板（股票 + 区间）
+          </Typography>
+          <Stack spacing={2}>
+            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+              <StockSearchAutocomplete
+                label="股票"
+                value={stock}
+                onChange={(item) => {
+                  setStock(item);
+                  updateParam('tsCode', item?.tsCode ?? null);
+                  setResult(null);
+                }}
+                sx={{ width: 240 }}
+              />
+              <DatePicker
+                label="开始日期"
+                value={startDate ? dayjs(startDate) : null}
+                onChange={(v) => {
+                  updateParam('start', v?.format('YYYY-MM-DD') ?? null);
+                  setResult(null);
+                }}
+                format="YYYY-MM-DD"
+                slotProps={{
+                  textField: { size: 'small', sx: { minWidth: 190 } },
+                  field: { clearable: true },
+                }}
+              />
+              <DatePicker
+                label="结束日期"
+                value={endDate ? dayjs(endDate) : null}
+                onChange={(v) => {
+                  updateParam('end', v?.format('YYYY-MM-DD') ?? null);
+                  setResult(null);
+                }}
+                format="YYYY-MM-DD"
+                slotProps={{
+                  textField: { size: 'small', sx: { minWidth: 190 } },
+                  field: { clearable: true },
+                }}
+              />
+            </Box>
+            <PatternAdvancedFilters value={filters} onChange={setFilters} showExcludeSelf />
+            <Box>
+              <Button variant="contained" disabled={!canSearch} onClick={handleSearch}>
+                {loading ? '搜索中...' : '搜索'}
+              </Button>
+            </Box>
+          </Stack>
+        </CardContent>
+      </Card>
+
+      <PatternResultsList loading={loading} error={error} result={result} />
+    </Stack>
+  );
+}
+
+// ----------------------------------------------------------------------
+// Mode 3: 按序列搜索
+// ----------------------------------------------------------------------
+
+type SeriesSource = 'paste' | 'extract';
+
+function ModeSeries() {
+  const [source, setSource] = useState<SeriesSource>('paste');
+  const [rawInput, setRawInput] = useState('');
+  const [extractStock, setExtractStock] = useState<StockSearchItem | null>(null);
+  const [extractStart, setExtractStart] = useState('');
+  const [extractEnd, setExtractEnd] = useState('');
+  const [extractedSeries, setExtractedSeries] = useState<number[] | null>(null);
+  const [extractLoading, setExtractLoading] = useState(false);
+  const [extractError, setExtractError] = useState('');
+
+  const [filters, setFilters] = useState<PatternFiltersValue>(DEFAULT_PATTERN_FILTERS);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [result, setResult] = useState<PatternSearchResult | null>(null);
+  const abortRef = useRef<AbortController | null>(null);
+
+  const pastedSeries = parseSeriesInput(rawInput);
+  const pasteNormalized = normalizeSeries(pastedSeries);
+  const tooFewPaste = pastedSeries.length > 0 && pastedSeries.length < 5;
+
+  const activeSeries =
+    source === 'paste' ? (pastedSeries.length >= 5 ? pasteNormalized : null) : extractedSeries;
+
+  const canSearch = !!activeSeries && activeSeries.length >= 5 && !loading;
+
+  const handleExtract = useCallback(async () => {
+    if (!extractStock || !extractStart || !extractEnd) return;
+    setExtractLoading(true);
+    setExtractError('');
+    setExtractedSeries(null);
+    try {
+      const data = await stockDetailApi.chart({
+        tsCode: extractStock.tsCode,
+        period: 'D',
+        adjustType: 'qfq',
+        startDate: dateToYmd(extractStart),
+        endDate: dateToYmd(extractEnd),
+      });
+      const closes = data.items.map((it) => it.close).filter((v): v is number => v !== null);
+      if (closes.length < 5) {
+        setExtractError('该区间交易日不足 5 个，请扩大区间。');
+      } else {
+        setExtractedSeries(normalizeSeries(closes));
+      }
+    } catch (err) {
+      setExtractError(err instanceof Error ? err.message : '提取序列失败');
+    } finally {
+      setExtractLoading(false);
+    }
+  }, [extractStock, extractStart, extractEnd]);
+
+  const handleSearch = useCallback(async () => {
+    if (!canSearch || !activeSeries) return;
+    abortRef.current?.abort();
+    const ctrl = new AbortController();
+    abortRef.current = ctrl;
+
+    setLoading(true);
+    setError('');
+    setResult(null);
+    try {
+      const data = await searchBySeries(
+        {
+          series: activeSeries,
+          algorithm: filters.algorithm,
+          topK: filters.topK,
+          scope: filters.scope,
+          indexCode: filters.scope === 'INDEX' ? filters.indexCode : undefined,
+          lookbackYears: filters.lookbackYears,
+        },
+        ctrl.signal
+      );
+      if (!ctrl.signal.aborted) setResult(data);
+    } catch (err) {
+      if (!ctrl.signal.aborted) setError(err instanceof Error ? err.message : '搜索失败，请重试');
+    } finally {
+      if (!ctrl.signal.aborted) setLoading(false);
+    }
+  }, [canSearch, activeSeries, filters]);
+
+  useEffect(() => () => abortRef.current?.abort(), []);
+
+  return (
+    <Stack spacing={3}>
+      <Card>
+        <CardContent>
+          <Typography variant="subtitle1" sx={{ mb: 1.5 }}>
+            自定义查询序列
+          </Typography>
+
+          <ToggleButtonGroup
+            value={source}
+            exclusive
+            onChange={(_, v: SeriesSource | null) => {
+              if (v) {
+                setSource(v);
+                setResult(null);
+              }
+            }}
+            size="small"
+            sx={{ mb: 2 }}
+          >
+            <ToggleButton value="paste">粘贴数列</ToggleButton>
+            <ToggleButton value="extract">从历史区段提取</ToggleButton>
+          </ToggleButtonGroup>
+
+          {source === 'paste' && (
+            <Stack spacing={2}>
+              <TextField
+                label="价格序列（逗号或换行分隔）"
+                multiline
+                rows={3}
+                value={rawInput}
+                onChange={(e) => {
+                  setRawInput(e.target.value);
+                  setResult(null);
+                }}
+                placeholder="例如 10, 11, 10.5, 12, 11.8, 13, 12.5"
+                fullWidth
+              />
+              {tooFewPaste && (
+                <Alert severity="warning">
+                  请至少输入 5 个价格点位（当前 {pastedSeries.length} 个）。
+                </Alert>
+              )}
+              {pastedSeries.length >= 5 && (
+                <Box>
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{ mb: 0.5, display: 'block' }}
+                  >
+                    序列预览（{pastedSeries.length} 个点，已 0–1 标准化，与后端口径一致）
+                  </Typography>
+                  <PatternMiniChart series={pasteNormalized} height={100} />
+                </Box>
+              )}
+            </Stack>
+          )}
+
+          {source === 'extract' && (
+            <Stack spacing={2}>
+              <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'flex-end' }}>
+                <StockSearchAutocomplete
+                  label="股票"
+                  value={extractStock}
+                  onChange={(item) => {
+                    setExtractStock(item);
+                    setExtractedSeries(null);
+                  }}
+                  sx={{ width: 240 }}
+                />
+                <DatePicker
+                  label="开始日期"
+                  value={extractStart ? dayjs(extractStart) : null}
+                  onChange={(v) => {
+                    setExtractStart(v?.format('YYYY-MM-DD') ?? '');
+                    setExtractedSeries(null);
+                  }}
+                  format="YYYY-MM-DD"
+                  slotProps={{
+                    textField: { size: 'small', sx: { minWidth: 190 } },
+                    field: { clearable: true },
+                  }}
+                />
+                <DatePicker
+                  label="结束日期"
+                  value={extractEnd ? dayjs(extractEnd) : null}
+                  onChange={(v) => {
+                    setExtractEnd(v?.format('YYYY-MM-DD') ?? '');
+                    setExtractedSeries(null);
+                  }}
+                  format="YYYY-MM-DD"
+                  slotProps={{
+                    textField: { size: 'small', sx: { minWidth: 190 } },
+                    field: { clearable: true },
+                  }}
+                />
+                <Button
+                  variant="outlined"
+                  disabled={!extractStock || !extractStart || !extractEnd || extractLoading}
+                  onClick={handleExtract}
+                >
+                  {extractLoading ? '提取中...' : '提取序列'}
+                </Button>
+              </Box>
+              {extractError && <Alert severity="error">{extractError}</Alert>}
+              {extractedSeries && extractedSeries.length > 0 && (
+                <Box>
+                  <Typography
+                    variant="caption"
+                    color="text.secondary"
+                    sx={{ mb: 0.5, display: 'block' }}
+                  >
+                    已提取序列（{extractedSeries.length} 个交易日，已标准化）
+                  </Typography>
+                  <PatternMiniChart series={extractedSeries} height={100} />
+                </Box>
+              )}
+            </Stack>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardContent>
+          <Typography variant="subtitle1" sx={{ mb: 1.5 }}>
+            搜索参数
+          </Typography>
+          <Stack spacing={2}>
+            <PatternAdvancedFilters value={filters} onChange={setFilters} />
+            <Box>
+              <Button variant="contained" disabled={!canSearch} onClick={handleSearch}>
+                {loading ? '搜索中...' : '搜索相似形态'}
+              </Button>
+            </Box>
+          </Stack>
+        </CardContent>
+      </Card>
+
+      <PatternResultsList loading={loading} error={error} result={result} />
+    </Stack>
   );
 }

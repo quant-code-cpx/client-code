@@ -18,6 +18,7 @@ import { getDrafts, deleteDraft, getDraftById } from 'src/api/strategy-draft';
 import { Iconify } from 'src/components/iconify';
 import { Scrollbar } from 'src/components/scrollbar';
 
+import { BACKTEST_AUTOSAVE_ID } from './constants';
 import { BacktestDraftListItem } from './backtest-draft-list-item';
 import { BacktestDraftSaveDialog } from './backtest-draft-save-dialog';
 
@@ -27,14 +28,25 @@ type Props = {
   open: boolean;
   onClose: () => void;
   currentConfig: Record<string, unknown>;
+  autoSavedDraft?: StrategyDraft | null;
   onLoadDraft: (config: Record<string, unknown>, templateId: string) => void;
 };
 
-export function BacktestDraftDrawer({ open, onClose, currentConfig, onLoadDraft }: Props) {
+export function BacktestDraftDrawer({
+  open,
+  onClose,
+  currentConfig,
+  autoSavedDraft,
+  onLoadDraft,
+}: Props) {
   const [drafts, setDrafts] = useState<StrategyDraft[]>([]);
   const [loading, setLoading] = useState(false);
   const [saveDialogOpen, setSaveDialogOpen] = useState(false);
-  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
+  const [snackbar, setSnackbar] = useState<{
+    open: boolean;
+    message: string;
+    severity: 'success' | 'error';
+  }>({
     open: false,
     message: '',
     severity: 'success',
@@ -60,22 +72,52 @@ export function BacktestDraftDrawer({ open, onClose, currentConfig, onLoadDraft 
 
   const handleLoad = async (draft: StrategyDraft) => {
     try {
+      if (draft.isAutoSave || draft.id === BACKTEST_AUTOSAVE_ID) {
+        const { strategyType, ...formFields } = draft.config as Record<string, unknown> & {
+          strategyType?: string;
+        };
+        onLoadDraft(
+          formFields as Record<string, unknown>,
+          (strategyType as string) ?? 'SCREENING_ROTATION'
+        );
+        setSnackbar({ open: true, message: '已恢复「上次编辑」', severity: 'success' });
+        return;
+      }
+
+      if (typeof draft.id !== 'number') {
+        throw new Error('草稿 ID 无效');
+      }
+
       const full = await getDraftById(draft.id);
-      const { strategyType, ...formFields } = full.config as Record<string, unknown> & { strategyType?: string };
-      onLoadDraft(formFields as Record<string, unknown>, (strategyType as string) ?? 'SCREENING_ROTATION');
+      const { strategyType, ...formFields } = full.config as Record<string, unknown> & {
+        strategyType?: string;
+      };
+      onLoadDraft(
+        formFields as Record<string, unknown>,
+        (strategyType as string) ?? 'SCREENING_ROTATION'
+      );
       setSnackbar({ open: true, message: `已加载草稿「${draft.name}」`, severity: 'success' });
     } catch (err) {
-      setSnackbar({ open: true, message: err instanceof Error ? err.message : '加载失败', severity: 'error' });
+      setSnackbar({
+        open: true,
+        message: err instanceof Error ? err.message : '加载失败',
+        severity: 'error',
+      });
     }
   };
 
   const handleDelete = async (draft: StrategyDraft) => {
     try {
+      if (typeof draft.id !== 'number') return;
       await deleteDraft(draft.id);
       setDrafts((prev) => prev.filter((d) => d.id !== draft.id));
       setSnackbar({ open: true, message: `已删除草稿「${draft.name}」`, severity: 'success' });
     } catch (err) {
-      setSnackbar({ open: true, message: err instanceof Error ? err.message : '删除失败', severity: 'error' });
+      setSnackbar({
+        open: true,
+        message: err instanceof Error ? err.message : '删除失败',
+        severity: 'error',
+      });
     }
   };
 
@@ -85,14 +127,13 @@ export function BacktestDraftDrawer({ open, onClose, currentConfig, onLoadDraft 
     setSnackbar({ open: true, message: `草稿「${saved.name}」已保存`, severity: 'success' });
   };
 
+  const visibleDrafts = autoSavedDraft
+    ? [autoSavedDraft, ...drafts.filter((draft) => draft.id !== autoSavedDraft.id)]
+    : drafts;
+
   return (
     <>
-      <Drawer
-        anchor="right"
-        open={open}
-        onClose={onClose}
-        PaperProps={{ sx: { width: 340 } }}
-      >
+      <Drawer anchor="right" open={open} onClose={onClose} PaperProps={{ sx: { width: 340 } }}>
         {/* Header */}
         <Box
           sx={{
@@ -107,7 +148,7 @@ export function BacktestDraftDrawer({ open, onClose, currentConfig, onLoadDraft 
           <Typography variant="subtitle1" sx={{ flexGrow: 1, fontWeight: 600 }}>
             策略草稿
           </Typography>
-          <IconButton size="small" onClick={onClose}>
+          <IconButton size="small" aria-label="关闭草稿抽屉" onClick={onClose}>
             <Iconify icon="solar:close-circle-bold" width={20} />
           </IconButton>
         </Box>
@@ -120,7 +161,7 @@ export function BacktestDraftDrawer({ open, onClose, currentConfig, onLoadDraft 
                 <Skeleton key={i} variant="rounded" height={72} />
               ))}
             </Box>
-          ) : drafts.length === 0 ? (
+          ) : visibleDrafts.length === 0 ? (
             <Box sx={{ textAlign: 'center', py: 8, px: 2 }}>
               <Iconify
                 icon="solar:notebook-bookmark-bold"
@@ -136,12 +177,12 @@ export function BacktestDraftDrawer({ open, onClose, currentConfig, onLoadDraft 
             </Box>
           ) : (
             <List disablePadding>
-              {drafts.map((draft) => (
+              {visibleDrafts.map((draft) => (
                 <BacktestDraftListItem
                   key={draft.id}
                   draft={draft}
                   onLoad={() => handleLoad(draft)}
-                  onDelete={() => handleDelete(draft)}
+                  onDelete={draft.isAutoSave ? undefined : () => handleDelete(draft)}
                 />
               ))}
             </List>

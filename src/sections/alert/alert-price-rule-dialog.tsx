@@ -53,9 +53,20 @@ type Props = {
   rule: PriceAlertRule | null;
   onClose: () => void;
   onSaved: () => void;
+  /** 新建时的默认股票（rule 为 null 时生效） */
+  defaultStock?: StockSearchItem | null;
+  /** 新建时的默认规则类型（rule 为 null 时生效） */
+  defaultRuleType?: PriceAlertRuleType;
 };
 
-export function AlertPriceRuleDialog({ open, rule, onClose, onSaved }: Props) {
+export function AlertPriceRuleDialog({
+  open,
+  rule,
+  onClose,
+  onSaved,
+  defaultStock,
+  defaultRuleType,
+}: Props) {
   const isEdit = !!rule;
 
   const [sourceMode, setSourceMode] = useState<SourceMode>('stock');
@@ -101,16 +112,16 @@ export function AlertPriceRuleDialog({ open, rule, onClose, onSaved }: Props) {
         }
       } else {
         setSourceMode('stock');
-        setSelectedStock(null);
+        setSelectedStock(defaultStock ?? null);
         setWatchlistId('');
         setPortfolioId('');
-        setRuleType('PCT_CHANGE_UP');
+        setRuleType(defaultRuleType ?? 'PCT_CHANGE_UP');
         setThreshold('');
         setMemo('');
       }
       setError('');
     }
-  }, [open, rule]);
+  }, [open, rule, defaultStock, defaultRuleType]);
 
   const needsThreshold = !NO_THRESHOLD_TYPES.includes(ruleType);
 

@@ -10,6 +10,7 @@ import ListItemText from '@mui/material/ListItemText';
 
 import { fToNow } from 'src/utils/format-time';
 
+import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
 
 // ----------------------------------------------------------------------
@@ -17,7 +18,7 @@ import { Iconify } from 'src/components/iconify';
 type Props = {
   draft: StrategyDraft;
   onLoad: () => void;
-  onDelete: () => void;
+  onDelete?: () => void;
 };
 
 export function BacktestDraftListItem({ draft, onLoad, onDelete }: Props) {
@@ -26,23 +27,33 @@ export function BacktestDraftListItem({ draft, onLoad, onDelete }: Props) {
       <ListItem
         alignItems="flex-start"
         secondaryAction={
-          <IconButton
-            edge="end"
-            size="small"
-            color="error"
-            onClick={onDelete}
-            title="删除草稿"
-          >
-            <Iconify icon="solar:trash-bin-trash-bold" width={16} />
-          </IconButton>
+          onDelete ? (
+            <IconButton
+              edge="end"
+              size="small"
+              color="error"
+              aria-label={`删除草稿 ${draft.name}`}
+              onClick={onDelete}
+              title="删除草稿"
+            >
+              <Iconify icon="solar:trash-bin-trash-bold" width={16} />
+            </IconButton>
+          ) : null
         }
         sx={{ pr: 6 }}
       >
         <ListItemText
           primary={
-            <Typography variant="body2" fontWeight="fontWeightMedium" noWrap>
-              {draft.name}
-            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography variant="body2" fontWeight="fontWeightMedium" noWrap>
+                {draft.name}
+              </Typography>
+              {draft.isAutoSave ? (
+                <Label color="info" variant="soft">
+                  自动保存
+                </Label>
+              ) : null}
+            </Box>
           }
           secondary={
             <Typography variant="caption" sx={{ color: 'text.disabled' }}>
