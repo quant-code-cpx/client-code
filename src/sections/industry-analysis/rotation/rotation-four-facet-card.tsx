@@ -50,7 +50,7 @@ export function RotationFourFacetCard({ tradeDate, period, onSectorClick, refres
     setLoading(true);
 
     Promise.all([
-      fetchMomentumRanking({ trade_date: tradeDate, limit: 0 }),
+      fetchMomentumRanking({ trade_date: tradeDate }),
       fetchReturnComparison({ trade_date: tradeDate }),
       fetchFlowAnalysis({
         trade_date: tradeDate,

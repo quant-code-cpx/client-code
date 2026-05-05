@@ -234,15 +234,8 @@ export const navData = [
   },
   // ─── 系统 ────────────────────────────────────────────────
   {
-    title: '系统管理',
-    path: '/admin',
+    title: '用户管理',
+    path: '/admin/user-manage',
     icon: icon('ic-user'),
-    children: [
-      {
-        title: '用户管理',
-        path: '/admin/user-manage',
-        icon: icon('ic-user'),
-      },
-    ],
   },
 ];

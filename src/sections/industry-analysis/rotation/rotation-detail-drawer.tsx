@@ -163,6 +163,8 @@ const FlowTrendChart = memo(function FlowTrendChart({
 // ----------------------------------------------------------------------
 
 // Sub-component: sector daily K-line chart
+// NOTE: /api/market/sector-daily is not yet implemented on the backend.
+// This component shows a placeholder until the endpoint is ready.
 const SectorKlineChart = memo(function SectorKlineChart({
   sectorName: name,
   tradeDate: td,
@@ -208,8 +210,23 @@ const SectorKlineChart = memo(function SectorKlineChart({
   if (loading) return <Skeleton variant="rectangular" height={240} />;
   if (data.length === 0)
     return (
-      <Box sx={{ height: 240, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <Typography color="text.disabled">暂无板块行情数据</Typography>
+      <Box
+        sx={{
+          height: 240,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 1,
+        }}
+      >
+        <Iconify icon="solar:close-circle-bold" width={24} sx={{ color: 'text.disabled' }} />
+        <Typography variant="body2" color="text.disabled">
+          板块走势数据暂未就绪
+        </Typography>
+        <Typography variant="caption" color="text.disabled">
+          该功能依赖后端 /api/market/sector-daily 接口，正在开发中
+        </Typography>
       </Box>
     );
   return <Chart type="line" series={series} options={chartOptions} sx={{ height: 240 }} />;
@@ -243,7 +260,7 @@ export function RotationDetailDrawer({
     fetchRotationDetail({
       tsCode: tsCode ?? undefined,
       industry: sectorName ?? undefined,
-      days: period ? periodToDays(period) : undefined,
+      days: period ? Math.min(periodToDays(period), 60) : undefined,
     })
       .then((res) => {
         if (!cancelled) setDetail(res ?? null);
