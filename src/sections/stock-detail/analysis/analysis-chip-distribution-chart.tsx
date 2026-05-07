@@ -21,7 +21,7 @@ type Props = {
 export function AnalysisChipDistributionChart({ distribution, currentPrice, avgCost }: Props) {
   const theme = useTheme();
 
-  const bins = [...distribution].sort((a, b) => a.priceLow - b.priceLow);
+  const bins = [...distribution].sort((a, b) => b.priceLow - a.priceLow);
 
   const series = [
     {
