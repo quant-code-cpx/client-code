@@ -35,6 +35,6 @@ export const REPORT_STATUS_CONFIG: Record<ReportStatus, { label: string; color: 
   FAILED: { label: '失败', color: 'error' },
 };
 
-// ── 文件大小格式化（重导出，保持调用点兼容） ──────────────────
+// ── 文件大小格式化（兼容转发，保持调用点兼容） ──────────────────
 
 export { formatFileSize } from './utils/format-file-size';

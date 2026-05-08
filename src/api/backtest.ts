@@ -383,10 +383,6 @@ export function retryRun(query: { runId: string }) {
   );
 }
 
-export function exportRunsCsv(query: BacktestRunListQuery & { scope?: 'page' | 'filtered' }) {
-  return apiClient.post<{ downloadUrl?: string } | null>('/api/backtests/runs/export', query);
-}
-
 export function listRunTags(query: { keyword?: string; includeCount?: boolean } = {}) {
   return apiClient.post<{ items: BacktestRunTag[] }>('/api/backtests/runs/tags/list', query);
 }
@@ -607,22 +603,27 @@ export function getWalkForwardEquity(wfRunId: string) {
 }
 
 export function cancelWalkForwardRun(wfRunId: string) {
-  return apiClient.post<{ wfRunId: string; status: string }>('/api/backtests/walk-forward/runs/cancel', {
-    wfRunId,
-  });
+  return apiClient.post<{ wfRunId: string; status: string }>(
+    '/api/backtests/walk-forward/runs/cancel',
+    {
+      wfRunId,
+    }
+  );
 }
 
 export function deleteWalkForwardRun(wfRunId: string) {
-  return apiClient.post<{ wfRunId: string; deletedAt?: string }>('/api/backtests/walk-forward/runs/delete', {
-    wfRunId,
-  });
+  return apiClient.post<{ wfRunId: string; deletedAt?: string }>(
+    '/api/backtests/walk-forward/runs/delete',
+    {
+      wfRunId,
+    }
+  );
 }
 
 export function cloneWalkForwardRun(wfRunId: string, name?: string) {
-  return apiClient.post<CreateWalkForwardRunQuery | { wfRunId: string; jobId?: string; status?: string }>(
-    '/api/backtests/walk-forward/runs/clone',
-    name ? { wfRunId, name } : { wfRunId }
-  );
+  return apiClient.post<
+    CreateWalkForwardRunQuery | { wfRunId: string; jobId?: string; status?: string }
+  >('/api/backtests/walk-forward/runs/clone', name ? { wfRunId, name } : { wfRunId });
 }
 
 export function getWalkForwardWindowDetail(wfRunId: string, windowIndex: number) {
@@ -915,7 +916,9 @@ export function getComparisonRolling(query: ComparisonRollingQuery) {
 }
 
 export function getComparisonMonthly(groupId: string) {
-  return apiClient.post<ComparisonMonthlyResponse>('/api/backtests/comparisons/monthly', { groupId });
+  return apiClient.post<ComparisonMonthlyResponse>('/api/backtests/comparisons/monthly', {
+    groupId,
+  });
 }
 
 export function getComparisonCorrelation(query: {

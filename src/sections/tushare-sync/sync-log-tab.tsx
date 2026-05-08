@@ -53,11 +53,6 @@ type Props = {
   refreshKey?: number;
 };
 
-function escapeCsv(value: unknown): string {
-  const text = value === null || value === undefined ? '' : String(value);
-  return `"${text.replace(/"/g, '""')}"`;
-}
-
 function formatPayload(payload: Record<string, unknown> | null): string {
   if (!payload) return '';
   return JSON.stringify(payload, null, 2);
@@ -156,26 +151,6 @@ export function SyncLogTab({ refreshKey = 0 }: Props) {
     setPage(0);
   };
 
-  const handleExportCsv = () => {
-    const header = ['任务', '状态', '交易日', '消息', '开始时间', '结束时间'];
-    const rows = logs.map((log) => [
-      log.task,
-      log.status,
-      log.tradeDate ?? '',
-      log.message ?? '',
-      fDateTime(log.startedAt),
-      log.finishedAt ? fDateTime(log.finishedAt) : '',
-    ]);
-    const csv = [header, ...rows].map((row) => row.map(escapeCsv).join(',')).join('\n');
-    const blob = new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `sync-logs-${dayjs().format('YYYYMMDD-HHmmss')}.csv`;
-    link.click();
-    URL.revokeObjectURL(url);
-  };
-
   return (
     <Box sx={{ mt: 3 }}>
       {/* 统计卡片 */}
@@ -220,15 +195,6 @@ export function SyncLogTab({ refreshKey = 0 }: Props) {
                 快捷过滤 + 高级字段组合，payload 可展开查看。
               </Typography>
             </Box>
-            <Button
-              size="small"
-              variant="outlined"
-              disabled={logs.length === 0}
-              onClick={handleExportCsv}
-              startIcon={<Iconify icon="solar:download-bold" />}
-            >
-              导出 CSV
-            </Button>
           </Stack>
 
           <Stack direction="row" spacing={1} sx={{ mb: 2, flexWrap: 'wrap', gap: 1 }}>

@@ -1,5 +1,3 @@
-import type { FactorCondition } from 'src/api/factor';
-
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
@@ -7,15 +5,12 @@ import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 
 import { Iconify } from 'src/components/iconify';
-import { ExportButton } from 'src/components/export-button';
 
 // ----------------------------------------------------------------------
 
 type Props = {
   selectedCount: number;
   totalCount: number;
-  conditionsSnapshot: FactorCondition[];
-  exportParams: Record<string, unknown>;
   canSavePreset: boolean;
   onClearSelection: () => void;
   onAddToWatchlist: () => void;
@@ -28,7 +23,6 @@ type Props = {
 export function ScreeningActionBar({
   selectedCount,
   totalCount,
-  exportParams,
   canSavePreset,
   onClearSelection,
   onAddToWatchlist,
@@ -81,8 +75,6 @@ export function ScreeningActionBar({
           >
             加入自选股
           </Button>
-
-          <ExportButton source="factor_screening" params={exportParams} />
 
           <Tooltip title="保存当前条件到本地预设">
             <span>

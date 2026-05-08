@@ -7,7 +7,6 @@ import Stack from '@mui/material/Stack';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
-import Switch from '@mui/material/Switch';
 import MenuItem from '@mui/material/MenuItem';
 import Skeleton from '@mui/material/Skeleton';
 import TextField from '@mui/material/TextField';
@@ -16,7 +15,6 @@ import Typography from '@mui/material/Typography';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
-import FormControlLabel from '@mui/material/FormControlLabel';
 
 import { fDateTime } from 'src/utils/format-time';
 
@@ -40,7 +38,6 @@ const TTL_OPTIONS: { label: string; hours: number | null }[] = [
 
 export function ReportShareDialog({ open, reportId, onClose, onMessage }: Props) {
   const [ttlHours, setTtlHours] = useState<number | null>(24 * 7);
-  const [allowDownload, setAllowDownload] = useState(true);
   const [creating, setCreating] = useState(false);
   const [list, setList] = useState<ReportShareLink[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
@@ -72,7 +69,7 @@ export function ReportShareDialog({ open, reportId, onClose, onMessage }: Props)
   const handleCreate = async () => {
     setCreating(true);
     try {
-      const link = await createReportShareLink({ reportId, ttlHours, allowDownload });
+      const link = await createReportShareLink({ reportId, ttlHours });
       setList((prev) => (prev ? [link, ...prev] : [link]));
       onMessage?.('分享链接已生成，可点击复制', 'success');
     } catch (err) {
@@ -139,16 +136,6 @@ export function ReportShareDialog({ open, reportId, onClose, onMessage }: Props)
                   </MenuItem>
                 ))}
               </TextField>
-              <FormControlLabel
-                control={
-                  <Switch
-                    size="small"
-                    checked={allowDownload}
-                    onChange={(e) => setAllowDownload(e.target.checked)}
-                  />
-                }
-                label="允许下载文件"
-              />
               <Box sx={{ flex: 1 }} />
               <Button
                 variant="contained"

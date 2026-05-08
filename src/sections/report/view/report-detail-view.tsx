@@ -37,7 +37,6 @@ import { PortfolioReportViewer } from '../report-portfolio-viewer';
 import { ReportNotesPanel } from '../components/report-notes-panel';
 import { ReportShareDialog } from '../components/report-share-dialog';
 import { ReportDetailHeader } from '../components/report-detail-header';
-import { reportToMarkdown, downloadMarkdown } from '../utils/to-markdown';
 
 type SnackbarState = { open: boolean; message: string; severity: AlertColor };
 
@@ -117,14 +116,6 @@ export function ReportDetailView() {
     window.print();
   };
 
-  const handleExportMarkdown = () => {
-    if (!report) return;
-    const md = reportToMarkdown(report);
-    const filename = `${report.title || report.id}.md`;
-    downloadMarkdown(filename, md);
-    showSnackbar('已导出 Markdown');
-  };
-
   const handleRegenerate = async () => {
     if (!report) return;
     setRetrying(true);
@@ -177,11 +168,6 @@ export function ReportDetailView() {
       <Tooltip title="打印">
         <IconButton size="small" onClick={handlePrint} disabled={!isCompleted}>
           <Iconify icon="solar:file-text-bold" />
-        </IconButton>
-      </Tooltip>
-      <Tooltip title="导出 Markdown">
-        <IconButton size="small" onClick={handleExportMarkdown} disabled={!isCompleted}>
-          <Iconify icon="solar:document-text-bold" />
         </IconButton>
       </Tooltip>
       <Tooltip title="重新生成">
@@ -248,21 +234,7 @@ export function ReportDetailView() {
             {report.data ? (
               <ReportContent report={report} />
             ) : (
-              <Alert severity="info">此报告为文件格式，请使用下方链接下载查看。</Alert>
-            )}
-
-            {report.filePath && (
-              <Box sx={{ mt: 3, display: 'flex', gap: 1 }} className="report-detail-toolbar">
-                <Button
-                  variant="contained"
-                  startIcon={<Iconify icon="solar:download-bold" />}
-                  href={report.filePath}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  下载 {report.format}
-                </Button>
-              </Box>
+              <Alert severity="info">此报告为文件格式，当前前端不提供文件下载入口。</Alert>
             )}
           </Box>
 

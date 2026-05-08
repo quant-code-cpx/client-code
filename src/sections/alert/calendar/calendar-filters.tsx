@@ -60,10 +60,9 @@ type Props = {
   onChange: (patch: FilterPatch) => void;
   onReset: () => void;
   onRefresh: () => void;
-  onExport: () => void;
 };
 
-export function CalendarFilters({ filters, onChange, onReset, onRefresh, onExport }: Props) {
+export function CalendarFilters({ filters, onChange, onReset, onRefresh }: Props) {
   const setQuickRange = (days: number) => {
     const today = dayjs();
     onChange({
@@ -198,15 +197,6 @@ export function CalendarFilters({ filters, onChange, onReset, onRefresh, onExpor
           onClick={onRefresh}
         >
           刷新
-        </Button>
-        <Button
-          size="small"
-          variant="text"
-          color="inherit"
-          startIcon={<Iconify icon="solar:download-bold" width={16} />}
-          onClick={onExport}
-        >
-          导出
         </Button>
         <Button size="small" variant="text" color="inherit" onClick={onReset}>
           重置

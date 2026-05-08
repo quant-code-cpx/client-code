@@ -9,7 +9,7 @@ import IconButton from '@mui/material/IconButton';
 import { Iconify } from 'src/components/iconify';
 
 // ----------------------------------------------------------------------
-// 结果卡通用动作组：导出 CSV / 复制 / 跳转下一步
+// 结果卡通用动作组：复制 / 跳转下一步
 // ----------------------------------------------------------------------
 
 export type NextAction = {
@@ -21,25 +21,17 @@ export type NextAction = {
 };
 
 type Props = {
-  onExportCsv?: () => void;
   onCopy?: () => void;
   nextActions?: NextAction[];
 };
 
-export function ResultActions({ onExportCsv, onCopy, nextActions }: Props) {
+export function ResultActions({ onCopy, nextActions }: Props) {
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
 
   const hasNext = (nextActions ?? []).length > 0;
 
   return (
     <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
-      {onExportCsv && (
-        <Tooltip title="导出 CSV">
-          <IconButton size="small" onClick={onExportCsv}>
-            <Iconify icon="solar:download-bold" width={18} />
-          </IconButton>
-        </Tooltip>
-      )}
       {onCopy && (
         <Tooltip title="复制 JSON">
           <IconButton size="small" onClick={onCopy}>

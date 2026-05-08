@@ -49,7 +49,6 @@ type Props = {
   loading: boolean;
   paramsDirty: boolean;
   onCalculate: () => void;
-  onExport: () => void;
   hasResult: boolean;
 };
 
@@ -70,7 +69,6 @@ export function FactorCorrelationParams({
   loading,
   paramsDirty,
   onCalculate,
-  onExport,
   hasResult,
 }: Props) {
   const allFactorNames = allFactors.map((f) => f.name);
@@ -193,14 +191,6 @@ export function FactorCorrelationParams({
           startIcon={<Iconify icon="solar:play-bold" />}
         >
           {paramsDirty && hasResult ? '重新计算' : '计算相关性'}
-        </Button>
-        <Button
-          variant="outlined"
-          onClick={onExport}
-          disabled={!hasResult || paramsDirty}
-          startIcon={<Iconify icon="solar:download-bold" />}
-        >
-          导出 CSV
         </Button>
         {paramsDirty && hasResult ? (
           <Typography variant="caption" color="warning.main">

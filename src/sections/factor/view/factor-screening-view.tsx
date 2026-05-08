@@ -329,20 +329,6 @@ export function FactorScreeningView() {
     });
   }, []);
 
-  const exportParams = useMemo<Record<string, unknown>>(
-    () => ({
-      conditions: resultSnapshot,
-      tradeDate: state.tradeDate,
-      universe: state.universe || undefined,
-      sortBy: state.sortMode === 'single' && state.sortBy ? state.sortBy : undefined,
-      sortOrder: state.sortOrder,
-      tradeConstraints: state.tradeConstraints,
-      requestId: result?.requestId,
-      tsCodes: selected.size > 0 ? Array.from(selected) : undefined,
-    }),
-    [resultSnapshot, state, result, selected]
-  );
-
   const factorColumns = useMemo(
     () =>
       resultSnapshot
@@ -488,8 +474,6 @@ export function FactorScreeningView() {
         <ScreeningActionBar
           selectedCount={selected.size}
           totalCount={result.total}
-          conditionsSnapshot={resultSnapshot}
-          exportParams={exportParams}
           canSavePreset={pickValidConditions(conditions).length > 0}
           onClearSelection={() => setSelected(new Set())}
           onAddToWatchlist={handleAddToWatchlist}

@@ -490,7 +490,7 @@ export const factorApi = {
     withConditionPassCounts?: boolean;
     /** 是否要求后端返回 diagnostics（BE-9） */
     withDiagnostics?: boolean;
-    /** 复用条件快照（分页 / 导出 / 回测 共享，BE-6） */
+    /** 复用条件快照（分页 / 回测共享，BE-6） */
     requestId?: string;
   }): Promise<FactorScreeningResult> => apiClient.post('/api/factor/screening', params),
 };

@@ -23,11 +23,7 @@ import { FactorCorrelationHeatmap } from '../factor-correlation-heatmap';
 import { FactorCorrelationPairTable } from '../factor-correlation-pair-table';
 import { FactorCorrelationPairDrawer } from '../factor-correlation-pair-drawer';
 import { FactorCorrelationMethodPopover } from '../factor-correlation-method-popover';
-import {
-  buildCorrelationPairs,
-  downloadCorrelationCsv,
-  validateCorrelationResult,
-} from '../factor-correlation-helpers';
+import { buildCorrelationPairs, validateCorrelationResult } from '../factor-correlation-helpers';
 
 import type { CorrelationPair } from '../factor-correlation-helpers';
 
@@ -146,16 +142,6 @@ export function FactorCorrelationView() {
     }
   }, [selectedFactors, currentSnapshot, universe, method]);
 
-  const handleExport = useCallback(() => {
-    if (!result || hasFatalError) return;
-    try {
-      downloadCorrelationCsv(result);
-      setSnackbar('CSV 已下载');
-    } catch {
-      setSnackbar('导出失败');
-    }
-  }, [result, hasFatalError]);
-
   const handleSelectPair = useCallback((pair: CorrelationPair) => {
     setSelectedPair(pair);
     setDrawerOpen(true);
@@ -237,7 +223,6 @@ export function FactorCorrelationView() {
           loading={loading}
           paramsDirty={paramsDirty}
           onCalculate={handleCalculate}
-          onExport={handleExport}
           hasResult={result !== null}
         />
         {loading ? <LinearProgress /> : null}

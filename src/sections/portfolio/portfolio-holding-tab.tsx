@@ -13,7 +13,6 @@ import DialogContentText from '@mui/material/DialogContentText';
 import { addHolding, removeHolding, updateHolding } from 'src/api/portfolio';
 
 import { Iconify } from 'src/components/iconify';
-import { ExportButton } from 'src/components/export-button';
 
 import { HoldingAddDialog } from './holding-add-dialog';
 import { HoldingEditDialog } from './holding-edit-dialog';
@@ -81,7 +80,6 @@ export function PortfolioHoldingTab({
   return (
     <Box>
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mb: 2 }}>
-        <ExportButton source="portfolio_positions" />
         <Button
           variant="outlined"
           startIcon={<Iconify icon="solar:refresh-bold" />}

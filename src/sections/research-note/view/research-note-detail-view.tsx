@@ -38,7 +38,6 @@ import { useNoteAutosave } from '../use-note-autosave';
 import { ResearchNoteEditor } from '../research-note-editor';
 import { ResearchNotePreview } from '../research-note-preview';
 import { ResearchNoteTagInput } from '../research-note-tag-input';
-import { countWords, downloadNoteAsMarkdown, estimateReadingMinutes } from '../note-export';
 
 import type { AutosaveStatus, AutosavePayload } from '../use-note-autosave';
 
@@ -57,6 +56,17 @@ const STATUS_LABEL: Record<
   error: { text: '保存失败', color: 'error' },
   offline: { text: '离线', color: 'error' },
 };
+
+function countWords(content: string): number {
+  if (!content) return 0;
+  const chineseChars = (content.match(/[\u4e00-\u9fff]/g) ?? []).length;
+  const englishWords = (content.match(/[a-zA-Z0-9]+/g) ?? []).length;
+  return chineseChars + englishWords;
+}
+
+function estimateReadingMinutes(words: number): number {
+  return Math.max(1, Math.ceil(words / 300));
+}
 
 export function ResearchNoteDetailView() {
   const { noteId } = useParams<{ noteId: string }>();
@@ -195,26 +205,6 @@ export function ResearchNoteDetailView() {
     }
   };
 
-  const handleExport = () => {
-    const noteForExport: ResearchNote = originalNote
-      ? { ...originalNote, title, content, tags, tsCode: selectedStock?.tsCode ?? null, isPinned }
-      : {
-          id: noteIdState ?? 0,
-          title,
-          content,
-          tags,
-          tsCode: selectedStock?.tsCode ?? null,
-          isPinned,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
-    if (!noteForExport.title.trim()) {
-      setError('请先填写标题再导出');
-      return;
-    }
-    downloadNoteAsMarkdown(noteForExport);
-  };
-
   const wordCount = useMemo(() => countWords(content), [content]);
   const readingMinutes = useMemo(() => estimateReadingMinutes(wordCount), [wordCount]);
   const statusInfo = STATUS_LABEL[autosave.status];
@@ -267,12 +257,6 @@ export function ResearchNoteDetailView() {
             color={isPinned ? 'warning' : 'default'}
           >
             <Iconify icon={isPinned ? 'solar:pin-bold' : 'solar:pin-linear'} />
-          </IconButton>
-        </Tooltip>
-
-        <Tooltip title="导出 Markdown" arrow>
-          <IconButton onClick={handleExport}>
-            <Iconify icon="solar:download-bold" />
           </IconButton>
         </Tooltip>
 

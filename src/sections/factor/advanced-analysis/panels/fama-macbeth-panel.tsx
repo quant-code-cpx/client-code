@@ -35,9 +35,9 @@ import { METHODOLOGY } from '../methodology';
 import { EmptyGuide } from '../shared/empty-guide';
 import { ResultCard } from '../shared/result-card';
 import { ResultActions } from '../shared/result-actions';
+import { f4, presetToRange, defaultTradeDate } from '../utils';
 import { useAdvancedAnalysisRun } from '../use-advanced-analysis-run';
 import { BE_PENDING_TOOLTIP, FORWARD_DAYS_PRESETS } from '../constants';
-import { f4, downloadCsv, presetToRange, defaultTradeDate } from '../utils';
 
 import type { AnalysisHistoryItem } from '../use-analysis-history';
 
@@ -100,21 +100,6 @@ export function FamaMacBethPanel({ universe, factors, onHistorySave, prefillRequ
     setStartDate(r.start);
     setEndDate(r.end);
   }, []);
-
-  const handleExport = useCallback(() => {
-    if (!data) return;
-    const headers = ['因子', '平均系数', 't 统计量', 'p 值', 't_NW', 'p_NW', '显著'];
-    const rows = data.factors.map((f) => [
-      f.factorLabel || f.factorName,
-      f.avgCoeff.toFixed(6),
-      f.tStat.toFixed(4),
-      f.pValue.toFixed(4),
-      f.tStatNW != null ? f.tStatNW.toFixed(4) : '',
-      f.pValueNW != null ? f.pValueNW.toFixed(4) : '',
-      f.significant ? '是' : '否',
-    ]);
-    downloadCsv(`fama-macbeth-${data.startDate}-${data.endDate}.csv`, headers, rows);
-  }, [data]);
 
   const handleCopy = useCallback(() => {
     if (!data) return;
@@ -221,7 +206,6 @@ export function FamaMacBethPanel({ universe, factors, onHistorySave, prefillRequ
             subtitle={subtitle}
             actions={
               <ResultActions
-                onExportCsv={handleExport}
                 onCopy={handleCopy}
                 nextActions={[
                   {

@@ -1,4 +1,4 @@
-// 工具函数集合：日期默认、CSV 导出、错误信息提取
+// 工具函数集合：日期默认、错误信息提取
 
 import dayjs from 'dayjs';
 
@@ -38,40 +38,6 @@ export function extractErrorMessage(err: unknown, fallback: string): string {
   return fallback;
 }
 
-// ----------------------------------------------------------------------
-// CSV 导出（≤30 行；不引入 papaparse）
-// ----------------------------------------------------------------------
-
-function escapeCsvField(v: unknown): string {
-  if (v == null) return '';
-  const s = typeof v === 'number' ? String(v) : String(v);
-  if (/[",\n\r]/.test(s)) {
-    return `"${s.replace(/"/g, '""')}"`;
-  }
-  return s;
-}
-
-export function downloadCsv(
-  filename: string,
-  headers: string[],
-  rows: Array<Array<string | number | null>>
-): void {
-  const lines = [
-    headers.map(escapeCsvField).join(','),
-    ...rows.map((r) => r.map(escapeCsvField).join(',')),
-  ];
-  const blob = new Blob(['\uFEFF' + lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-}
-
-// ----------------------------------------------------------------------
 // 格式化数字
 // ----------------------------------------------------------------------
 

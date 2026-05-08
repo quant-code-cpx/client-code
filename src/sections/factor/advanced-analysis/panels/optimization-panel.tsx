@@ -29,8 +29,8 @@ import TableContainer from '@mui/material/TableContainer';
 
 import { optimizeFactorPortfolio } from 'src/api/factor';
 
+import { f4, fPct } from '../utils';
 import { METHODOLOGY } from '../methodology';
-import { f4, fPct, downloadCsv } from '../utils';
 import { EmptyGuide } from '../shared/empty-guide';
 import { ResultCard } from '../shared/result-card';
 import { ResultActions } from '../shared/result-actions';
@@ -114,15 +114,6 @@ export function OptimizationPanel({ onHistorySave, prefillRequest }: Props) {
     run,
     onHistorySave,
   ]);
-
-  const handleExport = useCallback(() => {
-    if (!data) return;
-    const headers = ['股票代码', '名称', '权重'];
-    const rows = [...data.weights]
-      .sort((a, b) => b.weight - a.weight)
-      .map((w) => [w.tsCode, w.stockName ?? '', (w.weight * 100).toFixed(4) + '%']);
-    downloadCsv(`optimization-${data.mode}.csv`, headers, rows);
-  }, [data]);
 
   const handleCopy = useCallback(() => {
     if (!data) return;
@@ -263,7 +254,7 @@ export function OptimizationPanel({ onHistorySave, prefillRequest }: Props) {
             title="优化结果摘要"
             methodology={METHODOLOGY.optimization}
             subtitle={subtitle}
-            actions={<ResultActions onExportCsv={handleExport} onCopy={handleCopy} />}
+            actions={<ResultActions onCopy={handleCopy} />}
             pendingNotice={
               !data.sectorExposure && !data.riskContribution
                 ? '行业暴露 / 边际风险贡献 / Benchmark 对照待后端 BE-3 上线'

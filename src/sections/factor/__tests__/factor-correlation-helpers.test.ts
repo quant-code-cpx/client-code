@@ -1,10 +1,6 @@
 import type { FactorCorrelationResult } from 'src/api/factor';
 
-import {
-  formatCorrelationCsv,
-  buildCorrelationPairs,
-  validateCorrelationResult,
-} from '../factor-correlation-helpers';
+import { buildCorrelationPairs, validateCorrelationResult } from '../factor-correlation-helpers';
 
 // ----------------------------------------------------------------------
 
@@ -106,27 +102,5 @@ describe('buildCorrelationPairs', () => {
     const noN = { ...baseResult, nMatrix: undefined };
     const { stats } = buildCorrelationPairs(noN, 0.5);
     expect(stats.medianN).toBeNull();
-  });
-});
-
-// ----------------------------------------------------------------------
-
-describe('formatCorrelationCsv', () => {
-  it('contains meta, matrix and nMatrix sections', () => {
-    const csv = formatCorrelationCsv(baseResult);
-    expect(csv).toContain('# tradeDate,20260430');
-    expect(csv).toContain('# matrixMode,pairwise');
-    expect(csv).toContain('相关系数矩阵');
-    expect(csv).toContain('有效样本数矩阵');
-    expect(csv).toContain('单因子覆盖率');
-  });
-
-  it('renders null cells as empty', () => {
-    const csv = formatCorrelationCsv(baseResult);
-    const lines = csv.split('\n');
-    const peRow = lines.find((l) => l.startsWith('"pe_ttm'));
-    expect(peRow).toBeDefined();
-    // pe_ttm × roe is null → should produce empty cell at end
-    expect(peRow).toMatch(/,$/);
   });
 });

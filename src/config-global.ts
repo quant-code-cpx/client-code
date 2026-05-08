@@ -9,7 +9,6 @@ export type ConfigValue = {
     bulk: boolean;
     stats: boolean;
     unlock: boolean;
-    export: boolean;
     restore: boolean;
     updateRole: boolean;
   };
@@ -28,7 +27,6 @@ export const CONFIG: ConfigValue = {
     bulk: envFlag('VITE_USER_MANAGE_BULK', true),
     stats: envFlag('VITE_USER_MANAGE_STATS', true),
     unlock: envFlag('VITE_USER_MANAGE_UNLOCK', true),
-    export: envFlag('VITE_USER_MANAGE_EXPORT', false),
     restore: envFlag('VITE_USER_MANAGE_RESTORE', true),
     updateRole: envFlag('VITE_USER_MANAGE_UPDATE_ROLE', true),
   },

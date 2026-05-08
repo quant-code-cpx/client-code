@@ -403,11 +403,6 @@ const routeMap: Record<string, unknown> = {
   '/api/tushare/admin/quality/repair': ok({ success: true }),
   '/api/tushare/admin/retry-queue/reset': ok({ success: true }),
 
-  // ── Export ──
-  '/api/export/backtest-trades': ok(null),
-  '/api/export/factor-values': ok(null),
-  '/api/export/portfolio-holdings': ok(null),
-
   // ── Fund (backend not implemented, stubs only) ──
   '/api/fund/holdings': ok([]),
   '/api/fund/institutional-summary': ok([]),

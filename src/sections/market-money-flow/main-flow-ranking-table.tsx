@@ -9,7 +9,6 @@ import Grid from '@mui/material/Grid';
 import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import Table from '@mui/material/Table';
-import Button from '@mui/material/Button';
 import Skeleton from '@mui/material/Skeleton';
 import TableRow from '@mui/material/TableRow';
 import TableBody from '@mui/material/TableBody';
@@ -25,7 +24,6 @@ import { fPctChg, fWanYuan } from 'src/utils/format-number';
 
 import { fetchMainFlowRanking } from 'src/api/market';
 
-import { Iconify } from 'src/components/iconify';
 import { Scrollbar } from 'src/components/scrollbar';
 
 import { MiniTierBar } from './mini-tier-bar';
@@ -84,32 +82,6 @@ function sortRows(
   });
   return sorted;
 }
-
-// CSV 导出
-function downloadCsv(rows: MainFlowRankingItem[], title: string): void {
-  const header = '代码,名称,行业,主力净流入(万),超大单净(万),大单净(万),涨跌幅(%)';
-  const lines = rows.map((r) =>
-    [
-      r.tsCode,
-      r.name ?? '',
-      r.industry ?? '',
-      r.mainNetInflow.toFixed(2),
-      r.elgNetInflow.toFixed(2),
-      r.lgNetInflow.toFixed(2),
-      (r.pctChg ?? 0).toFixed(2),
-    ].join(',')
-  );
-  const csv = [header, ...lines].join('\n');
-  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `${title}.csv`;
-  a.click();
-  URL.revokeObjectURL(url);
-}
-
-// ----------------------------------------------------------------------
 
 type FlowTableProps = {
   title: string;
@@ -400,21 +372,6 @@ export function MainFlowRankingTable({ tradeDate }: Props) {
             </Stack>
 
             <Box sx={{ flex: 1 }} />
-
-            <Button
-              size="small"
-              variant="outlined"
-              startIcon={<Iconify icon="solar:download-bold" width={16} />}
-              onClick={() => {
-                if (flowDir === 'outflow') {
-                  downloadCsv(outflowRows, `主力净流出Top${topN}`);
-                } else {
-                  downloadCsv(inflowRows, `主力净流入Top${topN}`);
-                }
-              }}
-            >
-              导出 CSV
-            </Button>
           </Stack>
         </CardContent>
       </Card>

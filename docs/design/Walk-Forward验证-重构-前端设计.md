@@ -28,8 +28,8 @@
 - **与相邻模块边界**：
   - **基础回测（`/backtest/runs`）**：单组参数、单段历史；WF 是其上层"参数搜索 + 时间切片"的稳健性验证。
   - **多策略对比（`/backtest/comparison`）**：横向多策略；WF 是单策略多窗口纵向。
-  - **策略管理（`/strategies`）**：保存形态；WF 是临时调研形态，**完成后允许"导出/沉淀为策略"**（当前缺）。
-  - **量化报告**：可作为 WF 的可分享导出物（当前缺）。
+  - **策略管理（`/strategies`）**：保存形态；WF 是临时调研形态，**完成后允许沉淀为策略**（当前缺）。
+  - **量化报告**：可作为 WF 的研究沉淀载体（当前缺）。
 
 ### 1.3 功能要点提炼（结构化）
 
@@ -44,7 +44,7 @@
 | 7   | **窗口级钻取**：成交、持仓、调仓               | 排查异常窗口（巨亏窗口到底买了什么）          | **后端缺**：`runs/window-trades` 等        |
 | 8   | **基准叠加 + IS/OOS 着色**（净值图）           | 直观看是否跑赢基准 / 哪段是 OOS               | 前端可做；基准曲线需后端提供               |
 | 9   | **克隆 / 重跑 / 取消**                         | 微调一个参数再跑；杀掉跑死的任务              | **后端缺**：`runs/cancel`、`runs/clone`    |
-| 10  | **导出（CSV / PDF / 量化报告）**               | 给老板/同事看                                 | **后端缺**：`runs/export`                  |
+| 10  | **生成量化报告**                               | 给老板/同事看                                 | **后端缺**：报告生成端点                   |
 | 11  | **沉淀为策略 / 推送到对比组**                  | 调研结果转生产                                | 前端串联 `strategies` / `comparisons` 端点 |
 | 12  | **滚动模式（Rolling）+ 锚定模式（Anchored）**  | 锚定起点 vs 等长滑窗的取舍                    | API 已有 `rolling/runs`；前端缺 UI         |
 | 13  | **窗口预览**（提交前显示将生成 N 个窗口的表）  | 防止配错 step/IS/OOS 比例造成跑数小时后才发现 | 前端纯计算（交易日历来自后端）             |
@@ -112,7 +112,7 @@
 | 8   | **创建页无锚定/滚动模式选项**（`rolling/runs` 端点闲置；Anchored 模式完全缺失）                           | 业内三种模式只能跑一种                               | 创建任务               |
 | 9   | **列表无筛选 / 排序 / 搜索 / 删除**                                                                       | 任务一多就找不到                                     | 任务数 >20             |
 | 10  | **无克隆 / 重跑**                                                                                         | 微调参数得从零再填                                   | 调研迭代               |
-| 11  | **无导出 / 分享 / 转量化报告 / 沉淀为策略**                                                               | 调研成果无法外带                                     | 完成后想沟通           |
+| 11  | **无分享 / 转量化报告 / 沉淀为策略**                                                                      | 调研成果难以沉淀                                     | 完成后想沟通           |
 | 12  | **无 Purged / Embargo**                                                                                   | 严肃量化的基础门槛缺失                               | 创建窗口设置           |
 | 13  | **进度反馈粗糙**：只有 `progress%` 和"已完成 X / N 个窗口"，无 ETA、无当前阶段（参数搜索/IS拟合/OOS评估） | 长任务体感差                                         | RUNNING 状态           |
 | 14  | **轮询缺失**：列表页无轮询；用户离开详情再回来要手动刷新                                                  | 多任务并发时状态不同步                               | 列表查看               |
@@ -121,24 +121,24 @@
 
 ### 2.3 重设计应对策略（一一对应 2.2）
 
-| 对应 | 应对策略                                                                                                                       | 取舍说明                                                                                                         |
-| ---- | ------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------- |
-| 1    | 详情页新增 **「稳健性诊断」Tab**：WFE 卡片 + IS/OOS 条形对 + 参数稳定性热力图 + OOS 反向窗口数 + 退化散点图                    | 全部前端可由现有数据计算；WFE 也建议后端入字段一份                                                               |
-| 2    | 优化参数 → 拆列：每个参数单独一列 + Sparkline 趋势线；JSON 折叠到 Tooltip                                                      | 需要"参数 schema 元信息"：可由前端按已选 enum/range 推断，必要时后端在 detail 返回 `paramSchema`                 |
-| 3    | 净值图加：基准曲线（默认沪深300）、IS/OOS 区段背景着色、窗口分隔虚线、窗口 hover 高亮                                          | 基准曲线需后端在 equity 端点同时返回                                                                             |
-| 4    | 窗口表行点击 → 右侧抽屉：窗口元信息 + 调仓事件 + 持仓快照 + 该窗口净值小图                                                     | 需后端 `runs/window-detail`、`runs/window-trades`、`runs/window-positions`（详见 5.4）                           |
-| 5    | RUNNING 状态显示「取消任务」按钮                                                                                               | 需后端 `walk-forward/runs/cancel`                                                                                |
-| 6    | FAILED 状态展示窗口级错误：windowsTable 增加 `errorReason` 列、整任务级 Banner 链到首个失败窗口                                | 需后端在 windows[] 里增 `status / errorReason` 字段                                                              |
-| 7    | 创建页第 3 段实时显示：「将生成 **N** 个窗口（IS:`a` 天 → OOS:`b` 天，覆盖至 `YYYYMMDD`）」+ 用 stepper 可视化                 | 前端纯计算，需要后端日历端点（已有 `/api/trade-calendar`?，待确认）                                              |
-| 8    | 创建页顶部加 **模式切换 Tabs**：滚动 Walk-Forward / 锚定 Walk-Forward / 滚动窗口（Rolling），共享后续表单大部分字段            | rolling 已有 API；anchored 仅是参数 `windowMode='ANCHORED'` ，需后端支持                                         |
-| 9    | 列表页：搜索（name/wfRunId）+ 状态多选 + 策略类型多选 + 时间范围 + 排序（OOS Sharpe/创建时间）+ 行内删除                       | 需后端 list 加筛选/排序参数 + `runs/delete` 端点                                                                 |
-| 10   | 列表 + 详情都加「克隆配置」按钮 → 跳到创建页带预填                                                                             | 需后端 `runs/detail` 返回完整 `baseStrategyConfig` 与 `paramSearchSpace` 原文（当前 detail 缺 paramSearchSpace） |
-| 11   | 详情页新增导出菜单：CSV（窗口表 / 净值）/ PNG（图表本地导出）/ "生成量化报告"（跳报告中心）/"沉淀为策略"（取最优参数生成模板） | CSV/PNG 前端可做；量化报告需后端 `reports/from-wf` 创建端点；策略沉淀复用现有创建端点                            |
-| 12   | 创建页"窗口设置"末尾加可折叠"高级"区：Purge Days、Embargo Days、Min OOS Trades                                                 | 需后端在 create 接受三个新字段 + 在切窗时遵循                                                                    |
-| 13   | 进度卡升级：「当前阶段（PARAM_SEARCH / IS_FIT / OOS_EVAL）+ 当前窗口 i/N + 估算剩余」+ 窗口级 mini grid 红/黄/绿               | 需后端 Socket.IO 推送 `step` 字段细化                                                                            |
-| 14   | 列表页可见时（Page visible）每 10s 拉一次 list；详情页 RUNNING 状态下额外订阅 `walkForwardJob`                                 | 前端可做；不需后端                                                                                               |
-| 15   | 窗口表用 `DataGrid`-like 列冻结 + 可拖拽列宽 + 列可见性配置（持久化到 localStorage）                                           | 前端可做；如已有列配置组件复用                                                                                   |
-| 16   | 在头部加"健壮性评级"Chip：基于 WFE + IS/OOS 反向窗口比例 + OOS Sharpe，给绿/黄/红                                              | 前端纯计算；同时建议后端在 detail 落 `robustnessLevel` 字段做对齐                                                |
+| 对应 | 应对策略                                                                                                            | 取舍说明                                                                                                         |
+| ---- | ------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| 1    | 详情页新增 **「稳健性诊断」Tab**：WFE 卡片 + IS/OOS 条形对 + 参数稳定性热力图 + OOS 反向窗口数 + 退化散点图         | 全部前端可由现有数据计算；WFE 也建议后端入字段一份                                                               |
+| 2    | 优化参数 → 拆列：每个参数单独一列 + Sparkline 趋势线；JSON 折叠到 Tooltip                                           | 需要"参数 schema 元信息"：可由前端按已选 enum/range 推断，必要时后端在 detail 返回 `paramSchema`                 |
+| 3    | 净值图加：基准曲线（默认沪深300）、IS/OOS 区段背景着色、窗口分隔虚线、窗口 hover 高亮                               | 基准曲线需后端在 equity 端点同时返回                                                                             |
+| 4    | 窗口表行点击 → 右侧抽屉：窗口元信息 + 调仓事件 + 持仓快照 + 该窗口净值小图                                          | 需后端 `runs/window-detail`、`runs/window-trades`、`runs/window-positions`（详见 5.4）                           |
+| 5    | RUNNING 状态显示「取消任务」按钮                                                                                    | 需后端 `walk-forward/runs/cancel`                                                                                |
+| 6    | FAILED 状态展示窗口级错误：windowsTable 增加 `errorReason` 列、整任务级 Banner 链到首个失败窗口                     | 需后端在 windows[] 里增 `status / errorReason` 字段                                                              |
+| 7    | 创建页第 3 段实时显示：「将生成 **N** 个窗口（IS:`a` 天 → OOS:`b` 天，覆盖至 `YYYYMMDD`）」+ 用 stepper 可视化      | 前端纯计算，需要后端日历端点（已有 `/api/trade-calendar`?，待确认）                                              |
+| 8    | 创建页顶部加 **模式切换 Tabs**：滚动 Walk-Forward / 锚定 Walk-Forward / 滚动窗口（Rolling），共享后续表单大部分字段 | rolling 已有 API；anchored 仅是参数 `windowMode='ANCHORED'` ，需后端支持                                         |
+| 9    | 列表页：搜索（name/wfRunId）+ 状态多选 + 策略类型多选 + 时间范围 + 排序（OOS Sharpe/创建时间）+ 行内删除            | 需后端 list 加筛选/排序参数 + `runs/delete` 端点                                                                 |
+| 10   | 列表 + 详情都加「克隆配置」按钮 → 跳到创建页带预填                                                                  | 需后端 `runs/detail` 返回完整 `baseStrategyConfig` 与 `paramSearchSpace` 原文（当前 detail 缺 paramSearchSpace） |
+| 11   | 详情页新增研究沉淀菜单："生成量化报告"（跳报告中心）/"沉淀为策略"（取最优参数生成模板）                             | 量化报告需后端 `reports/from-wf` 创建端点；策略沉淀复用现有创建端点                                              |
+| 12   | 创建页"窗口设置"末尾加可折叠"高级"区：Purge Days、Embargo Days、Min OOS Trades                                      | 需后端在 create 接受三个新字段 + 在切窗时遵循                                                                    |
+| 13   | 进度卡升级：「当前阶段（PARAM_SEARCH / IS_FIT / OOS_EVAL）+ 当前窗口 i/N + 估算剩余」+ 窗口级 mini grid 红/黄/绿    | 需后端 Socket.IO 推送 `step` 字段细化                                                                            |
+| 14   | 列表页可见时（Page visible）每 10s 拉一次 list；详情页 RUNNING 状态下额外订阅 `walkForwardJob`                      | 前端可做；不需后端                                                                                               |
+| 15   | 窗口表用 `DataGrid`-like 列冻结 + 可拖拽列宽 + 列可见性配置（持久化到 localStorage）                                | 前端可做；如已有列配置组件复用                                                                                   |
+| 16   | 在头部加"健壮性评级"Chip：基于 WFE + IS/OOS 反向窗口比例 + OOS Sharpe，给绿/黄/红                                   | 前端纯计算；同时建议后端在 detail 落 `robustnessLevel` 字段做对齐                                                |
 
 ---
 
@@ -161,7 +161,7 @@ Walk-Forward 验证（重构）
 │   ├── 4) 通用参数（capital / benchmark / universe / rebalance）
 │   └── 提交 + 校验 + 估算耗时
 └── 详情页 /backtest/walk-forward/:wfRunId
-    ├── 头部（名称 / 状态 / 健壮性 Chip / Action 菜单：克隆/取消/删除/导出/沉淀）
+    ├── 头部（名称 / 状态 / 健壮性 Chip / Action 菜单：克隆/取消/删除/沉淀）
     ├── 进度卡（RUNNING）/ 失败卡（FAILED 含首个错误窗口跳转）
     ├── Tabs：
     │   ├── ① 概览：摘要卡（升级到 6 卡含 WFE）+ 净值图（含基准、IS/OOS 着色）
@@ -180,7 +180,7 @@ Walk-Forward 验证（重构）
   - `POST /backtests/walk-forward/runs/list`，参数升级为 `{ page, pageSize, q?, statuses?, strategyTypes?, sortBy?, sortDir? }`（**后端待补**）
   - 顶部摘要可由 list 响应内 `aggregates: { total, running, avgOosSharpe, lastCompletedAt }` 一并返回（**后端待补**），未实现则前端遍历当前页降级展示。
 - **交互**：
-  - 行点击 → 详情；行右侧 `kebab` 菜单：克隆 / 删除 / 导出 / 复制 ID。
+  - 行点击 → 详情；行右侧 `kebab` 菜单：克隆 / 删除 / 复制 ID。
   - URL 持久化筛选状态（参考其它模块约定）。
   - 自动轮询：页面可见且存在 RUNNING 时每 10s 刷新；不可见停。
 - **状态**：loading（5 行 Skeleton）/ empty（CTA 直达创建）/ error（重试） / 部分错误（顶部 Snackbar）。
@@ -291,7 +291,7 @@ Walk-Forward 验证（重构）
 ┌────────────────────────────────────────────────────────────────────────┐
 │ ◀ 单均线 α v3   [✅ 完成]  [🟢 健壮]    模式：滚动 WF                  │
 │ MA · 20180101-20241231 · IS 252d · OOS 60d · step 60d · opt=Sharpe     │
-│                                            [刷新][克隆][导出 ▾][删除] │
+│                                            [刷新][克隆][沉淀][删除] │
 ├──────[ 概览 ][ 稳健性诊断 ][ 窗口列表 ][ 配置回看 ]────────────────────┤
 │  ┌──┬──┬──┬──┬──┬──┐                                                   │
 │  │WFE│年化│夏普│回撤│反向│退化│  ← 6 摘要卡                            │
@@ -444,14 +444,13 @@ Walk-Forward 验证（重构）
 
 #### P2（增强体验）
 
-| #   | 端点 / 字段                                                                            | 说明                                                           |
-| --- | -------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
-| B14 | `POST /backtests/walk-forward/runs/clone`（body `{ wfRunId, name? }`）                 | 后端落 clone 记录（前端也可纯前端 detail→create 跳转，二选一） |
-| B15 | `POST /backtests/walk-forward/runs/export`（body `{ wfRunId, format: 'csv'\|'pdf' }`） | 导出窗口表 / 报告                                              |
-| B16 | `POST /reports/from-walk-forward`（body `{ wfRunId, ... }`）                           | 一键生成量化报告                                               |
-| B17 | `runs/detail` 增 `paramSchema: Record<paramKey, { label, type, unit }>`                | 优化参数列国际化标签 + 单位                                    |
-| B18 | `POST /api/trade-calendar/range`（body `{ start, end }`）若不存在                      | 创建页窗口预览精确天数                                         |
-| B19 | "Rolling" 模式 (`/backtests/rolling/runs`) 列表/详情端点对齐 WF                        | 复用同一详情页（含 Rolling 标识）                              |
+| #   | 端点 / 字段                                                             | 说明                                                           |
+| --- | ----------------------------------------------------------------------- | -------------------------------------------------------------- |
+| B14 | `POST /backtests/walk-forward/runs/clone`（body `{ wfRunId, name? }`）  | 后端落 clone 记录（前端也可纯前端 detail→create 跳转，二选一） |
+| B16 | `POST /reports/from-walk-forward`（body `{ wfRunId, ... }`）            | 一键生成量化报告                                               |
+| B17 | `runs/detail` 增 `paramSchema: Record<paramKey, { label, type, unit }>` | 优化参数列国际化标签 + 单位                                    |
+| B18 | `POST /api/trade-calendar/range`（body `{ start, end }`）若不存在       | 创建页窗口预览精确天数                                         |
+| B19 | "Rolling" 模式 (`/backtests/rolling/runs`) 列表/详情端点对齐 WF         | 复用同一详情页（含 Rolling 标识）                              |
 
 > **冲突说明**：若 B11 中 `windowMode` 与现有 create 入参字段冲突，前端默认传 `ROLLING`，向后兼容旧部署。
 
@@ -487,7 +486,6 @@ P1（窗口钻取与专业诊断，强烈建议）：
 
 P2（增强体验）：
 - 新增 POST /backtests/walk-forward/runs/clone，body { wfRunId, name? }，返回可直接用于 create 的配置快照或新 clone 记录。
-- 新增 POST /backtests/walk-forward/runs/export，body { wfRunId, format: 'csv'|'pdf' }。
 - 新增 POST /reports/from-walk-forward，body { wfRunId, ... }，用于生成量化报告。
 - runs/detail 增加 paramSchema: Record<paramKey, { label, type, unit }>，供前端优化参数拆列展示。
 - 若当前没有交易日历区间端点，请新增 POST /api/trade-calendar/range，body { start, end }，返回 YYYYMMDD 交易日数组。

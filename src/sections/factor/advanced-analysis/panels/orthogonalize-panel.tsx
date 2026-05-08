@@ -20,12 +20,12 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 import { orthogonalizeFactors } from 'src/api/factor';
 
+import { defaultTradeDate } from '../utils';
 import { METHODOLOGY } from '../methodology';
 import { BE_PENDING_TOOLTIP } from '../constants';
 import { EmptyGuide } from '../shared/empty-guide';
 import { ResultCard } from '../shared/result-card';
 import { ResultActions } from '../shared/result-actions';
-import { downloadCsv, defaultTradeDate } from '../utils';
 import { CorrelationTable } from '../shared/correlation-table';
 import { useAdvancedAnalysisRun } from '../use-advanced-analysis-run';
 
@@ -91,21 +91,6 @@ export function OrthogonalizePanel({
       elapsedMs: null,
     });
   }, [factors, tradeDate, universe, method, run, onHistorySave]);
-
-  const handleExport = useCallback(() => {
-    if (!data) return;
-    const headers = [
-      '因子',
-      ...data.factors.map((f) => `${f}_前`),
-      ...data.factors.map((f) => `${f}_后`),
-    ];
-    const rows = data.factors.map((rowF, ri) => [
-      rowF,
-      ...data.correlationBefore[ri].map((v) => v.toFixed(4)),
-      ...data.correlationAfter[ri].map((v) => v.toFixed(4)),
-    ]);
-    downloadCsv(`orthogonalize-${data.tradeDate}.csv`, headers, rows);
-  }, [data]);
 
   const handleCopy = useCallback(() => {
     if (!data) return;
@@ -191,7 +176,6 @@ export function OrthogonalizePanel({
                 subtitle={subtitle}
                 actions={
                   <ResultActions
-                    onExportCsv={handleExport}
                     onCopy={handleCopy}
                     nextActions={[
                       {

@@ -417,16 +417,11 @@ export type ReportShareLink = {
   reportId: string;
   createdAt: string;
   expiresAt: string | null;
-  allowDownload: boolean;
   revoked: boolean;
 };
 
 /** 创建只读分享链接 */
-export function createReportShareLink(params: {
-  reportId: string;
-  ttlHours: number | null;
-  allowDownload: boolean;
-}) {
+export function createReportShareLink(params: { reportId: string; ttlHours: number | null }) {
   return apiClient.post<ReportShareLink>('/api/report/share/create', params);
 }
 

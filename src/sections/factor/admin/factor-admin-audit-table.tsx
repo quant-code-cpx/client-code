@@ -70,29 +70,6 @@ export function FactorAdminAuditTable() {
     fetchData();
   }, [fetchData]);
 
-  const handleExportCsv = () => {
-    if (items.length === 0) return;
-    const header = ['时间', '操作者', '操作类型', '影响因子', 'IP', '结果'];
-    const rows = items.map((it) => [
-      new Date(it.createdAt).toLocaleString('zh-CN'),
-      it.operator,
-      ADMIN_AUDIT_ACTION_LABELS[it.action] ?? it.action,
-      (it.factorNames ?? []).join('; '),
-      it.ip ?? '',
-      it.success ? '成功' : '失败',
-    ]);
-    const csv = [header, ...rows]
-      .map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(','))
-      .join('\n');
-    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `audit-log-${Date.now()}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
   return (
     <Box>
       {/* Filter row */}
@@ -157,17 +134,6 @@ export function FactorAdminAuditTable() {
         >
           刷新
         </Button>
-        <Tooltip title="导出当前页为 CSV">
-          <Button
-            size="small"
-            variant="outlined"
-            color="inherit"
-            onClick={handleExportCsv}
-            startIcon={<Iconify icon="solar:download-bold" />}
-          >
-            CSV
-          </Button>
-        </Tooltip>
       </Stack>
 
       {loading && <Skeleton variant="rectangular" height={240} sx={{ borderRadius: 1 }} />}

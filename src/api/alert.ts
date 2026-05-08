@@ -96,17 +96,6 @@ export type CalendarHistoryTrend = {
   average: Record<string, number | null>;
 };
 
-export type CalendarExportParams = CalendarListParams & {
-  format: 'csv' | 'ics';
-};
-
-export type CalendarExportResult = {
-  filename: string;
-  mimeType: string;
-  /** 文件文本内容（前端用 Blob 包装下载） */
-  content: string;
-};
-
 export type PriceAlertRuleType =
   | 'PCT_CHANGE_UP'
   | 'PCT_CHANGE_DOWN'
@@ -332,9 +321,6 @@ export const alertApi = {
     signal?: AbortSignal
   ) => apiClient.post<CalendarHistoryTrend>('/api/alert/calendar/history-trend', params, signal),
 
-  exportCalendar: (params: CalendarExportParams) =>
-    apiClient.post<CalendarExportResult>('/api/alert/calendar/export', params),
-
   getPriceRules: () => apiClient.post<PriceAlertRule[]>('/api/alert/price-rules/list', {}),
 
   createPriceRule: (body: CreatePriceRuleBody) =>
@@ -495,7 +481,13 @@ export function fetchLimitSummary(query: LimitSummaryQuery) {
 
 // ── 次日表现矩阵（后端 BE-9） ───────────────────────────────────
 
-export type LimitNextDayBucket = 'LIMIT_UP' | 'ABOVE_5' | 'IN_5' | 'BELOW_0' | 'BELOW_5' | 'LIMIT_DOWN';
+export type LimitNextDayBucket =
+  | 'LIMIT_UP'
+  | 'ABOVE_5'
+  | 'IN_5'
+  | 'BELOW_0'
+  | 'BELOW_5'
+  | 'LIMIT_DOWN';
 
 export type LimitNextDayRow = {
   /** 昨日板高度 */

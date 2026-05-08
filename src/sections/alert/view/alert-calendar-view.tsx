@@ -13,7 +13,6 @@ import LinearProgress from '@mui/material/LinearProgress';
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import {
-  ExportDialog,
   CalendarFilters,
   SubscribeDialog,
   CalendarGridView,
@@ -33,7 +32,6 @@ export function AlertCalendarView() {
     useCalendarEvents(filters);
 
   const [detailEvent, setDetailEvent] = useState<CalendarEvent | null>(null);
-  const [exportOpen, setExportOpen] = useState(false);
   const [subscribeEvents, setSubscribeEvents] = useState<CalendarEvent[]>([]);
   const [subscribeOpen, setSubscribeOpen] = useState(false);
   const [snackbar, setSnackbar] = useState<{ msg: string; severity: 'success' | 'info' } | null>(
@@ -97,13 +95,7 @@ export function AlertCalendarView() {
         </Alert>
       )}
 
-      <CalendarFilters
-        filters={filters}
-        onChange={update}
-        onReset={reset}
-        onRefresh={refresh}
-        onExport={() => setExportOpen(true)}
-      />
+      <CalendarFilters filters={filters} onChange={update} onReset={reset} onRefresh={refresh} />
 
       <CalendarStatsRow events={events} loading={loading} onCardClick={handleCardClick} />
 
@@ -134,8 +126,6 @@ export function AlertCalendarView() {
         onClose={handleCloseDetail}
         onSubscribe={handleSubscribeOne}
       />
-
-      <ExportDialog open={exportOpen} filters={filters} onClose={() => setExportOpen(false)} />
 
       <SubscribeDialog
         open={subscribeOpen}
