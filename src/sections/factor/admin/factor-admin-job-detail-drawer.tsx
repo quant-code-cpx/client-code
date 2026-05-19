@@ -14,6 +14,8 @@ import IconButton from '@mui/material/IconButton';
 import LinearProgress from '@mui/material/LinearProgress';
 import CircularProgress from '@mui/material/CircularProgress';
 
+import { fmtTradeDate } from 'src/utils/format-time';
+
 import { adminJobRetry, adminJobDetail, adminJobCancel } from 'src/api/factor';
 
 import { Label } from 'src/components/label';
@@ -178,7 +180,7 @@ export function FactorAdminJobDetailDrawer({
               <Typography variant="overline" color="text.secondary">
                 目标交易日
               </Typography>
-              <Typography variant="body2">{job.tradeDate}</Typography>
+              <Typography variant="body2">{fmtTradeDate(job.tradeDate!)}</Typography>
             </Box>
           )}
           {job.startDate && (
@@ -187,13 +189,13 @@ export function FactorAdminJobDetailDrawer({
                 <Typography variant="overline" color="text.secondary">
                   回补起
                 </Typography>
-                <Typography variant="body2">{job.startDate}</Typography>
+                <Typography variant="body2">{fmtTradeDate(job.startDate!)}</Typography>
               </Box>
               <Box>
                 <Typography variant="overline" color="text.secondary">
                   回补止
                 </Typography>
-                <Typography variant="body2">{job.endDate}</Typography>
+                <Typography variant="body2">{fmtTradeDate(job.endDate!)}</Typography>
               </Box>
             </>
           )}

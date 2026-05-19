@@ -150,7 +150,12 @@ function StatementTable({ periods, fields, unitNote = '单位: 元' }: Statement
                         sx={{
                           display: 'block',
                           lineHeight: 1.3,
-                          color: yoyVal < 0 ? 'error.main' : 'success.main',
+                          color:
+                            yoyVal > 0
+                              ? 'error.main'
+                              : yoyVal < 0
+                                ? 'success.main'
+                                : 'text.secondary',
                         }}
                       >
                         同比 {fPctChg(yoyVal)}
@@ -214,7 +219,12 @@ const CASHFLOW_FIELDS: FieldDef[] = [
 ];
 
 // 财务指标展示字段定义（原始关键指标 tab）
-const FINANCIAL_FIELDS: Array<{ key: string; label: string; format?: 'number' | 'percent' }> = [
+const FINANCIAL_FIELDS: Array<{
+  key: string;
+  label: string;
+  format?: 'number' | 'percent';
+  riskSemantic?: boolean;
+}> = [
   { key: 'eps', label: '每股收益(EPS)' },
   { key: 'dtEps', label: '稀释每股收益' },
   { key: 'grossprofit_margin', label: '毛利率(%)', format: 'percent' },
@@ -225,8 +235,8 @@ const FINANCIAL_FIELDS: Array<{ key: string; label: string; format?: 'number' | 
   { key: 'debtToAssets', label: '资产负债率(%)', format: 'percent' },
   { key: 'currentRatio', label: '流动比率' },
   { key: 'quickRatio', label: '速动比率' },
-  { key: 'revenueYoy', label: '营收同比(%)', format: 'percent' },
-  { key: 'netprofitYoy', label: '净利润同比(%)', format: 'percent' },
+  { key: 'revenueYoy', label: '营收同比(%)', format: 'percent', riskSemantic: true },
+  { key: 'netprofitYoy', label: '净利润同比(%)', format: 'percent', riskSemantic: true },
   { key: 'ocfToNetprofit', label: 'OCF/净利润(%)', format: 'percent' },
 ];
 
@@ -396,11 +406,24 @@ export function StockDetailFinancialsTab({ tsCode }: Props) {
                           >
                             {fmtPeriod(row.endDate ?? row.reportDate) || `期${i + 1}`}
                           </TableCell>
-                          {FINANCIAL_FIELDS.map(({ key, format }) => (
-                            <TableCell key={key} align="right">
-                              {formatValue(row[key], format)}
-                            </TableCell>
-                          ))}
+                          {FINANCIAL_FIELDS.map(({ key, format, riskSemantic }) => {
+                            const raw = row[key];
+                            const numericValue =
+                              typeof raw === 'number' && Number.isFinite(raw) ? raw : null;
+                            const color =
+                              riskSemantic === true && numericValue !== null
+                                ? numericValue > 0
+                                  ? 'error.main'
+                                  : numericValue < 0
+                                    ? 'success.main'
+                                    : 'text.primary'
+                                : undefined;
+                            return (
+                              <TableCell key={key} align="right" sx={color ? { color } : undefined}>
+                                {formatValue(raw, format)}
+                              </TableCell>
+                            );
+                          })}
                         </TableRow>
                       ))}
                     </TableBody>

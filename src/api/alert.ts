@@ -27,7 +27,7 @@ export type CalendarEvent = {
   stockName: string;
   type: EventType;
   title: string;
-  detail: string;
+  detail: string | Record<string, unknown> | null;
   /** 后端补字段（可选） */
   id?: string;
   subType?: string;
@@ -130,6 +130,13 @@ export type PriceAlertRule = {
   lastTriggeredAt: string | null;
   createdAt: string;
   updatedAt: string;
+};
+
+export type PriceAlertRuleListResult = {
+  total: number;
+  page: number;
+  pageSize: number;
+  items: PriceAlertRule[];
 };
 
 export type CreatePriceRuleBody = {
@@ -321,7 +328,13 @@ export const alertApi = {
     signal?: AbortSignal
   ) => apiClient.post<CalendarHistoryTrend>('/api/alert/calendar/history-trend', params, signal),
 
-  getPriceRules: () => apiClient.post<PriceAlertRule[]>('/api/alert/price-rules/list', {}),
+  getPriceRules: async () => {
+    const result = await apiClient.post<PriceAlertRule[] | PriceAlertRuleListResult>(
+      '/api/alert/price-rules/list',
+      { page: 1, pageSize: 100 }
+    );
+    return Array.isArray(result) ? result : (result.items ?? []);
+  },
 
   createPriceRule: (body: CreatePriceRuleBody) =>
     apiClient.post<PriceAlertRule>('/api/alert/price-rules', body),

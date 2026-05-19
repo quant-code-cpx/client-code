@@ -72,15 +72,16 @@ export function DashboardSectorWind({ refreshKey }: { refreshKey?: number }) {
 
   useEffect(() => {
     setLoading(true);
-    Promise.all([
+    Promise.allSettled([
       fetchSectorRanking({ limit: 10, sort_by: 'pct_change' }),
       fetchSectorFlowRanking({ limit: 10, order: 'desc', sort_by: 'net_amount' }),
     ])
-      .then(([ranking, flow]) => {
-        setSectors(ranking.sectors ?? []);
-        setFlowSectors('sectors' in flow ? (flow.sectors ?? []) : []);
+      .then(([rankingResult, flowResult]) => {
+        const ranking = rankingResult.status === 'fulfilled' ? rankingResult.value : null;
+        const flow = flowResult.status === 'fulfilled' ? flowResult.value : null;
+        setSectors(ranking?.sectors ?? []);
+        setFlowSectors(flow && 'sectors' in flow ? (flow.sectors ?? []) : []);
       })
-      .catch(() => {})
       .finally(() => setLoading(false));
   }, [refreshKey]);
 
@@ -88,8 +89,8 @@ export function DashboardSectorWind({ refreshKey }: { refreshKey?: number }) {
     return <Skeleton variant="rounded" height={320} />;
   }
 
-  const maxPct = Math.max(...sectors.map((s) => Math.abs(s.pctChange)), 1);
-  const maxFlow = Math.max(...flowSectors.map((s) => Math.abs(s.netAmount)), 1);
+  const maxPct = Math.max(...sectors.map((s) => Math.abs(s.pctChange ?? 0)), 1);
+  const maxFlow = Math.max(...flowSectors.map((s) => Math.abs(s.netAmount ?? 0)), 1);
 
   return (
     <Card sx={{ height: '100%' }}>
@@ -110,7 +111,8 @@ export function DashboardSectorWind({ refreshKey }: { refreshKey?: number }) {
         </Typography>
         <Stack spacing={0.25} sx={{ mb: 1.5 }}>
           {sectors.map((s) => {
-            const isPos = s.pctChange >= 0;
+            const pctChange = s.pctChange ?? 0;
+            const isPos = pctChange >= 0;
             return (
               <Stack
                 key={s.tsCode}
@@ -140,9 +142,9 @@ export function DashboardSectorWind({ refreshKey }: { refreshKey?: number }) {
                     whiteSpace: 'nowrap',
                   }}
                 >
-                  {s.name}
+                  {s.name ?? s.tsCode}
                 </Typography>
-                <SectorBar value={s.pctChange} maxAbs={maxPct} isPositive={isPos} />
+                <SectorBar value={pctChange} maxAbs={maxPct} isPositive={isPos} />
                 <Typography
                   variant="caption"
                   sx={{
@@ -153,7 +155,7 @@ export function DashboardSectorWind({ refreshKey }: { refreshKey?: number }) {
                   }}
                 >
                   {isPos ? '+' : ''}
-                  {s.pctChange.toFixed(2)}%
+                  {pctChange.toFixed(2)}%
                 </Typography>
               </Stack>
             );
@@ -171,7 +173,8 @@ export function DashboardSectorWind({ refreshKey }: { refreshKey?: number }) {
         </Typography>
         <Stack spacing={0.25}>
           {flowSectors.map((s) => {
-            const netBillions = s.netAmount / 1e8;
+            const netAmount = s.netAmount ?? 0;
+            const netBillions = netAmount / 1e8;
             const isPos = netBillions >= 0;
             return (
               <Stack
@@ -202,9 +205,9 @@ export function DashboardSectorWind({ refreshKey }: { refreshKey?: number }) {
                     whiteSpace: 'nowrap',
                   }}
                 >
-                  {s.name}
+                  {s.name ?? s.tsCode}
                 </Typography>
-                <SectorBar value={s.netAmount} maxAbs={maxFlow} isPositive={isPos} />
+                <SectorBar value={netAmount} maxAbs={maxFlow} isPositive={isPos} />
                 <Typography
                   variant="caption"
                   sx={{
@@ -215,7 +218,7 @@ export function DashboardSectorWind({ refreshKey }: { refreshKey?: number }) {
                   }}
                 >
                   {isPos ? '+' : ''}
-                  {fShortenNumber(Math.abs(s.netAmount))}
+                  {fShortenNumber(Math.abs(netAmount))}
                 </Typography>
               </Stack>
             );

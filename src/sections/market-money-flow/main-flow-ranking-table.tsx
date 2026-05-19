@@ -1,6 +1,6 @@
 import type { MainFlowRankingItem, MainFlowRankingResponse } from 'src/api/market';
 
-import { useState, useEffect } from 'react';
+import { useRef, useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -90,6 +90,7 @@ type FlowTableProps = {
   selectedCode: string | null;
   compact?: boolean;
   localSortNote?: boolean;
+  scrollResetKey?: unknown;
 };
 
 function FlowTable({
@@ -99,7 +100,16 @@ function FlowTable({
   selectedCode,
   compact,
   localSortNote,
+  scrollResetKey,
 }: FlowTableProps) {
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = 0;
+    }
+  }, [scrollResetKey]);
+
   return (
     <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <CardContent sx={{ flex: 1, display: 'flex', flexDirection: 'column', pb: '0 !important' }}>
@@ -116,7 +126,7 @@ function FlowTable({
             </Typography>
           )}
         </Stack>
-        <Scrollbar sx={{ flex: 1, maxHeight: 520 }}>
+        <Scrollbar ref={scrollRef} sx={{ flex: 1, maxHeight: 520 }}>
           <TableContainer>
             <Table size="small" stickyHeader>
               <TableHead>
@@ -389,6 +399,7 @@ export function MainFlowRankingTable({ tradeDate }: Props) {
               selectedCode={dialogStock?.tsCode ?? null}
               compact
               localSortNote={isLocalSort}
+              scrollResetKey={`${topN}-${sortBy}`}
             />
           </Grid>
           <Grid size={{ xs: 12, md: 6 }}>
@@ -399,6 +410,7 @@ export function MainFlowRankingTable({ tradeDate }: Props) {
               selectedCode={dialogStock?.tsCode ?? null}
               compact
               localSortNote={isLocalSort}
+              scrollResetKey={`${topN}-${sortBy}`}
             />
           </Grid>
         </Grid>
@@ -410,6 +422,7 @@ export function MainFlowRankingTable({ tradeDate }: Props) {
           selectedCode={dialogStock?.tsCode ?? null}
           compact={false}
           localSortNote={isLocalSort}
+          scrollResetKey={`${topN}-${sortBy}`}
         />
       )}
 

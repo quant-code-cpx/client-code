@@ -52,5 +52,5 @@ export function fPortfolioQuantity(value: number | null | undefined): string {
 export function fPortfolioUpdatedAt(value: string | null | undefined): string {
   if (!value) return '暂无更新时间';
   const formatted = fDateTime(value, 'YYYY-MM-DD HH:mm');
-  return formatted === 'Invalid date' ? '暂无更新时间' : formatted;
+  return formatted === '—' ? '暂无更新时间' : formatted;
 }

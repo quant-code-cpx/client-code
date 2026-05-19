@@ -8,7 +8,8 @@ export type Watchlist = {
   sortOrder: number;
   createdAt: string;
   updatedAt: string;
-  _count: { stocks: number };
+  /** 后端可能不返回 _count，前端读取时需做空值保护 */
+  _count?: { stocks: number };
 };
 
 export type StockQuote = {

@@ -110,6 +110,22 @@ describe('apiClient.post', () => {
     expect(result).toEqual({ value: 42 });
   });
 
+  it('throws server business message when wrapped response code is non-zero', async () => {
+    mockFetch.mockResolvedValueOnce(
+      jsonResp({ code: 1004, data: null, message: '验证码有误或已过期' })
+    );
+
+    await expect(apiClient.post('/api/auth/login')).rejects.toThrow('验证码有误或已过期');
+  });
+
+  it('keeps compatibility with data-only JSON responses without business code', async () => {
+    mockFetch.mockResolvedValueOnce(jsonResp({ data: { value: 7 } }));
+
+    const result = await apiClient.post<{ value: number }>('/api/raw-data');
+
+    expect(result).toEqual({ value: 7 });
+  });
+
   it('returns null for non-JSON response', async () => {
     mockFetch.mockResolvedValueOnce(textResp(200));
 
@@ -125,9 +141,13 @@ describe('apiClient.post', () => {
   });
 
   it('joins array message from server on non-ok response', async () => {
-    mockFetch.mockResolvedValueOnce(jsonResp({ message: ['field A is required', 'field B is required'] }, 400));
+    mockFetch.mockResolvedValueOnce(
+      jsonResp({ message: ['field A is required', 'field B is required'] }, 400)
+    );
 
-    await expect(apiClient.post('/api/test')).rejects.toThrow('field A is required；field B is required');
+    await expect(apiClient.post('/api/test')).rejects.toThrow(
+      'field A is required；field B is required'
+    );
   });
 
   it('falls back to generic message when server provides no message', async () => {

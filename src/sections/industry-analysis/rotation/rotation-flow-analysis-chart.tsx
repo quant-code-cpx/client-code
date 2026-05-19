@@ -41,7 +41,14 @@ export function RotationFlowAnalysisChart({ tradeDate, period, onSectorClick, re
     setLoading(true);
     setError('');
 
-    fetchFlowAnalysis({ trade_date: tradeDate, days: period ? periodToDays(period) : undefined })
+    const periodDays = period ? Math.min(periodToDays(period), 60) : undefined;
+
+    fetchFlowAnalysis({
+      trade_date: tradeDate,
+      days: periodDays,
+      sort_by: 'cumulative_net',
+      order: 'desc',
+    })
       .then((res) => {
         if (!cancelled) setFlows(res?.flows ?? []);
       })
@@ -57,13 +64,10 @@ export function RotationFlowAnalysisChart({ tradeDate, period, onSectorClick, re
     };
   }, [tradeDate, period, refreshKey]);
 
-  // Sort by net inflow descending, take top MAX_SECTORS
+  // Sort by net inflow descending, take top MAX_SECTORS.
   const displayed = [...flows].sort((a, b) => b.netInflow - a.netInflow).slice(0, MAX_SECTORS);
-
-  // For horizontal bar, reverse so largest value appears at top
-  const reversed = [...displayed].reverse();
-  const categories = reversed.map((r) => r.name);
-  const netValues = reversed.map((r) => toYi(r.netInflow));
+  const categories = displayed.map((r) => r.name);
+  const netValues = displayed.map((r) => toYi(r.netInflow));
   // Distributed colors: red = inflow (A-share convention), green = outflow
   const colors = netValues.map((v) =>
     v >= 0 ? theme.palette.error.main : theme.palette.success.main
@@ -91,6 +95,7 @@ export function RotationFlowAnalysisChart({ tradeDate, period, onSectorClick, re
       },
     },
     xaxis: {
+      categories,
       labels: {
         formatter: (v: number) => `${v > 0 ? '+' : ''}${v.toFixed(1)}亿`,
       },
@@ -102,14 +107,14 @@ export function RotationFlowAnalysisChart({ tradeDate, period, onSectorClick, re
     dataLabels: {
       enabled: true,
       formatter: (val: number) => `${val > 0 ? '+' : ''}${(val as number).toFixed(1)}亿`,
-      style: { fontSize: '12px', colors: ['#fff'] },
+      style: { fontSize: '12px', colors: [theme.palette.common.white] },
       offsetX: 0,
     },
     tooltip: {
       shared: false,
       intersect: true,
       custom: ({ dataPointIndex }: any) => {
-        const item = reversed[dataPointIndex];
+        const item = displayed[dataPointIndex];
         if (!item) return '';
         const net = toYi(item.netInflow);
         const sign = net > 0 ? '+' : '';
@@ -127,7 +132,7 @@ export function RotationFlowAnalysisChart({ tradeDate, period, onSectorClick, re
   });
 
   const series = [{ name: '净流入', data: netValues }];
-  const chartHeight = Math.max(320, reversed.length * 34);
+  const chartHeight = Math.max(320, displayed.length * 34);
 
   return (
     <Card>

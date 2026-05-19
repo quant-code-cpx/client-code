@@ -65,6 +65,16 @@ function periodLabel(key: string): string {
   return `${n}天`;
 }
 
+function formatChartPercent(value: string | number | number[] | null | undefined): string {
+  const num = typeof value === 'number' ? value : Number(value);
+  return Number.isFinite(num) ? `${num > 0 ? '+' : ''}${num.toFixed(1)}%` : '-';
+}
+
+function formatTooltipPercent(value: string | number | number[] | null | undefined): string {
+  const num = typeof value === 'number' ? value : Number(value);
+  return Number.isFinite(num) ? `${num > 0 ? '+' : ''}${num.toFixed(2)}%` : '-';
+}
+
 // ----------------------------------------------------------------------
 
 type Props = {
@@ -85,9 +95,13 @@ export function RotationReturnComparisonChart({ tradeDate, period, refreshKey }:
     setLoading(true);
     setError('');
 
+    const periodDays = period ? Math.min(periodToDays(period), 60) : undefined;
+
     fetchReturnComparison({
       trade_date: tradeDate,
-      periods: period ? [periodToDays(period)] : [5, 20, 60],
+      periods: periodDays ? [periodDays] : [5, 20, 60],
+      sort_period: periodDays ?? 20,
+      order: 'desc',
     })
       .then((res) => {
         if (!cancelled) setData(res ?? null);
@@ -123,9 +137,11 @@ export function RotationReturnComparisonChart({ tradeDate, period, refreshKey }:
     name: periodLabel(pk),
     data: filteredSectors.map((s) => {
       const point = s.data.find((d) => d.tradeDate === pk);
-      return Math.round((point?.cumReturn ?? 0) * 100) / 100;
+      return point?.cumReturn == null ? null : Math.round(point.cumReturn * 100) / 100;
     }),
   }));
+
+  const hasChartData = barSeries.some((s) => s.data.some((v) => v != null));
 
   const categories = filteredSectors.map((s) => s.name);
 
@@ -146,7 +162,7 @@ export function RotationReturnComparisonChart({ tradeDate, period, refreshKey }:
       enabled: categories.length <= 8,
       offsetY: -18,
       style: { fontSize: '12px', colors: [theme.palette.text.primary] },
-      formatter: (val: number) => `${val > 0 ? '+' : ''}${val.toFixed(1)}%`,
+      formatter: formatChartPercent,
     },
     xaxis: {
       categories,
@@ -159,7 +175,7 @@ export function RotationReturnComparisonChart({ tradeDate, period, refreshKey }:
     tooltip: {
       shared: true,
       intersect: false,
-      y: { formatter: (v: number) => `${v > 0 ? '+' : ''}${v.toFixed(2)}%` },
+      y: { formatter: formatTooltipPercent },
     },
     legend: { position: 'top', horizontalAlign: 'left' },
   });
@@ -209,17 +225,21 @@ export function RotationReturnComparisonChart({ tradeDate, period, refreshKey }:
 
         {loading ? (
           <Skeleton variant="rectangular" height={320} />
-        ) : barSeries.every((s) => s.data.length === 0) ? (
+        ) : !hasChartData ? (
           <Box
             sx={{ height: 320, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           >
             <Typography color="text.disabled">暂无数据</Typography>
           </Box>
         ) : (
-          <Chart type="bar" series={barSeries} options={chartOptions} sx={{ height: chartHeight }} />
+          <Chart
+            type="bar"
+            series={barSeries}
+            options={chartOptions}
+            sx={{ height: chartHeight }}
+          />
         )}
       </CardContent>
     </Card>
   );
 }
-

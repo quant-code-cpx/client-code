@@ -87,7 +87,7 @@ export function WatchlistGroupCard({
         </Box>
 
         <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-          {watchlist._count.stocks} 支股票
+          {watchlist._count?.stocks ?? watchlist.summary?.stockCount ?? 0} 支股票
         </Typography>
 
         {summary ? (

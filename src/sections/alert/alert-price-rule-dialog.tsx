@@ -25,7 +25,10 @@ import { alertApi } from 'src/api/alert';
 import { getWatchlists } from 'src/api/watchlist';
 import { listPortfolios } from 'src/api/portfolio';
 
-import { stockItemFromCode, StockSearchAutocomplete } from 'src/components/stock-search-autocomplete';
+import {
+  stockItemFromCode,
+  StockSearchAutocomplete,
+} from 'src/components/stock-search-autocomplete';
 
 // ----------------------------------------------------------------------
 
@@ -223,7 +226,7 @@ export function AlertPriceRuleDialog({
               >
                 {watchlists.map((w) => (
                   <MenuItem key={w.id} value={w.id}>
-                    {w.name}（{w._count.stocks} 只）
+                    {w.name}（{w._count?.stocks ?? 0} 只）
                   </MenuItem>
                 ))}
               </Select>

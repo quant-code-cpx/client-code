@@ -1154,32 +1154,33 @@ export type MonteCarloRequest = {
   seed?: number;
 };
 
-export type MonteCarloPathPoint = {
-  day: number;
-  median: number;
+export type MonteCarloDistribution = {
   mean: number;
-  p5: number;
-  p25: number;
-  p75: number;
-  p95: number;
+  median: number;
+  std?: number;
+  percentiles?: Record<string, number>;
+  positiveReturnProbability?: number;
 };
 
-export type MonteCarloStats = {
-  expectedReturn: number;
-  expectedVolatility: number;
-  var95: number;
-  cvar95: number;
-  worstDrawdown: number;
-  bestReturn: number;
-  worstReturn: number;
-  probPositive: number;
+export type MonteCarloMaxDrawdownDist = {
+  mean: number;
+  median: number;
+  percentile95: number;
+};
+
+export type MonteCarloTimeSeriesPoint = {
+  dayIndex: number;
+  percentiles: { 5: number; 25: number; 50: number; 75: number; 95: number };
 };
 
 export type MonteCarloResponse = {
-  runId: string;
-  simulations: number;
-  stats: MonteCarloStats;
-  paths: MonteCarloPathPoint[];
+  numSimulations: number;
+  originalFinalNav: number;
+  originalTotalReturn: number;
+  finalNavDistribution: MonteCarloDistribution;
+  maxDrawdownDistribution: MonteCarloMaxDrawdownDist;
+  annualizedReturnDistribution: MonteCarloDistribution;
+  timeSeries: MonteCarloTimeSeriesPoint[];
 };
 
 // ─── 蒙特卡洛模拟 API ─────────────────────────────

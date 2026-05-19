@@ -75,17 +75,18 @@ type Props = {
   onFilterStatus?: (status: string) => void;
 };
 
-export function deriveKpi(items: PrecomputeStatusItem[]): KpiData {
+export function deriveKpi(items: PrecomputeStatusItem[] | null | undefined): KpiData {
+  const safe = Array.isArray(items) ? items : [];
   let fresh = 0;
   let stale = 0;
   let failed = 0;
-  for (const it of items) {
+  for (const it of safe) {
     const s = it.status?.toUpperCase();
     if (s === 'UP_TO_DATE' || s === 'FRESH') fresh += 1;
     else if (s === 'STALE') stale += 1;
     else if (s === 'FAILED') failed += 1;
   }
-  return { total: items.length, fresh, stale, failed };
+  return { total: safe.length, fresh, stale, failed };
 }
 
 export function FactorAdminKpiRow({ items, onFilterStatus }: Props) {

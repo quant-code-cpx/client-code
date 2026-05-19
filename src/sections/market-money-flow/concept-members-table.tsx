@@ -81,7 +81,12 @@ export function ConceptMembersTable({ conceptCode, conceptName }: Props) {
     setLoading(true);
     setError('');
 
-    fetchConceptMembers({ tsCode: conceptCode, page: page + 1, pageSize: PAGE_SIZE })
+    fetchConceptMembers({
+      tsCode: conceptCode,
+      name: conceptName || undefined,
+      page: page + 1,
+      pageSize: PAGE_SIZE,
+    })
       .then((res) => {
         if (cancelled) return;
         setMembers(res.members);
@@ -98,7 +103,7 @@ export function ConceptMembersTable({ conceptCode, conceptName }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [conceptCode, page, reloadKey]);
+  }, [conceptCode, conceptName, page, reloadKey]);
 
   const handleRetry = () => {
     cache.delete(getCacheKey(conceptCode, page));

@@ -155,6 +155,13 @@ async function parseResponse<T>(response: Response): Promise<T> {
   // 服务端统一包装格式：{ code, data, message? }
   // 若响应体本身就含 data 字段则解包，否则原样返回（兼容无包装场景）
   if (json !== null && typeof json === 'object' && 'data' in json) {
+    // 业务错误码（code !== 0）：抛出服务端 message，而非返回 null data
+    if ('code' in json && json.code !== 0) {
+      const msg = Array.isArray(json.message)
+        ? json.message.join('；')
+        : (json.message ?? '请求失败');
+      throw new Error(msg);
+    }
     return json.data;
   }
   return json as unknown as T;

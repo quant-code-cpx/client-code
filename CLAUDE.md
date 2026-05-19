@@ -24,6 +24,7 @@
 | 阶段一：用户说"设计 / 重设计 / 重构 XX"      | `.claude/skills/design-blueprint/SKILL.md`（**入口**） |
 | 阶段一：design-blueprint 第 4 章生成视觉方向 | `.claude/skills/frontend-design/SKILL.md`              |
 | 阶段二末：yarn build 通过后                  | `.claude/skills/web-design-guidelines/SKILL.md`        |
+| 测试 / 发现问题 / QA / 回归 / 联调验证       | `.agents/skills/frontend-qa/SKILL.md`（**入口**）      |
 
 quant-client 子资源（按需）：
 

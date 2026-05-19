@@ -247,15 +247,16 @@ function NumericCell({
   value,
   render,
 }: {
-  value: number | null;
+  value: number | string | null | undefined;
   render: (value: number) => string;
 }) {
-  if (value === null || Number.isNaN(value)) {
+  const num = typeof value === 'string' ? Number(value) : value;
+  if (num === null || num === undefined || Number.isNaN(num)) {
     return (
       <Typography variant="body2" sx={{ color: 'text.disabled' }}>
         -
       </Typography>
     );
   }
-  return <Typography variant="body2">{render(value)}</Typography>;
+  return <Typography variant="body2">{render(num)}</Typography>;
 }

@@ -5,6 +5,7 @@ import { varAlpha } from 'minimal-shared/utils';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
+import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Collapse from '@mui/material/Collapse';
@@ -127,15 +128,23 @@ export function MarketDailySnapshotCard({ tradeDate, refreshKey }: Props) {
   const theme = useTheme();
   const [indices, setIndices] = useState<IndexQuoteWithSparklineItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
+    setError('');
 
     fetchIndexQuoteWithSparkline({ trade_date: tradeDate, sparkline_period: '1m' })
       .then((res) => {
         if (!cancelled) setIndices(res?.indices ?? []);
+      })
+      .catch((err: unknown) => {
+        if (!cancelled) {
+          setIndices([]);
+          setError(err instanceof Error ? err.message : '加载指数行情失败');
+        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -163,6 +172,12 @@ export function MarketDailySnapshotCard({ tradeDate, refreshKey }: Props) {
         border: `1px solid ${varAlpha(theme.vars.palette.primary.mainChannel, 0.08)}`,
       }}
     >
+      {error && (
+        <Alert severity="error" sx={{ m: 2 }}>
+          {error}
+        </Alert>
+      )}
+
       {/* ── Index Ticker Grid ── */}
       <Box
         sx={{

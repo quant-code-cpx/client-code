@@ -28,6 +28,8 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import TableContainer from '@mui/material/TableContainer';
 
+import { fmtTradeDate } from 'src/utils/format-time';
+
 import { createCustomFactor, updateCustomFactor, testCustomExpression } from 'src/api/factor';
 
 // ----------------------------------------------------------------------
@@ -53,10 +55,22 @@ interface FactorCustomDialogProps {
   open: boolean;
   onClose: () => void;
   onSuccess: () => void;
-  editFactor?: { id: string; name: string; label: string; description?: string; category: FactorCategory; expression?: string } | null;
+  editFactor?: {
+    id: string;
+    name: string;
+    label: string;
+    description?: string;
+    category: FactorCategory;
+    expression?: string;
+  } | null;
 }
 
-export function FactorCustomDialog({ open, onClose, onSuccess, editFactor }: FactorCustomDialogProps) {
+export function FactorCustomDialog({
+  open,
+  onClose,
+  onSuccess,
+  editFactor,
+}: FactorCustomDialogProps) {
   const isEdit = !!editFactor;
 
   const [name, setName] = useState(editFactor?.name ?? '');
@@ -190,7 +204,12 @@ export function FactorCustomDialog({ open, onClose, onSuccess, editFactor }: Fac
         />
 
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-          <Button variant="outlined" size="small" onClick={handleTest} disabled={testing || !expression.trim()}>
+          <Button
+            variant="outlined"
+            size="small"
+            onClick={handleTest}
+            disabled={testing || !expression.trim()}
+          >
             {testing ? '试算中...' : '试算表达式'}
           </Button>
         </Box>
@@ -201,7 +220,8 @@ export function FactorCustomDialog({ open, onClose, onSuccess, editFactor }: Fac
         {testResult && (
           <Box>
             <Typography variant="caption" color="text.secondary" sx={{ mb: 1, display: 'block' }}>
-              试算结果（{testResult.tradeDate}）· 有效值 {testResult.stats.nonNull}/{testResult.stats.count}
+              试算结果（{fmtTradeDate(testResult.tradeDate)}）· 有效值 {testResult.stats.nonNull}/
+              {testResult.stats.count}
               {testResult.stats.mean != null && ` · 均值 ${testResult.stats.mean.toFixed(4)}`}
             </Typography>
             <TableContainer sx={{ maxHeight: 200 }}>

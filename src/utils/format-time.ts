@@ -38,16 +38,16 @@ dayjs.extend(customParseFormat);
 export type DatePickerFormat = Dayjs | Date | string | number | null | undefined;
 
 export const formatPatterns = {
-  dateTime: 'DD MMM YYYY h:mm a', // 17 Apr 2022 12:00 am
-  date: 'DD MMM YYYY', // 17 Apr 2022
-  time: 'h:mm a', // 12:00 am
+  dateTime: 'YYYY-MM-DD HH:mm', // 2022-04-17 12:00
+  date: 'YYYY-MM-DD', // 2022-04-17
+  time: 'HH:mm', // 12:00
   split: {
-    dateTime: 'DD/MM/YYYY h:mm a', // 17/04/2022 12:00 am
-    date: 'DD/MM/YYYY', // 17/04/2022
+    dateTime: 'YYYY/MM/DD HH:mm', // 2022/04/17 12:00
+    date: 'YYYY/MM/DD', // 2022/04/17
   },
   paramCase: {
-    dateTime: 'DD-MM-YYYY h:mm a', // 17-04-2022 12:00 am
-    date: 'DD-MM-YYYY', // 17-04-2022
+    dateTime: 'YYYY-MM-DD HH:mm', // 2022-04-17 12:00
+    date: 'YYYY-MM-DD', // 2022-04-17
   },
 };
 
@@ -61,7 +61,7 @@ const isValidDate = (date: DatePickerFormat) =>
  */
 export function fDateTime(date: DatePickerFormat, template?: string): string {
   if (!isValidDate(date)) {
-    return 'Invalid date';
+    return '—';
   }
 
   return dayjs(date).format(template ?? formatPatterns.dateTime);
@@ -74,7 +74,7 @@ export function fDateTime(date: DatePickerFormat, template?: string): string {
  */
 export function fDate(date: DatePickerFormat, template?: string): string {
   if (!isValidDate(date)) {
-    return 'Invalid date';
+    return '—';
   }
 
   return dayjs(date).format(template ?? formatPatterns.date);
@@ -83,14 +83,14 @@ export function fDate(date: DatePickerFormat, template?: string): string {
 // ----------------------------------------------------------------------
 
 /**
- * @output a few seconds, 2 years
+ * @output 几秒前、2 小时前、3 天前（中文）
  */
 export function fToNow(date: DatePickerFormat): string {
   if (!isValidDate(date)) {
-    return 'Invalid date';
+    return '—';
   }
 
-  return dayjs(date).toNow(true);
+  return dayjs(date).locale('zh-cn').toNow(true);
 }
 
 // ----------------------------------------------------------------------

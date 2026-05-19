@@ -60,7 +60,7 @@ export function AnomalyHeaderBar({
       setFeedback({
         open: true,
         severity: 'success',
-        message: `扫描完成，新增 ${result.totalNew} 条异动（${result.tradeDate || '最新交易日'}）`,
+        message: `扫描完成，新增 ${result.totalNew} 条异动（${fmtTradeDate(result.tradeDate) || '最新交易日'}）`,
       });
       onScanned();
     } catch (err) {

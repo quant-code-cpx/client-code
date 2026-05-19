@@ -18,6 +18,8 @@ import CardContent from '@mui/material/CardContent';
 import FormControl from '@mui/material/FormControl';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
+import { fmtTradeDate } from 'src/utils/format-time';
+
 import { orthogonalizeFactors } from 'src/api/factor';
 
 import { defaultTradeDate } from '../utils';
@@ -100,7 +102,7 @@ export function OrthogonalizePanel({
   const subtitle = useMemo(() => {
     if (!data) return null;
     const elapsed = elapsedMs ? `${(elapsedMs / 1000).toFixed(1)}s` : '';
-    return `方法：${data.method} · 交易日 ${data.tradeDate} · 因子数 ${data.factors.length}${elapsed ? ` · 耗时 ${elapsed}` : ''}`;
+    return `方法：${data.method} · 交易日 ${fmtTradeDate(data.tradeDate)} · 因子数 ${data.factors.length}${elapsed ? ` · 耗时 ${elapsed}` : ''}`;
   }, [data, elapsedMs]);
 
   return (

@@ -60,6 +60,9 @@ export function useAutoValidate({
       const message = err instanceof Error ? err.message : '校验失败';
       if (requestIdRef.current === requestId) {
         onError?.(message);
+        // Clear stale result so panel exits "正在重新校验" state
+        setValidation(null);
+        setValidatedHash(queryHash);
       }
       return null;
     } finally {

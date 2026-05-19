@@ -34,11 +34,15 @@ type Props = {
 function SectorRow({
   rank,
   item,
+  barValue,
+  maxAbsValue,
   displayValue,
   isPositive,
 }: {
   rank: number;
   item: SectorTopBottomItem;
+  barValue: number;
+  maxAbsValue: number;
   displayValue: string;
   isPositive: boolean;
 }) {
@@ -47,6 +51,7 @@ function SectorRow({
   const accentChannel = isPositive
     ? theme.vars.palette.error.mainChannel
     : theme.vars.palette.success.mainChannel;
+  const barWidth = maxAbsValue > 0 ? Math.min((Math.abs(barValue) / maxAbsValue) * 100, 100) : 0;
 
   return (
     <Stack
@@ -82,7 +87,7 @@ function SectorRow({
         noWrap
         sx={{ flex: 1, fontWeight: 500, color: 'text.primary', fontSize: 13 }}
       >
-        {item.name}
+        {item.name ?? item.tsCode}
       </Typography>
 
       {/* Value + bar */}
@@ -99,7 +104,7 @@ function SectorRow({
           <Box
             sx={{
               height: '100%',
-              width: `${Math.min(Math.abs(item.pctChange) * 10, 100)}%`,
+              width: `${barWidth}%`,
               bgcolor: accentColor,
               borderRadius: 2,
             }}
@@ -158,11 +163,19 @@ export function MarketSectorPanel({ tradeDate, refreshKey }: Props) {
   const gainers =
     viewDim === 'pct_change' ? (result?.pctGainers ?? []) : (result?.flowGainers ?? []);
   const losers = viewDim === 'pct_change' ? (result?.pctLosers ?? []) : (result?.flowLosers ?? []);
+  const metricValue = (item: SectorTopBottomItem) =>
+    viewDim === 'pct_change' ? (item.pctChange ?? 0) : (item.netAmount ?? 0);
+  const maxGainerAbs = Math.max(...gainers.map((item) => Math.abs(metricValue(item))), 1);
+  const maxLoserAbs = Math.max(...losers.map((item) => Math.abs(metricValue(item))), 1);
+  const gainerTitle = viewDim === 'pct_change' ? '涨幅 Top 5' : '净流入 Top 5';
+  const loserTitle = viewDim === 'pct_change' ? '跌幅 Top 5' : '净流出 Top 5';
 
   const fmt = (item: SectorTopBottomItem): string => {
     if (viewDim === 'pct_change') {
+      if (item.pctChange == null) return '-';
       return `${item.pctChange > 0 ? '+' : ''}${item.pctChange.toFixed(2)}%`;
     }
+    if (item.netAmount == null) return '-';
     const yi = item.netAmount / 1e8;
     return `${yi > 0 ? '+' : ''}${yi.toFixed(1)}亿`;
   };
@@ -203,7 +216,7 @@ export function MarketSectorPanel({ tradeDate, refreshKey }: Props) {
                 '& .MuiToggleButton-root': {
                   px: 1,
                   py: 0.25,
-                  fontSize: 11,
+                  fontSize: 12,
                   fontWeight: 600,
                   border: `1px solid ${varAlpha(theme.vars.palette.grey['500Channel'], 0.2)}`,
                 },
@@ -261,11 +274,19 @@ export function MarketSectorPanel({ tradeDate, refreshKey }: Props) {
                   variant="caption"
                   sx={{ color: 'error.main', fontWeight: 700, letterSpacing: 0.5 }}
                 >
-                  涨幅 Top 5
+                  {gainerTitle}
                 </Typography>
               </Stack>
               {gainers.map((s, i) => (
-                <SectorRow key={s.tsCode} rank={i + 1} item={s} displayValue={fmt(s)} isPositive />
+                <SectorRow
+                  key={s.tsCode}
+                  rank={i + 1}
+                  item={s}
+                  barValue={metricValue(s)}
+                  maxAbsValue={maxGainerAbs}
+                  displayValue={fmt(s)}
+                  isPositive
+                />
               ))}
             </Box>
 
@@ -297,7 +318,7 @@ export function MarketSectorPanel({ tradeDate, refreshKey }: Props) {
                   variant="caption"
                   sx={{ color: 'success.main', fontWeight: 700, letterSpacing: 0.5 }}
                 >
-                  跌幅 Top 5
+                  {loserTitle}
                 </Typography>
               </Stack>
               {losers.length === 0 ? (
@@ -313,6 +334,8 @@ export function MarketSectorPanel({ tradeDate, refreshKey }: Props) {
                     key={s.tsCode}
                     rank={i + 1}
                     item={s}
+                    barValue={metricValue(s)}
+                    maxAbsValue={maxLoserAbs}
                     displayValue={fmt(s)}
                     isPositive={false}
                   />

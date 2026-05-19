@@ -1,5 +1,5 @@
 import type { IconifyName } from 'src/components/iconify/register-icons';
-import type { SyncLogItem, SyncStatusOverview, TushareSyncCategory } from 'src/api/tushare-sync';
+import type { SyncLogItem, SyncStatusOverview } from 'src/api/tushare-sync';
 
 import dayjs from 'dayjs';
 import { useState, useEffect, useCallback } from 'react';
@@ -43,18 +43,6 @@ const HEALTH_MAP: Record<
   unknown: { color: 'warning', icon: 'solar:danger-triangle-bold', text: '未知' },
 };
 const HEALTH_DEFAULT = HEALTH_MAP.unknown;
-
-const CATEGORY_LABEL: Record<TushareSyncCategory, string> = {
-  basic: '基础数据',
-  market: '行情数据',
-  financial: '财务数据',
-  moneyflow: '资金流向',
-  factor: '因子数据',
-  alternative: '另类数据',
-  fund: '基金数据',
-  macro: '宏观数据',
-  option: '期权数据',
-};
 
 const STATUS_COLOR: Record<string, 'success' | 'error' | 'warning' | 'default'> = {
   SUCCESS: 'success',
@@ -136,9 +124,26 @@ export function SyncStatusOverviewPanel({ refreshKey = 0, onGoLogs, onGoQuality 
     fetchTimeline();
   }, [fetchOverview, fetchTimeline, refreshKey]);
 
-  const totalSuccess = overview?.categories?.reduce((s, c) => s + c.successCount, 0) ?? 0;
-  const totalFailed = overview?.categories?.reduce((s, c) => s + c.failedCount, 0) ?? 0;
-  const totalSkipped = overview?.categories?.reduce((s, c) => s + c.skippedCount, 0) ?? 0;
+  const allItems = overview?.categories?.flatMap((c) => c.items) ?? [];
+  const totalSuccess = allItems.filter((i) => i.lastStatus === 'SUCCESS').length;
+  const totalFailed = allItems.filter((i) => i.lastStatus === 'FAILED').length;
+  const totalSkipped = allItems.filter((i) => i.lastStatus === 'SKIPPED').length;
+
+  // 从实际数据推算整体健康状态
+  const anyConsecFail3 = allItems.some((i) => i.consecutiveFailures >= 3);
+  const anyFailed = allItems.some((i) => i.lastStatus === 'FAILED' || i.consecutiveFailures > 0);
+  const derivedHealth = anyConsecFail3 ? 'unhealthy' : anyFailed ? 'degraded' : 'healthy';
+
+  // 最近同步时间（全局最新）
+  const lastSyncOverall = allItems.reduce<string | null>((max, i) => {
+    if (!i.lastSyncAt) return max;
+    return !max || i.lastSyncAt > max ? i.lastSyncAt : max;
+  }, null);
+
+  // 失败任务名称列表
+  const failedTableNames = allItems
+    .filter((i) => i.lastStatus === 'FAILED')
+    .map((i) => i.displayName || i.tableName);
 
   return (
     <Card sx={{ mb: 3 }}>
@@ -192,22 +197,22 @@ export function SyncStatusOverviewPanel({ refreshKey = 0, onGoLogs, onGoQuality 
           overview && (
             <Box sx={{ p: 3 }}>
               {/* 四张统计卡片 */}
-              <Grid container spacing={2} sx={{ mb: 3 }}>
+              <Grid container spacing={2} alignItems="stretch" sx={{ mb: 3 }}>
                 {/* 1. 整体健康状态 */}
                 <Grid size={{ xs: 6, md: 3 }}>
-                  <Paper variant="outlined" sx={{ p: 2, textAlign: 'center' }}>
+                  <Paper variant="outlined" sx={{ p: 2, textAlign: 'center', height: '100%' }}>
                     <Iconify
-                      icon={(HEALTH_MAP[overview.healthStatus] ?? HEALTH_DEFAULT).icon}
+                      icon={(HEALTH_MAP[derivedHealth] ?? HEALTH_DEFAULT).icon}
                       sx={{
                         fontSize: 32,
-                        color: `${(HEALTH_MAP[overview.healthStatus] ?? HEALTH_DEFAULT).color}.main`,
+                        color: `${(HEALTH_MAP[derivedHealth] ?? HEALTH_DEFAULT).color}.main`,
                         mb: 1,
                         display: 'block',
                         mx: 'auto',
                       }}
                     />
                     <Typography variant="h6">
-                      {(HEALTH_MAP[overview.healthStatus] ?? HEALTH_DEFAULT).text}
+                      {(HEALTH_MAP[derivedHealth] ?? HEALTH_DEFAULT).text}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
                       整体健康状态
@@ -217,8 +222,8 @@ export function SyncStatusOverviewPanel({ refreshKey = 0, onGoLogs, onGoQuality 
 
                 {/* 2. 任务统计 */}
                 <Grid size={{ xs: 6, md: 3 }}>
-                  <Paper variant="outlined" sx={{ p: 2, textAlign: 'center' }}>
-                    <Typography variant="h4">{overview.totalTasks}</Typography>
+                  <Paper variant="outlined" sx={{ p: 2, textAlign: 'center', height: '100%' }}>
+                    <Typography variant="h4">{allItems.length}</Typography>
                     <Typography variant="caption" color="text.secondary">
                       同步任务总数
                     </Typography>
@@ -246,19 +251,12 @@ export function SyncStatusOverviewPanel({ refreshKey = 0, onGoLogs, onGoQuality 
 
                 {/* 3. 最近同步 */}
                 <Grid size={{ xs: 6, md: 3 }}>
-                  <Paper variant="outlined" sx={{ p: 2 }}>
+                  <Paper variant="outlined" sx={{ p: 2, height: '100%' }}>
                     <Typography variant="subtitle2" sx={{ mb: 1 }}>
                       最近同步
                     </Typography>
                     <Typography variant="body2">
-                      增量：
-                      {overview.lastIncrementalSyncAt
-                        ? fToNow(overview.lastIncrementalSyncAt)
-                        : '—'}
-                    </Typography>
-                    <Typography variant="body2">
-                      全量：
-                      {overview.lastFullSyncAt ? fToNow(overview.lastFullSyncAt) : '—'}
+                      {lastSyncOverall ? fToNow(lastSyncOverall) : '—'}
                     </Typography>
                   </Paper>
                 </Grid>
@@ -269,27 +267,27 @@ export function SyncStatusOverviewPanel({ refreshKey = 0, onGoLogs, onGoQuality 
                     variant="outlined"
                     sx={{
                       p: 2,
-                      borderColor:
-                        (overview.failedTaskNames ?? []).length > 0 ? 'error.main' : 'divider',
+                      height: '100%',
+                      borderColor: failedTableNames.length > 0 ? 'error.main' : 'divider',
                     }}
                   >
                     <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                      失败任务 ({(overview.failedTaskNames ?? []).length})
+                      失败任务 ({failedTableNames.length})
                     </Typography>
-                    {(overview.failedTaskNames ?? []).length === 0 ? (
+                    {failedTableNames.length === 0 ? (
                       <Typography variant="body2" color="text.secondary">
                         无
                       </Typography>
                     ) : (
                       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                        {(overview.failedTaskNames ?? []).slice(0, 5).map((name) => (
+                        {failedTableNames.slice(0, 5).map((name) => (
                           <Label key={name} color="error" variant="soft">
                             {name}
                           </Label>
                         ))}
-                        {(overview.failedTaskNames ?? []).length > 5 && (
+                        {failedTableNames.length > 5 && (
                           <Typography variant="caption" color="text.secondary">
-                            +{(overview.failedTaskNames ?? []).length - 5} 更多
+                            +{failedTableNames.length - 5} 更多
                           </Typography>
                         )}
                       </Box>
@@ -318,13 +316,17 @@ export function SyncStatusOverviewPanel({ refreshKey = 0, onGoLogs, onGoQuality 
                 </Stack>
                 <Grid container spacing={1.5}>
                   {(overview.categories ?? []).map((cat) => {
-                    const lagDays = cat.lastSyncAt
-                      ? dayjs().startOf('day').diff(dayjs(cat.lastSyncAt).startOf('day'), 'day')
+                    const catLastSync = cat.items.reduce<string | null>((max, i) => {
+                      if (!i.lastSyncAt) return max;
+                      return !max || i.lastSyncAt > max ? i.lastSyncAt : max;
+                    }, null);
+                    const lagDays = catLastSync
+                      ? dayjs().startOf('day').diff(dayjs(catLastSync).startOf('day'), 'day')
                       : null;
                     const meta = freshnessMeta(lagDays);
 
                     return (
-                      <Grid key={cat.category} size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
+                      <Grid key={cat.name} size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
                         <ButtonBase
                           onClick={onGoQuality}
                           sx={{
@@ -350,7 +352,7 @@ export function SyncStatusOverviewPanel({ refreshKey = 0, onGoLogs, onGoQuality 
                               justifyContent="space-between"
                             >
                               <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                                {CATEGORY_LABEL[cat.category] ?? cat.category}
+                                {cat.name}
                               </Typography>
                               <Label color={meta.color} variant="soft">
                                 {meta.label}
@@ -373,7 +375,7 @@ export function SyncStatusOverviewPanel({ refreshKey = 0, onGoLogs, onGoQuality 
                               ))}
                             </Stack>
                             <Typography variant="caption" color="text.secondary">
-                              最近同步：{cat.lastSyncAt ? fToNow(cat.lastSyncAt) : '—'}
+                              最近同步：{catLastSync ? fToNow(catLastSync) : '—'}
                             </Typography>
                           </Paper>
                         </ButtonBase>
@@ -486,52 +488,62 @@ export function SyncStatusOverviewPanel({ refreshKey = 0, onGoLogs, onGoQuality 
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {(overview.categories ?? []).map((cat) => (
-                    <TableRow key={cat.category}>
-                      <TableCell>
-                        <Label color="default" variant="soft">
-                          {CATEGORY_LABEL[cat.category] ?? cat.category}
-                        </Label>
-                      </TableCell>
-                      <TableCell align="center">{cat.totalTasks}</TableCell>
-                      <TableCell align="center">
-                        <Typography
-                          variant="body2"
-                          sx={{ color: cat.successCount > 0 ? 'success.main' : 'text.secondary' }}
-                        >
-                          {cat.successCount}
-                        </Typography>
-                      </TableCell>
-                      <TableCell align="center">
-                        <Typography
-                          variant="body2"
-                          sx={{ color: cat.failedCount > 0 ? 'error.main' : 'text.primary' }}
-                        >
-                          {cat.failedCount}
-                        </Typography>
-                      </TableCell>
-                      <TableCell align="center">{cat.skippedCount}</TableCell>
-                      <TableCell>
-                        <Typography variant="body2" color="text.secondary">
-                          {cat.lastSyncAt ? fToNow(cat.lastSyncAt) : '—'}
-                        </Typography>
-                      </TableCell>
-                      <TableCell align="center">
-                        {cat.consecutiveFailures > 0 ? (
-                          <Label
-                            color={cat.consecutiveFailures >= 3 ? 'error' : 'warning'}
-                            variant="soft"
-                          >
-                            {cat.consecutiveFailures}
+                  {(overview.categories ?? []).map((cat) => {
+                    const catSuccess = cat.items.filter((i) => i.lastStatus === 'SUCCESS').length;
+                    const catFailed = cat.items.filter((i) => i.lastStatus === 'FAILED').length;
+                    const catSkipped = cat.items.filter((i) => i.lastStatus === 'SKIPPED').length;
+                    const catLastSync = cat.items.reduce<string | null>((max, i) => {
+                      if (!i.lastSyncAt) return max;
+                      return !max || i.lastSyncAt > max ? i.lastSyncAt : max;
+                    }, null);
+                    const catConsecFail = cat.items.reduce(
+                      (sum, i) => sum + (i.consecutiveFailures || 0),
+                      0
+                    );
+                    return (
+                      <TableRow key={cat.name}>
+                        <TableCell>
+                          <Label color="default" variant="soft">
+                            {cat.name}
                           </Label>
-                        ) : (
-                          <Typography variant="body2" color="text.secondary">
-                            0
+                        </TableCell>
+                        <TableCell align="center">{cat.items.length}</TableCell>
+                        <TableCell align="center">
+                          <Typography
+                            variant="body2"
+                            sx={{ color: catSuccess > 0 ? 'success.main' : 'text.secondary' }}
+                          >
+                            {catSuccess}
                           </Typography>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                        </TableCell>
+                        <TableCell align="center">
+                          <Typography
+                            variant="body2"
+                            sx={{ color: catFailed > 0 ? 'error.main' : 'text.primary' }}
+                          >
+                            {catFailed}
+                          </Typography>
+                        </TableCell>
+                        <TableCell align="center">{catSkipped}</TableCell>
+                        <TableCell>
+                          <Typography variant="body2" color="text.secondary">
+                            {catLastSync ? fToNow(catLastSync) : '—'}
+                          </Typography>
+                        </TableCell>
+                        <TableCell align="center">
+                          {catConsecFail > 0 ? (
+                            <Label color={catConsecFail >= 3 ? 'error' : 'warning'} variant="soft">
+                              {catConsecFail}
+                            </Label>
+                          ) : (
+                            <Typography variant="body2" color="text.secondary">
+                              0
+                            </Typography>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </Box>

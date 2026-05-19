@@ -281,26 +281,34 @@ export type RetryQueueItem = {
 // API 封装
 // ----------------------------------------------------------------------
 
-/** 单个类别的同步状态汇总 */
-export type SyncCategoryStatus = {
-  category: TushareSyncCategory;
-  totalTasks: number;
-  successCount: number;
-  failedCount: number;
-  skippedCount: number;
+/** 单个数据表的同步记录（后端实际返回格式） */
+export type SyncTableItem = {
+  tableName: string;
+  displayName: string;
+  category: string;
+  rowCount: number;
+  minDate: string | null;
+  maxDate: string | null;
+  distinctDates: number | null;
+  missingDays: number | null;
   lastSyncAt: string | null;
+  lastStatus: TushareSyncStatus | null;
   consecutiveFailures: number;
 };
 
-/** 同步状态总览 */
+/** 分类数据组（后端实际返回格式） */
+export type SyncCategoryGroup = {
+  name: string;
+  rowCount: number;
+  items: SyncTableItem[];
+};
+
+/** 同步状态总览（后端实际返回格式） */
 export type SyncStatusOverview = {
   generatedAt: string;
-  totalTasks: number;
-  healthStatus: 'healthy' | 'degraded' | 'unhealthy';
-  categories: SyncCategoryStatus[];
-  lastFullSyncAt: string | null;
-  lastIncrementalSyncAt: string | null;
-  failedTaskNames: string[];
+  totalRows: number;
+  totalMissingDays: number;
+  categories: SyncCategoryGroup[];
 };
 
 // ----------------------------------------------------------------------

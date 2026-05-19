@@ -75,7 +75,7 @@ export function AnalysisMainMoneyFlowTab({ tsCode }: Props) {
 
   const chartOptions = useChart({
     xaxis: {
-      categories: data?.history.map((d) => d.tradeDate) ?? [],
+      categories: data?.history?.map((d) => d.tradeDate) ?? [],
       labels: { rotate: -30, style: { fontSize: '12px' } },
     },
     yaxis: [
@@ -115,12 +115,12 @@ export function AnalysisMainMoneyFlowTab({ tsCode }: Props) {
     {
       name: '收盘价',
       type: 'line',
-      data: data?.history.map((d) => d.close ?? null) ?? [],
+      data: data?.history?.map((d) => d.close ?? null) ?? [],
     },
     {
       name: '主力净流入',
       type: 'bar',
-      data: data?.history.map((d) => d.mainNetInflow ?? null) ?? [],
+      data: data?.history?.map((d) => d.mainNetInflow ?? null) ?? [],
     },
   ];
 
@@ -152,27 +152,21 @@ export function AnalysisMainMoneyFlowTab({ tsCode }: Props) {
         <Grid size={{ xs: 6, sm: 4, md: 2.4 }}>
           <StatCard
             label="5日主力净流入"
-            value={
-              summary?.mainNetInflow5d != null ? fWanYuan(summary.mainNetInflow5d) + ' 万' : null
-            }
+            value={summary?.mainNetInflow5d != null ? fWanYuan(summary.mainNetInflow5d) : null}
             positive={summary?.mainNetInflow5d != null ? summary.mainNetInflow5d > 0 : undefined}
           />
         </Grid>
         <Grid size={{ xs: 6, sm: 4, md: 2.4 }}>
           <StatCard
             label="10日主力净流入"
-            value={
-              summary?.mainNetInflow10d != null ? fWanYuan(summary.mainNetInflow10d) + ' 万' : null
-            }
+            value={summary?.mainNetInflow10d != null ? fWanYuan(summary.mainNetInflow10d) : null}
             positive={summary?.mainNetInflow10d != null ? summary.mainNetInflow10d > 0 : undefined}
           />
         </Grid>
         <Grid size={{ xs: 6, sm: 4, md: 2.4 }}>
           <StatCard
             label="20日主力净流入"
-            value={
-              summary?.mainNetInflow20d != null ? fWanYuan(summary.mainNetInflow20d) + ' 万' : null
-            }
+            value={summary?.mainNetInflow20d != null ? fWanYuan(summary.mainNetInflow20d) : null}
             positive={summary?.mainNetInflow20d != null ? summary.mainNetInflow20d > 0 : undefined}
           />
         </Grid>

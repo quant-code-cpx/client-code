@@ -23,12 +23,7 @@ import { useRouter } from 'src/routes/hooks';
 
 import { periodToDays, fmtTradeDate as fmtDate } from 'src/utils/format-time';
 
-import {
-  fetchSectorDaily,
-  fetchRotationDetail,
-  type SectorDailyItem,
-  type RotationDetailResult,
-} from 'src/api/market';
+import { fetchRotationDetail, type RotationDetailResult } from 'src/api/market';
 
 import { Iconify } from 'src/components/iconify';
 import { Scrollbar } from 'src/components/scrollbar';
@@ -36,11 +31,26 @@ import { Chart, useChart } from 'src/components/chart';
 
 // ----------------------------------------------------------------------
 
-function toYi(wan: number): number {
-  return +(wan / 10000).toFixed(2);
+function yuanToYi(value: number | null | undefined): number | null {
+  return value == null ? null : +(value / 1e8).toFixed(2);
 }
 
-function percentileLabel(p: number): { label: string; color: 'success' | 'warning' | 'error' } {
+function wanToYi(value: number | null | undefined): number | null {
+  return value == null ? null : +(value / 10000).toFixed(2);
+}
+
+function formatYi(value: number | null): string {
+  return value == null ? '--' : `${value} 亿`;
+}
+
+function formatNumber(value: number | null): string {
+  return value == null ? '--' : value.toFixed(2);
+}
+
+function percentileLabel(
+  p: number | null
+): { label: string; color: 'success' | 'warning' | 'error' } | null {
+  if (p == null) return null;
   if (p <= 30) return { label: '低估', color: 'success' };
   if (p <= 70) return { label: '中性', color: 'warning' };
   return { label: '高估', color: 'error' };
@@ -55,7 +65,6 @@ type Props = {
   onClose: () => void;
   sectorName: string | null;
   tsCode?: string;
-  tradeDate?: string;
   period?: string;
 };
 
@@ -106,8 +115,8 @@ const FlowTrendChart = memo(function FlowTrendChart({
 }) {
   const theme = useTheme();
   const categories = data.map((d) => fmtDate(d.tradeDate));
-  const dailyNet = data.map((d) => toYi(d.netInflow));
-  const cumulative = data.map((d) => toYi(d.cumulativeInflow));
+  const dailyNet = data.map((d) => yuanToYi(d.netInflow) ?? 0);
+  const cumulative = data.map((d) => yuanToYi(d.cumulativeInflow) ?? 0);
 
   const chartOptions = useChart({
     chart: { type: 'line', stacked: false, toolbar: { show: false } },
@@ -162,86 +171,77 @@ const FlowTrendChart = memo(function FlowTrendChart({
 
 // ----------------------------------------------------------------------
 
-// Sub-component: sector daily K-line chart
-// NOTE: /api/market/sector-daily is not yet implemented on the backend.
-// This component shows a placeholder until the endpoint is ready.
+// Sub-component: sector price trend from the existing detail endpoint.
 const SectorKlineChart = memo(function SectorKlineChart({
   sectorName: name,
-  tradeDate: td,
+  data,
 }: {
   sectorName: string;
-  tradeDate?: string;
+  data: RotationDetailResult['returnTrend'];
 }) {
-  const [data, setData] = useState<SectorDailyItem[]>([]);
-  const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-    fetchSectorDaily({ trade_date: td })
-      .then((items) => {
-        if (!cancelled) {
-          const filtered = (items ?? []).filter((it) => it.name === name);
-          setData(filtered);
-        }
-      })
-      .catch(() => {
-        if (!cancelled) setData([]);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [name, td]);
-
-  const categories = data.map((d) => d.tradeDate ?? '');
-  const series = [{ name: '收盘价', data: data.map((d) => +(d.close ?? 0).toFixed(2)) }];
+  const theme = useTheme();
+  const categories = data.map((d) => fmtDate(d.tradeDate));
+  const closeSeries = data.map((d) => d.close);
+  const pctSeries = data.map((d) => d.pctChange);
 
   const chartOptions = useChart({
-    chart: { type: 'line', toolbar: { show: false }, zoom: { enabled: false } },
-    stroke: { curve: 'smooth', width: 2 },
+    chart: { type: 'line', stacked: false, toolbar: { show: false }, zoom: { enabled: false } },
+    stroke: { width: [2, 0], curve: 'smooth' },
+    colors: [theme.palette.primary.main, theme.palette.error.main],
+    plotOptions: {
+      bar: {
+        columnWidth: '60%',
+        borderRadius: 2,
+        colors: {
+          ranges: [
+            { from: -100, to: 0, color: theme.palette.success.main },
+            { from: 0, to: 100, color: theme.palette.error.main },
+          ],
+        },
+      },
+    },
     xaxis: { categories, labels: { rotate: -30, style: { fontSize: '12px' } } },
-    yaxis: { labels: { formatter: (v: number) => v.toFixed(2) } },
-    tooltip: { y: { formatter: (v: number) => v.toFixed(2) } },
+    yaxis: [
+      {
+        title: { text: '收盘点位' },
+        labels: { formatter: (v: number) => v.toFixed(2) },
+      },
+      {
+        opposite: true,
+        title: { text: '日涨跌幅' },
+        labels: { formatter: (v: number) => `${v.toFixed(1)}%` },
+      },
+    ],
+    tooltip: {
+      shared: true,
+      intersect: false,
+      y: [
+        { formatter: (v: number) => v.toFixed(2) },
+        { formatter: (v: number) => `${v > 0 ? '+' : ''}${v.toFixed(2)}%` },
+      ],
+    },
+    legend: { position: 'top', fontSize: '12px' },
   });
 
-  if (loading) return <Skeleton variant="rectangular" height={240} />;
-  if (data.length === 0)
+  const series = [
+    { name: `${name}收盘`, type: 'line', data: closeSeries },
+    { name: '日涨跌幅', type: 'column', data: pctSeries },
+  ];
+
+  if (data.length === 0) {
     return (
-      <Box
-        sx={{
-          height: 240,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 1,
-        }}
-      >
-        <Iconify icon="solar:close-circle-bold" width={24} sx={{ color: 'text.disabled' }} />
-        <Typography variant="body2" color="text.disabled">
-          板块走势数据暂未就绪
-        </Typography>
-        <Typography variant="caption" color="text.disabled">
-          该功能依赖后端 /api/market/sector-daily 接口，正在开发中
-        </Typography>
+      <Box sx={{ height: 240, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <Typography color="text.disabled">暂无板块行情数据</Typography>
       </Box>
     );
-  return <Chart type="line" series={series} options={chartOptions} sx={{ height: 240 }} />;
+  }
+
+  return <Chart type="line" series={series} options={chartOptions} sx={{ height: 260 }} />;
 });
 
 // ----------------------------------------------------------------------
 
-export function RotationDetailDrawer({
-  open,
-  onClose,
-  sectorName,
-  tsCode,
-  tradeDate,
-  period,
-}: Props) {
+export function RotationDetailDrawer({ open, onClose, sectorName, tsCode, period }: Props) {
   const theme = useTheme();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<DrawerTab>('return');
@@ -285,24 +285,50 @@ export function RotationDetailDrawer({
   const pctColor = detail
     ? detail.pctChange > 0
       ? theme.palette.error.main
-      : theme.palette.success.main
+      : detail.pctChange < 0
+        ? theme.palette.success.main
+        : theme.palette.text.secondary
     : undefined;
 
   const peInfo = detail ? percentileLabel(detail.pePercentile) : null;
   const pbInfo = detail ? percentileLabel(detail.pbPercentile) : null;
+  const latestReturnPoint = detail?.returnTrend.at(-1) ?? null;
+  const periodReturn = latestReturnPoint?.cumReturn ?? null;
 
   const metrics = detail
     ? [
         { label: '涨跌幅', value: `${pctSign}${detail.pctChange.toFixed(2)}%`, color: pctColor },
-        { label: '成交额', value: `${toYi(detail.amount)} 亿` },
+        { label: '最新点位', value: formatNumber(latestReturnPoint?.close ?? null) },
         {
           label: '净流入',
-          value: `${toYi(detail.netAmount)} 亿`,
+          value: formatYi(yuanToYi(detail.netAmount)),
           color: detail.netAmount >= 0 ? theme.palette.error.main : theme.palette.success.main,
         },
-        { label: '动量值', value: `${detail.momentum.toFixed(2)}%` },
-        { label: 'PE分位', value: `${detail.pePercentile.toFixed(1)}%`, chip: peInfo },
-        { label: 'PB分位', value: `${detail.pbPercentile.toFixed(1)}%`, chip: pbInfo },
+        {
+          label: '区间收益',
+          value:
+            periodReturn == null
+              ? '--'
+              : `${periodReturn > 0 ? '+' : ''}${periodReturn.toFixed(2)}%`,
+          color:
+            periodReturn == null
+              ? undefined
+              : periodReturn > 0
+                ? theme.palette.error.main
+                : periodReturn < 0
+                  ? theme.palette.success.main
+                  : theme.palette.text.secondary,
+        },
+        {
+          label: 'PE分位',
+          value: detail.pePercentile == null ? '--' : `${detail.pePercentile.toFixed(1)}%`,
+          chip: peInfo,
+        },
+        {
+          label: 'PB分位',
+          value: detail.pbPercentile == null ? '--' : `${detail.pbPercentile.toFixed(1)}%`,
+          chip: pbInfo,
+        },
       ]
     : [];
 
@@ -311,7 +337,7 @@ export function RotationDetailDrawer({
       anchor="right"
       open={open}
       onClose={onClose}
-      PaperProps={{ sx: { width: { xs: 480, md: 640 } } }}
+      PaperProps={{ sx: { width: { xs: '100%', sm: 480, md: 640 } } }}
     >
       {/* Header */}
       <Box
@@ -333,7 +359,7 @@ export function RotationDetailDrawer({
             </Typography>
           )}
         </Box>
-        <IconButton onClick={onClose} size="small">
+        <IconButton onClick={onClose} size="small" aria-label="关闭行业详情">
           <Iconify icon="mingcute:close-line" />
         </IconButton>
       </Box>
@@ -397,8 +423,11 @@ export function RotationDetailDrawer({
             <>
               {activeTab === 'return' && detail && <ReturnTrendChart data={detail.returnTrend} />}
               {activeTab === 'flow' && detail && <FlowTrendChart data={detail.flowTrend} />}
-              {activeTab === 'kline' && sectorName && (
-                <SectorKlineChart sectorName={sectorName} tradeDate={tradeDate} />
+              {activeTab === 'kline' && detail && (
+                <SectorKlineChart
+                  sectorName={detail.sectorName || sectorName || '行业'}
+                  data={detail.returnTrend}
+                />
               )}
               {activeTab === 'stocks' && detail && (
                 <TableContainer>
@@ -407,18 +436,28 @@ export function RotationDetailDrawer({
                       <TableRow>
                         <TableCell>名称</TableCell>
                         <TableCell align="right">涨跌幅</TableCell>
-                        <TableCell align="right">主力净流入</TableCell>
-                        <TableCell align="right">成交额</TableCell>
+                        <TableCell align="right">PE_TTM</TableCell>
+                        <TableCell align="right">PB</TableCell>
+                        <TableCell align="right">总市值</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
+                      {detail.topStocks.length === 0 && (
+                        <TableRow>
+                          <TableCell colSpan={5} sx={{ py: 3 }}>
+                            <Typography variant="body2" color="text.disabled" align="center">
+                              暂无成分股数据，请检查行业成分同步或行业字典映射
+                            </Typography>
+                          </TableCell>
+                        </TableRow>
+                      )}
                       {detail.topStocks.map((s) => {
                         const pctColor2 =
-                          s.pctChg > 0 ? theme.palette.error.main : theme.palette.success.main;
-                        const flowColor =
-                          s.mainNetInflow >= 0
+                          (s.pctChg ?? 0) > 0
                             ? theme.palette.error.main
-                            : theme.palette.success.main;
+                            : (s.pctChg ?? 0) < 0
+                              ? theme.palette.success.main
+                              : theme.palette.text.secondary;
                         return (
                           <TableRow
                             key={s.tsCode}
@@ -438,17 +477,20 @@ export function RotationDetailDrawer({
                             </TableCell>
                             <TableCell align="right">
                               <Typography variant="body2" sx={{ color: pctColor2 }}>
-                                {s.pctChg > 0 ? '+' : ''}
-                                {s.pctChg.toFixed(2)}%
+                                {(s.pctChg ?? 0) > 0 ? '+' : ''}
+                                {s.pctChg == null ? '--' : `${s.pctChg.toFixed(2)}%`}
                               </Typography>
                             </TableCell>
                             <TableCell align="right">
-                              <Typography variant="body2" sx={{ color: flowColor }}>
-                                {toYi(s.mainNetInflow)} 亿
-                              </Typography>
+                              <Typography variant="body2">{formatNumber(s.peTtm)}</Typography>
                             </TableCell>
                             <TableCell align="right">
-                              <Typography variant="body2">{toYi(s.amount)} 亿</Typography>
+                              <Typography variant="body2">{formatNumber(s.pb)}</Typography>
+                            </TableCell>
+                            <TableCell align="right">
+                              <Typography variant="body2">
+                                {formatYi(wanToYi(s.totalMv))}
+                              </Typography>
                             </TableCell>
                           </TableRow>
                         );

@@ -165,7 +165,6 @@ export function IndustryRotationView({
       onClose={handleDrawerClose}
       sectorName={effectiveSector}
       tsCode={effectiveTsCode}
-      tradeDate={tradeDate}
       period={period}
     />
   );

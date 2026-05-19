@@ -85,7 +85,9 @@ export function SignalHistoryToolbar({
   const [advancedOpen, setAdvancedOpen] = useState(false);
 
   const dateError = Boolean(
-    draft.startDate && draft.endDate && dayjs(toDisplayDate(draft.startDate)).isAfter(dayjs(toDisplayDate(draft.endDate)))
+    draft.startDate &&
+      draft.endDate &&
+      dayjs(toDisplayDate(draft.startDate)).isAfter(dayjs(toDisplayDate(draft.endDate)))
   );
 
   const compareHref = useMemo(() => {
@@ -192,7 +194,11 @@ export function SignalHistoryToolbar({
           </Button>
         </Badge>
 
-        <Button variant="outlined" onClick={onReset} startIcon={<Iconify icon="solar:restart-bold" />}>
+        <Button
+          variant="outlined"
+          onClick={onReset}
+          startIcon={<Iconify icon="solar:restart-bold" />}
+        >
           重置
         </Button>
 
@@ -218,17 +224,21 @@ export function SignalHistoryToolbar({
           size="small"
           color="inherit"
           onClick={() => setAdvancedOpen((prev) => !prev)}
-          startIcon={<Iconify icon={advancedOpen ? 'solar:alt-arrow-up-bold' : 'solar:alt-arrow-down-bold'} />}
+          startIcon={
+            <Iconify
+              icon={advancedOpen ? 'solar:alt-arrow-up-bold' : 'solar:alt-arrow-down-bold'}
+            />
+          }
         >
           高级筛选
         </Button>
-        {hasDirty && (
-          <Chip size="small" color="warning" variant="outlined" label="有未应用变更" />
-        )}
+        {hasDirty && <Chip size="small" color="warning" variant="outlined" label="有未应用变更" />}
       </Box>
 
       <Collapse in={advancedOpen}>
-        <Box sx={{ pt: 2, display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' } }}>
+        <Box
+          sx={{ pt: 2, display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' } }}
+        >
           <Box>
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
               操作类型
@@ -312,7 +322,7 @@ export function SignalHistoryToolbar({
                   onChange={(e) => onDraftChange({ showHold: e.target.checked })}
                 />
               }
-              label="显示 HOLD"
+              label="显示持有信号"
             />
           </Box>
         </Box>
@@ -334,11 +344,31 @@ function toDisplayDate(value: string) {
 
 function getQuickRangePatch(range: string): Partial<SignalHistoryFilter> {
   const today = dayjs();
-  if (range === '7') return { startDate: today.subtract(6, 'day').format('YYYYMMDD'), endDate: today.format('YYYYMMDD') };
-  if (range === '30') return { startDate: today.subtract(29, 'day').format('YYYYMMDD'), endDate: today.format('YYYYMMDD') };
-  if (range === '90') return { startDate: today.subtract(89, 'day').format('YYYYMMDD'), endDate: today.format('YYYYMMDD') };
-  if (range === 'month') return { startDate: today.startOf('month').format('YYYYMMDD'), endDate: today.format('YYYYMMDD') };
-  if (range === 'quarter') return { startDate: getQuarterStart(today).format('YYYYMMDD'), endDate: today.format('YYYYMMDD') };
+  if (range === '7')
+    return {
+      startDate: today.subtract(6, 'day').format('YYYYMMDD'),
+      endDate: today.format('YYYYMMDD'),
+    };
+  if (range === '30')
+    return {
+      startDate: today.subtract(29, 'day').format('YYYYMMDD'),
+      endDate: today.format('YYYYMMDD'),
+    };
+  if (range === '90')
+    return {
+      startDate: today.subtract(89, 'day').format('YYYYMMDD'),
+      endDate: today.format('YYYYMMDD'),
+    };
+  if (range === 'month')
+    return {
+      startDate: today.startOf('month').format('YYYYMMDD'),
+      endDate: today.format('YYYYMMDD'),
+    };
+  if (range === 'quarter')
+    return {
+      startDate: getQuarterStart(today).format('YYYYMMDD'),
+      endDate: today.format('YYYYMMDD'),
+    };
   return {};
 }
 

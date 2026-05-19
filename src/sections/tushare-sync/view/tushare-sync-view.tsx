@@ -103,7 +103,7 @@ export function TushareSyncView() {
             <Chip
               size="small"
               color={isReadOnly ? 'info' : 'success'}
-              label={isReadOnly ? 'ADMIN 只读' : 'SUPER_ADMIN 可操作'}
+              label={isReadOnly ? '管理员（只读）' : '超级管理员'}
               variant="outlined"
             />
           </Stack>
@@ -149,7 +149,7 @@ export function TushareSyncView() {
       {isReadOnly && (
         <Alert severity="info" sx={{ mb: 3 }}>
           当前账号为只读模式，可查看同步状态与日志；触发同步、质量检查、补数、重试等操作需
-          SUPER_ADMIN 权限。
+          超级管理员权限。
         </Alert>
       )}
 

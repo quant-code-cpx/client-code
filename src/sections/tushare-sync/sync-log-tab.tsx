@@ -27,7 +27,7 @@ import TableContainer from '@mui/material/TableContainer';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import TablePagination from '@mui/material/TablePagination';
 
-import { fDateTime } from 'src/utils/format-time';
+import { fDateTime, fmtTradeDate } from 'src/utils/format-time';
 
 import { tushareSyncApi } from 'src/api/tushare-sync';
 
@@ -275,7 +275,7 @@ export function SyncLogTab({ refreshKey = 0 }: Props) {
                   <TableCell>状态</TableCell>
                   <TableCell>交易日</TableCell>
                   <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>消息</TableCell>
-                  <TableCell>Payload</TableCell>
+                  <TableCell>参数</TableCell>
                   <TableCell>开始时间</TableCell>
                   <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>结束时间</TableCell>
                 </TableRow>
@@ -321,7 +321,7 @@ export function SyncLogTab({ refreshKey = 0 }: Props) {
                         </TableCell>
                         <TableCell>
                           <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                            {log.tradeDate ?? '—'}
+                            {log.tradeDate ? fmtTradeDate(log.tradeDate) : '—'}
                           </Typography>
                         </TableCell>
                         <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>
@@ -397,7 +397,7 @@ export function SyncLogTab({ refreshKey = 0 }: Props) {
         <Box sx={{ width: { xs: 320, sm: 480 }, p: 3 }}>
           <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
             <Box>
-              <Typography variant="h6">Payload</Typography>
+              <Typography variant="h6">任务参数</Typography>
               <Typography variant="caption" color="text.secondary">
                 {payloadDrawer?.task ?? '—'}
               </Typography>

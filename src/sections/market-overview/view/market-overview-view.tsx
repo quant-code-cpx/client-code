@@ -27,6 +27,8 @@ import { MarketIndexTrendChart } from '../market-index-trend-chart';
 import { MarketDailySnapshotCard } from '../market-daily-snapshot-card';
 import { MarketChangeDistributionChart } from '../market-change-distribution-chart';
 
+const CONTROL_HEIGHT = 40;
+
 // ── Section Header ─────────────────────────────────────────────
 
 function SectionHeader({ title, action }: { title: string; action?: React.ReactNode }) {
@@ -122,11 +124,18 @@ export function MarketOverviewView() {
             format="YYYY-MM-DD"
             shouldDisableDate={(day) => day.day() === 0 || day.day() === 6}
             slotProps={{
-              textField: { size: 'small', sx: { width: 215 } },
+              textField: {
+                size: 'small',
+                sx: { width: 215, '& .MuiInputBase-root': { height: CONTROL_HEIGHT } },
+              },
             }}
           />
           <Tooltip title="刷新数据">
-            <IconButton size="small" onClick={handleRefresh}>
+            <IconButton
+              size="small"
+              onClick={handleRefresh}
+              sx={{ width: CONTROL_HEIGHT, height: CONTROL_HEIGHT }}
+            >
               <Iconify icon="solar:refresh-bold" width={20} />
             </IconButton>
           </Tooltip>

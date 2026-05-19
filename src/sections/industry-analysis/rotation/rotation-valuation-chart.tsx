@@ -10,6 +10,8 @@ import { useTheme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 
+import { fmtTradeDate as fmtDate } from 'src/utils/format-time';
+
 import { fetchSectorValuation, type SectorValuationItem } from 'src/api/market';
 
 import { Chart, useChart } from 'src/components/chart';
@@ -28,6 +30,7 @@ export function RotationValuationChart({ tradeDate, onSectorClick, refreshKey }:
   const theme = useTheme();
   const [valMode, setValMode] = useState<ValMode>('pe');
   const [sectors, setSectors] = useState<SectorValuationItem[]>([]);
+  const [valuationDate, setValuationDate] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -36,9 +39,16 @@ export function RotationValuationChart({ tradeDate, onSectorClick, refreshKey }:
     setLoading(true);
     setError('');
 
-    fetchSectorValuation({ trade_date: tradeDate })
+    fetchSectorValuation({
+      trade_date: tradeDate,
+      sort_by: 'pe_percentile_1y',
+      order: 'asc',
+    })
       .then((res) => {
-        if (!cancelled) setSectors(res?.sectors ?? []);
+        if (!cancelled) {
+          setSectors(res?.sectors ?? []);
+          setValuationDate(res?.tradeDate ?? '');
+        }
       })
       .catch((err: unknown) => {
         if (!cancelled) setError(err instanceof Error ? err.message : '加载估值数据失败');
@@ -56,13 +66,27 @@ export function RotationValuationChart({ tradeDate, onSectorClick, refreshKey }:
     setValMode(val);
   }, []);
 
-  // Sort descending by percentile (high = overvalued first)
-  const sorted = [...sectors].sort((a, b) =>
-    valMode === 'pe' ? b.pePercentile - a.pePercentile : b.pbPercentile - a.pbPercentile
-  );
+  const percentileColor = (p: number) =>
+    p <= 30
+      ? theme.palette.success.main
+      : p <= 70
+        ? theme.palette.warning.main
+        : theme.palette.error.main;
+
+  // Sort ascending by percentile: low valuation appears first/top.
+  const sorted = sectors
+    .filter((s) => (valMode === 'pe' ? s.pePercentile : s.pbPercentile) != null)
+    .sort((a, b) =>
+      valMode === 'pe'
+        ? (a.pePercentile ?? 0) - (b.pePercentile ?? 0)
+        : (a.pbPercentile ?? 0) - (b.pbPercentile ?? 0)
+    );
 
   const categories = sorted.map((s) => s.name);
-  const percentiles = sorted.map((s) => (valMode === 'pe' ? s.pePercentile : s.pbPercentile));
+  const percentiles = sorted.map((s) =>
+    valMode === 'pe' ? (s.pePercentile ?? 0) : (s.pbPercentile ?? 0)
+  );
+  const barColors = percentiles.map(percentileColor);
 
   const series = [{ name: valMode === 'pe' ? 'PE分位' : 'PB分位', data: percentiles }];
 
@@ -84,22 +108,9 @@ export function RotationValuationChart({ tradeDate, onSectorClick, refreshKey }:
         horizontal: true,
         barHeight: '60%',
         distributed: true,
-        colors: {
-          backgroundBarColors: [],
-          ranges: percentiles.map((p, i) => ({
-            from: i,
-            to: i,
-            color:
-              p <= 30
-                ? theme.palette.success.main
-                : p <= 70
-                  ? theme.palette.warning.main
-                  : theme.palette.error.main,
-          })),
-        },
       },
     },
-    colors: [theme.palette.info.main],
+    colors: barColors.length > 0 ? barColors : [theme.palette.info.main],
     xaxis: {
       categories,
       min: 0,
@@ -118,21 +129,17 @@ export function RotationValuationChart({ tradeDate, onSectorClick, refreshKey }:
         const item = sorted[dataPointIndex];
         if (!item) return '';
         const percentile = valMode === 'pe' ? item.pePercentile : item.pbPercentile;
+        if (percentile == null) return '';
         const current = valMode === 'pe' ? item.peTtm : item.pbMrq;
-        const median = valMode === 'pe' ? item.peMedian3y : item.pbMedian3y;
+        const percentile3y = valMode === 'pe' ? item.pePercentile3y : item.pbPercentile3y;
         const label = valMode === 'pe' ? 'PE_TTM' : 'PB_MRQ';
         const level = percentile <= 30 ? '低估' : percentile <= 70 ? '中性' : '高估';
-        const levelColor =
-          percentile <= 30
-            ? theme.palette.success.main
-            : percentile <= 70
-              ? theme.palette.warning.main
-              : theme.palette.error.main;
+        const levelColor = percentileColor(percentile);
         return [
           '<div style="padding:8px 12px;font-size:13px;">',
           `<b>${item.name}</b><br/>`,
-          `${label}：${current.toFixed(2)}<br/>`,
-          `3年中位数：${median.toFixed(2)}<br/>`,
+          `${label}：${current == null ? '-' : current.toFixed(2)}<br/>`,
+          `3年分位：${percentile3y == null ? '-' : `${percentile3y.toFixed(1)}%`}<br/>`,
           `历史分位：<span style="color:${levelColor}">${percentile.toFixed(1)}% (${level})</span>`,
           '</div>',
         ].join('');
@@ -147,7 +154,14 @@ export function RotationValuationChart({ tradeDate, onSectorClick, refreshKey }:
     <Card>
       <CardContent>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-          <Typography variant="h6">行业估值分位</Typography>
+          <Box>
+            <Typography variant="h6">行业估值分位</Typography>
+            {valuationDate && (
+              <Typography variant="caption" color="text.secondary">
+                估值数据截至 {fmtDate(valuationDate)}
+              </Typography>
+            )}
+          </Box>
           <Tabs value={valMode} onChange={handleTabChange} sx={{ minHeight: 36 }}>
             <Tab label="PE 分位" value="pe" sx={{ minHeight: 36, py: 0 }} />
             <Tab label="PB 分位" value="pb" sx={{ minHeight: 36, py: 0 }} />
@@ -181,7 +195,7 @@ export function RotationValuationChart({ tradeDate, onSectorClick, refreshKey }:
           <Box
             sx={{ height: 400, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           >
-            <Typography color="text.disabled">暂无数据</Typography>
+            <Typography color="text.disabled">暂无估值分位数据</Typography>
           </Box>
         ) : (
           <Box sx={{ maxHeight: 640, overflowY: 'auto' }}>

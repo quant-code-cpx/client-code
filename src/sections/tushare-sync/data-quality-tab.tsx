@@ -48,7 +48,7 @@ type Props = {
 
 type QualityPanel = 'health' | 'tools' | 'results';
 
-const READ_ONLY_TOOLTIP = '仅 SUPER_ADMIN 可执行';
+const READ_ONLY_TOOLTIP = '仅超级管理员可执行';
 const QUALITY_PANEL_STORAGE_KEY = 'tushare-sync:quality-panel:v2';
 
 function getInitialPanel(): QualityPanel {
@@ -294,7 +294,7 @@ export function DataQualityTab({ isReadOnly = false, refreshKey = 0 }: Props) {
         <AccordionDetails>
           {isReadOnly && (
             <Alert severity="info" sx={{ mb: 2 }}>
-              当前为只读模式，可查看检查工具配置；执行检查和补数需 SUPER_ADMIN 权限。
+              当前为只读模式，可查看检查工具配置；执行检查和补数需超级管理员权限。
             </Alert>
           )}
 

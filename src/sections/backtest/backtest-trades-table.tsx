@@ -11,6 +11,7 @@ import TableContainer from '@mui/material/TableContainer';
 import TablePagination from '@mui/material/TablePagination';
 
 import { fNumber } from 'src/utils/format-number';
+import { fmtTradeDate } from 'src/utils/format-time';
 
 import { Label } from 'src/components/label';
 import { Scrollbar } from 'src/components/scrollbar';
@@ -58,7 +59,7 @@ export function BacktestTradesTable({
               {items.map((item, idx) => (
                 <TableRow key={idx} hover>
                   <TableCell>
-                    <Typography variant="caption">{item.tradeDate}</Typography>
+                    <Typography variant="caption">{fmtTradeDate(item.tradeDate)}</Typography>
                   </TableCell>
                   <TableCell>
                     <Typography variant="caption">{item.tsCode}</Typography>

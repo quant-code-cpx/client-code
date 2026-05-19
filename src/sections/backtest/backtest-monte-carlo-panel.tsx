@@ -60,46 +60,53 @@ export function BacktestMonteCarloPanel({ runId }: BacktestMonteCarloPanelProps)
         ? [
             {
               label: '期望年化收益',
-              value: formatPct(result.stats.expectedReturn),
-              color: result.stats.expectedReturn >= 0 ? 'success' : 'error',
+              value: formatPct(result.annualizedReturnDistribution.mean),
+              color: result.annualizedReturnDistribution.mean >= 0 ? 'success' : 'error',
             },
-            { label: '期望年化波动率', value: formatPct(result.stats.expectedVolatility) },
             {
-              label: '95% VaR',
-              value: formatPct(result.stats.var95),
+              label: '年化收益波动率',
+              value: formatPct(result.annualizedReturnDistribution.std ?? 0),
+            },
+            {
+              label: '95%最大回撤',
+              value: formatPct(result.maxDrawdownDistribution.percentile95),
               color: 'error',
             },
             {
-              label: '95% CVaR',
-              value: formatPct(result.stats.cvar95),
+              label: '平均最大回撤',
+              value: formatPct(result.maxDrawdownDistribution.mean),
               color: 'error',
             },
             {
-              label: '最差路径回撤',
-              value: formatPct(result.stats.worstDrawdown),
-              color: 'error',
+              label: '期望净值',
+              value: result.finalNavDistribution.mean.toFixed(4),
             },
             {
-              label: '最优路径年化',
-              value: formatPct(result.stats.bestReturn),
-              color: 'success',
-            },
-            {
-              label: '最差路径年化',
-              value: formatPct(result.stats.worstReturn),
-              color: 'error',
+              label: '原始总收益',
+              value: formatPct(result.originalTotalReturn),
+              color: result.originalTotalReturn >= 0 ? 'success' : 'error',
             },
             {
               label: '正收益概率',
-              value: formatPct(result.stats.probPositive),
-              color: result.stats.probPositive >= 0.5 ? 'success' : 'error',
+              value: formatPct(result.finalNavDistribution.positiveReturnProbability ?? 0),
+              color:
+                (result.finalNavDistribution.positiveReturnProbability ?? 0) >= 0.5
+                  ? 'success'
+                  : 'error',
+            },
+            {
+              label: '模拟次数',
+              value: String(result.numSimulations),
             },
           ]
         : [],
     [result]
   );
 
-  const categories = useMemo(() => result?.paths.map((p) => `Day ${p.day}`) ?? [], [result]);
+  const categories = useMemo(
+    () => result?.timeSeries.map((p) => `Day ${p.dayIndex}`) ?? [],
+    [result]
+  );
 
   const chartSeries = useMemo(
     () =>
@@ -108,17 +115,26 @@ export function BacktestMonteCarloPanel({ runId }: BacktestMonteCarloPanelProps)
             {
               name: '5%~95%',
               type: 'rangeArea' as const,
-              data: result.paths.map((p) => ({ x: `Day ${p.day}`, y: [p.p5, p.p95] })),
+              data: result.timeSeries.map((p) => ({
+                x: `Day ${p.dayIndex}`,
+                y: [p.percentiles[5], p.percentiles[95]],
+              })),
             },
             {
               name: '25%~75%',
               type: 'rangeArea' as const,
-              data: result.paths.map((p) => ({ x: `Day ${p.day}`, y: [p.p25, p.p75] })),
+              data: result.timeSeries.map((p) => ({
+                x: `Day ${p.dayIndex}`,
+                y: [p.percentiles[25], p.percentiles[75]],
+              })),
             },
             {
               name: '中位数',
               type: 'line' as const,
-              data: result.paths.map((p) => ({ x: `Day ${p.day}`, y: p.median })),
+              data: result.timeSeries.map((p) => ({
+                x: `Day ${p.dayIndex}`,
+                y: p.percentiles[50],
+              })),
             },
           ]
         : [],
@@ -207,11 +223,11 @@ export function BacktestMonteCarloPanel({ runId }: BacktestMonteCarloPanelProps)
           </Grid>
 
           {/* Envelope chart */}
-          {result.paths.length > 0 && (
+          {result.timeSeries.length > 0 && (
             <Card>
               <CardContent sx={{ p: 3 }}>
                 <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
-                  净值分位数包络线（{result.simulations.toLocaleString()} 条路径）
+                  净值分位数包络线（{result.numSimulations.toLocaleString()} 条路径）
                 </Typography>
                 <Chart
                   type="rangeArea"

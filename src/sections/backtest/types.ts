@@ -5,7 +5,8 @@ export type StrategyTemplateId =
   | 'MA_CROSS_SINGLE'
   | 'SCREENING_ROTATION'
   | 'FACTOR_RANKING'
-  | 'CUSTOM_POOL_REBALANCE';
+  | 'CUSTOM_POOL_REBALANCE'
+  | 'FACTOR_SCREENING_ROTATION';
 
 export type BacktestRunForm = {
   name: string;
@@ -71,6 +72,7 @@ export type StrategyConfigByTemplate = {
   SCREENING_ROTATION: ScreeningRotationConfig;
   FACTOR_RANKING: FactorRankingConfig;
   CUSTOM_POOL_REBALANCE: CustomPoolConfig;
+  FACTOR_SCREENING_ROTATION: ScreeningRotationConfig;
 };
 
 export type StrategyConfig = StrategyConfigByTemplate[StrategyTemplateId];

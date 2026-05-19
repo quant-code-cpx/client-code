@@ -94,9 +94,7 @@ export function RetryQueueTab({ isReadOnly = false, refreshKey = 0 }: Props) {
     item.task.toLowerCase().includes(filterTask.trim().toLowerCase())
   );
   const visibleIds = filteredItems.map((item) => item.id);
-  const actionDisabledReason = isReadOnly
-    ? '仅 SUPER_ADMIN 可执行'
-    : '等待后端单条/批量队列接口启用';
+  const actionDisabledReason = isReadOnly ? '仅超级管理员可执行' : '等待后端单条/批量队列接口启用';
 
   const toggleRow = (id: number) => {
     setSelectedIds((prev) => {
@@ -168,7 +166,7 @@ export function RetryQueueTab({ isReadOnly = false, refreshKey = 0 }: Props) {
                 <MenuItem value="SUCCEEDED">已成功 (SUCCEEDED)</MenuItem>
               </Select>
             </FormControl>
-            <Tooltip title={isReadOnly ? '仅 SUPER_ADMIN 可执行' : ''}>
+            <Tooltip title={isReadOnly ? '仅超级管理员可执行' : ''}>
               <span>
                 <Button
                   variant="outlined"

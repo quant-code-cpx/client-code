@@ -551,6 +551,13 @@ export function BacktestStrategyConfigPanel({
           />
         );
 
+      case 'FACTOR_SCREENING_ROTATION':
+        return (
+          <Alert severity="info" sx={{ mt: 1 }}>
+            此模板由因子市场模块触发，策略条件已预置传入，无需手动配置。如需修改条件，请返回「因子市场」重新发起回测。
+          </Alert>
+        );
+
       default:
         return (
           <Typography variant="body2" sx={{ color: 'text.secondary' }}>

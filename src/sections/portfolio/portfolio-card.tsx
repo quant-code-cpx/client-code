@@ -256,7 +256,8 @@ export function PortfolioCard({ portfolio, onView, onEdit, onDelete }: Portfolio
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
         <MenuItem
-          onClick={() => {
+          onClick={(e) => {
+            e.stopPropagation();
             handleMenuClose();
             onEdit(portfolio);
           }}
@@ -274,7 +275,8 @@ export function PortfolioCard({ portfolio, onView, onEdit, onDelete }: Portfolio
         </MenuItem>
         <Divider />
         <MenuItem
-          onClick={() => {
+          onClick={(e) => {
+            e.stopPropagation();
             handleMenuClose();
             onDelete(portfolio);
           }}

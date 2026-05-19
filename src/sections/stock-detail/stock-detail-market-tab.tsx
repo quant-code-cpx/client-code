@@ -339,8 +339,10 @@ export function StockDetailMarketTab({ tsCode }: Props) {
     isFetchingMore.current = true;
     try {
       // endDate = 最旧一条数据日期的前一天（YYYYMMDD 格式）
+      // 后端返回 ISO 字符串（如 "2026-02-25T00:00:00.000Z"），直接用 dayjs() 解析；
+      // 不能传 'YYYYMMDD' format，否则 customParseFormat 会严格匹配失败返回 Invalid Date
       const oldest = items[0].tradeDate;
-      const endDate = dayjs(oldest, 'YYYYMMDD').subtract(1, 'day').format('YYYYMMDD');
+      const endDate = dayjs(oldest).subtract(1, 'day').format('YYYYMMDD');
 
       const data = await stockDetailApi.chart({ tsCode, period, adjustType, limit: 100, endDate });
       if (!data.items.length) {
@@ -460,6 +462,7 @@ export function StockDetailMarketTab({ tsCode }: Props) {
   // ── 图表 Series ───────────────────────────────────────────────────────
   // Use canonical strings for series x values and categories
   const categories = allItems.map((item) => fmtD(String(item.tradeDate)));
+  const maUnit = period === 'W' ? '周' : period === 'M' ? '月' : '日';
 
   // 混合图：K 线 + MA 均线（均在同一图表，点击图例可控制显隐）
   // 均线系列使用 color 属性直接指定颜色，而非依赖 colors 数组（混合图下 colors 数组不可靠）
@@ -473,35 +476,37 @@ export function StockDetailMarketTab({ tsCode }: Props) {
       })),
     },
     {
-      name: '5日均线',
+      name: `5${maUnit}均线`,
       type: 'line',
       color: primaryColor,
       data: allItems.map((item, i) => ({ x: categories[i], y: item.ma5 ?? null })),
     },
     {
-      name: '10日均线',
+      name: `10${maUnit}均线`,
       type: 'line',
       color: warningColor,
       data: allItems.map((item, i) => ({ x: categories[i], y: item.ma10 ?? null })),
     },
     {
-      name: '20日均线',
+      name: `20${maUnit}均线`,
       type: 'line',
       color: secondaryColor,
       data: allItems.map((item, i) => ({ x: categories[i], y: item.ma20 ?? null })),
     },
     {
-      name: '60日均线',
+      name: `60${maUnit}均线`,
       type: 'line',
       color: riseColor,
       data: allItems.map((item, i) => ({ x: categories[i], y: item.ma60 ?? null })),
     },
   ];
 
+  // 成交量图使用数值型 x（1-based 索引）而非 category 字符串，
+  // 使 isXNumeric=true，确保 apexExec(volId, 'zoomX', min, max) 能走数值路径正常生效。
   const volumeSeries = [
     {
       name: '成交量(手)',
-      data: allItems.map((item, i) => ({ x: categories[i], y: item.vol ?? 0 })),
+      data: allItems.map((item, i) => ({ x: i + 1, y: item.vol ?? 0 })),
     },
   ];
 
@@ -629,7 +634,7 @@ export function StockDetailMarketTab({ tsCode }: Props) {
           `收: <span style="color:${clr};font-weight:600">${c?.toFixed(2) ?? '--'}</span>`,
         ];
 
-        const maNames = ['5日均线', '10日均线', '20日均线', '60日均线'];
+        const maNames = [`5${maUnit}均线`, `10${maUnit}均线`, `20${maUnit}均线`, `60${maUnit}均线`];
         const maColors = [primaryColor, warningColor, secondaryColor, riseColor];
         const series = g.series as number[][];
         for (let i = 1; i <= 4; i += 1) {
@@ -668,7 +673,9 @@ export function StockDetailMarketTab({ tsCode }: Props) {
       // 缩放同步通过主图表的事件回调手动触发 apexExec
       type: 'bar',
       toolbar: { show: false },
-      zoom: { enabled: false },
+      // zoom.enabled 必须为 true，否则 ApexCharts 会在 zoomX() 内部拦截 exec 调用，
+      // 导致主图 zoomed/scrolled/updated 事件中通过 apexExec 对成交量图发出的同步缩放全部静默失效。
+      zoom: { enabled: true },
       events: {
         // 成交量图挂载后，主动同步当前已缩放到的 K 线范围
         // （K 线 mounted 早于成交量 mounted，彼时成交量图尚未注册，exec 会静默失败）
@@ -682,14 +689,17 @@ export function StockDetailMarketTab({ tsCode }: Props) {
     },
     plotOptions: { bar: { columnWidth: '80%', borderRadius: 0 } },
     xaxis: {
-      type: 'category',
-      categories,
+      // 必须用 numeric 类型，使 isXNumeric=true。
+      // category 类型会使 zoomX 走字符串查找路径，导致数值索引同步失效。
+      type: 'numeric',
       labels: {
         rotate: -45,
         rotateAlways: false,
-        formatter: (val: string) => {
-          if (!val) return val;
-          const dateStr = fmtD(String(val));
+        formatter: (val: string | number) => {
+          const idx = Math.round(Number(val)) - 1;
+          const cat = categories[idx];
+          if (!cat) return '';
+          const dateStr = fmtD(String(cat));
           const digits = dateStr.replace(/[^0-9]/g, '');
           if (digits.length === 8) return `${digits.slice(4, 6)}-${digits.slice(6, 8)}`;
           if (dateStr.length >= 10) return dateStr.slice(5, 10);
@@ -707,7 +717,13 @@ export function StockDetailMarketTab({ tsCode }: Props) {
       },
     },
     tooltip: {
-      x: { formatter: (val: unknown) => fmtD(String(val)) },
+      x: {
+        formatter: (val: unknown) => {
+          const idx = Math.round(Number(val)) - 1;
+          const cat = categories[idx];
+          return cat ? fmtD(String(cat)) : '';
+        },
+      },
       y: {
         formatter: (val: number) => formatVolumeAxisLabel(val),
         title: { formatter: () => '成交量: ' },

@@ -51,7 +51,8 @@ export function WatchlistHealthBar({
     const limit = groupLimit ?? GROUP_LIMIT_FALLBACK;
     const groupNearLimit = groupCount >= limit;
 
-    const stockCount = selectedWatchlist ? selectedWatchlist._count.stocks : 0;
+    const stockCount =
+      selectedWatchlist?._count?.stocks ?? selectedWatchlist?.summary?.stockCount ?? 0;
     const stockNearLimit = stockCount >= STOCK_LIMIT_PER_GROUP * 0.9;
 
     const latestTradeDate = stocks.reduce<string | null>((acc, stock) => {

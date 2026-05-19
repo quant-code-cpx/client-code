@@ -53,7 +53,7 @@ export function CacheStatsTab({ isReadOnly = false, refreshKey = 0 }: Props) {
   const filteredNamespaces = namespaces.filter((item) =>
     item.namespace.toLowerCase().includes(keyword.trim().toLowerCase())
   );
-  const clearDisabledReason = isReadOnly ? '仅 SUPER_ADMIN 可执行' : '等待后端缓存清理接口启用';
+  const clearDisabledReason = isReadOnly ? '仅超级管理员可执行' : '等待后端缓存清理接口启用';
 
   return (
     <Box sx={{ mt: 3 }}>

@@ -47,7 +47,7 @@ export function WalkForwardCreateModeTabs({ value, onChange }: Props) {
           value="ROLLING"
           icon={<Iconify icon="solar:history-bold" width={18} />}
           iconPosition="start"
-          label="Rolling 窗口"
+          label="滚动窗口"
         />
       </Tabs>
 

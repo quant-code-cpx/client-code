@@ -41,7 +41,9 @@ export function SignalHistoryCompareView() {
 
   const [activations, setActivations] = useState<SignalActivationItem[]>([]);
   const [loadingActivations, setLoadingActivations] = useState(true);
-  const [selectedIds, setSelectedIds] = useState<string[]>(parseIds(searchParams.get('strategyIds')));
+  const [selectedIds, setSelectedIds] = useState<string[]>(
+    parseIds(searchParams.get('strategyIds'))
+  );
   const [startDate, setStartDate] = useState(searchParams.get('startDate') ?? defaultStartDate());
   const [endDate, setEndDate] = useState(searchParams.get('endDate') ?? dayjs().format('YYYYMMDD'));
   const [forwardWindow, setForwardWindow] = useState<SignalForwardWindow>(
@@ -65,7 +67,12 @@ export function SignalHistoryCompareView() {
         if (cancelled) return;
         setActivations(data);
         if (selectedIds.length === 0) {
-          setSelectedIds(data.filter((item) => item.isActive).slice(0, 3).map((item) => item.strategyId));
+          setSelectedIds(
+            data
+              .filter((item) => item.isActive)
+              .slice(0, 3)
+              .map((item) => item.strategyId)
+          );
         }
       })
       .catch(() => {})
@@ -96,7 +103,12 @@ export function SignalHistoryCompareView() {
       params.set('forwardWindow', String(forwardWindow));
       setSearchParams(params, { replace: true });
     } catch (err) {
-      setError(err instanceof Error ? err.message : '获取多策略对比失败');
+      const message = err instanceof Error ? err.message : '';
+      if (/Cannot (POST|GET)/i.test(message) || /404/.test(message)) {
+        setError('多策略对比接口暂不可用');
+      } else {
+        setError(message || '获取多策略对比失败');
+      }
     } finally {
       setLoading(false);
     }
@@ -196,10 +208,16 @@ export function SignalHistoryCompareView() {
         </Stack>
       </Card>
 
-      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
 
       {loading && (
-        <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' } }}>
+        <Box
+          sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' } }}
+        >
           {[0, 1, 2].map((item) => (
             <Skeleton key={item} variant="rounded" height={180} />
           ))}
@@ -207,7 +225,9 @@ export function SignalHistoryCompareView() {
       )}
 
       {!loading && result && (
-        <Box sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' } }}>
+        <Box
+          sx={{ display: 'grid', gap: 2, gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' } }}
+        >
           {result.items.map((item) => (
             <Card key={item.strategyId} sx={{ p: 2 }}>
               <Typography variant="subtitle1" noWrap>
@@ -219,7 +239,7 @@ export function SignalHistoryCompareView() {
               <Box sx={{ mt: 2, display: 'grid', gap: 1.25 }}>
                 <Metric label="信号总数" value={String(item.aggregateStats?.totalSignals ?? '—')} />
                 <Metric
-                  label="BUY : SELL"
+                  label="买入:卖出"
                   value={`${item.aggregateStats?.buyCount ?? 0} : ${item.aggregateStats?.sellCount ?? 0}`}
                 />
                 <Metric
@@ -253,7 +273,10 @@ function Metric({ label, value }: { label: string; value: string }) {
       <Typography variant="body2" color="text.secondary">
         {label}
       </Typography>
-      <Typography variant="body2" sx={{ fontFeatureSettings: '"tnum"', fontVariantNumeric: 'tabular-nums' }}>
+      <Typography
+        variant="body2"
+        sx={{ fontFeatureSettings: '"tnum"', fontVariantNumeric: 'tabular-nums' }}
+      >
         {value}
       </Typography>
     </Box>
@@ -280,5 +303,8 @@ function toDisplayDate(value: string) {
 }
 
 function findStrategyName(activations: SignalActivationItem[], strategyId: string) {
-  return activations.find((activation) => activation.strategyId === strategyId)?.strategyName ?? strategyId;
+  return (
+    activations.find((activation) => activation.strategyId === strategyId)?.strategyName ??
+    strategyId
+  );
 }

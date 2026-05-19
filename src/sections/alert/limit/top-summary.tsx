@@ -76,6 +76,10 @@ function MiniSparkline({
 
 export function AlertLimitTopSummary({ items, summary, onMaxStreakClick }: Props) {
   const theme = useTheme();
+  const summaryList = useMemo<LimitSummaryDay[]>(
+    () => (Array.isArray(summary) ? summary : []),
+    [summary]
+  );
 
   const kpis = useMemo<KpiSpec[]>(() => {
     const limitUp = items.filter((it) => it.limitType === 'UP');
@@ -83,13 +87,13 @@ export function AlertLimitTopSummary({ items, summary, onMaxStreakClick }: Props
     const streak2 = items.filter((it) => getStreakDays(it) >= 2);
     const maxStreak = items.reduce((m, it) => Math.max(m, getStreakDays(it)), 0);
 
-    const today = summary?.[0];
+    const today = summaryList[0];
     const sealRate = today?.sealRate;
     const promoteRate = today?.promoteRate;
 
     const avg5UpCount =
-      summary && summary.length > 0
-        ? summary.reduce((s, d) => s + d.limitUp, 0) / summary.length
+      summaryList.length > 0
+        ? summaryList.reduce((s, d) => s + d.limitUp, 0) / summaryList.length
         : null;
 
     return [
@@ -137,24 +141,24 @@ export function AlertLimitTopSummary({ items, summary, onMaxStreakClick }: Props
         tooltip: LIMIT_GLOSSARY.promoteRate,
       },
     ];
-  }, [items, summary, onMaxStreakClick]);
+  }, [items, summaryList, onMaxStreakClick]);
 
   // 5 日趋势
   const sparklineUp = useMemo(
     () =>
-      (summary ?? [])
+      summaryList
         .slice()
         .reverse()
         .map((d) => d.limitUp),
-    [summary]
+    [summaryList]
   );
   const sparklineMaxStreak = useMemo(
     () =>
-      (summary ?? [])
+      summaryList
         .slice()
         .reverse()
         .map((d) => d.maxStreak),
-    [summary]
+    [summaryList]
   );
 
   return (
@@ -220,32 +224,32 @@ export function AlertLimitTopSummary({ items, summary, onMaxStreakClick }: Props
         </Grid>
       ))}
 
-      {summary && summary.length >= 2 ? (
+      {summaryList.length >= 2 ? (
         <Grid size={{ xs: 12 }}>
           <Card sx={{ p: 2 }}>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={3} alignItems="center">
               <Stack direction="row" spacing={2} alignItems="center" sx={{ flex: 1 }}>
                 <Typography variant="caption" sx={{ color: 'text.secondary', minWidth: 88 }}>
-                  近 {summary.length} 日 · 涨停家数
+                  近 {summaryList.length} 日 · 涨停家数
                 </Typography>
                 <MiniSparkline data={sparklineUp} color={theme.vars.palette.error.main} />
                 <Typography
                   variant="body2"
                   sx={{ color: 'text.primary', fontFeatureSettings: '"tnum"' }}
                 >
-                  {fNumber(summary[0]?.limitUp ?? 0)}
+                  {fNumber(summaryList[0]?.limitUp ?? 0)}
                 </Typography>
               </Stack>
               <Stack direction="row" spacing={2} alignItems="center" sx={{ flex: 1 }}>
                 <Typography variant="caption" sx={{ color: 'text.secondary', minWidth: 88 }}>
-                  近 {summary.length} 日 · 最高板
+                  近 {summaryList.length} 日 · 最高板
                 </Typography>
                 <MiniSparkline data={sparklineMaxStreak} color={theme.vars.palette.warning.main} />
                 <Typography
                   variant="body2"
                   sx={{ color: 'text.primary', fontFeatureSettings: '"tnum"' }}
                 >
-                  {fNumber(summary[0]?.maxStreak ?? 0)} 板
+                  {fNumber(summaryList[0]?.maxStreak ?? 0)} 板
                 </Typography>
               </Stack>
             </Stack>

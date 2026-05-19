@@ -61,8 +61,21 @@ export const ANOMALY_TYPE_LIST: AnomalyTypeConfig[] = [
   LARGE_NET_INFLOW_CFG,
 ];
 
-export function getAnomalyTypeConfig(type: AnomalyType): AnomalyTypeConfig {
-  return ANOMALY_TYPE_MAP[type];
+const UNKNOWN_ANOMALY_TYPE_CFG: AnomalyTypeConfig = {
+  type: 'VOLUME_SURGE',
+  label: '未知异动',
+  shortLabel: '未知',
+  color: 'info',
+  icon: 'solar:question-circle-bold',
+  ruleDesc: '后端返回未识别的异动类型，已按未知项展示',
+  unitHint: '',
+};
+
+export function getAnomalyTypeConfig(
+  type: AnomalyType | string | null | undefined
+): AnomalyTypeConfig {
+  if (!type) return UNKNOWN_ANOMALY_TYPE_CFG;
+  return ANOMALY_TYPE_MAP[type as AnomalyType] ?? UNKNOWN_ANOMALY_TYPE_CFG;
 }
 
 // ----------------------------------------------------------------------

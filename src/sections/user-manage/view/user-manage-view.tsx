@@ -153,6 +153,7 @@ export function UserManageView() {
   const [selectedIds, setSelectedIds] = useState<Set<number>>(() => new Set());
   const [bulkSubmitting, setBulkSubmitting] = useState(false);
   const [bulkResult, setBulkResult] = useState<BulkResult | null>(null);
+  const [kpiRefreshKey, setKpiRefreshKey] = useState(0);
 
   const [formOpen, setFormOpen] = useState(false);
   const [formMode, setFormMode] = useState<'create' | 'edit'>('create');
@@ -307,6 +308,7 @@ export function UserManageView() {
       const result = await userManageApi.create(data);
       setQueryPatch({ page: null });
       await fetchList();
+      setKpiRefreshKey((k) => k + 1);
       return result.initialPassword || data.password;
     },
     [fetchList, setQueryPatch]
@@ -442,6 +444,7 @@ export function UserManageView() {
         setBulkResult({ success, failed });
         setSelectedIds(new Set(failed.map((item) => item.id)));
         await fetchList();
+        setKpiRefreshKey((k) => k + 1);
       } finally {
         setBulkSubmitting(false);
       }
@@ -471,6 +474,7 @@ export function UserManageView() {
     try {
       await confirm.onConfirm();
       setConfirm(null);
+      setKpiRefreshKey((k) => k + 1);
     } catch (err) {
       setConfirmError(err instanceof Error ? err.message : '操作失败，请重试');
     } finally {
@@ -540,7 +544,10 @@ export function UserManageView() {
       </Stack>
 
       {CONFIG.userManageFeatures.stats && (
-        <KpiSummary onApplyStatus={(status) => setQueryPatch({ status })} />
+        <KpiSummary
+          onApplyStatus={(status) => setQueryPatch({ status })}
+          refreshKey={kpiRefreshKey}
+        />
       )}
 
       <Tabs

@@ -24,6 +24,8 @@ import TableContainer from '@mui/material/TableContainer';
 import LinearProgress from '@mui/material/LinearProgress';
 import TablePagination from '@mui/material/TablePagination';
 
+import { fmtTradeDate } from 'src/utils/format-time';
+
 import { adminJobList } from 'src/api/factor';
 
 import { Label } from 'src/components/label';
@@ -172,10 +174,10 @@ export function FactorAdminJobsTable({ highlightJobId }: Props) {
                     label: job.status,
                     color: 'default' as const,
                   };
+                  // FIX-024: 后端任务列表中 progress 字段可能缺失，做防御性兜底
+                  const progress = job.progress ?? { done: 0, total: 0 };
                   const pct =
-                    job.progress.total > 0
-                      ? Math.round((job.progress.done / job.progress.total) * 100)
-                      : 0;
+                    progress.total > 0 ? Math.round((progress.done / progress.total) * 100) : 0;
                   const isHighlight = highlightJobId === job.jobId;
                   const durationSec =
                     job.durationMs != null ? Math.round(job.durationMs / 1000) : null;
@@ -209,10 +211,11 @@ export function FactorAdminJobsTable({ highlightJobId }: Props) {
                       </TableCell>
                       <TableCell>{job.operator}</TableCell>
                       <TableCell sx={{ whiteSpace: 'nowrap', fontSize: 12 }}>
-                        {job.tradeDate ??
-                          (job.startDate && job.endDate
-                            ? `${job.startDate} ~ ${job.endDate}`
-                            : '—')}
+                        {job.tradeDate
+                          ? fmtTradeDate(job.tradeDate)
+                          : job.startDate && job.endDate
+                            ? `${fmtTradeDate(job.startDate)} ~ ${fmtTradeDate(job.endDate)}`
+                            : '—'}
                       </TableCell>
                       <TableCell align="right">{job.factorCount}</TableCell>
                       <TableCell sx={{ minWidth: 120 }}>
@@ -224,12 +227,12 @@ export function FactorAdminJobsTable({ highlightJobId }: Props) {
                               sx={{ mb: 0.25, height: 4, borderRadius: 2 }}
                             />
                             <Typography variant="caption">
-                              {job.progress.done}/{job.progress.total}
+                              {progress.done}/{progress.total}
                             </Typography>
                           </Box>
                         ) : (
                           <Typography variant="body2">
-                            {job.progress.done}/{job.progress.total}
+                            {progress.done}/{progress.total}
                           </Typography>
                         )}
                       </TableCell>

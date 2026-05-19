@@ -1,4 +1,4 @@
-import type { Strategy , StrategyPerformance } from 'src/api/strategy';
+import type { Strategy, StrategyPerformance } from 'src/api/strategy';
 
 import { useState, useEffect } from 'react';
 
@@ -41,7 +41,15 @@ export function StrategyPerformanceCard({ strategy }: StrategyPerformanceCardPro
         if (!cancelled) setPerf(data);
       })
       .catch((err) => {
-        if (!cancelled) setError(err instanceof Error ? err.message : '加载业绩数据失败');
+        if (cancelled) return;
+        const message = err instanceof Error ? err.message : '';
+        // 后端尚未实现 /api/strategies/performance 时会返回 "Cannot POST ..."，
+        // 直接展示给用户体验不佳，改为统一文案。
+        if (/Cannot (POST|GET)/i.test(message) || /404/.test(message)) {
+          setError('业绩数据暂不可用');
+        } else {
+          setError(message || '加载业绩数据失败');
+        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -85,7 +93,12 @@ export function StrategyPerformanceCard({ strategy }: StrategyPerformanceCardPro
               <KpiItem label="累计收益" value={perf?.totalReturn ?? null} format="percent" />
               <KpiItem label="年化收益" value={perf?.annualizedReturn ?? null} format="percent" />
               <KpiItem label="夏普比率" value={perf?.sharpeRatio ?? null} format="number" />
-              <KpiItem label="最大回撤" value={perf?.maxDrawdown ?? null} format="percent" isDrawdown />
+              <KpiItem
+                label="最大回撤"
+                value={perf?.maxDrawdown ?? null}
+                format="percent"
+                isDrawdown
+              />
             </Box>
 
             {/* Baseline comparison */}

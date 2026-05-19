@@ -9,6 +9,8 @@ import { useTheme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 
+import { periodToDays, fmtTradeDate } from 'src/utils/format-time';
+
 import { fetchRotationOverview, type RotationOverviewResult } from 'src/api/market';
 
 // ----------------------------------------------------------------------
@@ -29,7 +31,10 @@ export function RotationOverviewCards({ tradeDate, period, refreshKey }: Props) 
     let cancelled = false;
     setLoading(true);
     setError('');
-    fetchRotationOverview({ trade_date: tradeDate })
+
+    const periodDays = period ? Math.min(periodToDays(period), 60) : undefined;
+
+    fetchRotationOverview({ trade_date: tradeDate, period_days: periodDays })
       .then((res) => {
         if (!cancelled) setData(res);
       })
@@ -141,7 +146,13 @@ export function RotationOverviewCards({ tradeDate, period, refreshKey }: Props) 
                   color="text.secondary"
                   sx={{ mt: 0.5, display: 'block' }}
                 >
-                  {data?.tradeDate ?? '最新交易日'} · {data?.period ?? period ?? '1m'} 区间
+                  {fmtTradeDate(data?.tradeDate ?? '') || '最新交易日'} ·{' '}
+                  {(data?.period ?? period ?? '1m')
+                    .replace(/d$/, '天')
+                    .replace(/w$/, '周')
+                    .replace(/m$/, '月')
+                    .replace(/y$/, '年')}{' '}
+                  区间
                 </Typography>
               </>
             )}

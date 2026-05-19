@@ -46,9 +46,11 @@ export function RotationHeatmapChart({ tradeDate, period, onSectorClick, refresh
     setLoading(true);
     setError('');
 
+    const periodDays = period ? Math.min(periodToDays(period), 60) : undefined;
+
     fetchRotationHeatmap({
       trade_date: tradeDate,
-      periods: period ? [periodToDays(period)] : undefined,
+      periods: periodDays ? [periodDays] : undefined,
     })
       .then((res) => {
         if (!cancelled) setSectors(res?.sectors ?? []);
@@ -68,7 +70,13 @@ export function RotationHeatmapChart({ tradeDate, period, onSectorClick, refresh
   // Secondary: fetch flow analysis to populate netAmount per sector (best-effort, silent on error)
   useEffect(() => {
     let cancelled = false;
-    fetchFlowAnalysis({ trade_date: tradeDate, days: period ? periodToDays(period) : undefined })
+    const periodDays = period ? Math.min(periodToDays(period), 60) : undefined;
+    fetchFlowAnalysis({
+      trade_date: tradeDate,
+      days: periodDays,
+      sort_by: 'cumulative_net',
+      order: 'desc',
+    })
       .then((res) => {
         if (!cancelled) {
           const map = new Map<string, number>();
@@ -93,18 +101,26 @@ export function RotationHeatmapChart({ tradeDate, period, onSectorClick, refresh
     []
   );
 
-  const series = [
-    {
-      data: sectors.map((s) => {
-        if (colorMode === 'pctChange') {
-          return { x: s.name, y: Math.round(s.pctChange * 100) / 100 };
-        }
-        // Convert yuan → 亿
-        const netYuan = flowMap.get(s.name) ?? 0;
-        return { x: s.name, y: Math.round((netYuan / 1e8) * 100) / 100 };
-      }),
-    },
-  ];
+  const chartData = sectors
+    .map((sector) => {
+      if (colorMode === 'pctChange') {
+        return {
+          sector,
+          x: sector.name,
+          y: Math.round(sector.pctChange * 100) / 100,
+        };
+      }
+
+      const netYuan = flowMap.get(sector.name) ?? 0;
+      return {
+        sector,
+        x: sector.name,
+        y: Math.round((netYuan / 1e8) * 100) / 100,
+      };
+    })
+    .sort((a, b) => b.y - a.y);
+
+  const series = [{ data: chartData.map(({ x, y }) => ({ x, y })) }];
 
   // A-share convention: 红涨绿跌 (red = gain/inflow, green = drop/outflow)
   const pctRanges = [
@@ -134,7 +150,8 @@ export function RotationHeatmapChart({ tradeDate, period, onSectorClick, refresh
       toolbar: { show: false },
       events: {
         dataPointSelection: (_event: unknown, _chartCtx: unknown, config: any) => {
-          const name = sectors[(config as { dataPointIndex: number })?.dataPointIndex]?.name;
+          const name =
+            chartData[(config as { dataPointIndex: number })?.dataPointIndex]?.sector.name;
           if (name && onSectorClick) onSectorClick(name);
         },
       },
@@ -166,7 +183,7 @@ export function RotationHeatmapChart({ tradeDate, period, onSectorClick, refresh
       shared: false,
       intersect: true,
       custom: ({ dataPointIndex }: { seriesIndex: number; dataPointIndex: number; w: unknown }) => {
-        const sector = sectors[dataPointIndex];
+        const sector = chartData[dataPointIndex]?.sector;
         if (!sector) return '';
         const netYuan = flowMap.get(sector.name) ?? 0;
         const netYi = (netYuan / 1e8).toFixed(2);

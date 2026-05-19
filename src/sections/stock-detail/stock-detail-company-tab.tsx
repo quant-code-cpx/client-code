@@ -9,6 +9,8 @@ import Divider from '@mui/material/Divider';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 
+import { fDate } from 'src/utils/format-time';
+
 import { stockDetailApiExtra } from 'src/api/stock';
 
 // ----------------------------------------------------------------------
@@ -70,7 +72,9 @@ export function StockDetailCompanyTab({ tsCode, overview, loading }: Props) {
   const legalPerson = str(company?.chairman);
   const generalManager = str(company?.manager ?? company?.chairman);
   const employees = str(company?.employees);
-  const established = str(basic?.listDate);
+  const listDateRaw = basic?.listDate;
+  const established =
+    listDateRaw != null && listDateRaw !== '' ? fDate(listDateRaw, 'YYYY-MM-DD') : '-';
   const registered = str(company?.regCapital);
   const province = str(company?.province ?? basic?.area);
   const city = str(company?.city);
@@ -141,7 +145,7 @@ export function StockDetailCompanyTab({ tsCode, overview, loading }: Props) {
           <InfoRow label="法定代表人" value={legalPerson} />
           <InfoRow label="总经理 / 董事长" value={generalManager} />
           <InfoRow label="员工人数" value={employees} />
-          <InfoRow label="成立日期" value={established} />
+          <InfoRow label="上市日期" value={established} />
           <InfoRow label="注册资本(万元)" value={registered} />
           <InfoRow label="机构类型" value={orgType} />
           <InfoRow label="所在交易所" value={exchangeCode} />

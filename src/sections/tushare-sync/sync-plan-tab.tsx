@@ -100,7 +100,7 @@ const SYNC_STATUS_LABEL: Record<string, string> = {
   SKIPPED: '跳过',
 };
 
-const READ_ONLY_TOOLTIP = '仅 SUPER_ADMIN 可执行';
+const READ_ONLY_TOOLTIP = '仅超级管理员可执行';
 
 type Props = {
   isReadOnly?: boolean;
@@ -220,7 +220,7 @@ export function SyncPlanTab({ isReadOnly = false, refreshKey = 0 }: Props) {
   };
 
   const handleConfirmFullSync = async () => {
-    if (!pendingSync || fullConfirmText !== 'FULL') return;
+    if (!pendingSync || fullConfirmText !== '全量') return;
     const current = pendingSync;
     setPendingSync(null);
     setFullConfirmText('');
@@ -338,7 +338,7 @@ export function SyncPlanTab({ isReadOnly = false, refreshKey = 0 }: Props) {
           </Box>
 
           <Stack direction="row" spacing={1} sx={{ display: { xs: 'none', md: 'flex' } }}>
-            <Tooltip title={isReadOnly ? READ_ONLY_TOOLTIP : '按 basic 分类触发增量同步'}>
+            <Tooltip title={isReadOnly ? READ_ONLY_TOOLTIP : '按基础数据分类触发增量同步'}>
               <span>
                 <Button
                   size="small"
@@ -346,7 +346,7 @@ export function SyncPlanTab({ isReadOnly = false, refreshKey = 0 }: Props) {
                   disabled={isReadOnly || basicTasks.length === 0 || isSyncing || plansLoading}
                   onClick={() => requestSync('incremental', basicTasks)}
                 >
-                  同步 basic
+                  同步基础数据
                 </Button>
               </span>
             </Tooltip>
@@ -629,7 +629,7 @@ export function SyncPlanTab({ isReadOnly = false, refreshKey = 0 }: Props) {
         <DialogTitle>确认全量同步</DialogTitle>
         <DialogContent sx={{ pt: 1 }}>
           <Alert severity="warning" sx={{ mb: 2 }}>
-            全量同步会拉取历史数据，预计耗时较长。请输入 <strong>FULL</strong> 确认继续。
+            全量同步会拉取历史数据，预计耗时较长。请输入 <strong>全量</strong> 确认继续。
           </Alert>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
             本次将影响 {pendingSync?.tasks.length ?? 0} 个任务。
@@ -640,7 +640,7 @@ export function SyncPlanTab({ isReadOnly = false, refreshKey = 0 }: Props) {
             label="确认文本"
             value={fullConfirmText}
             onChange={(event) => setFullConfirmText(event.target.value)}
-            placeholder="FULL"
+            placeholder="全量"
           />
         </DialogContent>
         <DialogActions>
@@ -648,7 +648,7 @@ export function SyncPlanTab({ isReadOnly = false, refreshKey = 0 }: Props) {
           <Button
             color="warning"
             variant="contained"
-            disabled={fullConfirmText !== 'FULL'}
+            disabled={fullConfirmText !== '全量'}
             onClick={handleConfirmFullSync}
           >
             确认全量同步

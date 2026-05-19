@@ -43,7 +43,11 @@ export function RotationMomentumChart({ tradeDate, period, onSectorClick, refres
     setLoading(true);
     setError('');
 
-    fetchMomentumRanking({ trade_date: tradeDate, limit: limit === 0 ? undefined : limit })
+    fetchMomentumRanking({
+      trade_date: tradeDate,
+      limit: limit === 0 ? undefined : limit,
+      order: 'desc',
+    })
       .then((res) => {
         if (!cancelled) setRankings(res?.rankings ?? []);
       })
@@ -63,8 +67,8 @@ export function RotationMomentumChart({ tradeDate, period, onSectorClick, refres
     setLimit(Number(e.target.value));
   }, []);
 
-  // Sort ascending so best momentum is at top of horizontal bar chart
-  const sorted = [...rankings].sort((a, b) => a.momentum - b.momentum);
+  // Descending: strongest momentum appears first/top.
+  const sorted = [...rankings].sort((a, b) => b.momentum - a.momentum);
 
   const categories = sorted.map((r) => r.name);
   const values = sorted.map((r) => Math.round(r.momentum * 100) / 100);

@@ -73,7 +73,7 @@ export function PatternMatchCard({ match }: Props) {
           {/* 股票 + 日期 */}
           <Box sx={{ minWidth: 220 }}>
             <Link
-              href={`/stock/${match.tsCode}`}
+              href={`/stock/detail?code=${match.tsCode}`}
               underline="hover"
               variant="subtitle2"
               color="text.primary"

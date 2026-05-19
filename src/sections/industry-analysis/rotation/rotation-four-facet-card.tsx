@@ -40,7 +40,7 @@ type Props = {
 
 export function RotationFourFacetCard({ tradeDate, period, onSectorClick, refreshKey }: Props) {
   const [momentum, setMomentum] = useState<MomentumRankingItem[]>([]);
-  const [returns, setReturns] = useState<Array<{ name: string; cumReturn: number }>>([]);
+  const [returns, setReturns] = useState<Array<{ name: string; cumReturn: number | null }>>([]);
   const [flows, setFlows] = useState<FlowAnalysisItem[]>([]);
   const [valuation, setValuation] = useState<SectorValuationItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -48,15 +48,28 @@ export function RotationFourFacetCard({ tradeDate, period, onSectorClick, refres
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
+    const periodDays = period ? Math.min(periodToDays(period), 60) : undefined;
 
     Promise.all([
-      fetchMomentumRanking({ trade_date: tradeDate }),
-      fetchReturnComparison({ trade_date: tradeDate }),
+      fetchMomentumRanking({ trade_date: tradeDate, order: 'desc', limit: 10 }),
+      fetchReturnComparison({
+        trade_date: tradeDate,
+        periods: periodDays ? [periodDays] : undefined,
+        sort_period: periodDays,
+        order: 'desc',
+      }),
       fetchFlowAnalysis({
         trade_date: tradeDate,
-        days: period ? Math.min(periodToDays(period), 60) : undefined,
+        days: periodDays,
+        sort_by: 'cumulative_net',
+        order: 'desc',
+        limit: 10,
       }),
-      fetchSectorValuation({ trade_date: tradeDate }),
+      fetchSectorValuation({
+        trade_date: tradeDate,
+        sort_by: 'pe_percentile_1y',
+        order: 'asc',
+      }),
     ])
       .then(([momRes, retRes, flowRes, valRes]) => {
         if (cancelled) return;
@@ -66,7 +79,7 @@ export function RotationFourFacetCard({ tradeDate, period, onSectorClick, refres
         setReturns(
           sectors.map((s) => ({
             name: s.name,
-            cumReturn: s.data.length > 0 ? s.data[s.data.length - 1].cumReturn : 0,
+            cumReturn: s.data.length > 0 ? s.data[s.data.length - 1].cumReturn : null,
           }))
         );
         setFlows(flowRes?.flows ?? []);
@@ -86,11 +99,20 @@ export function RotationFourFacetCard({ tradeDate, period, onSectorClick, refres
 
   const pctColor = (v: number) => (v >= 0 ? 'error.main' : 'success.main');
   const fmtPct = (v: number) => `${v >= 0 ? '+' : ''}${v.toFixed(2)}%`;
+  const fmtYi = (v: number) => `${v >= 0 ? '+' : ''}${(v / 100000000).toFixed(2)}亿`;
 
   const topMomentum = [...momentum].sort((a, b) => b.momentum - a.momentum).slice(0, 10);
-  const topReturns = [...returns].sort((a, b) => b.cumReturn - a.cumReturn).slice(0, 10);
+  const topReturns = returns
+    .filter((item): item is { name: string; cumReturn: number } => item.cumReturn != null)
+    .sort((a, b) => b.cumReturn - a.cumReturn)
+    .slice(0, 10);
   const topFlows = [...flows].sort((a, b) => b.netInflow - a.netInflow).slice(0, 10);
-  const topValuation = [...valuation].sort((a, b) => a.pePercentile - b.pePercentile).slice(0, 10);
+  const topValuation = valuation
+    .filter(
+      (item): item is SectorValuationItem & { pePercentile: number } => item.pePercentile != null
+    )
+    .sort((a, b) => a.pePercentile - b.pePercentile)
+    .slice(0, 10);
 
   if (loading) {
     return <Skeleton variant="rectangular" height={300} sx={{ borderRadius: 2 }} />;
@@ -112,7 +134,7 @@ export function RotationFourFacetCard({ tradeDate, period, onSectorClick, refres
           title="动量 Top 10"
           tooltip="动量评分 = 多周期收益率加权排名，值越高代表近期趋势越强"
         >
-          <MiniTable>
+          <MiniTable empty={topMomentum.length === 0}>
             {topMomentum.map((item) => (
               <MiniRow
                 key={item.name}
@@ -127,7 +149,7 @@ export function RotationFourFacetCard({ tradeDate, period, onSectorClick, refres
 
         {/* Returns */}
         <FacetColumn title="收益 Top 10" tooltip="选定周期内的累计收益率">
-          <MiniTable>
+          <MiniTable empty={topReturns.length === 0}>
             {topReturns.map((item) => (
               <MiniRow
                 key={item.name}
@@ -142,12 +164,12 @@ export function RotationFourFacetCard({ tradeDate, period, onSectorClick, refres
 
         {/* Flow */}
         <FacetColumn title="资金 Top 10" tooltip="选定周期内的累计净流入金额（亿元）">
-          <MiniTable>
+          <MiniTable empty={topFlows.length === 0}>
             {topFlows.map((item) => (
               <MiniRow
                 key={item.name}
                 name={item.name}
-                value={`${(item.netInflow / 100000000).toFixed(2)}亿`}
+                value={fmtYi(item.netInflow)}
                 color={item.netInflow >= 0 ? 'error.main' : 'success.main'}
                 onClick={onSectorClick ? () => onSectorClick(item.name) : undefined}
               />
@@ -157,7 +179,7 @@ export function RotationFourFacetCard({ tradeDate, period, onSectorClick, refres
 
         {/* Valuation */}
         <FacetColumn title="估值低位 Top 10" tooltip="PE TTM 分位数越低代表估值越便宜（1 年窗口）">
-          <MiniTable>
+          <MiniTable empty={topValuation.length === 0} emptyLabel="暂无估值分位数据">
             {topValuation.map((item) => (
               <MiniRow
                 key={item.name}
@@ -201,7 +223,7 @@ function FacetColumn({
             {title}
           </Typography>
           <Tooltip title={<Typography variant="caption">{tooltip}</Typography>} arrow>
-            <IconButton size="small" sx={{ color: 'text.secondary' }}>
+            <IconButton size="small" aria-label={`${title}说明`} sx={{ color: 'text.secondary' }}>
               <Iconify icon="solar:question-circle-bold" width={14} />
             </IconButton>
           </Tooltip>
@@ -212,7 +234,15 @@ function FacetColumn({
   );
 }
 
-function MiniTable({ children }: { children: React.ReactNode }) {
+function MiniTable({
+  children,
+  empty,
+  emptyLabel = '暂无数据',
+}: {
+  children: React.ReactNode;
+  empty: boolean;
+  emptyLabel?: string;
+}) {
   return (
     <TableContainer>
       <Table size="small">
@@ -229,7 +259,19 @@ function MiniTable({ children }: { children: React.ReactNode }) {
             </TableCell>
           </TableRow>
         </TableHead>
-        <TableBody>{children}</TableBody>
+        <TableBody>
+          {empty ? (
+            <TableRow>
+              <TableCell colSpan={2} sx={{ py: 2, px: 1, borderBottom: 0 }}>
+                <Typography variant="caption" color="text.disabled">
+                  {emptyLabel}
+                </Typography>
+              </TableCell>
+            </TableRow>
+          ) : (
+            children
+          )}
+        </TableBody>
       </Table>
     </TableContainer>
   );

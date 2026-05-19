@@ -12,6 +12,8 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 
+import { fmtTradeDate } from 'src/utils/format-time';
+
 import { Iconify } from 'src/components/iconify';
 
 import type { LocalPreset } from './use-local-presets';
@@ -75,7 +77,7 @@ export function ScreeningPresetDialog({ open, presets, onClose, onSave, onLoad, 
                       {p.name}
                     </Typography>
                     <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                      {p.state.conditions.length} 条条件 · {p.state.tradeDate} ·{' '}
+                      {p.state.conditions.length} 条条件 · {fmtTradeDate(p.state.tradeDate)} ·{' '}
                       {p.state.universe || '全市场'}
                     </Typography>
                   </Box>

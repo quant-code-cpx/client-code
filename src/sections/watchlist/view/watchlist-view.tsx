@@ -210,7 +210,9 @@ export function WatchlistView() {
     setStocks((prev) => prev.filter((s) => s.id !== stockId));
     setWatchlists((prev) =>
       prev.map((w) =>
-        w.id === selectedId ? { ...w, _count: { stocks: Math.max(0, w._count.stocks - 1) } } : w
+        w.id === selectedId
+          ? { ...w, _count: { stocks: Math.max(0, (w._count?.stocks ?? 0) - 1) } }
+          : w
       )
     );
   };
@@ -220,7 +222,7 @@ export function WatchlistView() {
     setWatchlists((prev) =>
       prev.map((w) =>
         w.id === selectedId
-          ? { ...w, _count: { stocks: Math.max(0, w._count.stocks - stockIds.length) } }
+          ? { ...w, _count: { stocks: Math.max(0, (w._count?.stocks ?? 0) - stockIds.length) } }
           : w
       )
     );
@@ -376,7 +378,7 @@ export function WatchlistView() {
         title="删除自选组"
         content={
           deleteTarget
-            ? `确认删除自选组「${deleteTarget.name}」？该组内 ${deleteTarget._count.stocks} 只股票将一并移除，不影响股票基础数据。`
+            ? `确认删除自选组「${deleteTarget.name}」？该组内 ${deleteTarget._count?.stocks ?? deleteTarget.summary?.stockCount ?? 0} 只股票将一并移除，不影响股票基础数据。`
             : ''
         }
         onClose={() => (deleteSubmitting ? undefined : setDeleteTarget(null))}

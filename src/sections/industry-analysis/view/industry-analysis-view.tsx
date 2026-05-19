@@ -37,6 +37,8 @@ const TABS = [
   { label: '行业轮动', icon: 'solar:shuffle-bold' },
 ] as const;
 
+const CONTROL_HEIGHT = 40;
+
 // ----------------------------------------------------------------------
 
 export function IndustryAnalysisView() {
@@ -119,7 +121,7 @@ export function IndustryAnalysisView() {
                 }
                 arrow
               >
-                <IconButton size="small" sx={{ color: 'text.secondary' }}>
+                <IconButton size="small" aria-label="行业字典说明" sx={{ color: 'text.secondary' }}>
                   <Iconify icon="solar:question-circle-bold" width={16} />
                 </IconButton>
               </Tooltip>
@@ -154,7 +156,12 @@ export function IndustryAnalysisView() {
           </Stack>
         </Box>
 
-        <Stack direction="row" spacing={1.5} alignItems="center">
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          spacing={1.5}
+          alignItems={{ xs: 'stretch', sm: 'center' }}
+          sx={{ width: { xs: '100%', sm: 'auto' } }}
+        >
           <DatePicker
             label="交易日期"
             value={displayDate}
@@ -164,7 +171,13 @@ export function IndustryAnalysisView() {
             }}
             format="YYYY-MM-DD"
             slotProps={{
-              textField: { size: 'small', sx: { width: 190 } },
+              textField: {
+                size: 'small',
+                sx: {
+                  width: { xs: '100%', sm: 190 },
+                  '& .MuiInputBase-root': { height: CONTROL_HEIGHT },
+                },
+              },
               field: { clearable: true },
             }}
           />
@@ -173,6 +186,12 @@ export function IndustryAnalysisView() {
             size="small"
             startIcon={<Iconify icon="solar:refresh-bold" />}
             onClick={handleRefresh}
+            sx={{
+              height: CONTROL_HEIGHT,
+              minWidth: 88,
+              px: 1.75,
+              width: { xs: '100%', sm: 'auto' },
+            }}
           >
             刷新
           </Button>

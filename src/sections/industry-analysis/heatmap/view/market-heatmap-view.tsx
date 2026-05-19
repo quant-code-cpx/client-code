@@ -62,7 +62,11 @@ export function MarketHeatmapView({
 }: MarketHeatmapViewProps = {}) {
   // ── 内部日期状态（仅独立模式使用）──────────────
   const [internalDate, setInternalDate] = useState<Dayjs | null>(null);
-  const tradeDateStr = embedded ? externalTradeDate : (internalDate ? internalDate.format('YYYYMMDD') : undefined);
+  const tradeDateStr = embedded
+    ? externalTradeDate
+    : internalDate
+      ? internalDate.format('YYYYMMDD')
+      : undefined;
 
   // ── 共享状态 ─────────────────────────────────
   const [viewMode, setViewMode] = useState<ViewMode>('scatter');
@@ -271,7 +275,10 @@ export function MarketHeatmapView({
 
   // 查找与 detailSector 对应的 HeatmapItem（用于传递 swCode/dcTsCode 等映射字段）
   const detailHeatmapItem = useMemo(
-    () => (detailSector ? items.find((s) => (s.groupName ?? s.industry) === detailSector.name) ?? null : null),
+    () =>
+      detailSector
+        ? (items.find((s) => (s.groupName ?? s.industry) === detailSector.name) ?? null)
+        : null,
     [items, detailSector]
   );
 
@@ -307,14 +314,9 @@ export function MarketHeatmapView({
         )}
 
         {/* 视图切换 */}
-        <ToggleButtonGroup
-          size="small"
-          exclusive
-          value={viewMode}
-          onChange={handleViewModeChange}
-        >
+        <ToggleButtonGroup size="small" exclusive value={viewMode} onChange={handleViewModeChange}>
           <ToggleButton value="scatter">散点图</ToggleButton>
-          <ToggleButton value="treemap">TreeMap</ToggleButton>
+          <ToggleButton value="treemap">树形图</ToggleButton>
         </ToggleButtonGroup>
 
         {/* 散点图：板块类型切换 */}
@@ -347,12 +349,7 @@ export function MarketHeatmapView({
               ))}
             </ToggleButtonGroup>
 
-            <ToggleButtonGroup
-              size="small"
-              exclusive
-              value={sizeBy}
-              onChange={handleSizeByChange}
-            >
+            <ToggleButtonGroup size="small" exclusive value={sizeBy} onChange={handleSizeByChange}>
               <ToggleButton value="totalMv">总市值</ToggleButton>
               <ToggleButton value="amount">成交额</ToggleButton>
             </ToggleButtonGroup>
@@ -389,7 +386,7 @@ export function MarketHeatmapView({
       </Grid>
 
       {/* 下方统计图 — 始终显示 */}
-      <Grid size={{ xs: 12, md: 7 }}>
+      <Grid size={{ xs: 12, md: viewMode === 'treemap' ? 7 : 12 }}>
         <HeatmapSectorBarChart
           sectors={viewMode === 'scatter' ? scatterSectors : sectors}
           loading={viewMode === 'scatter' ? scatterLoading : loading}
@@ -397,13 +394,15 @@ export function MarketHeatmapView({
         />
       </Grid>
 
-      <Grid size={{ xs: 12, md: 5 }}>
-        <HeatmapDistributionChart
-          distribution={viewMode === 'treemap' && items.length > 0 ? distribution : null}
-          loading={viewMode === 'treemap' ? loading : false}
-          error={viewMode === 'treemap' ? error : ''}
-        />
-      </Grid>
+      {viewMode === 'treemap' && (
+        <Grid size={{ xs: 12, md: 5 }}>
+          <HeatmapDistributionChart
+            distribution={items.length > 0 ? distribution : null}
+            loading={loading}
+            error={error}
+          />
+        </Grid>
+      )}
 
       <Grid size={{ xs: 12 }}>
         <HeatmapSnapshotPanel />

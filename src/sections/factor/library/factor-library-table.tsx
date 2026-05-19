@@ -20,7 +20,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 import { Iconify } from 'src/components/iconify';
 import { Scrollbar } from 'src/components/scrollbar';
 
-import { STATUS_META, deriveStatus, SOURCE_LABELS, CATEGORY_LABELS } from '../constants';
+import { deriveStatus, getStatusMeta, SOURCE_LABELS, CATEGORY_LABELS } from '../constants';
 
 // ----------------------------------------------------------------------
 
@@ -110,7 +110,7 @@ export function FactorLibraryTable({
                   lastComputeDate: factor.summary?.lastComputeDate,
                   latencyDays: factor.summary?.latencyDays,
                 });
-              const statusMeta = STATUS_META[status];
+              const statusMeta = getStatusMeta(status);
               const dotColor =
                 statusMeta.color === 'default'
                   ? theme.palette.text.disabled

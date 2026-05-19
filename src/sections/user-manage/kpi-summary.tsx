@@ -21,6 +21,7 @@ type UserStats = Awaited<ReturnType<typeof userManageApi.stats>>;
 
 type KpiSummaryProps = {
   onApplyStatus: (status: UserStatusFilter | '') => void;
+  refreshKey?: number;
 };
 
 type KpiItem = {
@@ -63,7 +64,7 @@ const KPI_ITEMS: KpiItem[] = [
   },
 ];
 
-export function KpiSummary({ onApplyStatus }: KpiSummaryProps) {
+export function KpiSummary({ onApplyStatus, refreshKey }: KpiSummaryProps) {
   const [data, setData] = useState<UserStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -86,7 +87,7 @@ export function KpiSummary({ onApplyStatus }: KpiSummaryProps) {
       });
 
     return () => ctrl.abort();
-  }, []);
+  }, [refreshKey]);
 
   if (error) return null;
 

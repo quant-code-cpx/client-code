@@ -17,7 +17,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 
 import { Iconify } from 'src/components/iconify';
 
-import { STATUS_META, deriveStatus, SOURCE_LABELS, CATEGORY_LABELS } from '../constants';
+import { deriveStatus, getStatusMeta, SOURCE_LABELS, CATEGORY_LABELS } from '../constants';
 
 // ----------------------------------------------------------------------
 
@@ -74,7 +74,7 @@ export function FactorLibraryCardV2({
     [factor]
   );
 
-  const statusMeta = STATUS_META[status];
+  const statusMeta = getStatusMeta(status);
   const statusColor =
     statusMeta.color === 'default'
       ? theme.palette.text.disabled

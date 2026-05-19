@@ -53,11 +53,28 @@ export const STATUS_META: Record<
   { label: string; color: 'success' | 'warning' | 'error' | 'default' }
 > = {
   FRESH: { label: '数据新鲜', color: 'success' },
+  HEALTHY: { label: '数据新鲜', color: 'success' },
   STALE: { label: '数据滞后', color: 'warning' },
   FAILED: { label: '最近预计算失败', color: 'error' },
   NEVER: { label: '尚未预计算', color: 'default' },
+  MISSING: { label: '尚未预计算', color: 'default' },
   DISABLED: { label: '已禁用', color: 'default' },
 };
+
+/** 未知状态兜底（后端新增枚举但前端尚未升级时使用） */
+export const UNKNOWN_STATUS_META: { label: string; color: 'default' } = {
+  label: '未知状态',
+  color: 'default',
+};
+
+/** 安全获取状态元数据（兜底未知 / undefined） */
+export function getStatusMeta(status: FactorStatus | string | null | undefined): {
+  label: string;
+  color: 'success' | 'warning' | 'error' | 'default';
+} {
+  if (!status) return UNKNOWN_STATUS_META;
+  return STATUS_META[status as FactorStatus] ?? UNKNOWN_STATUS_META;
+}
 
 /** 当后端未提供 status 字段时，根据 isEnabled / summary 推导本地状态 */
 export function deriveStatus(opts: {

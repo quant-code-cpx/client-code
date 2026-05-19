@@ -6,9 +6,9 @@ describe('format-time', () => {
   // ---------- fDate ----------
   describe('fDate', () => {
     it('formats date with default template', () => {
-      // Default template: "DD MMM YYYY"
+      // Default template: "YYYY-MM-DD"
       const result = fDate('2024-04-17');
-      expect(result).toBe('17 Apr 2024');
+      expect(result).toBe('2024-04-17');
     });
 
     it('formats date with custom template', () => {
@@ -16,12 +16,12 @@ describe('format-time', () => {
       expect(result).toBe('2024-04-17');
     });
 
-    it('returns "Invalid date" for null', () => {
-      expect(fDate(null)).toBe('Invalid date');
+    it('returns "—" for null', () => {
+      expect(fDate(null)).toBe('—');
     });
 
-    it('returns "Invalid date" for undefined', () => {
-      expect(fDate(undefined)).toBe('Invalid date');
+    it('returns "—" for undefined', () => {
+      expect(fDate(undefined)).toBe('—');
     });
 
     it('handles ISO 8601 string', () => {
@@ -29,9 +29,9 @@ describe('format-time', () => {
       expect(result).toBe('2025-01-15');
     });
 
-    it('returns "Invalid date" for invalid string input', () => {
-      expect(fDate('not-a-date')).toBe('Invalid date');
-      expect(fDate('abc123')).toBe('Invalid date');
+    it('returns "—" for invalid string input', () => {
+      expect(fDate('not-a-date')).toBe('—');
+      expect(fDate('abc123')).toBe('—');
     });
   });
 
@@ -39,8 +39,8 @@ describe('format-time', () => {
   describe('fDateTime', () => {
     it('formats datetime with default template', () => {
       const result = fDateTime('2024-04-17T14:30:00');
-      // Default template: "DD MMM YYYY h:mm a"
-      expect(result).toMatch(/17 Apr 2024/);
+      // Default template: "YYYY-MM-DD HH:mm"
+      expect(result).toMatch(/2024-04-17/);
     });
 
     it('formats datetime with custom template', () => {
@@ -48,8 +48,8 @@ describe('format-time', () => {
       expect(result).toBe('2024-04-17 14:30');
     });
 
-    it('returns "Invalid date" for null', () => {
-      expect(fDateTime(null)).toBe('Invalid date');
+    it('returns "—" for null', () => {
+      expect(fDateTime(null)).toBe('—');
     });
   });
 
@@ -60,11 +60,11 @@ describe('format-time', () => {
       const result = fToNow('2020-01-01');
       expect(typeof result).toBe('string');
       expect(result.length).toBeGreaterThan(0);
-      expect(result).not.toBe('Invalid date');
+      expect(result).not.toBe('—');
     });
 
-    it('returns "Invalid date" for null', () => {
-      expect(fToNow(null)).toBe('Invalid date');
+    it('returns "—" for null', () => {
+      expect(fToNow(null)).toBe('—');
     });
   });
 });

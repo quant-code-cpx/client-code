@@ -86,8 +86,8 @@ export function WalkForwardConfigRecap({ detail }: Props) {
               防泄漏与约束
             </Typography>
             <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mb: 2 }}>
-              <Label color="info">Purge: {detail.purgeDays ?? 0} 天</Label>
-              <Label color="info">Embargo: {detail.embargoDays ?? 0} 天</Label>
+              <Label color="info">净化: {detail.purgeDays ?? 0} 天</Label>
+              <Label color="info">禁用: {detail.embargoDays ?? 0} 天</Label>
               <Label color="info">Min OOS Trades: {detail.minOosTrades ?? 0}</Label>
             </Stack>
             <Typography variant="caption" color="text.secondary">

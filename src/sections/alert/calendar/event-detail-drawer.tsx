@@ -173,7 +173,9 @@ export function EventDetailDrawer({ open, event, onClose, onSubscribe }: Props) 
                 详细信息
               </Typography>
               <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
-                {event.detail}
+                {typeof event.detail === 'string'
+                  ? event.detail
+                  : JSON.stringify(event.detail, null, 2)}
               </Typography>
             </Stack>
           )}

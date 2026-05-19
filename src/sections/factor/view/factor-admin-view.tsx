@@ -82,7 +82,7 @@ export function FactorAdminView() {
     setStatusError('');
     try {
       const res = await adminPrecomputeStatus();
-      setStatusItems(res.items);
+      setStatusItems(Array.isArray(res?.items) ? res.items : []);
       setLastRefreshTime(new Date());
     } catch {
       setStatusError('加载因子状态失败');

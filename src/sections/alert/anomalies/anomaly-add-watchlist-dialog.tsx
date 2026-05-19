@@ -94,7 +94,7 @@ export function AnomalyAddWatchlistDialog({ open, tsCodes, onClose, onSuccess }:
                 {watchlists.map((w) => (
                   <MenuItem key={w.id} value={w.id}>
                     {w.name}
-                    {w.isDefault ? '（默认）' : ''} · {w._count.stocks} 只
+                    {w.isDefault ? '（默认）' : ''} · {w._count?.stocks ?? 0} 只
                   </MenuItem>
                 ))}
               </Select>

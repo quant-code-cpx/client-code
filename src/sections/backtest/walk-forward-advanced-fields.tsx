@@ -29,7 +29,7 @@ export function WalkForwardAdvancedFields({
         <TextField
           fullWidth
           type="number"
-          label="Purge 天数"
+          label="净化天数"
           value={purgeDays}
           onChange={(event) => onChange({ purgeDays: Number(event.target.value) })}
           helperText="样本内结束后跳过的隔离天数"
@@ -39,7 +39,7 @@ export function WalkForwardAdvancedFields({
         <TextField
           fullWidth
           type="number"
-          label="Embargo 天数"
+          label="禁用天数"
           value={embargoDays}
           onChange={(event) => onChange({ embargoDays: Number(event.target.value) })}
           helperText="样本外开始前额外禁用的观察期"

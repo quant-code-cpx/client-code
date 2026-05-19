@@ -56,9 +56,9 @@ export function SignalLatestSummary({ data, onJumpToAction }: Props) {
     color: 'success' | 'error' | 'default' | 'info';
     action?: 'BUY' | 'SELL' | 'HOLD';
   }> = [
-    { label: 'BUY', value: counts.buy, color: 'success', action: 'BUY' },
-    { label: 'SELL', value: counts.sell, color: 'error', action: 'SELL' },
-    { label: 'HOLD', value: counts.hold, color: 'default', action: 'HOLD' },
+    { label: '买入', value: counts.buy, color: 'success', action: 'BUY' },
+    { label: '卖出', value: counts.sell, color: 'error', action: 'SELL' },
+    { label: '持有', value: counts.hold, color: 'default', action: 'HOLD' },
     { label: '总信号', value: counts.total, color: 'info' },
   ];
 

@@ -30,6 +30,8 @@ import TableContainer from '@mui/material/TableContainer';
 import TablePagination from '@mui/material/TablePagination';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
+import { fDate } from 'src/utils/format-time';
+
 import { queryEvents } from 'src/api/event-study';
 
 import { StockSearchAutocomplete } from 'src/components/stock-search-autocomplete';
@@ -39,6 +41,16 @@ import { EventDetailDrawer } from './_shared/event-detail-drawer';
 import { INDUSTRY_OPTIONS, MARKET_CAP_BUCKETS, EVENT_TABLE_COLUMNS } from './constants';
 
 // ----------------------------------------------------------------------
+
+const DATE_FIELDS = new Set(['annDate', 'endDate', 'exDate', 'floatDate', 'expDate', 'eventDate']);
+
+function formatEventCell(value: unknown, field: string): string {
+  if (value === null || value === undefined || value === '') return '-';
+  if (DATE_FIELDS.has(field) && typeof value === 'string') {
+    return fDate(value) || String(value);
+  }
+  return String(value);
+}
 
 type Props = {
   eventTypes: EventTypeItem[];
@@ -236,7 +248,7 @@ export function EventQueryTab({ eventTypes }: Props) {
                       >
                         {columns.map((col) => (
                           <TableCell key={col.field}>
-                            {row[col.field] != null ? String(row[col.field]) : '-'}
+                            {formatEventCell(row[col.field], col.field)}
                           </TableCell>
                         ))}
                       </TableRow>

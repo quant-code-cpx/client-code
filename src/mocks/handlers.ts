@@ -138,7 +138,6 @@ const routeMap: Record<string, unknown> = {
   '/api/market/concept/list': r(marketData, 'conceptList'),
   '/api/market/concept/members': r(marketData, 'conceptMembers'),
   '/api/market/daily-info': ok(null),
-  '/api/market/sector-daily': ok([]),
 
   // ── Industry Rotation ──
   '/api/industry-rotation/overview': r(industryRotationData, 'overview'),

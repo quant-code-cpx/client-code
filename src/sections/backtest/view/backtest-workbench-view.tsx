@@ -100,7 +100,8 @@ function normalizeTemplateId(templateId: string | undefined): StrategyTemplateId
     templateId === 'MA_CROSS_SINGLE' ||
     templateId === 'SCREENING_ROTATION' ||
     templateId === 'FACTOR_RANKING' ||
-    templateId === 'CUSTOM_POOL_REBALANCE'
+    templateId === 'CUSTOM_POOL_REBALANCE' ||
+    templateId === 'FACTOR_SCREENING_ROTATION'
   ) {
     return templateId;
   }
@@ -162,7 +163,8 @@ export function BacktestWorkbenchView() {
       query: validateQuery,
       enabled: Boolean(form.startDate && form.endDate && selectedTemplateId),
       debounceMs: 800,
-      onError: setError,
+      // 自动校验的后台错误静默处理（字段错误由 ValidatePanel 展示）
+      // 只有显式「立即校验」和「开始回测」才弹 toast
     }
   );
 
@@ -307,8 +309,11 @@ export function BacktestWorkbenchView() {
     [selectedTemplateId]
   );
 
-  const handleManualValidate = useCallback(() => {
-    validateNow();
+  const handleManualValidate = useCallback(async () => {
+    const result = await validateNow();
+    if (result === null) {
+      setError('校验请求失败，请检查网络后重试');
+    }
   }, [validateNow]);
 
   const handleSubmit = useCallback(async () => {

@@ -169,14 +169,18 @@ export function DashboardMarketTemperature({
 
   useEffect(() => {
     setLoading(true);
-    Promise.all([fetchSentiment(), fetchVolumeOverview({ days: 10 }), fetchChangeDistribution()])
-      .then(([s, v, cd]) => {
-        setSentiment(s);
-        setVolume(v.data ?? []);
-        setChangeData(cd);
-        if (s.tradeDate) onTradeDateResolved?.(s.tradeDate);
+    Promise.allSettled([
+      fetchSentiment(),
+      fetchVolumeOverview({ days: 10 }),
+      fetchChangeDistribution(),
+    ])
+      .then(([sentimentResult, volumeResult, changeResult]) => {
+        const nextSentiment = sentimentResult.status === 'fulfilled' ? sentimentResult.value : null;
+        setSentiment(nextSentiment);
+        setVolume(volumeResult.status === 'fulfilled' ? (volumeResult.value.data ?? []) : []);
+        setChangeData(changeResult.status === 'fulfilled' ? changeResult.value : null);
+        if (nextSentiment?.tradeDate) onTradeDateResolved?.(nextSentiment.tradeDate);
       })
-      .catch(() => {})
       .finally(() => setLoading(false));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refreshKey]);
@@ -200,6 +204,8 @@ export function DashboardMarketTemperature({
       ? volItems.slice(0, -1).reduce((sum, v) => sum + v.totalAmount, 0) / (volItems.length - 1)
       : latestVol;
   const volChange = avgVol > 0 ? ((latestVol - avgVol) / avgVol) * 100 : 0;
+  const volumeAvgDays = Math.max(0, volItems.length - 1);
+  const volumeProgress = avgVol > 0 ? Math.min(100, (latestVol / (avgVol * 2)) * 100) : 0;
 
   return (
     <Card sx={{ height: '100%' }}>
@@ -245,7 +251,7 @@ export function DashboardMarketTemperature({
           </Stack>
           <LinearProgress
             variant="determinate"
-            value={Math.min(100, (latestVol / (avgVol * 2)) * 100)}
+            value={volumeProgress}
             sx={{
               mt: 1,
               height: 4,
@@ -263,19 +269,19 @@ export function DashboardMarketTemperature({
             alignItems="flex-end"
             sx={{ mt: 0.5 }}
           >
-            <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: 11 }}>
+            <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: 12 }}>
               0
             </Typography>
             <Stack alignItems="flex-end" spacing={0}>
               <Typography
                 variant="caption"
-                sx={{ color: 'text.disabled', fontSize: 11, lineHeight: 1.3 }}
+                sx={{ color: 'text.disabled', fontSize: 12, lineHeight: 1.3 }}
               >
-                近{volItems.length - 1}日均量×2
+                近{volumeAvgDays}日均量×2
               </Typography>
               <Typography
                 variant="caption"
-                sx={{ color: 'text.disabled', fontSize: 11, lineHeight: 1.3 }}
+                sx={{ color: 'text.disabled', fontSize: 12, lineHeight: 1.3 }}
               >
                 ≈ {fShortenNumber(avgVol * 2 * 1e8)}
               </Typography>

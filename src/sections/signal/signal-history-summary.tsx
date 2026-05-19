@@ -35,18 +35,26 @@ export function SignalHistorySummary({ history, forwardWindow }: Props) {
         tone="primary"
         label="信号总数"
         value={stats ? fNumber(stats.totalSignals) : '—'}
-        caption={stats ? `买入 ${stats.buyCount} · 卖出 ${stats.sellCount} · 持有 ${stats.holdCount}` : '暂无统计'}
+        caption={
+          stats
+            ? `买入 ${stats.buyCount} · 卖出 ${stats.sellCount} · 持有 ${stats.holdCount}`
+            : '暂无统计'
+        }
       />
       <SummaryCard
         tone="info"
-        label="BUY : SELL"
+        label="买入:卖出"
         value={stats ? `${stats.buyCount} : ${stats.sellCount}` : '—'}
         caption="观察多空倾向与换手压力"
       />
       <SummaryCard
         tone="warning"
         label="平均置信度"
-        value={stats?.avgConfidence !== null && stats?.avgConfidence !== undefined ? `${(stats.avgConfidence * 100).toFixed(1)}%` : '—'}
+        value={
+          stats?.avgConfidence !== null && stats?.avgConfidence !== undefined
+            ? `${(stats.avgConfidence * 100).toFixed(1)}%`
+            : '—'
+        }
         caption="仅在同一策略内可比"
       />
       <Card
@@ -67,11 +75,15 @@ export function SignalHistorySummary({ history, forwardWindow }: Props) {
             </Label>
           )}
         </Stack>
-        <Typography variant="h5" sx={{ fontFeatureSettings: '"tnum"', fontVariantNumeric: 'tabular-nums' }}>
+        <Typography
+          variant="h5"
+          sx={{ fontFeatureSettings: '"tnum"', fontVariantNumeric: 'tabular-nums' }}
+        >
           {stats?.accuracy ? `${(stats.accuracy.rate * 100).toFixed(1)}%` : '待结算'}
         </Typography>
         <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-          平均超额：<SignalReturnText value={stats?.avgExcessReturn?.value} variant="caption" />
+          平均超额：
+          <SignalReturnText value={stats?.avgExcessReturn?.value} variant="caption" />
           {stats?.accuracy ? ` · n=${stats.accuracy.sampleSize}` : ''}
         </Typography>
       </Card>
@@ -104,7 +116,10 @@ function SummaryCard({
       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
         {label}
       </Typography>
-      <Typography variant="h5" sx={{ fontFeatureSettings: '"tnum"', fontVariantNumeric: 'tabular-nums' }}>
+      <Typography
+        variant="h5"
+        sx={{ fontFeatureSettings: '"tnum"', fontVariantNumeric: 'tabular-nums' }}
+      >
         {value}
       </Typography>
       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>

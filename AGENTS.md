@@ -16,14 +16,15 @@
 
 ## Skill 按需加载表
 
-| 触发场景                                     | 加载文件                                               |
-| -------------------------------------------- | ------------------------------------------------------ |
+| 触发场景                                     | 加载文件                                              |
+| -------------------------------------------- | ----------------------------------------------------- |
 | 接触任何代码（必须）                         | `.Codex/skills/quant-client/SKILL.md`                 |
 | 写 MUI 组件 / sx 样式                        | `.Codex/skills/mui/SKILL.md`                          |
 | 写 React 组件 / 数据获取                     | `.Codex/skills/vercel-react-best-practices/SKILL.md`  |
 | 阶段一：用户说"设计 / 重设计 / 重构 XX"      | `.Codex/skills/design-blueprint/SKILL.md`（**入口**） |
 | 阶段一：design-blueprint 第 4 章生成视觉方向 | `.Codex/skills/frontend-design/SKILL.md`              |
 | 阶段二末：yarn build 通过后                  | `.Codex/skills/web-design-guidelines/SKILL.md`        |
+| 测试 / 发现问题 / QA / 回归 / 联调验证       | `.agents/skills/frontend-qa/SKILL.md`（**入口**）     |
 
 quant-client 子资源（按需）：
 

@@ -43,8 +43,12 @@ export function DashboardSignalCenter({ refreshKey }: DashboardSignalCenterProps
 
   useEffect(() => {
     setLoading(true);
-    Promise.all([listSignalActivations(), getLatestSignals({}), alertApi.getPriceRules()])
-      .then(([activations, latestRes, rules]) => {
+    Promise.allSettled([listSignalActivations(), getLatestSignals({}), alertApi.getPriceRules()])
+      .then(([activationsResult, latestResult, rulesResult]) => {
+        const activations = activationsResult.status === 'fulfilled' ? activationsResult.value : [];
+        const latestRes = latestResult.status === 'fulfilled' ? latestResult.value : [];
+        const rules = rulesResult.status === 'fulfilled' ? rulesResult.value : [];
+
         // Count active strategy activations
         const active = (activations ?? []).filter((a) => a.isActive);
         setActiveCount(active.length);
@@ -64,9 +68,7 @@ export function DashboardSignalCenter({ refreshKey }: DashboardSignalCenterProps
         const activeRules = (rules ?? []).filter((r) => r.status === 'ACTIVE');
         setAlertCount(activeRules.length);
       })
-      .catch(() => {})
       .finally(() => setLoading(false));
-     
   }, [refreshKey]);
 
   if (loading) {

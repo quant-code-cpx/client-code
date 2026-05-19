@@ -20,8 +20,20 @@ export type FactorSourceType = 'FIELD_REF' | 'DERIVED' | 'CUSTOM_SQL';
 
 // ─── 因子库类型 ────────────────────────────────────────────────
 
-/** 因子预计算 / 启用状态徽标（库页显示 4+1 档） */
-export type FactorStatus = 'FRESH' | 'STALE' | 'FAILED' | 'NEVER' | 'DISABLED';
+/**
+ * 因子预计算 / 启用状态徽标（库页显示）。
+ * 前端历史枚举：FRESH / STALE / FAILED / NEVER / DISABLED；
+ * 后端 factor-library.service.ts 实际下发：HEALTHY / STALE / MISSING；
+ * 这里取并集，由 STATUS_META 统一映射展示。
+ */
+export type FactorStatus =
+  | 'FRESH'
+  | 'STALE'
+  | 'FAILED'
+  | 'NEVER'
+  | 'DISABLED'
+  | 'HEALTHY'
+  | 'MISSING';
 
 /** 因子质量摘要（依赖后端 BE-1 / BE-11，全部 optional） */
 export type FactorSummary = {
@@ -976,13 +988,77 @@ export function adminBackfill(dto: AdminBackfillRequest) {
   return apiClient.post<AdminBackfillResponse>('/api/factor/admin/backfill', dto);
 }
 
-export function adminPrecomputeStatus() {
-  return apiClient.post<AdminPrecomputeStatusResponse>('/api/factor/admin/precompute/status', {});
+/**
+ * FIX-023: BE 当前返回 `{ byFactor: [{factorName, latestDate, totalDates}] }` 而非 FE 期望的
+ * `{ items: PrecomputeStatusItem[] }`。此处做兼容适配：
+ * - 若返回 items → 直接透传
+ * - 若返回 byFactor → 按 latestDate 与今天的差值推导 status；
+ *   缺少 latestDate → NEVER；≤5 日 → UP_TO_DATE；≤30 日 → STALE；否则 NEVER。
+ */
+export async function adminPrecomputeStatus(): Promise<AdminPrecomputeStatusResponse> {
+  const raw = await apiClient.post<unknown>('/api/factor/admin/precompute/status', {});
+  const obj = (raw ?? {}) as Record<string, unknown>;
+  if (Array.isArray(obj.items)) {
+    return { items: obj.items as PrecomputeStatusItem[] };
+  }
+  const byFactor = Array.isArray(obj.byFactor)
+    ? (obj.byFactor as Array<Record<string, unknown>>)
+    : [];
+  const today = new Date();
+  const todayMs = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+  const items: PrecomputeStatusItem[] = byFactor.map((row) => {
+    const factorName = String(row.factorName ?? '');
+    const latestDate = (row.latestDate ?? null) as string | null;
+    const totalDates = Number(row.totalDates ?? 0);
+    let status = 'NEVER';
+    let staleDays: number | null = null;
+    if (latestDate && /^\d{8}$/.test(latestDate)) {
+      const y = Number(latestDate.slice(0, 4));
+      const m = Number(latestDate.slice(4, 6)) - 1;
+      const d = Number(latestDate.slice(6, 8));
+      const latestMs = Date.UTC(y, m, d);
+      staleDays = Math.max(0, Math.floor((todayMs - latestMs) / 86400000));
+      if (staleDays <= 5) status = 'UP_TO_DATE';
+      else if (staleDays <= 30) status = 'STALE';
+      else status = 'NEVER';
+    }
+    return {
+      factorName,
+      factorLabel: factorName,
+      lastComputeDate: latestDate,
+      rowCount: totalDates,
+      status,
+      staleDays,
+      coverageRate: null,
+      firstComputeDate: null,
+      failureReason: null,
+    };
+  });
+  return { items };
 }
 
-/** BE-1：任务列表 */
-export function adminJobList(dto: AdminJobListRequest) {
-  return apiClient.post<AdminJobListResponse>('/api/factor/admin/jobs', dto);
+/**
+ * BE-1：任务列表
+ * FIX-024: 当前 BE 返回的是覆盖度概览数据（无 jobId/operator/progress 等必需字段），
+ * 与 FE AdminJobItem 契约不兼容。此处做防御性过滤，剔除缺少 jobId 的行，避免渲染崩溃；
+ * 待 BE-1 正式上线后可移除该过滤。
+ */
+export async function adminJobList(dto: AdminJobListRequest): Promise<AdminJobListResponse> {
+  const raw = await apiClient.post<unknown>('/api/factor/admin/jobs', dto);
+  const obj = (raw ?? {}) as Record<string, unknown>;
+  const rawItems = Array.isArray(obj.items) ? (obj.items as Array<Record<string, unknown>>) : [];
+  const items = rawItems
+    .filter((row) => typeof row.jobId === 'string' && row.jobId.length > 0)
+    .map((row) => ({
+      ...(row as unknown as AdminJobItem),
+      progress: (row.progress ?? { done: 0, total: 0 }) as AdminJobProgress,
+    }));
+  return {
+    items,
+    total: typeof obj.total === 'number' ? obj.total : items.length,
+    page: typeof obj.page === 'number' ? obj.page : dto.page,
+    pageSize: typeof obj.pageSize === 'number' ? obj.pageSize : dto.pageSize,
+  };
 }
 
 /** BE-2：任务详情 */

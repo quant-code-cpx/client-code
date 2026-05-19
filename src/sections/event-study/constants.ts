@@ -27,67 +27,67 @@ export const EVENT_TABLE_COLUMNS: Record<
   { field: string; headerName: string; width?: number }[]
 > = {
   FORECAST: [
-    { field: 'ts_code', headerName: '股票代码', width: 120 },
+    { field: 'tsCode', headerName: '股票代码', width: 120 },
     { field: 'name', headerName: '名称', width: 100 },
-    { field: 'ann_date', headerName: '公告日期', width: 120 },
-    { field: 'end_date', headerName: '报告期', width: 120 },
+    { field: 'annDate', headerName: '公告日期', width: 120 },
+    { field: 'endDate', headerName: '报告期', width: 120 },
     { field: 'type', headerName: '预告类型', width: 100 },
-    { field: 'p_change_min', headerName: '预计变动幅度下限(%)', width: 180 },
-    { field: 'p_change_max', headerName: '预计变动幅度上限(%)', width: 180 },
+    { field: 'pChangeMin', headerName: '预计变动幅度下限(%)', width: 180 },
+    { field: 'pChangeMax', headerName: '预计变动幅度上限(%)', width: 180 },
     { field: 'summary', headerName: '摘要', width: 300 },
   ],
   DIVIDEND_EX: [
-    { field: 'ts_code', headerName: '股票代码', width: 120 },
+    { field: 'tsCode', headerName: '股票代码', width: 120 },
     { field: 'name', headerName: '名称', width: 100 },
-    { field: 'ex_date', headerName: '除权除息日', width: 120 },
-    { field: 'stk_div', headerName: '每股送转', width: 100 },
-    { field: 'cash_div', headerName: '每股派息(元)', width: 120 },
+    { field: 'exDate', headerName: '除权除息日', width: 120 },
+    { field: 'stkDiv', headerName: '每股送转', width: 100 },
+    { field: 'cashDiv', headerName: '每股派息(元)', width: 120 },
   ],
   HOLDER_INCREASE: [
-    { field: 'ts_code', headerName: '股票代码', width: 120 },
+    { field: 'tsCode', headerName: '股票代码', width: 120 },
     { field: 'name', headerName: '名称', width: 100 },
-    { field: 'ann_date', headerName: '公告日期', width: 120 },
-    { field: 'holder_name', headerName: '股东名称', width: 160 },
-    { field: 'change_vol', headerName: '变动数量(万股)', width: 140 },
-    { field: 'change_ratio', headerName: '变动比例(%)', width: 120 },
+    { field: 'annDate', headerName: '公告日期', width: 120 },
+    { field: 'holderName', headerName: '股东名称', width: 160 },
+    { field: 'changeVol', headerName: '变动数量(万股)', width: 140 },
+    { field: 'changeRatio', headerName: '变动比例(%)', width: 120 },
   ],
   HOLDER_DECREASE: [
-    { field: 'ts_code', headerName: '股票代码', width: 120 },
+    { field: 'tsCode', headerName: '股票代码', width: 120 },
     { field: 'name', headerName: '名称', width: 100 },
-    { field: 'ann_date', headerName: '公告日期', width: 120 },
-    { field: 'holder_name', headerName: '股东名称', width: 160 },
-    { field: 'change_vol', headerName: '变动数量(万股)', width: 140 },
-    { field: 'change_ratio', headerName: '变动比例(%)', width: 120 },
+    { field: 'annDate', headerName: '公告日期', width: 120 },
+    { field: 'holderName', headerName: '股东名称', width: 160 },
+    { field: 'changeVol', headerName: '变动数量(万股)', width: 140 },
+    { field: 'changeRatio', headerName: '变动比例(%)', width: 120 },
   ],
   SHARE_FLOAT: [
-    { field: 'ts_code', headerName: '股票代码', width: 120 },
+    { field: 'tsCode', headerName: '股票代码', width: 120 },
     { field: 'name', headerName: '名称', width: 100 },
-    { field: 'float_date', headerName: '解禁日期', width: 120 },
-    { field: 'float_share', headerName: '解禁数量(万股)', width: 140 },
-    { field: 'float_ratio', headerName: '解禁比例(%)', width: 120 },
+    { field: 'floatDate', headerName: '解禁日期', width: 120 },
+    { field: 'floatShare', headerName: '解禁数量(万股)', width: 140 },
+    { field: 'floatRatio', headerName: '解禁比例(%)', width: 120 },
   ],
   REPURCHASE: [
-    { field: 'ts_code', headerName: '股票代码', width: 120 },
+    { field: 'tsCode', headerName: '股票代码', width: 120 },
     { field: 'name', headerName: '名称', width: 100 },
-    { field: 'ann_date', headerName: '公告日期', width: 120 },
-    { field: 'exp_date', headerName: '到期日期', width: 120 },
+    { field: 'annDate', headerName: '公告日期', width: 120 },
+    { field: 'expDate', headerName: '到期日期', width: 120 },
     { field: 'vol', headerName: '回购数量(万股)', width: 140 },
     { field: 'amount', headerName: '回购金额(万元)', width: 140 },
   ],
   AUDIT_QUALIFIED: [
-    { field: 'ts_code', headerName: '股票代码', width: 120 },
+    { field: 'tsCode', headerName: '股票代码', width: 120 },
     { field: 'name', headerName: '名称', width: 100 },
-    { field: 'ann_date', headerName: '公告日期', width: 120 },
-    { field: 'end_date', headerName: '报告期', width: 120 },
-    { field: 'audit_result', headerName: '审计结果', width: 160 },
-    { field: 'audit_agency', headerName: '审计机构', width: 200 },
+    { field: 'annDate', headerName: '公告日期', width: 120 },
+    { field: 'endDate', headerName: '报告期', width: 120 },
+    { field: 'auditResult', headerName: '审计结果', width: 160 },
+    { field: 'auditAgency', headerName: '审计机构', width: 200 },
   ],
   DISCLOSURE: [
-    { field: 'ts_code', headerName: '股票代码', width: 120 },
+    { field: 'tsCode', headerName: '股票代码', width: 120 },
     { field: 'name', headerName: '名称', width: 100 },
-    { field: 'ann_date', headerName: '公告日期', width: 120 },
-    { field: 'end_date', headerName: '报告期', width: 120 },
-    { field: 'report_type', headerName: '报告类型', width: 120 },
+    { field: 'annDate', headerName: '公告日期', width: 120 },
+    { field: 'endDate', headerName: '报告期', width: 120 },
+    { field: 'reportType', headerName: '报告类型', width: 120 },
   ],
 };
 
@@ -109,7 +109,6 @@ export const BENCHMARK_OPTIONS = [
 ];
 
 // ── v2 重构新增 ─────────────────────────────────────────────────────
-
 
 /** 市值档位选项 */
 export const MARKET_CAP_BUCKETS: Array<{ value: MarketCapBucket; label: string; hint: string }> = [
@@ -192,4 +191,3 @@ export const TERMS: Record<string, { title: string; desc: string }> = {
     desc: '样本中 |CAR| 超出 ±2σ 的比例。',
   },
 };
-
