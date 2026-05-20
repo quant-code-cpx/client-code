@@ -20,7 +20,14 @@ type Props = {
   indeterminate?: boolean;
 };
 
-export function ProgressSnackbar({ open, onClose, title, message, progress, indeterminate }: Props) {
+export function ProgressSnackbar({
+  open,
+  onClose,
+  title,
+  message,
+  progress,
+  indeterminate,
+}: Props) {
   const value = Math.max(0, Math.min(100, Math.round((progress ?? 0) * 100)));
 
   return (

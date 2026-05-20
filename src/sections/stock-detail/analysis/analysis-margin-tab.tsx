@@ -56,11 +56,7 @@ export function AnalysisMarginTab({ tsCode }: Props) {
   if (!data) return null;
 
   if (!data.available) {
-    return (
-      <Alert severity="info">
-        该股票暂无融资融券数据（可能未纳入两融标的或数据未同步）
-      </Alert>
-    );
+    return <Alert severity="info">该股票暂无融资融券数据（可能未纳入两融标的或数据未同步）</Alert>;
   }
 
   return (

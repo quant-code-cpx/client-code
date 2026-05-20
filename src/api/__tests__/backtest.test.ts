@@ -18,7 +18,6 @@ vi.mock('src/api/client', () => ({
   },
 }));
 
- 
 import { apiClient } from 'src/api/client';
 
 const mockPost = () => vi.mocked(apiClient.post);
@@ -59,7 +58,12 @@ describe('validateRun', () => {
         hasSuspendD: true,
         hasIndexWeight: true,
       },
-      stats: { tradingDays: 0, estimatedUniverseSize: null, earliestAvailableDate: null, latestAvailableDate: null },
+      stats: {
+        tradingDays: 0,
+        estimatedUniverseSize: null,
+        earliestAvailableDate: null,
+        latestAvailableDate: null,
+      },
     });
 
     await validateRun(query);

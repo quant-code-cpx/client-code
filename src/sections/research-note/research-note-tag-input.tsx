@@ -12,7 +12,11 @@ type Props = {
   placeholder?: string;
 };
 
-export function ResearchNoteTagInput({ tags, onChange, placeholder = '输入标签后按回车添加' }: Props) {
+export function ResearchNoteTagInput({
+  tags,
+  onChange,
+  placeholder = '输入标签后按回车添加',
+}: Props) {
   const [inputValue, setInputValue] = useState('');
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -34,12 +38,7 @@ export function ResearchNoteTagInput({ tags, onChange, placeholder = '输入标�
     <Box>
       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75, mb: tags.length > 0 ? 1 : 0 }}>
         {tags.map((tag) => (
-          <Chip
-            key={tag}
-            label={tag}
-            size="small"
-            onDelete={() => handleDelete(tag)}
-          />
+          <Chip key={tag} label={tag} size="small" onDelete={() => handleDelete(tag)} />
         ))}
       </Box>
 

@@ -1,4 +1,4 @@
-import type { MarketCapDistribution } from 'src/api/portfolio';
+import type { MarketCapTier, MarketCapDistribution } from 'src/api/portfolio';
 
 import { useState, useEffect, useCallback } from 'react';
 
@@ -41,8 +41,8 @@ export function RiskMarketCapChart({ portfolioId }: RiskMarketCapChartProps) {
     fetchData();
   }, [fetchData]);
 
-  const buckets = data?.buckets ?? [];
-  const categories = buckets.map((b) => b.label);
+  const buckets: MarketCapTier[] = data?.tiers ?? [];
+  const categories = buckets.map((b) => b.tier);
   const seriesData = buckets.map((b) => Number(((b.weight ?? 0) * 100).toFixed(2)));
 
   const chartOptions = useChart({
@@ -70,7 +70,14 @@ export function RiskMarketCapChart({ portfolioId }: RiskMarketCapChartProps) {
         {!loading && !error && (
           <>
             {buckets.length === 0 ? (
-              <Box sx={{ height: 280, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Box
+                sx={{
+                  height: 280,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
                 <Typography variant="body2" color="text.secondary">
                   暂无数据
                 </Typography>

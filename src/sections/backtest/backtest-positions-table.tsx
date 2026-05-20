@@ -40,8 +40,7 @@ export function BacktestPositionsTable({ items, loading }: BacktestPositionsTabl
 
           <TableBody>
             {items.map((item, idx) => {
-              const pnlColor =
-                item.unrealizedPnl >= 0 ? 'error.main' : 'success.main';
+              const pnlColor = item.unrealizedPnl >= 0 ? 'error.main' : 'success.main';
               return (
                 <TableRow key={idx} hover>
                   <TableCell>
@@ -60,14 +59,17 @@ export function BacktestPositionsTable({ items, loading }: BacktestPositionsTabl
                     <Typography variant="caption">{item.closePrice.toFixed(2)}</Typography>
                   </TableCell>
                   <TableCell align="right">
-                    <Typography variant="caption">{fNumber(Math.round(item.marketValue))}</Typography>
+                    <Typography variant="caption">
+                      {fNumber(Math.round(item.marketValue))}
+                    </Typography>
                   </TableCell>
                   <TableCell align="right">
                     <Typography variant="caption">{fPercent(item.weight)}</Typography>
                   </TableCell>
                   <TableCell align="right">
                     <Typography variant="caption" sx={{ color: pnlColor }}>
-                      {item.unrealizedPnl >= 0 ? '+' : ''}{fNumber(Math.round(item.unrealizedPnl))}
+                      {item.unrealizedPnl >= 0 ? '+' : ''}
+                      {fNumber(Math.round(item.unrealizedPnl))}
                     </Typography>
                   </TableCell>
                   <TableCell align="right">

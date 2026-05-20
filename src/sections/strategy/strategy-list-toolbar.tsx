@@ -202,11 +202,15 @@ export function StrategyListToolbar({
 
       {/* Reset all filters */}
       {isFiltered && (
-        <Button size="small" color="error" onClick={onReset} startIcon={<Iconify icon="solar:close-circle-bold" width={16} />}>
+        <Button
+          size="small"
+          color="error"
+          onClick={onReset}
+          startIcon={<Iconify icon="solar:close-circle-bold" width={16} />}
+        >
           重置
         </Button>
       )}
     </Box>
   );
 }
-

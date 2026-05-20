@@ -49,7 +49,7 @@ export function ReportDetailHeader({ report, actions }: Props) {
           top: 0,
           bottom: 0,
           width: 4,
-           
+
           bgcolor: `${barColor}.main` as any,
         },
       }}

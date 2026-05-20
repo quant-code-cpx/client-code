@@ -19,6 +19,9 @@ export function stockItemFromCode(tsCode: string | null | undefined): StockSearc
   return { tsCode, symbol: '', name: '', market: null, industry: null, listStatus: null };
 }
 
+const getStockOptionLabel = (option: StockSearchItem): string =>
+  [option.tsCode, option.name].filter(Boolean).join(' ');
+
 type Props = {
   onChange: (item: StockSearchItem | null) => void;
   value?: StockSearchItem | null;
@@ -89,7 +92,7 @@ export function StockSearchAutocomplete({
       loading={loading}
       disabled={disabled}
       filterOptions={(x) => x}
-      getOptionLabel={(option) => `${option.tsCode} ${option.name}`}
+      getOptionLabel={getStockOptionLabel}
       isOptionEqualToValue={(option, val) => option.tsCode === val.tsCode}
       fullWidth={fullWidth}
       sx={sx}

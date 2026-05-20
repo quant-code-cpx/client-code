@@ -15,7 +15,12 @@ type ScreenerPresetBarProps = {
 
 // ----------------------------------------------------------------------
 
-export function ScreenerPresetBar({ presets, activePreset, onSelect, onReset }: ScreenerPresetBarProps) {
+export function ScreenerPresetBar({
+  presets,
+  activePreset,
+  onSelect,
+  onReset,
+}: ScreenerPresetBarProps) {
   return (
     <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mb: 2 }}>
       {presets.map((preset) => (

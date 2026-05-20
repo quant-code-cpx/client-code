@@ -815,19 +815,21 @@ export type StockMainMoneyFlowData = {
 // ─── 股本结构 ──────────────────────────────────
 
 export type ShareCapitalItem = {
-  endDate: string;
+  endDate?: string;
+  changeDate?: string;
+  announceDate?: string;
   /** 总股本（万股） */
   totalShare: number | null;
   /** 流通股本（万股） */
   floatShare: number | null;
   /** 自由流通股本（万股） */
-  freeShare: number | null;
+  freeShare?: number | null;
   /** 限售股（万股） */
-  restrictedShare: number | null;
+  restrictedShare?: number | null;
   /** 总市值（万元） */
-  totalMv: number | null;
+  totalMv?: number | null;
   /** 流通市值（万元） */
-  circMv: number | null;
+  circMv?: number | null;
 };
 
 export type ShareCapitalChangeItem = {
@@ -842,7 +844,7 @@ export type StockShareCapitalData = {
   tsCode: string;
   latest: ShareCapitalItem | null;
   history: ShareCapitalItem[];
-  changes: ShareCapitalChangeItem[];
+  changes?: ShareCapitalChangeItem[];
 };
 
 // ─── 个股所属概念板块 ──────────────────────────────────

@@ -1,6 +1,4 @@
-import type {
-  StrategyVersionItem,
-} from 'src/api/strategy';
+import type { StrategyVersionItem } from 'src/api/strategy';
 
 import { useState, useEffect, useCallback } from 'react';
 

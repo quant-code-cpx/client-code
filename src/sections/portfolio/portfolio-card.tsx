@@ -98,6 +98,7 @@ export function PortfolioCard({ portfolio, onView, onEdit, onDelete }: Portfolio
   const isArchived = Boolean(portfolio.isArchived);
   const todayPnl = portfolio.todayPnl ?? null;
   const todayPnlPct = portfolio.todayPnlPct ?? null;
+  const pnlFallback = portfolio.isTradingDay === false ? '非交易日' : '--';
   const valueTone = getPortfolioValueTone(todayPnl);
   const accentColor = isArchived
     ? 'text.disabled'
@@ -186,14 +187,14 @@ export function PortfolioCard({ portfolio, onView, onEdit, onDelete }: Portfolio
         <Stack spacing={2} sx={{ mt: 2 }}>
           <Box>
             <Typography variant="h4" sx={{ color: valueTone, fontWeight: 700 }}>
-              {fSignedCurrency(todayPnl)}
+              {fSignedCurrency(todayPnl, pnlFallback)}
             </Typography>
             <Stack direction="row" spacing={1.5} sx={{ mt: 0.5 }}>
               <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                 今日盈亏
               </Typography>
               <Typography variant="caption" sx={{ color: valueTone, fontWeight: 600 }}>
-                {fSignedRatio(todayPnlPct)}
+                {fSignedRatio(todayPnlPct, pnlFallback)}
               </Typography>
             </Stack>
           </Box>

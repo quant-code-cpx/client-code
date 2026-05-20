@@ -97,9 +97,7 @@ function StatCard({ stat, bestReturn }: { stat: SummaryStat; bestReturn: number 
           fontFeatureSettings: '"tnum"',
           fontVariantNumeric: 'tabular-nums',
           color:
-            stat.color === 'best'
-              ? (theme) => getQuoteColor(bestReturn, theme)
-              : 'text.primary',
+            stat.color === 'best' ? (theme) => getQuoteColor(bestReturn, theme) : 'text.primary',
         }}
       >
         {stat.value}

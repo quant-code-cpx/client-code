@@ -10,7 +10,13 @@ import { Iconify } from 'src/components/iconify';
 
 type Props = {
   /** 兼容旧版：'no-activation' / 'no-signal'；新版：noActivation / activatedNoData / filterNoMatch / error */
-  variant?: 'no-activation' | 'no-signal' | 'noActivation' | 'activatedNoData' | 'filterNoMatch' | 'error';
+  variant?:
+    | 'no-activation'
+    | 'no-signal'
+    | 'noActivation'
+    | 'activatedNoData'
+    | 'filterNoMatch'
+    | 'error';
   /** 跳转信号历史时携带的策略 ID */
   strategyId?: string;
   message?: string;
@@ -18,7 +24,13 @@ type Props = {
   onRetry?: () => void;
 };
 
-export function SignalEmptyState({ variant = 'no-activation', strategyId, message, onReset, onRetry }: Props) {
+export function SignalEmptyState({
+  variant = 'no-activation',
+  strategyId,
+  message,
+  onReset,
+  onRetry,
+}: Props) {
   if (variant === 'no-signal' || variant === 'activatedNoData') {
     const historyHref = strategyId
       ? `/strategy/signal/history?strategyId=${strategyId}`
@@ -33,11 +45,7 @@ export function SignalEmptyState({ variant = 'no-activation', strategyId, messag
           flexDirection: 'column',
         }}
       >
-        <Iconify
-          icon="solar:moon-bold-duotone"
-          width={64}
-          sx={{ color: 'text.disabled', mb: 2 }}
-        />
+        <Iconify icon="solar:moon-bold-duotone" width={64} sx={{ color: 'text.disabled', mb: 2 }} />
         <Typography variant="h6" sx={{ mb: 1 }}>
           策略今日空仓
         </Typography>
@@ -75,7 +83,11 @@ export function SignalEmptyState({ variant = 'no-activation', strategyId, messag
           建议放宽日期、操作类型或置信度区间
         </Typography>
         {onReset && (
-          <Button variant="outlined" onClick={onReset} startIcon={<Iconify icon="solar:restart-bold" />}>
+          <Button
+            variant="outlined"
+            onClick={onReset}
+            startIcon={<Iconify icon="solar:restart-bold" />}
+          >
             重置筛选
           </Button>
         )}
@@ -102,7 +114,11 @@ export function SignalEmptyState({ variant = 'no-activation', strategyId, messag
           {message ?? '请稍后重试'}
         </Typography>
         {onRetry && (
-          <Button variant="outlined" onClick={onRetry} startIcon={<Iconify icon="solar:restart-bold" />}>
+          <Button
+            variant="outlined"
+            onClick={onRetry}
+            startIcon={<Iconify icon="solar:restart-bold" />}
+          >
             重试
           </Button>
         )}

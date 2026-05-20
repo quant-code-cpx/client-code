@@ -50,12 +50,8 @@ export type UseIndustryDictMappingResult = {
 
 export function useIndustryDictMapping(): UseIndustryDictMappingResult {
   const [items, setItems] = useState<IndustryDictMappingItem[] | undefined>(cachedItems);
-  const [coverage, setCoverage] = useState<IndustryDictMappingCoverage | undefined>(
-    cachedCoverage
-  );
-  const [indexes, setIndexes] = useState<IndustryMappingIndexes | null>(
-    cachedIndexes ?? null
-  );
+  const [coverage, setCoverage] = useState<IndustryDictMappingCoverage | undefined>(cachedCoverage);
+  const [indexes, setIndexes] = useState<IndustryMappingIndexes | null>(cachedIndexes ?? null);
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>(
     cachedItems ? 'success' : 'idle'
   );

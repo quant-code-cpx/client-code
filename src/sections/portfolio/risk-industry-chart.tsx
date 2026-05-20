@@ -74,7 +74,14 @@ export function RiskIndustryChart({ portfolioId }: RiskIndustryChartProps) {
         {!loading && !error && (
           <>
             {industries.length === 0 ? (
-              <Box sx={{ height: 280, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Box
+                sx={{
+                  height: 280,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
                 <Typography variant="body2" color="text.secondary">
                   暂无数据
                 </Typography>

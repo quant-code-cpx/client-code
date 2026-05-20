@@ -26,7 +26,6 @@ vi.mock('src/api', () => {
   };
 });
 
- 
 import type { UserProfile } from 'src/api/user-manage';
 
 // Lazy imports AFTER vi.mock so Vitest can apply hoisting.
@@ -223,7 +222,10 @@ describe('AuthProvider — BroadcastChannel cross-tab sync', () => {
       postMessage: vi.fn(),
       close: vi.fn(),
     };
-    vi.stubGlobal('BroadcastChannel', vi.fn(() => mockChannel));
+    vi.stubGlobal(
+      'BroadcastChannel',
+      vi.fn(() => mockChannel)
+    );
 
     vi.mocked(authApi.refresh).mockRejectedValue(new Error('no cookie'));
     vi.mocked(authApi.logout).mockResolvedValue(undefined);

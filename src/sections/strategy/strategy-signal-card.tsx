@@ -20,7 +20,12 @@ import { useRouter } from 'src/routes/hooks';
 import { fmtTradeDate } from 'src/utils/format-time';
 
 import { listPortfolios } from 'src/api/portfolio';
-import { activateSignal, deactivateSignal, getLatestSignals, listSignalActivations } from 'src/api/signal';
+import {
+  activateSignal,
+  deactivateSignal,
+  getLatestSignals,
+  listSignalActivations,
+} from 'src/api/signal';
 
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
@@ -50,7 +55,7 @@ export function StrategySignalCard({ strategyId, strategyName }: Props) {
   const [alertThreshold, setAlertThreshold] = useState(0.3);
 
   // Portfolio list for dropdown
-  const [portfolios, setPortfolios] = useState<PortfolioListItem[]>([]); 
+  const [portfolios, setPortfolios] = useState<PortfolioListItem[]>([]);
 
   const fetchActivation = useCallback(async () => {
     setLoading(true);

@@ -1,7 +1,7 @@
 import type { CalendarEvent, CalendarHistoryTrend } from 'src/api/alert';
 
 import dayjs from 'dayjs';
-import { useState, useEffect } from 'react';
+import { Fragment, useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
@@ -172,11 +172,33 @@ export function EventDetailDrawer({ open, event, onClose, onSubscribe }: Props) 
               <Typography variant="caption" color="text.secondary">
                 详细信息
               </Typography>
-              <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
-                {typeof event.detail === 'string'
-                  ? event.detail
-                  : JSON.stringify(event.detail, null, 2)}
-              </Typography>
+              {typeof event.detail === 'string' ? (
+                <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
+                  {event.detail}
+                </Typography>
+              ) : (
+                <Box
+                  sx={{
+                    display: 'grid',
+                    gridTemplateColumns: 'auto 1fr',
+                    gap: '2px 12px',
+                    alignItems: 'baseline',
+                  }}
+                >
+                  {Object.entries(event.detail).map(([k, v]) => (
+                    <Fragment key={k}>
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        sx={{ whiteSpace: 'nowrap' }}
+                      >
+                        {k}
+                      </Typography>
+                      <Typography variant="body2">{String(v ?? '—')}</Typography>
+                    </Fragment>
+                  ))}
+                </Box>
+              )}
             </Stack>
           )}
 

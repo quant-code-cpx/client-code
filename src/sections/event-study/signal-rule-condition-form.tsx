@@ -167,9 +167,10 @@ export function SignalRuleConditionForm({ schemaFields, value, onChange }: Props
                       value={Array.isArray(row.value) ? (row.value as string[]) : []}
                       onChange={(e) =>
                         updateRow(row.id, {
-                          value: typeof e.target.value === 'string'
-                            ? e.target.value.split(',')
-                            : (e.target.value as string[]),
+                          value:
+                            typeof e.target.value === 'string'
+                              ? e.target.value.split(',')
+                              : (e.target.value as string[]),
                         })
                       }
                       input={<OutlinedInput label="值" />}

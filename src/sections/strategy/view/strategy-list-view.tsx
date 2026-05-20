@@ -60,7 +60,9 @@ export function StrategyListView() {
       setLoading(true);
       setError('');
       try {
-        const minReturn = filter.minTotalReturn ? parseFloat(filter.minTotalReturn) / 100 : undefined;
+        const minReturn = filter.minTotalReturn
+          ? parseFloat(filter.minTotalReturn) / 100
+          : undefined;
         const minSharpe = filter.minSharpeRatio ? parseFloat(filter.minSharpeRatio) : undefined;
         const res = await listStrategies({
           strategyType: filter.strategyType || undefined,
@@ -221,38 +223,36 @@ export function StrategyListView() {
             onDelete={(s) => setDeleteTarget(s)}
           />
         )
+      ) : /* Card view */
+      loading ? (
+        <Grid container spacing={2.5} sx={{ mt: 0.5 }}>
+          {Array.from({ length: PAGE_SIZE }).map((_, i) => (
+            <Grid key={i} size={{ xs: 12, sm: 6, md: 4 }}>
+              <Skeleton variant="rounded" height={200} />
+            </Grid>
+          ))}
+        </Grid>
+      ) : strategies.length === 0 ? (
+        <EmptyState isFiltered={isFiltered} onReset={resetFilter} />
       ) : (
-        /* Card view */
-        loading ? (
-          <Grid container spacing={2.5} sx={{ mt: 0.5 }}>
-            {Array.from({ length: PAGE_SIZE }).map((_, i) => (
-              <Grid key={i} size={{ xs: 12, sm: 6, md: 4 }}>
-                <Skeleton variant="rounded" height={200} />
-              </Grid>
-            ))}
-          </Grid>
-        ) : strategies.length === 0 ? (
-          <EmptyState isFiltered={isFiltered} onReset={resetFilter} />
-        ) : (
-          <Grid container spacing={2.5} sx={{ mt: 0.5 }}>
-            {strategies.map((strategy) => (
-              <Grid key={strategy.id} size={{ xs: 12, sm: 6, md: 4 }}>
-                <StrategyCard
-                  strategy={strategy}
-                  onView={handleView}
-                  onRun={handleRun}
-                  onEdit={handleEdit}
-                  onClone={(s) => setCloneTarget(s)}
-                  onDelete={(s) => setDeleteTarget(s)}
-                  menuAnchorEl={menuAnchorEl}
-                  menuStrategyId={menuStrategyId}
-                  onMenuOpen={handleMenuOpen}
-                  onMenuClose={handleMenuClose}
-                />
-              </Grid>
-            ))}
-          </Grid>
-        )
+        <Grid container spacing={2.5} sx={{ mt: 0.5 }}>
+          {strategies.map((strategy) => (
+            <Grid key={strategy.id} size={{ xs: 12, sm: 6, md: 4 }}>
+              <StrategyCard
+                strategy={strategy}
+                onView={handleView}
+                onRun={handleRun}
+                onEdit={handleEdit}
+                onClone={(s) => setCloneTarget(s)}
+                onDelete={(s) => setDeleteTarget(s)}
+                menuAnchorEl={menuAnchorEl}
+                menuStrategyId={menuStrategyId}
+                onMenuOpen={handleMenuOpen}
+                onMenuClose={handleMenuClose}
+              />
+            </Grid>
+          ))}
+        </Grid>
       )}
 
       {/* Pagination */}

@@ -46,7 +46,7 @@ export function CalendarTableView({ events, onSelectEvent, onBatchSubscribe }: P
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
-  const rowKey = (e: CalendarEvent) => e.id ?? `${e.tsCode}-${e.date}-${e.type}`;
+  const rowKey = (e: CalendarEvent) => e.id ?? `${e.tsCode}-${e.date}-${e.type}-${e.title}`;
 
   const sorted = useMemo(() => {
     const list = [...events];

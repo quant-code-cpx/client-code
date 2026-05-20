@@ -77,7 +77,10 @@ export function SignalHistoryGroupCard({
             '&:hover': { bgcolor: varAlpha(theme.vars.palette.text.primaryChannel, 0.04) },
           })}
         >
-          <Iconify icon={open ? 'solar:alt-arrow-up-bold' : 'solar:alt-arrow-down-bold'} width={18} />
+          <Iconify
+            icon={open ? 'solar:alt-arrow-up-bold' : 'solar:alt-arrow-down-bold'}
+            width={18}
+          />
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
               <Typography variant="subtitle2">{fmtTradeDate(group.tradeDate)}</Typography>
@@ -138,7 +141,9 @@ export function SignalHistoryGroupCard({
         {visibleSignals.length === 0 ? (
           <Box sx={{ py: 4, textAlign: 'center' }}>
             <Typography variant="body2" color="text.secondary">
-              {hiddenHoldCount > 0 ? `已隐藏 ${hiddenHoldCount} 条 HOLD 信号，可在高级筛选中打开` : '该交易日空仓'}
+              {hiddenHoldCount > 0
+                ? `已隐藏 ${hiddenHoldCount} 条 HOLD 信号，可在高级筛选中打开`
+                : '该交易日空仓'}
             </Typography>
           </Box>
         ) : (
@@ -157,7 +162,11 @@ export function SignalHistoryGroupCard({
                   <TableCell align="right">T+20</TableCell>
                   <TableCell align="right">超额</TableCell>
                   <TableCell align="right">
-                    <Box component="span" aria-hidden="true" sx={{ display: 'inline-flex', p: 0.5 }}>
+                    <Box
+                      component="span"
+                      aria-hidden="true"
+                      sx={{ display: 'inline-flex', p: 0.5 }}
+                    >
                       <Iconify icon="solar:arrow-right-bold" width={14} />
                     </Box>
                   </TableCell>

@@ -56,7 +56,6 @@ export function DashboardPortfolioGlance({ refreshKey }: { refreshKey?: number }
       })
       .catch(() => setPortfolios([]))
       .finally(() => setLoading(false));
-     
   }, [refreshKey]);
 
   if (loading) {

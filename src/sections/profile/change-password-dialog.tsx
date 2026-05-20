@@ -132,9 +132,7 @@ export function ChangePasswordDialog({ open, onClose }: ChangePasswordDialogProp
                 endAdornment: (
                   <InputAdornment position="end">
                     <IconButton onClick={() => setShowConfirm(!showConfirm)} edge="end">
-                      <Iconify
-                        icon={showConfirm ? 'solar:eye-bold' : 'solar:eye-closed-bold'}
-                      />
+                      <Iconify icon={showConfirm ? 'solar:eye-bold' : 'solar:eye-closed-bold'} />
                     </IconButton>
                   </InputAdornment>
                 ),

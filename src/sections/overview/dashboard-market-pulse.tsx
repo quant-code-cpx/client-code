@@ -232,7 +232,6 @@ export function DashboardMarketPulse({ refreshKey }: { refreshKey?: number }) {
       .then((res) => setAllIndices(res.indices ?? []))
       .catch(() => setAllIndices([]))
       .finally(() => setLoading(false));
-     
   }, [refreshKey]);
 
   const handleConfirm = (codes: string[]) => {

@@ -22,10 +22,7 @@ function MetricCard({ label, value, color }: MetricCardProps) {
         <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}>
           {label}
         </Typography>
-        <Typography
-          variant="h5"
-          sx={{ fontWeight: 700, color: color ?? 'text.primary' }}
-        >
+        <Typography variant="h5" sx={{ fontWeight: 700, color: color ?? 'text.primary' }}>
           {value ?? '-'}
         </Typography>
       </CardContent>
@@ -104,10 +101,7 @@ export function BacktestMetricsGrid({ summary }: BacktestMetricsGridProps) {
         />
       </Grid>
       <Grid size={{ xs: 6, sm: 4, md: 2 }}>
-        <MetricCard
-          label="年化波动率"
-          value={pctVal(summary.volatility)}
-        />
+        <MetricCard label="年化波动率" value={pctVal(summary.volatility)} />
       </Grid>
       <Grid size={{ xs: 6, sm: 4, md: 2 }}>
         <MetricCard
@@ -117,10 +111,7 @@ export function BacktestMetricsGrid({ summary }: BacktestMetricsGridProps) {
         />
       </Grid>
       <Grid size={{ xs: 6, sm: 4, md: 2 }}>
-        <MetricCard
-          label="换手率（年化）"
-          value={pctVal(summary.turnoverRate)}
-        />
+        <MetricCard label="换手率（年化）" value={pctVal(summary.turnoverRate)} />
       </Grid>
       <Grid size={{ xs: 6, sm: 4, md: 2 }}>
         <MetricCard

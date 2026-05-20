@@ -76,10 +76,26 @@ export function ResearchNotePreview({ content }: Props) {
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
-          h1: ({ children }) => <Typography variant="h4" component="h1">{children}</Typography>,
-          h2: ({ children }) => <Typography variant="h5" component="h2">{children}</Typography>,
-          h3: ({ children }) => <Typography variant="h6" component="h3">{children}</Typography>,
-          p: ({ children }) => <Typography variant="body2" component="p" sx={{ my: 1 }}>{children}</Typography>,
+          h1: ({ children }) => (
+            <Typography variant="h4" component="h1">
+              {children}
+            </Typography>
+          ),
+          h2: ({ children }) => (
+            <Typography variant="h5" component="h2">
+              {children}
+            </Typography>
+          ),
+          h3: ({ children }) => (
+            <Typography variant="h6" component="h3">
+              {children}
+            </Typography>
+          ),
+          p: ({ children }) => (
+            <Typography variant="body2" component="p" sx={{ my: 1 }}>
+              {children}
+            </Typography>
+          ),
           hr: () => <Divider sx={{ my: 2 }} />,
         }}
       >

@@ -27,9 +27,7 @@ type Props = {
   showDetailLink?: boolean;
 };
 
-function netColor(
-  v: number | null | undefined
-): 'error.main' | 'success.main' | 'text.secondary' {
+function netColor(v: number | null | undefined): 'error.main' | 'success.main' | 'text.secondary' {
   if (v == null) return 'text.secondary';
   if (v > 0) return 'error.main';
   if (v < 0) return 'success.main';

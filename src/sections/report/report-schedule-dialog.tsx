@@ -78,7 +78,9 @@ export function ReportScheduleDialog({ open, onClose, onSaved, editingSchedule }
   // Per-type params
   const [backtestParams, setBacktestParams] = useState<GenerateBacktestParams>({ runId: '' });
   const [stockParams, setStockParams] = useState<GenerateStockParams>({ tsCode: '' });
-  const [portfolioParams, setPortfolioParams] = useState<GeneratePortfolioParams>({ portfolioId: '' });
+  const [portfolioParams, setPortfolioParams] = useState<GeneratePortfolioParams>({
+    portfolioId: '',
+  });
   const [strategyParams, setStrategyParams] = useState<GenerateStrategyParams>({
     backtestRunId: '',
     sections: { performance: true, holdings: true, riskAssessment: true, tradeLog: true },
@@ -187,7 +189,11 @@ export function ReportScheduleDialog({ open, onClose, onSaved, editingSchedule }
           />
 
           <Box>
-            <Typography variant="caption" color="text.secondary" sx={{ mb: 0.75, display: 'block' }}>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ mb: 0.75, display: 'block' }}
+            >
               报告类型
             </Typography>
             <ToggleButtonGroup

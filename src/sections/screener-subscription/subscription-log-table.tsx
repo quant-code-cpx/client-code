@@ -51,10 +51,8 @@ export function SubscriptionLogTable({
           <TableBody>
             {loading
               ? Array.from({ length: pageSize > 5 ? 5 : pageSize }).map((_, i) => (
-                   
                   <TableRow key={i}>
                     {Array.from({ length: 6 }).map((__, j) => (
-                       
                       <TableCell key={j}>
                         <Skeleton variant="text" width="80%" />
                       </TableCell>
@@ -67,7 +65,10 @@ export function SubscriptionLogTable({
                       <Typography variant="caption">
                         {fDate(log.tradeDate, 'YYYY-MM-DD')}
                       </Typography>
-                      <Typography variant="caption" sx={{ color: 'text.disabled', display: 'block' }}>
+                      <Typography
+                        variant="caption"
+                        sx={{ color: 'text.disabled', display: 'block' }}
+                      >
                         {fDateTime(log.createdAt)}
                       </Typography>
                     </TableCell>

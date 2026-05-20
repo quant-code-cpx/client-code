@@ -12,11 +12,7 @@ export type PatternTemplateRaw = {
   length: number;
 };
 
-export type PatternTemplateType =
-  | 'reversal_top'
-  | 'reversal_bottom'
-  | 'continuation'
-  | 'bilateral';
+export type PatternTemplateType = 'reversal_top' | 'reversal_bottom' | 'continuation' | 'bilateral';
 
 export type PatternExpectedSignal = 'bullish' | 'bearish' | 'neutral';
 

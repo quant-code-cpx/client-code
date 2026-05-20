@@ -74,9 +74,7 @@ export function AlertPriceRuleTable({ rules, loading, onEdit, onDelete, onToggle
   }
 
   if (rules.length === 0) {
-    return (
-      <EmptyContent title="暂无预警规则" description="点击「新建规则」开始设置价格预警" />
-    );
+    return <EmptyContent title="暂无预警规则" description="点击「新建规则」开始设置价格预警" />;
   }
 
   return (

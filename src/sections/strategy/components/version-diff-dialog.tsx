@@ -27,7 +27,10 @@ import { Label } from 'src/components/label';
 
 type ConfigDiffChangeType = 'ADDED' | 'REMOVED' | 'CHANGED';
 
-const DIFF_LABEL_MAP: Record<ConfigDiffChangeType, { color: 'success' | 'error' | 'warning'; text: string }> = {
+const DIFF_LABEL_MAP: Record<
+  ConfigDiffChangeType,
+  { color: 'success' | 'error' | 'warning'; text: string }
+> = {
   ADDED: { color: 'success', text: '新增' },
   REMOVED: { color: 'error', text: '删除' },
   CHANGED: { color: 'warning', text: '修改' },
@@ -43,7 +46,13 @@ export type VersionDiffDialogProps = {
   versionB: number;
 };
 
-export function VersionDiffDialog({ open, onClose, strategyId, versionA, versionB }: VersionDiffDialogProps) {
+export function VersionDiffDialog({
+  open,
+  onClose,
+  strategyId,
+  versionA,
+  versionB,
+}: VersionDiffDialogProps) {
   const [diffData, setDiffData] = useState<CompareVersionsResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -109,17 +118,25 @@ export function VersionDiffDialog({ open, onClose, strategyId, versionA, version
                         </Typography>
                       </TableCell>
                       <TableCell>
-                        <Typography variant="body2" sx={{ fontFamily: 'monospace', color: 'error.main' }}>
+                        <Typography
+                          variant="body2"
+                          sx={{ fontFamily: 'monospace', color: 'error.main' }}
+                        >
                           {item.oldValue !== undefined ? JSON.stringify(item.oldValue) : '—'}
                         </Typography>
                       </TableCell>
                       <TableCell>
-                        <Typography variant="body2" sx={{ fontFamily: 'monospace', color: 'success.main' }}>
+                        <Typography
+                          variant="body2"
+                          sx={{ fontFamily: 'monospace', color: 'success.main' }}
+                        >
                           {item.newValue !== undefined ? JSON.stringify(item.newValue) : '—'}
                         </Typography>
                       </TableCell>
                       <TableCell align="center">
-                        <Label color={DIFF_LABEL_MAP[item.changeType as ConfigDiffChangeType].color}>
+                        <Label
+                          color={DIFF_LABEL_MAP[item.changeType as ConfigDiffChangeType].color}
+                        >
                           {DIFF_LABEL_MAP[item.changeType as ConfigDiffChangeType].text}
                         </Label>
                       </TableCell>

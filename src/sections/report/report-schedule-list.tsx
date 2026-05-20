@@ -157,11 +157,7 @@ export function ReportScheduleList({ onEdit, onAdd }: Props) {
                   <TableCell>{row.lastRunAt ? fDateTime(row.lastRunAt) : '—'}</TableCell>
                   <TableCell>{row.nextRunAt ? fDateTime(row.nextRunAt) : '—'}</TableCell>
                   <TableCell>
-                    <Switch
-                      size="small"
-                      checked={row.enabled}
-                      onChange={() => handleToggle(row)}
-                    />
+                    <Switch size="small" checked={row.enabled} onChange={() => handleToggle(row)} />
                   </TableCell>
                   <TableCell>
                     <Stack direction="row" spacing={0.5}>

@@ -47,9 +47,7 @@ describe('Iconify', () => {
   });
 
   it('默认宽高为 20px（通过 sx 传递）', () => {
-    const { container } = renderWithProviders(
-      <Iconify icon="solar:eye-bold" />
-    );
+    const { container } = renderWithProviders(<Iconify icon="solar:eye-bold" />);
     expect(container.firstChild).toBeInTheDocument();
     // width prop defaults to 20; rendered as styled span – just ensure it renders
   });
@@ -61,9 +59,7 @@ describe('Iconify', () => {
   });
 
   it('透传自定义 className 并合并内置 class', () => {
-    renderWithProviders(
-      <Iconify icon="solar:eye-bold" className="custom-icon" />
-    );
+    renderWithProviders(<Iconify icon="solar:eye-bold" className="custom-icon" />);
     const icon = screen.getByTestId('iconify-icon');
     expect(icon.className).toContain('custom-icon');
     expect(icon.className).toContain(iconifyClasses.root);

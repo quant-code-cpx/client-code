@@ -18,6 +18,6 @@ export function computeTargetDistance(stock: WatchlistStock): TargetDistance | n
   const close = stock.quote?.close ?? null;
   const target = stock.targetPrice;
   if (close == null || target == null || target === 0) return null;
-  const pct = ((target - close) / target) * 100;
+  const pct = ((target - close) / close) * 100;
   return { pct, hit: close >= target };
 }

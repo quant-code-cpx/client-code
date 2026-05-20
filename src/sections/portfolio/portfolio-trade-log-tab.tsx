@@ -226,10 +226,20 @@ export function PortfolioTradeLogTab({ portfolioId }: PortfolioTradeLogTabProps)
                       <TableCell>{row.tradeDate}</TableCell>
                       <TableCell>
                         <Chip
-                          label={row.action === 'BUY' ? '买入' : row.action === 'SELL' ? '卖出' : row.action}
+                          label={
+                            row.action === 'BUY'
+                              ? '买入'
+                              : row.action === 'SELL'
+                                ? '卖出'
+                                : row.action
+                          }
                           size="small"
                           color={
-                            row.action === 'BUY' ? 'error' : row.action === 'SELL' ? 'success' : 'default'
+                            row.action === 'BUY'
+                              ? 'error'
+                              : row.action === 'SELL'
+                                ? 'success'
+                                : 'default'
                           }
                         />
                       </TableCell>

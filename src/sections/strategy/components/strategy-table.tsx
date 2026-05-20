@@ -59,11 +59,23 @@ export function StrategyTable({ strategies, onView, onClone, onDelete }: Strateg
       case 'version':
         return dir * (a.version - b.version);
       case 'totalReturn':
-        return dir * ((a.lastRunSummary?.totalReturn ?? -Infinity) - (b.lastRunSummary?.totalReturn ?? -Infinity));
+        return (
+          dir *
+          ((a.lastRunSummary?.totalReturn ?? -Infinity) -
+            (b.lastRunSummary?.totalReturn ?? -Infinity))
+        );
       case 'sharpeRatio':
-        return dir * ((a.lastRunSummary?.sharpeRatio ?? -Infinity) - (b.lastRunSummary?.sharpeRatio ?? -Infinity));
+        return (
+          dir *
+          ((a.lastRunSummary?.sharpeRatio ?? -Infinity) -
+            (b.lastRunSummary?.sharpeRatio ?? -Infinity))
+        );
       case 'maxDrawdown':
-        return dir * ((a.lastRunSummary?.maxDrawdown ?? -Infinity) - (b.lastRunSummary?.maxDrawdown ?? -Infinity));
+        return (
+          dir *
+          ((a.lastRunSummary?.maxDrawdown ?? -Infinity) -
+            (b.lastRunSummary?.maxDrawdown ?? -Infinity))
+        );
       case 'updatedAt':
       default:
         return dir * (new Date(a.updatedAt).getTime() - new Date(b.updatedAt).getTime());
@@ -78,14 +90,56 @@ export function StrategyTable({ strategies, onView, onClone, onDelete }: Strateg
             <TableCell padding="checkbox">
               <Checkbox disabled size="small" />
             </TableCell>
-            <SortCell label="名称" field="name" orderBy={orderBy} order={order} onSort={handleSort} align="left" />
+            <SortCell
+              label="名称"
+              field="name"
+              orderBy={orderBy}
+              order={order}
+              onSort={handleSort}
+              align="left"
+            />
             <TableCell>类型</TableCell>
-            <SortCell label="版本" field="version" orderBy={orderBy} order={order} onSort={handleSort} align="right" />
+            <SortCell
+              label="版本"
+              field="version"
+              orderBy={orderBy}
+              order={order}
+              onSort={handleSort}
+              align="right"
+            />
             <TableCell>信号</TableCell>
-            <SortCell label="近一次收益" field="totalReturn" orderBy={orderBy} order={order} onSort={handleSort} align="right" />
-            <SortCell label="夏普" field="sharpeRatio" orderBy={orderBy} order={order} onSort={handleSort} align="right" />
-            <SortCell label="最大回撤" field="maxDrawdown" orderBy={orderBy} order={order} onSort={handleSort} align="right" />
-            <SortCell label="更新时间" field="updatedAt" orderBy={orderBy} order={order} onSort={handleSort} align="right" />
+            <SortCell
+              label="近一次收益"
+              field="totalReturn"
+              orderBy={orderBy}
+              order={order}
+              onSort={handleSort}
+              align="right"
+            />
+            <SortCell
+              label="夏普"
+              field="sharpeRatio"
+              orderBy={orderBy}
+              order={order}
+              onSort={handleSort}
+              align="right"
+            />
+            <SortCell
+              label="最大回撤"
+              field="maxDrawdown"
+              orderBy={orderBy}
+              order={order}
+              onSort={handleSort}
+              align="right"
+            />
+            <SortCell
+              label="更新时间"
+              field="updatedAt"
+              orderBy={orderBy}
+              order={order}
+              onSort={handleSort}
+              align="right"
+            />
             <TableCell align="right">操作</TableCell>
           </TableRow>
         </TableHead>
@@ -145,10 +199,7 @@ function StrategyTableRow({ strategy, onView, onClone, onDelete }: StrategyTable
   const perf = strategy.lastRunSummary;
 
   return (
-    <TableRow
-      hover
-      sx={{ '&:last-child td': { border: 0 }, height: 44 }}
-    >
+    <TableRow hover sx={{ '&:last-child td': { border: 0 }, height: 44 }}>
       <TableCell padding="checkbox">
         <Checkbox disabled size="small" />
       </TableCell>
@@ -192,7 +243,11 @@ function StrategyTableRow({ strategy, onView, onClone, onDelete }: StrategyTable
         {perf?.sharpeRatio != null ? (
           <Typography
             variant="body2"
-            sx={{ fontFeatureSettings: '"tnum"', fontVariantNumeric: 'tabular-nums', textAlign: 'right' }}
+            sx={{
+              fontFeatureSettings: '"tnum"',
+              fontVariantNumeric: 'tabular-nums',
+              textAlign: 'right',
+            }}
           >
             {perf.sharpeRatio.toFixed(2)}
           </Typography>
@@ -218,7 +273,12 @@ function StrategyTableRow({ strategy, onView, onClone, onDelete }: StrategyTable
           <IconButton size="small" onClick={() => onClone(strategy)} title="克隆">
             <Iconify icon="solar:copy-bold" width={16} />
           </IconButton>
-          <IconButton size="small" onClick={() => onDelete(strategy)} title="删除" sx={{ color: 'error.main' }}>
+          <IconButton
+            size="small"
+            onClick={() => onDelete(strategy)}
+            title="删除"
+            sx={{ color: 'error.main' }}
+          >
             <Iconify icon="solar:trash-bin-trash-bold" width={16} />
           </IconButton>
         </Box>

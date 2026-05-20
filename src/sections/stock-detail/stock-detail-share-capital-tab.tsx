@@ -74,6 +74,8 @@ export function StockDetailShareCapitalTab({ tsCode }: Props) {
   }, [fetchData]);
 
   const latest = data?.latest;
+  const changes = data?.changes ?? [];
+  const history = data?.history ?? [];
 
   const pieOptions = useChart({
     chart: { type: 'donut' },
@@ -105,6 +107,7 @@ export function StockDetailShareCapitalTab({ tsCode }: Props) {
 
   const fmtShare = (v: number | null | undefined) => (v != null ? `${fWanYuan(v)}股` : '-');
   const fmtValue = (v: number | null | undefined) => (v != null ? fWanYuan(v) : '-');
+  const fmtDate = (v: string | null | undefined) => (v ? String(v).slice(0, 10) : '-');
 
   return (
     <Stack spacing={3}>
@@ -147,7 +150,7 @@ export function StockDetailShareCapitalTab({ tsCode }: Props) {
       )}
 
       {/* 股本变动历史 */}
-      {data && data.changes.length > 0 && (
+      {changes.length > 0 && (
         <Card>
           <CardContent>
             <Typography variant="subtitle1" sx={{ mb: 2 }}>
@@ -165,7 +168,7 @@ export function StockDetailShareCapitalTab({ tsCode }: Props) {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {data.changes.map((row, i) => (
+                  {changes.map((row, i) => (
                     <TableRow key={i} hover>
                       <TableCell sx={{ fontFamily: 'monospace', fontSize: 12 }}>
                         {row.annDate ?? '-'}
@@ -202,7 +205,7 @@ export function StockDetailShareCapitalTab({ tsCode }: Props) {
       )}
 
       {/* 历史股本（可折叠） */}
-      {data && data.history.length > 0 && (
+      {history.length > 0 && (
         <Card>
           <CardContent>
             <Stack
@@ -235,10 +238,10 @@ export function StockDetailShareCapitalTab({ tsCode }: Props) {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {data.history.map((row, i) => (
+                    {history.map((row, i) => (
                       <TableRow key={i} hover>
                         <TableCell sx={{ fontFamily: 'monospace', fontSize: 12 }}>
-                          {row.endDate}
+                          {fmtDate(row.endDate ?? row.changeDate ?? row.announceDate)}
                         </TableCell>
                         <TableCell align="right">
                           {row.totalShare != null ? fWanYuan(row.totalShare) : '-'}

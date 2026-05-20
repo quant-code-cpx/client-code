@@ -203,28 +203,39 @@ export function WatchlistView() {
   };
 
   const handleUpdateStock = (updated: WatchlistStock) => {
-    setStocks((prev) => prev.map((s) => (s.id === updated.id ? updated : s)));
+    setStocks((prev) => prev.map((s) => (s.id === updated.id ? { ...s, ...updated } : s)));
   };
 
   const handleRemoveStock = (stockId: number) => {
     setStocks((prev) => prev.filter((s) => s.id !== stockId));
     setWatchlists((prev) =>
-      prev.map((w) =>
-        w.id === selectedId
-          ? { ...w, _count: { stocks: Math.max(0, (w._count?.stocks ?? 0) - 1) } }
-          : w
-      )
+      prev.map((w) => {
+        if (w.id !== selectedId) return w;
+        const newCount = Math.max(0, (w._count?.stocks ?? w.summary?.stockCount ?? 0) - 1);
+        return {
+          ...w,
+          _count: { stocks: newCount },
+          summary: w.summary ? { ...w.summary, stockCount: newCount } : w.summary,
+        };
+      })
     );
   };
 
   const handleBatchRemoveStocks = (stockIds: number[]) => {
     setStocks((prev) => prev.filter((s) => !stockIds.includes(s.id)));
     setWatchlists((prev) =>
-      prev.map((w) =>
-        w.id === selectedId
-          ? { ...w, _count: { stocks: Math.max(0, (w._count?.stocks ?? 0) - stockIds.length) } }
-          : w
-      )
+      prev.map((w) => {
+        if (w.id !== selectedId) return w;
+        const newCount = Math.max(
+          0,
+          (w._count?.stocks ?? w.summary?.stockCount ?? 0) - stockIds.length
+        );
+        return {
+          ...w,
+          _count: { stocks: newCount },
+          summary: w.summary ? { ...w.summary, stockCount: newCount } : w.summary,
+        };
+      })
     );
   };
 
@@ -239,7 +250,11 @@ export function WatchlistView() {
       // 同步刷新当前组 summary
       void getWatchlistSummary(selectedId)
         .then((summary) => {
-          setWatchlists((prev) => prev.map((w) => (w.id === selectedId ? { ...w, summary } : w)));
+          setWatchlists((prev) =>
+            prev.map((w) =>
+              w.id === selectedId ? { ...w, summary, _count: { stocks: summary.stockCount } } : w
+            )
+          );
         })
         .catch(() => undefined);
     }

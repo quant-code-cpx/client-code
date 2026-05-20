@@ -21,10 +21,7 @@ interface QuoteTextProps {
  * 负值（跌）→ success.main（绿）
  * 零 / null → text.secondary
  */
-export function getQuoteColor(
-  value: number | null | undefined,
-  theme: Theme
-): string {
+export function getQuoteColor(value: number | null | undefined, theme: Theme): string {
   if (value == null) return theme.palette.text.secondary;
   if (value > 0) return theme.palette.error.main;
   if (value < 0) return theme.palette.success.main;

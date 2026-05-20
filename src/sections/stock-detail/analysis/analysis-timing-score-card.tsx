@@ -12,6 +12,12 @@ import { Chart, useChart } from 'src/components/chart';
 
 // ----------------------------------------------------------------------
 
+const RATING_LABEL: Record<string, string> = {
+  bullish: '偏多',
+  bearish: '偏空',
+  neutral: '中性',
+};
+
 type Props = { scoreSummary: TimingScoreSummary };
 
 export function AnalysisTimingScoreCard({ scoreSummary }: Props) {
@@ -33,20 +39,22 @@ export function AnalysisTimingScoreCard({ scoreSummary }: Props) {
         startAngle: -135,
         endAngle: 135,
         dataLabels: {
-          name: { fontSize: '12px', color: theme.palette.text.secondary, offsetY: 20 },
+          name: { show: false },
           value: {
-            fontSize: '24px',
+            fontSize: '28px',
             fontWeight: 700,
             color: scoreColor,
+            offsetY: -15,
             formatter: (v: number) => String(Math.round(v)),
           },
+          total: { show: false },
         },
         track: { background: theme.palette.action.hover, strokeWidth: '100%' },
         hollow: { size: '60%' },
       },
     },
     fill: { colors: [scoreColor] },
-    labels: [rating],
+    labels: [''],
   });
 
   return (
@@ -66,7 +74,7 @@ export function AnalysisTimingScoreCard({ scoreSummary }: Props) {
                   {score}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  综合评分
+                  综合评分 · {RATING_LABEL[rating] ?? rating}
                 </Typography>
               </Box>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>

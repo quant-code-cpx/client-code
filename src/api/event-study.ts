@@ -329,10 +329,7 @@ export function getSignalRuleStats(id: number) {
 }
 
 export function previewSignalRule(params: SignalRulePreviewParams) {
-  return apiClient.post<SignalRulePreviewResult>(
-    '/api/event-study/signal-rules/preview',
-    params
-  );
+  return apiClient.post<SignalRulePreviewResult>('/api/event-study/signal-rules/preview', params);
 }
 
 export function backtestSignalRule(id: number, params: SignalRuleBacktestParams) {
@@ -374,4 +371,3 @@ export function createAnalysisPlan(params: CreateAnalysisPlanParams) {
 export function deleteAnalysisPlan(id: number) {
   return apiClient.post<{ success: boolean }>('/api/event-study/analyses/delete', { id });
 }
-

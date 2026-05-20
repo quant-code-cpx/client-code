@@ -147,22 +147,22 @@ export type PositionConcentration = {
   concentration: Concentration;
 };
 
-export type MarketCapBucket = {
-  label: string;
-  count: number;
+export type MarketCapTier = {
+  tier: string;
+  stockCount: number;
   weight: number | null;
 };
 
 export type MarketCapDistribution = {
   tradeDate: string | null;
-  buckets: MarketCapBucket[];
+  tiers: MarketCapTier[];
 };
 
 export type BetaHoldingItem = {
   tsCode: string;
   stockName: string;
   beta: number | null;
-  weight: number | null;
+  weight?: number | null;
 };
 
 export type BetaAnalysis = {

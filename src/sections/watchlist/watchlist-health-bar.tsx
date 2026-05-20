@@ -48,8 +48,9 @@ export function WatchlistHealthBar({
 }: WatchlistHealthBarProps) {
   const stats = useMemo<StatItem[]>(() => {
     const groupCount = watchlists.length;
-    const limit = groupLimit ?? GROUP_LIMIT_FALLBACK;
-    const groupNearLimit = groupCount >= limit;
+    const limit = groupLimit === -1 ? null : (groupLimit ?? GROUP_LIMIT_FALLBACK);
+    const groupLimitDisplay = limit === null ? '∞' : String(limit);
+    const groupNearLimit = limit !== null && groupCount >= limit;
 
     const stockCount =
       selectedWatchlist?._count?.stocks ?? selectedWatchlist?.summary?.stockCount ?? 0;
@@ -74,7 +75,7 @@ export function WatchlistHealthBar({
       {
         key: 'groups',
         label: '\u81ea\u9009\u7ec4',
-        value: `${groupCount} / ${limit}`,
+        value: `${groupCount} / ${groupLimitDisplay}`,
         hint: groupNearLimit
           ? '\u5df2\u8fbe\u5230\u4e0a\u9650'
           : '\u5f53\u524d\u8d26\u53f7\u53ef\u521b\u5efa\u7684\u81ea\u9009\u7ec4\u603b\u6570',

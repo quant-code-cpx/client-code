@@ -51,9 +51,7 @@ export function ScreenerResultTable({
   const visibleSet = new Set(visibleColumns);
 
   // 按 SCREENER_HEAD_CELLS 顺序过滤出需要显示的列（name 列始终显示）
-  const headCells = SCREENER_HEAD_CELLS.filter(
-    (c) => c.id === 'name' || visibleSet.has(c.id)
-  );
+  const headCells = SCREENER_HEAD_CELLS.filter((c) => c.id === 'name' || visibleSet.has(c.id));
 
   return (
     <>

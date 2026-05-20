@@ -133,12 +133,8 @@ export function AnalysisInstitutionalTab({ tsCode }: Props) {
                           {row.fundCode}
                         </Typography>
                       </TableCell>
-                      <TableCell align="right">
-                        {fNumber(Math.round(row.marketValue))}
-                      </TableCell>
-                      <TableCell align="right">
-                        {(row.navPercent * 100).toFixed(2)}%
-                      </TableCell>
+                      <TableCell align="right">{fNumber(Math.round(row.marketValue))}</TableCell>
+                      <TableCell align="right">{(row.navPercent * 100).toFixed(2)}%</TableCell>
                       <TableCell align="right">{fNumber(row.holdVolume)}</TableCell>
                       <TableCell>{fDate(row.endDate, 'YYYY-MM-DD')}</TableCell>
                     </TableRow>

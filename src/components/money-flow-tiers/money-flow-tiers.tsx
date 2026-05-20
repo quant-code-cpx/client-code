@@ -98,7 +98,11 @@ function TierItem({ tier }: TierItemProps) {
             <Typography
               component="span"
               variant="caption"
-              sx={{ color: theme.palette.error.light, fontSize: 12, fontVariantNumeric: 'tabular-nums' }}
+              sx={{
+                color: theme.palette.error.light,
+                fontSize: 12,
+                fontVariantNumeric: 'tabular-nums',
+              }}
             >
               买 {b.toFixed(0)}亿
             </Typography>
@@ -138,7 +142,11 @@ function TierItem({ tier }: TierItemProps) {
             <Typography
               component="span"
               variant="caption"
-              sx={{ color: theme.palette.success.light, fontSize: 12, fontVariantNumeric: 'tabular-nums' }}
+              sx={{
+                color: theme.palette.success.light,
+                fontSize: 12,
+                fontVariantNumeric: 'tabular-nums',
+              }}
             >
               卖 {s.toFixed(0)}亿
             </Typography>

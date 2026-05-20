@@ -70,15 +70,9 @@ export function RiskConcentrationCard({ portfolioId }: RiskConcentrationCardProp
               <Label color={hhiLevel.color}>{hhiLevel.label}</Label>
             </Box>
             <Box sx={{ display: 'flex', gap: 3, mb: 2, flexWrap: 'wrap' }}>
-              <Typography variant="body2">
-                Top1：{(conc.top1Weight * 100).toFixed(2)}%
-              </Typography>
-              <Typography variant="body2">
-                Top3：{(conc.top3Weight * 100).toFixed(2)}%
-              </Typography>
-              <Typography variant="body2">
-                Top5：{(conc.top5Weight * 100).toFixed(2)}%
-              </Typography>
+              <Typography variant="body2">Top1：{(conc.top1Weight * 100).toFixed(2)}%</Typography>
+              <Typography variant="body2">Top3：{(conc.top3Weight * 100).toFixed(2)}%</Typography>
+              <Typography variant="body2">Top5：{(conc.top5Weight * 100).toFixed(2)}%</Typography>
             </Box>
             <Table size="small">
               <TableHead>
@@ -106,7 +100,9 @@ export function RiskConcentrationCard({ portfolioId }: RiskConcentrationCardProp
         )}
 
         {!loading && !error && !conc && (
-          <Box sx={{ height: 280, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Box
+            sx={{ height: 280, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          >
             <Typography variant="body2" color="text.secondary">
               暂无数据
             </Typography>

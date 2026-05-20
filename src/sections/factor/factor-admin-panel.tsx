@@ -76,7 +76,10 @@ export function FactorAdminPanel() {
     setBackfillLoading(true);
     setBackfillMsg('');
     try {
-      const names = backfillNames.split(/[\n,;，；\s]+/).map((s) => s.trim()).filter(Boolean);
+      const names = backfillNames
+        .split(/[\n,;，；\s]+/)
+        .map((s) => s.trim())
+        .filter(Boolean);
       const res = await adminBackfill({
         factorNames: names,
         startDate: backfillStart.replace(/-/g, ''),
@@ -96,15 +99,27 @@ export function FactorAdminPanel() {
       {/* 预计算状态表 */}
       <Card sx={{ mb: 3 }}>
         <CardContent>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Box
+            sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}
+          >
             <Typography variant="subtitle1" fontWeight={600}>
               因子预计算状态
             </Typography>
             <Box sx={{ display: 'flex', gap: 1 }}>
-              <Button size="small" variant="outlined" onClick={fetchStatus} disabled={statusLoading}>
+              <Button
+                size="small"
+                variant="outlined"
+                onClick={fetchStatus}
+                disabled={statusLoading}
+              >
                 刷新
               </Button>
-              <Button size="small" variant="contained" onClick={handlePrecompute} disabled={precomputeLoading}>
+              <Button
+                size="small"
+                variant="contained"
+                onClick={handlePrecompute}
+                disabled={precomputeLoading}
+              >
                 {precomputeLoading ? '提交中...' : '全量预计算'}
               </Button>
             </Box>

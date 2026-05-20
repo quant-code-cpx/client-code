@@ -1,4 +1,8 @@
-import type { SignalHistoryGroup, SignalActivationItem, SignalHistoryResponse } from 'src/api/signal';
+import type {
+  SignalHistoryGroup,
+  SignalActivationItem,
+  SignalHistoryResponse,
+} from 'src/api/signal';
 
 import dayjs from 'dayjs';
 import { useSearchParams } from 'react-router-dom';

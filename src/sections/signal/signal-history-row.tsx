@@ -34,7 +34,12 @@ const ACTION_META = {
   HOLD: { label: '持有', color: 'default' as const },
 };
 
-export function SignalHistoryRow({ signal, tradeDate, forwardWindow, alertThreshold = 0.6 }: Props) {
+export function SignalHistoryRow({
+  signal,
+  tradeDate,
+  forwardWindow,
+  alertThreshold = 0.6,
+}: Props) {
   const [open, setOpen] = useState(false);
   const hasReason = Boolean(signal.reason?.length);
   const repeated = signal.isFirstOccurrence === false;
@@ -117,7 +122,10 @@ export function SignalHistoryRow({ signal, tradeDate, forwardWindow, alertThresh
           <SignalReturnText value={signal.forwardReturn?.d1} />
         </TableCell>
         <TableCell align="right">
-          <SignalReturnText value={signal.forwardReturn?.d5} sx={forwardWindow === 5 ? { fontWeight: 700 } : undefined} />
+          <SignalReturnText
+            value={signal.forwardReturn?.d5}
+            sx={forwardWindow === 5 ? { fontWeight: 700 } : undefined}
+          />
         </TableCell>
         <TableCell align="right">
           <SignalReturnText value={signal.forwardReturn?.d20} />
@@ -148,7 +156,11 @@ export function SignalHistoryRow({ signal, tradeDate, forwardWindow, alertThresh
                 </Typography>
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                   {signal.reason?.map((item) => (
-                    <Label key={item.factor} color={item.contribution >= 0 ? 'success' : 'error'} variant="soft">
+                    <Label
+                      key={item.factor}
+                      color={item.contribution >= 0 ? 'success' : 'error'}
+                      variant="soft"
+                    >
                       {item.factor} {item.contribution >= 0 ? '+' : ''}
                       {(item.contribution * 100).toFixed(1)}%
                     </Label>

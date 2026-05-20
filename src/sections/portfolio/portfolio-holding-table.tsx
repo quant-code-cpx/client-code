@@ -64,7 +64,7 @@ export function PortfolioHoldingTable({ holdings, onEdit, onDelete }: PortfolioH
 
             return (
               <TableRow
-                key={holding.id}
+                key={holding.tsCode}
                 hover
                 sx={{ '&:hover .holding-row-actions': { opacity: 1 } }}
               >

@@ -23,7 +23,10 @@ type Props = {
 
 type StatusKey = 'ok' | 'pending' | 'failed' | 'stale' | 'inactive';
 
-const STATUS_META: Record<StatusKey, { color: 'success' | 'warning' | 'error' | 'default'; label: string }> = {
+const STATUS_META: Record<
+  StatusKey,
+  { color: 'success' | 'warning' | 'error' | 'default'; label: string }
+> = {
   ok: { color: 'success', label: '活跃' },
   pending: { color: 'warning', label: '跑批中' },
   failed: { color: 'error', label: '跑批失败' },
@@ -61,7 +64,7 @@ export function SignalActivationCard({ activation, selected, onClick }: Props) {
         disabled
           ? '已停用，点击前往策略详情重新激活'
           : statusKey === 'failed'
-            ? activation.lastRunError ?? '今日跑批失败'
+            ? (activation.lastRunError ?? '今日跑批失败')
             : ''
       }
       disableHoverListener={!disabled && statusKey !== 'failed'}
@@ -73,15 +76,11 @@ export function SignalActivationCard({ activation, selected, onClick }: Props) {
           position: 'relative',
           cursor: 'pointer',
           opacity: disabled ? 0.6 : 1,
-          border: `2px solid ${
-            selected ? theme.vars.palette.primary.main : 'transparent'
-          }`,
+          border: `2px solid ${selected ? theme.vars.palette.primary.main : 'transparent'}`,
           transition: 'border-color 0.2s, background 0.2s',
           overflow: 'hidden',
           '&:hover': {
-            borderColor: disabled
-              ? 'transparent'
-              : theme.vars.palette.primary.light,
+            borderColor: disabled ? 'transparent' : theme.vars.palette.primary.light,
           },
           '&::before': {
             content: '""',
@@ -114,22 +113,14 @@ export function SignalActivationCard({ activation, selected, onClick }: Props) {
 
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, pl: 0.5 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <Iconify
-              icon="solar:pulse-2-bold-duotone"
-              width={14}
-              sx={{ color: 'text.disabled' }}
-            />
+            <Iconify icon="solar:pulse-2-bold-duotone" width={14} sx={{ color: 'text.disabled' }} />
             <Typography variant="caption" color="text.secondary">
               信号 {activation.lastSignalCount ?? 0} 条 · {formatDate(activation.lastSignalDate)}
             </Typography>
           </Box>
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <Iconify
-              icon="solar:cart-3-bold"
-              width={14}
-              sx={{ color: 'text.disabled' }}
-            />
+            <Iconify icon="solar:cart-3-bold" width={14} sx={{ color: 'text.disabled' }} />
             <Typography variant="caption" color="text.secondary" noWrap sx={{ maxWidth: 200 }}>
               {activation.portfolioName ?? (activation.portfolioId ? '未命名组合' : '未关联组合')}
             </Typography>

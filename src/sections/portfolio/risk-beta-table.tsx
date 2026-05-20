@@ -91,15 +91,12 @@ export function RiskBetaTable({ portfolioId }: RiskBetaTableProps) {
                     <TableCell>{h.tsCode}</TableCell>
                     <TableCell>{h.stockName}</TableCell>
                     <TableCell align="right">
-                      <Typography
-                        variant="body2"
-                        sx={{ color: getBetaColor(h.beta) }}
-                      >
+                      <Typography variant="body2" sx={{ color: getBetaColor(h.beta) }}>
                         {h.beta === null ? '-' : h.beta.toFixed(4)}
                       </Typography>
                     </TableCell>
                     <TableCell align="right">
-                      {h.weight === null ? '-' : `${(h.weight * 100).toFixed(2)}%`}
+                      {h.weight == null ? '-' : `${(h.weight * 100).toFixed(2)}%`}
                     </TableCell>
                   </TableRow>
                 ))}
@@ -109,7 +106,9 @@ export function RiskBetaTable({ portfolioId }: RiskBetaTableProps) {
         )}
 
         {!loading && !error && !data && (
-          <Box sx={{ height: 280, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Box
+            sx={{ height: 280, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          >
             <Typography variant="body2" color="text.secondary">
               暂无数据
             </Typography>

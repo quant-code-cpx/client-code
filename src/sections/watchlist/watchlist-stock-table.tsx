@@ -3,7 +3,6 @@ import type { WatchlistStock } from 'src/api/watchlist';
 
 import { useMemo, useCallback } from 'react';
 import { restrictToVerticalAxis } from '@dnd-kit/modifiers';
-import { arrayMove, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import {
   useSensor,
   DndContext,
@@ -12,6 +11,12 @@ import {
   PointerSensor,
   KeyboardSensor,
 } from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from '@dnd-kit/sortable';
 
 import Box from '@mui/material/Box';
 import Table from '@mui/material/Table';
@@ -62,7 +67,7 @@ export function WatchlistStockTable({
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(KeyboardSensor)
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
   const stockIds = useMemo(() => stocks.map((s) => s.id), [stocks]);

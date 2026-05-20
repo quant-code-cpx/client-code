@@ -12,6 +12,13 @@ import { fmtTradeDate as fmtD } from 'src/utils/format-time';
 
 // ----------------------------------------------------------------------
 
+const TYPE_LABEL: Record<string, string> = {
+  buy: '买入',
+  sell: '卖出',
+  warning: '警示',
+  watch: '观察',
+};
+
 function getTypeColor(type: string): 'error' | 'success' | 'warning' | 'default' {
   const lower = type.toLowerCase();
   if (lower.includes('buy') || lower.includes('买') || lower.includes('多')) return 'error';
@@ -60,7 +67,11 @@ export function AnalysisTimingSignalTimeline({ signals }: Props) {
                     <Typography variant="caption" color="text.secondary">
                       {fmtD(sig.tradeDate)}
                     </Typography>
-                    <Chip label={sig.type} color={getTypeColor(sig.type)} size="small" />
+                    <Chip
+                      label={TYPE_LABEL[sig.type.toLowerCase()] ?? sig.type}
+                      color={getTypeColor(sig.type)}
+                      size="small"
+                    />
                     <Typography variant="caption">
                       {'⭐'.repeat(Math.min(sig.strength, 5))}
                     </Typography>

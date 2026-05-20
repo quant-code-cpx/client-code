@@ -218,9 +218,7 @@ export function SignalLatestView() {
           });
           const prev = prevResp.length > 0 ? prevResp[0] : null;
           if (prev) {
-            setFallbackDiff(
-              computeFrontendDiff(head.signals, prev.signals, prev.tradeDate)
-            );
+            setFallbackDiff(computeFrontendDiff(head.signals, prev.signals, prev.tradeDate));
           }
         } catch {
           /* 兜底失败不阻塞主流程 */
@@ -240,9 +238,7 @@ export function SignalLatestView() {
   // ── 复制委托清单 ──────────────────────────────────────
   const handleCopyOrders = useCallback(async () => {
     if (!latestSignals) return;
-    const rows = latestSignals.signals.filter(
-      (s) => s.action === 'BUY' || s.action === 'SELL'
-    );
+    const rows = latestSignals.signals.filter((s) => s.action === 'BUY' || s.action === 'SELL');
     if (rows.length === 0) {
       setSnackbar({ open: true, message: '当前无可执行的 BUY/SELL 信号' });
       return;

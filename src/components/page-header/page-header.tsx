@@ -11,13 +11,7 @@ import type { PageHeaderProps } from './types';
  * Usage:
  *   <PageHeader title="我的组合" action={<Button>新建</Button>} sx={{ mb: 3 }} />
  */
-export function PageHeader({
-  title,
-  action,
-  description,
-  variant = 'h4',
-  sx,
-}: PageHeaderProps) {
+export function PageHeader({ title, action, description, variant = 'h4', sx }: PageHeaderProps) {
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', ...sx }}>
       <Box>

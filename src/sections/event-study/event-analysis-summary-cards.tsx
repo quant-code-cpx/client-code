@@ -40,8 +40,7 @@ export function EventAnalysisSummaryCards({ result }: Props) {
     },
     {
       title: <TermTooltip termKey="SIGNIFICANT_RATIO" label="显著样本占比" />,
-      value:
-        significantRatio != null ? `${(significantRatio * 100).toFixed(1)}%` : '-',
+      value: significantRatio != null ? `${(significantRatio * 100).toFixed(1)}%` : '-',
       color: 'secondary.main',
     },
   ];

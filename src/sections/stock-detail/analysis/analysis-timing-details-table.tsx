@@ -15,10 +15,19 @@ import TableContainer from '@mui/material/TableContainer';
 
 // ----------------------------------------------------------------------
 
+const SIGNAL_LABEL: Record<string, string> = {
+  bullish: '看多',
+  bearish: '看空',
+  neutral: '中性',
+};
+
 function getSignalColor(signal: string): 'error' | 'success' | 'warning' | 'default' {
-  if (signal.includes('多头') || signal.includes('金叉') || signal.includes('看多')) return 'error';
-  if (signal.includes('空头') || signal.includes('死叉') || signal.includes('看空')) return 'success';
-  if (signal.includes('超买') || signal.includes('警告')) return 'warning';
+  const s = signal.toLowerCase();
+  if (s === 'bullish' || s.includes('多头') || s.includes('金叉') || s.includes('看多'))
+    return 'error';
+  if (s === 'bearish' || s.includes('空头') || s.includes('死叉') || s.includes('看空'))
+    return 'success';
+  if (s === 'neutral' || s.includes('超买') || s.includes('警告')) return 'warning';
   return 'default';
 }
 
@@ -28,7 +37,9 @@ export function AnalysisTimingDetailsTable({ details }: Props) {
   return (
     <Card>
       <CardContent>
-        <Typography variant="subtitle1" sx={{ mb: 2 }}>多空打分明细</Typography>
+        <Typography variant="subtitle1" sx={{ mb: 2 }}>
+          多空打分明细
+        </Typography>
         <TableContainer>
           <Table size="small">
             <TableHead>
@@ -44,7 +55,12 @@ export function AnalysisTimingDetailsTable({ details }: Props) {
                 <TableRow key={i}>
                   <TableCell>{row.indicator}</TableCell>
                   <TableCell>
-                    <Chip label={row.signal} color={getSignalColor(row.signal)} size="small" variant="outlined" />
+                    <Chip
+                      label={SIGNAL_LABEL[row.signal] ?? row.signal}
+                      color={getSignalColor(row.signal)}
+                      size="small"
+                      variant="outlined"
+                    />
                   </TableCell>
                   <TableCell>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -57,7 +73,9 @@ export function AnalysisTimingDetailsTable({ details }: Props) {
                     </Box>
                   </TableCell>
                   <TableCell>
-                    <Typography variant="caption" color="text.secondary">{row.reason}</Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {row.reason}
+                    </Typography>
                   </TableCell>
                 </TableRow>
               ))}

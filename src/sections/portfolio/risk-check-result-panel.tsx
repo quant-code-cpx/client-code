@@ -37,8 +37,13 @@ export function RiskCheckResultPanel({ result, loading }: RiskCheckResultPanelPr
                   （{v.tsCode} {v.stockName}）
                 </Typography>
               )}
-              <Typography component="span" variant="caption" sx={{ ml: 1, color: 'text.secondary' }}>
-                当前值：{(v.currentValue * 100).toFixed(2)}% | 阈值：{(v.threshold * 100).toFixed(2)}%
+              <Typography
+                component="span"
+                variant="caption"
+                sx={{ ml: 1, color: 'text.secondary' }}
+              >
+                当前值：{(v.currentValue * 100).toFixed(2)}% | 阈值：
+                {(v.threshold * 100).toFixed(2)}%
               </Typography>
             </Alert>
           ))}

@@ -14,7 +14,9 @@ import { fRatePercent } from 'src/utils/format-number';
 function StatItem({ label, value }: { label: string; value: string }) {
   return (
     <Box>
-      <Typography variant="caption" color="text.secondary">{label}</Typography>
+      <Typography variant="caption" color="text.secondary">
+        {label}
+      </Typography>
       <Typography variant="subtitle2">{value}</Typography>
     </Box>
   );
@@ -27,13 +29,25 @@ type Props = {
 };
 
 export function AnalysisChipSummaryCard({ concentration, keyLevels, currentPrice }: Props) {
-  const { profitRatio, avgCost, range70Low, range70High, range90Low, range90High, score, concentration90, concentration70 } = concentration;
+  const {
+    profitRatio,
+    avgCost,
+    range70Low,
+    range70High,
+    range90Low,
+    range90High,
+    score,
+    concentration90,
+    concentration70,
+  } = concentration;
   const { peakPrice, resistanceHigh, resistanceLow, supportHigh, supportLow } = keyLevels;
 
   return (
     <Card>
       <CardContent>
-        <Typography variant="subtitle1" sx={{ mb: 2 }}>筹码摘要</Typography>
+        <Typography variant="subtitle1" sx={{ mb: 2 }}>
+          筹码摘要
+        </Typography>
         <Grid container spacing={2}>
           <Grid size={{ xs: 6, sm: 4, md: 2 }}>
             <StatItem label="获利比例" value={fRatePercent(profitRatio)} />
@@ -44,26 +58,43 @@ export function AnalysisChipSummaryCard({ concentration, keyLevels, currentPrice
           <Grid size={{ xs: 6, sm: 4, md: 2 }}>
             <StatItem
               label="70%集中区"
-              value={range70Low != null && range70High != null ? `¥${range70Low.toFixed(2)}-${range70High.toFixed(2)}` : '--'}
+              value={
+                range70Low != null && range70High != null
+                  ? `¥${range70Low.toFixed(2)}-${range70High.toFixed(2)}`
+                  : '--'
+              }
             />
           </Grid>
           <Grid size={{ xs: 6, sm: 4, md: 2 }}>
             <StatItem
               label="90%集中区"
-              value={range90Low != null && range90High != null ? `¥${range90Low.toFixed(2)}-${range90High.toFixed(2)}` : '--'}
+              value={
+                range90Low != null && range90High != null
+                  ? `¥${range90Low.toFixed(2)}-${range90High.toFixed(2)}`
+                  : '--'
+              }
             />
           </Grid>
           <Grid size={{ xs: 6, sm: 4, md: 2 }}>
             <StatItem label="集中度评分" value={score != null ? `${score}/100` : '--'} />
           </Grid>
           <Grid size={{ xs: 6, sm: 4, md: 2 }}>
-            <StatItem label="90%集中度" value={concentration90 != null ? `${concentration90.toFixed(2)}%` : '--'} />
+            <StatItem
+              label="90%集中度"
+              value={concentration90 != null ? `${concentration90.toFixed(2)}%` : '--'}
+            />
           </Grid>
           <Grid size={{ xs: 6, sm: 4, md: 2 }}>
-            <StatItem label="70%集中度" value={concentration70 != null ? `${concentration70.toFixed(2)}%` : '--'} />
+            <StatItem
+              label="70%集中度"
+              value={concentration70 != null ? `${concentration70.toFixed(2)}%` : '--'}
+            />
           </Grid>
           <Grid size={{ xs: 6, sm: 4, md: 2 }}>
-            <StatItem label="主力成本" value={peakPrice != null ? `¥${peakPrice.toFixed(2)}` : '--'} />
+            <StatItem
+              label="主力成本"
+              value={peakPrice != null ? `¥${peakPrice.toFixed(2)}` : '--'}
+            />
           </Grid>
           {currentPrice != null && (
             <Grid size={{ xs: 6, sm: 4, md: 2 }}>
@@ -74,7 +105,9 @@ export function AnalysisChipSummaryCard({ concentration, keyLevels, currentPrice
 
         <Divider sx={{ my: 2 }} />
 
-        <Typography variant="subtitle2" sx={{ mb: 1 }}>关键价位</Typography>
+        <Typography variant="subtitle2" sx={{ mb: 1 }}>
+          关键价位
+        </Typography>
         <Grid container spacing={2}>
           <Grid size={{ xs: 6, sm: 3 }}>
             <StatItem

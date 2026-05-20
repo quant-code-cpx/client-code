@@ -1,8 +1,4 @@
-import type {
-  ReportType,
-  ReportFormat,
-  CreateStrategyResearchReportParams,
-} from 'src/api/report';
+import type { ReportType, ReportFormat, CreateStrategyResearchReportParams } from 'src/api/report';
 
 import { useMemo, useState, useEffect } from 'react';
 
@@ -30,10 +26,7 @@ import { GenerateFormStock } from './generate/generate-form-stock';
 import { GenerateFormBacktest } from './generate/generate-form-backtest';
 import { GenerateFormStrategy } from './generate/generate-form-strategy';
 import { GenerateFormPortfolio } from './generate/generate-form-portfolio';
-import {
-  REPORT_TYPE_OPTIONS,
-  REPORT_FORMAT_OPTIONS,
-} from './generate/types';
+import { REPORT_TYPE_OPTIONS, REPORT_FORMAT_OPTIONS } from './generate/types';
 
 import type {
   GenerateParams,
@@ -154,7 +147,11 @@ export function ReportGenerateDialog({
         <Stack spacing={2.5} sx={{ pt: 0.5 }}>
           {/* Type picker */}
           <Box>
-            <Typography variant="caption" color="text.secondary" sx={{ mb: 0.75, display: 'block' }}>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ mb: 0.75, display: 'block' }}
+            >
               报告类型
             </Typography>
             <ToggleButtonGroup
@@ -202,7 +199,11 @@ export function ReportGenerateDialog({
 
           {/* Format picker */}
           <Box>
-            <Typography variant="caption" color="text.secondary" sx={{ mb: 0.75, display: 'block' }}>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ mb: 0.75, display: 'block' }}
+            >
               输出格式
             </Typography>
             <ToggleButtonGroup

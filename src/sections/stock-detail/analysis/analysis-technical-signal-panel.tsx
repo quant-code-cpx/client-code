@@ -21,11 +21,43 @@ const SIGNAL_LABELS: Record<string, string> = {
   volumePrice: '量价',
 };
 
+const SIGNAL_VALUE_LABELS: Record<string, string> = {
+  bullish: '看多',
+  bearish: '看空',
+  neutral: '中性',
+  below_zero: '零轴下',
+  above_zero: '零轴上',
+  oversold: '超卖',
+  overbought: '超买',
+  near_lower: '近下轨',
+  near_upper: '近上轨',
+  in_band: '带内',
+  no_trend: '无趋势',
+  trending: '趋势中',
+  golden_cross: '金叉',
+  death_cross: '死叉',
+};
+
 function getSignalColor(signal: string | null): 'error' | 'success' | 'warning' | 'default' {
   if (!signal) return 'default';
-  if (signal.includes('多头') || signal.includes('金叉') || signal.includes('看多')) return 'error';
-  if (signal.includes('空头') || signal.includes('死叉') || signal.includes('看空')) return 'success';
-  if (signal.includes('超买') || signal.includes('警告')) return 'warning';
+  const s = signal.toLowerCase();
+  if (
+    s === 'bullish' ||
+    s === 'golden_cross' ||
+    s.includes('多头') ||
+    s.includes('金叉') ||
+    s.includes('看多')
+  )
+    return 'error';
+  if (
+    s === 'bearish' ||
+    s === 'death_cross' ||
+    s.includes('空头') ||
+    s.includes('死叉') ||
+    s.includes('看空')
+  )
+    return 'success';
+  if (s === 'overbought' || s.includes('超买') || s.includes('警告')) return 'warning';
   return 'default';
 }
 
@@ -38,7 +70,9 @@ export function AnalysisTechnicalSignalPanel({ signals, maStatus }: Props) {
   return (
     <Card>
       <CardContent>
-        <Typography variant="subtitle1" sx={{ mb: 2 }}>信号摘要</Typography>
+        <Typography variant="subtitle1" sx={{ mb: 2 }}>
+          信号摘要
+        </Typography>
         <Stack direction="row" flexWrap="wrap" gap={1}>
           {(Object.keys(SIGNAL_LABELS) as Array<keyof SignalSummary>).map((key) => {
             const value = signals[key];
@@ -46,19 +80,15 @@ export function AnalysisTechnicalSignalPanel({ signals, maStatus }: Props) {
             return (
               <Chip
                 key={key}
-                label={`${SIGNAL_LABELS[key]}: ${value}`}
+                label={`${SIGNAL_LABELS[key]}: ${SIGNAL_VALUE_LABELS[value] ?? value}`}
                 color={getSignalColor(value)}
                 size="small"
                 variant="outlined"
               />
             );
           })}
-          {maStatus.bullishAlign && (
-            <Chip label="MA 多头排列" color="error" size="small" />
-          )}
-          {maStatus.bearishAlign && (
-            <Chip label="MA 空头排列" color="success" size="small" />
-          )}
+          {maStatus.bullishAlign && <Chip label="MA 多头排列" color="error" size="small" />}
+          {maStatus.bearishAlign && <Chip label="MA 空头排列" color="success" size="small" />}
         </Stack>
         {maStatus.latestCross && (
           <Box sx={{ mt: 1 }}>

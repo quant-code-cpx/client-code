@@ -7,7 +7,6 @@ vi.mock('src/api/client', () => ({
   },
 }));
 
- 
 import { apiClient } from 'src/api/client';
 
 const mockPost = () => vi.mocked(apiClient.post);
@@ -76,7 +75,12 @@ describe('stockDetailApi.overview', () => {
 
 describe('stockDetailApi.chart', () => {
   it('sends all chart params to the backend', async () => {
-    mockPost().mockResolvedValueOnce({ tsCode: '000001.SZ', period: 'D', adjustType: 'qfq', items: [] });
+    mockPost().mockResolvedValueOnce({
+      tsCode: '000001.SZ',
+      period: 'D',
+      adjustType: 'qfq',
+      items: [],
+    });
 
     await stockDetailApi.chart({
       tsCode: '000001.SZ',

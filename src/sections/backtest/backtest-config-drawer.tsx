@@ -5,7 +5,13 @@ import Grid from '@mui/material/Grid';
 import Divider from '@mui/material/Divider';
 import Typography from '@mui/material/Typography';
 
-import { UNIVERSE_OPTIONS, BENCHMARK_OPTIONS, PRICE_MODE_OPTIONS, STRATEGY_TYPE_LABEL, REBALANCE_FREQUENCY_OPTIONS } from './constants';
+import {
+  UNIVERSE_OPTIONS,
+  BENCHMARK_OPTIONS,
+  PRICE_MODE_OPTIONS,
+  STRATEGY_TYPE_LABEL,
+  REBALANCE_FREQUENCY_OPTIONS,
+} from './constants';
 
 // ----------------------------------------------------------------------
 
@@ -57,10 +63,7 @@ export function BacktestConfigDrawer({ detail }: BacktestConfigDrawerProps) {
         <Divider />
         <InfoRow label="成交模式" value={priceLabel} />
         <Divider />
-        <InfoRow
-          label="初始资金"
-          value={`¥ ${detail.initialCapital.toLocaleString()}`}
-        />
+        <InfoRow label="初始资金" value={`¥ ${detail.initialCapital.toLocaleString()}`} />
       </Grid>
 
       <Grid size={{ xs: 12, md: 6 }}>

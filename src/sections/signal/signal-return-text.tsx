@@ -21,7 +21,8 @@ export function getSignalReturnColor(value: number | null | undefined, theme: Th
 export function SignalReturnText({ value, variant = 'body2', sx }: Props) {
   const theme = useTheme();
 
-  const text = value === null || value === undefined ? '—' : `${value > 0 ? '+' : ''}${fPercent(value)}`;
+  const text =
+    value === null || value === undefined ? '—' : `${value > 0 ? '+' : ''}${fPercent(value)}`;
 
   return (
     <Typography

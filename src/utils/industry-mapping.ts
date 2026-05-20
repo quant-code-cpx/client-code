@@ -1,8 +1,5 @@
 import type { HeatmapItem } from 'src/api/heatmap';
-import type {
-  IndustryDictMappingItem,
-  IndustryDictMappingCoverage,
-} from 'src/api/industry-dict';
+import type { IndustryDictMappingItem, IndustryDictMappingCoverage } from 'src/api/industry-dict';
 
 // ── Index structures ────────────────────────────────────────────
 

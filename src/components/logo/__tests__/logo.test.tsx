@@ -1,4 +1,3 @@
-
 import { renderWithProviders } from 'src/test/test-utils';
 
 import { Logo } from '../logo';

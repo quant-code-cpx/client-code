@@ -71,18 +71,24 @@ export function AnalysisRelativeStrengthTab({ tsCode }: Props) {
         <ToggleButtonGroup
           value={benchmarkCode}
           exclusive
-          onChange={(_, v) => { if (v) setBenchmarkCode(v); }}
+          onChange={(_, v) => {
+            if (v) setBenchmarkCode(v);
+          }}
           size="small"
         >
           {BENCHMARKS.map((b) => (
-            <ToggleButton key={b.code} value={b.code}>{b.label}</ToggleButton>
+            <ToggleButton key={b.code} value={b.code}>
+              {b.label}
+            </ToggleButton>
           ))}
         </ToggleButtonGroup>
 
         <ToggleButtonGroup
           value={days}
           exclusive
-          onChange={(_, v) => { if (v) setDays(v); }}
+          onChange={(_, v) => {
+            if (v) setDays(v);
+          }}
           size="small"
         >
           <ToggleButton value={60}>60日</ToggleButton>

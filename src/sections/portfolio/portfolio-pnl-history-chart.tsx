@@ -64,7 +64,7 @@ export function PortfolioPnlHistoryChart({ portfolioId }: PortfolioPnlHistoryCha
     fetchHistory();
   }, [fetchHistory]);
 
-  const categories = data.map((item) => item.date);
+  const categories = data.map((item) => item.date.slice(0, 10));
   const navSeries = data.map((item) => (item.nav !== null ? Number(item.nav.toFixed(4)) : null));
 
   const chartOptions = useChart({
@@ -118,7 +118,9 @@ export function PortfolioPnlHistoryChart({ portfolioId }: PortfolioPnlHistoryCha
         {loading && <Skeleton variant="rectangular" height={300} />}
         {!loading && error && <Alert severity="error">{error}</Alert>}
         {!loading && !error && data.length === 0 && (
-          <Box sx={{ height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Box
+            sx={{ height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          >
             <Typography variant="body2" color="text.secondary">
               暂无净值数据
             </Typography>

@@ -10,7 +10,7 @@ vi.mock('src/api/stock', () => ({
 
 import { searchStocks } from 'src/api/stock';
 
-import { StockSearchAutocomplete } from '../stock-search-autocomplete';
+import { stockItemFromCode, StockSearchAutocomplete } from '../stock-search-autocomplete';
 
 // ----------------------------------------------------------------------
 
@@ -181,6 +181,17 @@ describe('StockSearchAutocomplete', () => {
   });
 
   describe('选择与回调', () => {
+    it('受控 value 只有 tsCode 时输入框回显股票代码', () => {
+      renderWithProviders(
+        <StockSearchAutocomplete
+          onChange={vi.fn()}
+          value={stockItemFromCode('688525.SH')}
+        />
+      );
+
+      expect(screen.getByRole('combobox')).toHaveValue('688525.SH');
+    });
+
     it('选择选项后调用 onChange 传递 StockSearchItem', async () => {
       const item = createMockStockSearchItem({ name: '平安银行', tsCode: '000001.SZ' });
       mockSearchStocks.mockResolvedValue({ items: [item], total: 1 });

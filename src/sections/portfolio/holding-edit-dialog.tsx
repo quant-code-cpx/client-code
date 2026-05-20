@@ -71,12 +71,7 @@ export function HoldingEditDialog({
                 fullWidth
                 sx={{ mb: 1 }}
               />
-              <TextField
-                label="股票名称"
-                value={holding.stockName}
-                disabled
-                fullWidth
-              />
+              <TextField label="股票名称" value={holding.stockName} disabled fullWidth />
             </Box>
           )}
           <TextField

@@ -89,10 +89,7 @@ export function ValidationLogTable({ rows, loading }: Props) {
                       </Typography>
                     </TableCell>
                     <TableCell>
-                      <Label
-                        color={SEVERITY_COLOR[row.severity] ?? 'default'}
-                        variant="soft"
-                      >
+                      <Label color={SEVERITY_COLOR[row.severity] ?? 'default'} variant="soft">
                         {row.severity}
                       </Label>
                     </TableCell>

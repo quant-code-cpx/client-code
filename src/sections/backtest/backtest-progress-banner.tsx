@@ -17,11 +17,7 @@ export function BacktestProgressBanner({ detail }: BacktestProgressBannerProps) 
   }
 
   return (
-    <Alert
-      severity="info"
-      icon={false}
-      sx={{ py: 1.5 }}
-    >
+    <Alert severity="info" icon={false} sx={{ py: 1.5 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
         <Typography variant="body2" sx={{ fontWeight: 600 }}>
           {detail.status === 'QUEUED' ? '排队等待中...' : '回测运行中...'}

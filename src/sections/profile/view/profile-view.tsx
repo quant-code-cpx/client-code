@@ -61,9 +61,7 @@ export function ProfileView() {
               {userProfile?.account}
             </Typography>
             <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
-              {userProfile?.role && (
-                <Label color="info">{ROLE_LABEL[userProfile.role]}</Label>
-              )}
+              {userProfile?.role && <Label color="info">{ROLE_LABEL[userProfile.role]}</Label>}
               {userProfile?.status && (
                 <Label color={userProfile.status === 'ACTIVE' ? 'success' : 'error'}>
                   {STATUS_LABEL[userProfile.status]}
@@ -76,14 +74,8 @@ export function ProfileView() {
         <Divider sx={{ my: 2 }} />
 
         {/* 详细信息区 */}
-        <Box
-          sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}
-        >
-          <InfoRow
-            icon="solar:letter-bold"
-            label="邮箱"
-            value={userProfile?.email || '未设置'}
-          />
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
+          <InfoRow icon="solar:letter-bold" label="邮箱" value={userProfile?.email || '未设置'} />
           <InfoRow
             icon="mingcute:wechat-fill"
             label="微信号"

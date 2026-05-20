@@ -35,7 +35,12 @@ export function SignalHistoryDayDrawer({ open, group, forwardWindow, onClose }: 
   const holdCount = signals.filter((signal) => signal.action === 'HOLD').length;
 
   return (
-    <Drawer anchor="right" open={open} onClose={onClose} PaperProps={{ sx: { width: { xs: 1, md: 720 } } }}>
+    <Drawer
+      anchor="right"
+      open={open}
+      onClose={onClose}
+      PaperProps={{ sx: { width: { xs: 1, md: 720 } } }}
+    >
       <Box sx={{ p: 2.5 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <Box sx={{ flex: 1 }}>
