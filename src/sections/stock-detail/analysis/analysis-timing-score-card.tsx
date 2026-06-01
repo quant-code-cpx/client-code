@@ -41,10 +41,7 @@ export function AnalysisTimingScoreCard({ scoreSummary }: Props) {
         dataLabels: {
           name: { show: false },
           value: {
-            fontSize: '28px',
-            fontWeight: 700,
-            color: scoreColor,
-            offsetY: -15,
+            show: false,
             formatter: (v: number) => String(Math.round(v)),
           },
           total: { show: false },
@@ -65,12 +62,40 @@ export function AnalysisTimingScoreCard({ scoreSummary }: Props) {
         </Typography>
         <Grid container spacing={2} alignItems="center">
           <Grid size={{ xs: 12, sm: 5 }}>
-            <Chart type="radialBar" series={series} options={chartOptions} sx={{ height: 260 }} />
+            <Box sx={{ position: 'relative', height: 260, width: 1 }}>
+              <Chart
+                type="radialBar"
+                series={series}
+                options={chartOptions}
+                sx={{ height: '100%' }}
+              />
+              <Box
+                aria-hidden="true"
+                data-testid="timing-score-center-value"
+                sx={{
+                  top: '50%',
+                  left: '50%',
+                  position: 'absolute',
+                  transform: 'translate(-50%, -50%)',
+                  pointerEvents: 'none',
+                }}
+              >
+                <Typography
+                  variant="h4"
+                  sx={{ color: scoreColor, lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}
+                >
+                  {score}
+                </Typography>
+              </Box>
+            </Box>
           </Grid>
           <Grid size={{ xs: 12, sm: 7 }}>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
               <Box>
-                <Typography variant="h4" sx={{ color: scoreColor }}>
+                <Typography
+                  variant="h4"
+                  sx={{ color: scoreColor, fontVariantNumeric: 'tabular-nums' }}
+                >
                   {score}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">

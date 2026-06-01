@@ -26,6 +26,9 @@ export type StockQuote = {
 export type WatchlistStock = {
   id: number;
   tsCode: string;
+  stockName?: string | null;
+  industry?: string | null;
+  area?: string | null;
   notes: string | null;
   tags: string[];
   targetPrice: number | null;

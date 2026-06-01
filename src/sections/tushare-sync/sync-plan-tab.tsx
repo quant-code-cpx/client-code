@@ -101,6 +101,18 @@ const SYNC_STATUS_LABEL: Record<string, string> = {
 };
 
 const READ_ONLY_TOOLTIP = '仅超级管理员可执行';
+const TOOLBAR_CONTROL_HEIGHT = 36;
+const TOOLBAR_CONTROL_SX = {
+  height: TOOLBAR_CONTROL_HEIGHT,
+  minHeight: TOOLBAR_CONTROL_HEIGHT,
+  whiteSpace: 'nowrap',
+};
+const TOOLBAR_TOGGLE_SX = {
+  ...TOOLBAR_CONTROL_SX,
+  px: 2,
+  fontSize: 12,
+  lineHeight: 1,
+};
 
 type Props = {
   isReadOnly?: boolean;
@@ -308,9 +320,10 @@ export function SyncPlanTab({ isReadOnly = false, refreshKey = 0 }: Props) {
           sx={{
             height: 96,
             display: 'flex',
-            alignItems: 'center',
+            alignItems: 'flex-end',
+            boxSizing: 'border-box',
             gap: 2,
-            p: (theme) => theme.spacing(0, 1, 0, 3),
+            p: (theme) => theme.spacing(2, 1, 2, 3),
           }}
         >
           <Box>
@@ -328,21 +341,27 @@ export function SyncPlanTab({ isReadOnly = false, refreshKey = 0 }: Props) {
                 if (v) setMode(v as TushareSyncMode);
               }}
             >
-              <ToggleButton value="incremental" sx={{ fontSize: 12, px: 2 }}>
+              <ToggleButton value="incremental" sx={TOOLBAR_TOGGLE_SX}>
                 增量同步
               </ToggleButton>
-              <ToggleButton value="full" sx={{ fontSize: 12, px: 2, color: 'warning.main' }}>
+              <ToggleButton value="full" sx={{ ...TOOLBAR_TOGGLE_SX, color: 'warning.main' }}>
                 全量同步
               </ToggleButton>
             </ToggleButtonGroup>
           </Box>
 
-          <Stack direction="row" spacing={1} sx={{ display: { xs: 'none', md: 'flex' } }}>
+          <Stack
+            direction="row"
+            spacing={1}
+            alignItems="center"
+            sx={{ display: { xs: 'none', md: 'flex' } }}
+          >
             <Tooltip title={isReadOnly ? READ_ONLY_TOOLTIP : '按基础数据分类触发增量同步'}>
               <span>
                 <Button
                   size="small"
                   variant="outlined"
+                  sx={TOOLBAR_CONTROL_SX}
                   disabled={isReadOnly || basicTasks.length === 0 || isSyncing || plansLoading}
                   onClick={() => requestSync('incremental', basicTasks)}
                 >
@@ -356,6 +375,7 @@ export function SyncPlanTab({ isReadOnly = false, refreshKey = 0 }: Props) {
                   size="small"
                   color="warning"
                   variant="outlined"
+                  sx={TOOLBAR_CONTROL_SX}
                   disabled={isReadOnly || failedTasks.length === 0 || isSyncing || summaryLoading}
                   onClick={() => requestSync('incremental', failedTasks)}
                 >
@@ -368,7 +388,14 @@ export function SyncPlanTab({ isReadOnly = false, refreshKey = 0 }: Props) {
           <Box sx={{ flex: 1 }} />
 
           {isSyncing && (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Box
+              sx={{
+                gap: 1,
+                display: 'flex',
+                alignItems: 'center',
+                height: TOOLBAR_CONTROL_HEIGHT,
+              }}
+            >
               <CircularProgress size={14} />
               <Typography variant="body2" sx={{ color: 'text.secondary' }}>
                 同步中，请勿关闭页面...
@@ -376,14 +403,25 @@ export function SyncPlanTab({ isReadOnly = false, refreshKey = 0 }: Props) {
             </Box>
           )}
 
-          <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: 'nowrap' }}>
+          <Typography
+            variant="body2"
+            color="text.secondary"
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              height: TOOLBAR_CONTROL_HEIGHT,
+              whiteSpace: 'nowrap',
+            }}
+          >
             已选 <strong>{selected.size}</strong> / {plans.length} 个任务
           </Typography>
 
           <Tooltip title={isReadOnly ? READ_ONLY_TOOLTIP : ''}>
             <span>
               <Button
+                size="small"
                 variant="contained"
+                sx={TOOLBAR_CONTROL_SX}
                 disabled={!anySelected || isSyncing || plansLoading || isReadOnly}
                 onClick={handleSync}
                 startIcon={

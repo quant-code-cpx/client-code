@@ -72,9 +72,12 @@ export function WatchlistDetailPanel({
     return stocks.filter((s) => {
       if (lower) {
         const inCode = s.tsCode.toLowerCase().includes(lower);
+        const inName = (s.stockName ?? '').toLowerCase().includes(lower);
+        const inIndustry = (s.industry ?? '').toLowerCase().includes(lower);
+        const inArea = (s.area ?? '').toLowerCase().includes(lower);
         const inNotes = (s.notes ?? '').toLowerCase().includes(lower);
         const inTags = (s.tags ?? []).some((t) => t.toLowerCase().includes(lower));
-        if (!inCode && !inNotes && !inTags) return false;
+        if (!inCode && !inName && !inIndustry && !inArea && !inNotes && !inTags) return false;
       }
       if (statusFilter !== 'all') {
         const distance = computeTargetDistance(s);

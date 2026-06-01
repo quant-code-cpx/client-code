@@ -6,6 +6,7 @@ import { useSortable } from '@dnd-kit/sortable';
 
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
+import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
 import Collapse from '@mui/material/Collapse';
 import Checkbox from '@mui/material/Checkbox';
@@ -60,6 +61,7 @@ export function WatchlistStockTableRow({
   const hasDetail = !!(row.notes || (row.tags && row.tags.length > 0));
 
   const { quote } = row;
+  const stockName = row.stockName?.trim();
   const close = quote?.close ?? null;
   const pctChg = quote?.pctChg ?? null;
   const vol = quote?.vol ?? null;
@@ -117,19 +119,26 @@ export function WatchlistStockTableRow({
         </TableCell>
 
         <TableCell>
-          <Typography
-            component={RouterLink}
-            href={`/stock/detail?code=${encodeURIComponent(row.tsCode)}`}
-            variant="body2"
-            sx={{
-              fontWeight: 600,
-              color: 'text.primary',
-              textDecoration: 'none',
-              '&:hover': { textDecoration: 'underline', color: 'primary.main' },
-            }}
-          >
-            {row.tsCode}
-          </Typography>
+          <Stack spacing={0.25} sx={{ minWidth: 0 }}>
+            <Typography
+              component={RouterLink}
+              href={`/stock/detail?code=${encodeURIComponent(row.tsCode)}`}
+              variant="body2"
+              sx={{
+                fontWeight: 600,
+                color: 'text.primary',
+                textDecoration: 'none',
+                '&:hover': { textDecoration: 'underline', color: 'primary.main' },
+              }}
+            >
+              {stockName || row.tsCode}
+            </Typography>
+            {stockName && (
+              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                {row.tsCode}
+              </Typography>
+            )}
+          </Stack>
         </TableCell>
 
         <TableCell align="right">

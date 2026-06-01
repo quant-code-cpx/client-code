@@ -1,6 +1,9 @@
 import { useRef, useState, useEffect, useCallback } from 'react';
 
+import Alert from '@mui/material/Alert';
+import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
+import Collapse from '@mui/material/Collapse';
 
 import { runSubscription, parseRunCooldownSeconds } from 'src/api/screener-subscription';
 
@@ -32,6 +35,7 @@ export function SubscriptionRunButton({
 }: Props) {
   const [remaining, setRemaining] = useState(0);
   const [running, setRunning] = useState(false);
+  const [showCooldownNotice, setShowCooldownNotice] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const startCountdown = useCallback((seconds: number) => {
@@ -74,6 +78,7 @@ export function SubscriptionRunButton({
   );
 
   const handleClick = async () => {
+    setShowCooldownNotice(false);
     setRunning(true);
     try {
       const res = await runSubscription(subscriptionId);
@@ -85,6 +90,8 @@ export function SubscriptionRunButton({
       const cooldown = parseRunCooldownSeconds(msg);
       if (cooldown !== null) {
         startCountdown(cooldown);
+        setShowCooldownNotice(true);
+        return;
       }
       onError?.(msg);
     } finally {
@@ -96,15 +103,30 @@ export function SubscriptionRunButton({
   const text = remaining > 0 ? `${formatRemaining(remaining)} 后可再次执行` : label;
 
   return (
-    <Button
-      size={size}
-      variant={variant}
-      onClick={handleClick}
-      disabled={disabled}
-      startIcon={<Iconify icon="solar:play-bold" width={16} />}
-    >
-      {text}
-    </Button>
+    <Stack spacing={0.75} alignItems="flex-start" sx={{ minWidth: 0 }}>
+      <Button
+        size={size}
+        variant={variant}
+        onClick={handleClick}
+        disabled={disabled}
+        startIcon={<Iconify icon="solar:play-bold" width={16} />}
+      >
+        {text}
+      </Button>
+
+      <Collapse in={showCooldownNotice && remaining > 0}>
+        <Alert
+          severity="warning"
+          sx={{
+            py: 0.5,
+            alignItems: 'center',
+            '& .MuiAlert-message': { py: 0, fontSize: 12 },
+          }}
+        >
+          执行过于频繁，{formatRemaining(remaining)} 后可再次执行
+        </Alert>
+      </Collapse>
+    </Stack>
   );
 }
 

@@ -1,3 +1,4 @@
+import type { SectorFlowItem } from 'src/api/market';
 import type { HeatmapItem, HeatmapDistribution, HeatmapSectorSummary } from 'src/api/heatmap';
 
 // ── Color mapping ──────────────────────────────────────────────
@@ -127,6 +128,150 @@ export function toYi(wan: number | null | undefined, decimals = 2): number {
  */
 export function yuanToYi(yuan: number | null | undefined, decimals = 2): number {
   return +((yuan ?? 0) / 100_000_000).toFixed(decimals);
+}
+
+export type ScatterInsightLists = {
+  topInflow: SectorFlowItem[];
+  topOutflow: SectorFlowItem[];
+  topGainers: SectorFlowItem[];
+  topLosers: SectorFlowItem[];
+  crowded: SectorFlowItem[];
+};
+
+export function getScatterSectorKey(sector: Pick<SectorFlowItem, 'tsCode' | 'name'>): string {
+  return sector.tsCode || sector.name;
+}
+
+function percentile(values: number[], ratio: number): number {
+  const sorted = values.filter(Number.isFinite).sort((a, b) => a - b);
+  if (!sorted.length) return 0;
+
+  const index = Math.min(sorted.length - 1, Math.max(0, Math.floor((sorted.length - 1) * ratio)));
+  return sorted[index];
+}
+
+function getCenterDistance(sector: SectorFlowItem, pctScale: number, flowScale: number): number {
+  const pctPart = Math.abs(sector.pctChange ?? 0) / Math.max(pctScale, 0.01);
+  const flowPart = Math.abs(yuanToYi(sector.netAmount)) / Math.max(flowScale, 0.01);
+
+  return Math.hypot(pctPart, flowPart);
+}
+
+function getScatterSignalScore(
+  sector: SectorFlowItem,
+  pctScale: number,
+  flowScale: number,
+  amountScale: number
+): number {
+  const amountYi = Math.max((sector.amount ?? 0) / 10000, 0);
+  const pctPart = Math.abs(sector.pctChange ?? 0) / Math.max(pctScale, 0.01);
+  const flowPart = Math.abs(yuanToYi(sector.netAmount)) / Math.max(flowScale, 0.01);
+  const amountPart = Math.sqrt(amountYi / Math.max(amountScale, 0.01));
+
+  return pctPart + flowPart * 1.2 + amountPart * 0.35;
+}
+
+export function pickCrowdedScatterSectors(
+  sectors: SectorFlowItem[],
+  limit = 6
+): SectorFlowItem[] {
+  if (!sectors.length || limit <= 0) return [];
+
+  const absPctValues = sectors.map((sector) => Math.abs(sector.pctChange ?? 0));
+  const absFlowValues = sectors.map((sector) => Math.abs(yuanToYi(sector.netAmount)));
+  const pctThreshold = Math.max(percentile(absPctValues, 0.45), 0.8);
+  const flowThreshold = Math.max(percentile(absFlowValues, 0.45), 1);
+  const minimumUsefulCount = Math.min(limit, 3);
+
+  const centerCandidates = sectors.filter(
+    (sector) =>
+      Math.abs(sector.pctChange ?? 0) <= pctThreshold &&
+      Math.abs(yuanToYi(sector.netAmount)) <= flowThreshold
+  );
+
+  const source = centerCandidates.length >= minimumUsefulCount ? centerCandidates : sectors;
+
+  return [...source]
+    .sort((a, b) => {
+      const amountDiff = (b.amount ?? 0) - (a.amount ?? 0);
+      if (amountDiff !== 0) return amountDiff;
+      return (
+        getCenterDistance(a, pctThreshold, flowThreshold) -
+        getCenterDistance(b, pctThreshold, flowThreshold)
+      );
+    })
+    .slice(0, limit);
+}
+
+export function buildScatterInsightLists(
+  sectors: SectorFlowItem[],
+  limit = 5
+): ScatterInsightLists {
+  const safeLimit = Math.max(0, limit);
+
+  return {
+    topInflow: [...sectors]
+      .filter((sector) => (sector.netAmount ?? 0) > 0)
+      .sort((a, b) => (b.netAmount ?? 0) - (a.netAmount ?? 0))
+      .slice(0, safeLimit),
+    topOutflow: [...sectors]
+      .filter((sector) => (sector.netAmount ?? 0) < 0)
+      .sort((a, b) => (a.netAmount ?? 0) - (b.netAmount ?? 0))
+      .slice(0, safeLimit),
+    topGainers: [...sectors]
+      .filter((sector) => (sector.pctChange ?? 0) > 0)
+      .sort((a, b) => (b.pctChange ?? 0) - (a.pctChange ?? 0))
+      .slice(0, safeLimit),
+    topLosers: [...sectors]
+      .filter((sector) => (sector.pctChange ?? 0) < 0)
+      .sort((a, b) => (a.pctChange ?? 0) - (b.pctChange ?? 0))
+      .slice(0, safeLimit),
+    crowded: pickCrowdedScatterSectors(sectors, safeLimit),
+  };
+}
+
+export function pickScatterLabelKeys(sectors: SectorFlowItem[], maxLabels = 8): Set<string> {
+  const labelKeys = new Set<string>();
+  if (!sectors.length || maxLabels <= 0) return labelKeys;
+
+  const addLabel = (sector: SectorFlowItem | undefined) => {
+    if (!sector || labelKeys.size >= maxLabels) return;
+    labelKeys.add(getScatterSectorKey(sector));
+  };
+
+  const insightLists = buildScatterInsightLists(sectors, 3);
+  [
+    insightLists.topInflow[0],
+    insightLists.topOutflow[0],
+    insightLists.topGainers[0],
+    insightLists.topLosers[0],
+    insightLists.topInflow[1],
+    insightLists.topOutflow[1],
+    insightLists.topGainers[1],
+    insightLists.topLosers[1],
+  ].forEach(addLabel);
+
+  if (labelKeys.size >= maxLabels) return labelKeys;
+
+  const pctScale = Math.max(percentile(sectors.map((sector) => Math.abs(sector.pctChange ?? 0)), 0.9), 1);
+  const flowScale = Math.max(
+    percentile(sectors.map((sector) => Math.abs(yuanToYi(sector.netAmount))), 0.9),
+    1
+  );
+  const amountScale = Math.max(
+    percentile(sectors.map((sector) => Math.max((sector.amount ?? 0) / 10000, 0)), 0.9),
+    1
+  );
+
+  [...sectors]
+    .sort(
+      (a, b) =>
+        getScatterSignalScore(b, pctScale, flowScale, amountScale) -
+        getScatterSignalScore(a, pctScale, flowScale, amountScale)
+    )
+    .forEach(addLabel);
+
+  return labelKeys;
 }
 
 // ── Distribution ──────────────────────────────────────────────
