@@ -96,7 +96,16 @@ export const SEAL_PATTERN_COLOR: Record<LimitSealPattern, StreakStatusToneColor>
 export function formatFirstSealTime(value: string | null | undefined): string {
   if (!value) return '—';
   if (value.startsWith('09:25')) return '09:25 集合';
-  // 截取 HH:mm
+  // 截取 HH:mm（标准格式 "HH:MM:SS"）
   const match = /^(\d{2}:\d{2})/.exec(value);
-  return match ? match[1]! : value;
+  if (match) return match[1]!;
+  // 处理后端返回的 HMMSS / HHMMSS 整数字符串，例如 "92500" → "09:25", "93003" → "09:30"
+  const intMatch = /^(\d{1,2})(\d{2})\d{2}$/.exec(value);
+  if (intMatch) {
+    const hh = intMatch[1]!.padStart(2, '0');
+    const mm = intMatch[2]!;
+    if (hh === '09' && mm === '25') return '09:25 集合';
+    return `${hh}:${mm}`;
+  }
+  return value;
 }

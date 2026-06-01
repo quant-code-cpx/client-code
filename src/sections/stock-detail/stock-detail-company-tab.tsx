@@ -117,8 +117,8 @@ export function StockDetailCompanyTab({ tsCode, overview, loading }: Props) {
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
               {concepts.map((c) => (
                 <Chip
-                  key={c.conceptCode}
-                  label={c.conceptName}
+                  key={c.tsCode}
+                  label={c.name}
                   size="small"
                   color={
                     c.pctChange != null && c.pctChange > 0

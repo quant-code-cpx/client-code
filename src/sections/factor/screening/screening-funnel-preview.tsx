@@ -37,7 +37,7 @@ export function ScreeningFunnelPreview({ data, allFactors }: Props) {
     );
   }
 
-  const maxBefore = Math.max(...data.map((d) => d.beforeCount), 1);
+  const maxBefore = Math.max(...data.map((d) => d.beforeCount ?? d.passCount), 1);
 
   return (
     <Card sx={{ mb: 2 }}>
@@ -49,9 +49,14 @@ export function ScreeningFunnelPreview({ data, allFactors }: Props) {
           {data.map((item, idx) => {
             const factorLabel =
               allFactors.find((f) => f.name === item.factorName)?.label ?? item.factorName;
-            const beforeRatio = item.beforeCount / maxBefore;
-            const passRatio = item.beforeCount > 0 ? item.passCount / item.beforeCount : 0;
-            const cutCount = item.beforeCount - item.passCount;
+            const effectiveBefore = item.beforeCount ?? item.passCount;
+            const beforeRatio = effectiveBefore / maxBefore;
+            const passRatio =
+              item.beforeCount !== undefined && item.beforeCount > 0
+                ? item.passCount / item.beforeCount
+                : 1;
+            const cutCount =
+              item.beforeCount !== undefined ? item.beforeCount - item.passCount : null;
 
             return (
               <Box key={`${item.factorName}-${idx}`}>
@@ -68,8 +73,8 @@ export function ScreeningFunnelPreview({ data, allFactors }: Props) {
                     </Box>
                   </Typography>
                   <Typography variant="caption" sx={{ ...tabularNum, color: 'text.secondary' }}>
-                    {item.beforeCount} → {item.passCount}（剔除 {cutCount}，缺失 {item.missingCount}
-                    ）
+                    {item.beforeCount ?? '—'} → {item.passCount}（剔除 {cutCount ?? '—'}，缺失{' '}
+                    {item.missingCount ?? '—'}）
                   </Typography>
                 </Stack>
                 <Tooltip

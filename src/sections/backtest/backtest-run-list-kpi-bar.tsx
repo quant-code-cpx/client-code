@@ -159,7 +159,7 @@ export function BacktestRunListKpiBar({
       <KpiCard
         tone="success"
         title="当前页完成率"
-        value={fPercent(summary.completionRate)}
+        value={fPercent(summary.completionRate * 100)}
         helper={`完成 ${summary.completed} / 失败 ${summary.failed}`}
       >
         <LinearProgress

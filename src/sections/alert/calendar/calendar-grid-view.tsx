@@ -2,8 +2,8 @@ import type { CalendarEvent } from 'src/api/alert';
 import type { Theme, SxProps } from '@mui/material/styles';
 
 import dayjs from 'dayjs';
-import { useMemo, useState } from 'react';
 import { varAlpha } from 'minimal-shared/utils';
+import { memo, useMemo, useState, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -115,7 +115,7 @@ export function CalendarGridView({ events, startDate, onSelectDay, onSelectEvent
           const isToday = dateStr === todayStr;
           const dayEvents = eventsByDate.get(dateStr) ?? [];
           return (
-            <DayCell
+            <MemoizedDayCell
               key={dateStr}
               theme={theme}
               date={day}
@@ -123,7 +123,8 @@ export function CalendarGridView({ events, startDate, onSelectDay, onSelectEvent
               isWeekend={isWeekend}
               isToday={isToday}
               events={dayEvents}
-              onSelect={() => onSelectDay(dateStr)}
+              dateStr={dateStr}
+              onSelectDay={onSelectDay}
               onSelectEvent={onSelectEvent}
             />
           );
@@ -142,7 +143,8 @@ type DayCellProps = {
   isWeekend: boolean;
   isToday: boolean;
   events: CalendarEvent[];
-  onSelect: () => void;
+  dateStr: string;
+  onSelectDay: (date: string) => void;
   onSelectEvent: (event: CalendarEvent) => void;
 };
 
@@ -153,9 +155,11 @@ function DayCell({
   isWeekend,
   isToday,
   events,
-  onSelect,
+  dateStr,
+  onSelectDay,
   onSelectEvent,
 }: DayCellProps) {
+  const handleSelect = useCallback(() => onSelectDay(dateStr), [onSelectDay, dateStr]);
   const totalCount = events.length;
   const highCount = events.filter((e) => getEventImpactLevel(e) === 'HIGH').length;
 
@@ -181,7 +185,7 @@ function DayCell({
   const moreCount = events.length - 3;
 
   return (
-    <Box sx={sxCell} onClick={onSelect}>
+    <Box sx={sxCell} onClick={handleSelect}>
       <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mb: 0.5 }}>
         <Typography
           variant="caption"
@@ -264,3 +268,5 @@ function DayCell({
     </Box>
   );
 }
+
+const MemoizedDayCell = memo(DayCell);

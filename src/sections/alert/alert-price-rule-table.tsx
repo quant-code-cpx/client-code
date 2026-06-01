@@ -52,6 +52,20 @@ function formatThreshold(rule: PriceAlertRule): string {
   return `${rule.threshold} 元`;
 }
 
+function getDeleteTargetLabel(rule: PriceAlertRule | null): string {
+  if (!rule) return '';
+  if (rule.tsCode) return rule.tsCode;
+  return rule.sourceName ?? '该规则';
+}
+
+function getDeleteSourceTypeName(rule: PriceAlertRule | null): string {
+  if (!rule) return '监控源';
+  if (rule.tsCode) return '股票';
+  if (rule.watchlistId) return '自选股组';
+  if (rule.portfolioId) return '组合';
+  return '监控源';
+}
+
 type Props = {
   rules: PriceAlertRule[];
   loading: boolean;
@@ -176,7 +190,8 @@ export function AlertPriceRuleTable({ rules, loading, onEdit, onDelete, onToggle
         title="删除预警规则"
         content={
           <DialogContentText>
-            确定删除股票 <strong>{deleteTarget?.tsCode}</strong> 的
+            确定删除{getDeleteSourceTypeName(deleteTarget)}{' '}
+            <strong>{getDeleteTargetLabel(deleteTarget)}</strong> 的
             <strong>「{deleteTarget ? RULE_TYPE_CONFIG[deleteTarget.ruleType].text : ''}」</strong>
             规则？删除后无法恢复。
           </DialogContentText>

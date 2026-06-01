@@ -138,10 +138,11 @@ export function FactorScreeningView() {
     [conditions, factorLabelMap]
   );
 
-  // 同步条件 -> URL（仅写入合法条件）
+  // 同步条件 -> URL（仅写入合法条件）；条件变更时同时清除上次运行错误
   useEffect(() => {
     const valid = pickValidConditions(conditions);
     patch({ conditions: valid });
+    setError('');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [conditions]);
 

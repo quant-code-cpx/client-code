@@ -850,12 +850,14 @@ export type StockShareCapitalData = {
 // ─── 个股所属概念板块 ──────────────────────────────────
 
 export type StockConceptItem = {
-  conceptCode: string;
-  conceptName: string;
-  /** 概念板块当日涨跌幅 */
-  pctChange: number | null;
-  /** 概念板块成分股数 */
-  memberCount: number | null;
+  /** 后端返回字段：概念板块代码（如 885587.TI） */
+  tsCode: string;
+  /** 后端返回字段：概念板块名称 */
+  name: string;
+  /** 概念板块当日涨跌幅（可选，后端暂未返回） */
+  pctChange?: number | null;
+  /** 概念板块成分股数（可选，后端暂未返回） */
+  memberCount?: number | null;
 };
 
 export type StockConceptsData = {

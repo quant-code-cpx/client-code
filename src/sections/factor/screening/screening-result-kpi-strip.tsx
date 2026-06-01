@@ -20,7 +20,7 @@ export function ScreeningResultKpiStrip({ result }: Props) {
   if (!result) return null;
 
   const summary = result.summary;
-  const universeCount = summary?.universeCount ?? null;
+  const universeCount = summary?.universeCount ?? (summary as any)?.universeSize ?? null;
   const matchedCount = summary?.matchedCount ?? result.total;
   const matchedRate = summary?.matchedRate ?? null;
   const missingRate = summary?.missingRate ?? null;

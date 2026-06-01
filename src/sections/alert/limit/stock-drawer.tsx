@@ -138,7 +138,7 @@ export function AlertLimitStockDrawer({ open, item, onClose, onCreateAlert }: Pr
                 末封时间
               </Typography>
               <Typography variant="body2" sx={{ fontFeatureSettings: '"tnum"' }}>
-                {item.lastSealTime ?? '—'}
+                {formatFirstSealTime(item.lastSealTime)}
               </Typography>
             </Stack>
             <Stack direction="row" justifyContent="space-between">

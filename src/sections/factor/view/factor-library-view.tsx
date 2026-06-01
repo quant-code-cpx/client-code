@@ -119,7 +119,11 @@ export function FactorLibraryView() {
       arr = arr.filter((f) => filters.sourceTypes.includes(f.sourceType));
     }
     if (filters.statuses.length > 0) {
-      arr = arr.filter((f) => f.status !== undefined && filters.statuses.includes(f.status));
+      // HEALTHY is an alias for FRESH; MISSING is an alias for NEVER
+      const expandedStatuses = new Set<string>(filters.statuses);
+      if (filters.statuses.includes('FRESH')) expandedStatuses.add('HEALTHY');
+      if (filters.statuses.includes('NEVER')) expandedStatuses.add('MISSING');
+      arr = arr.filter((f) => f.status !== undefined && expandedStatuses.has(f.status));
     }
     if (filters.icMin !== null) {
       arr = arr.filter((f) => (f.summary?.ic10d ?? -Infinity) >= (filters.icMin ?? 0));

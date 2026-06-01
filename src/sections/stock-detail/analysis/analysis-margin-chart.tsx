@@ -56,7 +56,7 @@ function RzyeTrendChart({ history }: Props) {
       },
     ],
     legend: { show: true },
-    tooltip: { shared: true },
+    tooltip: { shared: true, intersect: false },
   });
 
   return (
@@ -103,7 +103,7 @@ function RzjmreChart({ history }: Props) {
       yaxis: [{ y: 0, borderColor: theme.palette.text.disabled, strokeDashArray: 3 }],
     },
     legend: { show: true },
-    tooltip: { shared: true },
+    tooltip: { shared: true, intersect: false },
   });
 
   return (

@@ -89,19 +89,15 @@ function renderColumn(
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
                   {row.stocks.map((s) => {
                     const status = s.streakStatus;
-                    const tip = status ? `${STREAK_STATUS_LABEL[status]} · ${s.tsCode}` : s.tsCode;
+                    const knownLabel = status != null ? STREAK_STATUS_LABEL[status] : null;
+                    const knownColor = status != null ? STREAK_STATUS_COLOR[status] : null;
+                    const tip = knownLabel ? `${knownLabel} · ${s.tsCode}` : s.tsCode;
                     return (
                       <Tooltip key={s.tsCode} title={tip} arrow>
                         <Chip
                           label={s.stockName}
                           size="small"
-                          color={
-                            status
-                              ? STREAK_STATUS_COLOR[status]
-                              : row.days >= 5
-                                ? 'error'
-                                : 'default'
-                          }
+                          color={knownColor ?? (row.days >= 5 ? 'error' : 'default')}
                           variant="outlined"
                           clickable
                           onClick={() => onSelect?.(s)}

@@ -59,7 +59,7 @@ export function AlertLimitNextDayMatrix({ data, loading, error }: Props) {
     );
   }
 
-  if (error || !data || data.rows.length === 0) {
+  if (error || !data || !data.rows || data.rows.length === 0) {
     return (
       <Card>
         <CardContent>

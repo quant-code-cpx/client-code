@@ -160,11 +160,24 @@ export function useAnomalyMonitorState(): UseAnomalyMonitorState {
   const [reloadKey, setReloadKey] = useState(0);
   const abortRef = useRef<AbortController | null>(null);
 
+  const writeQuery = useCallback(
+    (next: AnomalyFilterState) => {
+      const nextSp = serializeToQuery(next);
+      setSearchParams(nextSp, { replace: true });
+    },
+    [setSearchParams]
+  );
+
   // 同步 URL → state（用户使用浏览器前后退）
   useEffect(() => {
     const next = parseFromQuery(searchParams);
     setFilterState((prev) => (sameFilter(prev, next) ? prev : next));
   }, [searchParams]);
+
+  // 同步 state → URL（在 render 外部更新，避免 setState-during-render 警告）
+  useEffect(() => {
+    writeQuery(filter);
+  }, [filter, writeQuery]);
 
   // 拉取数据
   useEffect(() => {
@@ -226,44 +239,27 @@ export function useAnomalyMonitorState(): UseAnomalyMonitorState {
     };
   }, []);
 
-  const writeQuery = useCallback(
-    (next: AnomalyFilterState) => {
-      const nextSp = serializeToQuery(next);
-      setSearchParams(nextSp, { replace: true });
-    },
-    [setSearchParams]
-  );
-
-  const setFilter = useCallback(
-    (patch: Partial<AnomalyFilterState>) => {
-      setFilterState((prev) => {
-        const merged: AnomalyFilterState = { ...prev, ...patch };
-        // 任何筛选维度改变（除翻页/页大小本身）都重置到第 0 页
-        const resetPage =
-          patch.tradeDate !== undefined ||
-          patch.types !== undefined ||
-          patch.keyword !== undefined ||
-          patch.scope !== undefined ||
-          patch.isNewOnly !== undefined ||
-          patch.multiTypeOnly !== undefined ||
-          patch.sortBy !== undefined ||
-          patch.sortOrder !== undefined ||
-          patch.pageSize !== undefined;
-        const next = resetPage ? { ...merged, pageIndex: 0 } : merged;
-        writeQuery(next);
-        return next;
-      });
-    },
-    [writeQuery]
-  );
+  const setFilter = useCallback((patch: Partial<AnomalyFilterState>) => {
+    setFilterState((prev) => {
+      const merged: AnomalyFilterState = { ...prev, ...patch };
+      // 任何筛选维度改变（除翻页/页大小本身）都重置到第 0 页
+      const resetPage =
+        patch.tradeDate !== undefined ||
+        patch.types !== undefined ||
+        patch.keyword !== undefined ||
+        patch.scope !== undefined ||
+        patch.isNewOnly !== undefined ||
+        patch.multiTypeOnly !== undefined ||
+        patch.sortBy !== undefined ||
+        patch.sortOrder !== undefined ||
+        patch.pageSize !== undefined;
+      return resetPage ? { ...merged, pageIndex: 0 } : merged;
+    });
+  }, []);
 
   const resetFilter = useCallback(() => {
-    setFilterState((prev) => {
-      const next: AnomalyFilterState = { ...DEFAULT_FILTER, tradeDate: prev.tradeDate };
-      writeQuery(next);
-      return next;
-    });
-  }, [writeQuery]);
+    setFilterState((prev) => ({ ...DEFAULT_FILTER, tradeDate: prev.tradeDate }));
+  }, []);
 
   const refetch = useCallback(() => setReloadKey((k) => k + 1), []);
 

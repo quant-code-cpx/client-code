@@ -1,4 +1,4 @@
-import type { EventCalendarResult } from 'src/api/event-study';
+import type { EventType, EventCalendarResult } from 'src/api/event-study';
 
 import Card from '@mui/material/Card';
 import { useTheme } from '@mui/material/styles';
@@ -6,6 +6,8 @@ import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 
 import { Chart, useChart } from 'src/components/chart';
+
+import { EVENT_TYPE_LABELS } from './constants';
 
 // ----------------------------------------------------------------------
 
@@ -34,7 +36,7 @@ export function EventCalendarHeatmap({
   });
 
   const series = Array.from(typeMap.entries()).map(([eventType, dateCount]) => ({
-    name: eventType,
+    name: EVENT_TYPE_LABELS[eventType as EventType] ?? eventType,
     data: dates.map((d) => ({ x: d, y: dateCount.get(d) ?? 0 })),
   }));
 

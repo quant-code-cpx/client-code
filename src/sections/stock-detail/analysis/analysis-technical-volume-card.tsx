@@ -66,7 +66,7 @@ export function AnalysisTechnicalVolumeCard({ history }: Props) {
       },
     },
     legend: { show: true },
-    tooltip: { shared: true },
+    tooltip: { shared: true, intersect: false },
   });
 
   if (history.length === 0) {

@@ -210,7 +210,7 @@ export function AlertLimitListTableV2({ items, onSelect, onCreateAlert }: Props)
                         >
                           {streakDays}
                         </Label>
-                        {status ? (
+                        {status != null && STREAK_STATUS_LABEL[status] ? (
                           <Tooltip title={STREAK_STATUS_LABEL[status]} arrow>
                             <Label color={STREAK_STATUS_COLOR[status]} variant="outlined">
                               {STREAK_STATUS_LABEL[status]}

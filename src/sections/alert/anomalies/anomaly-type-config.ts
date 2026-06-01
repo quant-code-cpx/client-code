@@ -94,7 +94,7 @@ export function formatAnomalyValue(type: AnomalyType, value: number | null | und
     case 'LARGE_NET_INFLOW':
       return `${(value * 100).toFixed(2)}%`;
     default:
-      return String(value);
+      return PLACEHOLDER;
   }
 }
 

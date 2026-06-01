@@ -23,6 +23,7 @@ type Props = {
 };
 
 const FIELD_LABELS: Record<string, string> = {
+  // snake_case（兼容旧格式）
   ts_code: '股票代码',
   name: '股票名称',
   ann_date: '公告日期',
@@ -47,7 +48,43 @@ const FIELD_LABELS: Record<string, string> = {
   audit_agency: '审计机构',
   report_type: '报告类型',
   industry: '所属行业',
+  // camelCase（API 返回格式）
+  tsCode: '股票代码',
+  stockName: '股票名称',
+  annDate: '公告日期',
+  endDate: '报告期',
+  exDate: '除权除息日',
+  floatDate: '解禁日期',
+  expDate: '到期日期',
+  pChangeMin: '预计变动幅度下限(%)',
+  pChangeMax: '预计变动幅度上限(%)',
+  holderName: '股东名称',
+  changeVol: '变动数量(万股)',
+  changeRatio: '变动比例(%)',
+  cashDiv: '每股派息(元)',
+  stkDiv: '每股送转',
+  floatShare: '解禁数量(万股)',
+  floatRatio: '解禁比例(%)',
+  auditResult: '审计结果',
+  auditAgency: '审计机构',
+  reportType: '报告类型',
+  netProfitMin: '净利润下限(万元)',
+  netProfitMax: '净利润上限(万元)',
+  lastParentNet: '上期归母净利润(万元)',
+  firstAnnDate: '首次公告日期',
+  changeReason: '变动原因',
+  syncedAt: '同步时间',
 };
+
+// 检测 ISO 日期字符串并格式化为 YYYY-MM-DD
+function formatFieldValue(value: unknown): string {
+  if (value == null) return '-';
+  const str = String(value);
+  if (/^\d{4}-\d{2}-\d{2}T/.test(str)) {
+    return str.slice(0, 10);
+  }
+  return str;
+}
 
 export function EventDetailDrawer({ open, onClose, eventType, detail, title }: Props) {
   return (
@@ -92,7 +129,7 @@ export function EventDetailDrawer({ open, onClose, eventType, detail, title }: P
                   {FIELD_LABELS[key] ?? key}
                 </Typography>
                 <Typography variant="body2" sx={{ wordBreak: 'break-all', flex: 1 }}>
-                  {value == null ? '-' : String(value)}
+                  {formatFieldValue(value)}
                 </Typography>
               </Stack>
             ))}

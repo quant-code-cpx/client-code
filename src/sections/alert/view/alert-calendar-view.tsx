@@ -1,7 +1,7 @@
 import type { CalendarEvent } from 'src/api/alert';
 
 import dayjs from 'dayjs';
-import { useState, useCallback } from 'react';
+import { useRef, useState, useEffect, useCallback, useTransition } from 'react';
 
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
@@ -30,6 +30,17 @@ export function AlertCalendarView() {
   const { filters, update, reset } = useCalendarState();
   const { events, totalCount, truncated, dataAsOf, loading, error, refresh } =
     useCalendarEvents(filters);
+  const [, startTransition] = useTransition();
+
+  // Track previous view to detect view transitions.
+  // When view changes (e.g. grid→timeline), pass empty events on the first render
+  // to avoid an expensive synchronous render of stale large datasets.
+  const prevViewRef = useRef(filters.view);
+  const isViewChanging = prevViewRef.current !== filters.view;
+  const displayEvents = isViewChanging ? [] : events;
+  useEffect(() => {
+    prevViewRef.current = filters.view;
+  }, [filters.view]);
 
   const [detailEvent, setDetailEvent] = useState<CalendarEvent | null>(null);
   const [subscribeEvents, setSubscribeEvents] = useState<CalendarEvent[]>([]);
@@ -46,25 +57,29 @@ export function AlertCalendarView() {
 
   const handleSelectDay = useCallback(
     (date: string) => {
-      update({ view: 'timeline', startDate: date, endDate: date });
+      startTransition(() => {
+        update({ view: 'timeline', startDate: date, endDate: date });
+      });
     },
-    [update]
+    [update, startTransition]
   );
 
   const handleCardClick = useCallback(
     (key: string) => {
       const today = dayjs().format('YYYYMMDD');
-      if (key === 'today') {
-        update({ startDate: today, endDate: today, impactLevels: [] });
-      } else if (key === 'week') {
-        update({ startDate: today, endDate: dayjs().add(6, 'day').format('YYYYMMDD') });
-      } else if (key === 'high-impact') {
-        update({ impactLevels: ['HIGH'] });
-      } else if (key === 'watchlist') {
-        update({ scope: 'WATCHLIST' });
-      }
+      startTransition(() => {
+        if (key === 'today') {
+          update({ startDate: today, endDate: today, impactLevels: [] });
+        } else if (key === 'week') {
+          update({ startDate: today, endDate: dayjs().add(6, 'day').format('YYYYMMDD') });
+        } else if (key === 'high-impact') {
+          update({ impactLevels: ['HIGH'] });
+        } else if (key === 'watchlist') {
+          update({ scope: 'WATCHLIST' });
+        }
+      });
     },
-    [update]
+    [update, startTransition]
   );
 
   const handleSubscribeOne = useCallback((event: CalendarEvent) => {
@@ -110,7 +125,7 @@ export function AlertCalendarView() {
         />
       )}
       {filters.view === 'timeline' && (
-        <CalendarTimelineView events={events} onSelectEvent={handleSelectEvent} />
+        <CalendarTimelineView events={displayEvents} onSelectEvent={handleSelectEvent} />
       )}
       {filters.view === 'table' && (
         <CalendarTableView

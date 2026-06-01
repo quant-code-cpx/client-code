@@ -109,7 +109,7 @@ export function SignalRuleConditionForm({ schemaFields, value, onChange }: Props
   return (
     <Box>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-        条件配置（可选，多条件 AND 关系）
+        条件配置（至少添加一条，多条件 AND 关系）
       </Typography>
 
       <Stack spacing={1.5}>

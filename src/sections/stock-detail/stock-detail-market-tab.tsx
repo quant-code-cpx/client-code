@@ -1,3 +1,4 @@
+import type { TodayTimelineResponse } from 'stock-sdk';
 import type { StockChartItem, StockMoneyFlowData, StockTodayFlowData } from 'src/api/stock';
 
 import dayjs from 'dayjs';
@@ -23,6 +24,7 @@ import ToggleButton from '@mui/material/ToggleButton';
 import TableContainer from '@mui/material/TableContainer';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
+import { toSdkCode } from 'src/utils/stock-code';
 import { fPctChg, fWanYuan } from 'src/utils/format-number';
 import { fmtTradeDate as fmtD } from 'src/utils/format-time';
 
@@ -93,7 +95,7 @@ function formatPctLabel(value: unknown): string {
 
 // ----------------------------------------------------------------------
 
-type Period = 'D' | 'W' | 'M';
+type Period = 'D' | 'W' | 'M' | 'T';
 type AdjustType = 'none' | 'qfq' | 'hfq';
 
 type Props = {
@@ -320,6 +322,12 @@ export function StockDetailMarketTab({ tsCode }: Props) {
   const candleId = `c-${tsCode}-${period}-${adjustType}`;
   const volId = `v-${tsCode}-${period}-${adjustType}`;
 
+  // ── 分时图 ────────────────────────────────────────────────────────────
+  const [timelineData, setTimelineData] = useState<TodayTimelineResponse | null>(null);
+  const [timelineLoading, setTimelineLoading] = useState(false);
+  const [timelineError, setTimelineError] = useState('');
+  const timelineTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
   // ── 今日资金流（按单笔规格分级）────────────────────────────────────────
   const [todayFlow, setTodayFlow] = useState<StockTodayFlowData | null>(null);
   const [todayFlowLoading, setTodayFlowLoading] = useState(false);
@@ -344,7 +352,13 @@ export function StockDetailMarketTab({ tsCode }: Props) {
       const oldest = items[0].tradeDate;
       const endDate = dayjs(oldest).subtract(1, 'day').format('YYYYMMDD');
 
-      const data = await stockDetailApi.chart({ tsCode, period, adjustType, limit: 100, endDate });
+      const data = await stockDetailApi.chart({
+        tsCode,
+        period: period as 'D' | 'W' | 'M',
+        adjustType,
+        limit: 100,
+        endDate,
+      });
       if (!data.items.length) {
         hasMore.current = false;
         return;
@@ -369,7 +383,7 @@ export function StockDetailMarketTab({ tsCode }: Props) {
 
   // ── 初始加载（最近 150 条） ────────────────────────────────────────────
   const fetchChart = useCallback(async () => {
-    if (!tsCode) return;
+    if (!tsCode || period === 'T') return; // 分时模式下不走 K 线接口
     setChartLoading(true);
     setChartError('');
     // 重置所有懒加载状态
@@ -380,7 +394,12 @@ export function StockDetailMarketTab({ tsCode }: Props) {
     pendingZoom.current = null;
     setAllItems([]);
     try {
-      const data = await stockDetailApi.chart({ tsCode, period, adjustType, limit: 150 });
+      const data = await stockDetailApi.chart({
+        tsCode,
+        period: period as 'D' | 'W' | 'M',
+        adjustType,
+        limit: 150,
+      });
       allItemsRef.current = data.items;
       hasMore.current = data.hasMore ?? data.items.length >= 150;
       setAllItems(data.items);
@@ -418,6 +437,49 @@ export function StockDetailMarketTab({ tsCode }: Props) {
       setTodayFlowLoading(false);
     }
   }, [tsCode]);
+
+  const fetchTimeline = useCallback(async () => {
+    const sdkCode = toSdkCode(tsCode);
+    if (!sdkCode) return;
+    setTimelineLoading(true);
+    setTimelineError('');
+    try {
+      const { StockSDK } = await import('stock-sdk');
+      const sdk = new StockSDK();
+      const data = await sdk.getTodayTimeline(sdkCode);
+      setTimelineData(data);
+    } catch (err) {
+      setTimelineError(err instanceof Error ? err.message : '获取分时数据失败');
+    } finally {
+      setTimelineLoading(false);
+    }
+  }, [tsCode]);
+
+  useEffect(() => {
+    if (period !== 'T') {
+      if (timelineTimerRef.current) {
+        clearInterval(timelineTimerRef.current);
+        timelineTimerRef.current = null;
+      }
+      return undefined;
+    }
+    setTimelineData(null);
+    void fetchTimeline();
+    // 交易时段内每 15s 自动刷新
+    const now = new Date();
+    const mins = now.getHours() * 60 + now.getMinutes();
+    const inSession =
+      (mins >= 9 * 60 + 30 && mins <= 11 * 60 + 30) || (mins >= 13 * 60 && mins <= 15 * 60);
+    if (inSession) {
+      timelineTimerRef.current = setInterval(() => void fetchTimeline(), 15_000);
+    }
+    return () => {
+      if (timelineTimerRef.current) {
+        clearInterval(timelineTimerRef.current);
+        timelineTimerRef.current = null;
+      }
+    };
+  }, [period, tsCode, fetchTimeline]);
 
   useEffect(() => {
     fetchChart();
@@ -463,6 +525,39 @@ export function StockDetailMarketTab({ tsCode }: Props) {
   // Use canonical strings for series x values and categories
   const categories = allItems.map((item) => fmtD(String(item.tradeDate)));
   const maUnit = period === 'W' ? '周' : period === 'M' ? '月' : '日';
+
+  // ── 分时图 Series ─────────────────────────────────────────────────────
+  const timelineId = `tl-${tsCode}`;
+  const tlVolId = `tlvol-${tsCode}`;
+  const tlPoints = timelineData?.data ?? [];
+  const tlPreClose = timelineData?.preClose ?? 0;
+  const tlCategories = tlPoints.map((p) => p.time);
+  const tlLastPrice = tlPoints.at(-1)?.price ?? tlPreClose;
+  const tlNeutral = theme.palette.text.primary;
+  const tlColor =
+    tlPreClose > 0
+      ? tlLastPrice > tlPreClose
+        ? riseColor
+        : tlLastPrice < tlPreClose
+          ? fallColor
+          : tlNeutral
+      : primaryColor;
+  const timelineSeries = [
+    {
+      name: '当前价',
+      data: tlPoints.map((p, i) => ({ x: tlCategories[i], y: p.price })),
+    },
+    {
+      name: '均价',
+      data: tlPoints.map((p, i) => ({ x: tlCategories[i], y: p.avgPrice })),
+    },
+  ];
+  const tlVolSeries = [
+    {
+      name: '成交量(手)',
+      data: tlPoints.map((p, i) => ({ x: i + 1, y: Math.round(p.volume / 100) })),
+    },
+  ];
 
   // 混合图：K 线 + MA 均线（均在同一图表，点击图例可控制显隐）
   // 均线系列使用 color 属性直接指定颜色，而非依赖 colors 数组（混合图下 colors 数组不可靠）
@@ -616,8 +711,10 @@ export function StockDetailMarketTab({ tsCode }: Props) {
         w: { globals: Record<string, unknown[][]> };
       }) => {
         const g = w.globals as Record<string, unknown>;
-        const cats = g.categoryLabels as string[] | undefined;
-        const date = cats?.[dataPointIndex] ?? (g.labels as string[])?.[dataPointIndex] ?? '';
+        // 直接从 allItemsRef 取 tradeDate，避免 w.globals.categoryLabels 在首次挂载时
+        // 尚未填充导致回退到 w.globals.labels（candlestick 混合图下可能存储内部数值）
+        const item = allItemsRef.current[dataPointIndex];
+        const date = item?.tradeDate ?? '';
         const o = (g.seriesCandleO as number[][])?.[0]?.[dataPointIndex];
         const h = (g.seriesCandleH as number[][])?.[0]?.[dataPointIndex];
         const l = (g.seriesCandleL as number[][])?.[0]?.[dataPointIndex];
@@ -810,6 +907,92 @@ export function StockDetailMarketTab({ tsCode }: Props) {
     legend: { show: true },
   });
 
+  // ── 分时图表配置 ──────────────────────────────────────────────────────
+  const timelineChartOptions = useChart({
+    chart: {
+      id: timelineId,
+      type: 'line',
+      toolbar: { show: false },
+      zoom: { enabled: false },
+      animations: { enabled: false },
+    },
+    colors: [tlColor, warningColor],
+    stroke: { width: [1.5, 1], curve: 'straight', dashArray: [0, 4] },
+    xaxis: {
+      type: 'category',
+      categories: tlCategories,
+      tickAmount: 8,
+      labels: { style: { fontSize: '12px' }, rotate: 0 },
+    },
+    yaxis: {
+      tickAmount: 5,
+      decimalsInFloat: 2,
+      labels: { formatter: formatPriceAxisLabel },
+    },
+    annotations:
+      tlPreClose > 0
+        ? {
+            yaxis: [
+              {
+                y: tlPreClose,
+                borderColor: theme.palette.text.disabled,
+                strokeDashArray: 4,
+                label: {
+                  text: `昨收 ${tlPreClose.toFixed(2)}`,
+                  style: {
+                    fontSize: '12px',
+                    background: 'transparent',
+                    color: theme.palette.text.secondary,
+                  },
+                },
+              },
+            ],
+          }
+        : {},
+    tooltip: {
+      shared: true,
+      x: { formatter: (val: unknown) => String(val) },
+      y: {
+        formatter: (val: number) => val.toFixed(2),
+        title: { formatter: (s: string) => `${s}: ` },
+      },
+    },
+    legend: { show: true },
+  });
+
+  const tlVolChartOptions = useChart({
+    chart: {
+      id: tlVolId,
+      type: 'bar',
+      toolbar: { show: false },
+      zoom: { enabled: false },
+      animations: { enabled: false },
+    },
+    colors: [primaryColor],
+    plotOptions: { bar: { columnWidth: '90%', borderRadius: 0 } },
+    xaxis: {
+      type: 'numeric',
+      tickAmount: 8,
+      labels: {
+        style: { fontSize: '12px' },
+        rotate: 0,
+        formatter: (val: string | number) => {
+          const idx = Math.round(Number(val)) - 1;
+          return tlCategories[idx] ?? '';
+        },
+      },
+    },
+    yaxis: { min: 0, tickAmount: 3, labels: { formatter: formatVolumeAxisLabel } },
+    tooltip: {
+      x: { formatter: (val: unknown) => tlCategories[Math.round(Number(val)) - 1] ?? '' },
+      y: {
+        formatter: (val: number) => formatVolumeAxisLabel(val),
+        title: { formatter: () => '成交量(手): ' },
+      },
+    },
+    legend: { show: false },
+  });
+
   const summary = moneyFlow?.summary;
   const net5d = summary?.netMfAmount5d ?? 0;
   const net20d = summary?.netMfAmount20d ?? 0;
@@ -830,6 +1013,9 @@ export function StockDetailMarketTab({ tsCode }: Props) {
                 if (v) setPeriod(v as Period);
               }}
             >
+              <ToggleButton value="T" sx={{ fontSize: 12 }}>
+                分时
+              </ToggleButton>
               <ToggleButton value="D" sx={{ fontSize: 12 }}>
                 日
               </ToggleButton>
@@ -846,7 +1032,7 @@ export function StockDetailMarketTab({ tsCode }: Props) {
               size="small"
               value={adjustType}
               onChange={(e) => setAdjustType(e.target.value as AdjustType)}
-              sx={{ minWidth: 110 }}
+              sx={{ minWidth: 110, display: period === 'T' ? 'none' : undefined }}
               label="复权方式"
             >
               <MenuItem value="qfq">前复权</MenuItem>
@@ -861,7 +1047,34 @@ export function StockDetailMarketTab({ tsCode }: Props) {
             </Alert>
           )}
 
-          {chartLoading || allItems.length === 0 ? (
+          {period === 'T' ? (
+            // ── 分时图 ───────────────────────────────────────────────────
+            timelineError ? (
+              <Alert severity="error">{timelineError}</Alert>
+            ) : timelineLoading || tlPoints.length === 0 ? (
+              <Skeleton variant="rectangular" height={540} sx={{ borderRadius: 1.5 }} />
+            ) : (
+              <Box>
+                <Chart
+                  key={`tl-${tsCode}`}
+                  type="line"
+                  series={timelineSeries}
+                  options={timelineChartOptions}
+                  sx={{ height: 360 }}
+                />
+                <Typography variant="caption" sx={{ color: 'text.secondary', px: 1 }}>
+                  成交量（手）
+                </Typography>
+                <Chart
+                  key={`tlvol-${tsCode}`}
+                  type="bar"
+                  series={tlVolSeries}
+                  options={tlVolChartOptions}
+                  sx={{ height: 140 }}
+                />
+              </Box>
+            )
+          ) : chartLoading || allItems.length === 0 ? (
             // 未加载完成或无数据时统一显示骨架屏，避免以空数据创建 ApexCharts 实例后
             // 在数据到达时触发 destroy → recreate 循环，导致 Apex 内部
             // null-prototype 残留状态引发 hasOwnProperty 崩溃

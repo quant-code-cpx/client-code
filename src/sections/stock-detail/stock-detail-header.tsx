@@ -14,6 +14,8 @@ import * as numberFormat from 'src/utils/format-number';
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
 
+import { RealtimeQuoteBadge } from './realtime-quote-badge';
+
 // ----------------------------------------------------------------------
 
 type Props = {
@@ -114,11 +116,6 @@ export function StockDetailHeader({ tsCode, overview, loading }: Props) {
   const circMv = valuation?.circMv;
   const limitStatus = mapLimitStatus(valuation?.limitStatus);
 
-  const isUp = (pctChg ?? 0) > 0;
-  const isDown = (pctChg ?? 0) < 0;
-  const priceColor = isUp ? 'error.main' : isDown ? 'success.main' : 'text.primary';
-  const pctChgLabelColor = isUp ? 'error' : isDown ? 'success' : 'default';
-
   if (loading) {
     return (
       <Box sx={{ mb: 3 }}>
@@ -181,23 +178,14 @@ export function StockDetailHeader({ tsCode, overview, loading }: Props) {
         )}
       </Box>
 
-      {/* 价格 + 涨跌幅 */}
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-        <Typography variant="h3" sx={{ color: priceColor, fontWeight: 'fontWeightBold' }}>
-          {numberFormat.fNumber(close)}
-        </Typography>
-        <Label variant="filled" color={pctChgLabelColor} sx={{ fontSize: 14, px: 1.5, py: 0.5 }}>
-          {numberFormat.fPctChg(pctChg)}
-        </Label>
-        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-          涨跌额 {numberFormat.fNumber(change)}
-        </Typography>
-        {limitStatus && (
-          <Label variant="soft" color={limitStatus.color} sx={{ fontSize: 12, px: 1.25 }}>
-            {limitStatus.label}
-          </Label>
-        )}
-      </Box>
+      {/* 价格 + 涨跌幅（含浏览器端实时行情） */}
+      <RealtimeQuoteBadge
+        tsCode={tsCode}
+        snapshotPrice={close}
+        snapshotPctChg={pctChg}
+        snapshotChange={change}
+        limitStatus={limitStatus}
+      />
 
       <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', mb: 2 }}>
         最新交易日：{formatDateValue(tradeDate)} / 上市日期：{formatDateValue(basic?.listDate)}

@@ -65,6 +65,8 @@ export function useCalendarEvents(filters: FilterState) {
 
   useEffect(() => {
     const controller = new AbortController();
+    // 立即清空旧数据 + 标记 loading，避免视图切换时用大量陈旧数据渲染新视图
+    setState((prev) => ({ ...prev, events: [], totalCount: 0, loading: true, error: null }));
     const timer = setTimeout(() => {
       fetchEvents(controller.signal);
     }, DEBOUNCE_MS);
