@@ -109,17 +109,21 @@ export function OrthogonalizePanel({
     <Box>
       <Card sx={{ mb: 3 }}>
         <CardContent>
-          <Stack direction="row" spacing={2} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
+          <Stack
+            direction={{ xs: 'column', sm: 'row' }}
+            spacing={1.5}
+            sx={{ alignItems: { xs: 'stretch', sm: 'center' }, flexWrap: 'wrap' }}
+          >
             <DatePicker
               label="分析日期"
               value={tradeDate}
               onChange={(v) => v && setTradeDate(v)}
               format="YYYY-MM-DD"
               slotProps={{
-                textField: { size: 'small', sx: { minWidth: 190 } },
+                textField: { size: 'small', sx: { width: { xs: '100%', sm: 190 } } },
               }}
             />
-            <FormControl size="small" sx={{ minWidth: 180 }}>
+            <FormControl size="small" sx={{ width: { xs: '100%', sm: 180 } }}>
               <InputLabel>正交方法</InputLabel>
               <Select
                 value={method}
@@ -137,14 +141,27 @@ export function OrthogonalizePanel({
                 </Tooltip>
               </Select>
             </FormControl>
-            <Box sx={{ flexGrow: 1 }} />
-            <Tooltip title={runDisabledReason} placement="top">
-              <span>
-                <Button variant="contained" onClick={handleRun} disabled={!canRun || loading}>
+            <Box sx={{ flexGrow: 1, display: { xs: 'none', sm: 'block' } }} />
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: { sm: 'flex-end' },
+                width: { xs: '100%', sm: 'auto' },
+              }}
+            >
+              <Tooltip title={runDisabledReason} placement="top">
+                <Box component="span" sx={{ display: 'inline-flex', width: { xs: '100%', sm: 'auto' } }}>
+                  <Button
+                    variant="contained"
+                    onClick={handleRun}
+                    disabled={!canRun || loading}
+                    sx={{ width: { xs: '100%', sm: 'auto' } }}
+                  >
                   {loading ? '运行中…' : '执行正交化'}
                 </Button>
-              </span>
-            </Tooltip>
+                </Box>
+              </Tooltip>
+            </Box>
           </Stack>
         </CardContent>
       </Card>

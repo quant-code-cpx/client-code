@@ -140,8 +140,12 @@ export function OptimizationPanel({ onHistorySave, prefillRequest }: Props) {
           <Stack spacing={2.5}>
             <StockUniverseSelector value={tsCodes} onChange={setTsCodes} />
 
-            <Stack direction="row" spacing={2} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
-              <FormControl size="small" sx={{ minWidth: 160 }}>
+            <Stack
+              direction={{ xs: 'column', md: 'row' }}
+              spacing={1.5}
+              sx={{ alignItems: { xs: 'stretch', md: 'center' }, flexWrap: 'wrap' }}
+            >
+              <FormControl size="small" sx={{ width: { xs: '100%', sm: 160 } }}>
                 <InputLabel>优化方法</InputLabel>
                 <Select
                   value={mode}
@@ -161,7 +165,7 @@ export function OptimizationPanel({ onHistorySave, prefillRequest }: Props) {
                 value={lookbackDays}
                 onChange={(e) => setLookbackDays(Number(e.target.value) || 0)}
                 size="small"
-                sx={{ width: 110 }}
+                sx={{ width: { xs: '100%', sm: 110 } }}
               />
               <TextField
                 label="单只上限"
@@ -169,7 +173,7 @@ export function OptimizationPanel({ onHistorySave, prefillRequest }: Props) {
                 value={maxWeight}
                 onChange={(e) => setMaxWeight(Number(e.target.value) || 0)}
                 size="small"
-                sx={{ width: 110 }}
+                sx={{ width: { xs: '100%', sm: 110 } }}
                 slotProps={{ htmlInput: { step: 0.01, min: 0, max: 1 } }}
               />
               <TextField
@@ -178,7 +182,7 @@ export function OptimizationPanel({ onHistorySave, prefillRequest }: Props) {
                 value={minWeight}
                 onChange={(e) => setMinWeight(Number(e.target.value) || 0)}
                 size="small"
-                sx={{ width: 110 }}
+                sx={{ width: { xs: '100%', sm: 110 } }}
                 slotProps={{ htmlInput: { step: 0.01, min: 0, max: 1 } }}
               />
               {mode === 'MVO' && (
@@ -188,12 +192,12 @@ export function OptimizationPanel({ onHistorySave, prefillRequest }: Props) {
                   value={riskAversion}
                   onChange={(e) => setRiskAversion(Number(e.target.value) || 0)}
                   size="small"
-                  sx={{ width: 110 }}
+                  sx={{ width: { xs: '100%', sm: 110 } }}
                   slotProps={{ htmlInput: { step: 0.1, min: 0 } }}
                 />
               )}
               <Tooltip title={BE_PENDING_TOOLTIP + '（BE-4：协方差估计方式）'} placement="top">
-                <FormControl size="small" sx={{ minWidth: 180 }} disabled>
+                <FormControl size="small" sx={{ width: { xs: '100%', sm: 180 } }} disabled>
                   <InputLabel>协方差估计</InputLabel>
                   <Select
                     value={covMethod}
@@ -213,17 +217,30 @@ export function OptimizationPanel({ onHistorySave, prefillRequest }: Props) {
                 value={benchmarkCode}
                 onChange={(e) => setBenchmarkCode(e.target.value)}
                 size="small"
-                sx={{ width: 130 }}
+                sx={{ width: { xs: '100%', sm: 130 } }}
                 helperText="待 BE-3"
               />
-              <Box sx={{ flexGrow: 1 }} />
-              <Tooltip title={reason} placement="top">
-                <span>
-                  <Button variant="contained" onClick={handleRun} disabled={!canRun || loading}>
+              <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'block' } }} />
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: { md: 'flex-end' },
+                  width: { xs: '100%', md: 'auto' },
+                }}
+              >
+                <Tooltip title={reason} placement="top">
+                  <Box component="span" sx={{ display: 'inline-flex', width: { xs: '100%', md: 'auto' } }}>
+                    <Button
+                      variant="contained"
+                      onClick={handleRun}
+                      disabled={!canRun || loading}
+                      sx={{ width: { xs: '100%', md: 'auto' } }}
+                    >
                     {loading ? '运行中…' : '执行优化'}
                   </Button>
-                </span>
-              </Tooltip>
+                  </Box>
+                </Tooltip>
+              </Box>
             </Stack>
           </Stack>
         </CardContent>

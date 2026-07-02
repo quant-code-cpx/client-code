@@ -6,6 +6,7 @@ import type {
 } from 'src/api/factor';
 
 import { useSearchParams } from 'react-router';
+import { varAlpha } from 'minimal-shared/utils';
 import { useMemo, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
@@ -16,6 +17,7 @@ import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 
 import { factorApi } from 'src/api/factor';
+import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Iconify } from 'src/components/iconify';
 
@@ -129,13 +131,19 @@ export function FactorAdvancedAnalysisView() {
   );
 
   return (
-    <Box>
+    <DashboardContent
+      maxWidth="xl"
+      sx={{
+        gap: 2.5,
+        pb: { xs: 4, md: 5 },
+      }}
+    >
       <Stack
-        direction="row"
-        spacing={1}
-        sx={{ alignItems: 'center', justifyContent: 'space-between', mb: 2 }}
+        direction={{ xs: 'column', md: 'row' }}
+        spacing={2}
+        sx={{ alignItems: { xs: 'stretch', md: 'flex-start' }, justifyContent: 'space-between' }}
       >
-        <Stack>
+        <Stack spacing={0.75} sx={{ minWidth: 0 }}>
           <Typography variant="h4">因子高级分析</Typography>
           <Typography variant="body2" color="text.secondary">
             多因子共线性诊断 · 风险溢价显著性检验 · 组合权重优化
@@ -146,6 +154,7 @@ export function FactorAdvancedAnalysisView() {
           color="inherit"
           startIcon={<Iconify icon="solar:history-bold" />}
           onClick={() => setHistoryOpen(true)}
+          sx={{ alignSelf: { xs: 'flex-start', md: 'center' } }}
         >
           运行历史
           {historyItems.length > 0 ? ` (${historyItems.length})` : ''}
@@ -160,8 +169,33 @@ export function FactorAdvancedAnalysisView() {
         allFactors={allFactors}
       />
 
-      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
-        <Tabs value={activeTab} onChange={handleTabChange}>
+      <Box
+        sx={{
+          px: 0.75,
+          borderRadius: 1,
+          border: (theme) => `1px solid ${varAlpha(theme.vars.palette.grey['500Channel'], 0.16)}`,
+          bgcolor: 'background.paper',
+        }}
+      >
+        <Tabs
+          value={activeTab}
+          variant="scrollable"
+          scrollButtons="auto"
+          allowScrollButtonsMobile
+          onChange={handleTabChange}
+          sx={{
+            minHeight: 44,
+            '& .MuiTabs-indicator': {
+              height: 3,
+              borderRadius: 1,
+            },
+            '& .MuiTab-root': {
+              minHeight: 44,
+              px: 1.5,
+              fontWeight: 700,
+            },
+          }}
+        >
           {TAB_OPTIONS.map((o) => (
             <Tab key={o.value} value={o.value} label={o.label} />
           ))}
@@ -199,6 +233,6 @@ export function FactorAdvancedAnalysisView() {
         onClear={clearHistory}
         onRemove={removeHistory}
       />
-    </Box>
+    </DashboardContent>
   );
 }

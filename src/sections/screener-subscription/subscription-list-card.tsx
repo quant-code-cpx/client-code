@@ -98,30 +98,58 @@ export function SubscriptionListCard({
         <Divider sx={{ my: 1 }} />
 
         {/* Action buttons */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-          <Button size="small" variant="outlined" onClick={onView}>
-            查看详情
-          </Button>
-          <Button size="small" variant="outlined" onClick={onPauseResume}>
-            {subscription.status === 'ACTIVE' ? '暂停' : '恢复'}
-          </Button>
-          <SubscriptionRunButton
-            subscriptionId={subscription.id}
-            lastRunAt={subscription.lastRunAt}
-            onSuccess={(msg) => onRunSuccess(msg)}
-            onError={(msg) => onRunError(msg)}
-          />
-          <Box sx={{ flexGrow: 1 }} />
-          <Tooltip title="编辑">
-            <IconButton size="small" onClick={onEdit}>
-              <Iconify icon="solar:pen-bold" width={16} />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="删除">
-            <IconButton size="small" onClick={onDelete} sx={{ color: 'error.main' }}>
-              <Iconify icon="solar:trash-bin-trash-bold" width={16} />
-            </IconButton>
-          </Tooltip>
+        <Box
+          sx={{
+            gap: 1,
+            display: 'grid',
+            alignItems: 'start',
+            gridTemplateColumns: { xs: '1fr', sm: 'minmax(0, 1fr) auto' },
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1, flexWrap: 'wrap' }}>
+            <Button size="small" variant="outlined" onClick={onView}>
+              查看详情
+            </Button>
+            <Button size="small" variant="outlined" onClick={onPauseResume}>
+              {subscription.status === 'ACTIVE' ? '暂停' : '恢复'}
+            </Button>
+            <SubscriptionRunButton
+              subscriptionId={subscription.id}
+              lastRunAt={subscription.lastRunAt}
+              onSuccess={(msg) => onRunSuccess(msg)}
+              onError={(msg) => onRunError(msg)}
+            />
+          </Box>
+
+          <Box
+            sx={{
+              gap: 0.5,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: { xs: 'flex-start', sm: 'flex-end' },
+            }}
+          >
+            <Tooltip title="编辑">
+              <IconButton
+                size="small"
+                aria-label="编辑订阅"
+                onClick={onEdit}
+                sx={{ width: 30, height: 30 }}
+              >
+                <Iconify icon="solar:pen-bold" width={16} />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="删除">
+              <IconButton
+                size="small"
+                aria-label="删除订阅"
+                onClick={onDelete}
+                sx={{ width: 30, height: 30, color: 'error.main' }}
+              >
+                <Iconify icon="solar:trash-bin-trash-bold" width={16} />
+              </IconButton>
+            </Tooltip>
+          </Box>
         </Box>
       </CardContent>
     </Card>

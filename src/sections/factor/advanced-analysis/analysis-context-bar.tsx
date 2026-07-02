@@ -1,5 +1,6 @@
 import type { FactorDef } from 'src/api/factor';
 
+import { useMemo } from 'react';
 import { varAlpha } from 'minimal-shared/utils';
 
 import Box from '@mui/material/Box';
@@ -36,24 +37,32 @@ export function AnalysisContextBar({
   allFactors,
 }: Props) {
   const groups = Array.from(new Set(UNIVERSE_OPTIONS.map((o) => o.group)));
+  const factorLabelMap = useMemo(
+    () => new Map(allFactors.map((factor) => [factor.name, factor.label])),
+    [allFactors]
+  );
+  const factorOptions = useMemo(
+    () => Array.from(new Set([...factors, ...allFactors.map((factor) => factor.name)])),
+    [allFactors, factors]
+  );
 
   return (
     <Box
       sx={{
         position: 'relative',
-        px: 2,
+        px: { xs: 1.5, md: 2 },
         py: 1.5,
-        mb: 3,
-        borderRadius: 1.5,
-        bgcolor: (t) => varAlpha(t.vars.palette.grey['500Channel'], 0.04),
+        borderRadius: 1,
+        overflow: 'hidden',
+        border: (theme) => `1px solid ${varAlpha(theme.vars.palette.grey['500Channel'], 0.16)}`,
+        bgcolor: 'background.paper',
         '&::before': {
           content: '""',
           position: 'absolute',
           left: 0,
-          top: 8,
-          bottom: 8,
-          width: 2,
-          borderRadius: 1,
+          top: 0,
+          bottom: 0,
+          width: 3,
           bgcolor: 'primary.main',
         },
       }}
@@ -61,12 +70,25 @@ export function AnalysisContextBar({
       <Stack
         direction={{ xs: 'column', md: 'row' }}
         spacing={1.5}
-        sx={{ alignItems: { md: 'center' }, pl: 1 }}
+        sx={{ alignItems: { xs: 'stretch', md: 'center' }, flexWrap: 'wrap', pl: { xs: 1, md: 1.5 } }}
       >
-        <Typography variant="overline" color="text.secondary" sx={{ minWidth: 64 }}>
-          分析上下文
-        </Typography>
-        <FormControl size="small" sx={{ minWidth: 200 }}>
+        <Stack
+          direction={{ xs: 'row', md: 'column' }}
+          spacing={{ xs: 1, md: 0 }}
+          sx={{
+            minWidth: { md: 88 },
+            alignItems: { xs: 'center', md: 'flex-start' },
+            justifyContent: 'center',
+          }}
+        >
+          <Typography variant="overline" color="text.secondary">
+            分析上下文
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            已选 {factors.length} 个
+          </Typography>
+        </Stack>
+        <FormControl size="small" sx={{ width: { xs: '100%', sm: 220 }, flexShrink: 0 }}>
           <InputLabel>股票池 Universe</InputLabel>
           <Select
             value={universe}
@@ -89,19 +111,38 @@ export function AnalysisContextBar({
           multiple
           size="small"
           value={factors}
+          limitTags={3}
+          filterSelectedOptions
           onChange={(_, v) => onFactorsChange(v)}
-          options={allFactors.map((f) => f.name)}
+          options={factorOptions}
+          isOptionEqualToValue={(option, value) => option === value}
           getOptionLabel={(name) => {
-            const f = allFactors.find((x) => x.name === name);
-            return f ? `${name} · ${f.label}` : name;
+            const label = factorLabelMap.get(name);
+            return label ? `${name} · ${label}` : name;
           }}
-          renderInput={(p) => <TextField {...p} label="共享因子集（≥1）" />}
+          renderInput={(p) => (
+            <TextField
+              {...p}
+              label="共享因子集"
+              placeholder={factors.length > 0 ? '' : '输入因子名或中文名…'}
+            />
+          )}
           renderTags={(value, getTagProps) =>
             value.map((name, index) => (
-              <Chip label={name} {...getTagProps({ index })} key={name} size="small" />
+              <Chip
+                label={name}
+                {...getTagProps({ index })}
+                key={name}
+                size="small"
+                sx={{ maxWidth: 160 }}
+              />
             ))
           }
-          sx={{ flexGrow: 1, minWidth: 320 }}
+          sx={{
+            width: { xs: '100%', sm: 420, md: 520 },
+            maxWidth: { md: 560 },
+            flexShrink: 0,
+          }}
         />
       </Stack>
     </Box>

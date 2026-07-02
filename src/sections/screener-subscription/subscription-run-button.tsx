@@ -101,6 +101,7 @@ export function SubscriptionRunButton({
 
   const disabled = running || remaining > 0;
   const text = remaining > 0 ? `${formatRemaining(remaining)} 后可再次执行` : label;
+  const showNotice = showCooldownNotice && remaining > 0;
 
   return (
     <Stack spacing={0.75} alignItems="flex-start" sx={{ minWidth: 0 }}>
@@ -114,18 +115,20 @@ export function SubscriptionRunButton({
         {text}
       </Button>
 
-      <Collapse in={showCooldownNotice && remaining > 0}>
-        <Alert
-          severity="warning"
-          sx={{
-            py: 0.5,
-            alignItems: 'center',
-            '& .MuiAlert-message': { py: 0, fontSize: 12 },
-          }}
-        >
-          执行过于频繁，{formatRemaining(remaining)} 后可再次执行
-        </Alert>
-      </Collapse>
+      {showNotice && (
+        <Collapse in={showNotice}>
+          <Alert
+            severity="warning"
+            sx={{
+              py: 0.5,
+              alignItems: 'center',
+              '& .MuiAlert-message': { py: 0, fontSize: 12 },
+            }}
+          >
+            执行过于频繁，{formatRemaining(remaining)} 后可再次执行
+          </Alert>
+        </Collapse>
+      )}
     </Stack>
   );
 }

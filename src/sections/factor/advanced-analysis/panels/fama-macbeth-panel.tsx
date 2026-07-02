@@ -120,29 +120,44 @@ export function FamaMacBethPanel({ universe, factors, onHistorySave, prefillRequ
     <Box>
       <Card sx={{ mb: 3 }}>
         <CardContent>
-          <Stack direction="row" spacing={2} sx={{ alignItems: 'center', flexWrap: 'wrap' }}>
+          <Stack
+            direction={{ xs: 'column', md: 'row' }}
+            spacing={1.5}
+            sx={{ alignItems: { xs: 'stretch', md: 'center' }, flexWrap: 'wrap' }}
+          >
             <DatePicker
               label="开始日期"
               value={startDate}
               onChange={(v) => v && setStartDate(v)}
               format="YYYY-MM-DD"
-              slotProps={{ textField: { size: 'small', sx: { minWidth: 180 } } }}
+              slotProps={{ textField: { size: 'small', sx: { width: { xs: '100%', sm: 180 } } } }}
             />
             <DatePicker
               label="结束日期"
               value={endDate}
               onChange={(v) => v && setEndDate(v)}
               format="YYYY-MM-DD"
-              slotProps={{ textField: { size: 'small', sx: { minWidth: 180 } } }}
+              slotProps={{ textField: { size: 'small', sx: { width: { xs: '100%', sm: 180 } } } }}
             />
-            <ButtonGroup size="small">
+            <ButtonGroup
+              size="small"
+              sx={{
+                height: 40,
+                width: { xs: '100%', sm: 'auto' },
+                '& .MuiButton-root': {
+                  flex: { xs: 1, sm: 'initial' },
+                  minHeight: 40,
+                  px: 1.5,
+                },
+              }}
+            >
               {(['1M', '3M', '6M', '1Y'] as const).map((p) => (
                 <Button key={p} onClick={() => handlePreset(p)}>
                   近 {p}
                 </Button>
               ))}
             </ButtonGroup>
-            <FormControl size="small" sx={{ minWidth: 130 }}>
+            <FormControl size="small" sx={{ width: { xs: '100%', sm: 130 } }}>
               <InputLabel>持有天数</InputLabel>
               <Select
                 value={String(forwardDays)}
@@ -166,14 +181,27 @@ export function FamaMacBethPanel({ universe, factors, onHistorySave, prefillRequ
                 sx={{ ml: 0 }}
               />
             </Tooltip>
-            <Box sx={{ flexGrow: 1 }} />
-            <Tooltip title={reason} placement="top">
-              <span>
-                <Button variant="contained" onClick={handleRun} disabled={!canRun || loading}>
+            <Box sx={{ flexGrow: 1, display: { xs: 'none', md: 'block' } }} />
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: { md: 'flex-end' },
+                width: { xs: '100%', md: 'auto' },
+              }}
+            >
+              <Tooltip title={reason} placement="top">
+                <Box component="span" sx={{ display: 'inline-flex', width: { xs: '100%', md: 'auto' } }}>
+                  <Button
+                    variant="contained"
+                    onClick={handleRun}
+                    disabled={!canRun || loading}
+                    sx={{ width: { xs: '100%', md: 'auto' } }}
+                  >
                   {loading ? '运行中…' : '运行检验'}
                 </Button>
-              </span>
-            </Tooltip>
+                </Box>
+              </Tooltip>
+            </Box>
           </Stack>
         </CardContent>
       </Card>

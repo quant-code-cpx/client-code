@@ -206,6 +206,8 @@ export type SignalHistoryCompareResponse = {
   items: SignalHistoryCompareItem[];
 };
 
+type SignalHistoryCompareRawResponse = SignalHistoryCompareResponse | SignalHistoryCompareItem[];
+
 // ----------------------------------------------------------------------
 
 export function activateSignal(params: ActivateSignalParams) {
@@ -233,5 +235,7 @@ export function getSignalHistoryDetail(params: SignalHistoryDetailQuery) {
 }
 
 export function compareSignalHistory(params: SignalHistoryCompareQuery) {
-  return apiClient.post<SignalHistoryCompareResponse>('/api/signal/history/compare', params);
+  return apiClient
+    .post<SignalHistoryCompareRawResponse>('/api/signal/history/compare', params)
+    .then((data) => (Array.isArray(data) ? { items: data } : { items: data?.items ?? [] }));
 }
