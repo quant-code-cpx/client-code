@@ -233,7 +233,7 @@ export function AlertLimitListTableV2({ items, onSelect, onCreateAlert }: Props)
                     <TableCell>
                       <Box>
                         <Typography variant="body2" sx={{ fontFeatureSettings: '"tnum"' }}>
-                          {fNumber(Math.round(row.sealAmount))}
+                          {row.sealAmount != null ? fNumber(Math.round(row.sealAmount)) : '—'}
                         </Typography>
                         {row.sealRatio != null ? (
                           <Typography
@@ -248,7 +248,7 @@ export function AlertLimitListTableV2({ items, onSelect, onCreateAlert }: Props)
                     <TableCell>
                       <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                         {formatFirstSealTime(row.firstSealTime)}
-                        {row.sealCount > 1 ? ` · 封 ${row.sealCount} 次` : ''}
+                        {(row.sealCount ?? 0) > 1 ? ` · 封 ${row.sealCount} 次` : ''}
                       </Typography>
                     </TableCell>
                     <TableCell align="right" onClick={(e) => e.stopPropagation()}>

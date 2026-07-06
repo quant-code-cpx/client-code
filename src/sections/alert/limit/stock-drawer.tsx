@@ -146,7 +146,7 @@ export function AlertLimitStockDrawer({ open, item, onClose, onCreateAlert }: Pr
                 封板次数
               </Typography>
               <Typography variant="body2" sx={{ fontFeatureSettings: '"tnum"' }}>
-                {item.sealCount}
+                {item.sealCount ?? '—'}
               </Typography>
             </Stack>
             <Stack direction="row" justifyContent="space-between">
@@ -154,7 +154,7 @@ export function AlertLimitStockDrawer({ open, item, onClose, onCreateAlert }: Pr
                 封单额
               </Typography>
               <Typography variant="body2" sx={{ fontFeatureSettings: '"tnum"' }}>
-                {fNumber(Math.round(item.sealAmount))} 万
+                {item.sealAmount != null ? `${fNumber(Math.round(item.sealAmount))} 万` : '—'}
                 {item.sealRatio != null ? ` · 占流通 ${fPercent(item.sealRatio * 100)}` : ''}
               </Typography>
             </Stack>

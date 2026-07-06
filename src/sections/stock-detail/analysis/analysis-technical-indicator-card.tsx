@@ -31,6 +31,7 @@ const EXTENDED_INDICATORS = [
   'CR',
   'SAR',
 ];
+const KDJ_AXIS_MARGIN = 5;
 
 type Props = { history: TechnicalDataPoint[] };
 
@@ -41,6 +42,12 @@ function zeroLine(borderColor: string) {
 function refLines(borderColor: string, ...values: number[]) {
   return values.map((y) => ({ y, borderColor, strokeDashArray: 3 }));
 }
+
+const kdjAxisMin = (min: number) =>
+  Math.floor(Math.min(0, Number.isFinite(min) ? min : 0) - KDJ_AXIS_MARGIN);
+
+const kdjAxisMax = (max: number) =>
+  Math.ceil(Math.max(100, Number.isFinite(max) ? max : 100) + KDJ_AXIS_MARGIN);
 
 function IndicatorChart({
   activeIndicator,
@@ -111,7 +118,11 @@ function IndicatorChart({
     extraOpts = {
       colors: [riseColor, primaryColor, warningColor],
       annotations: { yaxis: refLines(guideColor, 20, 80) },
-      yaxis: { min: 0, max: 100, labels: { formatter: (v: number) => v.toFixed(1) } },
+      yaxis: {
+        min: kdjAxisMin,
+        max: kdjAxisMax,
+        labels: { formatter: (v: number) => v.toFixed(1) },
+      },
     };
   } else if (activeIndicator === 'RSI') {
     series.push(

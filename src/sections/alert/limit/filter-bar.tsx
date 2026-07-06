@@ -1,5 +1,6 @@
 import type { Dayjs } from 'dayjs';
 import type { LimitSealPattern } from 'src/api/alert';
+import type { Theme, SxProps } from '@mui/material/styles';
 
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
@@ -11,6 +12,8 @@ import FormControl from '@mui/material/FormControl';
 import ToggleButton from '@mui/material/ToggleButton';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+
+import { Iconify } from 'src/components/iconify';
 
 import type {
   MvBucket,
@@ -47,6 +50,19 @@ const SEAL_PATTERNS: Array<{ value: LimitSealPattern; label: string }> = [
   { value: 'WEAK', label: '烂板' },
 ];
 
+const ACTION_BUTTON_SX: SxProps<Theme> = {
+  height: 40,
+  minWidth: 76,
+  px: 1.5,
+  flexShrink: 0,
+};
+
+const TRADE_DATE_PICKER_SX: SxProps<Theme> = {
+  width: { xs: '100%', sm: 220 },
+  minWidth: { sm: 220 },
+  flexShrink: 0,
+};
+
 export function AlertLimitFilterBar({
   state,
   onChange,
@@ -70,7 +86,7 @@ export function AlertLimitFilterBar({
         onChange={(v: Dayjs | null) => onChange({ tradeDate: v })}
         format="YYYY-MM-DD"
         slotProps={{
-          textField: { size: 'small', sx: { width: 180 } },
+          textField: { size: 'small', sx: TRADE_DATE_PICKER_SX },
           field: { clearable: true },
         }}
       />
@@ -184,10 +200,22 @@ export function AlertLimitFilterBar({
         slotProps={{ htmlInput: { min: 0 } }}
       />
 
-      <Button variant="outlined" size="small" onClick={onRefresh}>
+      <Button
+        variant="outlined"
+        size="small"
+        startIcon={<Iconify icon="solar:refresh-bold" width={16} />}
+        onClick={onRefresh}
+        sx={ACTION_BUTTON_SX}
+      >
         刷新
       </Button>
-      <Button variant="text" size="small" onClick={onReset}>
+      <Button
+        variant="outlined"
+        size="small"
+        startIcon={<Iconify icon="solar:restart-bold" width={16} />}
+        onClick={onReset}
+        sx={ACTION_BUTTON_SX}
+      >
         重置
       </Button>
     </Stack>

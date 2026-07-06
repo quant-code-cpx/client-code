@@ -108,12 +108,9 @@ export function RotationMomentumChart({ tradeDate, period, onSectorClick, refres
       offsetX: 8,
       style: { fontSize: '12px', colors: [theme.palette.text.primary] },
 
-      formatter: (val: unknown, opts: any) => {
+      formatter: (val: unknown) => {
         const numVal = typeof val === 'number' ? val : Number(val);
-        const item = sorted[(opts as { dataPointIndex: number })?.dataPointIndex];
-        if (!item) return `${numVal.toFixed(2)}%`;
-        const sign = item.rankChange > 0 ? '↑' : item.rankChange < 0 ? '↓' : '—';
-        return `${numVal.toFixed(2)}% ${sign}`;
+        return `${numVal.toFixed(2)}%`;
       },
     },
     xaxis: {
@@ -128,13 +125,6 @@ export function RotationMomentumChart({ tradeDate, period, onSectorClick, refres
         const item = sorted[dataPointIndex];
         if (!item) return '';
         const sign = item.momentum > 0 ? '+' : '';
-        const rankColor =
-          item.rankChange > 0
-            ? theme.palette.success.main
-            : item.rankChange < 0
-              ? theme.palette.error.main
-              : theme.palette.grey[500];
-        const arrow = item.rankChange > 0 ? '↑' : item.rankChange < 0 ? '↓' : '—';
         const amountStr =
           item.amount != null ? `成交额：${(item.amount / 10000).toFixed(2)} 亿<br/>` : '';
         return [
@@ -142,8 +132,7 @@ export function RotationMomentumChart({ tradeDate, period, onSectorClick, refres
           `<b>${item.name}</b><br/>`,
           `动量值：<span style="color:${item.momentum >= 0 ? theme.palette.error.main : theme.palette.success.main}">${sign}${item.momentum.toFixed(2)}%</span><br/>`,
           amountStr,
-          `当前排名：${item.rank} <span style="color:${rankColor}">${arrow} ${Math.abs(item.rankChange)}</span><br/>`,
-          `上期排名：${item.prevRank}`,
+          `当前排名：${item.rank}`,
           '</div>',
         ].join('');
       },

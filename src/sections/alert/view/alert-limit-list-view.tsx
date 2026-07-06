@@ -117,7 +117,11 @@ export function AlertLimitListView() {
     setNextDayLoading(true);
     setNextDayError('');
     try {
-      const result = await fetchLimitNextDayPerf({ trade_date: tradeDateStr });
+      const result = await fetchLimitNextDayPerf({
+        trade_date: tradeDateStr,
+        limit_type: state.limitType === 'ALL' ? undefined : state.limitType,
+        min_consecutive: typeof state.minStreak === 'number' ? state.minStreak : undefined,
+      });
       setNextDay(result);
     } catch (err) {
       setNextDayError(err instanceof Error ? err.message : '加载次日表现失败');
@@ -125,7 +129,7 @@ export function AlertLimitListView() {
     } finally {
       setNextDayLoading(false);
     }
-  }, [tradeDateStr]);
+  }, [tradeDateStr, state.limitType, state.minStreak]);
 
   useEffect(() => {
     fetchList();

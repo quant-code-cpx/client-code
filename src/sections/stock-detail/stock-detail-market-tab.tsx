@@ -719,9 +719,12 @@ export function StockDetailMarketTab({ tsCode }: Props) {
         const h = (g.seriesCandleH as number[][])?.[0]?.[dataPointIndex];
         const l = (g.seriesCandleL as number[][])?.[0]?.[dataPointIndex];
         const c = (g.seriesCandleC as number[][])?.[0]?.[dataPointIndex];
+        const pctChg = item?.pctChg ?? null;
 
         const up = (c ?? 0) >= (o ?? 0);
         const clr = up ? riseColor : fallColor;
+        const pctChgColor =
+          pctChg == null || pctChg === 0 ? theme.palette.text.primary : pctChg > 0 ? riseColor : fallColor;
         const dateLabel = fmtD(String(date));
         const lines: string[] = [
           `<div style="font-weight:600;margin-bottom:4px">${dateLabel}</div>`,
@@ -729,6 +732,7 @@ export function StockDetailMarketTab({ tsCode }: Props) {
           `高: ${h?.toFixed(2) ?? '--'}`,
           `低: ${l?.toFixed(2) ?? '--'}`,
           `收: <span style="color:${clr};font-weight:600">${c?.toFixed(2) ?? '--'}</span>`,
+          `涨跌幅: <span style="color:${pctChgColor};font-weight:600">${fPctChg(pctChg)}</span>`,
         ];
 
         const maNames = [`5${maUnit}均线`, `10${maUnit}均线`, `20${maUnit}均线`, `60${maUnit}均线`];

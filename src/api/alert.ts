@@ -382,19 +382,23 @@ export type LimitListItem = {
   limitType: 'UP' | 'DOWN';
   close: number;
   pctChg: number;
+  amount?: number | null;
+  floatMv?: number | null;
+  totalMv?: number | null;
+  turnoverRatio?: number | null;
   /** 封单量（手） */
-  sealVolume: number;
+  sealVolume?: number | null;
   /** 封单额（万元） */
-  sealAmount: number;
+  sealAmount?: number | null;
   /** 连板/连跌天数。后端 BE-6：UP/DOWN 均生效。`consecutiveDays` 为兼容旧字段。 */
-  consecutiveDays: number;
+  consecutiveDays?: number | null;
   streakDays?: number | null;
   /** 首次封板时间 */
   firstSealTime: string | null;
   /** 最后封板时间 */
   lastSealTime: string | null;
   /** 封板次数（开板回封计数） */
-  sealCount: number;
+  sealCount?: number | null;
 
   // ── 后端 P0 增强字段（未上线前为 undefined） ──────────────
   /** 行业（来源 stock_basic.industry）— BE-1 */
@@ -417,6 +421,11 @@ export type LimitListItem = {
   openCount?: number | null;
   /** 累计开板时长（秒）— BE-11 */
   openDuration?: number | null;
+  firstTime?: string | null;
+  lastTime?: string | null;
+  openTimes?: number | null;
+  fdPercent?: number | null;
+  upStat?: string | null;
 };
 
 /** 列表响应 meta（后端 P0 字段 BE-7） */
@@ -450,6 +459,21 @@ export type LimitListQuery = {
   seal_pattern?: LimitSealPattern;
 };
 
+function compactObject<T extends Record<string, unknown>>(payload: T): Partial<T> {
+  return Object.fromEntries(
+    Object.entries(payload).filter(([, value]) => value !== undefined && value !== '')
+  ) as Partial<T>;
+}
+
+function toLimitListBody(query?: LimitListQuery) {
+  return compactObject({
+    tradeDate: query?.trade_date,
+    limitType: query?.limit_type,
+    minStreak: query?.min_consecutive,
+    industry: query?.industry,
+  });
+}
+
 /**
  * 拉取涨跌停明细。
  *
@@ -459,7 +483,7 @@ export type LimitListQuery = {
 export async function fetchLimitList(query?: LimitListQuery): Promise<LimitListResponse> {
   const raw = await apiClient.post<LimitListItem[] | LimitListResponse>(
     '/api/alert/limit-list',
-    query ?? {}
+    toLimitListBody(query)
   );
   if (Array.isArray(raw)) return { items: raw };
   return raw;
@@ -489,7 +513,10 @@ export type LimitSummaryQuery = {
 };
 
 export function fetchLimitSummary(query: LimitSummaryQuery) {
-  return apiClient.post<LimitSummaryDay[]>('/api/alert/limit-summary', query);
+  return apiClient.post<LimitSummaryDay[]>(
+    '/api/alert/limit-summary',
+    compactObject({ tradeDate: query.trade_date, range: query.range })
+  );
 }
 
 // ── 次日表现矩阵（后端 BE-9） ───────────────────────────────────
@@ -507,16 +534,159 @@ export type LimitNextDayRow = {
   prevStreak: number;
   /** 各桶票数 */
   today: Record<LimitNextDayBucket, number>;
+  /** 有效样本数 */
+  total: number;
   /** 平均次日涨幅（百分比） */
   avgNextDayPct: number | null;
 };
 
 export type LimitNextDayResponse = {
-  /** 基准日（即 prevStreak 所在日的下一交易日） */
+  /** 兼容旧字段：优先为 nextTradeDate。 */
   date: string;
+  /** 昨日封板池日期 */
+  baseDate: string | null;
+  /** 次一交易日 */
+  nextTradeDate: string | null;
+  total: number;
+  avgPctChg: number | null;
+  upRatio: number | null;
   rows: LimitNextDayRow[];
 };
 
-export function fetchLimitNextDayPerf(params: { trade_date?: string }) {
-  return apiClient.post<LimitNextDayResponse>('/api/alert/limit-next-day-perf', params);
+export type LimitNextDayQuery = {
+  trade_date?: string;
+  limit_type?: 'UP' | 'DOWN';
+  min_consecutive?: number;
+};
+
+export type LimitNextDayPerfItem = LimitListItem & {
+  nextClose: number | null;
+  nextPctChg: number | null;
+};
+
+type LimitNextDayRawResponse = {
+  meta?: LimitListMeta;
+  nextTradeDate: string | null;
+  total: number;
+  avgPctChg: number | null;
+  upRatio: number | null;
+  items: LimitNextDayPerfItem[];
+};
+
+type LimitNextDayLegacyResponse = Partial<Omit<LimitNextDayResponse, 'rows'>> & {
+  rows: LimitNextDayRow[];
+};
+
+const EMPTY_BUCKETS: Record<LimitNextDayBucket, number> = {
+  IN_5: 0,
+  ABOVE_5: 0,
+  BELOW_0: 0,
+  BELOW_5: 0,
+  LIMIT_UP: 0,
+  LIMIT_DOWN: 0,
+};
+
+function resolveLimitPct(item: Pick<LimitListItem, 'tsCode' | 'stockName' | 'pctChgLimit'>) {
+  if (item.pctChgLimit != null && Number.isFinite(item.pctChgLimit)) {
+    return Math.abs(item.pctChgLimit);
+  }
+
+  const code = item.tsCode.split('.')[0] ?? '';
+  const name = item.stockName.toUpperCase();
+  if (name.includes('ST')) return 5;
+  if (code.startsWith('300') || code.startsWith('301') || code.startsWith('688')) return 20;
+  if (code.startsWith('8') || code.startsWith('4') || code.startsWith('92')) return 30;
+  return 10;
+}
+
+function resolveNextDayBucket(item: LimitNextDayPerfItem): LimitNextDayBucket {
+  const pct = Number(item.nextPctChg ?? 0);
+  const limitPct = resolveLimitPct(item);
+  const tolerance = 0.1;
+
+  if (pct >= limitPct - tolerance) return 'LIMIT_UP';
+  if (pct <= -limitPct + tolerance) return 'LIMIT_DOWN';
+  if (pct >= 5) return 'ABOVE_5';
+  if (pct >= 0) return 'IN_5';
+  if (pct > -5) return 'BELOW_0';
+  return 'BELOW_5';
+}
+
+function countBuckets(today: Record<LimitNextDayBucket, number>) {
+  return Object.values(today).reduce((sum, count) => sum + count, 0);
+}
+
+function normalizeLimitNextDayResponse(
+  raw: LimitNextDayRawResponse | LimitNextDayLegacyResponse
+): LimitNextDayResponse {
+  if ('rows' in raw) {
+    const rows = raw.rows.map((row) => ({
+      ...row,
+      total: row.total ?? countBuckets(row.today),
+    }));
+
+    return {
+      date: raw.date ?? raw.nextTradeDate ?? '',
+      rows,
+      total: raw.total ?? rows.reduce((sum, row) => sum + row.total, 0),
+      upRatio: raw.upRatio ?? null,
+      baseDate: raw.baseDate ?? null,
+      avgPctChg: raw.avgPctChg ?? null,
+      nextTradeDate: raw.nextTradeDate ?? raw.date ?? null,
+    };
+  }
+
+  const grouped = new Map<
+    number,
+    { today: Record<LimitNextDayBucket, number>; total: number; pctSum: number }
+  >();
+
+  raw.items.forEach((item) => {
+    if (item.nextPctChg == null) return;
+
+    const prevStreak = Math.max(1, item.streakDays ?? item.consecutiveDays ?? 1);
+    const bucket = resolveNextDayBucket(item);
+    const current = grouped.get(prevStreak) ?? {
+      today: { ...EMPTY_BUCKETS },
+      total: 0,
+      pctSum: 0,
+    };
+
+    current.today[bucket] += 1;
+    current.total += 1;
+    current.pctSum += Number(item.nextPctChg);
+    grouped.set(prevStreak, current);
+  });
+
+  const rows = Array.from(grouped.entries())
+    .sort(([a], [b]) => a - b)
+    .map(([prevStreak, row]) => ({
+      prevStreak,
+      today: row.today,
+      total: row.total,
+      avgNextDayPct: row.total > 0 ? Math.round((row.pctSum / row.total) * 10000) / 10000 : null,
+    }));
+
+  return {
+    rows,
+    total: raw.total,
+    upRatio: raw.upRatio,
+    avgPctChg: raw.avgPctChg,
+    date: raw.nextTradeDate ?? raw.meta?.actualDate ?? '',
+    baseDate: raw.meta?.actualDate ?? null,
+    nextTradeDate: raw.nextTradeDate,
+  };
+}
+
+export async function fetchLimitNextDayPerf(params: LimitNextDayQuery) {
+  const raw = await apiClient.post<LimitNextDayRawResponse | LimitNextDayLegacyResponse>(
+    '/api/alert/limit-next-day-perf',
+    compactObject({
+      tradeDate: params.trade_date,
+      limitType: params.limit_type,
+      minStreak: params.min_consecutive,
+    })
+  );
+
+  return normalizeLimitNextDayResponse(raw);
 }

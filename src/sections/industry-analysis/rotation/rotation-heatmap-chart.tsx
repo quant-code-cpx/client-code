@@ -24,6 +24,13 @@ import { Chart, useChart } from 'src/components/chart';
 
 type ColorMode = 'pctChange' | 'netAmount';
 
+type HeatmapChartPoint = {
+  sector: RotationHeatmapSector;
+  x: string;
+  y: number;
+  netYuan: number;
+};
+
 type Props = {
   tradeDate?: string;
   period?: string;
@@ -101,26 +108,29 @@ export function RotationHeatmapChart({ tradeDate, period, onSectorClick, refresh
     []
   );
 
-  const chartData = sectors
-    .map((sector) => {
+  const chartData: HeatmapChartPoint[] = sectors
+    .map((sector): HeatmapChartPoint => {
+      const netYuan = flowMap.get(sector.name) ?? sector.netAmount ?? 0;
+
       if (colorMode === 'pctChange') {
         return {
           sector,
           x: sector.name,
           y: Math.round(sector.pctChange * 100) / 100,
+          netYuan,
         };
       }
 
-      const netYuan = flowMap.get(sector.name) ?? 0;
       return {
         sector,
         x: sector.name,
         y: Math.round((netYuan / 1e8) * 100) / 100,
+        netYuan,
       };
     })
     .sort((a, b) => b.y - a.y);
 
-  const series = [{ data: chartData.map(({ x, y }) => ({ x, y })) }];
+  const series = [{ data: chartData.map(({ x, y, netYuan }) => ({ x, y, netYuan })) }];
 
   // A-share convention: 红涨绿跌 (red = gain/inflow, green = drop/outflow)
   const pctRanges = [
@@ -183,9 +193,10 @@ export function RotationHeatmapChart({ tradeDate, period, onSectorClick, refresh
       shared: false,
       intersect: true,
       custom: ({ dataPointIndex }: { seriesIndex: number; dataPointIndex: number; w: unknown }) => {
-        const sector = chartData[dataPointIndex]?.sector;
+        const item = chartData[dataPointIndex];
+        const sector = item?.sector;
         if (!sector) return '';
-        const netYuan = flowMap.get(sector.name) ?? 0;
+        const netYuan = item.netYuan;
         const netYi = (netYuan / 1e8).toFixed(2);
         const pctSign = sector.pctChange > 0 ? '+' : '';
         const flowSign = netYuan > 0 ? '+' : '';
