@@ -19,6 +19,17 @@ const commonRules = () => ({
   'no-bitwise': 2,
   'no-unused-vars': 0,
   'object-shorthand': 1,
+  'no-restricted-imports': [
+    2,
+    {
+      paths: [
+        {
+          name: '@mui/x-date-pickers/DatePicker',
+          message: 'Use DatePicker from src/components/date-picker.',
+        },
+      ],
+    },
+  ],
   'no-useless-rename': 1,
   'default-case-last': 2,
   'consistent-return': 2,
@@ -191,4 +202,10 @@ export default [
   ...eslintTs.configs.recommended,
   reactPlugin.configs.flat.recommended,
   customConfig,
+  {
+    files: ['src/components/date-picker/date-picker.tsx'],
+    rules: {
+      'no-restricted-imports': 0,
+    },
+  },
 ];

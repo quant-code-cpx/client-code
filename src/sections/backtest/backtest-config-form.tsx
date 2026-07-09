@@ -22,7 +22,6 @@ import FormControl from '@mui/material/FormControl';
 import CardContent from '@mui/material/CardContent';
 import ToggleButton from '@mui/material/ToggleButton';
 import FormHelperText from '@mui/material/FormHelperText';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
 import { RouterLink } from 'src/routes/components';
@@ -30,6 +29,7 @@ import { RouterLink } from 'src/routes/components';
 import { fNumber } from 'src/utils/format-number';
 
 import { Iconify } from 'src/components/iconify';
+import { DatePicker } from 'src/components/date-picker';
 
 import { BacktestStockAutocomplete } from './backtest-stock-autocomplete';
 import {
@@ -240,16 +240,13 @@ export function BacktestConfigForm({
               value={form.startDate ? dayjs(form.startDate) : null}
               minDate={minDate}
               maxDate={maxDate}
-              format="YYYY-MM-DD"
               sx={{ width: '100%' }}
               onChange={(value) => onChange({ startDate: value?.format('YYYY-MM-DD') ?? '' })}
               slotProps={{
                 textField: {
-                  size: 'small',
                   error: Boolean(getFieldError('startDate')),
                   helperText: getFieldError('startDate') || '默认近 3 年，可一键切换区间',
                 },
-                field: { clearable: true },
               }}
             />
           </Grid>
@@ -260,16 +257,13 @@ export function BacktestConfigForm({
               value={form.endDate ? dayjs(form.endDate) : null}
               minDate={minDate}
               maxDate={maxDate}
-              format="YYYY-MM-DD"
               sx={{ width: '100%' }}
               onChange={(value) => onChange({ endDate: value?.format('YYYY-MM-DD') ?? '' })}
               slotProps={{
                 textField: {
-                  size: 'small',
                   error: Boolean(getFieldError('endDate')),
                   helperText: getFieldError('endDate') || '上限优先使用后端最新可用交易日',
                 },
-                field: { clearable: true },
               }}
             />
           </Grid>

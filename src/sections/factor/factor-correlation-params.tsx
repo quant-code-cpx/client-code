@@ -15,9 +15,9 @@ import InputLabel from '@mui/material/InputLabel';
 import Typography from '@mui/material/Typography';
 import FormControl from '@mui/material/FormControl';
 import Autocomplete from '@mui/material/Autocomplete';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 import { Iconify } from 'src/components/iconify';
+import { DatePicker } from 'src/components/date-picker';
 
 // ----------------------------------------------------------------------
 
@@ -131,12 +131,7 @@ export function FactorCorrelationParams({
           label="分析日期"
           value={tradeDate ? dayjs(tradeDate) : null}
           onChange={(v) => onChangeTradeDate(v?.format('YYYY-MM-DD') ?? '')}
-          format="YYYY-MM-DD"
           maxDate={dayjs()}
-          slotProps={{
-            textField: { size: 'small', sx: { minWidth: 180 } },
-            field: { clearable: true },
-          }}
         />
 
         <FormControl size="small" sx={{ minWidth: 140 }}>

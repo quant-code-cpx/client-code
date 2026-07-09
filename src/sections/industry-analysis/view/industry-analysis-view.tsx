@@ -12,7 +12,6 @@ import Button from '@mui/material/Button';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 import { useIndustryDictMapping } from 'src/hooks/use-industry-dict-mapping';
 
@@ -24,6 +23,7 @@ import {
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Iconify } from 'src/components/iconify';
+import { DatePicker } from 'src/components/date-picker';
 
 import { MarketHeatmapView } from '../heatmap/view/market-heatmap-view';
 import { IndustryRotationView } from '../rotation/view/industry-rotation-view';
@@ -169,16 +169,12 @@ export function IndustryAnalysisView() {
               setDisplayDate(newVal);
               setTradeDate(newVal ? newVal.format('YYYYMMDD') : undefined);
             }}
-            format="YYYY-MM-DD"
             slotProps={{
               textField: {
-                size: 'small',
                 sx: {
-                  width: { xs: '100%', sm: 190 },
                   '& .MuiInputBase-root': { height: CONTROL_HEIGHT },
                 },
               },
-              field: { clearable: true },
             }}
           />
           <Button

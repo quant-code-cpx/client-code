@@ -17,11 +17,11 @@ import TableHead from '@mui/material/TableHead';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 import TableContainer from '@mui/material/TableContainer';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 import { adminBackfill, adminPrecompute, adminPrecomputeStatus } from 'src/api/factor';
 
 import { Label } from 'src/components/label';
+import { DatePicker } from 'src/components/date-picker';
 
 // ----------------------------------------------------------------------
 
@@ -200,21 +200,11 @@ export function FactorAdminPanel() {
               label="开始日期"
               value={backfillStart ? dayjs(backfillStart) : null}
               onChange={(v) => setBackfillStart(v?.format('YYYY-MM-DD') ?? '')}
-              format="YYYY-MM-DD"
-              slotProps={{
-                textField: { size: 'small', sx: { minWidth: 190 } },
-                field: { clearable: true },
-              }}
             />
             <DatePicker
               label="结束日期"
               value={backfillEnd ? dayjs(backfillEnd) : null}
               onChange={(v) => setBackfillEnd(v?.format('YYYY-MM-DD') ?? '')}
-              format="YYYY-MM-DD"
-              slotProps={{
-                textField: { size: 'small', sx: { minWidth: 190 } },
-                field: { clearable: true },
-              }}
             />
             <Button variant="contained" onClick={handleBackfill} disabled={backfillLoading}>
               {backfillLoading ? '提交中...' : '触发回补'}

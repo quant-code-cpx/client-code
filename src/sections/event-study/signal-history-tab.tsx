@@ -28,13 +28,13 @@ import InputLabel from '@mui/material/InputLabel';
 import Typography from '@mui/material/Typography';
 import FormControl from '@mui/material/FormControl';
 import TableContainer from '@mui/material/TableContainer';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import TablePagination from '@mui/material/TablePagination';
 
 import { querySignals, listSignalRules } from 'src/api/event-study';
 
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
+import { DatePicker } from 'src/components/date-picker';
 import { StockSearchAutocomplete } from 'src/components/stock-search-autocomplete';
 
 import { DataState } from './_shared/data-state';
@@ -188,10 +188,8 @@ export function SignalHistoryTab() {
               label="开始日期"
               value={startDate}
               onChange={(v) => setStartDate(v)}
-              format="YYYY-MM-DD"
               slotProps={{
-                textField: { size: 'small', fullWidth: true },
-                field: { clearable: true },
+                textField: { fullWidth: true },
               }}
             />
           </Grid>
@@ -200,10 +198,8 @@ export function SignalHistoryTab() {
               label="结束日期"
               value={endDate}
               onChange={(v) => setEndDate(v)}
-              format="YYYY-MM-DD"
               slotProps={{
-                textField: { size: 'small', fullWidth: true },
-                field: { clearable: true },
+                textField: { fullWidth: true },
               }}
             />
           </Grid>

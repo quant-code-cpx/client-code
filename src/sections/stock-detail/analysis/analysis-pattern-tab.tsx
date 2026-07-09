@@ -13,11 +13,12 @@ import Switch from '@mui/material/Switch';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 import ToggleButton from '@mui/material/ToggleButton';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
 import { searchBySeries, searchPatterns, getPatternTemplatesRaw } from 'src/api/pattern';
+
+import { DatePicker } from 'src/components/date-picker';
 
 import {
   PatternResultsList,
@@ -219,11 +220,6 @@ export function AnalysisPatternTab({ tsCode }: Props) {
                   setStartDate(v?.format('YYYY-MM-DD') ?? '');
                   setResult(null);
                 }}
-                format="YYYY-MM-DD"
-                slotProps={{
-                  textField: { size: 'small', sx: { minWidth: 190 } },
-                  field: { clearable: true },
-                }}
               />
               <DatePicker
                 label="结束日期"
@@ -231,11 +227,6 @@ export function AnalysisPatternTab({ tsCode }: Props) {
                 onChange={(v) => {
                   setEndDate(v?.format('YYYY-MM-DD') ?? '');
                   setResult(null);
-                }}
-                format="YYYY-MM-DD"
-                slotProps={{
-                  textField: { size: 'small', sx: { minWidth: 190 } },
-                  field: { clearable: true },
                 }}
               />
               <FormControlLabel

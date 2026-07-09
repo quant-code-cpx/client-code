@@ -100,6 +100,25 @@ const MuiLink: Components<Theme>['MuiLink'] = {
   defaultProps: { underline: 'hover' },
 };
 
+const MuiDatePicker: Components<Theme>['MuiDatePicker'] = {
+  defaultProps: {
+    format: 'YYYY-MM-DD',
+  },
+};
+
+const MuiPickersTextField: Components<Theme>['MuiPickersTextField'] = {
+  defaultProps: {
+    size: 'small',
+  },
+  styleOverrides: {
+    root: ({ theme }) => ({
+      [theme.breakpoints.up('sm')]: {
+        minWidth: 200,
+      },
+    }),
+  },
+};
+
 const MuiFormControlLabel: Components<Theme>['MuiFormControlLabel'] = {
   styleOverrides: {
     label: ({ theme }) => ({
@@ -164,8 +183,10 @@ export const components = {
   MuiBackdrop,
   MuiMenuItem,
   MuiCheckbox,
+  MuiDatePicker,
   MuiTableCell,
   MuiCardHeader,
+  MuiPickersTextField,
   MuiOutlinedInput,
   MuiFormControlLabel,
 };

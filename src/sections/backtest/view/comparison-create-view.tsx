@@ -16,7 +16,6 @@ import InputLabel from '@mui/material/InputLabel';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 import FormControl from '@mui/material/FormControl';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 import { useRouter } from 'src/routes/hooks';
 import { RouterLink } from 'src/routes/components';
@@ -25,6 +24,7 @@ import { DashboardContent } from 'src/layouts/dashboard';
 import { getRunDetail, createComparison } from 'src/api/backtest';
 
 import { Iconify } from 'src/components/iconify';
+import { DatePicker } from 'src/components/date-picker';
 
 import { ComparisonStrategyCard } from '../comparison-strategy-card';
 import {
@@ -296,12 +296,7 @@ export function ComparisonCreateView() {
                     onChange={(v) =>
                       setForm((prev) => ({ ...prev, startDate: v?.format('YYYY-MM-DD') ?? '' }))
                     }
-                    format="YYYY-MM-DD"
                     sx={{ width: '100%' }}
-                    slotProps={{
-                      textField: { size: 'small' },
-                      field: { clearable: true },
-                    }}
                   />
                   <DatePicker
                     label="结束日期"
@@ -309,12 +304,7 @@ export function ComparisonCreateView() {
                     onChange={(v) =>
                       setForm((prev) => ({ ...prev, endDate: v?.format('YYYY-MM-DD') ?? '' }))
                     }
-                    format="YYYY-MM-DD"
                     sx={{ width: '100%' }}
-                    slotProps={{
-                      textField: { size: 'small' },
-                      field: { clearable: true },
-                    }}
                   />
                 </Box>
 

@@ -100,19 +100,37 @@ export function FactorDetailQuantileChart({ factorName, params }: FactorDetailQu
     : [];
 
   const lineChartOptions = useChart({
-    chart: { type: 'line', zoom: { enabled: true }, toolbar: { show: true } },
+    chart: {
+      type: 'line',
+      zoom: { enabled: true },
+      toolbar: { show: true, offsetY: -4 },
+    },
+    grid: { padding: { top: 24, right: 8, bottom: 0 } },
     stroke: {
       width: result ? [...result.groups.map(() => 2), 3, 2] : [2],
       dashArray: result ? [...result.groups.map(() => 0), 0, 4] : [0],
     },
     colors: result
-      ? [...quantileColors.slice(0, result.groups.length), '#111827', theme.palette.text.disabled]
+      ? [
+          ...quantileColors.slice(0, result.groups.length),
+          theme.palette.text.primary,
+          theme.palette.text.disabled,
+        ]
       : [],
     xaxis: { type: 'category' },
     yaxis: { labels: { formatter: (v: number) => `${v.toFixed(1)}%` } },
     dataLabels: { enabled: false },
-    legend: { show: true },
-    tooltip: { shared: false, y: { formatter: (v: number) => `${v.toFixed(2)}%` } },
+    legend: {
+      show: true,
+      horizontalAlign: 'left',
+      offsetY: 4,
+      itemMargin: { horizontal: 10, vertical: 4 },
+    },
+    tooltip: {
+      shared: true,
+      intersect: false,
+      y: { formatter: (v: number) => `${v.toFixed(2)}%` },
+    },
   });
 
   const barSeries = result
@@ -218,7 +236,17 @@ export function FactorDetailQuantileChart({ factorName, params }: FactorDetailQu
       <Card sx={{ mb: 3 }}>
         <CardHeader title="分层累计收益曲线" />
         <CardContent>
-          <Chart type="line" series={lineSeries} options={lineChartOptions} sx={{ height: 360 }} />
+          <Chart
+            type="line"
+            series={lineSeries}
+            options={lineChartOptions}
+            sx={{
+              height: 360,
+              overflow: 'visible',
+              '& .apexcharts-canvas': { overflow: 'visible' },
+              '& .apexcharts-tooltip': { overflow: 'visible' },
+            }}
+          />
         </CardContent>
       </Card>
 

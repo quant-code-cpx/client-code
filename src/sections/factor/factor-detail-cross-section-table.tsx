@@ -19,12 +19,13 @@ import Typography from '@mui/material/Typography';
 import ButtonGroup from '@mui/material/ButtonGroup';
 import TableContainer from '@mui/material/TableContainer';
 import LinearProgress from '@mui/material/LinearProgress';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import TablePagination from '@mui/material/TablePagination';
 
 import { RouterLink } from 'src/routes/components';
 
 import { factorApi } from 'src/api/factor';
+
+import { DatePicker } from 'src/components/date-picker';
 
 // ----------------------------------------------------------------------
 
@@ -77,11 +78,6 @@ export function FactorDetailCrossSectionTable({ factorName }: FactorDetailCrossS
             onChange={(v) => {
               setTradeDate(v?.format('YYYY-MM-DD') ?? '');
               setPage(0);
-            }}
-            format="YYYY-MM-DD"
-            slotProps={{
-              textField: { size: 'small', sx: { minWidth: 190 } },
-              field: { clearable: true },
             }}
           />
 

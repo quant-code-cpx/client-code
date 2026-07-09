@@ -9,7 +9,8 @@ import InputLabel from '@mui/material/InputLabel';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 import FormControl from '@mui/material/FormControl';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+
+import { DatePicker } from 'src/components/date-picker';
 
 // ----------------------------------------------------------------------
 
@@ -54,25 +55,15 @@ export function FactorDetailParamsPanel({
             label="起始日期"
             value={value.startDate ? dayjs(value.startDate, 'YYYYMMDD') : null}
             onChange={(v) => onChange({ ...value, startDate: v?.format('YYYYMMDD') ?? '' })}
-            format="YYYY-MM-DD"
             maxDate={value.endDate ? dayjs(value.endDate, 'YYYYMMDD') : undefined}
-            slotProps={{
-              textField: { size: 'small', sx: { minWidth: 190 } },
-              field: { clearable: true },
-            }}
           />
 
           <DatePicker
             label="结束日期"
             value={value.endDate ? dayjs(value.endDate, 'YYYYMMDD') : null}
             onChange={(v) => onChange({ ...value, endDate: v?.format('YYYYMMDD') ?? '' })}
-            format="YYYY-MM-DD"
             minDate={value.startDate ? dayjs(value.startDate, 'YYYYMMDD') : undefined}
             maxDate={dayjs()}
-            slotProps={{
-              textField: { size: 'small', sx: { minWidth: 190 } },
-              field: { clearable: true },
-            }}
           />
 
           <FormControl size="small" sx={{ minWidth: 140 }}>

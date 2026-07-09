@@ -12,11 +12,11 @@ import Tabs from '@mui/material/Tabs';
 import Stack from '@mui/material/Stack';
 import { useTheme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Iconify } from 'src/components/iconify';
+import { DatePicker } from 'src/components/date-picker';
 
 import { PulseHeadline } from '../pulse-headline';
 import { HsgtTrendChart } from '../hsgt-trend-chart';
@@ -107,11 +107,6 @@ export function MarketMoneyFlowView() {
           label="交易日期"
           value={displayDate}
           onChange={handleDateChange}
-          format="YYYY-MM-DD"
-          slotProps={{
-            textField: { size: 'small', sx: { width: 200 } },
-            field: { clearable: true },
-          }}
         />
       </Stack>
 

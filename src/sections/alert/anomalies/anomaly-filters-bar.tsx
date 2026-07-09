@@ -13,10 +13,10 @@ import TextField from '@mui/material/TextField';
 import InputLabel from '@mui/material/InputLabel';
 import IconButton from '@mui/material/IconButton';
 import FormControl from '@mui/material/FormControl';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import FormControlLabel from '@mui/material/FormControlLabel';
 
 import { Iconify } from 'src/components/iconify';
+import { DatePicker } from 'src/components/date-picker';
 
 import { ANOMALY_TYPE_LIST } from './anomaly-type-config';
 import { type AnomalyFilterState } from './use-anomaly-monitor-state';
@@ -58,13 +58,8 @@ export function AnomalyFiltersBar({ filter, onChange, onReset }: Props) {
         <DatePicker
           label="交易日"
           value={dateValue}
-          format="YYYY-MM-DD"
           maxDate={dayjs()}
           onChange={(v) => onChange({ tradeDate: v ? v.format('YYYY-MM-DD') : '' })}
-          slotProps={{
-            textField: { size: 'small', sx: { minWidth: 180 } },
-            field: { clearable: true },
-          }}
         />
 
         <FormControl size="small" sx={{ minWidth: 140 }}>

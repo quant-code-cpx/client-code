@@ -22,13 +22,13 @@ import Collapse from '@mui/material/Collapse';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import ToggleButton from '@mui/material/ToggleButton';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
 import { RouterLink } from 'src/routes/components';
 
 import { Iconify } from 'src/components/iconify';
+import { DatePicker } from 'src/components/date-picker';
 
 // ----------------------------------------------------------------------
 
@@ -115,7 +115,12 @@ export function SignalHistoryToolbar({
         </Alert>
       )}
 
-      <Stack direction={{ xs: 'column', lg: 'row' }} spacing={1.5} alignItems={{ lg: 'center' }}>
+      <Stack
+        direction={{ xs: 'column', lg: 'row' }}
+        spacing={1.5}
+        alignItems={{ lg: 'center' }}
+        sx={{ flexWrap: 'wrap' }}
+      >
         <TextField
           select
           size="small"
@@ -155,15 +160,11 @@ export function SignalHistoryToolbar({
           label="起始日期"
           value={draft.startDate ? dayjs(toDisplayDate(draft.startDate)) : null}
           onChange={(value) => onDraftChange({ startDate: value?.format('YYYYMMDD') ?? '' })}
-          format="YYYY-MM-DD"
           shouldDisableDate={shouldDisableDate}
-          sx={{ width: { xs: 1, lg: 150 } }}
           slotProps={{
             textField: {
-              size: 'small',
               error: dateError,
             },
-            field: { clearable: true },
           }}
         />
 
@@ -171,15 +172,11 @@ export function SignalHistoryToolbar({
           label="截止日期"
           value={draft.endDate ? dayjs(toDisplayDate(draft.endDate)) : null}
           onChange={(value) => onDraftChange({ endDate: value?.format('YYYYMMDD') ?? '' })}
-          format="YYYY-MM-DD"
           shouldDisableDate={shouldDisableDate}
-          sx={{ width: { xs: 1, lg: 150 } }}
           slotProps={{
             textField: {
-              size: 'small',
               error: dateError,
             },
-            field: { clearable: true },
           }}
         />
 

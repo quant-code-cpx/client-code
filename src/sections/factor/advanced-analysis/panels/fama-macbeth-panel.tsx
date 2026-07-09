@@ -24,12 +24,12 @@ import ButtonGroup from '@mui/material/ButtonGroup';
 import CardContent from '@mui/material/CardContent';
 import FormControl from '@mui/material/FormControl';
 import TableContainer from '@mui/material/TableContainer';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import FormControlLabel from '@mui/material/FormControlLabel';
 
 import { famaMacBeth } from 'src/api/factor';
 
 import { Label } from 'src/components/label';
+import { DatePicker } from 'src/components/date-picker';
 
 import { METHODOLOGY } from '../methodology';
 import { EmptyGuide } from '../shared/empty-guide';
@@ -129,15 +129,11 @@ export function FamaMacBethPanel({ universe, factors, onHistorySave, prefillRequ
               label="开始日期"
               value={startDate}
               onChange={(v) => v && setStartDate(v)}
-              format="YYYY-MM-DD"
-              slotProps={{ textField: { size: 'small', sx: { width: { xs: '100%', sm: 180 } } } }}
             />
             <DatePicker
               label="结束日期"
               value={endDate}
               onChange={(v) => v && setEndDate(v)}
-              format="YYYY-MM-DD"
-              slotProps={{ textField: { size: 'small', sx: { width: { xs: '100%', sm: 180 } } } }}
             />
             <ButtonGroup
               size="small"

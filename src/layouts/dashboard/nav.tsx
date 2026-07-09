@@ -108,11 +108,29 @@ type NavItemWithChildrenProps = {
   pathname: string;
 };
 
+type NavChildItem = Omit<NavItem, 'children'>;
+
+const isNavPathActive = (pathname: string, item: NavChildItem, parentPath: string) =>
+  pathname === item.path ||
+  (!item.exact && item.path !== parentPath && pathname.startsWith(`${item.path}/`));
+
+const getActiveChildPath = (
+  children: NavChildItem[] | undefined,
+  pathname: string,
+  parentPath: string
+) =>
+  children?.reduce<string | undefined>(
+    (activePath, child) =>
+      isNavPathActive(pathname, child, parentPath) &&
+      (!activePath || child.path.length > activePath.length)
+        ? child.path
+        : activePath,
+    undefined
+  );
+
 function NavItemWithChildren({ item, pathname }: NavItemWithChildrenProps) {
-  const isChildActive =
-    item.children?.some((child) =>
-      child.exact ? pathname === child.path : pathname.startsWith(child.path)
-    ) ?? false;
+  const activeChildPath = getActiveChildPath(item.children, pathname, item.path);
+  const isChildActive = Boolean(activeChildPath);
   const [open, setOpen] = useState(isChildActive);
 
   useEffect(() => {
@@ -165,9 +183,7 @@ function NavItemWithChildren({ item, pathname }: NavItemWithChildrenProps) {
       <Collapse in={open} timeout="auto">
         <List disablePadding sx={{ pl: 3.5 }}>
           {item.children?.map((child) => {
-            const isActived =
-              pathname === child.path ||
-              (!child.exact && child.path !== item.path && pathname.startsWith(`${child.path}/`));
+            const isActived = child.path === activeChildPath;
 
             return (
               <ListItem disableGutters disablePadding key={child.title}>

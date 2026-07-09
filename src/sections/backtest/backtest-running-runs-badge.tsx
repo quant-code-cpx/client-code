@@ -1,3 +1,4 @@
+import type { Theme, SxProps } from '@mui/material/styles';
 import type { BacktestRunListItem } from 'src/api/backtest';
 
 import { useState } from 'react';
@@ -27,6 +28,7 @@ import { useRunningRunsBadge } from './hooks/use-running-runs-badge';
 type BacktestRunningRunsBadgeProps = {
   refreshToken?: number;
   onOpenRun: (runId: string) => void;
+  buttonSx?: SxProps<Theme>;
 };
 
 function RunItem({
@@ -80,6 +82,7 @@ function RunItem({
 export function BacktestRunningRunsBadge({
   refreshToken = 0,
   onOpenRun,
+  buttonSx,
 }: BacktestRunningRunsBadgeProps) {
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
   const { total, items, loading, error } = useRunningRunsBadge(refreshToken);
@@ -87,13 +90,19 @@ export function BacktestRunningRunsBadge({
 
   return (
     <>
-      <Badge badgeContent={total} color="info" overlap="rectangular">
+      <Badge
+        badgeContent={total}
+        color="info"
+        overlap="rectangular"
+        sx={{ display: 'inline-flex', alignItems: 'center', lineHeight: 0 }}
+      >
         <Button
           size="small"
           variant="outlined"
           color="info"
           startIcon={<Iconify icon="solar:clock-circle-outline" width={18} />}
           onClick={(event) => setAnchorEl(event.currentTarget)}
+          sx={buttonSx}
         >
           运行中
         </Button>

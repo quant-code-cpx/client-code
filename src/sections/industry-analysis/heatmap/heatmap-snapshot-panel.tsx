@@ -15,7 +15,6 @@ import CardContent from '@mui/material/CardContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import DialogContentText from '@mui/material/DialogContentText';
 
 import { useAuth } from 'src/auth';
@@ -23,6 +22,7 @@ import { triggerHeatmapSnapshot, fetchHeatmapSnapshotHistory } from 'src/api/hea
 
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
+import { DatePicker } from 'src/components/date-picker';
 
 // ----------------------------------------------------------------------
 
@@ -108,15 +108,11 @@ function SnapshotPanelInner() {
                 setSnapshotDate(newVal);
                 setQueryError('');
               }}
-              format="YYYY-MM-DD"
               slotProps={{
                 textField: {
-                  size: 'small',
-                  sx: { width: 200 },
                   error: !!queryError,
                   helperText: queryError || ' ',
                 },
-                field: { clearable: true },
               }}
             />
 

@@ -8,12 +8,13 @@ import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 import ToggleButton from '@mui/material/ToggleButton';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
 import { fetchHeatmapData } from 'src/api/heatmap';
 import { DashboardContent } from 'src/layouts/dashboard';
 import { fetchSectorFlow, fetchMainFlowRanking } from 'src/api/market';
+
+import { DatePicker } from 'src/components/date-picker';
 
 import { HeatmapTreemapChart } from '../heatmap-treemap-chart';
 import { HeatmapScatterChart } from '../heatmap-scatter-chart';
@@ -305,11 +306,6 @@ export function MarketHeatmapView({
             label="交易日期"
             value={internalDate}
             onChange={(newVal) => setInternalDate(newVal)}
-            format="YYYY-MM-DD"
-            slotProps={{
-              textField: { size: 'small', sx: { width: 190 } },
-              field: { clearable: true },
-            }}
           />
         )}
 

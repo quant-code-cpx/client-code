@@ -24,7 +24,6 @@ import Typography from '@mui/material/Typography';
 import InputLabel from '@mui/material/InputLabel';
 import FormControl from '@mui/material/FormControl';
 import TableContainer from '@mui/material/TableContainer';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import TablePagination from '@mui/material/TablePagination';
 
 import { fDateTime, fmtTradeDate } from 'src/utils/format-time';
@@ -34,6 +33,7 @@ import { tushareSyncApi } from 'src/api/tushare-sync';
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
 import { Scrollbar } from 'src/components/scrollbar';
+import { DatePicker } from 'src/components/date-picker';
 
 // ----------------------------------------------------------------------
 
@@ -243,21 +243,11 @@ export function SyncLogTab({ refreshKey = 0 }: Props) {
               label="开始日期"
               value={startDate ? dayjs(startDate) : null}
               onChange={(v) => setStartDate(v?.format('YYYY-MM-DD') ?? '')}
-              format="YYYY-MM-DD"
-              slotProps={{
-                textField: { size: 'small', sx: { minWidth: 190 } },
-                field: { clearable: true },
-              }}
             />
             <DatePicker
               label="结束日期"
               value={endDate ? dayjs(endDate) : null}
               onChange={(v) => setEndDate(v?.format('YYYY-MM-DD') ?? '')}
-              format="YYYY-MM-DD"
-              slotProps={{
-                textField: { size: 'small', sx: { minWidth: 190 } },
-                field: { clearable: true },
-              }}
             />
             <Button variant="contained" size="small" onClick={handleSearch}>
               查询

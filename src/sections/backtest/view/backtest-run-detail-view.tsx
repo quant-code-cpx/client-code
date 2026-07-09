@@ -21,7 +21,6 @@ import Skeleton from '@mui/material/Skeleton';
 import Snackbar from '@mui/material/Snackbar';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 import { useRouter } from 'src/routes/hooks';
 
@@ -36,6 +35,7 @@ import {
 } from 'src/api/backtest';
 
 import { Iconify } from 'src/components/iconify';
+import { DatePicker } from 'src/components/date-picker';
 
 import { ReportGenerateDialog } from 'src/sections/report/report-generate-dialog';
 
@@ -383,11 +383,6 @@ export function BacktestRunDetailView() {
                   <DatePicker
                     value={positionDate ? dayjs(positionDate) : null}
                     onChange={(v) => handlePositionDateChange(v?.format('YYYY-MM-DD') ?? '')}
-                    format="YYYY-MM-DD"
-                    slotProps={{
-                      textField: { size: 'small', sx: { minWidth: 190 } },
-                      field: { clearable: true },
-                    }}
                   />
                   {positionDate && (
                     <Typography variant="caption" sx={{ color: 'text.secondary' }}>

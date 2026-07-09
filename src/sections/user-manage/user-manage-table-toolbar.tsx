@@ -10,12 +10,12 @@ import InputLabel from '@mui/material/InputLabel';
 import FormControl from '@mui/material/FormControl';
 import OutlinedInput from '@mui/material/OutlinedInput';
 import InputAdornment from '@mui/material/InputAdornment';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import FormControlLabel from '@mui/material/FormControlLabel';
 
 import { ROLE_LABEL, STATUS_FILTER_LABEL } from 'src/api/user-manage';
 
 import { Iconify } from 'src/components/iconify';
+import { DatePicker } from 'src/components/date-picker';
 
 // ----------------------------------------------------------------------
 
@@ -91,7 +91,6 @@ export function UserManageTableToolbar({
             <Iconify width={20} icon="eva:search-fill" sx={{ color: 'text.disabled' }} />
           </InputAdornment>
         }
-        sx={{ width: 200 }}
       />
 
       <FormControl sx={{ width: 140 }} size="small">
@@ -128,22 +127,12 @@ export function UserManageTableToolbar({
         label="注册开始"
         value={createdFrom ? dayjs(createdFrom) : null}
         onChange={(value) => onCreatedFrom(value?.format('YYYY-MM-DD') ?? '')}
-        format="YYYY-MM-DD"
-        slotProps={{
-          textField: { size: 'small', sx: { width: 150 } },
-          field: { clearable: true },
-        }}
       />
 
       <DatePicker
         label="注册结束"
         value={createdTo ? dayjs(createdTo) : null}
         onChange={(value) => onCreatedTo(value?.format('YYYY-MM-DD') ?? '')}
-        format="YYYY-MM-DD"
-        slotProps={{
-          textField: { size: 'small', sx: { width: 150 } },
-          field: { clearable: true },
-        }}
       />
 
       <FormControlLabel

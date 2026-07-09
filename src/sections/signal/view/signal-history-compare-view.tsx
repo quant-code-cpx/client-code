@@ -22,7 +22,6 @@ import Typography from '@mui/material/Typography';
 import FormControl from '@mui/material/FormControl';
 import ToggleButton from '@mui/material/ToggleButton';
 import OutlinedInput from '@mui/material/OutlinedInput';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
 import { RouterLink } from 'src/routes/components';
@@ -31,6 +30,7 @@ import { DashboardContent } from 'src/layouts/dashboard';
 import { compareSignalHistory, listSignalActivations } from 'src/api/signal';
 
 import { Iconify } from 'src/components/iconify';
+import { DatePicker } from 'src/components/date-picker';
 
 import { SignalReturnText } from '../signal-return-text';
 
@@ -138,7 +138,12 @@ export function SignalHistoryCompareView() {
       </Box>
 
       <Card sx={{ p: 2, mb: 3 }}>
-        <Stack direction={{ xs: 'column', md: 'row' }} spacing={1.5} alignItems={{ md: 'center' }}>
+        <Stack
+          direction={{ xs: 'column', md: 'row' }}
+          spacing={1.5}
+          alignItems={{ md: 'center' }}
+          sx={{ flexWrap: 'wrap' }}
+        >
           <FormControl size="small" sx={{ minWidth: 260 }} disabled={loadingActivations}>
             <InputLabel>策略（最多 3 个）</InputLabel>
             <Select
@@ -171,17 +176,11 @@ export function SignalHistoryCompareView() {
             label="起始日期"
             value={startDate ? dayjs(toDisplayDate(startDate)) : null}
             onChange={(value) => setStartDate(value?.format('YYYYMMDD') ?? '')}
-            format="YYYY-MM-DD"
-            sx={{ width: { xs: 1, md: 150 } }}
-            slotProps={{ textField: { size: 'small' }, field: { clearable: true } }}
           />
           <DatePicker
             label="截止日期"
             value={endDate ? dayjs(toDisplayDate(endDate)) : null}
             onChange={(value) => setEndDate(value?.format('YYYYMMDD') ?? '')}
-            format="YYYY-MM-DD"
-            sx={{ width: { xs: 1, md: 150 } }}
-            slotProps={{ textField: { size: 'small' }, field: { clearable: true } }}
           />
 
           <ToggleButtonGroup

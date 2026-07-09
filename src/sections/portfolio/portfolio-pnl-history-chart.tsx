@@ -10,11 +10,11 @@ import Button from '@mui/material/Button';
 import Skeleton from '@mui/material/Skeleton';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 import { getPnlHistory } from 'src/api/portfolio';
 
 import { Chart, useChart } from 'src/components/chart';
+import { DatePicker } from 'src/components/date-picker';
 
 // ----------------------------------------------------------------------
 
@@ -94,21 +94,11 @@ export function PortfolioPnlHistoryChart({ portfolioId }: PortfolioPnlHistoryCha
             label="开始日期"
             value={startDate ? dayjs(startDate) : null}
             onChange={(v) => setStartDate(v?.format('YYYY-MM-DD') ?? '')}
-            format="YYYY-MM-DD"
-            slotProps={{
-              textField: { size: 'small', sx: { minWidth: 190 } },
-              field: { clearable: true },
-            }}
           />
           <DatePicker
             label="结束日期"
             value={endDate ? dayjs(endDate) : null}
             onChange={(v) => setEndDate(v?.format('YYYY-MM-DD') ?? '')}
-            format="YYYY-MM-DD"
-            slotProps={{
-              textField: { size: 'small', sx: { minWidth: 190 } },
-              field: { clearable: true },
-            }}
           />
           <Button variant="outlined" size="small" onClick={fetchHistory}>
             查询

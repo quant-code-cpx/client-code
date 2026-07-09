@@ -16,11 +16,12 @@ import InputLabel from '@mui/material/InputLabel';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 import FormControl from '@mui/material/FormControl';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 import { fmtTradeDate } from 'src/utils/format-time';
 
 import { orthogonalizeFactors } from 'src/api/factor';
+
+import { DatePicker } from 'src/components/date-picker';
 
 import { defaultTradeDate } from '../utils';
 import { METHODOLOGY } from '../methodology';
@@ -118,10 +119,6 @@ export function OrthogonalizePanel({
               label="分析日期"
               value={tradeDate}
               onChange={(v) => v && setTradeDate(v)}
-              format="YYYY-MM-DD"
-              slotProps={{
-                textField: { size: 'small', sx: { width: { xs: '100%', sm: 190 } } },
-              }}
             />
             <FormControl size="small" sx={{ width: { xs: '100%', sm: 180 } }}>
               <InputLabel>正交方法</InputLabel>

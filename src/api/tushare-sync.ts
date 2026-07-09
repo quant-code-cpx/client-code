@@ -119,6 +119,8 @@ export type SyncLogSummaryItem = {
   p95DurationMs?: number | null;
 };
 
+export const TUSHARE_SYNC_LOG_MAX_PAGE_SIZE = 100;
+
 // ── v2 后端增强能力（前端先预埋类型，按钮按 feature flag 渐进启用） ──
 
 export type DataFreshnessStatus =
@@ -313,6 +315,15 @@ export type SyncStatusOverview = {
 
 // ----------------------------------------------------------------------
 
+function normalizeSyncLogQuery(query: SyncLogQuery): SyncLogQuery {
+  if (query.pageSize === undefined) return query;
+
+  return {
+    ...query,
+    pageSize: Math.min(query.pageSize, TUSHARE_SYNC_LOG_MAX_PAGE_SIZE),
+  };
+}
+
 export const tushareSyncApi = {
   /** 获取所有可用的同步任务计划（仅超级管理员） */
   getPlans: (): Promise<TushareSyncPlan[]> =>
@@ -387,7 +398,10 @@ export const tushareSyncApi = {
 
   /** 分页查询同步日志 */
   getSyncLogs: (query: SyncLogQuery): Promise<PaginatedResult<SyncLogItem>> =>
-    apiClient.post<PaginatedResult<SyncLogItem>>('/api/tushare/admin/sync-logs', query),
+    apiClient.post<PaginatedResult<SyncLogItem>>(
+      '/api/tushare/admin/sync-logs',
+      normalizeSyncLogQuery(query)
+    ),
 
   /** 各任务最后同步状态汇总 */
   getSyncLogsSummary: (): Promise<SyncLogSummaryItem[]> =>

@@ -7,11 +7,11 @@ import Button from '@mui/material/Button';
 import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
 import InputAdornment from '@mui/material/InputAdornment';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 import { AUDIT_ACTION_LABEL } from 'src/api/user-manage';
 
 import { Iconify } from 'src/components/iconify';
+import { DatePicker } from 'src/components/date-picker';
 
 // ----------------------------------------------------------------------
 
@@ -134,22 +134,12 @@ export function AuditLogToolbar({
         label="开始日期"
         value={startDate ? dayjs(startDate) : null}
         onChange={(v) => onStartDate(v?.format('YYYY-MM-DD') ?? '')}
-        format="YYYY-MM-DD"
-        slotProps={{
-          textField: { size: 'small', sx: { minWidth: 190 } },
-          field: { clearable: true },
-        }}
       />
 
       <DatePicker
         label="结束日期"
         value={endDate ? dayjs(endDate) : null}
         onChange={(v) => onEndDate(v?.format('YYYY-MM-DD') ?? '')}
-        format="YYYY-MM-DD"
-        slotProps={{
-          textField: { size: 'small', sx: { minWidth: 190 } },
-          field: { clearable: true },
-        }}
       />
 
       <Button

@@ -12,9 +12,9 @@ import TextField from '@mui/material/TextField';
 import InputLabel from '@mui/material/InputLabel';
 import Typography from '@mui/material/Typography';
 import FormControl from '@mui/material/FormControl';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 import { Iconify } from 'src/components/iconify';
+import { DatePicker } from 'src/components/date-picker';
 
 import { STATUS_OPTIONS, STRATEGY_TYPE_OPTIONS } from './constants';
 import { isInvalidDateRange, countActiveRunFilters } from './hooks/use-backtest-run-list-state';
@@ -154,31 +154,23 @@ export function BacktestRunListToolbar({
         label="开始日期"
         value={toDateValue(filter.startDate)}
         onChange={(value) => onFilterChange({ startDate: value?.format('YYYY-MM-DD') ?? '' })}
-        format="YYYY-MM-DD"
         slotProps={{
           textField: {
-            size: 'small',
             error: invalidDateRange,
             helperText: invalidDateRange ? '开始不能晚于结束' : undefined,
           },
-          field: { clearable: true },
         }}
-        sx={{ width: 170 }}
       />
 
       <DatePicker
         label="结束日期"
         value={toDateValue(filter.endDate)}
         onChange={(value) => onFilterChange({ endDate: value?.format('YYYY-MM-DD') ?? '' })}
-        format="YYYY-MM-DD"
         slotProps={{
           textField: {
-            size: 'small',
             error: invalidDateRange,
           },
-          field: { clearable: true },
         }}
-        sx={{ width: 170 }}
       />
 
       <Box sx={{ display: 'flex', gap: 0.75, alignItems: 'center', flexWrap: 'wrap' }}>

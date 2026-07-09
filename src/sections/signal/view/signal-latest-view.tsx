@@ -23,7 +23,6 @@ import TextField from '@mui/material/TextField';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import ButtonGroup from '@mui/material/ButtonGroup';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 import { useRouter } from 'src/routes/hooks';
 
@@ -31,6 +30,7 @@ import { DashboardContent } from 'src/layouts/dashboard';
 import { getLatestSignals, listSignalActivations } from 'src/api/signal';
 
 import { Iconify } from 'src/components/iconify';
+import { DatePicker } from 'src/components/date-picker';
 
 import { SignalEmptyState } from '../signal-empty-state';
 import { SignalDetailPanel } from '../signal-detail-panel';
@@ -315,11 +315,9 @@ export function SignalLatestView() {
 
           <DatePicker
             label="交易日"
-            format="YYYY-MM-DD"
             value={tradeDate}
             onChange={(d) => setTradeDate(d)}
             shouldDisableDate={shouldDisableWeekend}
-            slotProps={{ textField: { size: 'small', sx: { width: 180 } } }}
           />
 
           <ButtonGroup size="small" variant="outlined">

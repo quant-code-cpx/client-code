@@ -10,12 +10,12 @@ import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 import { fetchHsgtFlow } from 'src/api/market';
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Iconify } from 'src/components/iconify';
+import { DatePicker } from 'src/components/date-picker';
 
 import { MarketQuickLinks } from '../market-quick-links';
 import { MarketVolumeChart } from '../market-volume-chart';
@@ -121,12 +121,10 @@ export function MarketOverviewView() {
             label="交易日期"
             value={displayDate}
             onChange={handleDateChange}
-            format="YYYY-MM-DD"
             shouldDisableDate={(day) => day.day() === 0 || day.day() === 6}
             slotProps={{
               textField: {
-                size: 'small',
-                sx: { width: 215, '& .MuiInputBase-root': { height: CONTROL_HEIGHT } },
+                sx: { '& .MuiInputBase-root': { height: CONTROL_HEIGHT } },
               },
             }}
           />

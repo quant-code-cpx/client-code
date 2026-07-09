@@ -26,7 +26,7 @@ import Typography from '@mui/material/Typography';
 
 import { fToNow } from 'src/utils/format-time';
 
-import { tushareSyncApi } from 'src/api/tushare-sync';
+import { tushareSyncApi, TUSHARE_SYNC_LOG_MAX_PAGE_SIZE } from 'src/api/tushare-sync';
 
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
@@ -109,7 +109,7 @@ export function SyncStatusOverviewPanel({ refreshKey = 0, onGoLogs, onGoQuality 
       const result = await tushareSyncApi.getSyncLogs({
         startDate: dayjs().format('YYYY-MM-DD'),
         page: 1,
-        pageSize: 200,
+        pageSize: TUSHARE_SYNC_LOG_MAX_PAGE_SIZE,
       });
       setTimelineLogs(result.items ?? []);
     } catch {

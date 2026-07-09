@@ -28,12 +28,12 @@ import FormControl from '@mui/material/FormControl';
 import Autocomplete from '@mui/material/Autocomplete';
 import TableContainer from '@mui/material/TableContainer';
 import TablePagination from '@mui/material/TablePagination';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 import { fDate } from 'src/utils/format-time';
 
 import { queryEvents } from 'src/api/event-study';
 
+import { DatePicker } from 'src/components/date-picker';
 import { StockSearchAutocomplete } from 'src/components/stock-search-autocomplete';
 
 import { DataState } from './_shared/data-state';
@@ -182,10 +182,8 @@ export function EventQueryTab({ eventTypes }: Props) {
               label="开始日期"
               value={startDate}
               onChange={(v) => setStartDate(v)}
-              format="YYYY-MM-DD"
               slotProps={{
-                textField: { size: 'small', fullWidth: true },
-                field: { clearable: true },
+                textField: { fullWidth: true },
               }}
             />
           </Grid>
@@ -195,10 +193,8 @@ export function EventQueryTab({ eventTypes }: Props) {
               label="结束日期"
               value={endDate}
               onChange={(v) => setEndDate(v)}
-              format="YYYY-MM-DD"
               slotProps={{
-                textField: { size: 'small', fullWidth: true },
-                field: { clearable: true },
+                textField: { fullWidth: true },
               }}
             />
           </Grid>

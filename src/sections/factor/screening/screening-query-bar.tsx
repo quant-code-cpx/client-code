@@ -14,10 +14,10 @@ import InputLabel from '@mui/material/InputLabel';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 import FormControl from '@mui/material/FormControl';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import FormControlLabel from '@mui/material/FormControlLabel';
 
 import { Iconify } from 'src/components/iconify';
+import { DatePicker } from 'src/components/date-picker';
 
 import { UNIVERSE_OPTIONS, SORT_MODE_OPTIONS } from './screening-constants';
 
@@ -89,11 +89,7 @@ export function ScreeningQueryBar({
               label="选股日期"
               value={dateValue}
               onChange={(v) => onChange({ tradeDate: v?.format('YYYYMMDD') ?? '' })}
-              format="YYYY-MM-DD"
               maxDate={dayjs()}
-              slotProps={{
-                textField: { size: 'small', sx: { minWidth: 190 } },
-              }}
             />
 
             <FormControl size="small" sx={{ minWidth: 160 }}>

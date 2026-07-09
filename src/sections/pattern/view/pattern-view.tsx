@@ -14,13 +14,13 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 import ToggleButton from '@mui/material/ToggleButton';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
 import { stockDetailApi } from 'src/api/stock';
 import { DashboardContent } from 'src/layouts/dashboard';
 import { searchBySeries, searchPatterns, getPatternTemplatesRaw } from 'src/api/pattern';
 
+import { DatePicker } from 'src/components/date-picker';
 import { StockSearchAutocomplete } from 'src/components/stock-search-autocomplete';
 
 import {
@@ -354,11 +354,6 @@ function ModeRange({ searchParams, updateParam }: ModeProps) {
                   updateParam('start', v?.format('YYYY-MM-DD') ?? null);
                   setResult(null);
                 }}
-                format="YYYY-MM-DD"
-                slotProps={{
-                  textField: { size: 'small', sx: { minWidth: 190 } },
-                  field: { clearable: true },
-                }}
               />
               <DatePicker
                 label="结束日期"
@@ -366,11 +361,6 @@ function ModeRange({ searchParams, updateParam }: ModeProps) {
                 onChange={(v) => {
                   updateParam('end', v?.format('YYYY-MM-DD') ?? null);
                   setResult(null);
-                }}
-                format="YYYY-MM-DD"
-                slotProps={{
-                  textField: { size: 'small', sx: { minWidth: 190 } },
-                  field: { clearable: true },
                 }}
               />
             </Box>
@@ -554,11 +544,6 @@ function ModeSeries() {
                     setExtractStart(v?.format('YYYY-MM-DD') ?? '');
                     setExtractedSeries(null);
                   }}
-                  format="YYYY-MM-DD"
-                  slotProps={{
-                    textField: { size: 'small', sx: { minWidth: 190 } },
-                    field: { clearable: true },
-                  }}
                 />
                 <DatePicker
                   label="结束日期"
@@ -566,11 +551,6 @@ function ModeSeries() {
                   onChange={(v) => {
                     setExtractEnd(v?.format('YYYY-MM-DD') ?? '');
                     setExtractedSeries(null);
-                  }}
-                  format="YYYY-MM-DD"
-                  slotProps={{
-                    textField: { size: 'small', sx: { minWidth: 190 } },
-                    field: { clearable: true },
                   }}
                 />
                 <Button

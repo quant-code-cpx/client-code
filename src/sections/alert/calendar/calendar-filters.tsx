@@ -12,10 +12,10 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import ToggleButton from '@mui/material/ToggleButton';
 import InputAdornment from '@mui/material/InputAdornment';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
 import { Iconify } from 'src/components/iconify';
+import { DatePicker } from 'src/components/date-picker';
 
 import { EVENT_TYPE_LIST } from './event-type-config';
 
@@ -92,15 +92,11 @@ export function CalendarFilters({ filters, onChange, onReset, onRefresh }: Props
           label="开始日期"
           value={filters.startDate ? dayjs(filters.startDate, 'YYYYMMDD') : null}
           onChange={(v) => onChange({ startDate: v?.format('YYYYMMDD') ?? '' })}
-          format="YYYY-MM-DD"
-          slotProps={{ textField: { size: 'small', sx: { minWidth: 160 } } }}
         />
         <DatePicker
           label="结束日期"
           value={filters.endDate ? dayjs(filters.endDate, 'YYYYMMDD') : null}
           onChange={(v) => onChange({ endDate: v?.format('YYYYMMDD') ?? '' })}
-          format="YYYY-MM-DD"
-          slotProps={{ textField: { size: 'small', sx: { minWidth: 160 } } }}
         />
         <Stack direction="row" spacing={0.5}>
           {QUICK_RANGES.map((opt) => (

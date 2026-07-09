@@ -15,9 +15,10 @@ import Typography from '@mui/material/Typography';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 import { backtestSignalRule } from 'src/api/event-study';
+
+import { DatePicker } from 'src/components/date-picker';
 
 import { DataState } from './_shared/data-state';
 
@@ -81,18 +82,16 @@ export function SignalRuleBacktestDialog({ open, onClose, ruleId, ruleName }: Pr
               label="开始日期 *"
               value={startDate}
               onChange={(v) => setStartDate(v)}
-              format="YYYY-MM-DD"
               maxDate={endDate ?? undefined}
-              slotProps={{ textField: { size: 'small', fullWidth: true } }}
+              slotProps={{ textField: { fullWidth: true } }}
             />
             <DatePicker
               label="结束日期 *"
               value={endDate}
               onChange={(v) => setEndDate(v)}
-              format="YYYY-MM-DD"
               minDate={startDate ?? undefined}
               maxDate={today}
-              slotProps={{ textField: { size: 'small', fullWidth: true } }}
+              slotProps={{ textField: { fullWidth: true } }}
             />
             <Button variant="contained" onClick={handleRun} disabled={loading}>
               开始回测

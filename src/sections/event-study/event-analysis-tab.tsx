@@ -35,11 +35,11 @@ import Typography from '@mui/material/Typography';
 import FormControl from '@mui/material/FormControl';
 import Autocomplete from '@mui/material/Autocomplete';
 import TableContainer from '@mui/material/TableContainer';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 
 import { analyzeEvent, analyzeBySegment } from 'src/api/event-study';
 
 import { Label } from 'src/components/label';
+import { DatePicker } from 'src/components/date-picker';
 import { StockSearchAutocomplete } from 'src/components/stock-search-autocomplete';
 
 import { DataState } from './_shared/data-state';
@@ -157,10 +157,8 @@ export function EventAnalysisTab({ eventTypes }: Props) {
                   label="开始日期"
                   value={startDate}
                   onChange={(v) => setStartDate(v)}
-                  format="YYYY-MM-DD"
                   slotProps={{
-                    textField: { size: 'small', fullWidth: true },
-                    field: { clearable: true },
+                    textField: { fullWidth: true },
                   }}
                 />
               </Grid>
@@ -169,10 +167,8 @@ export function EventAnalysisTab({ eventTypes }: Props) {
                   label="结束日期"
                   value={endDate}
                   onChange={(v) => setEndDate(v)}
-                  format="YYYY-MM-DD"
                   slotProps={{
-                    textField: { size: 'small', fullWidth: true },
-                    field: { clearable: true },
+                    textField: { fullWidth: true },
                   }}
                 />
               </Grid>

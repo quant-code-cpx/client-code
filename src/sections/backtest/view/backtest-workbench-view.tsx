@@ -1,4 +1,5 @@
 import type { StrategyTemplate } from 'src/api/backtest';
+import type { Theme, SxProps } from '@mui/material/styles';
 import type { StrategyDraft } from 'src/api/strategy-draft';
 
 import { useMemo, useState, useEffect, useCallback } from 'react';
@@ -7,6 +8,7 @@ import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 import Menu from '@mui/material/Menu';
 import Alert from '@mui/material/Alert';
+import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
 import MenuItem from '@mui/material/MenuItem';
@@ -107,6 +109,20 @@ function normalizeTemplateId(templateId: string | undefined): StrategyTemplateId
   }
   return 'SCREENING_ROTATION';
 }
+
+const HEADER_ACTION_BUTTON_SX: SxProps<Theme> = {
+  height: 32,
+  minHeight: 32,
+  px: 1.5,
+  flexShrink: 0,
+  whiteSpace: 'nowrap',
+  '& .MuiButton-startIcon': {
+    ml: 0,
+    mr: 0.75,
+    display: 'inline-flex',
+    alignItems: 'center',
+  },
+};
 
 // ----------------------------------------------------------------------
 
@@ -361,41 +377,64 @@ export function BacktestWorkbenchView() {
 
   return (
     <DashboardContent>
-      <Box sx={{ mb: 4, display: 'flex', alignItems: 'flex-start', gap: 2 }}>
+      <Box
+        sx={{
+          mb: 4,
+          display: 'flex',
+          alignItems: 'flex-start',
+          flexDirection: { xs: 'column', md: 'row' },
+          gap: 2,
+        }}
+      >
         <Box sx={{ flex: 1 }}>
           <Typography variant="h4">回测工作台</Typography>
           <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
             配置策略参数，自动校验数据完备性，提交后可继续调参与追踪进度
           </Typography>
         </Box>
-        <Button
-          variant="outlined"
-          size="small"
-          startIcon={<Iconify icon="solar:notebook-bookmark-bold" width={18} />}
-          onClick={() => setDraftDrawerOpen(true)}
-          sx={{ mt: 0.5, flexShrink: 0 }}
+        <Stack
+          direction="row"
+          spacing={1.5}
+          alignItems="center"
+          useFlexGap
+          sx={{
+            mt: { xs: 0, md: 0.5 },
+            minHeight: 32,
+            flexShrink: 0,
+            flexWrap: 'wrap',
+            rowGap: 1,
+          }}
         >
-          草稿
-        </Button>
-        <BacktestRunningRunsBadge
-          refreshToken={runningRefreshToken}
-          onOpenRun={(runId) => router.push(`/backtest/runs/${runId}`)}
-        />
-        <Divider
-          orientation="vertical"
-          flexItem
-          sx={{ mx: 0.5, alignSelf: 'center', height: 24 }}
-        />
-        <Button
-          variant="outlined"
-          size="small"
-          color="secondary"
-          startIcon={<Iconify icon="solar:menu-dots-bold" width={18} />}
-          onClick={(event) => setAdvancedAnchor(event.currentTarget)}
-          sx={{ mt: 0.5, flexShrink: 0 }}
-        >
-          进阶
-        </Button>
+          <Button
+            variant="outlined"
+            size="small"
+            startIcon={<Iconify icon="solar:notebook-bookmark-bold" width={18} />}
+            onClick={() => setDraftDrawerOpen(true)}
+            sx={HEADER_ACTION_BUTTON_SX}
+          >
+            草稿
+          </Button>
+          <BacktestRunningRunsBadge
+            refreshToken={runningRefreshToken}
+            onOpenRun={(runId) => router.push(`/backtest/runs/${runId}`)}
+            buttonSx={HEADER_ACTION_BUTTON_SX}
+          />
+          <Divider
+            orientation="vertical"
+            flexItem
+            sx={{ alignSelf: 'center', height: 24 }}
+          />
+          <Button
+            variant="outlined"
+            size="small"
+            color="secondary"
+            startIcon={<Iconify icon="solar:menu-dots-bold" width={18} />}
+            onClick={(event) => setAdvancedAnchor(event.currentTarget)}
+            sx={HEADER_ACTION_BUTTON_SX}
+          >
+            进阶
+          </Button>
+        </Stack>
         <Menu
           open={Boolean(advancedAnchor)}
           anchorEl={advancedAnchor}
