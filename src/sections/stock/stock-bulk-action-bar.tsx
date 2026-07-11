@@ -56,8 +56,7 @@ export function StockBulkActionBar({
         <Button
           variant="outlined"
           size="small"
-          color="inherit"
-          startIcon={<Iconify icon="mingcute:close-line" />}
+          startIcon={<Iconify icon="solar:close-circle-bold" />}
           onClick={onClear}
         >
           清空选择

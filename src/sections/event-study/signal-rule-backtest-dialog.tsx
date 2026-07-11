@@ -157,7 +157,9 @@ export function SignalRuleBacktestDialog({ open, onClose, ruleId, ruleName }: Pr
         </Stack>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>关闭</Button>
+        <Button color="inherit" onClick={onClose}>
+          关闭
+        </Button>
       </DialogActions>
     </Dialog>
   );

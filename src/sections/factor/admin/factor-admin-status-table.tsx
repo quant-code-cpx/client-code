@@ -389,7 +389,7 @@ export function FactorAdminStatusTable({
                       sx={{ display: 'flex', gap: 0.5, transition: 'opacity 150ms' }}
                     >
                       <Tooltip title="预计算今日">
-                        <IconButton size="small" onClick={() => onPrecomputeOne?.(item.factorName)}>
+                        <IconButton size="small" onClick={() => onPrecomputeOne?.(item.factorName)} aria-label="预计算今日">
                           <Iconify icon="solar:play-circle-bold" width={16} />
                         </IconButton>
                       </Tooltip>

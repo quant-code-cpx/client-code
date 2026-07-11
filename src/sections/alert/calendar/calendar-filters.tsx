@@ -104,7 +104,6 @@ export function CalendarFilters({ filters, onChange, onReset, onRefresh }: Props
               key={opt.label}
               size="small"
               variant="outlined"
-              color="inherit"
               onClick={() => setQuickRange(opt.days)}
             >
               {opt.label}

@@ -3,6 +3,7 @@ import type { DataQualityCheckItem } from 'src/api/tushare-sync';
 import Box from '@mui/material/Box';
 import Table from '@mui/material/Table';
 import Alert from '@mui/material/Alert';
+import Button from '@mui/material/Button';
 import Tooltip from '@mui/material/Tooltip';
 import Skeleton from '@mui/material/Skeleton';
 import TableRow from '@mui/material/TableRow';
@@ -10,7 +11,6 @@ import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
 import Typography from '@mui/material/Typography';
-import LoadingButton from '@mui/lab/LoadingButton';
 import ToggleButton from '@mui/material/ToggleButton';
 import TableContainer from '@mui/material/TableContainer';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
@@ -85,7 +85,7 @@ export function CrossTableCheckPanel({
         </ToggleButtonGroup>
         <Tooltip title={disabled ? disabledReason : ''}>
           <span>
-            <LoadingButton
+            <Button
               loading={triggering}
               variant="outlined"
               color="info"
@@ -95,7 +95,7 @@ export function CrossTableCheckPanel({
               onClick={onRunCheck}
             >
               立即执行对账
-            </LoadingButton>
+            </Button>
           </span>
         </Tooltip>
       </Box>

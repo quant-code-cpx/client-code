@@ -6,11 +6,11 @@ import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
+import Tooltip from '@mui/material/Tooltip';
 import Collapse from '@mui/material/Collapse';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import CardContent from '@mui/material/CardContent';
-import CircularProgress from '@mui/material/CircularProgress';
 
 import { fNumber } from 'src/utils/format-number';
 
@@ -181,16 +181,18 @@ export function BacktestSubmitSummary({
             <Typography variant="body2" sx={{ flexGrow: 1, fontWeight: 600 }}>
               偏离默认参数：{changedRows.length} 项
             </Typography>
-            <IconButton
-              size="small"
-              aria-label={diffOpen ? '收起偏离默认参数' : '展开偏离默认参数'}
-              onClick={() => setDiffOpen((open) => !open)}
-            >
-              <Iconify
-                icon={diffOpen ? 'solar:alt-arrow-up-bold' : 'solar:alt-arrow-down-bold'}
-                width={16}
-              />
-            </IconButton>
+            <Tooltip title={diffOpen ? '收起偏离默认参数' : '展开偏离默认参数'}>
+              <IconButton
+                size="small"
+                aria-label={diffOpen ? '收起偏离默认参数' : '展开偏离默认参数'}
+                onClick={() => setDiffOpen((open) => !open)}
+              >
+                <Iconify
+                  icon={diffOpen ? 'solar:alt-arrow-up-bold' : 'solar:alt-arrow-down-bold'}
+                  width={16}
+                />
+              </IconButton>
+            </Tooltip>
           </Box>
           <Collapse in={diffOpen} timeout={180} unmountOnExit>
             <Divider />
@@ -218,14 +220,9 @@ export function BacktestSubmitSummary({
             variant="outlined"
             fullWidth
             onClick={onValidate}
+            loading={validating}
             disabled={validating || submitting}
-            startIcon={
-              validating ? (
-                <CircularProgress size={14} color="inherit" />
-              ) : (
-                <Iconify icon="solar:shield-check-bold" />
-              )
-            }
+            startIcon={<Iconify icon="solar:shield-check-bold" />}
           >
             {validating ? '校验中...' : '立即校验'}
           </Button>
@@ -234,16 +231,11 @@ export function BacktestSubmitSummary({
             variant="contained"
             fullWidth
             onClick={onSubmit}
+            loading={submitting}
             disabled={!canSubmit}
-            startIcon={
-              submitting ? (
-                <CircularProgress size={14} color="inherit" />
-              ) : (
-                <Iconify icon="solar:play-bold" />
-              )
-            }
+            startIcon={<Iconify icon="solar:play-bold" />}
           >
-            {submitting ? '提交中...' : `开始回测${runtimeLabel}`}
+          {submitting ? '提交中…' : `开始回测${runtimeLabel}`}
           </Button>
 
           {!validation ? (

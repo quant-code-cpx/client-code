@@ -190,7 +190,9 @@ export function HeatmapSectorDetailDialog({
             查看 N 日轮动
           </Button>
         )}
-        <Button onClick={onClose}>关闭</Button>
+        <Button color="inherit" onClick={onClose}>
+          关闭
+        </Button>
       </DialogActions>
     </Dialog>
   );

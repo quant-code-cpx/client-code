@@ -120,7 +120,7 @@ export function FactorAdminPanel() {
                 onClick={handlePrecompute}
                 disabled={precomputeLoading}
               >
-                {precomputeLoading ? '提交中...' : '全量预计算'}
+            {precomputeLoading ? '提交中…' : '全量预计算'}
               </Button>
             </Box>
           </Box>
@@ -207,7 +207,7 @@ export function FactorAdminPanel() {
               onChange={(v) => setBackfillEnd(v?.format('YYYY-MM-DD') ?? '')}
             />
             <Button variant="contained" onClick={handleBackfill} disabled={backfillLoading}>
-              {backfillLoading ? '提交中...' : '触发回补'}
+            {backfillLoading ? '提交中…' : '触发回补'}
             </Button>
           </Box>
           {backfillMsg && (

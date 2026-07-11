@@ -10,6 +10,7 @@ import Table from '@mui/material/Table';
 import Button from '@mui/material/Button';
 import Select from '@mui/material/Select';
 import Divider from '@mui/material/Divider';
+import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
 import Collapse from '@mui/material/Collapse';
 import TableRow from '@mui/material/TableRow';
@@ -22,7 +23,6 @@ import IconButton from '@mui/material/IconButton';
 import FormControl from '@mui/material/FormControl';
 import CardContent from '@mui/material/CardContent';
 import TableContainer from '@mui/material/TableContainer';
-import CircularProgress from '@mui/material/CircularProgress';
 
 import { runAttribution } from 'src/api/backtest';
 
@@ -51,12 +51,14 @@ const PeriodRow = memo(function PeriodRow({ row }: { row: BrinsonPeriodItem }) {
     <>
       <TableRow hover>
         <TableCell>
-          <IconButton size="small" onClick={() => setOpen((p) => !p)}>
-            <Iconify
-              icon={open ? 'solar:alt-arrow-up-bold' : 'solar:alt-arrow-down-bold'}
-              width={16}
-            />
-          </IconButton>
+          <Tooltip title="展开详情">
+            <IconButton size="small" onClick={() => setOpen((p) => !p)} aria-label="展开详情">
+              <Iconify
+                icon={open ? 'solar:alt-arrow-up-bold' : 'solar:alt-arrow-down-bold'}
+                width={16}
+              />
+            </IconButton>
+          </Tooltip>
         </TableCell>
         <TableCell>{row.periodLabel}</TableCell>
         <TableCell sx={colorSx(row.totalActiveReturn)}>{fPct(row.totalActiveReturn)}</TableCell>
@@ -173,12 +175,7 @@ export function BacktestAttributionPanel({ runId }: BacktestAttributionPanelProp
           </Select>
         </FormControl>
 
-        <Button
-          variant="contained"
-          onClick={handleRun}
-          disabled={loading}
-          startIcon={loading ? <CircularProgress size={16} color="inherit" /> : undefined}
-        >
+        <Button variant="contained" onClick={handleRun} loading={loading} disabled={loading}>
           {loading ? '分析中…' : '运行归因'}
         </Button>
       </Box>

@@ -4,13 +4,13 @@ import Box from '@mui/material/Box';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
+import Tooltip from '@mui/material/Tooltip';
 import TextField from '@mui/material/TextField';
 import IconButton from '@mui/material/IconButton';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import InputAdornment from '@mui/material/InputAdornment';
-import CircularProgress from '@mui/material/CircularProgress';
 
 import { userManageApi } from 'src/api/user-manage';
 
@@ -92,9 +92,15 @@ export function ChangePasswordDialog({ open, onClose }: ChangePasswordDialogProp
               input: {
                 endAdornment: (
                   <InputAdornment position="end">
-                    <IconButton onClick={() => setShowOld(!showOld)} edge="end">
-                      <Iconify icon={showOld ? 'solar:eye-bold' : 'solar:eye-closed-bold'} />
-                    </IconButton>
+                    <Tooltip title="显示密码">
+                      <IconButton
+                        aria-label="显示密码"
+                        onClick={() => setShowOld(!showOld)}
+                        edge="end"
+                      >
+                        <Iconify icon={showOld ? 'solar:eye-bold' : 'solar:eye-closed-bold'} />
+                      </IconButton>
+                    </Tooltip>
                   </InputAdornment>
                 ),
               },
@@ -112,9 +118,15 @@ export function ChangePasswordDialog({ open, onClose }: ChangePasswordDialogProp
               input: {
                 endAdornment: (
                   <InputAdornment position="end">
-                    <IconButton onClick={() => setShowNew(!showNew)} edge="end">
-                      <Iconify icon={showNew ? 'solar:eye-bold' : 'solar:eye-closed-bold'} />
-                    </IconButton>
+                    <Tooltip title="显示密码">
+                      <IconButton
+                        aria-label="显示密码"
+                        onClick={() => setShowNew(!showNew)}
+                        edge="end"
+                      >
+                        <Iconify icon={showNew ? 'solar:eye-bold' : 'solar:eye-closed-bold'} />
+                      </IconButton>
+                    </Tooltip>
                   </InputAdornment>
                 ),
               },
@@ -131,9 +143,15 @@ export function ChangePasswordDialog({ open, onClose }: ChangePasswordDialogProp
               input: {
                 endAdornment: (
                   <InputAdornment position="end">
-                    <IconButton onClick={() => setShowConfirm(!showConfirm)} edge="end">
-                      <Iconify icon={showConfirm ? 'solar:eye-bold' : 'solar:eye-closed-bold'} />
-                    </IconButton>
+                    <Tooltip title="显示密码">
+                      <IconButton
+                        aria-label="显示密码"
+                        onClick={() => setShowConfirm(!showConfirm)}
+                        edge="end"
+                      >
+                        <Iconify icon={showConfirm ? 'solar:eye-bold' : 'solar:eye-closed-bold'} />
+                      </IconButton>
+                    </Tooltip>
                   </InputAdornment>
                 ),
               },
@@ -142,14 +160,14 @@ export function ChangePasswordDialog({ open, onClose }: ChangePasswordDialogProp
         </Box>
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button onClick={onClose} disabled={submitting}>
+        <Button color="inherit" onClick={onClose} disabled={submitting}>
           取消
         </Button>
         <Button
           variant="contained"
           onClick={handleSubmit}
           disabled={submitting}
-          startIcon={submitting ? <CircularProgress size={14} /> : null}
+          loading={submitting}
         >
           确认修改
         </Button>

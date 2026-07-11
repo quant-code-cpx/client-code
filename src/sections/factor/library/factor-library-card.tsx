@@ -158,6 +158,7 @@ export function FactorLibraryCardV2({
           <Tooltip title="查看详情">
             <IconButton
               size="small"
+              aria-label="查看详情"
               onClick={(e) => {
                 stop(e);
                 onOpenDetail(factor);
@@ -274,6 +275,7 @@ export function FactorLibraryCardV2({
             <Tooltip title="触发预计算">
               <IconButton
                 size="small"
+                aria-label="触发预计算"
                 disabled={precomputing === true}
                 onClick={() => onPrecompute(factor)}
               >
@@ -283,7 +285,7 @@ export function FactorLibraryCardV2({
           )}
           {onToggleEnabled && factor.isEnabled !== undefined && (
             <Tooltip title={factor.isEnabled ? '禁用' : '启用'}>
-              <IconButton size="small" onClick={() => onToggleEnabled(factor, !factor.isEnabled)}>
+              <IconButton size="small" aria-label={factor.isEnabled ? '禁用' : '启用'} onClick={() => onToggleEnabled(factor, !factor.isEnabled)}>
                 <Iconify
                   icon={factor.isEnabled ? 'solar:eye-bold' : 'solar:eye-closed-bold'}
                   width={16}
@@ -293,14 +295,14 @@ export function FactorLibraryCardV2({
           )}
           {onEdit && (
             <Tooltip title="编辑">
-              <IconButton size="small" onClick={() => onEdit(factor)}>
+              <IconButton size="small" aria-label="编辑" onClick={() => onEdit(factor)}>
                 <Iconify icon="solar:pen-bold" width={16} />
               </IconButton>
             </Tooltip>
           )}
           {onDelete && (
             <Tooltip title="删除">
-              <IconButton size="small" color="error" onClick={() => onDelete(factor)}>
+              <IconButton size="small" aria-label="删除" color="error" onClick={() => onDelete(factor)}>
                 <Iconify icon="solar:trash-bin-trash-bold" width={16} />
               </IconButton>
             </Tooltip>

@@ -15,6 +15,7 @@ import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import Select from '@mui/material/Select';
 import Divider from '@mui/material/Divider';
+import Tooltip from '@mui/material/Tooltip';
 import Collapse from '@mui/material/Collapse';
 import MenuItem from '@mui/material/MenuItem';
 import TableRow from '@mui/material/TableRow';
@@ -30,7 +31,6 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import TableContainer from '@mui/material/TableContainer';
-import CircularProgress from '@mui/material/CircularProgress';
 
 import { fCurrency } from 'src/utils/format-number';
 
@@ -303,13 +303,18 @@ export function PortfolioRebalanceDialog({
                         />
                       </TableCell>
                       <TableCell>
-                        <IconButton
-                          size="small"
-                          onClick={() => removeRow(idx)}
-                          disabled={loading || targets.length === 1}
-                        >
-                          <Iconify icon="solar:trash-bin-trash-bold" width={18} />
-                        </IconButton>
+                        <Tooltip title="移除行">
+                          <span>
+                            <IconButton
+                              size="small"
+                              onClick={() => removeRow(idx)}
+                              disabled={loading || targets.length === 1}
+                              aria-label="移除行"
+                            >
+                              <Iconify icon="solar:trash-bin-trash-bold" width={18} />
+                            </IconButton>
+                          </span>
+                        </Tooltip>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -425,7 +430,11 @@ export function PortfolioRebalanceDialog({
                     <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                       预估交易成本：{fCurrency(result.estimatedCost)}
                     </Typography>
-                    <Button size="small" variant="outlined" onClick={handleCopyOrders}>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      onClick={handleCopyOrders}
+                    >
                       复制委托清单
                     </Button>
                   </Box>
@@ -502,7 +511,6 @@ export function PortfolioRebalanceDialog({
             onClick={handleGenerate}
             disabled={loading || !weightOk}
             loading={loading}
-            startIcon={loading ? <CircularProgress size={16} color="inherit" /> : undefined}
           >
             {loading ? '生成中…' : '生成计划'}
           </Button>

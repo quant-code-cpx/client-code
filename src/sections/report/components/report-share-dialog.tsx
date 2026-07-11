@@ -7,6 +7,7 @@ import Stack from '@mui/material/Stack';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
+import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
 import Skeleton from '@mui/material/Skeleton';
 import TextField from '@mui/material/TextField';
@@ -199,16 +200,25 @@ export function ReportShareDialog({ open, reportId, onClose, onMessage }: Props)
                     </Box>
                     {!link.revoked && (
                       <>
-                        <IconButton size="small" onClick={() => handleCopy(link.url)}>
-                          <Iconify icon="solar:copy-bold" width={16} />
-                        </IconButton>
-                        <IconButton
-                          size="small"
-                          color="error"
-                          onClick={() => handleRevoke(link.token)}
-                        >
-                          <Iconify icon="solar:close-circle-bold" width={16} />
-                        </IconButton>
+                        <Tooltip title="复制链接">
+                          <IconButton
+                            size="small"
+                            onClick={() => handleCopy(link.url)}
+                            aria-label="复制链接"
+                          >
+                            <Iconify icon="solar:copy-bold" width={16} />
+                          </IconButton>
+                        </Tooltip>
+                        <Tooltip title="撤销链接">
+                          <IconButton
+                            size="small"
+                            color="error"
+                            onClick={() => handleRevoke(link.token)}
+                            aria-label="撤销链接"
+                          >
+                            <Iconify icon="solar:close-circle-bold" width={16} />
+                          </IconButton>
+                        </Tooltip>
                       </>
                     )}
                   </Stack>
@@ -219,7 +229,9 @@ export function ReportShareDialog({ open, reportId, onClose, onMessage }: Props)
         )}
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>关闭</Button>
+        <Button color="inherit" onClick={onClose}>
+          关闭
+        </Button>
       </DialogActions>
     </Dialog>
   );

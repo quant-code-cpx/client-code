@@ -5,6 +5,7 @@ import { varAlpha } from 'minimal-shared/utils';
 
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
+import Tooltip from '@mui/material/Tooltip';
 import TextField from '@mui/material/TextField';
 import { useTheme } from '@mui/material/styles';
 import IconButton from '@mui/material/IconButton';
@@ -200,23 +201,27 @@ export function ScreeningConditionRow({
 
         <Box sx={{ flexGrow: 1 }} />
 
-        <IconButton
-          size="small"
-          onClick={() => onDuplicate(index)}
-          aria-label="复制条件"
-          sx={{ mt: 0.5 }}
-        >
-          <Iconify icon="solar:copy-bold" width={18} />
-        </IconButton>
-        <IconButton
-          size="small"
-          color="error"
-          onClick={() => onRemove(index)}
-          aria-label="删除条件"
-          sx={{ mt: 0.5 }}
-        >
-          <Iconify icon="eva:trash-2-outline" width={18} />
-        </IconButton>
+        <Tooltip title="复制条件">
+          <IconButton
+            size="small"
+            onClick={() => onDuplicate(index)}
+            aria-label="复制条件"
+            sx={{ mt: 0.5 }}
+          >
+            <Iconify icon="solar:copy-bold" width={18} />
+          </IconButton>
+        </Tooltip>
+        <Tooltip title="删除条件">
+          <IconButton
+            size="small"
+            color="error"
+            onClick={() => onRemove(index)}
+            aria-label="删除条件"
+            sx={{ mt: 0.5 }}
+          >
+            <Iconify icon="solar:trash-bin-trash-bold" width={18} />
+          </IconButton>
+        </Tooltip>
       </Stack>
     </Box>
   );

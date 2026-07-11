@@ -137,7 +137,7 @@ export function HoldingAddDialog({
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} disabled={submitting}>
+        <Button color="inherit" onClick={handleClose} disabled={submitting}>
           取消
         </Button>
         <Button

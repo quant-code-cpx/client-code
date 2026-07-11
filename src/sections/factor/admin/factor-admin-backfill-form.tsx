@@ -192,7 +192,7 @@ export function FactorAdminBackfillForm({
             onClick={handleSubmitClick}
             startIcon={<Iconify icon="solar:history-bold" />}
           >
-            {loading ? '提交中...' : '提交回补任务'}
+        {loading ? '提交中…' : '提交回补任务'}
           </Button>
         </Box>
       </Stack>
@@ -220,7 +220,7 @@ export function FactorAdminBackfillForm({
           </Typography>
         </DialogContent>
         <DialogActions>
-          <Button variant="outlined" color="inherit" onClick={() => setConfirmOpen(false)}>
+          <Button variant="text" color="inherit" onClick={() => setConfirmOpen(false)}>
             取消
           </Button>
           <Button variant="contained" onClick={handleConfirm}>

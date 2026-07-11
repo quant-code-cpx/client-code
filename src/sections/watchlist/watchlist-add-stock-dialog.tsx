@@ -122,11 +122,11 @@ export function WatchlistAddStockDialog({
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={handleClose} disabled={loading}>
+        <Button color="inherit" onClick={handleClose} disabled={loading}>
           取消
         </Button>
         <Button variant="contained" onClick={handleSubmit} disabled={loading}>
-          {loading ? '添加中...' : '添加'}
+          {loading ? '添加中…' : '添加'}
         </Button>
       </DialogActions>
     </Dialog>

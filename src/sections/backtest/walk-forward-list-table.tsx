@@ -172,6 +172,7 @@ export function WalkForwardListTable({ rows, loading, onDelete }: Props) {
                       <Tooltip title="更多操作">
                         <IconButton
                           size="small"
+                          aria-label="更多操作"
                           onClick={(event) => {
                             event.stopPropagation();
                             setAnchorEl(event.currentTarget);

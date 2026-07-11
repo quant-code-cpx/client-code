@@ -262,7 +262,7 @@ export function DashboardMarketPulse({ refreshKey }: { refreshKey?: number }) {
           指数行情
         </Typography>
         <Tooltip title="自定义指数卡片">
-          <IconButton size="small" onClick={() => setDialogOpen(true)}>
+          <IconButton size="small" onClick={() => setDialogOpen(true)} aria-label="自定义指数卡片">
             <Iconify icon="solar:pen-bold" width={18} />
           </IconButton>
         </Tooltip>

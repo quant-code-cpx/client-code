@@ -9,6 +9,7 @@ import Menu from '@mui/material/Menu';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
+import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
@@ -157,15 +158,18 @@ export function PortfolioCard({ portfolio, onView, onEdit, onDelete }: Portfolio
               {isArchived ? '已归档' : `${fPortfolioUpdatedAt(updatedAt)} 更新`}
             </Typography>
           </Box>
-          <IconButton
-            size="small"
-            onClick={(event) => {
-              event.stopPropagation();
-              handleMenuOpen(event);
-            }}
-          >
-            <Iconify icon="solar:menu-dots-bold" width={20} />
-          </IconButton>
+          <Tooltip title="更多操作">
+            <IconButton
+              size="small"
+              aria-label="更多操作"
+              onClick={(event) => {
+                event.stopPropagation();
+                handleMenuOpen(event);
+              }}
+            >
+              <Iconify icon="solar:menu-dots-bold" width={20} />
+            </IconButton>
+          </Tooltip>
         </Stack>
 
         {portfolio.description && (

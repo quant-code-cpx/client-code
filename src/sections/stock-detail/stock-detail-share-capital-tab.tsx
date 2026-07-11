@@ -8,6 +8,7 @@ import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Alert from '@mui/material/Alert';
 import Table from '@mui/material/Table';
+import Tooltip from '@mui/material/Tooltip';
 import Skeleton from '@mui/material/Skeleton';
 import Collapse from '@mui/material/Collapse';
 import TableRow from '@mui/material/TableRow';
@@ -216,12 +217,14 @@ export function StockDetailShareCapitalTab({ tsCode }: Props) {
               onClick={() => setHistoryExpanded((p) => !p)}
             >
               <Typography variant="subtitle1">历史股本明细</Typography>
-              <IconButton size="small">
-                <Iconify
-                  icon={historyExpanded ? 'solar:alt-arrow-up-bold' : 'solar:alt-arrow-down-bold'}
-                  width={18}
-                />
-              </IconButton>
+              <Tooltip title="展开历史">
+                <IconButton aria-label="展开历史" size="small">
+                  <Iconify
+                    icon={historyExpanded ? 'solar:alt-arrow-up-bold' : 'solar:alt-arrow-down-bold'}
+                    width={18}
+                  />
+                </IconButton>
+              </Tooltip>
             </Stack>
             <Collapse in={historyExpanded}>
               <TableContainer>

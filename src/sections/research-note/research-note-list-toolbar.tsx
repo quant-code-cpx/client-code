@@ -106,7 +106,7 @@ export function ResearchNoteListToolbar({
 
         {hasAnyFilter && (
           <Tooltip title="清空所有筛选" arrow>
-            <IconButton size="small" onClick={onResetFilters}>
+            <IconButton size="small" onClick={onResetFilters} aria-label="清空所有筛选">
               <Iconify icon="solar:refresh-bold" width={16} />
             </IconButton>
           </Tooltip>
@@ -116,7 +116,7 @@ export function ResearchNoteListToolbar({
 
         <Tooltip title={trashDisabled ? '回收站功能即将上线（待后端就绪）' : '打开回收站'} arrow>
           <span>
-            <IconButton size="small" onClick={onOpenTrash} disabled={trashDisabled}>
+            <IconButton size="small" onClick={onOpenTrash} disabled={trashDisabled} aria-label="回收站">
               <Iconify icon="solar:trash-bin-trash-bold" width={16} />
             </IconButton>
           </span>

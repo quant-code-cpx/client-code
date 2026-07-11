@@ -156,18 +156,19 @@ export function StockTableRow({
             sx={{ opacity: 0, transition: 'opacity 150ms' }}
           >
             <Tooltip title="复制代码">
-              <IconButton size="small" onClick={handleCopy}>
+              <IconButton size="small" aria-label="复制代码" onClick={handleCopy}>
                 <Iconify icon="solar:copy-bold" width={16} />
               </IconButton>
             </Tooltip>
             <Tooltip title="加入自选股">
-              <IconButton size="small" onClick={() => onAddToWatchlist(row.tsCode)}>
+              <IconButton size="small" aria-label="加入自选股" onClick={() => onAddToWatchlist(row.tsCode)}>
                 <Iconify icon="solar:star-bold" width={16} />
               </IconButton>
             </Tooltip>
             <Tooltip title="查看详情">
               <IconButton
                 size="small"
+                aria-label="查看详情"
                 onClick={() => router.push(`/stock/detail?code=${encodeURIComponent(row.tsCode)}`)}
               >
                 <Iconify icon="solar:eye-bold" width={16} />

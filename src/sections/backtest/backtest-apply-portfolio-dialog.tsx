@@ -187,7 +187,7 @@ export function BacktestApplyPortfolioDialog({
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={onClose} disabled={loading}>
+        <Button color="inherit" onClick={onClose} disabled={loading}>
           取消
         </Button>
         <Button

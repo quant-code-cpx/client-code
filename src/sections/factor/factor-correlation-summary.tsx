@@ -134,7 +134,7 @@ export function FactorCorrelationSummary({
         </Typography>
         <Box sx={{ flexGrow: 1 }} />
         <Tooltip title="计算口径与缓存策略">
-          <IconButton size="small" onClick={(e) => onShowMethod(e.currentTarget)}>
+          <IconButton size="small" onClick={(e) => onShowMethod(e.currentTarget)} aria-label="计算口径与缓存策略">
             <Iconify icon="solar:info-circle-bold" width={18} />
           </IconButton>
         </Tooltip>

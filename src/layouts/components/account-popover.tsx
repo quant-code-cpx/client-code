@@ -7,6 +7,7 @@ import Button from '@mui/material/Button';
 import Avatar from '@mui/material/Avatar';
 import Popover from '@mui/material/Popover';
 import Divider from '@mui/material/Divider';
+import Tooltip from '@mui/material/Tooltip';
 import MenuList from '@mui/material/MenuList';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
@@ -57,22 +58,25 @@ export function AccountPopover({ data = [], sx, ...other }: AccountPopoverProps)
 
   return (
     <>
-      <IconButton
-        onClick={handleOpenPopover}
-        sx={{
-          p: '2px',
-          width: 40,
-          height: 40,
-          background: (theme) =>
-            `conic-gradient(${theme.vars.palette.primary.light}, ${theme.vars.palette.warning.light}, ${theme.vars.palette.primary.light})`,
-          ...sx,
-        }}
-        {...other}
-      >
-        <Avatar src="" alt={displayName} sx={{ width: 1, height: 1 }}>
-          {displayName ? displayName.charAt(0).toUpperCase() : '?'}
-        </Avatar>
-      </IconButton>
+      <Tooltip title="账户菜单">
+        <IconButton
+          aria-label="账户菜单"
+          onClick={handleOpenPopover}
+          sx={{
+            p: '2px',
+            width: 40,
+            height: 40,
+            background: (theme) =>
+              `conic-gradient(${theme.vars.palette.primary.light}, ${theme.vars.palette.warning.light}, ${theme.vars.palette.primary.light})`,
+            ...sx,
+          }}
+          {...other}
+        >
+          <Avatar src="" alt={displayName} sx={{ width: 1, height: 1 }}>
+            {displayName ? displayName.charAt(0).toUpperCase() : '?'}
+          </Avatar>
+        </IconButton>
+      </Tooltip>
 
       <Popover
         open={!!openPopover}

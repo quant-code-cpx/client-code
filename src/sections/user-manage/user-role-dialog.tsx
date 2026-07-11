@@ -101,7 +101,7 @@ export function UserRoleDialog({ open, row, onClose, onSubmit }: UserRoleDialogP
         {error && <Alert severity="error">{error}</Alert>}
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose} disabled={submitting}>
+        <Button color="inherit" onClick={onClose} disabled={submitting}>
           取消
         </Button>
         <Button

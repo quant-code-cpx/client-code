@@ -8,6 +8,7 @@ import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Drawer from '@mui/material/Drawer';
 import Divider from '@mui/material/Divider';
+import Tooltip from '@mui/material/Tooltip';
 import Skeleton from '@mui/material/Skeleton';
 import Snackbar from '@mui/material/Snackbar';
 import Typography from '@mui/material/Typography';
@@ -148,9 +149,11 @@ export function BacktestDraftDrawer({
           <Typography variant="subtitle1" sx={{ flexGrow: 1, fontWeight: 600 }}>
             策略草稿
           </Typography>
-          <IconButton size="small" aria-label="关闭草稿抽屉" onClick={onClose}>
-            <Iconify icon="solar:close-circle-bold" width={20} />
-          </IconButton>
+          <Tooltip title="关闭草稿抽屉">
+            <IconButton size="small" aria-label="关闭草稿抽屉" onClick={onClose}>
+              <Iconify icon="solar:close-circle-bold" width={20} />
+            </IconButton>
+          </Tooltip>
         </Box>
 
         {/* Draft list */}

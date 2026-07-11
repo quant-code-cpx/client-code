@@ -9,7 +9,6 @@ import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import Autocomplete from '@mui/material/Autocomplete';
-import CircularProgress from '@mui/material/CircularProgress';
 
 import { tushareSyncApi } from 'src/api/tushare-sync';
 
@@ -95,9 +94,9 @@ export function DataGapsPanel() {
           size="small"
           onClick={handleQuery}
           disabled={loading}
-          startIcon={loading ? <CircularProgress size={14} /> : undefined}
+          loading={loading}
         >
-          {loading ? '查询中...' : '查询缺失日期'}
+          {loading ? '查询中…' : '查询缺失日期'}
         </Button>
       </Stack>
 

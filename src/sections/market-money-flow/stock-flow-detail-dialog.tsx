@@ -8,6 +8,7 @@ import Table from '@mui/material/Table';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import Divider from '@mui/material/Divider';
+import Tooltip from '@mui/material/Tooltip';
 import Skeleton from '@mui/material/Skeleton';
 import TableRow from '@mui/material/TableRow';
 import TableBody from '@mui/material/TableBody';
@@ -190,9 +191,11 @@ export function StockFlowDetailDialog({ open, tsCode, stockName, onClose }: Prop
             >
               个股详情
             </Button>
-            <IconButton onClick={onClose} size="small">
-              <Iconify icon="mingcute:close-line" />
-            </IconButton>
+            <Tooltip title="关闭">
+              <IconButton onClick={onClose} size="small" aria-label="关闭">
+                <Iconify icon="solar:close-circle-bold" />
+              </IconButton>
+            </Tooltip>
           </Box>
         </Box>
       </DialogTitle>

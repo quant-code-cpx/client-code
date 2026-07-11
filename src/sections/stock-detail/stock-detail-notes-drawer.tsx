@@ -1,6 +1,7 @@
 import Box from '@mui/material/Box';
 import Drawer from '@mui/material/Drawer';
 import Divider from '@mui/material/Divider';
+import Tooltip from '@mui/material/Tooltip';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 
@@ -43,9 +44,11 @@ export function StockDetailNotesDrawer({
             {stockName ? `${stockName} · ${tsCode}` : tsCode}
           </Typography>
         </Box>
-        <IconButton aria-label="关闭研究笔记抽屉" onClick={onClose}>
-          <Iconify icon="mingcute:close-line" />
-        </IconButton>
+        <Tooltip title="关闭研究笔记抽屉">
+          <IconButton aria-label="关闭研究笔记抽屉" onClick={onClose}>
+            <Iconify icon="solar:close-circle-bold" />
+          </IconButton>
+        </Tooltip>
       </Box>
 
       <Divider />

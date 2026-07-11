@@ -4,6 +4,7 @@ import Box from '@mui/material/Box';
 import Table from '@mui/material/Table';
 import Drawer from '@mui/material/Drawer';
 import Divider from '@mui/material/Divider';
+import Tooltip from '@mui/material/Tooltip';
 import TableRow from '@mui/material/TableRow';
 import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
@@ -49,9 +50,11 @@ export function SignalHistoryDayDrawer({ open, group, forwardWindow, onClose }: 
               {group ? fmtTradeDate(group.tradeDate) : '—'} · 共 {signals.length} 条
             </Typography>
           </Box>
-          <IconButton onClick={onClose}>
-            <Iconify icon="solar:close-circle-bold" />
-          </IconButton>
+          <Tooltip title="关闭">
+            <IconButton onClick={onClose} aria-label="关闭">
+              <Iconify icon="solar:close-circle-bold" />
+            </IconButton>
+          </Tooltip>
         </Box>
 
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 2 }}>

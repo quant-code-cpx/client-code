@@ -192,9 +192,11 @@ function SignalGroup({
               </Button>
             </Tooltip>
           ) : null}
-          <IconButton size="small">
-            <Iconify icon={open ? 'solar:alt-arrow-up-bold' : 'solar:alt-arrow-down-bold'} />
-          </IconButton>
+          <Tooltip title="展开面板">
+            <IconButton aria-label="展开面板" size="small">
+              <Iconify icon={open ? 'solar:alt-arrow-up-bold' : 'solar:alt-arrow-down-bold'} />
+            </IconButton>
+          </Tooltip>
         </Box>
       </Box>
 
@@ -304,6 +306,7 @@ function SignalTable({
                     <IconButton
                       size="small"
                       className="row-action"
+                      aria-label="跳转个股详情"
                       onClick={(e) => {
                         e.stopPropagation();
                         window.open(`/stock/${signal.tsCode}`, '_blank');

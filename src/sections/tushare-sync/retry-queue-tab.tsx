@@ -20,7 +20,6 @@ import FormControl from '@mui/material/FormControl';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import TablePagination from '@mui/material/TablePagination';
-import CircularProgress from '@mui/material/CircularProgress';
 import DialogContentText from '@mui/material/DialogContentText';
 
 import { tushareSyncApi } from 'src/api/tushare-sync';
@@ -174,15 +173,10 @@ export function RetryQueueTab({ isReadOnly = false, refreshKey = 0 }: Props) {
                   size="small"
                   onClick={() => setConfirmOpen(true)}
                   disabled={resetting || isReadOnly}
-                  startIcon={
-                    resetting ? (
-                      <CircularProgress size={14} />
-                    ) : (
-                      <Iconify icon="solar:refresh-bold" />
-                    )
-                  }
+                  loading={resetting}
+                  startIcon={<Iconify icon="solar:refresh-bold" />}
                 >
-                  {resetting ? '重置中...' : '重置耗尽记录'}
+                  {resetting ? '重置中…' : '重置耗尽记录'}
                 </Button>
               </span>
             </Tooltip>
@@ -252,7 +246,9 @@ export function RetryQueueTab({ isReadOnly = false, refreshKey = 0 }: Props) {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setConfirmOpen(false)}>取消</Button>
+          <Button color="inherit" onClick={() => setConfirmOpen(false)}>
+            取消
+          </Button>
           <Button onClick={handleReset} color="warning" variant="contained" disabled={isReadOnly}>
             确认重置
           </Button>

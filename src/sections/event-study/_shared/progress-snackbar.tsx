@@ -1,5 +1,6 @@
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
+import Tooltip from '@mui/material/Tooltip';
 import Snackbar from '@mui/material/Snackbar';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
@@ -49,9 +50,11 @@ export function ProgressSnackbar({
           <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
             {title}
           </Typography>
-          <IconButton size="small" onClick={onClose}>
-            <Iconify icon="solar:close-circle-bold" width={18} />
-          </IconButton>
+          <Tooltip title="关闭">
+            <IconButton size="small" onClick={onClose} aria-label="关闭">
+              <Iconify icon="solar:close-circle-bold" width={18} />
+            </IconButton>
+          </Tooltip>
         </Stack>
         {message ? (
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>

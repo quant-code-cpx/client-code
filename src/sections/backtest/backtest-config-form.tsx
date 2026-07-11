@@ -390,7 +390,7 @@ export function BacktestConfigForm({
               }}
             >
               {REBALANCE_FREQUENCY_OPTIONS.map((option) => (
-                <ToggleButton key={option.value} value={option.value} sx={{ px: 2.5 }}>
+                <ToggleButton key={option.value} value={option.value}>
                   {option.label}
                 </ToggleButton>
               ))}
@@ -408,7 +408,7 @@ export function BacktestConfigForm({
               }}
             >
               {PRICE_MODE_OPTIONS.map((option) => (
-                <ToggleButton key={option.value} value={option.value} sx={{ px: 2.5 }}>
+                <ToggleButton key={option.value} value={option.value}>
                   {option.label}
                 </ToggleButton>
               ))}
@@ -479,11 +479,11 @@ export function BacktestConfigForm({
               onChange={handleCostPresetChange}
             >
               {COST_PRESETS.map((preset) => (
-                <ToggleButton key={preset.id} value={preset.id} sx={{ px: 2 }}>
+                <ToggleButton key={preset.id} value={preset.id}>
                   {preset.label}
                 </ToggleButton>
               ))}
-              <ToggleButton value="CUSTOM" sx={{ px: 2 }}>
+              <ToggleButton value="CUSTOM">
                 自定义
               </ToggleButton>
             </ToggleButtonGroup>

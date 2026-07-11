@@ -156,7 +156,7 @@ export function ResearchNoteEditorToolbar({ textareaRef, onChange, onImagePlaceh
               title={tool.shortcut ? `${tool.tooltip} (${tool.shortcut})` : tool.tooltip}
               arrow
             >
-              <IconButton size="small" onClick={trigger(tool.action)} sx={{ minWidth: 28 }}>
+              <IconButton size="small" onClick={trigger(tool.action)} sx={{ minWidth: 28 }} aria-label={tool.tooltip}>
                 <Typography
                   variant="caption"
                   sx={{
@@ -176,7 +176,7 @@ export function ResearchNoteEditorToolbar({ textareaRef, onChange, onImagePlaceh
         <Divider orientation="vertical" flexItem sx={{ mx: 0.5, my: 0.5 }} />
         <Tooltip title="插入图片（即将上线）" arrow>
           <span>
-            <IconButton size="small" onClick={onImagePlaceholder} disabled>
+            <IconButton size="small" onClick={onImagePlaceholder} disabled aria-label="插入图片（即将上线）">
               <Iconify icon="solar:document-bold" width={16} />
             </IconButton>
           </span>

@@ -242,7 +242,7 @@ describe('SignInView', () => {
       });
     });
 
-    it('提交中按钮显示"登录中..."并禁用', async () => {
+  it('提交中按钮显示"登录中…"并禁用', async () => {
       // login never resolves
       mockLogin.mockImplementation(() => new Promise(() => {}));
 

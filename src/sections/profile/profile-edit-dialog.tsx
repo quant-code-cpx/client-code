@@ -8,7 +8,6 @@ import TextField from '@mui/material/TextField';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
-import CircularProgress from '@mui/material/CircularProgress';
 
 import { useAuth } from 'src/auth';
 import { userManageApi } from 'src/api/user-manage';
@@ -92,14 +91,14 @@ export function ProfileEditDialog({ open, onClose }: ProfileEditDialogProps) {
         </Box>
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button onClick={onClose} disabled={submitting}>
+        <Button color="inherit" onClick={onClose} disabled={submitting}>
           取消
         </Button>
         <Button
           variant="contained"
           onClick={handleSubmit}
           disabled={submitting}
-          startIcon={submitting ? <CircularProgress size={14} /> : null}
+          loading={submitting}
         >
           保存
         </Button>

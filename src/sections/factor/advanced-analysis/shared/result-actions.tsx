@@ -34,7 +34,7 @@ export function ResultActions({ onCopy, nextActions }: Props) {
     <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center' }}>
       {onCopy && (
         <Tooltip title="复制 JSON">
-          <IconButton size="small" onClick={onCopy}>
+          <IconButton size="small" onClick={onCopy} aria-label="复制 JSON">
             <Iconify icon="solar:copy-bold" width={18} />
           </IconButton>
         </Tooltip>
@@ -42,7 +42,7 @@ export function ResultActions({ onCopy, nextActions }: Props) {
       {hasNext && (
         <>
           <Tooltip title="带到下一步">
-            <IconButton size="small" onClick={(e) => setAnchorEl(e.currentTarget)}>
+            <IconButton size="small" onClick={(e) => setAnchorEl(e.currentTarget)} aria-label="带到下一步">
               <Iconify icon="solar:arrow-right-bold" width={18} />
             </IconButton>
           </Tooltip>

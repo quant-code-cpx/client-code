@@ -101,18 +101,6 @@ const SYNC_STATUS_LABEL: Record<string, string> = {
 };
 
 const READ_ONLY_TOOLTIP = '仅超级管理员可执行';
-const TOOLBAR_CONTROL_HEIGHT = 36;
-const TOOLBAR_CONTROL_SX = {
-  height: TOOLBAR_CONTROL_HEIGHT,
-  minHeight: TOOLBAR_CONTROL_HEIGHT,
-  whiteSpace: 'nowrap',
-};
-const TOOLBAR_TOGGLE_SX = {
-  ...TOOLBAR_CONTROL_SX,
-  px: 2,
-  fontSize: 12,
-  lineHeight: 1,
-};
 
 type Props = {
   isReadOnly?: boolean;
@@ -341,10 +329,10 @@ export function SyncPlanTab({ isReadOnly = false, refreshKey = 0 }: Props) {
                 if (v) setMode(v as TushareSyncMode);
               }}
             >
-              <ToggleButton value="incremental" sx={TOOLBAR_TOGGLE_SX}>
+              <ToggleButton value="incremental">
                 增量同步
               </ToggleButton>
-              <ToggleButton value="full" sx={{ ...TOOLBAR_TOGGLE_SX, color: 'warning.main' }}>
+              <ToggleButton value="full">
                 全量同步
               </ToggleButton>
             </ToggleButtonGroup>
@@ -361,7 +349,6 @@ export function SyncPlanTab({ isReadOnly = false, refreshKey = 0 }: Props) {
                 <Button
                   size="small"
                   variant="outlined"
-                  sx={TOOLBAR_CONTROL_SX}
                   disabled={isReadOnly || basicTasks.length === 0 || isSyncing || plansLoading}
                   onClick={() => requestSync('incremental', basicTasks)}
                 >
@@ -375,7 +362,6 @@ export function SyncPlanTab({ isReadOnly = false, refreshKey = 0 }: Props) {
                   size="small"
                   color="warning"
                   variant="outlined"
-                  sx={TOOLBAR_CONTROL_SX}
                   disabled={isReadOnly || failedTasks.length === 0 || isSyncing || summaryLoading}
                   onClick={() => requestSync('incremental', failedTasks)}
                 >
@@ -393,7 +379,6 @@ export function SyncPlanTab({ isReadOnly = false, refreshKey = 0 }: Props) {
                 gap: 1,
                 display: 'flex',
                 alignItems: 'center',
-                height: TOOLBAR_CONTROL_HEIGHT,
               }}
             >
               <CircularProgress size={14} />
@@ -409,7 +394,6 @@ export function SyncPlanTab({ isReadOnly = false, refreshKey = 0 }: Props) {
             sx={{
               display: 'flex',
               alignItems: 'center',
-              height: TOOLBAR_CONTROL_HEIGHT,
               whiteSpace: 'nowrap',
             }}
           >
@@ -421,18 +405,12 @@ export function SyncPlanTab({ isReadOnly = false, refreshKey = 0 }: Props) {
               <Button
                 size="small"
                 variant="contained"
-                sx={TOOLBAR_CONTROL_SX}
                 disabled={!anySelected || isSyncing || plansLoading || isReadOnly}
                 onClick={handleSync}
-                startIcon={
-                  isSyncing ? (
-                    <CircularProgress size={14} color="inherit" />
-                  ) : (
-                    <Iconify icon="solar:restart-bold" />
-                  )
-                }
+                loading={isSyncing}
+                startIcon={<Iconify icon="solar:restart-bold" />}
               >
-                {isSyncing ? '同步中...' : '开始同步'}
+                {isSyncing ? '同步中…' : '开始同步'}
               </Button>
             </span>
           </Tooltip>
@@ -682,7 +660,9 @@ export function SyncPlanTab({ isReadOnly = false, refreshKey = 0 }: Props) {
           />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setPendingSync(null)}>取消</Button>
+          <Button color="inherit" onClick={() => setPendingSync(null)}>
+            取消
+          </Button>
           <Button
             color="warning"
             variant="contained"

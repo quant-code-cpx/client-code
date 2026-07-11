@@ -2,6 +2,7 @@ import type { PortfolioDetail } from 'src/api/portfolio';
 
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
+import Tooltip from '@mui/material/Tooltip';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 
@@ -77,12 +78,16 @@ export function PortfolioDetailHeader({
               生成报告
             </Button>
           )}
-          <IconButton onClick={onEdit}>
-            <Iconify icon="solar:pen-bold" />
-          </IconButton>
-          <IconButton onClick={onDelete} color="error">
-            <Iconify icon="solar:trash-bin-trash-bold" />
-          </IconButton>
+          <Tooltip title="编辑组合">
+            <IconButton onClick={onEdit} aria-label="编辑组合">
+              <Iconify icon="solar:pen-bold" />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="删除组合">
+            <IconButton onClick={onDelete} color="error" aria-label="删除组合">
+              <Iconify icon="solar:trash-bin-trash-bold" />
+            </IconButton>
+          </Tooltip>
         </Box>
       </Box>
     </Box>

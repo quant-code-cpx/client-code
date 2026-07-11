@@ -317,6 +317,7 @@ export function SignalRulesTab({ eventTypes }: Props) {
                           <Tooltip title="编辑">
                             <IconButton
                               size="small"
+                              aria-label="编辑"
                               onClick={() => {
                                 setEditingRule(rule);
                                 setWizardOpen(true);
@@ -328,6 +329,7 @@ export function SignalRulesTab({ eventTypes }: Props) {
                           <Tooltip title="回测">
                             <IconButton
                               size="small"
+                              aria-label="回测"
                               color="primary"
                               onClick={() => setBacktestRule(rule)}
                             >
@@ -337,6 +339,7 @@ export function SignalRulesTab({ eventTypes }: Props) {
                           <Tooltip title={rule.status === 'ACTIVE' ? '暂停' : '启用'}>
                             <IconButton
                               size="small"
+                              aria-label={rule.status === 'ACTIVE' ? '暂停' : '启用'}
                               color={rule.status === 'ACTIVE' ? 'warning' : 'success'}
                               onClick={() => handleToggleStatus(rule)}
                             >
@@ -351,6 +354,7 @@ export function SignalRulesTab({ eventTypes }: Props) {
                           <Tooltip title="删除">
                             <IconButton
                               size="small"
+                              aria-label="删除"
                               color="error"
                               onClick={() => setDeleteTarget(rule.id)}
                             >
@@ -405,7 +409,9 @@ export function SignalRulesTab({ eventTypes }: Props) {
           <DialogContentText>确定删除该信号规则吗？此操作不可撤销。</DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDeleteTarget(null)}>取消</Button>
+          <Button color="inherit" onClick={() => setDeleteTarget(null)}>
+            取消
+          </Button>
           <Button color="error" variant="contained" onClick={handleDelete}>
             删除
           </Button>

@@ -179,11 +179,10 @@ export function IndustryAnalysisView() {
           />
           <Button
             variant="outlined"
-            size="small"
+            size="medium"
             startIcon={<Iconify icon="solar:refresh-bold" />}
             onClick={handleRefresh}
             sx={{
-              height: CONTROL_HEIGHT,
               minWidth: 88,
               px: 1.75,
               width: { xs: '100%', sm: 'auto' },

@@ -128,12 +128,13 @@ export function FactorCorrelationPairTable({
                         size="small"
                         onClick={() => onOrthogonalize(pair)}
                         disabled={pair.abs < threshold}
+                        aria-label="正交化（残差化）"
                       >
                         <Iconify icon="solar:refresh-bold" width={16} />
                       </IconButton>
                     </Tooltip>
                     <Tooltip title={`移除因子 ${pair.labelA}`}>
-                      <IconButton size="small" onClick={() => onRemoveFactor(pair.factorA)}>
+                      <IconButton size="small" onClick={() => onRemoveFactor(pair.factorA)} aria-label="移除因子">
                         <Iconify icon="solar:trash-bin-trash-bold" width={16} />
                       </IconButton>
                     </Tooltip>

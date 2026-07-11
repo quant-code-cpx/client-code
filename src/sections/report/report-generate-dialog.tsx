@@ -166,7 +166,6 @@ export function ReportGenerateDialog({
                 display: 'grid',
                 gridTemplateColumns: 'repeat(2, 1fr)',
                 gap: 1,
-                '& .MuiToggleButton-root': { borderRadius: 1, textTransform: 'none' },
               }}
             >
               {REPORT_TYPE_OPTIONS.map((opt) => (
@@ -214,9 +213,6 @@ export function ReportGenerateDialog({
                 if (v) setFormat(v as ReportFormat);
               }}
               fullWidth
-              sx={{
-                '& .MuiToggleButton-root': { borderRadius: 1, textTransform: 'none' },
-              }}
             >
               {REPORT_FORMAT_OPTIONS.map((opt) => (
                 <ToggleButton key={opt.value} value={opt.value}>
@@ -270,7 +266,7 @@ export function ReportGenerateDialog({
         </Stack>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose} disabled={submitting}>
+        <Button color="inherit" onClick={onClose} disabled={submitting}>
           取消
         </Button>
         <Button variant="contained" onClick={handleSubmit} disabled={submitDisabled}>

@@ -4,6 +4,7 @@ import { useState } from 'react';
 
 import Box from '@mui/material/Box';
 import Table from '@mui/material/Table';
+import Tooltip from '@mui/material/Tooltip';
 import Collapse from '@mui/material/Collapse';
 import TableRow from '@mui/material/TableRow';
 import Skeleton from '@mui/material/Skeleton';
@@ -82,16 +83,18 @@ function ExpandableRow({ row }: { row: AuditLogItem }) {
       <TableRow hover>
         <TableCell sx={{ width: 48, px: 1 }}>
           {hasDetails && (
-            <IconButton
-              size="small"
-              onClick={() => setOpen(!open)}
-              aria-label={open ? '收起审计详情' : '展开审计详情'}
-            >
-              <Iconify
-                icon={open ? 'solar:alt-arrow-up-bold' : 'solar:alt-arrow-down-bold'}
-                width={16}
-              />
-            </IconButton>
+            <Tooltip title={open ? '收起审计详情' : '展开审计详情'}>
+              <IconButton
+                size="small"
+                onClick={() => setOpen(!open)}
+                aria-label={open ? '收起审计详情' : '展开审计详情'}
+              >
+                <Iconify
+                  icon={open ? 'solar:alt-arrow-up-bold' : 'solar:alt-arrow-down-bold'}
+                  width={16}
+                />
+              </IconButton>
+            </Tooltip>
           )}
         </TableCell>
         <TableCell sx={{ width: 60 }}>{row.id}</TableCell>

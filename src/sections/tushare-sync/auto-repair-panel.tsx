@@ -5,6 +5,7 @@ import Card from '@mui/material/Card';
 import Grid from '@mui/material/Grid';
 import Alert from '@mui/material/Alert';
 import Table from '@mui/material/Table';
+import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
 import Tooltip from '@mui/material/Tooltip';
 import Skeleton from '@mui/material/Skeleton';
@@ -13,7 +14,6 @@ import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
 import Typography from '@mui/material/Typography';
-import LoadingButton from '@mui/lab/LoadingButton';
 import TableContainer from '@mui/material/TableContainer';
 
 import { Iconify } from 'src/components/iconify';
@@ -73,7 +73,7 @@ export function AutoRepairPanel({
         </Typography>
         <Tooltip title={disabled ? disabledReason : ''}>
           <span>
-            <LoadingButton
+            <Button
               loading={repairing}
               variant="outlined"
               color="warning"
@@ -83,7 +83,7 @@ export function AutoRepairPanel({
               onClick={onTriggerRepair}
             >
               手动触发补数
-            </LoadingButton>
+            </Button>
           </span>
         </Tooltip>
       </Box>

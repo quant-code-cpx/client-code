@@ -3,6 +3,7 @@ import type { StrategyDraft } from 'src/api/strategy-draft';
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
+import Tooltip from '@mui/material/Tooltip';
 import ListItem from '@mui/material/ListItem';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
@@ -28,16 +29,17 @@ export function BacktestDraftListItem({ draft, onLoad, onDelete }: Props) {
         alignItems="flex-start"
         secondaryAction={
           onDelete ? (
-            <IconButton
-              edge="end"
-              size="small"
-              color="error"
-              aria-label={`删除草稿 ${draft.name}`}
-              onClick={onDelete}
-              title="删除草稿"
-            >
-              <Iconify icon="solar:trash-bin-trash-bold" width={16} />
-            </IconButton>
+            <Tooltip title="删除草稿">
+              <IconButton
+                edge="end"
+                size="small"
+                color="error"
+                aria-label={`删除草稿 ${draft.name}`}
+                onClick={onDelete}
+              >
+                <Iconify icon="solar:trash-bin-trash-bold" width={16} />
+              </IconButton>
+            </Tooltip>
           ) : null
         }
         sx={{ pr: 6 }}

@@ -5,6 +5,7 @@ import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
+import Tooltip from '@mui/material/Tooltip';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
@@ -12,7 +13,6 @@ import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import InputAdornment from '@mui/material/InputAdornment';
-import CircularProgress from '@mui/material/CircularProgress';
 
 import { Iconify } from 'src/components/iconify';
 
@@ -117,14 +117,15 @@ export function UserManageResetPasswordDialog({
               >
                 {result}
               </Typography>
-              <IconButton
-                size="small"
-                onClick={() => navigator.clipboard.writeText(result)}
-                title="复制密码"
-                aria-label="复制新密码"
-              >
-                <Iconify icon="solar:copy-bold" width={18} />
-              </IconButton>
+              <Tooltip title="复制密码">
+                <IconButton
+                  size="small"
+                  onClick={() => navigator.clipboard.writeText(result)}
+                  aria-label="复制新密码"
+                >
+                  <Iconify icon="solar:copy-bold" width={18} />
+                </IconButton>
+              </Tooltip>
             </Box>
             <Stack direction="row" spacing={1} alignItems="center" justifyContent="space-between">
               <Typography variant="caption" color="warning.main">
@@ -143,7 +144,6 @@ export function UserManageResetPasswordDialog({
             </Typography>
             <Button
               variant="outlined"
-              color="info"
               onClick={handleGeneratePassword}
               startIcon={<Iconify icon="solar:shield-keyhole-bold-duotone" />}
             >
@@ -160,17 +160,19 @@ export function UserManageResetPasswordDialog({
                 input: {
                   endAdornment: (
                     <InputAdornment position="end">
-                      <IconButton
-                        size="small"
-                        edge="end"
-                        onClick={() => setShowNew((v) => !v)}
-                        aria-label={showNew ? '隐藏新密码' : '显示新密码'}
-                      >
-                        <Iconify
-                          icon={showNew ? 'solar:eye-closed-bold' : 'solar:eye-bold'}
-                          width={20}
-                        />
-                      </IconButton>
+                      <Tooltip title={showNew ? '隐藏新密码' : '显示新密码'}>
+                        <IconButton
+                          size="small"
+                          edge="end"
+                          onClick={() => setShowNew((v) => !v)}
+                          aria-label={showNew ? '隐藏新密码' : '显示新密码'}
+                        >
+                          <Iconify
+                            icon={showNew ? 'solar:eye-closed-bold' : 'solar:eye-bold'}
+                            width={20}
+                          />
+                        </IconButton>
+                      </Tooltip>
                     </InputAdornment>
                   ),
                 },
@@ -187,17 +189,19 @@ export function UserManageResetPasswordDialog({
                 input: {
                   endAdornment: (
                     <InputAdornment position="end">
-                      <IconButton
-                        size="small"
-                        edge="end"
-                        onClick={() => setShowConfirm((v) => !v)}
-                        aria-label={showConfirm ? '隐藏确认密码' : '显示确认密码'}
-                      >
-                        <Iconify
-                          icon={showConfirm ? 'solar:eye-closed-bold' : 'solar:eye-bold'}
-                          width={20}
-                        />
-                      </IconButton>
+                      <Tooltip title={showConfirm ? '隐藏确认密码' : '显示确认密码'}>
+                        <IconButton
+                          size="small"
+                          edge="end"
+                          onClick={() => setShowConfirm((v) => !v)}
+                          aria-label={showConfirm ? '隐藏确认密码' : '显示确认密码'}
+                        >
+                          <Iconify
+                            icon={showConfirm ? 'solar:eye-closed-bold' : 'solar:eye-bold'}
+                            width={20}
+                          />
+                        </IconButton>
+                      </Tooltip>
                     </InputAdornment>
                   ),
                 },
@@ -218,7 +222,7 @@ export function UserManageResetPasswordDialog({
             color="warning"
             onClick={handleSubmit}
             disabled={submitting}
-            startIcon={submitting ? <CircularProgress size={14} /> : null}
+            loading={submitting}
           >
             确认重置
           </Button>

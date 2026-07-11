@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
 import Select from '@mui/material/Select';
+import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
 import IconButton from '@mui/material/IconButton';
@@ -95,16 +96,19 @@ export function WalkForwardParamSpaceEditor({ availableParams, value, onChange }
             }}
           >
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: enabled ? 2 : 0 }}>
-              <IconButton
-                size="small"
-                onClick={() => toggleParam(param.key, !enabled)}
-                color={enabled ? 'primary' : 'default'}
-              >
-                <Iconify
-                  icon={enabled ? 'solar:check-square-bold' : 'solar:square-linear'}
-                  width={20}
-                />
-              </IconButton>
+              <Tooltip title="切换参数状态">
+                <IconButton
+                  size="small"
+                  onClick={() => toggleParam(param.key, !enabled)}
+                  color={enabled ? 'primary' : 'default'}
+                  aria-label="切换参数状态"
+                >
+                  <Iconify
+                    icon={enabled ? 'solar:check-square-bold' : 'solar:square-linear'}
+                    width={20}
+                  />
+                </IconButton>
+              </Tooltip>
               <Typography variant="body2" fontWeight={enabled ? 600 : 400}>
                 {param.label}
               </Typography>

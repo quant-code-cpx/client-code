@@ -5,6 +5,7 @@ import Stack from '@mui/material/Stack';
 import Drawer from '@mui/material/Drawer';
 import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
+import Tooltip from '@mui/material/Tooltip';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 
@@ -90,9 +91,11 @@ export function StockEvidenceDrawer({ open, item, conditions, allFactors, onClos
                 {item.tsCode} · {item.industry ?? '未知行业'}
               </Typography>
             </Box>
-            <IconButton onClick={onClose} aria-label="关闭">
-              <Iconify icon="mingcute:close-line" />
-            </IconButton>
+            <Tooltip title="关闭">
+              <IconButton onClick={onClose} aria-label="关闭">
+                <Iconify icon="solar:close-circle-bold" />
+              </IconButton>
+            </Tooltip>
           </Stack>
 
           <Box sx={{ flexGrow: 1, overflowY: 'auto', px: 2.5, py: 2 }}>
@@ -195,7 +198,7 @@ export function StockEvidenceDrawer({ open, item, conditions, allFactors, onClos
             >
               查看股票详情
             </Button>
-            <Button fullWidth variant="outlined" onClick={onClose}>
+            <Button fullWidth variant="text" color="inherit" onClick={onClose}>
               关闭
             </Button>
           </Stack>

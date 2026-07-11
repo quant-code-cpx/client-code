@@ -13,6 +13,7 @@ import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
+import Tooltip from '@mui/material/Tooltip';
 import Collapse from '@mui/material/Collapse';
 import Skeleton from '@mui/material/Skeleton';
 import TableRow from '@mui/material/TableRow';
@@ -152,16 +153,22 @@ export function SyncStatusOverviewPanel({ refreshKey = 0, onGoLogs, onGoQuality 
         titleTypographyProps={{ variant: 'subtitle1' }}
         action={
           <Box sx={{ display: 'flex', gap: 0.5 }}>
-            <IconButton size="small" onClick={fetchOverview} aria-label="刷新同步状态总览">
-              <Iconify icon="solar:refresh-bold" />
-            </IconButton>
-            <IconButton
-              size="small"
-              onClick={() => setCollapsed((v) => !v)}
-              aria-label={collapsed ? '展开同步状态总览' : '折叠同步状态总览'}
-            >
-              <Iconify icon={collapsed ? 'solar:alt-arrow-down-bold' : 'solar:alt-arrow-up-bold'} />
-            </IconButton>
+            <Tooltip title="刷新同步状态总览">
+              <IconButton size="small" onClick={fetchOverview} aria-label="刷新同步状态总览">
+                <Iconify icon="solar:refresh-bold" />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title={collapsed ? '展开同步状态总览' : '折叠同步状态总览'}>
+              <IconButton
+                size="small"
+                onClick={() => setCollapsed((v) => !v)}
+                aria-label={collapsed ? '展开同步状态总览' : '折叠同步状态总览'}
+              >
+                <Iconify
+                  icon={collapsed ? 'solar:alt-arrow-down-bold' : 'solar:alt-arrow-up-bold'}
+                />
+              </IconButton>
+            </Tooltip>
           </Box>
         }
       />

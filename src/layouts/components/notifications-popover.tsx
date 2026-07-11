@@ -70,16 +70,19 @@ export function NotificationsPopover({ sx, ...other }: NotificationsPopoverProps
 
   return (
     <>
-      <IconButton
-        color={openPopover ? 'primary' : 'default'}
-        onClick={handleOpenPopover}
-        sx={sx}
-        {...other}
-      >
-        <Badge badgeContent={totalUnRead} color="error">
-          <Iconify width={24} icon="solar:bell-bing-bold-duotone" />
-        </Badge>
-      </IconButton>
+      <Tooltip title="打开通知">
+        <IconButton
+          aria-label="打开通知"
+          color={openPopover ? 'primary' : 'default'}
+          onClick={handleOpenPopover}
+          sx={sx}
+          {...other}
+        >
+          <Badge badgeContent={totalUnRead} color="error">
+            <Iconify width={24} icon="solar:bell-bing-bold-duotone" />
+          </Badge>
+        </IconButton>
+      </Tooltip>
 
       <Popover
         open={!!openPopover}
@@ -116,7 +119,7 @@ export function NotificationsPopover({ sx, ...other }: NotificationsPopoverProps
 
           {totalUnRead > 0 && (
             <Tooltip title=" Mark all as read">
-              <IconButton color="primary" onClick={handleMarkAllAsRead}>
+              <IconButton aria-label="全部标记为已读" color="primary" onClick={handleMarkAllAsRead}>
                 <Iconify icon="eva:done-all-fill" />
               </IconButton>
             </Tooltip>

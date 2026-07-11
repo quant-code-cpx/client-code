@@ -4,6 +4,7 @@ import { useState, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Table from '@mui/material/Table';
+import Tooltip from '@mui/material/Tooltip';
 import TableRow from '@mui/material/TableRow';
 import Checkbox from '@mui/material/Checkbox';
 import TableBody from '@mui/material/TableBody';
@@ -267,20 +268,26 @@ function StrategyTableRow({ strategy, onView, onClone, onDelete }: StrategyTable
       </TableCell>
       <TableCell align="right">
         <Box sx={{ display: 'flex', gap: 0.5, justifyContent: 'flex-end' }}>
-          <IconButton size="small" onClick={() => onView(strategy.id)} title="查看">
-            <Iconify icon="solar:eye-bold" width={16} />
-          </IconButton>
-          <IconButton size="small" onClick={() => onClone(strategy)} title="克隆">
-            <Iconify icon="solar:copy-bold" width={16} />
-          </IconButton>
-          <IconButton
-            size="small"
-            onClick={() => onDelete(strategy)}
-            title="删除"
-            sx={{ color: 'error.main' }}
-          >
-            <Iconify icon="solar:trash-bin-trash-bold" width={16} />
-          </IconButton>
+          <Tooltip title="查看">
+            <IconButton size="small" onClick={() => onView(strategy.id)} aria-label="查看策略">
+              <Iconify icon="solar:eye-bold" width={16} />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="克隆">
+            <IconButton size="small" onClick={() => onClone(strategy)} aria-label="克隆策略">
+              <Iconify icon="solar:copy-bold" width={16} />
+            </IconButton>
+          </Tooltip>
+          <Tooltip title="删除">
+            <IconButton
+              size="small"
+              color="error"
+              onClick={() => onDelete(strategy)}
+              aria-label="删除策略"
+            >
+              <Iconify icon="solar:trash-bin-trash-bold" width={16} />
+            </IconButton>
+          </Tooltip>
         </Box>
       </TableCell>
     </TableRow>

@@ -24,7 +24,7 @@ export function ConfirmDialog({
       <DialogTitle>{title}</DialogTitle>
       <DialogContent sx={{ pt: 2 }}>{content}</DialogContent>
       <DialogActions>
-        <Button onClick={onClose} disabled={submitting}>
+        <Button color="inherit" onClick={onClose} disabled={submitting}>
           {cancelLabel}
         </Button>
         <Button

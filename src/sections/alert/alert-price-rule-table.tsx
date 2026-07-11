@@ -159,12 +159,12 @@ export function AlertPriceRuleTable({ rules, loading, onEdit, onDelete, onToggle
                   </TableCell>
                   <TableCell align="center">
                     <Tooltip title="编辑">
-                      <IconButton size="small" onClick={() => onEdit(rule)}>
+                      <IconButton size="small" aria-label="编辑" onClick={() => onEdit(rule)}>
                         <Iconify icon="solar:pen-bold" width={16} />
                       </IconButton>
                     </Tooltip>
                     <Tooltip title={rule.status === 'ACTIVE' ? '暂停' : '恢复'}>
-                      <IconButton size="small" onClick={() => onToggleStatus(rule)}>
+                      <IconButton size="small" aria-label={rule.status === 'ACTIVE' ? '暂停' : '恢复'} onClick={() => onToggleStatus(rule)}>
                         <Iconify
                           icon={rule.status === 'ACTIVE' ? 'solar:pause-bold' : 'solar:play-bold'}
                           width={16}
@@ -172,7 +172,7 @@ export function AlertPriceRuleTable({ rules, loading, onEdit, onDelete, onToggle
                       </IconButton>
                     </Tooltip>
                     <Tooltip title="删除">
-                      <IconButton size="small" color="error" onClick={() => setDeleteTarget(rule)}>
+                      <IconButton size="small" aria-label="删除" color="error" onClick={() => setDeleteTarget(rule)}>
                         <Iconify icon="solar:trash-bin-trash-bold" width={16} />
                       </IconButton>
                     </Tooltip>

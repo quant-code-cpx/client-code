@@ -324,7 +324,7 @@ export function StockTableToolbar({
             <Button
               size="small"
               color="inherit"
-              startIcon={<Iconify icon="mingcute:close-line" width={14} />}
+              startIcon={<Iconify icon="solar:close-circle-bold" width={14} />}
               onClick={onResetFilters}
             >
               清空全部

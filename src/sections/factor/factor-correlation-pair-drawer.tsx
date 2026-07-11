@@ -5,6 +5,7 @@ import Stack from '@mui/material/Stack';
 import Drawer from '@mui/material/Drawer';
 import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
+import Tooltip from '@mui/material/Tooltip';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 
@@ -64,9 +65,11 @@ export function FactorCorrelationPairDrawer({
             <Typography variant="subtitle1" sx={{ flex: 1 }}>
               因子对详情
             </Typography>
-            <IconButton size="small" onClick={onClose}>
-              <Iconify icon="solar:close-circle-bold" width={18} />
-            </IconButton>
+            <Tooltip title="关闭">
+              <IconButton size="small" onClick={onClose} aria-label="关闭">
+                <Iconify icon="solar:close-circle-bold" width={18} />
+              </IconButton>
+            </Tooltip>
           </Stack>
 
           <Box sx={{ flex: 1, overflow: 'auto', p: 2 }}>

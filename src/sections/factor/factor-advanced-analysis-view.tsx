@@ -151,7 +151,6 @@ export function FactorAdvancedAnalysisView() {
         </Stack>
         <Button
           variant="outlined"
-          color="inherit"
           startIcon={<Iconify icon="solar:history-bold" />}
           onClick={() => setHistoryOpen(true)}
           sx={{ alignSelf: { xs: 'flex-start', md: 'center' } }}

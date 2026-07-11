@@ -62,15 +62,27 @@ export function CalendarGridView({ events, startDate, onSelectDay, onSelectEvent
   return (
     <Card sx={{ p: 2, mb: 2 }}>
       <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 1.5 }}>
-        <IconButton size="small" onClick={() => setCursorMonth((m) => m.subtract(1, 'month'))}>
-          <Iconify icon="solar:arrow-left-bold" width={18} />
-        </IconButton>
+        <Tooltip title="上个月">
+          <IconButton
+            aria-label="上个月"
+            size="small"
+            onClick={() => setCursorMonth((m) => m.subtract(1, 'month'))}
+          >
+            <Iconify icon="solar:arrow-left-bold" width={18} />
+          </IconButton>
+        </Tooltip>
         <Typography variant="subtitle1" sx={{ fontWeight: 600, minWidth: 96 }}>
           {cursorMonth.format('YYYY年 M月')}
         </Typography>
-        <IconButton size="small" onClick={() => setCursorMonth((m) => m.add(1, 'month'))}>
-          <Iconify icon="solar:arrow-right-bold" width={18} />
-        </IconButton>
+        <Tooltip title="下个月">
+          <IconButton
+            aria-label="下个月"
+            size="small"
+            onClick={() => setCursorMonth((m) => m.add(1, 'month'))}
+          >
+            <Iconify icon="solar:arrow-right-bold" width={18} />
+          </IconButton>
+        </Tooltip>
         <Box sx={{ flexGrow: 1 }} />
         <Typography variant="caption" color="text.secondary">
           点击日期查看当日事件

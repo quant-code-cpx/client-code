@@ -263,13 +263,14 @@ export function AlertLimitListTableV2({ items, onSelect, onCreateAlert }: Props)
                         }}
                       >
                         <Tooltip title="创建预警" arrow>
-                          <IconButton size="small" onClick={() => onCreateAlert?.(row)}>
+                          <IconButton size="small" aria-label="创建预警" onClick={() => onCreateAlert?.(row)}>
                             <Iconify icon="solar:bell-bold" width={16} />
                           </IconButton>
                         </Tooltip>
                         <Tooltip title="查看详情" arrow>
                           <IconButton
                             size="small"
+                            aria-label="查看详情"
                             onClick={() => router.push(`/stock/detail?code=${row.tsCode}`)}
                           >
                             <Iconify icon="solar:graph-up-bold" width={16} />

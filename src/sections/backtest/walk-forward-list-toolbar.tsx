@@ -139,7 +139,6 @@ export function WalkForwardListToolbar({ filter, onChange, onReset, onRefresh }:
         </FormControl>
 
         <Button
-          color="inherit"
           variant="outlined"
           startIcon={
             <Iconify
@@ -160,7 +159,6 @@ export function WalkForwardListToolbar({ filter, onChange, onReset, onRefresh }:
           重置
         </Button>
         <Button
-          color="inherit"
           variant="outlined"
           startIcon={<Iconify icon="solar:refresh-bold" width={16} />}
           onClick={onRefresh}

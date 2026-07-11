@@ -21,7 +21,6 @@ import CardContent from '@mui/material/CardContent';
 import FormControl from '@mui/material/FormControl';
 import TableContainer from '@mui/material/TableContainer';
 import LinearProgress from '@mui/material/LinearProgress';
-import CircularProgress from '@mui/material/CircularProgress';
 
 import { createParamSensitivity, getParamSensitivityResult } from 'src/api/backtest';
 
@@ -288,8 +287,8 @@ export function BacktestParamSensitivityPanel({ runId }: BacktestParamSensitivit
             <Button
               variant="contained"
               onClick={handleSubmit}
+              loading={submitting}
               disabled={submitting || polling || Object.keys(paramSpace).length === 0}
-              startIcon={submitting ? <CircularProgress size={16} color="inherit" /> : undefined}
             >
               {submitting ? '提交中…' : '提交扫描'}
             </Button>

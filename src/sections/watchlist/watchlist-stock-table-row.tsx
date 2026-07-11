@@ -108,12 +108,14 @@ export function WatchlistStockTableRow({
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Checkbox checked={selected} onChange={() => onSelect(row.id)} size="small" />
             {hasDetail && (
-              <IconButton size="small" onClick={() => setOpen((v) => !v)}>
-                <Iconify
-                  icon={open ? 'solar:alt-arrow-up-bold' : 'solar:alt-arrow-down-bold'}
-                  width={14}
-                />
-              </IconButton>
+              <Tooltip title="展开行">
+                <IconButton aria-label="展开行" size="small" onClick={() => setOpen((v) => !v)}>
+                  <Iconify
+                    icon={open ? 'solar:alt-arrow-up-bold' : 'solar:alt-arrow-down-bold'}
+                    width={14}
+                  />
+                </IconButton>
+              </Tooltip>
             )}
           </Box>
         </TableCell>
@@ -208,12 +210,17 @@ export function WatchlistStockTableRow({
               </Tooltip>
             )}
             <Tooltip title="编辑">
-              <IconButton size="small" onClick={() => onEdit(row)}>
+              <IconButton size="small" onClick={() => onEdit(row)} aria-label="编辑">
                 <Iconify icon="solar:pen-bold" width={16} />
               </IconButton>
             </Tooltip>
             <Tooltip title="从自选组移除">
-              <IconButton size="small" sx={{ color: 'error.main' }} onClick={() => onRemove(row)}>
+              <IconButton
+                size="small"
+                color="error"
+                onClick={() => onRemove(row)}
+                aria-label="从自选组移除"
+              >
                 <Iconify icon="solar:trash-bin-trash-bold" width={16} />
               </IconButton>
             </Tooltip>

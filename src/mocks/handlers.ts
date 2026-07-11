@@ -344,7 +344,7 @@ const routeMap: Record<string, unknown> = {
   '/api/report/strategy-research': ok({ id: 'mock-report-4', status: 'PENDING' }),
   '/api/report/detail': ok(null),
   '/api/report/delete': ok({ success: true }),
-  '/api/report/schedules/list': ok({ schedules: [] }),
+  '/api/report/schedules/list': ok({ items: [], total: 0 }),
   '/api/report/schedules': ok({ id: 'mock-sched-1' }),
   '/api/report/schedules/update': ok({ success: true }),
   '/api/report/schedules/delete': ok({ success: true }),

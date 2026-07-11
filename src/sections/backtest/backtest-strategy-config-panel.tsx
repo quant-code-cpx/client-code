@@ -185,10 +185,10 @@ function ScreeningRotationPanel({
             if (v) onChange({ ...config, rankOrder: v as 'asc' | 'desc' });
           }}
         >
-          <ToggleButton value="desc" sx={{ px: 2 }}>
+          <ToggleButton value="desc">
             高→低
           </ToggleButton>
-          <ToggleButton value="asc" sx={{ px: 2 }}>
+          <ToggleButton value="asc">
             低→高
           </ToggleButton>
         </ToggleButtonGroup>
@@ -262,10 +262,10 @@ function FactorRankingPanel({
             if (v) onChange({ ...config, rankOrder: v as 'asc' | 'desc' });
           }}
         >
-          <ToggleButton value="desc" sx={{ px: 2 }}>
+          <ToggleButton value="desc">
             高因子优先
           </ToggleButton>
-          <ToggleButton value="asc" sx={{ px: 2 }}>
+          <ToggleButton value="asc">
             低因子优先
           </ToggleButton>
         </ToggleButtonGroup>
@@ -401,10 +401,10 @@ function CustomPoolPanel({
             if (v) onChange({ ...config, tsCodes, weightMode: v as 'EQUAL' | 'CUSTOM' });
           }}
         >
-          <ToggleButton value="EQUAL" sx={{ px: 2 }}>
+          <ToggleButton value="EQUAL">
             等权
           </ToggleButton>
-          <ToggleButton value="CUSTOM" sx={{ px: 2 }}>
+          <ToggleButton value="CUSTOM">
             自定义权重
           </ToggleButton>
         </ToggleButtonGroup>

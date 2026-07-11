@@ -5,6 +5,7 @@ import Stack from '@mui/material/Stack';
 import Dialog from '@mui/material/Dialog';
 import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
+import Tooltip from '@mui/material/Tooltip';
 import TextField from '@mui/material/TextField';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
@@ -91,9 +92,16 @@ export function ScreeningPresetDialog({ open, presets, onClose, onSave, onLoad, 
                   >
                     加载
                   </Button>
-                  <IconButton size="small" color="error" onClick={() => onRemove(p.id)}>
-                    <Iconify icon="eva:trash-2-outline" width={18} />
-                  </IconButton>
+                  <Tooltip title="移除方案">
+                    <IconButton
+                      size="small"
+                      color="error"
+                      onClick={() => onRemove(p.id)}
+                      aria-label="移除方案"
+                    >
+                      <Iconify icon="solar:trash-bin-trash-bold" width={18} />
+                    </IconButton>
+                  </Tooltip>
                 </Stack>
               ))}
             </Stack>
@@ -101,7 +109,9 @@ export function ScreeningPresetDialog({ open, presets, onClose, onSave, onLoad, 
         </Stack>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>关闭</Button>
+        <Button color="inherit" onClick={onClose}>
+          关闭
+        </Button>
       </DialogActions>
     </Dialog>
   );

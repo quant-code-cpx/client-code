@@ -7,6 +7,7 @@ import Box from '@mui/material/Box';
 import Slide from '@mui/material/Slide';
 import Input from '@mui/material/Input';
 import Button from '@mui/material/Button';
+import Tooltip from '@mui/material/Tooltip';
 import { useTheme } from '@mui/material/styles';
 import IconButton from '@mui/material/IconButton';
 import InputAdornment from '@mui/material/InputAdornment';
@@ -33,9 +34,11 @@ export function Searchbar({ sx, ...other }: BoxProps) {
     <ClickAwayListener onClickAway={handleClose}>
       <div>
         {!open && (
-          <IconButton onClick={handleOpen}>
-            <Iconify icon="eva:search-fill" />
-          </IconButton>
+          <Tooltip title="搜索">
+            <IconButton aria-label="搜索" onClick={handleOpen}>
+              <Iconify icon="eva:search-fill" />
+            </IconButton>
+          </Tooltip>
         )}
 
         <Slide direction="down" in={open} mountOnEnter unmountOnExit>

@@ -15,7 +15,6 @@ import TableHead from '@mui/material/TableHead';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 import TableContainer from '@mui/material/TableContainer';
-import CircularProgress from '@mui/material/CircularProgress';
 
 import { analyzeCostSensitivity } from 'src/api/backtest';
 
@@ -119,8 +118,8 @@ export function BacktestCostSensitivityPanel({ runId }: BacktestCostSensitivityP
         <Button
           variant="contained"
           onClick={handleRun}
+          loading={loading}
           disabled={loading}
-          startIcon={loading ? <CircularProgress size={16} color="inherit" /> : undefined}
         >
           {loading ? '分析中…' : '运行分析'}
         </Button>

@@ -82,7 +82,7 @@ export function PortfolioEditDialog({
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose} disabled={submitting}>
+        <Button color="inherit" onClick={onClose} disabled={submitting}>
           取消
         </Button>
         <Button

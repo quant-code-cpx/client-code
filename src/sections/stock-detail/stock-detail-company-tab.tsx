@@ -96,7 +96,7 @@ export function StockDetailCompanyTab({ tsCode, overview, loading }: Props) {
           <Divider sx={{ mb: 2 }} />
           {loading ? (
             <Box sx={{ color: 'text.secondary' }}>
-              <Typography variant="body2">加载中...</Typography>
+        <Typography variant="body2">加载中…</Typography>
             </Box>
           ) : (
             <Typography variant="body2" sx={{ lineHeight: 1.8, color: 'text.secondary' }}>

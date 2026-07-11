@@ -3,9 +3,9 @@ import type { IconifyName } from 'src/components/iconify/register-icons';
 
 import { useState, useEffect } from 'react';
 
+import Box from '@mui/material/Box';
 import Tooltip from '@mui/material/Tooltip';
 import { keyframes } from '@mui/material/styles';
-import IconButton from '@mui/material/IconButton';
 
 import { getSocketStatus, onSocketStatusChange } from 'src/lib/socket';
 
@@ -17,7 +17,7 @@ const spin = keyframes`from { transform: rotate(0deg); } to { transform: rotate(
 
 const STATUS_CONFIG: Record<SocketStatus, { icon: IconifyName; color: string; label: string }> = {
   connected: { icon: 'solar:plug-circle-bold', color: 'success.main', label: '已连接' },
-  reconnecting: { icon: 'solar:refresh-circle-bold', color: 'warning.main', label: '重连中...' },
+  reconnecting: { icon: 'solar:refresh-circle-bold', color: 'warning.main', label: '重连中…' },
   disconnected: { icon: 'solar:plug-circle-bold', color: 'error.main', label: '已断开' },
 };
 
@@ -30,13 +30,31 @@ export function WsStatusIndicator() {
 
   return (
     <Tooltip title={`WebSocket: ${cfg.label}`}>
-      <IconButton size="small" sx={{ color: cfg.color }}>
+      <Box
+        component="span"
+        sx={{
+          width: 32,
+          height: 32,
+          color: cfg.color,
+          flexShrink: 0,
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
         <Iconify
           icon={cfg.icon}
           width={20}
-          sx={status === 'reconnecting' ? { animation: `${spin} 1s linear infinite` } : undefined}
+          sx={
+            status === 'reconnecting'
+              ? {
+                  animation: `${spin} 1s linear infinite`,
+                  '@media (prefers-reduced-motion: reduce)': { animation: 'none' },
+                }
+              : undefined
+          }
         />
-      </IconButton>
+      </Box>
     </Tooltip>
   );
 }

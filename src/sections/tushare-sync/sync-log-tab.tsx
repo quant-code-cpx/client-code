@@ -12,6 +12,7 @@ import Drawer from '@mui/material/Drawer';
 import Select from '@mui/material/Select';
 import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
+import Tooltip from '@mui/material/Tooltip';
 import Skeleton from '@mui/material/Skeleton';
 import MenuItem from '@mui/material/MenuItem';
 import TableRow from '@mui/material/TableRow';
@@ -392,9 +393,11 @@ export function SyncLogTab({ refreshKey = 0 }: Props) {
                 {payloadDrawer?.task ?? '—'}
               </Typography>
             </Box>
-            <IconButton onClick={() => setPayloadDrawer(null)} aria-label="关闭 payload 抽屉">
-              <Iconify icon="solar:close-circle-bold" />
-            </IconButton>
+            <Tooltip title="关闭 payload 抽屉">
+              <IconButton onClick={() => setPayloadDrawer(null)} aria-label="关闭 payload 抽屉">
+                <Iconify icon="solar:close-circle-bold" />
+              </IconButton>
+            </Tooltip>
           </Stack>
           <Divider sx={{ mb: 2 }} />
           <Box

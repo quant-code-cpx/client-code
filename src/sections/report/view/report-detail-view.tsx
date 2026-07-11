@@ -156,27 +156,27 @@ export function ReportDetailView() {
   const headerActions = (
     <Stack direction="row" spacing={0.5} className="report-detail-toolbar">
       <Tooltip title="复制链接">
-        <IconButton size="small" onClick={handleCopyLink}>
+        <IconButton size="small" aria-label="复制链接" onClick={handleCopyLink}>
           <Iconify icon="solar:copy-bold" />
         </IconButton>
       </Tooltip>
       <Tooltip title="分享">
-        <IconButton size="small" onClick={() => setShareOpen(true)}>
+        <IconButton size="small" aria-label="分享" onClick={() => setShareOpen(true)}>
           <Iconify icon="solar:share-bold" />
         </IconButton>
       </Tooltip>
       <Tooltip title="打印">
-        <IconButton size="small" onClick={handlePrint} disabled={!isCompleted}>
+        <IconButton size="small" aria-label="打印" onClick={handlePrint} disabled={!isCompleted}>
           <Iconify icon="solar:file-text-bold" />
         </IconButton>
       </Tooltip>
       <Tooltip title="重新生成">
-        <IconButton size="small" onClick={handleRegenerate} disabled={retrying || isInProgress}>
+        <IconButton size="small" aria-label="重新生成" onClick={handleRegenerate} disabled={retrying || isInProgress}>
           <Iconify icon="solar:refresh-bold" />
         </IconButton>
       </Tooltip>
       <Tooltip title={notesOpen ? '隐藏笔记' : '显示笔记'}>
-        <IconButton size="small" onClick={() => setNotesOpen((v) => !v)}>
+        <IconButton size="small" aria-label={notesOpen ? '隐藏笔记' : '显示笔记'} onClick={() => setNotesOpen((v) => !v)}>
           <Iconify icon="solar:notebook-bold-duotone" />
         </IconButton>
       </Tooltip>

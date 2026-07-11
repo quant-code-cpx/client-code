@@ -486,9 +486,22 @@ export type UpdateScheduleBody = Partial<CreateScheduleBody> & {
   enabled?: boolean;
 };
 
+export type ReportScheduleListResult = {
+  items: ReportSchedule[];
+  total: number;
+};
+
 /** 查询定时报告列表 */
-export function listSchedules() {
-  return apiClient.post<ReportSchedule[]>('/api/report/schedules/list', {});
+export async function listSchedules(): Promise<ReportSchedule[]> {
+  const result = await apiClient.post<ReportSchedule[] | ReportScheduleListResult>(
+    '/api/report/schedules/list',
+    {}
+  );
+
+  if (Array.isArray(result)) return result;
+  if (result && Array.isArray(result.items)) return result.items;
+
+  throw new Error('定时报告列表响应格式错误');
 }
 
 /** 创建定时报告 */

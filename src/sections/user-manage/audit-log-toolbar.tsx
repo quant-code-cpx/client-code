@@ -144,7 +144,6 @@ export function AuditLogToolbar({
 
       <Button
         variant="outlined"
-        color="inherit"
         onClick={() => {
           const today = dayjs().format('YYYY-MM-DD');
           onStartDate(today);
@@ -156,7 +155,6 @@ export function AuditLogToolbar({
 
       <Button
         variant="outlined"
-        color="inherit"
         onClick={() => {
           onStartDate(dayjs().subtract(6, 'day').format('YYYY-MM-DD'));
           onEndDate(dayjs().format('YYYY-MM-DD'));
@@ -167,7 +165,6 @@ export function AuditLogToolbar({
 
       <Button
         variant="outlined"
-        color="inherit"
         onClick={() => {
           onStartDate(dayjs().subtract(29, 'day').format('YYYY-MM-DD'));
           onEndDate(dayjs().format('YYYY-MM-DD'));

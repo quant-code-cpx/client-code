@@ -3,6 +3,7 @@ import { varAlpha } from 'minimal-shared/utils';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
+import Tooltip from '@mui/material/Tooltip';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import LinearProgress from '@mui/material/LinearProgress';
@@ -70,9 +71,13 @@ export function BulkActionBar({
         >
           批量禁用
         </Button>
-        <IconButton size="small" disabled={submitting} onClick={onClear} aria-label="清空选择">
-          <Iconify icon="mingcute:close-line" width={18} />
-        </IconButton>
+        <Tooltip title="清空选择">
+          <span>
+            <IconButton size="small" disabled={submitting} onClick={onClear} aria-label="清空选择">
+              <Iconify icon="solar:close-circle-bold" width={18} />
+            </IconButton>
+          </span>
+        </Tooltip>
       </Stack>
     </Box>
   );

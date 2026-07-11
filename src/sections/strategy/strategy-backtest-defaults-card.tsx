@@ -217,7 +217,7 @@ export function StrategyBacktestDefaultsCard({
             </FormControl>
 
             <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
-              <Button variant="outlined" onClick={handleCancel} disabled={saving}>
+              <Button variant="text" color="inherit" onClick={handleCancel} disabled={saving}>
                 取消
               </Button>
               <Button variant="contained" onClick={handleSave} loading={saving}>

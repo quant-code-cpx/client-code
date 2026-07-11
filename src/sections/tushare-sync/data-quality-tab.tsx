@@ -13,13 +13,13 @@ import { useState, useEffect, useCallback } from 'react';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Alert from '@mui/material/Alert';
+import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
 import Tooltip from '@mui/material/Tooltip';
 import Snackbar from '@mui/material/Snackbar';
 import Accordion from '@mui/material/Accordion';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
-import LoadingButton from '@mui/lab/LoadingButton';
 import ToggleButton from '@mui/material/ToggleButton';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
@@ -301,7 +301,7 @@ export function DataQualityTab({ isReadOnly = false, refreshKey = 0 }: Props) {
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3, flexWrap: 'wrap' }}>
             <Tooltip title={isReadOnly ? READ_ONLY_TOOLTIP : ''}>
               <span>
-                <LoadingButton
+                <Button
                   loading={checkTriggering}
                   variant="outlined"
                   size="small"
@@ -310,7 +310,7 @@ export function DataQualityTab({ isReadOnly = false, refreshKey = 0 }: Props) {
                   onClick={handleTriggerCheck}
                 >
                   触发质量检查
-                </LoadingButton>
+                </Button>
               </span>
             </Tooltip>
 

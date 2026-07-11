@@ -30,9 +30,44 @@ const MuiButton: Components<Theme>['MuiButton'] = {
         backgroundColor: theme.vars.palette.grey[800],
       },
     }),
+    sizeSmall: {
+      minHeight: 32,
+    },
+    sizeMedium: {
+      minHeight: 40,
+    },
     sizeLarge: {
       minHeight: 48,
     },
+  },
+};
+
+const MuiIconButton: Components<Theme>['MuiIconButton'] = {
+  styleOverrides: {
+    sizeSmall: {
+      width: 32,
+      height: 32,
+    },
+    sizeMedium: {
+      width: 40,
+      height: 40,
+    },
+  },
+};
+
+const MuiToggleButton: Components<Theme>['MuiToggleButton'] = {
+  styleOverrides: {
+    sizeSmall: {
+      minHeight: 32,
+      fontSize: '0.75rem',
+      padding: '0 12px',
+    },
+  },
+};
+
+const MuiToggleButtonGroup: Components<Theme>['MuiToggleButtonGroup'] = {
+  defaultProps: {
+    color: 'primary',
   },
 };
 
@@ -181,8 +216,11 @@ export const components = {
   MuiRadio,
   MuiButton,
   MuiBackdrop,
+  MuiIconButton,
   MuiMenuItem,
   MuiCheckbox,
+  MuiToggleButton,
+  MuiToggleButtonGroup,
   MuiDatePicker,
   MuiTableCell,
   MuiCardHeader,

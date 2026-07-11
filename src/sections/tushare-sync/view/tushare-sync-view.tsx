@@ -140,7 +140,11 @@ export function TushareSyncView() {
               </Button>
             </span>
           </Tooltip>
-          <Button size="small" variant="outlined" onClick={() => setAuditOpen(true)}>
+          <Button
+            size="small"
+            variant="outlined"
+            onClick={() => setAuditOpen(true)}
+          >
             审计
           </Button>
         </Stack>
@@ -187,9 +191,11 @@ export function TushareSyncView() {
         <Box sx={{ width: 360, p: 3 }}>
           <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
             <Typography variant="h6">操作审计流水</Typography>
-            <IconButton onClick={() => setAuditOpen(false)} aria-label="关闭审计抽屉">
-              <Iconify icon="solar:close-circle-bold" />
-            </IconButton>
+            <Tooltip title="关闭审计抽屉">
+              <IconButton onClick={() => setAuditOpen(false)} aria-label="关闭审计抽屉">
+                <Iconify icon="solar:close-circle-bold" />
+              </IconButton>
+            </Tooltip>
           </Stack>
           <Divider sx={{ mb: 2 }} />
           <Alert severity="info">

@@ -6,6 +6,7 @@ import Stack from '@mui/material/Stack';
 import Drawer from '@mui/material/Drawer';
 import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
+import Tooltip from '@mui/material/Tooltip';
 import { useTheme } from '@mui/material/styles';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
@@ -64,9 +65,11 @@ export function AlertLimitStockDrawer({ open, item, onClose, onCreateAlert }: Pr
               {item.industry ? ` · ${item.industry}` : ''}
             </Typography>
           </Box>
-          <IconButton onClick={onClose} size="small">
-            <Iconify icon="solar:close-circle-bold" />
-          </IconButton>
+          <Tooltip title="关闭">
+            <IconButton onClick={onClose} size="small" aria-label="关闭">
+              <Iconify icon="solar:close-circle-bold" />
+            </IconButton>
+          </Tooltip>
         </Stack>
         <Divider />
 

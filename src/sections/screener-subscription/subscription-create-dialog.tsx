@@ -167,7 +167,7 @@ export function SubscriptionCreateDialog({
               onChange={(e) => setStrategyId(e.target.value === '' ? '' : Number(e.target.value))}
               disabled={loading || strategiesLoading}
               helperText={
-                strategiesLoading ? '加载中...' : strategies.length === 0 ? '暂无已保存策略' : ''
+                strategiesLoading ? '加载中…' : strategies.length === 0 ? '暂无已保存策略' : ''
               }
             >
               {strategies.map((s) => (
@@ -238,11 +238,11 @@ export function SubscriptionCreateDialog({
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={handleClose} disabled={loading}>
+        <Button color="inherit" onClick={handleClose} disabled={loading}>
           取消
         </Button>
         <Button variant="contained" onClick={handleSubmit} disabled={loading}>
-          {loading ? '创建中...' : '创建'}
+            {loading ? '创建中…' : '创建'}
         </Button>
       </DialogActions>
     </Dialog>

@@ -5,12 +5,12 @@ import { useRef, useState, useEffect, useCallback } from 'react';
 import Box from '@mui/material/Box';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
+import Tooltip from '@mui/material/Tooltip';
 import Skeleton from '@mui/material/Skeleton';
 import TextField from '@mui/material/TextField';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import InputAdornment from '@mui/material/InputAdornment';
-import CircularProgress from '@mui/material/CircularProgress';
 
 import { useRouter } from 'src/routes/hooks';
 
@@ -228,9 +228,15 @@ export function SignInView() {
             input: {
               endAdornment: (
                 <InputAdornment position="end">
-                  <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
-                    <Iconify icon={showPassword ? 'solar:eye-bold' : 'solar:eye-closed-bold'} />
-                  </IconButton>
+                  <Tooltip title="显示密码">
+                    <IconButton
+                      aria-label="显示密码"
+                      onClick={() => setShowPassword(!showPassword)}
+                      edge="end"
+                    >
+                      <Iconify icon={showPassword ? 'solar:eye-bold' : 'solar:eye-closed-bold'} />
+                    </IconButton>
+                  </Tooltip>
                 </InputAdornment>
               ),
             },
@@ -246,11 +252,11 @@ export function SignInView() {
           type="submit"
           color="primary"
           variant="contained"
+          loading={submitting}
           disabled={submitting}
           onClick={handleSignIn}
-          startIcon={submitting ? <CircularProgress size={16} color="inherit" /> : null}
         >
-          {submitting ? '登录中...' : '登 录'}
+              {submitting ? '登录中…' : '登 录'}
         </Button>
       </Box>
     </>

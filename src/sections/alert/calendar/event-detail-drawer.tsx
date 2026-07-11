@@ -11,6 +11,7 @@ import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Drawer from '@mui/material/Drawer';
 import Divider from '@mui/material/Divider';
+import Tooltip from '@mui/material/Tooltip';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -101,9 +102,11 @@ export function EventDetailDrawer({ open, event, onClose, onSubscribe }: Props) 
           事件详情
         </Typography>
         <Box sx={{ flexGrow: 1 }} />
-        <IconButton size="small" onClick={onClose}>
-          <Iconify icon="mingcute:close-line" width={18} />
-        </IconButton>
+        <Tooltip title="关闭">
+          <IconButton size="small" onClick={onClose} aria-label="关闭">
+            <Iconify icon="solar:close-circle-bold" width={18} />
+          </IconButton>
+        </Tooltip>
       </Stack>
 
       <Box sx={{ p: 2.5, overflow: 'auto', flexGrow: 1 }}>

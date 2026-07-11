@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
+import Tooltip from '@mui/material/Tooltip';
 import Skeleton from '@mui/material/Skeleton';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
@@ -139,9 +140,16 @@ export function StockDetailHeader({ tsCode, overview, loading }: Props) {
     <Box sx={{ mb: 3 }}>
       {/* 股票名称 + 代码 */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap', mb: 1 }}>
-        <IconButton onClick={() => navigate(-1)} size="small" sx={{ mr: 0.5 }}>
-          <Iconify icon="eva:arrow-back-fill" width={22} />
-        </IconButton>
+        <Tooltip title="返回上一层">
+          <IconButton
+            aria-label="返回上一层"
+            onClick={() => navigate(-1)}
+            size="small"
+            sx={{ mr: 0.5 }}
+          >
+            <Iconify icon="eva:arrow-back-fill" width={22} />
+          </IconButton>
+        </Tooltip>
         <Typography variant="h4">{name}</Typography>
         <Typography variant="body1" sx={{ color: 'text.secondary' }}>
           {tsCode}

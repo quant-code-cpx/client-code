@@ -193,9 +193,15 @@ export function StrategyCard({
           </Button>
         </Box>
 
-        <IconButton size="small" onClick={(e) => onMenuOpen(e, strategy.id)} aria-label="更多操作">
-          <Iconify icon="eva:more-vertical-fill" width={18} />
-        </IconButton>
+        <Tooltip title="更多操作">
+          <IconButton
+            size="small"
+            onClick={(e) => onMenuOpen(e, strategy.id)}
+            aria-label="更多操作"
+          >
+            <Iconify icon="eva:more-vertical-fill" width={18} />
+          </IconButton>
+        </Tooltip>
       </CardActions>
 
       {/* More actions menu */}

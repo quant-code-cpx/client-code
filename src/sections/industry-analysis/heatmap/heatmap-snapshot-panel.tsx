@@ -179,7 +179,9 @@ function SnapshotPanelInner() {
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setConfirmOpen(false)}>取消</Button>
+          <Button color="inherit" onClick={() => setConfirmOpen(false)}>
+            取消
+          </Button>
           <Button variant="contained" color="warning" onClick={handleTriggerConfirm}>
             确认触发
           </Button>

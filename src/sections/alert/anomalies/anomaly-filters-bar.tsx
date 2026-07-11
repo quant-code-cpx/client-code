@@ -108,6 +108,7 @@ export function AnomalyFiltersBar({ filter, onChange, onReset }: Props) {
         >
           <IconButton
             size="small"
+            aria-label="切换排序"
             onClick={() => onChange({ sortOrder: filter.sortOrder === 'desc' ? 'asc' : 'desc' })}
           >
             <Iconify
@@ -124,7 +125,7 @@ export function AnomalyFiltersBar({ filter, onChange, onReset }: Props) {
         <Box sx={{ flex: 1 }} />
 
         <Tooltip title="清空筛选">
-          <IconButton size="small" onClick={onReset}>
+          <IconButton size="small" onClick={onReset} aria-label="清空筛选">
             <Iconify icon="solar:restart-bold" width={18} />
           </IconButton>
         </Tooltip>

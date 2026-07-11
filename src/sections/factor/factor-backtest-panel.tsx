@@ -274,7 +274,7 @@ export function FactorBacktestPanel({ factorName, params }: FactorBacktestPanelP
                 onClick={handleSaveAsStrategy}
                 disabled={saving || !strategyName.trim()}
               >
-                {saving ? '保存中...' : '保存为策略'}
+          {saving ? '保存中…' : '保存为策略'}
               </Button>
             </Box>
             {saveMsg && (

@@ -9,6 +9,7 @@ import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Select from '@mui/material/Select';
 import Divider from '@mui/material/Divider';
+import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
 import Skeleton from '@mui/material/Skeleton';
 import IconButton from '@mui/material/IconButton';
@@ -151,9 +152,11 @@ export function StrategyVersionCard({ strategyId }: StrategyVersionCardProps) {
           title="版本历史"
           titleTypographyProps={{ variant: 'subtitle1' }}
           action={
-            <IconButton size="small" onClick={fetchVersions}>
-              <Iconify icon="solar:refresh-bold" />
-            </IconButton>
+            <Tooltip title="刷新版本列表">
+              <IconButton size="small" onClick={fetchVersions} aria-label="刷新版本列表">
+                <Iconify icon="solar:refresh-bold" />
+              </IconButton>
+            </Tooltip>
           }
         />
         <Divider />

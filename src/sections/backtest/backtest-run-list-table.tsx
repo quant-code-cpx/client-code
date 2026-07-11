@@ -466,13 +466,15 @@ export function BacktestRunListTable({
                             >
                               查看
                             </Button>
-                            <IconButton
-                              size="small"
-                              aria-label={`打开 ${item.name ?? item.runId} 操作菜单`}
-                              onClick={(event) => openMenu(event, item)}
-                            >
-                              <Iconify icon="solar:menu-dots-bold" width={18} />
-                            </IconButton>
+                            <Tooltip title={`打开 ${item.name ?? item.runId} 操作菜单`}>
+                              <IconButton
+                                size="small"
+                                aria-label={`打开 ${item.name ?? item.runId} 操作菜单`}
+                                onClick={(event) => openMenu(event, item)}
+                              >
+                                <Iconify icon="solar:menu-dots-bold" width={18} />
+                              </IconButton>
+                            </Tooltip>
                           </Box>
                         </TableCell>
                       </TableRow>

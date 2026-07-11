@@ -286,7 +286,7 @@ export function ReportListView() {
                 }
               />
               <Tooltip title="刷新">
-                <IconButton size="small" onClick={fetchList} disabled={loading}>
+                <IconButton size="small" onClick={fetchList} disabled={loading} aria-label="刷新">
                   <Iconify icon="solar:refresh-bold" />
                 </IconButton>
               </Tooltip>
@@ -374,24 +374,26 @@ export function ReportListView() {
                             <Tooltip title="查看">
                               <IconButton
                                 size="small"
+                                aria-label="查看"
                                 onClick={() => router.push(paths.research.report.detail(row.id))}
                               >
                                 <Iconify icon="solar:eye-bold" width={18} />
                               </IconButton>
                             </Tooltip>
                             <Tooltip title="复制链接">
-                              <IconButton size="small" onClick={() => handleCopyLink(row)}>
+                              <IconButton size="small" aria-label="复制链接" onClick={() => handleCopyLink(row)}>
                                 <Iconify icon="solar:copy-bold" width={18} />
                               </IconButton>
                             </Tooltip>
                             <Tooltip title="分享">
-                              <IconButton size="small" onClick={() => setShareTarget(row)}>
+                              <IconButton size="small" aria-label="分享" onClick={() => setShareTarget(row)}>
                                 <Iconify icon="solar:share-bold" width={18} />
                               </IconButton>
                             </Tooltip>
                             <Tooltip title="重新生成">
                               <IconButton
                                 size="small"
+                                aria-label="重新生成"
                                 disabled={row.status === 'GENERATING' || row.status === 'PENDING'}
                                 onClick={() => handleRegenerate(row)}
                               >
@@ -401,6 +403,7 @@ export function ReportListView() {
                             <Tooltip title="删除">
                               <IconButton
                                 size="small"
+                                aria-label="删除"
                                 color="error"
                                 onClick={() => setDeleteTarget(row)}
                               >

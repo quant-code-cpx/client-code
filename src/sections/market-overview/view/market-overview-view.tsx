@@ -130,9 +130,9 @@ export function MarketOverviewView() {
           />
           <Tooltip title="刷新数据">
             <IconButton
-              size="small"
+              size="medium"
               onClick={handleRefresh}
-              sx={{ width: CONTROL_HEIGHT, height: CONTROL_HEIGHT }}
+              aria-label="刷新数据"
             >
               <Iconify icon="solar:refresh-bold" width={20} />
             </IconButton>

@@ -131,7 +131,11 @@ export function PortfolioHoldingTab({
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDeleteHolding(null)} disabled={deleteSubmitting}>
+          <Button
+            color="inherit"
+            onClick={() => setDeleteHolding(null)}
+            disabled={deleteSubmitting}
+          >
             取消
           </Button>
           <Button

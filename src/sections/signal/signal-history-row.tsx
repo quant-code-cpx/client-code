@@ -5,6 +5,7 @@ import { varAlpha } from 'minimal-shared/utils';
 
 import Box from '@mui/material/Box';
 import Link from '@mui/material/Link';
+import Tooltip from '@mui/material/Tooltip';
 import TableRow from '@mui/material/TableRow';
 import Collapse from '@mui/material/Collapse';
 import TableCell from '@mui/material/TableCell';
@@ -134,15 +135,17 @@ export function SignalHistoryRow({
           <SignalReturnText value={getExcessReturn(signal, forwardWindow)} />
         </TableCell>
         <TableCell align="right">
-          <IconButton
-            component={RouterLink}
-            href={stockHref}
-            size="small"
-            aria-label={`打开 ${signal.stockName} 个股详情`}
-            onClick={(event) => event.stopPropagation()}
-          >
-            <Iconify icon="solar:arrow-right-bold" width={16} />
-          </IconButton>
+          <Tooltip title={`打开 ${signal.stockName} 个股详情`}>
+            <IconButton
+              component={RouterLink}
+              href={stockHref}
+              size="small"
+              aria-label={`打开 ${signal.stockName} 个股详情`}
+              onClick={(event) => event.stopPropagation()}
+            >
+              <Iconify icon="solar:arrow-right-bold" width={16} />
+            </IconButton>
+          </Tooltip>
         </TableCell>
       </TableRow>
 

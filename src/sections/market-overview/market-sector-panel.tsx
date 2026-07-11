@@ -212,15 +212,6 @@ export function MarketSectorPanel({ tradeDate, refreshKey }: Props) {
               exclusive
               value={viewDim}
               onChange={(_, v) => v && setViewDim(v)}
-              sx={{
-                '& .MuiToggleButton-root': {
-                  px: 1,
-                  py: 0.25,
-                  fontSize: 12,
-                  fontWeight: 600,
-                  border: `1px solid ${varAlpha(theme.vars.palette.grey['500Channel'], 0.2)}`,
-                },
-              }}
             >
               <ToggleButton value="pct_change">涨跌幅</ToggleButton>
               <ToggleButton value="net_amount">净流入</ToggleButton>

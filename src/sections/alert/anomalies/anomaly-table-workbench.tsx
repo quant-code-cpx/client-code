@@ -339,13 +339,14 @@ export function AnomalyTableWorkbench({
                       <TableCell align="center">
                         <Stack direction="row" spacing={0.5} justifyContent="center">
                           <Tooltip title="查看证据链">
-                            <IconButton size="small" onClick={() => onOpenDetail(item)}>
+                            <IconButton size="small" aria-label="查看证据链" onClick={() => onOpenDetail(item)}>
                               <Iconify icon="solar:eye-bold" width={16} />
                             </IconButton>
                           </Tooltip>
                           <Tooltip title="打开个股详情">
                             <IconButton
                               size="small"
+                              aria-label="打开个股详情"
                               component={RouterLink}
                               href={`/stock/detail?code=${encodeURIComponent(item.tsCode)}`}
                             >

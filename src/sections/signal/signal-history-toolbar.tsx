@@ -203,7 +203,6 @@ export function SignalHistoryToolbar({
           component={RouterLink}
           href={compareHref}
           variant="outlined"
-          color="inherit"
           startIcon={<Iconify icon="solar:copy-bold" />}
         >
           对比策略

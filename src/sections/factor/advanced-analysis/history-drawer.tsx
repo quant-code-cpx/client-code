@@ -4,6 +4,7 @@ import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Drawer from '@mui/material/Drawer';
+import Tooltip from '@mui/material/Tooltip';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 
@@ -48,9 +49,11 @@ export function HistoryDrawer({ open, onClose, items, onRestore, onClear, onRemo
               清空
             </Button>
           )}
-          <IconButton onClick={onClose}>
-            <Iconify icon="mingcute:close-line" />
-          </IconButton>
+          <Tooltip title="关闭">
+            <IconButton onClick={onClose} aria-label="关闭">
+              <Iconify icon="solar:close-circle-bold" />
+            </IconButton>
+          </Tooltip>
         </Stack>
       </Stack>
       <Box sx={{ px: 2, pb: 2 }}>
@@ -91,15 +94,18 @@ export function HistoryDrawer({ open, onClose, items, onRestore, onClear, onRemo
                     {item.status === 'success' ? '成功' : '失败'}
                   </Label>
                 </Stack>
-                <IconButton
-                  size="small"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onRemove(item.id);
-                  }}
-                >
-                  <Iconify icon="solar:trash-bin-trash-bold" width={16} />
-                </IconButton>
+                <Tooltip title="删除历史记录">
+                  <IconButton
+                    size="small"
+                    aria-label="删除历史记录"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onRemove(item.id);
+                    }}
+                  >
+                    <Iconify icon="solar:trash-bin-trash-bold" width={16} />
+                  </IconButton>
+                </Tooltip>
               </Stack>
               <Typography variant="body2" sx={{ mb: 0.5 }}>
                 {item.summary}

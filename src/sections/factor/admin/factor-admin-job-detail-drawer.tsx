@@ -121,9 +121,11 @@ export function FactorAdminJobDetailDrawer({
       {/* Header */}
       <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
         <Typography variant="h6">任务详情</Typography>
-        <IconButton onClick={onClose} size="small">
-          <Iconify icon="solar:close-circle-bold" />
-        </IconButton>
+        <Tooltip title="关闭">
+          <IconButton onClick={onClose} size="small" aria-label="关闭">
+            <Iconify icon="solar:close-circle-bold" />
+          </IconButton>
+        </Tooltip>
       </Stack>
 
       {/* Basic info */}
@@ -311,7 +313,7 @@ export function FactorAdminJobDetailDrawer({
             </Button>
           </Tooltip>
         )}
-        <Button variant="outlined" color="inherit" onClick={onClose}>
+        <Button variant="text" color="inherit" onClick={onClose}>
           关闭
         </Button>
       </Stack>

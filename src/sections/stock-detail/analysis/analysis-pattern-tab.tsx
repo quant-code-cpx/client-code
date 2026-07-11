@@ -256,7 +256,7 @@ export function AnalysisPatternTab({ tsCode }: Props) {
                 disabled={subMode === 'template' ? !canSearchTemplate : !canSearchRange}
                 onClick={handleSearch}
               >
-                {loading ? '搜索中...' : '搜索'}
+          {loading ? '搜索中…' : '搜索'}
               </Button>
             </Box>
           </Stack>

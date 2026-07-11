@@ -103,7 +103,6 @@ export function FactorAdminBulkActionBar({
           <Button
             size="small"
             variant="outlined"
-            color="inherit"
             startIcon={<Iconify icon="solar:copy-bold" />}
             onClick={handleCopy}
           >

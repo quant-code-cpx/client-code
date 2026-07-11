@@ -55,7 +55,7 @@ export function SignalEmptyState({
         <Button
           component={RouterLink}
           href={historyHref}
-          variant="outlined"
+          variant="contained"
           startIcon={<Iconify icon="solar:history-bold" />}
         >
           查看信号历史
@@ -115,7 +115,7 @@ export function SignalEmptyState({
         </Typography>
         {onRetry && (
           <Button
-            variant="outlined"
+            variant="contained"
             onClick={onRetry}
             startIcon={<Iconify icon="solar:restart-bold" />}
           >

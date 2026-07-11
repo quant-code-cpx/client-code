@@ -104,7 +104,9 @@ export function AnomalyAddWatchlistDialog({ open, tsCodes, onClose, onSuccess }:
         </Stack>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>取消</Button>
+        <Button color="inherit" onClick={onClose}>
+          取消
+        </Button>
         <Button
           variant="contained"
           onClick={handleSubmit}

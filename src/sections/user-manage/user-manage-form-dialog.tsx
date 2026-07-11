@@ -13,6 +13,7 @@ import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import Select from '@mui/material/Select';
+import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
 import InputLabel from '@mui/material/InputLabel';
@@ -23,7 +24,6 @@ import FormControl from '@mui/material/FormControl';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import InputAdornment from '@mui/material/InputAdornment';
-import CircularProgress from '@mui/material/CircularProgress';
 
 import { usePermission } from 'src/permission';
 import { ROLE_LABEL } from 'src/api/user-manage';
@@ -245,14 +245,15 @@ export function UserManageFormDialog({
                   >
                     {createResult}
                   </Typography>
-                  <IconButton
-                    size="small"
-                    onClick={() => navigator.clipboard.writeText(createResult)}
-                    title="复制密码"
-                    aria-label="复制初始密码"
-                  >
-                    <Iconify icon="solar:copy-bold" width={18} />
-                  </IconButton>
+                  <Tooltip title="复制密码">
+                    <IconButton
+                      size="small"
+                      onClick={() => navigator.clipboard.writeText(createResult)}
+                      aria-label="复制初始密码"
+                    >
+                      <Iconify icon="solar:copy-bold" width={18} />
+                    </IconButton>
+                  </Tooltip>
                 </Box>
                 <Stack
                   direction="row"
@@ -303,7 +304,6 @@ export function UserManageFormDialog({
                 </FormControl>
                 <Button
                   variant="outlined"
-                  color="info"
                   onClick={handleGeneratePassword}
                   startIcon={<Iconify icon="solar:shield-keyhole-bold-duotone" />}
                 >
@@ -320,17 +320,19 @@ export function UserManageFormDialog({
                     input: {
                       endAdornment: (
                         <InputAdornment position="end">
-                          <IconButton
-                            size="small"
-                            edge="end"
-                            onClick={() => setShowPassword((v) => !v)}
-                            aria-label={showPassword ? '隐藏初始密码' : '显示初始密码'}
-                          >
-                            <Iconify
-                              icon={showPassword ? 'solar:eye-closed-bold' : 'solar:eye-bold'}
-                              width={20}
-                            />
-                          </IconButton>
+                          <Tooltip title={showPassword ? '隐藏初始密码' : '显示初始密码'}>
+                            <IconButton
+                              size="small"
+                              edge="end"
+                              onClick={() => setShowPassword((v) => !v)}
+                              aria-label={showPassword ? '隐藏初始密码' : '显示初始密码'}
+                            >
+                              <Iconify
+                                icon={showPassword ? 'solar:eye-closed-bold' : 'solar:eye-bold'}
+                                width={20}
+                              />
+                            </IconButton>
+                          </Tooltip>
                         </InputAdornment>
                       ),
                     },
@@ -347,17 +349,19 @@ export function UserManageFormDialog({
                     input: {
                       endAdornment: (
                         <InputAdornment position="end">
-                          <IconButton
-                            size="small"
-                            edge="end"
-                            onClick={() => setShowConfirm((v) => !v)}
-                            aria-label={showConfirm ? '隐藏确认密码' : '显示确认密码'}
-                          >
-                            <Iconify
-                              icon={showConfirm ? 'solar:eye-closed-bold' : 'solar:eye-bold'}
-                              width={20}
-                            />
-                          </IconButton>
+                          <Tooltip title={showConfirm ? '隐藏确认密码' : '显示确认密码'}>
+                            <IconButton
+                              size="small"
+                              edge="end"
+                              onClick={() => setShowConfirm((v) => !v)}
+                              aria-label={showConfirm ? '隐藏确认密码' : '显示确认密码'}
+                            >
+                              <Iconify
+                                icon={showConfirm ? 'solar:eye-closed-bold' : 'solar:eye-bold'}
+                                width={20}
+                              />
+                            </IconButton>
+                          </Tooltip>
                         </InputAdornment>
                       ),
                     },
@@ -407,7 +411,7 @@ export function UserManageFormDialog({
             variant="contained"
             onClick={handleSubmit}
             disabled={submitting}
-            startIcon={submitting ? <CircularProgress size={14} /> : null}
+            loading={submitting}
           >
             {isCreate ? '创建' : '保存'}
           </Button>

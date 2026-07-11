@@ -269,9 +269,11 @@ export function AnomalyDetailDrawer({ open, anomaly, onClose, onAddToWatchlist }
             </Typography>
           </Stack>
         </Box>
-        <IconButton size="small" onClick={onClose}>
-          <Iconify icon="solar:close-circle-bold" width={20} />
-        </IconButton>
+        <Tooltip title="关闭">
+          <IconButton size="small" onClick={onClose} aria-label="关闭">
+            <Iconify icon="solar:close-circle-bold" width={20} />
+          </IconButton>
+        </Tooltip>
       </Stack>
 
       {/* Body */}

@@ -9,6 +9,7 @@ import Alert from '@mui/material/Alert';
 import Table from '@mui/material/Table';
 import Drawer from '@mui/material/Drawer';
 import Divider from '@mui/material/Divider';
+import Tooltip from '@mui/material/Tooltip';
 import Skeleton from '@mui/material/Skeleton';
 import TableRow from '@mui/material/TableRow';
 import TableBody from '@mui/material/TableBody';
@@ -359,9 +360,11 @@ export function RotationDetailDrawer({ open, onClose, sectorName, tsCode, period
             </Typography>
           )}
         </Box>
-        <IconButton onClick={onClose} size="small" aria-label="关闭行业详情">
-          <Iconify icon="mingcute:close-line" />
-        </IconButton>
+        <Tooltip title="关闭行业详情">
+          <IconButton onClick={onClose} size="small" aria-label="关闭行业详情">
+            <Iconify icon="solar:close-circle-bold" />
+          </IconButton>
+        </Tooltip>
       </Box>
 
       <Scrollbar sx={{ flex: 1 }}>

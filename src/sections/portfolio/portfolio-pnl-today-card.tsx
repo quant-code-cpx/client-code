@@ -6,6 +6,7 @@ import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Table from '@mui/material/Table';
 import Alert from '@mui/material/Alert';
+import Tooltip from '@mui/material/Tooltip';
 import Skeleton from '@mui/material/Skeleton';
 import TableRow from '@mui/material/TableRow';
 import TableBody from '@mui/material/TableBody';
@@ -72,9 +73,13 @@ export function PortfolioPnlTodayCard({ portfolioId }: PortfolioPnlTodayCardProp
               </Typography>
             )}
           </Typography>
-          <IconButton onClick={fetchData} disabled={loading} size="small">
-            <Iconify icon="solar:refresh-bold" />
-          </IconButton>
+          <Tooltip title="刷新">
+            <span>
+              <IconButton onClick={fetchData} disabled={loading} size="small" aria-label="刷新">
+                <Iconify icon="solar:refresh-bold" />
+              </IconButton>
+            </span>
+          </Tooltip>
         </Box>
 
         {loading && <Skeleton variant="rectangular" height={80} />}

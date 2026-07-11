@@ -11,7 +11,6 @@ import Tooltip from '@mui/material/Tooltip';
 import Skeleton from '@mui/material/Skeleton';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import CircularProgress from '@mui/material/CircularProgress';
 
 import { fDateTime } from 'src/utils/format-time';
 
@@ -80,11 +79,10 @@ export function CacheStatsTab({ isReadOnly = false, refreshKey = 0 }: Props) {
           size="small"
           onClick={fetchStats}
           disabled={loading}
-          startIcon={
-            loading ? <CircularProgress size={14} /> : <Iconify icon="solar:refresh-bold" />
-          }
+          loading={loading}
+          startIcon={<Iconify icon="solar:refresh-bold" />}
         >
-          {loading ? '加载中...' : '刷新'}
+          {loading ? '加载中…' : '刷新'}
         </Button>
         <Tooltip title={clearDisabledReason}>
           <span>

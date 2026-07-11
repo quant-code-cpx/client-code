@@ -136,14 +136,11 @@ export function FamaMacBethPanel({ universe, factors, onHistorySave, prefillRequ
               onChange={(v) => v && setEndDate(v)}
             />
             <ButtonGroup
-              size="small"
+              size="medium"
               sx={{
-                height: 40,
                 width: { xs: '100%', sm: 'auto' },
                 '& .MuiButton-root': {
                   flex: { xs: 1, sm: 'initial' },
-                  minHeight: 40,
-                  px: 1.5,
                 },
               }}
             >

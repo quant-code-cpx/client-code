@@ -13,7 +13,6 @@ import Typography from '@mui/material/Typography';
 import DialogTitle from '@mui/material/DialogTitle';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
-import CircularProgress from '@mui/material/CircularProgress';
 
 import { alertApi } from 'src/api/alert';
 import { getWatchlists } from 'src/api/watchlist';
@@ -211,14 +210,9 @@ export function SubscribeDialog({ open, events, onClose, onSuccess }: Props) {
         <Button
           variant="contained"
           onClick={handleSubmit}
+          loading={submitting}
           disabled={submitting || (scope === 'WATCHLIST' && watchlistId === '' && !isBatch)}
-          startIcon={
-            submitting ? (
-              <CircularProgress size={16} />
-            ) : (
-              <Iconify icon="solar:bell-bold" width={18} />
-            )
-          }
+          startIcon={<Iconify icon="solar:bell-bold" width={18} />}
         >
           {submitting ? '订阅中…' : '确认订阅'}
         </Button>

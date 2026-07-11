@@ -427,7 +427,6 @@ export function BacktestWorkbenchView() {
           <Button
             variant="outlined"
             size="small"
-            color="secondary"
             startIcon={<Iconify icon="solar:menu-dots-bold" width={18} />}
             onClick={(event) => setAdvancedAnchor(event.currentTarget)}
             sx={HEADER_ACTION_BUTTON_SX}

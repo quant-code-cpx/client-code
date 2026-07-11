@@ -12,7 +12,6 @@ import { useTheme } from '@mui/material/styles';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
-import CircularProgress from '@mui/material/CircularProgress';
 
 import { runMonteCarlo } from 'src/api/backtest';
 
@@ -175,8 +174,8 @@ export function BacktestMonteCarloPanel({ runId }: BacktestMonteCarloPanelProps)
         <Button
           variant="contained"
           onClick={handleRun}
+          loading={loading}
           disabled={loading}
-          startIcon={loading ? <CircularProgress size={16} color="inherit" /> : undefined}
         >
           {loading ? '模拟中…' : '运行模拟'}
         </Button>

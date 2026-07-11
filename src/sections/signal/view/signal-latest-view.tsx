@@ -320,7 +320,7 @@ export function SignalLatestView() {
             shouldDisableDate={shouldDisableWeekend}
           />
 
-          <ButtonGroup size="small" variant="outlined">
+          <ButtonGroup size="medium" variant="outlined">
             <Button onClick={() => setTradeDate(lastTradingDayjs())}>今日</Button>
             <Button onClick={() => setTradeDate(lastTradingDayjs(dayjs().subtract(1, 'day')))}>
               昨日
@@ -329,7 +329,7 @@ export function SignalLatestView() {
           </ButtonGroup>
 
           <Tooltip title="刷新">
-            <IconButton onClick={fetchLatestSignals} disabled={loadingSignals}>
+            <IconButton onClick={fetchLatestSignals} disabled={loadingSignals} aria-label="刷新">
               <Iconify icon="solar:refresh-bold" />
             </IconButton>
           </Tooltip>

@@ -95,13 +95,14 @@ export function PortfolioHoldingTable({ holdings, onEdit, onDelete }: PortfolioH
                     sx={{ opacity: { xs: 1, md: 0 }, transition: 'opacity 150ms' }}
                   >
                     <Tooltip title="复制代码">
-                      <IconButton size="small" onClick={() => handleCopyCode(holding.tsCode)}>
+                      <IconButton size="small" aria-label="复制代码" onClick={() => handleCopyCode(holding.tsCode)}>
                         <Iconify icon="solar:copy-bold" width={16} />
                       </IconButton>
                     </Tooltip>
                     <Tooltip title="查看个股详情">
                       <IconButton
                         size="small"
+                        aria-label="查看个股详情"
                         onClick={() =>
                           router.push(`/stock/detail?code=${encodeURIComponent(holding.tsCode)}`)
                         }

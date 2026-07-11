@@ -153,7 +153,7 @@ export function ScreenerStrategyBar({
           }}
           sx={{ color: 'error.main' }}
         >
-          <Iconify icon="eva:trash-2-outline" width={16} sx={{ mr: 1 }} />
+          <Iconify icon="solar:trash-bin-trash-bold" width={16} sx={{ mr: 1 }} />
           删除
         </MenuItem>
       </Menu>

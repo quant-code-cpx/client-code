@@ -8,6 +8,7 @@ import Card from '@mui/material/Card';
 import Menu from '@mui/material/Menu';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
+import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
@@ -120,14 +121,16 @@ export function ComparisonListCard({ item, onView, onCopy, onCancel, onDelete }:
         </Stack>
       </CardActionArea>
 
-      <IconButton
-        size="small"
-        aria-label="对比任务操作"
-        onClick={handleMenuOpen}
-        sx={{ position: 'absolute', top: 8, right: 8 }}
-      >
-        <Iconify icon="solar:menu-dots-bold" width={18} />
-      </IconButton>
+      <Tooltip title="对比任务操作">
+        <IconButton
+          size="small"
+          aria-label="对比任务操作"
+          onClick={handleMenuOpen}
+          sx={{ position: 'absolute', top: 8, right: 8 }}
+        >
+          <Iconify icon="solar:menu-dots-bold" width={18} />
+        </IconButton>
+      </Tooltip>
 
       <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
         <MenuItem onClick={() => handleAction(onCopy)}>

@@ -6,6 +6,7 @@ import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Select from '@mui/material/Select';
+import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
 import Checkbox from '@mui/material/Checkbox';
 import TextField from '@mui/material/TextField';
@@ -216,9 +217,16 @@ export function SignalRuleConditionForm({ schemaFields, value, onChange }: Props
                 )}
               </Box>
 
-              <IconButton size="small" color="error" onClick={() => removeRow(row.id)}>
-                <Iconify icon="solar:trash-bin-trash-bold" width={18} />
-              </IconButton>
+              <Tooltip title="移除条件">
+                <IconButton
+                  size="small"
+                  color="error"
+                  onClick={() => removeRow(row.id)}
+                  aria-label="移除条件"
+                >
+                  <Iconify icon="solar:trash-bin-trash-bold" width={18} />
+                </IconButton>
+              </Tooltip>
             </Stack>
           );
         })}

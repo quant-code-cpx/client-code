@@ -150,7 +150,7 @@ export function RiskRuleUpsertDialog({
         </Box>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose} disabled={busy}>
+        <Button color="inherit" onClick={onClose} disabled={busy}>
           取消
         </Button>
         <Button variant="contained" onClick={handleSubmit} disabled={busy} loading={busy}>

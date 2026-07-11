@@ -229,7 +229,7 @@ export function ResearchNoteDetailView() {
         sx={{ mb: 2 }}
       >
         <Tooltip title="返回" arrow>
-          <IconButton onClick={() => router.back()}>
+          <IconButton aria-label="返回" onClick={() => router.back()}>
             <Iconify icon="solar:arrow-left-bold" />
           </IconButton>
         </Tooltip>
@@ -253,6 +253,7 @@ export function ResearchNoteDetailView() {
 
         <Tooltip title={isPinned ? '取消置顶' : '置顶'} arrow>
           <IconButton
+            aria-label={isPinned ? '取消置顶' : '置顶'}
             onClick={() => setIsPinned(!isPinned)}
             color={isPinned ? 'warning' : 'default'}
           >
@@ -262,7 +263,7 @@ export function ResearchNoteDetailView() {
 
         <Tooltip title="历史版本（即将上线）" arrow>
           <span>
-            <IconButton disabled>
+            <IconButton aria-label="历史版本（即将上线）" disabled>
               <Iconify icon="solar:history-bold" />
             </IconButton>
           </span>
@@ -270,7 +271,7 @@ export function ResearchNoteDetailView() {
 
         <Tooltip title="AI 摘要（即将上线）" arrow>
           <span>
-            <IconButton disabled>
+            <IconButton aria-label="AI 摘要（即将上线）" disabled>
               <Iconify icon="solar:pulse-2-bold-duotone" />
             </IconButton>
           </span>

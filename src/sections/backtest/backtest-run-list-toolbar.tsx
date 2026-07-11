@@ -130,11 +130,10 @@ export function BacktestRunListToolbar({
       <Tooltip title="等待后端 tags/list 与 runs/list tagIds 支持">
         <Box component="span">
           <Button
-            size="small"
+            size="medium"
             variant="outlined"
             disabled
             startIcon={<Iconify icon="solar:tag-bold" width={16} />}
-            sx={{ height: 40 }}
           >
             标签
           </Button>

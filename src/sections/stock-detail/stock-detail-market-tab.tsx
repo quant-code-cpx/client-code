@@ -1017,18 +1017,10 @@ export function StockDetailMarketTab({ tsCode }: Props) {
                 if (v) setPeriod(v as Period);
               }}
             >
-              <ToggleButton value="T" sx={{ fontSize: 12 }}>
-                分时
-              </ToggleButton>
-              <ToggleButton value="D" sx={{ fontSize: 12 }}>
-                日
-              </ToggleButton>
-              <ToggleButton value="W" sx={{ fontSize: 12 }}>
-                周
-              </ToggleButton>
-              <ToggleButton value="M" sx={{ fontSize: 12 }}>
-                月
-              </ToggleButton>
+              <ToggleButton value="T">分时</ToggleButton>
+              <ToggleButton value="D">日</ToggleButton>
+              <ToggleButton value="W">周</ToggleButton>
+              <ToggleButton value="M">月</ToggleButton>
             </ToggleButtonGroup>
 
             <TextField

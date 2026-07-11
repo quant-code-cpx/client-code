@@ -150,6 +150,7 @@ export function WatchlistGroupCard({
               e.stopPropagation();
               onEdit();
             }}
+            aria-label="编辑"
           >
             <Iconify icon="solar:pen-bold" width={14} />
           </IconButton>
@@ -157,11 +158,12 @@ export function WatchlistGroupCard({
         <Tooltip title="删除">
           <IconButton
             size="small"
+            color="error"
             onClick={(e) => {
               e.stopPropagation();
               onDelete();
             }}
-            sx={{ color: 'error.main' }}
+            aria-label="删除自选组"
           >
             <Iconify icon="solar:trash-bin-trash-bold" width={14} />
           </IconButton>

@@ -3,6 +3,7 @@ import { useCallback } from 'react';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Select from '@mui/material/Select';
+import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
 import IconButton from '@mui/material/IconButton';
@@ -70,14 +71,16 @@ export function ComparisonStrategyCard({ index, item, onChange, onRemove, canRem
             策略 {index + 1}
           </Typography>
           {canRemove && (
-            <IconButton
-              size="small"
-              color="error"
-              aria-label={`删除策略 ${index + 1}`}
-              onClick={onRemove}
-            >
-              <Iconify icon="solar:trash-bin-trash-bold" width={18} />
-            </IconButton>
+            <Tooltip title={`删除策略 ${index + 1}`}>
+              <IconButton
+                size="small"
+                color="error"
+                aria-label={`删除策略 ${index + 1}`}
+                onClick={onRemove}
+              >
+                <Iconify icon="solar:trash-bin-trash-bold" width={18} />
+              </IconButton>
+            </Tooltip>
           )}
         </Box>
 

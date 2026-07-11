@@ -9,6 +9,7 @@ import Stack from '@mui/material/Stack';
 import Drawer from '@mui/material/Drawer';
 import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
+import Tooltip from '@mui/material/Tooltip';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 
@@ -56,9 +57,11 @@ export function FactorLibraryDetailDrawer({ factor, onClose, onAddToScreening }:
                 {factor.label}
               </Typography>
             </Box>
-            <IconButton onClick={onClose}>
-              <Iconify icon="solar:close-circle-bold" width={20} />
-            </IconButton>
+            <Tooltip title="关闭">
+              <IconButton onClick={onClose} aria-label="关闭">
+                <Iconify icon="solar:close-circle-bold" width={20} />
+              </IconButton>
+            </Tooltip>
           </Stack>
 
           <Stack direction="row" spacing={1} sx={{ mb: 2, flexWrap: 'wrap', gap: 1 }}>
@@ -170,7 +173,11 @@ export function FactorLibraryDetailDrawer({ factor, onClose, onAddToScreening }:
             >
               进入详情
             </Button>
-            <Button variant="outlined" fullWidth onClick={() => onAddToScreening(factor)}>
+            <Button
+              variant="outlined"
+              fullWidth
+              onClick={() => onAddToScreening(factor)}
+            >
               加入选股
             </Button>
           </Stack>

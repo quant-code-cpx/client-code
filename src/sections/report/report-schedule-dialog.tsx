@@ -208,7 +208,6 @@ export function ReportScheduleDialog({ open, onClose, onSaved, editingSchedule }
                 display: 'grid',
                 gridTemplateColumns: 'repeat(2, 1fr)',
                 gap: 1,
-                '& .MuiToggleButton-root': { borderRadius: 1, textTransform: 'none' },
               }}
             >
               {REPORT_TYPES.map((t) => (
@@ -323,7 +322,7 @@ export function ReportScheduleDialog({ open, onClose, onSaved, editingSchedule }
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={onClose} disabled={saving}>
+        <Button color="inherit" onClick={onClose} disabled={saving}>
           取消
         </Button>
         <Button variant="contained" onClick={handleSubmit} disabled={submitDisabled}>

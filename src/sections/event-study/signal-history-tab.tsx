@@ -17,6 +17,7 @@ import Stack from '@mui/material/Stack';
 import Table from '@mui/material/Table';
 import Button from '@mui/material/Button';
 import Select from '@mui/material/Select';
+import Tooltip from '@mui/material/Tooltip';
 import Collapse from '@mui/material/Collapse';
 import MenuItem from '@mui/material/MenuItem';
 import TableRow from '@mui/material/TableRow';
@@ -243,14 +244,20 @@ export function SignalHistoryTab() {
                     <Fragment key={item.id}>
                       <TableRow hover>
                         <TableCell>
-                          <IconButton size="small" onClick={() => toggleExpand(item.id)}>
-                            <Iconify
-                              icon={
-                                isOpen ? 'solar:alt-arrow-up-bold' : 'solar:alt-arrow-down-bold'
-                              }
-                              width={16}
-                            />
-                          </IconButton>
+                          <Tooltip title="展开行">
+                            <IconButton
+                              aria-label="展开行"
+                              size="small"
+                              onClick={() => toggleExpand(item.id)}
+                            >
+                              <Iconify
+                                icon={
+                                  isOpen ? 'solar:alt-arrow-up-bold' : 'solar:alt-arrow-down-bold'
+                                }
+                                width={16}
+                              />
+                            </IconButton>
+                          </Tooltip>
                         </TableCell>
                         <TableCell>{item.id}</TableCell>
                         <TableCell>{item.rule?.name ?? '-'}</TableCell>

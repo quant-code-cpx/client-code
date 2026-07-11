@@ -83,7 +83,7 @@ export function IndustryRotationView({
       <Stack direction="row" spacing={1.5} alignItems="center">
         <ToggleButtonGroup size="small" exclusive value={period} onChange={handlePeriodChange}>
           {PERIOD_OPTIONS.map((p) => (
-            <ToggleButton key={p} value={p} sx={{ px: 1.5 }}>
+            <ToggleButton key={p} value={p}>
               {p.toUpperCase()}
             </ToggleButton>
           ))}

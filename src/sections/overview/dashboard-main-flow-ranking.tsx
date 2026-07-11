@@ -83,10 +83,10 @@ export function DashboardMainFlowRanking({ refreshKey }: { refreshKey?: number }
             value={order}
             onChange={(_e, v) => v != null && setOrder(v)}
           >
-            <ToggleButton value="desc" sx={{ px: 1.5, py: 0.25, fontSize: '0.75rem' }}>
+            <ToggleButton value="desc">
               净流入
             </ToggleButton>
-            <ToggleButton value="asc" sx={{ px: 1.5, py: 0.25, fontSize: '0.75rem' }}>
+            <ToggleButton value="asc">
               净流出
             </ToggleButton>
           </ToggleButtonGroup>

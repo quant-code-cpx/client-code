@@ -381,7 +381,7 @@ export function SignalRuleWizardDialog({ open, onClose, onSaved, editingRule, ev
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={onClose} disabled={submitting}>
+        <Button color="inherit" onClick={onClose} disabled={submitting}>
           取消
         </Button>
         {step > 0 && (

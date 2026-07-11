@@ -253,15 +253,18 @@ export function FactorAdminJobsTable({ highlightJobId }: Props) {
                         })}
                       </TableCell>
                       <TableCell>
-                        <IconButton
-                          size="small"
-                          onClick={() => {
-                            setDetailJob(job);
-                            setDetailOpen(true);
-                          }}
-                        >
-                          <Iconify icon="solar:eye-bold" width={16} />
-                        </IconButton>
+                        <Tooltip title="查看任务详情">
+                          <IconButton
+                            size="small"
+                            aria-label="查看任务详情"
+                            onClick={() => {
+                              setDetailJob(job);
+                              setDetailOpen(true);
+                            }}
+                          >
+                            <Iconify icon="solar:eye-bold" width={16} />
+                          </IconButton>
+                        </Tooltip>
                       </TableCell>
                     </TableRow>
                   );

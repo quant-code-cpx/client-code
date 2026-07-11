@@ -7,6 +7,7 @@ import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import Drawer from '@mui/material/Drawer';
 import Divider from '@mui/material/Divider';
+import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -123,9 +124,11 @@ export function WalkForwardWindowDrawer({ open, wfRunId, windowItem, onClose }: 
               IS / OOS 诊断详情
             </Typography>
           </Box>
-          <IconButton onClick={onClose}>
-            <Iconify icon="mingcute:close-line" width={20} />
-          </IconButton>
+          <Tooltip title="关闭">
+            <IconButton onClick={onClose} aria-label="关闭">
+              <Iconify icon="solar:close-circle-bold" width={20} />
+            </IconButton>
+          </Tooltip>
         </Stack>
         <Divider />
 

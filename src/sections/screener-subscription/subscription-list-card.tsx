@@ -134,7 +134,6 @@ export function SubscriptionListCard({
                 size="small"
                 aria-label="编辑订阅"
                 onClick={onEdit}
-                sx={{ width: 30, height: 30 }}
               >
                 <Iconify icon="solar:pen-bold" width={16} />
               </IconButton>
@@ -142,9 +141,9 @@ export function SubscriptionListCard({
             <Tooltip title="删除">
               <IconButton
                 size="small"
+                color="error"
                 aria-label="删除订阅"
                 onClick={onDelete}
-                sx={{ width: 30, height: 30, color: 'error.main' }}
               >
                 <Iconify icon="solar:trash-bin-trash-bold" width={16} />
               </IconButton>

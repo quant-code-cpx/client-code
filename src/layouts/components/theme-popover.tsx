@@ -7,6 +7,7 @@ import { usePopover } from 'minimal-shared/hooks';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Popover from '@mui/material/Popover';
+import Tooltip from '@mui/material/Tooltip';
 import MenuList from '@mui/material/MenuList';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
@@ -56,23 +57,23 @@ export function ThemePopover({ sx, ...other }: IconButtonProps) {
 
   return (
     <>
-      <IconButton
-        aria-label="主题切换按钮"
-        onClick={onOpen}
-        sx={[
-          (theme) => ({
-            width: 40,
-            height: 40,
-            borderRadius: 1.5,
-            border: `1px solid ${theme.vars.palette.divider}`,
-            ...(open && { bgcolor: theme.vars.palette.action.selected }),
-          }),
-          ...(Array.isArray(sx) ? sx : [sx]),
-        ]}
-        {...other}
-      >
-        {renderSwatches(currentThemePreset.swatches, true)}
-      </IconButton>
+      <Tooltip title="主题切换按钮">
+        <IconButton
+          aria-label="主题切换按钮"
+          onClick={onOpen}
+          sx={[
+            (theme) => ({
+              borderRadius: 1.5,
+              border: `1px solid ${theme.vars.palette.divider}`,
+              ...(open && { bgcolor: theme.vars.palette.action.selected }),
+            }),
+            ...(Array.isArray(sx) ? sx : [sx]),
+          ]}
+          {...other}
+        >
+          {renderSwatches(currentThemePreset.swatches, true)}
+        </IconButton>
+      </Tooltip>
 
       <Popover
         open={open}

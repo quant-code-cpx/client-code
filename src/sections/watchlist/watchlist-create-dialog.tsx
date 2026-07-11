@@ -102,11 +102,11 @@ export function WatchlistCreateDialog({ open, onClose, onSuccess }: WatchlistCre
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={handleClose} disabled={loading}>
+        <Button color="inherit" onClick={handleClose} disabled={loading}>
           取消
         </Button>
         <Button variant="contained" onClick={handleSubmit} disabled={loading}>
-          {loading ? '创建中...' : '创建'}
+          {loading ? '创建中…' : '创建'}
         </Button>
       </DialogActions>
     </Dialog>

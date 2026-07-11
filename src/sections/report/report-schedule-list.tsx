@@ -9,6 +9,7 @@ import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import Switch from '@mui/material/Switch';
 import Button from '@mui/material/Button';
+import Tooltip from '@mui/material/Tooltip';
 import TableRow from '@mui/material/TableRow';
 import Skeleton from '@mui/material/Skeleton';
 import TableBody from '@mui/material/TableBody';
@@ -161,15 +162,30 @@ export function ReportScheduleList({ onEdit, onAdd }: Props) {
                   </TableCell>
                   <TableCell>
                     <Stack direction="row" spacing={0.5}>
-                      <IconButton size="small" onClick={() => onEdit(row)}>
-                        <Iconify icon="solar:pen-bold" width={18} />
-                      </IconButton>
-                      <IconButton size="small" onClick={() => handleRunNow(row.id)}>
-                        <Iconify icon="solar:play-bold" width={18} />
-                      </IconButton>
-                      <IconButton size="small" color="error" onClick={() => handleDelete(row.id)}>
-                        <Iconify icon="solar:trash-bin-trash-bold" width={18} />
-                      </IconButton>
+                      <Tooltip title="编辑">
+                        <IconButton size="small" aria-label="编辑" onClick={() => onEdit(row)}>
+                          <Iconify icon="solar:pen-bold" width={18} />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="立即运行">
+                        <IconButton
+                          size="small"
+                          aria-label="立即运行"
+                          onClick={() => handleRunNow(row.id)}
+                        >
+                          <Iconify icon="solar:play-bold" width={18} />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="删除">
+                        <IconButton
+                          size="small"
+                          aria-label="删除"
+                          color="error"
+                          onClick={() => handleDelete(row.id)}
+                        >
+                          <Iconify icon="solar:trash-bin-trash-bold" width={18} />
+                        </IconButton>
+                      </Tooltip>
                     </Stack>
                   </TableCell>
                 </TableRow>

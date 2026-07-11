@@ -69,7 +69,7 @@ export function BacktestDraftSaveDialog({ open, config, onClose, onSuccess }: Pr
         />
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} disabled={saving}>
+        <Button color="inherit" onClick={handleClose} disabled={saving}>
           取消
         </Button>
         <Button variant="contained" onClick={handleSubmit} disabled={saving || !name.trim()}>

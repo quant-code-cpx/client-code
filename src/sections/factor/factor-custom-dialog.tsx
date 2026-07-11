@@ -250,9 +250,11 @@ export function FactorCustomDialog({
         )}
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>取消</Button>
+        <Button color="inherit" onClick={onClose}>
+          取消
+        </Button>
         <Button variant="contained" onClick={handleSubmit} disabled={submitting}>
-          {submitting ? '提交中...' : isEdit ? '保存' : '创建'}
+          {submitting ? '提交中…' : isEdit ? '保存' : '创建'}
         </Button>
       </DialogActions>
     </Dialog>

@@ -184,7 +184,7 @@ export function OverviewDashboardView() {
         </Box>
 
         <Tooltip title="刷新全部数据">
-          <IconButton size="small" onClick={handleRefresh}>
+          <IconButton size="small" onClick={handleRefresh} aria-label="刷新全部数据">
             <Iconify icon="solar:refresh-bold" width={20} />
           </IconButton>
         </Tooltip>

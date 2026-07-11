@@ -257,7 +257,7 @@ function ModeTemplate({
                 disabled={!selectedTemplate || loading}
                 onClick={handleSearch}
               >
-                {loading ? '搜索中...' : '搜索'}
+                  {loading ? '搜索中…' : '搜索'}
               </Button>
               {!selectedTemplate && (
                 <Typography variant="caption" color="text.secondary">
@@ -367,7 +367,7 @@ function ModeRange({ searchParams, updateParam }: ModeProps) {
             <PatternAdvancedFilters value={filters} onChange={setFilters} showExcludeSelf />
             <Box>
               <Button variant="contained" disabled={!canSearch} onClick={handleSearch}>
-                {loading ? '搜索中...' : '搜索'}
+                  {loading ? '搜索中…' : '搜索'}
               </Button>
             </Box>
           </Stack>
@@ -588,7 +588,7 @@ function ModeSeries() {
             <PatternAdvancedFilters value={filters} onChange={setFilters} />
             <Box>
               <Button variant="contained" disabled={!canSearch} onClick={handleSearch}>
-                {loading ? '搜索中...' : '搜索相似形态'}
+                {loading ? '搜索中…' : '搜索相似形态'}
               </Button>
             </Box>
           </Stack>

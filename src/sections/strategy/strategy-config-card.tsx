@@ -119,7 +119,7 @@ export function StrategyConfigCard({ strategy, onUpdate }: StrategyConfigCardPro
               </Typography>
             )}
             <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end', mt: 2 }}>
-              <Button variant="outlined" onClick={handleCancel} disabled={saving}>
+              <Button variant="text" color="inherit" onClick={handleCancel} disabled={saving}>
                 取消
               </Button>
               <Button variant="contained" onClick={handleSave} loading={saving}>

@@ -106,7 +106,7 @@ export function AnomalyHeaderBar({
       <Stack direction="row" spacing={1} alignItems="center">
         <Tooltip title="刷新">
           <span>
-            <IconButton onClick={onRefresh} disabled={loading} size="small">
+            <IconButton onClick={onRefresh} disabled={loading} size="small" aria-label="刷新">
               <Iconify icon="solar:refresh-bold" width={18} />
             </IconButton>
           </span>
