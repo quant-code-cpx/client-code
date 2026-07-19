@@ -23,6 +23,7 @@
     "tsc:watch": "tsc --noEmit --watch",
     "tsc:print": "npx tsc --showConfig",
     "test": "vitest run",
+    "test:agent-contracts": "vitest run src/types/agent/__tests__/agent-contracts.test.ts",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:ui": "vitest --ui",
