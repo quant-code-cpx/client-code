@@ -26,6 +26,8 @@ const INDEX_TABS = [
   { code: '000001.SH', label: '上证' },
   { code: '399001.SZ', label: '深证' },
   { code: '399006.SZ', label: '创业板' },
+  { code: '000680.SH', label: '科创综指' },
+  { code: '000688.SH', label: '科创50' },
   { code: '000300.SH', label: '沪深300' },
   { code: '000905.SH', label: '中证500' },
   { code: '000852.SH', label: '中证1000' },

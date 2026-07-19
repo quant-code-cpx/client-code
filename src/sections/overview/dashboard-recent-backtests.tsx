@@ -20,6 +20,7 @@ import { fPctChg } from 'src/utils/format-number';
 import { listRuns } from 'src/api/backtest';
 
 import { Label } from 'src/components/label';
+import { Scrollbar } from 'src/components/scrollbar';
 
 // ----------------------------------------------------------------------
 
@@ -160,9 +161,17 @@ export function DashboardRecentBacktests({ refreshKey }: { refreshKey?: number }
   }, [refreshKey]);
 
   return (
-    <Card sx={{ display: 'flex', flexDirection: 'column' }}>
-      <CardContent sx={{ flex: 1 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+    <Card sx={{ height: 440, display: 'flex', flexDirection: 'column' }}>
+      <CardContent sx={{ display: 'flex', flex: 1, minHeight: 0, flexDirection: 'column' }}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            flexShrink: 0,
+            mb: 2,
+          }}
+        >
           <Typography variant="h6">最近回测</Typography>
           <Button
             component={RouterLink}
@@ -181,38 +190,47 @@ export function DashboardRecentBacktests({ refreshKey }: { refreshKey?: number }
           </Alert>
         )}
 
-        {loading ? (
-          <>
-            {[0, 1, 2, 3, 4].map((i) => (
-              <Skeleton key={i} variant="rectangular" height={70} sx={{ mb: 1, borderRadius: 1 }} />
-            ))}
-          </>
-        ) : runs.length === 0 ? (
-          <Box
-            sx={{
-              py: 4,
-              textAlign: 'center',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: 1.5,
-            }}
-          >
-            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-              暂无回测任务
-            </Typography>
-            <Button component={RouterLink} href="/backtest" size="small" variant="contained">
-              前往创建
-            </Button>
-          </Box>
-        ) : (
-          runs.map((run, idx) => (
-            <Box key={run.runId}>
-              {idx > 0 && <Divider sx={{ my: 0.5 }} />}
-              <RunCard run={run} onClick={() => router.push(`/backtest/runs/${run.runId}`)} />
+        <Scrollbar sx={{ flex: 1, minHeight: 0 }}>
+          {loading ? (
+            <>
+              {[0, 1, 2, 3, 4].map((i) => (
+                <Skeleton
+                  key={i}
+                  variant="rectangular"
+                  height={70}
+                  sx={{ mb: 1, borderRadius: 1 }}
+                />
+              ))}
+            </>
+          ) : runs.length === 0 ? (
+            <Box
+              sx={{
+                flex: 1,
+                py: 4,
+                textAlign: 'center',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 1.5,
+              }}
+            >
+              <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                暂无回测任务
+              </Typography>
+              <Button component={RouterLink} href="/backtest" size="small" variant="contained">
+                前往创建
+              </Button>
             </Box>
-          ))
-        )}
+          ) : (
+            runs.map((run, idx) => (
+              <Box key={run.runId}>
+                {idx > 0 && <Divider sx={{ my: 0.5 }} />}
+                <RunCard run={run} onClick={() => router.push(`/backtest/runs/${run.runId}`)} />
+              </Box>
+            ))
+          )}
+        </Scrollbar>
       </CardContent>
 
       {!loading && runs.length > 0 && (
