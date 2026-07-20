@@ -3,7 +3,7 @@ import type { AgentSseEvent } from 'src/types/agent/generated';
 
 import { http, HttpResponse } from 'msw';
 
-import { AGENT_EVENT_FIXTURES } from 'src/types/agent/generated';
+import { AGENT_EVENT_FIXTURES, MESSAGE_BLOCK_FIXTURES } from 'src/types/agent/generated';
 
 const encoder = new TextEncoder();
 
@@ -65,7 +65,7 @@ export const agentMockMessages = [
     role: 'ASSISTANT',
     status: 'COMPLETED',
     contentText: '贵州茅台估值与盈利质量研究已完成。',
-    contentBlocks: [],
+    contentBlocks: MESSAGE_BLOCK_FIXTURES,
     version: 1,
     parentMessageId: 'msg_user_mock_1',
     modelName: 'fixture-model',
@@ -75,11 +75,43 @@ export const agentMockMessages = [
       statusVersion: 3,
       endedAt: '2026-07-20T00:00:05.000Z',
     },
-    citations: [],
+    citations: [
+      {
+        citationId: 'citation_fixture',
+        blockId: 'markdown_fixture',
+        claimKey: 'valuation_summary',
+        conclusionLevel: 'FACT',
+        sourceType: 'DATABASE',
+        title: '个股行情快照',
+        canonicalUrl: null,
+        publisher: 'Apex Quant',
+        retrievedAt: '2026-07-20T00:00:04.000Z',
+        locator: { factId: 'fact_fixture' },
+      },
+    ],
     createdAt: '2026-07-20T00:00:02.000Z',
     completedAt: '2026-07-20T00:00:05.000Z',
   },
 ] satisfies AgentResponse<'/agent/conversations/messages/list'>['items'];
+
+export const agentMockToolCalls = [
+  {
+    toolCallId: 'tool_call_mock_1',
+    toolName: 'get_stock_overview',
+    toolVersion: '1.0.0',
+    status: 'SUCCEEDED',
+    attemptCount: 1,
+    inputSummary: { tsCode: '600519.SH' },
+    outputSummary: { rowCount: 1, fields: ['close', 'peTtm', 'roe'] },
+    errorCode: null,
+    errorMessage: null,
+    durationMs: 128,
+    dataAsOf: '2026-07-17T00:00:00.000Z',
+    dataThrough: '2026-07-17T00:00:00.000Z',
+    startedAt: '2026-07-20T00:00:02.000Z',
+    finishedAt: '2026-07-20T00:00:03.000Z',
+  },
+] satisfies AgentResponse<'/agent/runs/tool-calls/list'>['items'];
 
 function ok(data: unknown) {
   return HttpResponse.json({ code: 0, data, message: '' });
@@ -173,7 +205,9 @@ export const agentHandlers = [
       cancellationAccepted: true,
     } satisfies AgentResponse<'/agent/runs/cancel'>)
   ),
-  http.post('*/api/agent/runs/tool-calls/list', () => ok({ items: [] })),
+  http.post('*/api/agent/runs/tool-calls/list', () =>
+    ok({ items: agentMockToolCalls, payloadIncluded: false })
+  ),
   http.post('*/api/agent/runs/events', async ({ request }) => {
     const body = await requestBody(request);
     const lastEventId = request.headers.get('Last-Event-ID');

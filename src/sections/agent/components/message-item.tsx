@@ -11,8 +11,16 @@ import Typography from '@mui/material/Typography';
 
 import { fDateTime } from 'src/utils/format-time';
 
+import { CONFIG } from 'src/config-global';
+
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
+import { Markdown } from 'src/components/markdown/markdown';
+
+import { CitationList } from './citation-list';
+import { ToolCallList } from './tool-call-card';
+import { BlockRenderer } from './blocks/block-renderer';
+import { parseSupportedMessageBlock } from '../lib/message-block-guards';
 
 import type { AgentMessageEntity } from '../state/agent-state.types';
 
@@ -40,6 +48,13 @@ function statusColor(status: AgentMessageEntity['status']): LabelColor {
 function MessageItemComponent({ message, onRegenerate, onRetry }: MessageItemProps) {
   const [copied, setCopied] = useState(false);
   const isUser = message.role === 'USER';
+  const isAssistant = message.role === 'ASSISTANT';
+  const roleLabel = isUser ? '你' : isAssistant ? 'Agent' : message.role === 'TOOL' ? 'Tool' : '系统';
+  const streaming = message.status === 'PENDING' || message.status === 'STREAMING';
+  const hasMarkdownBlock = message.contentBlocks.some((input) => {
+    const result = parseSupportedMessageBlock(input);
+    return result.ok && result.block.type === 'MARKDOWN';
+  });
   const canRegenerate =
     message.role === 'ASSISTANT' &&
     ['COMPLETED', 'FAILED', 'CANCELLED'].includes(message.status);
@@ -76,7 +91,7 @@ function MessageItemComponent({ message, onRegenerate, onRetry }: MessageItemPro
       >
         <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.75, minHeight: 24 }}>
           <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700 }}>
-            {isUser ? '你' : 'Agent'}
+            {roleLabel}
           </Typography>
           <Label color={statusColor(message.status)} variant="soft">
             {message.deliveryStatus === 'UNSENT' ? '未发送' : STATUS_LABELS[message.status]}
@@ -86,19 +101,52 @@ function MessageItemComponent({ message, onRegenerate, onRetry }: MessageItemPro
           </Typography>
         </Stack>
 
-        {message.contentText ? (
-          <Typography
-            variant="body1"
-            component="div"
-            sx={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', lineHeight: 1.75 }}
-          >
-            {message.contentText}
-          </Typography>
-        ) : (
+        {message.contentText && (isUser || !hasMarkdownBlock) ? (
+          isUser ? (
+            <Typography
+              variant="body1"
+              component="div"
+              sx={{ whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', lineHeight: 1.75 }}
+            >
+              {message.contentText}
+            </Typography>
+          ) : (
+            <Markdown streaming={streaming}>{message.contentText}</Markdown>
+          )
+        ) : message.contentBlocks.length === 0 ? (
           <Typography variant="body2" sx={{ py: 1, color: 'text.secondary' }}>
             {message.status === 'PENDING' ? '等待研究开始…' : '暂无可展示内容'}
           </Typography>
-        )}
+        ) : null}
+
+        {isAssistant && !streaming && message.contentBlocks.length > 0 ? (
+          <Stack spacing={1.5} sx={{ mt: message.contentText && !hasMarkdownBlock ? 1.5 : 0 }}>
+            {message.contentBlocks.map((block, index) => (
+              <BlockRenderer
+                key={
+                  typeof block.blockId === 'string'
+                    ? block.blockId
+                    : `${message.messageId}-block-${index}`
+                }
+                block={block}
+                context={{
+                  messageId: message.messageId,
+                  runId: message.run?.runId,
+                  streaming: false,
+                  richBlocksEnabled: CONFIG.agentRichBlocksEnabled,
+                  citations: message.citations,
+                }}
+              />
+            ))}
+          </Stack>
+        ) : null}
+
+        <ToolCallList
+          runId={message.run?.runId}
+          statusVersion={message.run?.statusVersion}
+          enabled={isAssistant && CONFIG.agentRichBlocksEnabled}
+        />
+        <CitationList citations={message.citations} />
 
         <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mt: 1 }}>
           {message.contentText ? (

@@ -6,6 +6,7 @@ export type ConfigValue = {
   appName: string;
   appVersion: string;
   agentEnabled: boolean;
+  agentRichBlocksEnabled: boolean;
   userManageFeatures: {
     bulk: boolean;
     stats: boolean;
@@ -25,6 +26,7 @@ export const CONFIG: ConfigValue = {
   appName: 'Apex Quant',
   appVersion: packageJson.version,
   agentEnabled: envFlag('VITE_AGENT_ENABLED', false),
+  agentRichBlocksEnabled: envFlag('VITE_AGENT_RICH_BLOCKS_ENABLED', false),
   userManageFeatures: {
     bulk: envFlag('VITE_USER_MANAGE_BULK', true),
     stats: envFlag('VITE_USER_MANAGE_STATS', true),

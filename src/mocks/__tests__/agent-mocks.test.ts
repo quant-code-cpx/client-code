@@ -21,9 +21,39 @@ describe('Agent MSW handlers', () => {
       data: {
         items: [
           { messageId: 'msg_user_mock_1', role: 'USER' },
-          { messageId: 'msg_assistant_mock_1', role: 'ASSISTANT' },
+          {
+            messageId: 'msg_assistant_mock_1',
+            role: 'ASSISTANT',
+            contentBlocks: expect.arrayContaining([
+              expect.objectContaining({ type: 'MARKDOWN' }),
+              expect.objectContaining({ type: 'KLINE' }),
+              expect.objectContaining({ type: 'RISK_NOTICE' }),
+            ]),
+          },
         ],
         nextBeforeMessageId: null,
+      },
+    });
+  });
+
+  it('returns redacted Tool summaries without raw payload', async () => {
+    const response = await fetch('http://localhost/api/agent/runs/tool-calls/list', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ runId: 'run_mock_1', includePayload: false }),
+    });
+
+    await expect(response.json()).resolves.toMatchObject({
+      code: 0,
+      data: {
+        payloadIncluded: false,
+        items: [
+          {
+            toolCallId: 'tool_call_mock_1',
+            status: 'SUCCEEDED',
+            inputSummary: { tsCode: '600519.SH' },
+          },
+        ],
       },
     });
   });

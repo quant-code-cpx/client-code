@@ -31,6 +31,7 @@ import { fmtTradeDate as fmtD } from 'src/utils/format-time';
 import { stockDetailApi } from 'src/api/stock';
 
 import { Chart, useChart } from 'src/components/chart';
+import { StockKline } from 'src/components/stock-kline/stock-kline';
 
 // Augment Window with ApexCharts exec API
 declare global {
@@ -605,6 +606,26 @@ export function StockDetailMarketTab({ tsCode }: Props) {
     },
   ];
 
+  const stockDetailKlineSeries = {
+    tsCode,
+    adjustment:
+      adjustType === 'qfq' ? ('FORWARD' as const) : adjustType === 'hfq' ? ('BACKWARD' as const) : ('NONE' as const),
+    timezone: 'Asia/Shanghai',
+    priceUnit: '元',
+    volumeUnit: '手',
+    amountUnit: '千元',
+    bars: allItems.map((item) => ({
+      tradeDate: item.tradeDate,
+      open: item.open,
+      high: item.high,
+      low: item.low,
+      close: item.close,
+      volume: item.vol,
+      amount: item.amount,
+    })),
+    warnings: [],
+  };
+
   // ── 图表配置 ─────────────────────────────────────────────────────────
   // 注：事件处理函数仅读取 ref，无闭包旧值问题
   const candleChartOptions = useChart({
@@ -1077,28 +1098,34 @@ export function StockDetailMarketTab({ tsCode }: Props) {
             <Skeleton variant="rectangular" height={540} sx={{ borderRadius: 1.5 }} />
           ) : (
             // chartContainerRef 用于绑定滚轮缩放事件
-            <Box ref={chartContainerRef}>
-              {/* K 线 + 均线混合图（点击图例可切换显隐） */}
-              <Chart
-                key={`candle-${tsCode}-${period}-${adjustType}`}
-                type={'candlestick' as never}
-                series={mixedSeries as never}
-                options={candleChartOptions}
-                sx={{ height: 360 }}
-              />
+            <StockKline
+              series={stockDetailKlineSeries}
+              showHeader={false}
+              chartContent={
+                <Box ref={chartContainerRef} role="img" aria-label={`${tsCode} K 线与均线图`}>
+                  {/* K 线 + 均线混合图（点击图例可切换显隐） */}
+                  <Chart
+                    key={`candle-${tsCode}-${period}-${adjustType}`}
+                    type={'candlestick' as never}
+                    series={mixedSeries as never}
+                    options={candleChartOptions}
+                    sx={{ height: 360 }}
+                  />
 
-              {/* 成交量（与主图联动缩放平移） */}
-              <Typography variant="caption" sx={{ color: 'text.secondary', px: 1 }}>
-                成交量（手）
-              </Typography>
-              <Chart
-                key={`vol-${tsCode}-${period}-${adjustType}`}
-                type="bar"
-                series={volumeSeries}
-                options={volumeChartOptions}
-                sx={{ height: 140 }}
-              />
-            </Box>
+                  {/* 成交量（与主图联动缩放平移） */}
+                  <Typography variant="caption" sx={{ color: 'text.secondary', px: 1 }}>
+                    成交量（手）
+                  </Typography>
+                  <Chart
+                    key={`vol-${tsCode}-${period}-${adjustType}`}
+                    type="bar"
+                    series={volumeSeries}
+                    options={volumeChartOptions}
+                    sx={{ height: 140 }}
+                  />
+                </Box>
+              }
+            />
           )}
         </CardContent>
       </Card>

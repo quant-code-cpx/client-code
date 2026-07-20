@@ -77,10 +77,10 @@ describe('MessageViewport', () => {
     expect(followOutput(false)).toBe(false);
   });
 
-  it('Batch 016 把服务端内容作为转义纯文本展示', () => {
+  it('Batch 017 对助手内容启用安全 Markdown，raw HTML 不进入 DOM', () => {
     renderViewport([message(1, '<img src=x onerror=alert(1)>')]);
 
-    expect(screen.getByText('<img src=x onerror=alert(1)>')).toBeInTheDocument();
     expect(document.querySelector('img')).toBeNull();
+    expect(document.body).not.toHaveTextContent('onerror');
   });
 });
