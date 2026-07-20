@@ -15,14 +15,18 @@ import {
 // Socket mock (vi.hoisted so the factory can reference it)
 // ----------------------------------------------------------------------
 
-const { mockGetSocket, mockDestroySocket } = vi.hoisted(() => ({
+const { mockGetSocket, mockDestroySocket, mockGetSocketStatus, mockOnSocketStatusChange } = vi.hoisted(() => ({
   mockGetSocket: vi.fn(),
   mockDestroySocket: vi.fn(),
+  mockGetSocketStatus: vi.fn(() => 'disconnected'),
+  mockOnSocketStatusChange: vi.fn(() => vi.fn()),
 }));
 
 vi.mock('src/lib/socket', () => ({
   getSocket: mockGetSocket,
   destroySocket: mockDestroySocket,
+  getSocketStatus: mockGetSocketStatus,
+  onSocketStatusChange: mockOnSocketStatusChange,
 }));
 
 // ----------------------------------------------------------------------
@@ -75,10 +79,10 @@ describe('SyncNotificationProvider', () => {
       expect(mockSocket.connect).toHaveBeenCalledTimes(1);
     });
 
-    it('mount 时注册全部 7 个事件监听器', () => {
+    it('mount 时注册全部 8 个事件监听器', () => {
       renderHook(useSyncNotification, { wrapper });
 
-      expect(mockSocket.on).toHaveBeenCalledTimes(7);
+      expect(mockSocket.on).toHaveBeenCalledTimes(8);
 
       const registeredEvents = (mockSocket.on.mock.calls as [string, ...unknown[]][]).map(
         ([event]) => event
@@ -90,6 +94,7 @@ describe('SyncNotificationProvider', () => {
       expect(registeredEvents).toContain('auto_repair_queued');
       expect(registeredEvents).toContain('risk_violation');
       expect(registeredEvents).toContain('screener_subscription_alert');
+      expect(registeredEvents).toContain('agent_run_updated');
     });
 
     it('unmount 时移除全部事件监听器并调用 destroySocket()', () => {
@@ -97,7 +102,7 @@ describe('SyncNotificationProvider', () => {
 
       unmount();
 
-      expect(mockSocket.off).toHaveBeenCalledTimes(7);
+      expect(mockSocket.off).toHaveBeenCalledTimes(8);
       expect(mockDestroySocket).toHaveBeenCalledTimes(1);
     });
   });
@@ -351,6 +356,24 @@ describe('SyncNotificationProvider', () => {
       });
 
       expect(result.current.lastQualitySummary).toEqual(mockSummary);
+    });
+  });
+
+  describe('Agent Run 失效通知', () => {
+    it('只保存轻量更新，供 Agent 页面重新读取权威状态', () => {
+      const { result } = renderHook(useSyncNotification, { wrapper });
+      const payload = {
+        runId: 'run_1',
+        status: 'RUNNING' as const,
+        lastSequence: 12,
+        updatedAt: '2026-07-20T01:00:00.000Z',
+      };
+
+      act(() => {
+        emitSocket('agent_run_updated', payload);
+      });
+
+      expect(result.current.lastAgentRunUpdate).toEqual(payload);
     });
   });
 

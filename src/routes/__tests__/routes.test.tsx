@@ -22,7 +22,9 @@ vi.mock('react-router', async (importOriginal) => {
   return { ...actual, useNavigate: () => mockNavigate };
 });
 
-import { routesSection } from 'src/routes/sections';
+import { routesSection, createAgentRoutes } from 'src/routes/sections';
+
+import { createNavData } from 'src/layouts/nav-config-dashboard';
 
 // ----------------------------------------------------------------------
 
@@ -36,6 +38,21 @@ describe('路由结构 — 静态配置断言', () => {
     it('受保护路由组包含 children 子路由', () => {
       expect(routesSection[0].children).toBeDefined();
       expect((routesSection[0].children as unknown[]).length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('Agent feature flag', () => {
+    it('关闭时不暴露 Agent route 与导航', () => {
+      expect(createAgentRoutes(false)).toEqual([]);
+      expect(createNavData(false).some((item) => item.path === '/agent')).toBe(false);
+    });
+
+    it('开启时注册新建态、深链与导航', () => {
+      expect(createAgentRoutes(true).map((route) => route.path)).toEqual([
+        'agent',
+        'agent/:conversationId',
+      ]);
+      expect(createNavData(true).some((item) => item.path === '/agent')).toBe(true);
     });
   });
 

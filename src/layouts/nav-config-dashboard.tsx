@@ -1,3 +1,5 @@
+import { CONFIG } from 'src/config-global';
+
 import { Iconify } from 'src/components/iconify';
 import { SvgColor } from 'src/components/svg-color';
 
@@ -16,7 +18,8 @@ export type NavItem = {
   children?: Omit<NavItem, 'children'>[];
 };
 
-export const navData = [
+export function createNavData(agentEnabled = CONFIG.agentEnabled): NavItem[] {
+  return [
   // ─── 概览 ────────────────────────────────────────────────
   {
     title: '首页',
@@ -100,6 +103,15 @@ export const navData = [
       },
     ],
   },
+  ...(agentEnabled
+    ? [
+        {
+          title: 'AI 研究',
+          path: '/agent',
+          icon: <Iconify icon="solar:chat-round-dots-bold" width={24} />,
+        },
+      ]
+    : []),
   {
     title: '预警监控',
     path: '/alert',
@@ -238,4 +250,7 @@ export const navData = [
     path: '/admin/user-manage',
     icon: icon('ic-user'),
   },
-];
+  ];
+}
+
+export const navData = createNavData();

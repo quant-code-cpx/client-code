@@ -45,6 +45,42 @@ export const agentMockConversation = {
   statusVersion: 1,
 } satisfies AgentResponse<'/agent/conversations/detail'>;
 
+export const agentMockMessages = [
+  {
+    messageId: 'msg_user_mock_1',
+    role: 'USER',
+    status: 'COMPLETED',
+    contentText: '分析贵州茅台当前估值与盈利质量',
+    contentBlocks: [],
+    version: 1,
+    parentMessageId: null,
+    modelName: null,
+    run: null,
+    citations: [],
+    createdAt: '2026-07-20T00:00:01.000Z',
+    completedAt: '2026-07-20T00:00:01.000Z',
+  },
+  {
+    messageId: 'msg_assistant_mock_1',
+    role: 'ASSISTANT',
+    status: 'COMPLETED',
+    contentText: '贵州茅台估值与盈利质量研究已完成。',
+    contentBlocks: [],
+    version: 1,
+    parentMessageId: 'msg_user_mock_1',
+    modelName: 'fixture-model',
+    run: {
+      runId: 'run_mock_1',
+      status: 'COMPLETED',
+      statusVersion: 3,
+      endedAt: '2026-07-20T00:00:05.000Z',
+    },
+    citations: [],
+    createdAt: '2026-07-20T00:00:02.000Z',
+    completedAt: '2026-07-20T00:00:05.000Z',
+  },
+] satisfies AgentResponse<'/agent/conversations/messages/list'>['items'];
+
 function ok(data: unknown) {
   return HttpResponse.json({ code: 0, data, message: '' });
 }
@@ -79,7 +115,10 @@ export const agentHandlers = [
   ),
   http.post('*/api/agent/conversations/detail', () => ok(agentMockConversation)),
   http.post('*/api/agent/conversations/messages/list', () =>
-    ok({ items: [], nextCursor: null })
+    ok({
+      items: agentMockMessages,
+      nextBeforeMessageId: null,
+    } satisfies AgentResponse<'/agent/conversations/messages/list'>)
   ),
   http.post('*/api/agent/conversations/model/update', () =>
     ok({

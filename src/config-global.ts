@@ -5,6 +5,7 @@ import packageJson from '../package.json';
 export type ConfigValue = {
   appName: string;
   appVersion: string;
+  agentEnabled: boolean;
   userManageFeatures: {
     bulk: boolean;
     stats: boolean;
@@ -23,6 +24,7 @@ const envFlag = (key: string, defaultValue: boolean): boolean => {
 export const CONFIG: ConfigValue = {
   appName: 'Apex Quant',
   appVersion: packageJson.version,
+  agentEnabled: envFlag('VITE_AGENT_ENABLED', false),
   userManageFeatures: {
     bulk: envFlag('VITE_USER_MANAGE_BULK', true),
     stats: envFlag('VITE_USER_MANAGE_STATS', true),

@@ -7,6 +7,7 @@ import { Outlet, Navigate } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import LinearProgress, { linearProgressClasses } from '@mui/material/LinearProgress';
 
+import { CONFIG } from 'src/config-global';
 import { AuthLayout } from 'src/layouts/auth';
 import { DashboardLayout } from 'src/layouts/dashboard';
 
@@ -65,6 +66,16 @@ export const IndexDetailPage = lazy(() => import('src/pages/index-detail'));
 export const PatternPage = lazy(() => import('src/pages/pattern'));
 export const FactorAdvancedAnalysisPage = lazy(() => import('src/pages/factor-advanced-analysis'));
 export const FactorAdminPage = lazy(() => import('src/pages/factor-admin'));
+export const AgentPage = lazy(() => import('src/pages/agent'));
+
+export function createAgentRoutes(enabled = CONFIG.agentEnabled): RouteObject[] {
+  return enabled
+    ? [
+        { path: 'agent', element: <AgentPage /> },
+        { path: 'agent/:conversationId', element: <AgentPage /> },
+      ]
+    : [];
+}
 
 const renderFallback = () => (
   <Box
@@ -99,6 +110,7 @@ export const routesSection: RouteObject[] = [
     ),
     children: [
       { index: true, element: <DashboardPage /> },
+      ...createAgentRoutes(),
       { path: 'stock', element: <StockPage /> },
       { path: 'stock/detail', element: <StockDetailPage /> },
       { path: 'stock/screener', element: <Navigate to="/stock" replace /> },

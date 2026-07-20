@@ -33,13 +33,28 @@ export default defineConfig({
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
       dependencies: ['setup'],
+      testIgnore: '**/agent-chat.e2e.ts',
+    },
+    {
+      name: 'agent-chromium',
+      testMatch: '**/agent-chat.e2e.ts',
+      use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:3040' },
     },
   ],
 
-  webServer: {
-    command: 'yarn dev',
-    url: 'http://localhost:3039',
-    reuseExistingServer: !process.env.CI,
-    timeout: 60_000,
-  },
+  webServer: [
+    {
+      command: 'yarn dev',
+      url: 'http://localhost:3039',
+      reuseExistingServer: !process.env.CI,
+      timeout: 60_000,
+    },
+    {
+      command: 'yarn dev --port 3040',
+      env: { VITE_AGENT_ENABLED: 'true' },
+      url: 'http://localhost:3040',
+      reuseExistingServer: false,
+      timeout: 60_000,
+    },
+  ],
 });

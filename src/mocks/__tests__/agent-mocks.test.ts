@@ -9,6 +9,25 @@ afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
 
 describe('Agent MSW handlers', () => {
+  it('returns conversation messages with the generated pagination field', async () => {
+    const response = await fetch('http://localhost/api/agent/conversations/messages/list', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ conversationId: 'cm_mock_1', beforeMessageId: null, limit: 50 }),
+    });
+
+    await expect(response.json()).resolves.toMatchObject({
+      code: 0,
+      data: {
+        items: [
+          { messageId: 'msg_user_mock_1', role: 'USER' },
+          { messageId: 'msg_assistant_mock_1', role: 'ASSISTANT' },
+        ],
+        nextBeforeMessageId: null,
+      },
+    });
+  });
+
   it('returns the canonical run status shape', async () => {
     const response = await fetch('http://localhost/api/agent/runs/status', {
       method: 'POST',

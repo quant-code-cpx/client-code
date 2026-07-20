@@ -1,6 +1,7 @@
 import type { Socket } from 'socket.io-client';
 import type { SocketStatus } from 'src/lib/socket';
 import type { ViolationItem } from 'src/api/portfolio';
+import type { AgentRunStatus } from 'src/types/agent/generated';
 import type { RepairSummary, QualityCheckSummary } from 'src/api/tushare-sync';
 
 import { useRef, useState, useEffect, useContext, useCallback, createContext } from 'react';
@@ -51,6 +52,13 @@ export type ScreenerSubscriptionAlertPayload = {
   totalMatch?: number;
 };
 
+export type AgentRunUpdatedPayload = {
+  runId: string;
+  status: AgentRunStatus;
+  lastSequence: number;
+  updatedAt: string;
+};
+
 // 通知列表条目类型，与 NotificationsPopover 保持一致
 export type SyncNotificationItem = {
   id: string;
@@ -96,6 +104,8 @@ type SyncNotificationContextValue = {
   clearLastResult: () => void;
   /** Phase 4: 最新一轮数据质量检查摘要（WebSocket 推送或手动触发时更新） */
   lastQualitySummary: QualityCheckSummary | null;
+  /** Agent 后台/其他设备 Run 变化，只用于触发权威状态刷新 */
+  lastAgentRunUpdate: AgentRunUpdatedPayload | null;
 };
 
 // ----------------------------------------------------------------------
@@ -136,6 +146,7 @@ export function SyncNotificationProvider({ children }: ProviderProps) {
   const [lastSyncError, setLastSyncError] = useState<SyncFailedPayload | null>(null);
   const [notifications, setNotifications] = useState<SyncNotificationItem[]>([]);
   const [lastQualitySummary, setLastQualitySummary] = useState<QualityCheckSummary | null>(null);
+  const [lastAgentRunUpdate, setLastAgentRunUpdate] = useState<AgentRunUpdatedPayload | null>(null);
 
   // 保存 socket 引用，避免重复订阅
   const socketRef = useRef<Socket | null>(null);
@@ -265,6 +276,12 @@ export function SyncNotificationProvider({ children }: ProviderProps) {
 
     socket.on('screener_subscription_alert', handleScreenerSubscriptionAlert);
 
+    const handleAgentRunUpdated = (payload: AgentRunUpdatedPayload) => {
+      setLastAgentRunUpdate(payload);
+    };
+
+    socket.on('agent_run_updated', handleAgentRunUpdated);
+
     return () => {
       socket.off('tushare_sync_started', handleStarted);
       socket.off('tushare_sync_completed', handleCompleted);
@@ -273,6 +290,7 @@ export function SyncNotificationProvider({ children }: ProviderProps) {
       socket.off('auto_repair_queued', handleAutoRepairQueued);
       socket.off('risk_violation', handleRiskViolation);
       socket.off('screener_subscription_alert', handleScreenerSubscriptionAlert);
+      socket.off('agent_run_updated', handleAgentRunUpdated);
       offStatus();
       destroySocket();
     };
@@ -311,6 +329,7 @@ export function SyncNotificationProvider({ children }: ProviderProps) {
         markAllRead,
         clearLastResult,
         lastQualitySummary,
+        lastAgentRunUpdate,
       }}
     >
       {children}

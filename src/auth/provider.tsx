@@ -1,5 +1,7 @@
 import { useRef, useMemo, useEffect, useReducer, useCallback } from 'react';
 
+import { clearAgentDrafts } from 'src/utils/agent-draft-storage';
+
 import { authApi, tokenStorage, userManageApi, setAuthCallbacks } from 'src/api';
 
 import { AuthContext } from './context';
@@ -46,6 +48,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       } else if (msg.type === 'SIGNED_OUT') {
         // 其他标签页已登出，本标签页同步清除状态
         tokenStorage.clear();
+        clearAgentDrafts();
         dispatch({ type: 'SIGN_OUT' });
       }
     };
@@ -65,6 +68,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       },
       onUnauthorized: () => {
         tokenStorage.clear();
+        clearAgentDrafts();
         dispatch({ type: 'SIGN_OUT' });
         channelRef.current?.postMessage({ type: 'SIGNED_OUT' });
       },
@@ -87,6 +91,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       .catch(() => {
         // refresh token 已过期或不存在，清除状态，由 AuthGuard 重定向到登录页
         tokenStorage.clear();
+        clearAgentDrafts();
         dispatch({ type: 'AUTH_FAILURE' });
       });
   }, []);
@@ -108,6 +113,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // 即使接口失败也要清除本地状态
     } finally {
       tokenStorage.clear();
+      clearAgentDrafts();
       dispatch({ type: 'SIGN_OUT' });
       // 通知其他标签页同步登出
       channelRef.current?.postMessage({ type: 'SIGNED_OUT' });
