@@ -1,4 +1,4 @@
-import { apiClient, tokenStorage, setAuthCallbacks } from '../client';
+import { apiClient, tokenStorage, setAuthCallbacks, authenticatedFetch } from '../client';
 
 // ----------------------------------------------------------------------
 // Helpers
@@ -77,8 +77,8 @@ describe('apiClient.post', () => {
     expect(url).toBe('/api/test');
     expect(options.method).toBe('POST');
     expect(options.body).toBe(JSON.stringify({ foo: 'bar' }));
-    const headers = options.headers as Record<string, string>;
-    expect(headers['Content-Type']).toBe('application/json');
+    const headers = new Headers(options.headers);
+    expect(headers.get('Content-Type')).toBe('application/json');
   });
 
   it('includes Bearer Authorization header when token is set', async () => {
@@ -88,8 +88,8 @@ describe('apiClient.post', () => {
     await apiClient.post('/api/test');
 
     const [, options] = mockFetch.mock.calls[0] as [string, RequestInit];
-    const headers = options.headers as Record<string, string>;
-    expect(headers.Authorization).toBe('Bearer my-access-token');
+    const headers = new Headers(options.headers);
+    expect(headers.get('Authorization')).toBe('Bearer my-access-token');
   });
 
   it('omits Authorization header when no token is stored', async () => {
@@ -98,8 +98,8 @@ describe('apiClient.post', () => {
     await apiClient.post('/api/test');
 
     const [, options] = mockFetch.mock.calls[0] as [string, RequestInit];
-    const headers = options.headers as Record<string, string>;
-    expect(headers.Authorization).toBeUndefined();
+    const headers = new Headers(options.headers);
+    expect(headers.has('Authorization')).toBe(false);
   });
 
   it('unwraps { data } wrapper in response body', async () => {
@@ -172,8 +172,8 @@ describe('apiClient.post', () => {
     expect(mockFetch).toHaveBeenCalledTimes(3);
 
     const retryCall = mockFetch.mock.calls[2] as [string, RequestInit];
-    const retryHeaders = retryCall[1].headers as Record<string, string>;
-    expect(retryHeaders.Authorization).toBe('Bearer new-token');
+    const retryHeaders = new Headers(retryCall[1].headers);
+    expect(retryHeaders.get('Authorization')).toBe('Bearer new-token');
   });
 
   it('calls onTokenRefreshed callback after successful refresh', async () => {
@@ -245,6 +245,105 @@ describe('apiClient.post', () => {
     );
     // Only ONE refresh call should have been made despite two concurrent 401s
     expect(refreshCalls).toHaveLength(1);
+  });
+
+  it('reuses a token refreshed by another request when a late 401 arrives', async () => {
+    tokenStorage.set('expired-token');
+    let resolveLate401: ((response: ReturnType<typeof jsonResp>) => void) | undefined;
+    const late401 = new Promise<ReturnType<typeof jsonResp>>((resolve) => {
+      resolveLate401 = resolve;
+    });
+    let requestACount = 0;
+    let requestBCount = 0;
+
+    mockFetch.mockImplementation((url: string) => {
+      if (url === '/api/a') {
+        requestACount += 1;
+        if (requestACount === 1) return Promise.resolve(jsonResp({}, 401));
+        resolveLate401?.(jsonResp({}, 401));
+        return Promise.resolve(jsonResp({ data: 'result-a' }));
+      }
+      if (url === '/api/b') {
+        requestBCount += 1;
+        return requestBCount === 1
+          ? late401
+          : Promise.resolve(jsonResp({ data: 'result-b' }));
+      }
+      if (url === '/api/auth/refresh') {
+        return Promise.resolve(jsonResp({ data: { accessToken: 'fresh-token' } }));
+      }
+      return Promise.resolve(jsonResp({}));
+    });
+
+    await expect(
+      Promise.all([apiClient.post('/api/a'), apiClient.post('/api/b')])
+    ).resolves.toEqual(['result-a', 'result-b']);
+
+    expect(
+      mockFetch.mock.calls.filter(([url]) => (url as string) === '/api/auth/refresh')
+    ).toHaveLength(1);
+    const retryB = mockFetch.mock.calls.find(
+      ([url], index) => url === '/api/b' && index > 1
+    ) as [string, RequestInit] | undefined;
+    expect(new Headers(retryB?.[1].headers).get('Authorization')).toBe('Bearer fresh-token');
+  });
+
+  it('expires the session only once when concurrent callers share a failed refresh', async () => {
+    const onUnauthorized = vi.fn();
+    setAuthCallbacks({ onUnauthorized });
+    tokenStorage.set('expired-token');
+    mockFetch.mockImplementation((url: string) => {
+      if (url === '/api/auth/refresh') return Promise.resolve(jsonResp({}, 401));
+      return Promise.resolve(jsonResp({}, url === '/api/auth/logout' ? 200 : 401));
+    });
+
+    const results = await Promise.allSettled([
+      apiClient.post('/api/a'),
+      apiClient.post('/api/b'),
+    ]);
+
+    expect(results.every((result) => result.status === 'rejected')).toBe(true);
+    expect(onUnauthorized).toHaveBeenCalledTimes(1);
+    expect(
+      mockFetch.mock.calls.filter(([url]) => (url as string) === '/api/auth/logout')
+    ).toHaveLength(1);
+  });
+
+  it('shares one refresh between JSON and raw streaming requests', async () => {
+    tokenStorage.set('expired-token');
+    const rawResponse = jsonResp({ data: 'raw' });
+    mockFetch
+      .mockResolvedValueOnce(jsonResp({}, 401))
+      .mockResolvedValueOnce(jsonResp({}, 401))
+      .mockResolvedValueOnce(jsonResp({ data: { accessToken: 'shared-token' } }))
+      .mockResolvedValueOnce(jsonResp({ data: 'json' }))
+      .mockResolvedValueOnce(rawResponse);
+
+    const [jsonResult, streamResponse] = await Promise.all([
+      apiClient.post('/api/json'),
+      authenticatedFetch('/api/stream', { headers: { Accept: 'text/event-stream' } }),
+    ]);
+
+    expect(jsonResult).toBe('json');
+    expect(streamResponse).toBe(rawResponse);
+    expect(
+      mockFetch.mock.calls.filter(([url]) => (url as string) === '/api/auth/refresh')
+    ).toHaveLength(1);
+
+    const replayHeaders = mockFetch.mock.calls.slice(-2).map(([, init]) => new Headers(init.headers));
+    expect(replayHeaders.every((headers) => headers.get('Authorization') === 'Bearer shared-token')).toBe(
+      true
+    );
+  });
+
+  it('returns raw responses without parsing their body', async () => {
+    const rawResponse = textResp(200);
+    mockFetch.mockResolvedValueOnce(rawResponse);
+
+    const result = await authenticatedFetch('/api/raw', { headers: { Accept: 'text/event-stream' } });
+
+    expect(result).toBe(rawResponse);
+    expect(mockFetch).toHaveBeenCalledTimes(1);
   });
 });
 

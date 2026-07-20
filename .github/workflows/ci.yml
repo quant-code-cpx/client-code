@@ -29,6 +29,11 @@ jobs:
       - name: Lint
         run: yarn lint
 
+      - name: Check Agent API contract drift
+        env:
+          AGENT_OPENAPI_PATH: openapi/agent-openapi.json
+        run: yarn api:agent:check
+
       - name: Type-check
         run: npx tsc --noEmit
 

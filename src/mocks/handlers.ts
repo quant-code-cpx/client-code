@@ -20,6 +20,7 @@ import reportData from './data/report.json';
 import signalData from './data/signal.json';
 import heatmapData from './data/heatmap.json';
 import patternData from './data/pattern.json';
+import { agentHandlers } from './agent-mocks';
 import backtestData from './data/backtest.json';
 import calendarData from './data/calendar.json';
 import screenerData from './data/screener.json';
@@ -715,4 +716,9 @@ const eventStudyDynamicHandlers = [
 ];
 
 // Auth handlers first (higher priority in MSW)
-export const handlers = [...authHandlers, ...eventStudyDynamicHandlers, ...dataHandlers];
+export const handlers = [
+  ...authHandlers,
+  ...agentHandlers,
+  ...eventStudyDynamicHandlers,
+  ...dataHandlers,
+];

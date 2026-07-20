@@ -1,23 +1,27 @@
 // ----------------------------------------------------------------------
 // 统一 API 客户端
-// BASE_URL: 开发环境留空（Vite 代理处理），生产环境通过 VITE_API_BASE_URL 配置
+// API_BASE_URL: 开发环境留空（Vite 代理处理），生产环境通过 VITE_API_URL 配置。
+// VITE_API_BASE_URL 保留兼容现有部署。
 // ----------------------------------------------------------------------
 
-const BASE_URL = (import.meta.env.VITE_API_BASE_URL as string) ?? '';
+const API_BASE_URL =
+  (import.meta.env.VITE_API_URL as string | undefined) ??
+  (import.meta.env.VITE_API_BASE_URL as string | undefined) ??
+  '';
 
 // ---------- Token 存储（内存，非 localStorage） ----------
-// Access token 存内存而非 localStorage，防止 XSS 通过 localStorage 窃取 token。
-// 页面刷新后通过 HttpOnly Cookie 携带的 refresh token 静默重新获取 access token。
 
-let _accessToken: string | null = null;
+let accessToken: string | null = null;
+let sessionExpired = false;
 
 export const tokenStorage = {
-  get: (): string | null => _accessToken,
+  get: (): string | null => accessToken,
   set: (token: string): void => {
-    _accessToken = token;
+    accessToken = token;
+    sessionExpired = false;
   },
   clear: (): void => {
-    _accessToken = null;
+    accessToken = null;
   },
 };
 
@@ -34,137 +38,160 @@ export function setAuthCallbacks(callbacks: AuthCallbacks): void {
   authCallbacks = callbacks;
 }
 
-// ---------- Token 刷新队列（防止并发重复刷新） ----------
+// ---------- Token 单飞刷新 ----------
 
-let isRefreshing = false;
-let refreshQueue: Array<(token: string | null) => void> = [];
+let refreshPromise: Promise<string> | null = null;
 
-async function attemptRefresh(): Promise<string> {
-  if (isRefreshing) {
-    return new Promise<string>((resolve, reject) => {
-      refreshQueue.push((token) => {
-        if (token) resolve(token);
-        else reject(new Error('Token refresh failed'));
-      });
-    });
-  }
-
-  isRefreshing = true;
-
-  try {
-    const response = await fetch(`${BASE_URL}/api/auth/refresh`, {
-      method: 'POST',
-      credentials: 'include',
-    });
-
-    if (!response.ok) throw new Error('Refresh failed');
-
-    const json: ApiWrapper<{ accessToken: string }> = await response.json();
-    const accessToken =
-      json.data?.accessToken ?? (json as unknown as { accessToken: string }).accessToken;
-    tokenStorage.set(accessToken);
-    authCallbacks.onTokenRefreshed?.(accessToken);
-    refreshQueue.forEach((cb) => cb(accessToken));
-    return accessToken;
-  } catch (err) {
-    refreshQueue.forEach((cb) => cb(null));
-    throw err;
-  } finally {
-    isRefreshing = false;
-    refreshQueue = [];
-  }
-}
-
-// ---------- 核心请求函数 ----------
-
-async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
-  const token = tokenStorage.get();
-
-  const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
-    ...(options.headers as Record<string, string>),
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
-  };
-
-  const response = await fetch(`${BASE_URL}${url}`, {
-    ...options,
-    headers,
-    credentials: 'include',
-  });
-
-  // Token 过期 → 尝试刷新后重试
-  if (response.status === 401) {
-    try {
-      const newToken = await attemptRefresh();
-      const retryResponse = await fetch(`${BASE_URL}${url}`, {
-        ...options,
-        headers: { ...headers, Authorization: `Bearer ${newToken}` },
-        credentials: 'include',
-      });
-
-      if (!retryResponse.ok) {
-        const errBody = await retryResponse.json().catch(() => ({}));
-        const raw = errBody as { message?: string | string[] };
-        const msg = Array.isArray(raw.message)
-          ? raw.message.join('；')
-          : (raw.message ?? '请求失败');
-        throw new Error(msg);
-      }
-
-      return parseResponse<T>(retryResponse);
-    } catch {
-      // Refresh token is also expired/invalid → best-effort server-side logout to clear the
-      // refresh_token cookie and revoke the session, then clear local state.
-      // NOTE: We use raw fetch (not apiClient) here to avoid triggering another refresh
-      // attempt (apiClient retries 401s via attemptRefresh, which would cause an infinite loop).
-      const currentToken = tokenStorage.get();
-      fetch(`${BASE_URL}/api/auth/logout`, {
-        method: 'POST',
-        credentials: 'include',
-        headers: currentToken ? { Authorization: `Bearer ${currentToken}` } : {},
-      }).catch(() => {});
-      tokenStorage.clear();
-      authCallbacks.onUnauthorized?.();
-      throw new Error('登录已过期，请重新登录');
-    }
-  }
-
-  if (!response.ok) {
-    const errBody = await response.json().catch(() => ({}));
-    const raw = errBody as { message?: string | string[] };
-    const msg = Array.isArray(raw.message) ? raw.message.join('；') : (raw.message ?? '请求失败');
-    throw new Error(msg);
-  }
-
-  return parseResponse<T>(response);
-}
-
-// 统一响应包装器
 interface ApiWrapper<T> {
   code: number;
   data: T;
   message?: string | string[];
 }
 
+function resolveApiInput(input: RequestInfo | URL): RequestInfo | URL {
+  if (typeof input !== 'string') return input;
+  if (/^[a-z][a-z\d+.-]*:/i.test(input)) return input;
+  return `${API_BASE_URL}${input}`;
+}
+
+function mergeHeaders(input: RequestInfo | URL, init: RequestInit, token: string | null): Headers {
+  const headers = new Headers(input instanceof Request ? input.headers : undefined);
+  new Headers(init.headers).forEach((value, key) => headers.set(key, value));
+
+  if (token) headers.set('Authorization', `Bearer ${token}`);
+  else headers.delete('Authorization');
+
+  return headers;
+}
+
+async function refreshAccessToken(): Promise<string> {
+  if (refreshPromise) return refreshPromise;
+
+  refreshPromise = (async () => {
+    const response = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
+      method: 'POST',
+      credentials: 'include',
+    });
+
+    if (!response.ok) throw new Error('Refresh failed');
+
+    const json = (await response.json()) as ApiWrapper<{ accessToken: string }> & {
+      accessToken?: string;
+    };
+    const token = json.data?.accessToken ?? json.accessToken;
+    if (!token) throw new Error('Refresh response missing access token');
+
+    tokenStorage.set(token);
+    authCallbacks.onTokenRefreshed?.(token);
+    return token;
+  })().finally(() => {
+    refreshPromise = null;
+  });
+
+  return refreshPromise;
+}
+
+function expireSession(): void {
+  if (sessionExpired) return;
+  sessionExpired = true;
+  const currentToken = tokenStorage.get();
+
+  fetch(`${API_BASE_URL}/api/auth/logout`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: currentToken ? { Authorization: `Bearer ${currentToken}` } : {},
+  }).catch(() => {});
+
+  accessToken = null;
+  authCallbacks.onUnauthorized?.();
+}
+
+export type AuthenticatedFetchOptions = {
+  retryOnUnauthorized?: boolean;
+};
+
+/**
+ * Bearer-authenticated raw fetch. JSON and streaming clients share one refresh promise.
+ * A request is replayed at most once after a 401.
+ */
+export async function authenticatedFetch(
+  input: RequestInfo | URL,
+  init: RequestInit = {},
+  options: AuthenticatedFetchOptions = {}
+): Promise<Response> {
+  const resolvedInput = resolveApiInput(input);
+  const requestToken = tokenStorage.get();
+  const replayableInput = (): RequestInfo | URL =>
+    resolvedInput instanceof Request ? resolvedInput.clone() : resolvedInput;
+  const requestInit: RequestInit = {
+    ...init,
+    credentials: init.credentials ?? 'include',
+    headers: mergeHeaders(input, init, requestToken),
+  };
+  const response = await fetch(replayableInput(), requestInit);
+
+  if (response.status !== 401 || options.retryOnUnauthorized === false) return response;
+  void response.body?.cancel().catch(() => {});
+
+  let refreshedToken: string;
+  const currentToken = tokenStorage.get();
+  if (currentToken && currentToken !== requestToken) {
+    refreshedToken = currentToken;
+  } else {
+    try {
+      refreshedToken = await refreshAccessToken();
+    } catch {
+      expireSession();
+      throw new Error('登录已过期，请重新登录');
+    }
+  }
+
+  const retryResponse = await fetch(replayableInput(), {
+    ...requestInit,
+    headers: mergeHeaders(input, init, refreshedToken),
+  });
+  if (retryResponse.status === 401) {
+    void retryResponse.body?.cancel().catch(() => {});
+    expireSession();
+    throw new Error('登录已过期，请重新登录');
+  }
+  return retryResponse;
+}
+
+// ---------- JSON 请求 ----------
+
+function responseMessage(body: unknown): string {
+  if (body === null || typeof body !== 'object') return '请求失败';
+
+  const message = (body as { message?: string | string[] }).message;
+  if (Array.isArray(message)) return message.join('；');
+  return message ?? '请求失败';
+}
+
 async function parseResponse<T>(response: Response): Promise<T> {
   const contentType = response.headers.get('content-type') ?? '';
-  if (!contentType.includes('application/json')) {
-    return null as T;
-  }
+  if (!contentType.includes('application/json')) return null as T;
+
   const json = (await response.json()) as ApiWrapper<T>;
-  // 服务端统一包装格式：{ code, data, message? }
-  // 若响应体本身就含 data 字段则解包，否则原样返回（兼容无包装场景）
   if (json !== null && typeof json === 'object' && 'data' in json) {
-    // 业务错误码（code !== 0）：抛出服务端 message，而非返回 null data
-    if ('code' in json && json.code !== 0) {
-      const msg = Array.isArray(json.message)
-        ? json.message.join('；')
-        : (json.message ?? '请求失败');
-      throw new Error(msg);
-    }
+    if ('code' in json && json.code !== 0) throw new Error(responseMessage(json));
     return json.data;
   }
-  return json as unknown as T;
+  return json as T;
+}
+
+async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
+  const headers = new Headers(options.headers);
+  headers.set('Content-Type', 'application/json');
+
+  const response = await authenticatedFetch(url, { ...options, headers });
+
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => ({}));
+    throw new Error(responseMessage(errorBody));
+  }
+
+  return parseResponse<T>(response);
 }
 
 // ---------- 对外暴露的 API 方法 ----------

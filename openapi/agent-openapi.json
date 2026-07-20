@@ -1,0 +1,1551 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/agent/conversations/create": {
+      "post": {
+        "operationId": "AgentController_createConversation",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateConversationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/CreateConversationResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "创建 Agent 会话",
+        "tags": [
+          "Agent - 会话与运行"
+        ]
+      }
+    },
+    "/agent/conversations/list": {
+      "post": {
+        "operationId": "AgentController_listConversations",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ListConversationsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/AgentConversationListResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "分页查询 Agent 会话",
+        "tags": [
+          "Agent - 会话与运行"
+        ]
+      }
+    },
+    "/agent/conversations/detail": {
+      "post": {
+        "operationId": "AgentController_conversationDetail",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConversationDetailDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/AgentConversationDetailResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "查询 Agent 会话详情",
+        "tags": [
+          "Agent - 会话与运行"
+        ]
+      }
+    },
+    "/agent/conversations/messages/list": {
+      "post": {
+        "operationId": "AgentController_listConversationMessages",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ListConversationMessagesDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/AgentMessageListResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "分页查询会话消息、引用与 Run 摘要",
+        "tags": [
+          "Agent - 会话与运行"
+        ]
+      }
+    },
+    "/agent/conversations/model/update": {
+      "post": {
+        "operationId": "AgentController_updateConversationModel",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateConversationModelDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/UpdateConversationModelResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "更新会话后续 Run 的模型策略",
+        "tags": [
+          "Agent - 会话与运行"
+        ]
+      }
+    },
+    "/agent/messages/send": {
+      "post": {
+        "operationId": "AgentController_sendMessage",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendAgentMessageDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/AgentRunCreatedResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "原子创建消息与 Agent Run，并可靠入队",
+        "tags": [
+          "Agent - 会话与运行"
+        ]
+      }
+    },
+    "/agent/runs/regenerate": {
+      "post": {
+        "operationId": "AgentController_regenerate",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegenerateAgentMessageDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/AgentRunRegeneratedResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "创建 assistant 新版本并重新运行",
+        "tags": [
+          "Agent - 会话与运行"
+        ]
+      }
+    },
+    "/agent/runs/status": {
+      "post": {
+        "operationId": "AgentController_runStatus",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AgentRunStatusDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/AgentRunStatusResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "查询 Agent Run 权威状态",
+        "tags": [
+          "Agent - 会话与运行"
+        ]
+      }
+    },
+    "/agent/runs/cancel": {
+      "post": {
+        "operationId": "AgentController_cancelRun",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CancelAgentRunDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/CancelAgentRunResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CAS 取消 Agent Run",
+        "tags": [
+          "Agent - 会话与运行"
+        ]
+      }
+    },
+    "/agent/runs/tool-calls/list": {
+      "post": {
+        "operationId": "AgentController_listToolCalls",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ListAgentToolCallsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/AgentToolCallListResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "查询 Run 的脱敏 Tool 调用摘要",
+        "tags": [
+          "Agent - 会话与运行"
+        ]
+      }
+    },
+    "/agent/runs/events": {
+      "post": {
+        "operationId": "AgentStreamController_events",
+        "parameters": [
+          {
+            "name": "last-event-id",
+            "required": true,
+            "in": "header",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "Last-Event-ID",
+            "in": "header",
+            "description": "同一 Run 内最后确认的持久 eventId",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AgentRunEventsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "raw text/event-stream",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "type": "string",
+                  "example": "id: evt_xxx\nevent: agent.progress\ndata: {...}\n\n"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "重放并持续订阅 Agent Run 持久事件",
+        "tags": [
+          "Agent - 事件流"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "Quant Server API",
+    "description": "量化交易后端接口文档",
+    "version": "1.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "schemas": {
+      "AgentRunEventsDto": {
+        "type": "object",
+        "properties": {
+          "runId": {
+            "type": "string"
+          },
+          "afterSequence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "runId",
+          "afterSequence"
+        ]
+      },
+      "AgentToolCallListResponseDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AgentToolCallResponseDto"
+            }
+          },
+          "payloadIncluded": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "required": [
+          "items",
+          "payloadIncluded"
+        ]
+      },
+      "AgentToolCallResponseDto": {
+        "type": "object",
+        "properties": {
+          "toolCallId": {
+            "type": "string"
+          },
+          "toolName": {
+            "type": "string"
+          },
+          "toolVersion": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "AUTHORIZING",
+              "RUNNING",
+              "RETRY_WAIT",
+              "SUCCEEDED",
+              "FAILED",
+              "CANCELLED",
+              "REJECTED"
+            ]
+          },
+          "attemptCount": {
+            "type": "number"
+          },
+          "inputSummary": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "outputSummary": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": true
+          },
+          "errorCode": {
+            "type": "number",
+            "nullable": true
+          },
+          "errorMessage": {
+            "type": "string",
+            "nullable": true
+          },
+          "durationMs": {
+            "type": "number",
+            "nullable": true
+          },
+          "dataAsOf": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "dataThrough": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "finishedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "toolCallId",
+          "toolName",
+          "toolVersion",
+          "status",
+          "attemptCount",
+          "inputSummary",
+          "startedAt"
+        ]
+      },
+      "ResponseModel": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "number",
+            "default": 0
+          },
+          "message": {
+            "type": "string",
+            "default": ""
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ]
+      },
+      "ListAgentToolCallsDto": {
+        "type": "object",
+        "properties": {
+          "runId": {
+            "type": "string"
+          },
+          "includePayload": {
+            "type": "boolean",
+            "default": false,
+            "description": "普通用户端点始终只返回脱敏摘要"
+          }
+        },
+        "required": [
+          "runId"
+        ]
+      },
+      "CancelAgentRunResponseDto": {
+        "type": "object",
+        "properties": {
+          "runId": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "QUEUED",
+              "RUNNING",
+              "CANCEL_REQUESTED",
+              "COMPLETED",
+              "FAILED",
+              "CANCELLED"
+            ]
+          },
+          "statusVersion": {
+            "type": "number"
+          },
+          "cancellationAccepted": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "runId",
+          "status",
+          "statusVersion",
+          "cancellationAccepted"
+        ]
+      },
+      "CancelAgentRunDto": {
+        "type": "object",
+        "properties": {
+          "runId": {
+            "type": "string"
+          },
+          "expectedStatusVersion": {
+            "type": "number",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "runId",
+          "expectedStatusVersion"
+        ]
+      },
+      "AgentRunStatusResponseDto": {
+        "type": "object",
+        "properties": {
+          "runId": {
+            "type": "string"
+          },
+          "conversationId": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "QUEUED",
+              "RUNNING",
+              "CANCEL_REQUESTED",
+              "COMPLETED",
+              "FAILED",
+              "CANCELLED"
+            ]
+          },
+          "statusVersion": {
+            "type": "number"
+          },
+          "currentStep": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AgentRunCurrentStepDto"
+              }
+            ]
+          },
+          "finalMessageId": {
+            "type": "string",
+            "nullable": true
+          },
+          "latestEventSequence": {
+            "type": "number"
+          },
+          "canCancel": {
+            "type": "boolean"
+          },
+          "errorCode": {
+            "type": "number",
+            "nullable": true
+          },
+          "errorMessage": {
+            "type": "string",
+            "nullable": true
+          },
+          "queuedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "startedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "endedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "runId",
+          "conversationId",
+          "status",
+          "statusVersion",
+          "latestEventSequence",
+          "canCancel",
+          "queuedAt"
+        ]
+      },
+      "AgentRunCurrentStepDto": {
+        "type": "object",
+        "properties": {
+          "stepId": {
+            "type": "string"
+          },
+          "stepKey": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "PLAN",
+              "TOOL",
+              "MODEL",
+              "VALIDATION",
+              "WAIT",
+              "FINALIZE"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "RUNNING",
+              "COMPLETED",
+              "FAILED",
+              "CANCELLED",
+              "SKIPPED"
+            ]
+          },
+          "ordinal": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "stepId",
+          "stepKey",
+          "kind",
+          "status",
+          "ordinal"
+        ]
+      },
+      "AgentRunStatusDto": {
+        "type": "object",
+        "properties": {
+          "runId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "runId"
+        ]
+      },
+      "AgentRunRegeneratedResponseDto": {
+        "type": "object",
+        "properties": {
+          "conversationId": {
+            "type": "string"
+          },
+          "sourceMessageId": {
+            "type": "string"
+          },
+          "assistantMessageId": {
+            "type": "string"
+          },
+          "runId": {
+            "type": "string"
+          },
+          "runStatus": {
+            "type": "string",
+            "enum": [
+              "QUEUED",
+              "RUNNING",
+              "CANCEL_REQUESTED",
+              "COMPLETED",
+              "FAILED",
+              "CANCELLED"
+            ]
+          },
+          "streamEndpoint": {
+            "type": "string",
+            "enum": [
+              "/api/agent/runs/events"
+            ]
+          }
+        },
+        "required": [
+          "conversationId",
+          "sourceMessageId",
+          "assistantMessageId",
+          "runId",
+          "runStatus",
+          "streamEndpoint"
+        ]
+      },
+      "RegenerateAgentMessageDto": {
+        "type": "object",
+        "properties": {
+          "clientRequestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "messageId": {
+            "type": "string"
+          },
+          "modelPolicy": {
+            "type": "string",
+            "enum": [
+              "AUTO",
+              "MANUAL"
+            ]
+          }
+        },
+        "required": [
+          "clientRequestId",
+          "messageId",
+          "modelPolicy"
+        ]
+      },
+      "AgentRunCreatedResponseDto": {
+        "type": "object",
+        "properties": {
+          "conversationId": {
+            "type": "string"
+          },
+          "userMessageId": {
+            "type": "string"
+          },
+          "assistantMessageId": {
+            "type": "string"
+          },
+          "runId": {
+            "type": "string"
+          },
+          "runStatus": {
+            "type": "string",
+            "enum": [
+              "QUEUED",
+              "RUNNING",
+              "CANCEL_REQUESTED",
+              "COMPLETED",
+              "FAILED",
+              "CANCELLED"
+            ]
+          },
+          "streamEndpoint": {
+            "type": "string",
+            "enum": [
+              "/api/agent/runs/events"
+            ]
+          }
+        },
+        "required": [
+          "conversationId",
+          "userMessageId",
+          "assistantMessageId",
+          "runId",
+          "runStatus",
+          "streamEndpoint"
+        ]
+      },
+      "SendAgentMessageDto": {
+        "type": "object",
+        "properties": {
+          "clientRequestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "conversationId": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string",
+            "maxLength": 10000
+          },
+          "pageContext": {
+            "$ref": "#/components/schemas/AgentPageContextDto"
+          },
+          "modelPolicy": {
+            "type": "string",
+            "enum": [
+              "AUTO",
+              "MANUAL"
+            ]
+          },
+          "allowedCapabilities": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "INTERNAL_DATA",
+                "QUANT_COMPUTE",
+                "WEB_SEARCH"
+              ]
+            }
+          }
+        },
+        "required": [
+          "clientRequestId",
+          "conversationId",
+          "content",
+          "modelPolicy",
+          "allowedCapabilities"
+        ]
+      },
+      "AgentPageContextDto": {
+        "type": "object",
+        "properties": {
+          "route": {
+            "type": "string",
+            "example": "/stock/detail"
+          },
+          "entityType": {
+            "type": "string",
+            "enum": [
+              "STOCK",
+              "INDEX",
+              "PORTFOLIO",
+              "BACKTEST",
+              "REPORT"
+            ]
+          },
+          "entityId": {
+            "type": "string",
+            "example": "600519.SH"
+          },
+          "selectedRange": {
+            "$ref": "#/components/schemas/AgentPageRangeDto"
+          },
+          "visibleDataAsOf": {
+            "type": "string",
+            "example": "2026-07-17"
+          }
+        },
+        "required": [
+          "route"
+        ]
+      },
+      "AgentPageRangeDto": {
+        "type": "object",
+        "properties": {
+          "start": {
+            "type": "string",
+            "example": "2021-01-01"
+          },
+          "end": {
+            "type": "string",
+            "example": "2026-07-17"
+          }
+        },
+        "required": [
+          "start",
+          "end"
+        ]
+      },
+      "UpdateConversationModelResponseDto": {
+        "type": "object",
+        "properties": {
+          "conversationId": {
+            "type": "string"
+          },
+          "modelPolicy": {
+            "type": "string",
+            "enum": [
+              "AUTO",
+              "MANUAL"
+            ]
+          },
+          "preferredModel": {
+            "type": "string",
+            "nullable": true
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "conversationId",
+          "modelPolicy",
+          "updatedAt"
+        ]
+      },
+      "UpdateConversationModelDto": {
+        "type": "object",
+        "properties": {
+          "conversationId": {
+            "type": "string"
+          },
+          "modelPolicy": {
+            "type": "string",
+            "enum": [
+              "AUTO",
+              "MANUAL"
+            ]
+          },
+          "preferredModel": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 128
+          }
+        },
+        "required": [
+          "conversationId",
+          "modelPolicy"
+        ]
+      },
+      "AgentMessageListResponseDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AgentMessageResponseDto"
+            }
+          },
+          "nextBeforeMessageId": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "AgentMessageResponseDto": {
+        "type": "object",
+        "properties": {
+          "messageId": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "USER",
+              "ASSISTANT",
+              "SYSTEM",
+              "TOOL"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "STREAMING",
+              "COMPLETED",
+              "FAILED",
+              "CANCELLED"
+            ]
+          },
+          "contentText": {
+            "type": "string",
+            "nullable": true
+          },
+          "contentBlocks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "version": {
+            "type": "number"
+          },
+          "parentMessageId": {
+            "type": "string",
+            "nullable": true
+          },
+          "modelName": {
+            "type": "string",
+            "nullable": true
+          },
+          "run": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AgentMessageRunSummaryDto"
+              }
+            ]
+          },
+          "citations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AgentCitationResponseDto"
+            }
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "completedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "messageId",
+          "role",
+          "status",
+          "contentBlocks",
+          "version",
+          "citations",
+          "createdAt"
+        ]
+      },
+      "AgentCitationResponseDto": {
+        "type": "object",
+        "properties": {
+          "citationId": {
+            "type": "string"
+          },
+          "blockId": {
+            "type": "string"
+          },
+          "claimKey": {
+            "type": "string"
+          },
+          "conclusionLevel": {
+            "type": "string"
+          },
+          "sourceType": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "canonicalUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "publisher": {
+            "type": "string",
+            "nullable": true
+          },
+          "retrievedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "locator": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "citationId",
+          "blockId",
+          "claimKey",
+          "conclusionLevel",
+          "sourceType",
+          "title",
+          "retrievedAt",
+          "locator"
+        ]
+      },
+      "AgentMessageRunSummaryDto": {
+        "type": "object",
+        "properties": {
+          "runId": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
+          },
+          "statusVersion": {
+            "type": "number"
+          },
+          "endedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "runId",
+          "status",
+          "statusVersion"
+        ]
+      },
+      "ListConversationMessagesDto": {
+        "type": "object",
+        "properties": {
+          "conversationId": {
+            "type": "string"
+          },
+          "beforeMessageId": {
+            "type": "string",
+            "nullable": true
+          },
+          "limit": {
+            "type": "number",
+            "default": 50,
+            "minimum": 1,
+            "maximum": 100
+          }
+        },
+        "required": [
+          "conversationId"
+        ]
+      },
+      "AgentConversationDetailResponseDto": {
+        "type": "object",
+        "properties": {
+          "conversationId": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "ARCHIVED"
+            ]
+          },
+          "modelPolicy": {
+            "type": "string",
+            "enum": [
+              "AUTO",
+              "MANUAL"
+            ]
+          },
+          "preferredModel": {
+            "type": "string",
+            "nullable": true
+          },
+          "messageCount": {
+            "type": "number"
+          },
+          "lastMessageAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "statusVersion": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "conversationId",
+          "title",
+          "status",
+          "modelPolicy",
+          "messageCount",
+          "lastMessageAt",
+          "createdAt",
+          "updatedAt",
+          "statusVersion"
+        ]
+      },
+      "ConversationDetailDto": {
+        "type": "object",
+        "properties": {
+          "conversationId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "conversationId"
+        ]
+      },
+      "AgentConversationListResponseDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AgentConversationSummaryDto"
+            }
+          },
+          "nextCursor": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "AgentConversationSummaryDto": {
+        "type": "object",
+        "properties": {
+          "conversationId": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "ARCHIVED"
+            ]
+          },
+          "modelPolicy": {
+            "type": "string",
+            "enum": [
+              "AUTO",
+              "MANUAL"
+            ]
+          },
+          "preferredModel": {
+            "type": "string",
+            "nullable": true
+          },
+          "messageCount": {
+            "type": "number"
+          },
+          "lastMessageAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "conversationId",
+          "title",
+          "status",
+          "modelPolicy",
+          "messageCount",
+          "lastMessageAt",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "ListConversationsDto": {
+        "type": "object",
+        "properties": {
+          "cursor": {
+            "type": "string",
+            "nullable": true
+          },
+          "limit": {
+            "type": "number",
+            "default": 30,
+            "minimum": 1,
+            "maximum": 100
+          },
+          "includeArchived": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "CreateConversationResponseDto": {
+        "type": "object",
+        "properties": {
+          "conversationId": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "ARCHIVED"
+            ]
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "conversationId",
+          "status",
+          "createdAt"
+        ]
+      },
+      "CreateConversationDto": {
+        "type": "object",
+        "properties": {
+          "clientRequestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 200,
+            "example": "贵州茅台估值研究"
+          },
+          "modelPolicy": {
+            "type": "string",
+            "enum": [
+              "AUTO",
+              "MANUAL"
+            ]
+          },
+          "preferredModel": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 128,
+            "example": null
+          }
+        },
+        "required": [
+          "clientRequestId",
+          "title",
+          "modelPolicy"
+        ]
+      }
+    },
+    "securitySchemes": {
+      "bearer": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http"
+      },
+      "cookie": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "refresh_token"
+      }
+    }
+  }
+}
