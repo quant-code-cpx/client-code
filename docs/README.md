@@ -60,6 +60,7 @@ docs/
 | [测试框架与计划-前端设计](design/测试框架与计划-前端设计.md) | Vitest + RTL 测试框架搭建、分阶段测试计划、Mock 策略、覆盖率目标 | 🔧 待实现 |
 | [测试Phase3-集成测试-详细设计](design/测试Phase3-集成测试-详细设计.md) | Phase 3 集成测试（AuthGuard、ErrorBoundary、SyncNotification、路由结构）详细设计 | 🔧 待实现 |
 | [接口联调校验-规划](design/接口联调校验-规划.md) | 基于 swagger.json 的前后端接口出入参逐模块校验规划（21 模块 / 242 端点） | 🔧 待实现 |
+| [Agent会话壳-前端设计](design/Agent会话壳-前端设计.md) | Batch 016 路由、会话状态、流恢复、Composer 与响应式工作台落地边界 | ✅ 已实现 |
 
 ---
 
@@ -69,6 +70,8 @@ docs/
 | --- | --- | --- |
 | [Agent流客户端与公共契约-测试方案](testing/Agent流客户端与公共契约-测试方案.md) | Batch 015 契约生成、JSON 鉴权、POST-SSE 解析/恢复/取消测试矩阵 | ✅ 已完成 |
 | [Agent流客户端与公共契约-round1-2026-07-20](testing/reports/Agent流客户端与公共契约-round1-2026-07-20.md) | Batch 015 实现缺陷、自动化回归、真实 SSE 与断点恢复执行结果 | ✅ 已完成 |
+| [Agent会话壳-测试方案](testing/Agent会话壳-测试方案.md) | Batch 016 会话切换、乐观消息、流恢复、取消竞态、IME 与响应式用例矩阵 | ✅ 已完成 |
+| [Agent会话壳-round1-2026-07-20](testing/reports/Agent会话壳-round1-2026-07-20.md) | Batch 016 reducer、组件、路由、Socket、E2E、构建与响应式浏览器验收结果 | ✅ 已完成 |
 
 ---
 
