@@ -702,7 +702,17 @@ export function agentReducer(state: AgentState, action: AgentAction): AgentState
           };
           break;
         case 'model.started':
-          nextRun = { ...nextRun, stageLabel: '正在组织研究结论' };
+          nextRun = {
+            ...nextRun,
+            stageLabel:
+              action.event.payload.purpose === 'PLAN' ? '正在规划研究' : '正在组织研究结论',
+          };
+          break;
+        case 'model.fallback':
+          nextRun = {
+            ...nextRun,
+            stageLabel: `正在切换到 ${action.event.payload.toModel}`,
+          };
           break;
         case 'model.delta': {
           const messageId = action.event.messageId ?? nextRun.assistantMessageId;

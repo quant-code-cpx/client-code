@@ -4,6 +4,125 @@
  */
 
 export interface paths {
+  "/agent/notification-channels/list": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** 分页查询当前用户的 Agent 通知渠道，永不返回 secret */
+    post: operations["AgentNotificationChannelController_list"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/agent/notification-channels/create": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** 创建站内或签名 HTTPS Webhook 通知渠道 */
+    post: operations["AgentNotificationChannelController_create"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/agent/notification-channels/update": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** CAS 更新通知渠道；修改 Webhook 配置后需重新测试验证 */
+    post: operations["AgentNotificationChannelController_update"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/agent/notification-channels/test": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** 向当前用户自有渠道发送安全测试消息并更新验证状态 */
+    post: operations["AgentNotificationChannelController_test"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/agent/notification-channels/delete": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** 软删除通知渠道，保留历史 delivery 审计 */
+    post: operations["AgentNotificationChannelController_delete"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/agent/notification-deliveries/list": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** 分页查询当前用户的 Agent 通知投递历史 */
+    post: operations["AgentNotificationDeliveryController_list"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/agent/notification-deliveries/retry": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** 仅重试指定 delivery，不重跑 Agent Run 或研究任务 */
+    post: operations["AgentNotificationDeliveryController_retry"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/agent/conversations/create": {
     parameters: {
       query?: never;
@@ -83,6 +202,23 @@ export interface paths {
     put?: never;
     /** 更新会话后续 Run 的模型策略 */
     post: operations["AgentController_updateConversationModel"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/agent/models/list": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** 查询当前用户可选择的模型及非敏感状态 */
+    post: operations["AgentController_listModels"];
     delete?: never;
     options?: never;
     head?: never;
@@ -174,6 +310,74 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/agent/memories/list": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** 分页查询当前用户长期记忆 */
+    post: operations["AgentMemoryController_list"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/agent/memories/create": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** 显式确认并创建长期记忆 */
+    post: operations["AgentMemoryController_create"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/agent/memories/update": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** 显式确认并纠正长期记忆 */
+    post: operations["AgentMemoryController_update"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/agent/memories/delete": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** 删除长期记忆 */
+    post: operations["AgentMemoryController_delete"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/agent/runs/events": {
     parameters: {
       query?: never;
@@ -191,13 +395,676 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/agent/reports/list": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** 分页查询当前用户已确认的 Agent 研究报告 */
+    post: operations["ResearchReportController_list"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/agent/reports/detail": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** 读取当前用户的 Agent 研究报告及可安全展示的内容块 */
+    post: operations["ResearchReportController_detail"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/agent/reports/save": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** 预览并确认保存 Agent 研究报告；未确认不会写入报告或日志 */
+    post: operations["ResearchReportController_save"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/agent/reports/delete": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** 软删除 Agent 研究报告，并异步清理受管报告文件 */
+    post: operations["ResearchReportController_delete"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/agent/schedules/create": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** 创建定时或结构化条件 Agent 研究任务 */
+    post: operations["ScheduledResearchController_create"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/agent/schedules/list": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** 分页查询当前用户的定时研究任务 */
+    post: operations["ScheduledResearchController_list"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/agent/schedules/detail": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** 查询定时研究任务详情 */
+    post: operations["ScheduledResearchController_detail"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/agent/schedules/update": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** CAS 更新下一次触发使用的任务配置 */
+    post: operations["ScheduledResearchController_update"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/agent/schedules/pause": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** CAS 暂停后续触发，不取消已入队 Run */
+    post: operations["ScheduledResearchController_pause"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/agent/schedules/resume": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** CAS 恢复任务，从下一逻辑触发点开始 */
+    post: operations["ScheduledResearchController_resume"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/agent/schedules/delete": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** 软删除任务，保留 execution 审计 */
+    post: operations["ScheduledResearchController_delete"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/agent/schedules/run": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** 按 request key 幂等地手动运行 ACTIVE 任务 */
+    post: operations["ScheduledResearchController_run"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/agent/schedules/executions/list": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** 分页查询任务 execution 与关联 Run 状态 */
+    post: operations["ScheduledResearchController_listExecutions"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
 }
 export type webhooks = Record<string, never>;
 export interface components {
   schemas: {
+    ScheduledResearchExecutionListResponseDto: {
+      items: components["schemas"]["ScheduledResearchExecutionResponseDto"][];
+      nextCursor?: string | null;
+    };
+    ScheduledResearchExecutionResponseDto: {
+      executionId: string;
+      taskId: string;
+      /** @enum {string} */
+      status:
+        | "PENDING"
+        | "DEFERRED"
+        | "QUEUED"
+        | "RUNNING"
+        | "SUCCEEDED"
+        | "FAILED"
+        | "CANCELLED"
+        | "SKIPPED";
+      requestKey: string;
+      /** Format: date-time */
+      scheduledFor: string;
+      gateEvidence: {
+        [key: string]: unknown;
+      };
+      runId?: string | null;
+      errorCode?: number | null;
+      errorMessage?: string | null;
+      costCny?: number | null;
+      /** Format: date-time */
+      queuedAt?: string | null;
+      /** Format: date-time */
+      startedAt?: string | null;
+      /** Format: date-time */
+      endedAt?: string | null;
+      /** Format: date-time */
+      createdAt: string;
+    };
+    ResponseModel: {
+      /** @default 0 */
+      code: number;
+      /** @default  */
+      message: string;
+    };
+    ListScheduledResearchExecutionsDto: {
+      taskId: string;
+      cursor?: string | null;
+      /** @default 30 */
+      limit: number;
+    };
+    RunScheduledResearchResponseDto: {
+      executionId: string;
+      /** @enum {string} */
+      status:
+        | "PENDING"
+        | "DEFERRED"
+        | "QUEUED"
+        | "RUNNING"
+        | "SUCCEEDED"
+        | "FAILED"
+        | "CANCELLED"
+        | "SKIPPED";
+      runId?: string | null;
+    };
+    RunScheduledResearchDto: {
+      taskId: string;
+      /** Format: uuid */
+      clientRequestId: string;
+    };
+    ScheduledResearchTaskResponseDto: {
+      taskId: string;
+      name: string;
+      /** @enum {string} */
+      status: "ACTIVE" | "PAUSED" | "DELETED";
+      version: number;
+      /** @enum {string} */
+      trigger: "CRON" | "ONE_TIME" | "STRUCTURED_CONDITION";
+      cronExpression?: string | null;
+      timeZone: string;
+      /** Format: date-time */
+      oneTimeAt?: string | null;
+      condition?: {
+        [key: string]: unknown;
+      } | null;
+      tradingDayOnly: boolean;
+      input: {
+        [key: string]: unknown;
+      };
+      allowedCapabilities: string[];
+      requiredWatermarks: {
+        [key: string]: unknown;
+      }[];
+      workflowKey: string;
+      workflowVersion: number;
+      /** @enum {string} */
+      modelPolicy: "AUTO" | "MANUAL";
+      preferredModel?: string | null;
+      maxCostCny: number;
+      /** Format: date-time */
+      nextRunAt?: string | null;
+      /** Format: date-time */
+      pausedAt?: string | null;
+      /** Format: date-time */
+      createdAt: string;
+      /** Format: date-time */
+      updatedAt: string;
+    };
+    ScheduledResearchVersionDto: {
+      taskId: string;
+      expectedVersion: number;
+    };
+    UpdateScheduledResearchDto: {
+      taskId: string;
+      expectedVersion: number;
+      name?: string;
+      /** @enum {string} */
+      trigger?: "CRON" | "ONE_TIME" | "STRUCTURED_CONDITION";
+      cronExpression?: string | null;
+      timeZone?: string;
+      /** Format: date-time */
+      oneTimeAt?: string | null;
+      condition?: components["schemas"]["StructuredConditionDto"] | null;
+      tradingDayOnly?: boolean;
+      prompt?: string;
+      input?: {
+        [key: string]: unknown;
+      };
+      allowedCapabilities?: (
+        | "INTERNAL_DATA"
+        | "QUANT_COMPUTE"
+        | "WEB_SEARCH"
+      )[];
+      requiredWatermarks?: components["schemas"]["RequiredWatermarkDto"][];
+      /** @enum {string} */
+      modelPolicy?: "AUTO" | "MANUAL";
+      preferredModel?: string | null;
+      maxCostCny?: number;
+    };
+    RequiredWatermarkDto: {
+      /** @enum {string} */
+      dataset: "DAILY";
+      /** @example 20260722 */
+      minTradeDate?: string;
+      /** @example 180 */
+      maxAgeMinutes?: number;
+    };
+    StructuredConditionDto: {
+      /** @enum {string} */
+      metricKey: "DAILY_CLOSE";
+      /** @example 600519.SH */
+      resourceId: string;
+      /** @enum {string} */
+      operator: "GT" | "GTE" | "LT" | "LTE";
+      /** @example 1500 */
+      threshold: number;
+      /** @example 60 */
+      cooldownMinutes: number;
+    };
+    ScheduledResearchIdDto: {
+      taskId: string;
+    };
+    ScheduledResearchTaskListResponseDto: {
+      items: components["schemas"]["ScheduledResearchTaskResponseDto"][];
+      nextCursor?: string | null;
+    };
+    ListScheduledResearchDto: {
+      cursor?: string | null;
+      /** @default 30 */
+      limit: number;
+      /** @enum {string} */
+      status?: "ACTIVE" | "PAUSED" | "DELETED";
+      /** @default false */
+      includeDeleted: boolean;
+    };
+    CreateScheduledResearchDto: {
+      /** Format: uuid */
+      clientRequestId: string;
+      /** @example 收盘后自选股研究 */
+      name: string;
+      /** @enum {string} */
+      trigger: "CRON" | "ONE_TIME" | "STRUCTURED_CONDITION";
+      /** @example 0 30 18 * * 1-5 */
+      cronExpression?: string;
+      /** @default Asia/Shanghai */
+      timeZone: string;
+      /** Format: date-time */
+      oneTimeAt?: string;
+      condition?: components["schemas"]["StructuredConditionDto"];
+      /** @default false */
+      tradingDayOnly: boolean;
+      /** @example 总结今日市场变化与自选股风险。 */
+      prompt: string;
+      /** @default {} */
+      input: {
+        [key: string]: unknown;
+      };
+      allowedCapabilities: ("INTERNAL_DATA" | "QUANT_COMPUTE" | "WEB_SEARCH")[];
+      /** @default [] */
+      requiredWatermarks: components["schemas"]["RequiredWatermarkDto"][];
+      /** @default stock_research */
+      workflowKey: string;
+      /** @default 1 */
+      workflowVersion: number;
+      /**
+       * @default AUTO
+       * @enum {string}
+       */
+      modelPolicy: "AUTO" | "MANUAL";
+      preferredModel?: string | null;
+      /** @example 2 */
+      maxCostCny: number;
+    };
+    ResearchReportResponseDto: {
+      reportId: string;
+      runId: string;
+      conversationId: string;
+      messageId: string;
+      messageVersion: number;
+      version: number;
+      /** @enum {string} */
+      status: "QUEUED" | "GENERATING" | "COMPLETED" | "FAILED" | "DELETED";
+      title: string;
+      summary: string;
+      /** Format: date */
+      dataAsOf?: string | null;
+      journalId?: number | null;
+      errorMessage?: string | null;
+      /** Format: date-time */
+      createdAt: string;
+      /** Format: date-time */
+      renderedAt?: string | null;
+      /** Format: date-time */
+      deletedAt?: string | null;
+    };
+    DeleteResearchReportDto: {
+      reportId: string;
+    };
+    ResearchReportSaveResponseDto: {
+      requiresConfirmation: boolean;
+      preview?: components["schemas"]["ResearchReportPreviewDto"];
+      /** @description 仅预览阶段返回 */
+      confirmationToken?: string;
+      report?: components["schemas"]["ResearchReportResponseDto"];
+    };
+    ResearchReportPreviewDto: {
+      runId: string;
+      messageId: string;
+      messageVersion: number;
+      title: string;
+      summary: string;
+      /** Format: date */
+      dataAsOf?: string | null;
+      citations: components["schemas"]["ResearchReportCitationDto"][];
+      contentBlocks: Record<string, never>[];
+      /** Format: date-time */
+      confirmationExpiresAt: string;
+    };
+    ResearchReportCitationDto: {
+      citationId: string;
+      blockId: string;
+      claimKey: string;
+      title: string;
+      canonicalUrl?: string | null;
+      /** Format: date-time */
+      retrievedAt: string;
+    };
+    SaveResearchReportDto: {
+      /** @description 首次预览必须提供；确认阶段由 token 绑定 */
+      runId?: string;
+      /** @description 首次预览返回的短期确认 token */
+      confirmationToken?: string;
+      /** @description 确认保存必填；同一用户内幂等 */
+      clientRequestId?: string;
+      journal?: components["schemas"]["ResearchReportJournalDto"];
+    };
+    ResearchReportJournalDto: {
+      /** @example 600519.SH */
+      tsCode?: string;
+      thesis?: string;
+      risks?: string[];
+      decision?: string;
+      outcome?: string;
+      /** Format: date-time */
+      reviewAt?: string;
+    };
+    ResearchReportDetailResponseDto: {
+      reportId: string;
+      runId: string;
+      conversationId: string;
+      messageId: string;
+      messageVersion: number;
+      version: number;
+      /** @enum {string} */
+      status: "QUEUED" | "GENERATING" | "COMPLETED" | "FAILED" | "DELETED";
+      title: string;
+      summary: string;
+      /** Format: date */
+      dataAsOf?: string | null;
+      journalId?: number | null;
+      errorMessage?: string | null;
+      /** Format: date-time */
+      createdAt: string;
+      /** Format: date-time */
+      renderedAt?: string | null;
+      /** Format: date-time */
+      deletedAt?: string | null;
+      contentText?: string | null;
+      contentBlocks: Record<string, never>[];
+      citations: components["schemas"]["ResearchReportDetailCitationDto"][];
+      manifest: Record<string, never>;
+    };
+    ResearchReportDetailCitationDto: {
+      citationId: string;
+      blockId: string;
+      claimKey: string;
+      title: string;
+      canonicalUrl?: string | null;
+      /** Format: date-time */
+      retrievedAt: string;
+      conclusionLevel: string;
+      sourceType: string;
+      publisher?: string | null;
+      contentHash: string;
+      locator: Record<string, never>;
+    };
+    ResearchReportIdDto: {
+      reportId: string;
+    };
+    ResearchReportListResponseDto: {
+      items: components["schemas"]["ResearchReportResponseDto"][];
+      nextCursor?: string | null;
+    };
+    ListResearchReportsDto: {
+      cursor?: string | null;
+      /** @default 30 */
+      limit: number;
+      /** @enum {string} */
+      status?: "QUEUED" | "GENERATING" | "COMPLETED" | "FAILED" | "DELETED";
+    };
     AgentRunEventsDto: {
       runId: string;
       afterSequence: number;
+    };
+    DeleteAgentMemoryResponseDto: {
+      memoryId: string;
+      /** @enum {string} */
+      status: "REVOKED";
+      /** Format: date-time */
+      deletedAt: string;
+    };
+    DeleteMemoryDto: {
+      memoryId: string;
+    };
+    AgentMemoryResponseDto: {
+      memoryId: string;
+      /** @enum {string} */
+      category: "PREFERENCE" | "PROFILE" | "CONSTRAINT" | "DOMAIN_FACT";
+      key: string;
+      value: Record<string, never> | unknown[] | string | number | boolean;
+      /** @enum {string} */
+      sensitivity: "NORMAL" | "PERSONAL" | "FINANCIAL";
+      /** @enum {string} */
+      status: "CANDIDATE" | "CONFIRMED" | "REVOKED" | "EXPIRED";
+      sourceConversationId?: string | null;
+      sourceMessageId?: string | null;
+      confidence: number;
+      version: number;
+      /** Format: date-time */
+      validFrom: string;
+      /** Format: date-time */
+      confirmedAt?: string | null;
+      /** Format: date-time */
+      expiresAt?: string | null;
+      /** Format: date-time */
+      revokedAt?: string | null;
+      /** Format: date-time */
+      deletedAt?: string | null;
+      /** Format: date-time */
+      createdAt: string;
+      /** Format: date-time */
+      updatedAt: string;
+    };
+    UpdateMemoryDto: {
+      memoryId: string;
+      value: Record<string, never> | unknown[] | string | number | boolean;
+      /** @enum {string} */
+      sensitivity?: "NORMAL" | "PERSONAL" | "FINANCIAL";
+      sourceConversationId?: string | null;
+      sourceMessageId?: string | null;
+      confidence?: number;
+      /** Format: date-time */
+      expiresAt?: string | null;
+      /** @enum {string} */
+      topic:
+        | "GENERAL"
+        | "PORTFOLIO_POSITION"
+        | "TRADING_LOG"
+        | "CREDENTIAL"
+        | "HEALTH"
+        | "POLITICAL_INFERENCE";
+      /**
+       * @description 记忆纠错必须由用户明确确认
+       * @enum {number}
+       */
+      confirmation: true;
+    };
+    CreateMemoryDto: {
+      /** @enum {string} */
+      category: "PREFERENCE" | "PROFILE" | "CONSTRAINT" | "DOMAIN_FACT";
+      /** @example response.style */
+      key: string;
+      value: Record<string, never> | unknown[] | string | number | boolean;
+      /**
+       * @default NORMAL
+       * @enum {string}
+       */
+      sensitivity: "NORMAL" | "PERSONAL" | "FINANCIAL";
+      sourceConversationId?: string | null;
+      sourceMessageId?: string | null;
+      /** @default 1 */
+      confidence: number;
+      /** Format: date-time */
+      expiresAt?: string | null;
+      /** @enum {string} */
+      topic:
+        | "GENERAL"
+        | "PORTFOLIO_POSITION"
+        | "TRADING_LOG"
+        | "CREDENTIAL"
+        | "HEALTH"
+        | "POLITICAL_INFERENCE";
+      /**
+       * @description 长期记忆写入必须由用户明确确认
+       * @enum {number}
+       */
+      confirmation: true;
+    };
+    AgentMemoryListResponseDto: {
+      items: components["schemas"]["AgentMemoryResponseDto"][];
+      nextCursor?: string | null;
+    };
+    ListMemoriesDto: {
+      cursor?: string | null;
+      /** @default 30 */
+      limit: number;
+      /** @default false */
+      includeInactive: boolean;
     };
     AgentToolCallListResponseDto: {
       items: components["schemas"]["AgentToolCallResponseDto"][];
@@ -236,12 +1103,6 @@ export interface components {
       startedAt: string;
       /** Format: date-time */
       finishedAt?: string | null;
-    };
-    ResponseModel: {
-      /** @default 0 */
-      code: number;
-      /** @default  */
-      message: string;
     };
     ListAgentToolCallsDto: {
       runId: string;
@@ -377,6 +1238,20 @@ export interface components {
       /** @example 2026-07-17 */
       end: string;
     };
+    AgentModelListResponseDto: {
+      items: components["schemas"]["AgentModelListItemResponseDto"][];
+    };
+    AgentModelListItemResponseDto: {
+      model: string;
+      displayName: string;
+      provider: string;
+      capabilities: string[];
+      /** @enum {string} */
+      costTier: "LOW" | "MEDIUM" | "HIGH";
+      /** @enum {string} */
+      status: "AVAILABLE" | "UNAVAILABLE";
+      reason?: string | null;
+    };
     UpdateConversationModelResponseDto: {
       conversationId: string;
       /** @enum {string} */
@@ -459,6 +1334,21 @@ export interface components {
       /** Format: date-time */
       updatedAt: string;
       statusVersion: number;
+      currentSummary?:
+        | components["schemas"]["AgentConversationCurrentSummaryDto"]
+        | null;
+    };
+    AgentConversationCurrentSummaryDto: {
+      summaryId: string;
+      version: number;
+      fromMessageId: string;
+      throughMessageId: string;
+      promptVersionId: string;
+      modelName: string;
+      sourceTokenCount: number;
+      contentHash: string;
+      /** Format: date-time */
+      createdAt: string;
     };
     ConversationDetailDto: {
       conversationId: string;
@@ -507,6 +1397,119 @@ export interface components {
       /** @example null */
       preferredModel?: string | null;
     };
+    NotificationDeliveryResponseDto: {
+      deliveryId: string;
+      channelId: string;
+      channelName: string;
+      /** @enum {string} */
+      channelType: "IN_APP" | "WEBHOOK";
+      executionId?: string | null;
+      runId?: string | null;
+      /** @enum {string} */
+      status:
+        | "PENDING"
+        | "SENDING"
+        | "DELIVERED"
+        | "RETRY"
+        | "FAILED"
+        | "SUPPRESSED";
+      attempt: number;
+      maxAttempts: number;
+      /** Format: date-time */
+      nextAttemptAt: string;
+      /** Format: date-time */
+      deliveredAt?: string | null;
+      providerMessageId?: string | null;
+      errorClass?: string | null;
+      /** Format: date-time */
+      createdAt: string;
+    };
+    RetryNotificationDeliveryDto: {
+      deliveryId: string;
+    };
+    NotificationDeliveryListResponseDto: {
+      items: components["schemas"]["NotificationDeliveryResponseDto"][];
+      nextCursor?: string | null;
+    };
+    ListNotificationDeliveriesDto: {
+      cursor?: string | null;
+      /** @default 30 */
+      limit: number;
+      /** @enum {string} */
+      status?:
+        | "PENDING"
+        | "SENDING"
+        | "DELIVERED"
+        | "RETRY"
+        | "FAILED"
+        | "SUPPRESSED";
+    };
+    NotificationChannelResponseDto: {
+      channelId: string;
+      /** @enum {string} */
+      type: "IN_APP" | "WEBHOOK";
+      name: string;
+      /** @enum {string} */
+      status: "ACTIVE" | "DISABLED" | "DELETED";
+      version: number;
+      isVerified: boolean;
+      lastFour?: string | null;
+      /** Format: date-time */
+      verifiedAt?: string | null;
+      /** Format: date-time */
+      createdAt: string;
+      /** Format: date-time */
+      updatedAt: string;
+    };
+    DeleteNotificationChannelDto: {
+      channelId: string;
+      expectedVersion: number;
+    };
+    NotificationChannelTestResponseDto: {
+      channelId: string;
+      verified: boolean;
+      /** Format: date-time */
+      verifiedAt?: string | null;
+    };
+    NotificationChannelIdDto: {
+      channelId: string;
+    };
+    UpdateNotificationChannelDto: {
+      channelId: string;
+      expectedVersion: number;
+      name?: string;
+      /** @description 启用或停用渠道 */
+      enabled?: boolean;
+      /**
+       * Format: uri
+       * @description 仅 WEBHOOK；修改后需再次 test 验证
+       */
+      webhookUrl?: string;
+      /** @description 仅 WEBHOOK；不传则保留当前 secret */
+      secret?: string;
+    };
+    CreateNotificationChannelDto: {
+      /** @enum {string} */
+      type: "IN_APP" | "WEBHOOK";
+      /** @example 我的站内通知 */
+      name: string;
+      /**
+       * Format: uri
+       * @description 仅 WEBHOOK，必须匹配服务端 HTTPS allowlist
+       */
+      webhookUrl?: string;
+      /** @description 仅 WEBHOOK，创建后不再返回 */
+      secret?: string;
+    };
+    NotificationChannelListResponseDto: {
+      items: components["schemas"]["NotificationChannelResponseDto"][];
+      nextCursor?: string | null;
+    };
+    ListNotificationChannelsDto: {
+      cursor?: string | null;
+      /** @default 30 */
+      limit: number;
+    };
   };
   responses: never;
   parameters: never;
@@ -516,6 +1519,181 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+  AgentNotificationChannelController_list: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ListNotificationChannelsDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ResponseModel"] & {
+            data?: components["schemas"]["NotificationChannelListResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  AgentNotificationChannelController_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["CreateNotificationChannelDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ResponseModel"] & {
+            data?: components["schemas"]["NotificationChannelResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  AgentNotificationChannelController_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["UpdateNotificationChannelDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ResponseModel"] & {
+            data?: components["schemas"]["NotificationChannelResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  AgentNotificationChannelController_test: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["NotificationChannelIdDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ResponseModel"] & {
+            data?: components["schemas"]["NotificationChannelTestResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  AgentNotificationChannelController_delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["DeleteNotificationChannelDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ResponseModel"] & {
+            data?: components["schemas"]["NotificationChannelResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  AgentNotificationDeliveryController_list: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ListNotificationDeliveriesDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ResponseModel"] & {
+            data?: components["schemas"]["NotificationDeliveryListResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  AgentNotificationDeliveryController_retry: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["RetryNotificationDeliveryDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ResponseModel"] & {
+            data?: components["schemas"]["NotificationDeliveryResponseDto"];
+          };
+        };
+      };
+    };
+  };
   AgentController_createConversation: {
     parameters: {
       query?: never;
@@ -636,6 +1814,27 @@ export interface operations {
         content: {
           "application/json": components["schemas"]["ResponseModel"] & {
             data?: components["schemas"]["UpdateConversationModelResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  AgentController_listModels: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ResponseModel"] & {
+            data?: components["schemas"]["AgentModelListResponseDto"];
           };
         };
       };
@@ -766,6 +1965,106 @@ export interface operations {
       };
     };
   };
+  AgentMemoryController_list: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ListMemoriesDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ResponseModel"] & {
+            data?: components["schemas"]["AgentMemoryListResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  AgentMemoryController_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["CreateMemoryDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ResponseModel"] & {
+            data?: components["schemas"]["AgentMemoryResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  AgentMemoryController_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["UpdateMemoryDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ResponseModel"] & {
+            data?: components["schemas"]["AgentMemoryResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  AgentMemoryController_delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["DeleteMemoryDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ResponseModel"] & {
+            data?: components["schemas"]["DeleteAgentMemoryResponseDto"];
+          };
+        };
+      };
+    };
+  };
   AgentStreamController_events: {
     parameters: {
       query?: never;
@@ -790,6 +2089,331 @@ export interface operations {
         };
         content: {
           "text/event-stream": string;
+        };
+      };
+    };
+  };
+  ResearchReportController_list: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ListResearchReportsDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ResponseModel"] & {
+            data?: components["schemas"]["ResearchReportListResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  ResearchReportController_detail: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ResearchReportIdDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ResponseModel"] & {
+            data?: components["schemas"]["ResearchReportDetailResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  ResearchReportController_save: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["SaveResearchReportDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ResponseModel"] & {
+            data?: components["schemas"]["ResearchReportSaveResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  ResearchReportController_delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["DeleteResearchReportDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ResponseModel"] & {
+            data?: components["schemas"]["ResearchReportResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  ScheduledResearchController_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["CreateScheduledResearchDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ResponseModel"] & {
+            data?: components["schemas"]["ScheduledResearchTaskResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  ScheduledResearchController_list: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ListScheduledResearchDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ResponseModel"] & {
+            data?: components["schemas"]["ScheduledResearchTaskListResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  ScheduledResearchController_detail: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ScheduledResearchIdDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ResponseModel"] & {
+            data?: components["schemas"]["ScheduledResearchTaskResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  ScheduledResearchController_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["UpdateScheduledResearchDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ResponseModel"] & {
+            data?: components["schemas"]["ScheduledResearchTaskResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  ScheduledResearchController_pause: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ScheduledResearchVersionDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ResponseModel"] & {
+            data?: components["schemas"]["ScheduledResearchTaskResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  ScheduledResearchController_resume: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ScheduledResearchVersionDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ResponseModel"] & {
+            data?: components["schemas"]["ScheduledResearchTaskResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  ScheduledResearchController_delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ScheduledResearchVersionDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ResponseModel"] & {
+            data?: components["schemas"]["ScheduledResearchTaskResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  ScheduledResearchController_run: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["RunScheduledResearchDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ResponseModel"] & {
+            data?: components["schemas"]["RunScheduledResearchResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  ScheduledResearchController_listExecutions: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ListScheduledResearchExecutionsDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ResponseModel"] & {
+            data?: components["schemas"]["ScheduledResearchExecutionListResponseDto"];
+          };
         };
       };
     };

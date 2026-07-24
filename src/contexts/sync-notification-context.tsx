@@ -6,6 +6,7 @@ import type { RepairSummary, QualityCheckSummary } from 'src/api/tushare-sync';
 
 import { useRef, useState, useEffect, useContext, useCallback, createContext } from 'react';
 
+import { useAuth } from 'src/auth';
 import { getSocket, destroySocket, getSocketStatus, onSocketStatusChange } from 'src/lib/socket';
 
 // ----------------------------------------------------------------------
@@ -121,9 +122,7 @@ export function useSyncNotification(): SyncNotificationContextValue {
 // ----------------------------------------------------------------------
 
 // 最多保留的通知条数
-// NOTE: 重连时 socket.ts 的 replay 机制会重新触发已缓存的事件，
-// 这些 replayed 事件会经由相同的 handler 正常处理，确保状态一致。
-// 由于每条通知使用 generateId() 生成唯一 id，replay 不会产生重复通知。
+// Socket 只用于实时提示；重连后的权威状态由各业务 REST/SSE 请求恢复。
 const MAX_NOTIFICATIONS = 50;
 
 let _notifCounter = 0;
@@ -140,6 +139,7 @@ type ProviderProps = {
 };
 
 export function SyncNotificationProvider({ children }: ProviderProps) {
+  const { isAuthenticated } = useAuth();
   const [socketStatus, setSocketStatus] = useState<SocketStatus>(getSocketStatus());
   const [isSyncing, setIsSyncing] = useState(false);
   const [lastSyncResult, setLastSyncResult] = useState<SyncCompletedPayload | null>(null);
@@ -152,6 +152,12 @@ export function SyncNotificationProvider({ children }: ProviderProps) {
   const socketRef = useRef<Socket | null>(null);
 
   useEffect(() => {
+    if (!isAuthenticated) {
+      destroySocket();
+      socketRef.current = null;
+      return undefined;
+    }
+
     const socket = getSocket();
     socketRef.current = socket;
 
@@ -294,13 +300,14 @@ export function SyncNotificationProvider({ children }: ProviderProps) {
       offStatus();
       destroySocket();
     };
-  }, []);
+  }, [isAuthenticated]);
 
   const reconnect = useCallback(() => {
+    if (!isAuthenticated) return;
     const socket = socketRef.current ?? getSocket();
     socketRef.current = socket;
     if (!socket.connected) socket.connect();
-  }, []);
+  }, [isAuthenticated]);
 
   const markNotificationRead = useCallback((id: string) => {
     setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isUnRead: false } : n)));

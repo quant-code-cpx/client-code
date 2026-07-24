@@ -348,24 +348,42 @@ export function useAgentRun(conversationId: string | null) {
     dispatch({ type: 'RUN_CANCEL_REQUESTED', runId: run.runId });
     setCommandError(null);
     try {
-      const result = await agentApi.cancelRun({
-        runId: run.runId,
-        expectedStatusVersion: run.statusVersion,
-      });
-      dispatch({
-        type: 'RUN_CANCEL_RESOLVED',
-        runId: result.runId,
-        status: result.status,
-        statusVersion: result.statusVersion,
-        cancellationAccepted: result.cancellationAccepted,
-      });
-      if (TERMINAL_RUN_STATUSES.has(result.status)) {
-        await refreshMessages(run.conversationId, true);
+      let snapshot = await refreshRunStatus(run.runId, run.assistantMessageId);
+      for (let attempt = 0; attempt < 2; attempt += 1) {
+        if (TERMINAL_RUN_STATUSES.has(snapshot.status)) {
+          await refreshMessages(run.conversationId, true);
+          return;
+        }
+        if (!snapshot.canCancel) return;
+
+        try {
+          const result = await agentApi.cancelRun({
+            runId: run.runId,
+            expectedStatusVersion: snapshot.statusVersion,
+          });
+          dispatch({
+            type: 'RUN_CANCEL_RESOLVED',
+            runId: result.runId,
+            status: result.status,
+            statusVersion: result.statusVersion,
+            cancellationAccepted: result.cancellationAccepted,
+          });
+          if (TERMINAL_RUN_STATUSES.has(result.status)) {
+            await refreshMessages(run.conversationId, true);
+          }
+          return;
+        } catch (error) {
+          if (attempt === 1) throw error;
+          snapshot = await refreshRunStatus(run.runId, run.assistantMessageId);
+        }
       }
     } catch (error) {
       try {
         const snapshot = await refreshRunStatus(run.runId, run.assistantMessageId);
         await refreshMessages(run.conversationId, TERMINAL_RUN_STATUSES.has(snapshot.status));
+        if (!TERMINAL_RUN_STATUSES.has(snapshot.status) && snapshot.status !== 'CANCEL_REQUESTED') {
+          setCommandError(commandErrorMessage(error, '停止请求结果未知，任务可能仍在后台运行'));
+        }
       } catch {
         setCommandError(commandErrorMessage(error, '停止请求结果未知，任务可能仍在后台运行'));
       }

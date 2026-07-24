@@ -25,6 +25,7 @@ type MessageViewportProps = {
   onRetryLoad: () => void;
   onRegenerate: (messageId: string) => void;
   onRetryMessage: (message: AgentMessageEntity) => void;
+  onSaveReport: (runId: string) => void;
 };
 
 type MessageViewportContext = { header: ReactNode };
@@ -46,14 +47,20 @@ export function MessageViewport({
   onRetryLoad,
   onRegenerate,
   onRetryMessage,
+  onSaveReport,
 }: MessageViewportProps) {
   const virtuosoRef = useRef<VirtuosoHandle>(null);
   const [atBottom, setAtBottom] = useState(true);
   const renderItem = useCallback(
     (_index: number, message: AgentMessageEntity) => (
-      <MessageItem message={message} onRegenerate={onRegenerate} onRetry={onRetryMessage} />
+      <MessageItem
+        message={message}
+        onRegenerate={onRegenerate}
+        onRetry={onRetryMessage}
+        onSaveReport={onSaveReport}
+      />
     ),
-    [onRegenerate, onRetryMessage]
+    [onRegenerate, onRetryMessage, onSaveReport]
   );
   const header = useMemo(
     () =>

@@ -134,6 +134,17 @@ describe('Agent reducer', () => {
     expect(state.runs.byId.run_1.latestEventSequence).toBe(2);
   });
 
+  it('模型降级事件更新运行状态，不把模型切换伪装成文本输出', () => {
+    const state = agentReducer(stateWithConfirmedRun(), {
+      type: 'RUN_EVENT_ACCEPTED',
+      event: streamEvent('model.fallback', 1),
+      connectionGeneration: 2,
+    });
+
+    expect(state.runs.byId.run_1.stageLabel).toBe('正在切换到 secondary-model');
+    expect(state.messages.byId.msg_assistant_1.contentText).toBe('');
+  });
+
   it('Run 已完成后不被迟到的取消响应回退为 CANCEL_REQUESTED', () => {
     let state = stateWithConfirmedRun();
     state = agentReducer(state, {
@@ -151,6 +162,27 @@ describe('Agent reducer', () => {
 
     expect(state.runs.byId.run_1.status).toBe('COMPLETED');
     expect(state.messages.byId.msg_assistant_1.status).toBe('COMPLETED');
+  });
+
+  it('按模型调用 purpose 区分规划与结论阶段', () => {
+    let state = stateWithConfirmedRun();
+    const planStarted = streamEvent('model.started', 1);
+    if (planStarted.type !== 'model.started') throw new Error('model.started fixture 类型错误');
+    state = agentReducer(state, {
+      type: 'RUN_EVENT_ACCEPTED',
+      event: { ...planStarted, payload: { ...planStarted.payload, purpose: 'PLAN' } },
+      connectionGeneration: 2,
+    });
+    expect(state.runs.byId.run_1.stageLabel).toBe('正在规划研究');
+
+    const synthesisStarted = streamEvent('model.started', 2);
+    if (synthesisStarted.type !== 'model.started') throw new Error('model.started fixture 类型错误');
+    state = agentReducer(state, {
+      type: 'RUN_EVENT_ACCEPTED',
+      event: { ...synthesisStarted, payload: { ...synthesisStarted.payload, purpose: 'SYNTHESIZE' } },
+      connectionGeneration: 2,
+    });
+    expect(state.runs.byId.run_1.stageLabel).toBe('正在组织研究结论');
   });
 
   it('快速切换会话后，旧会话详情响应不能改变当前选择', () => {

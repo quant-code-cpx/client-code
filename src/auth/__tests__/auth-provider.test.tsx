@@ -26,10 +26,20 @@ vi.mock('src/api', () => {
   };
 });
 
+const { mockDestroySocket, mockRefreshSocketAuth } = vi.hoisted(() => ({
+  mockDestroySocket: vi.fn(),
+  mockRefreshSocketAuth: vi.fn(),
+}));
+
+vi.mock('src/lib/socket', () => ({
+  destroySocket: mockDestroySocket,
+  refreshSocketAuth: mockRefreshSocketAuth,
+}));
+
 import type { UserProfile } from 'src/api/user-manage';
 
 // Lazy imports AFTER vi.mock so Vitest can apply hoisting.
-import { authApi, tokenStorage, userManageApi } from 'src/api';
+import { authApi, tokenStorage, userManageApi, setAuthCallbacks } from 'src/api';
 
 // ----------------------------------------------------------------------
 
@@ -65,6 +75,11 @@ function wrapper({ children }: { children: ReactNode }) {
 
 // ----------------------------------------------------------------------
 
+beforeEach(() => {
+  mockDestroySocket.mockReset();
+  mockRefreshSocketAuth.mockReset();
+});
+
 describe('AuthProvider — initialization', () => {
   beforeEach(() => {
     vi.mocked(tokenStorage.get).mockReturnValue(null);
@@ -96,6 +111,7 @@ describe('AuthProvider — initialization', () => {
     expect(screen.getByTestId('authenticated').textContent).toBe('true');
     expect(screen.getByTestId('profile').textContent).toBe('testuser');
     expect(vi.mocked(tokenStorage.set)).toHaveBeenCalledWith('fresh-token');
+    expect(mockRefreshSocketAuth).toHaveBeenCalledTimes(1);
   });
 
   it('AUTH_SUCCESS with null profile: refresh success but getProfile fails → still authenticated', async () => {
@@ -124,6 +140,18 @@ describe('AuthProvider — initialization', () => {
 
     expect(screen.getByTestId('authenticated').textContent).toBe('false');
     expect(vi.mocked(tokenStorage.clear)).toHaveBeenCalled();
+    expect(mockDestroySocket).toHaveBeenCalledTimes(1);
+  });
+
+  it('API client 刷新 token 时重连 WebSocket', () => {
+    vi.mocked(authApi.refresh).mockReturnValue(new Promise(() => {}));
+
+    render(<AuthConsumer />, { wrapper });
+
+    const callbacks = vi.mocked(setAuthCallbacks).mock.calls.at(-1)?.[0];
+    act(() => callbacks?.onTokenRefreshed?.('refreshed-by-api'));
+
+    expect(mockRefreshSocketAuth).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -160,6 +188,7 @@ describe('AuthProvider — signIn / signOut', () => {
     });
 
     expect(vi.mocked(tokenStorage.set)).toHaveBeenCalledWith('manual-token');
+    expect(mockRefreshSocketAuth).toHaveBeenCalledTimes(1);
     expect(screen.getByTestId('authenticated').textContent).toBe('true');
   });
 
@@ -180,6 +209,7 @@ describe('AuthProvider — signIn / signOut', () => {
 
     expect(vi.mocked(authApi.logout)).toHaveBeenCalledTimes(1);
     expect(vi.mocked(tokenStorage.clear)).toHaveBeenCalled();
+    expect(mockDestroySocket).toHaveBeenCalledTimes(1);
     expect(screen.getByTestId('authenticated').textContent).toBe('false');
   });
 
@@ -200,6 +230,7 @@ describe('AuthProvider — signIn / signOut', () => {
 
     // State should be cleared even on logout API failure
     expect(vi.mocked(tokenStorage.clear)).toHaveBeenCalled();
+    expect(mockDestroySocket).toHaveBeenCalledTimes(1);
     expect(screen.getByTestId('authenticated').textContent).toBe('false');
   });
 });
@@ -250,6 +281,7 @@ describe('AuthProvider — BroadcastChannel cross-tab sync', () => {
     });
 
     expect(vi.mocked(tokenStorage.set)).toHaveBeenCalledWith('cross-tab-token');
+    expect(mockRefreshSocketAuth).toHaveBeenCalledTimes(1);
     expect(screen.getByTestId('authenticated').textContent).toBe('true');
   });
 
@@ -271,6 +303,7 @@ describe('AuthProvider — BroadcastChannel cross-tab sync', () => {
     });
 
     expect(vi.mocked(tokenStorage.clear)).toHaveBeenCalled();
+    expect(mockDestroySocket).toHaveBeenCalledTimes(1);
     expect(screen.getByTestId('authenticated').textContent).toBe('false');
   });
 

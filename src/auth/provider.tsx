@@ -2,6 +2,7 @@ import { useRef, useMemo, useEffect, useReducer, useCallback } from 'react';
 
 import { clearAgentDrafts } from 'src/utils/agent-draft-storage';
 
+import { destroySocket, refreshSocketAuth } from 'src/lib/socket';
 import { authApi, tokenStorage, userManageApi, setAuthCallbacks } from 'src/api';
 
 import { AuthContext } from './context';
@@ -44,10 +45,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
       if (msg.type === 'TOKEN_REFRESHED') {
         // 其他标签页刷新了 token，同步到本标签页内存
         tokenStorage.set(msg.token);
+        refreshSocketAuth();
         dispatch({ type: 'TOKEN_REFRESHED', accessToken: msg.token });
       } else if (msg.type === 'SIGNED_OUT') {
         // 其他标签页已登出，本标签页同步清除状态
         tokenStorage.clear();
+        destroySocket();
         clearAgentDrafts();
         dispatch({ type: 'SIGN_OUT' });
       }
@@ -63,11 +66,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     setAuthCallbacks({
       onTokenRefreshed: (token) => {
+        refreshSocketAuth();
         dispatch({ type: 'TOKEN_REFRESHED', accessToken: token });
         channelRef.current?.postMessage({ type: 'TOKEN_REFRESHED', token });
       },
       onUnauthorized: () => {
         tokenStorage.clear();
+        destroySocket();
         clearAgentDrafts();
         dispatch({ type: 'SIGN_OUT' });
         channelRef.current?.postMessage({ type: 'SIGNED_OUT' });
@@ -84,6 +89,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       .refresh()
       .then(async ({ accessToken: newToken }) => {
         tokenStorage.set(newToken);
+        refreshSocketAuth();
         const profile = await userManageApi.getProfile().catch(() => null);
         // 单次 dispatch → 单次渲染，auth 状态原子更新
         dispatch({ type: 'AUTH_SUCCESS', accessToken: newToken, userProfile: profile });
@@ -91,6 +97,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       .catch(() => {
         // refresh token 已过期或不存在，清除状态，由 AuthGuard 重定向到登录页
         tokenStorage.clear();
+        destroySocket();
         clearAgentDrafts();
         dispatch({ type: 'AUTH_FAILURE' });
       });
@@ -98,6 +105,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const signIn = useCallback((token: string) => {
     tokenStorage.set(token);
+    refreshSocketAuth();
     dispatch({ type: 'SIGN_IN', accessToken: token });
   }, []);
 
@@ -113,6 +121,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       // 即使接口失败也要清除本地状态
     } finally {
       tokenStorage.clear();
+      destroySocket();
       clearAgentDrafts();
       dispatch({ type: 'SIGN_OUT' });
       // 通知其他标签页同步登出

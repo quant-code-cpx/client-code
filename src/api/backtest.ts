@@ -220,6 +220,29 @@ export type BacktestRunDetailResponse = {
   initialCapital: number;
   rebalanceFrequency: string;
   priceMode: string;
+  engineVersion?: string | null;
+  dataContractVersion?: string | null;
+  universePolicyVersion?: string | null;
+  financialAsOfPolicyVersion?: string | null;
+  adjustmentPolicyVersion?: string | null;
+  reproducibilityStatus?: 'PENDING' | 'VERIFIED' | 'LEGACY_UNVERIFIED' | string;
+  reproducibilityManifest?: {
+    engineVersion: string;
+    dataContractVersion: string;
+    universePolicyVersion: string;
+    financialAsOfPolicyVersion: string;
+    adjustmentPolicyVersion: string;
+    inputHash: string;
+    universeSnapshots: Array<{
+      date: string;
+      source: string;
+      version: string;
+      hash: string;
+      memberCount: number;
+    }>;
+    qualityFlags: string[];
+  } | null;
+  qualityFlags?: string[];
   summary: {
     totalReturn: number | null;
     annualizedReturn: number | null;

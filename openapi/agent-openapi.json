@@ -1,6 +1,342 @@
 {
   "openapi": "3.0.0",
   "paths": {
+    "/agent/notification-channels/list": {
+      "post": {
+        "operationId": "AgentNotificationChannelController_list",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ListNotificationChannelsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/NotificationChannelListResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "分页查询当前用户的 Agent 通知渠道，永不返回 secret",
+        "tags": [
+          "Agent - 通知渠道"
+        ]
+      }
+    },
+    "/agent/notification-channels/create": {
+      "post": {
+        "operationId": "AgentNotificationChannelController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateNotificationChannelDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/NotificationChannelResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "创建站内或签名 HTTPS Webhook 通知渠道",
+        "tags": [
+          "Agent - 通知渠道"
+        ]
+      }
+    },
+    "/agent/notification-channels/update": {
+      "post": {
+        "operationId": "AgentNotificationChannelController_update",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateNotificationChannelDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/NotificationChannelResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CAS 更新通知渠道；修改 Webhook 配置后需重新测试验证",
+        "tags": [
+          "Agent - 通知渠道"
+        ]
+      }
+    },
+    "/agent/notification-channels/test": {
+      "post": {
+        "operationId": "AgentNotificationChannelController_test",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NotificationChannelIdDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/NotificationChannelTestResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "向当前用户自有渠道发送安全测试消息并更新验证状态",
+        "tags": [
+          "Agent - 通知渠道"
+        ]
+      }
+    },
+    "/agent/notification-channels/delete": {
+      "post": {
+        "operationId": "AgentNotificationChannelController_delete",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeleteNotificationChannelDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/NotificationChannelResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "软删除通知渠道，保留历史 delivery 审计",
+        "tags": [
+          "Agent - 通知渠道"
+        ]
+      }
+    },
+    "/agent/notification-deliveries/list": {
+      "post": {
+        "operationId": "AgentNotificationDeliveryController_list",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ListNotificationDeliveriesDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/NotificationDeliveryListResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "分页查询当前用户的 Agent 通知投递历史",
+        "tags": [
+          "Agent - 通知投递"
+        ]
+      }
+    },
+    "/agent/notification-deliveries/retry": {
+      "post": {
+        "operationId": "AgentNotificationDeliveryController_retry",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RetryNotificationDeliveryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/NotificationDeliveryResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "仅重试指定 delivery，不重跑 Agent Run 或研究任务",
+        "tags": [
+          "Agent - 通知投递"
+        ]
+      }
+    },
     "/agent/conversations/create": {
       "post": {
         "operationId": "AgentController_createConversation",
@@ -236,6 +572,44 @@
           }
         ],
         "summary": "更新会话后续 Run 的模型策略",
+        "tags": [
+          "Agent - 会话与运行"
+        ]
+      }
+    },
+    "/agent/models/list": {
+      "post": {
+        "operationId": "AgentController_listModels",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/AgentModelListResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "查询当前用户可选择的模型及非敏感状态",
         "tags": [
           "Agent - 会话与运行"
         ]
@@ -481,6 +855,198 @@
         ]
       }
     },
+    "/agent/memories/list": {
+      "post": {
+        "operationId": "AgentMemoryController_list",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ListMemoriesDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/AgentMemoryListResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "分页查询当前用户长期记忆",
+        "tags": [
+          "Agent - 用户记忆"
+        ]
+      }
+    },
+    "/agent/memories/create": {
+      "post": {
+        "operationId": "AgentMemoryController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateMemoryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/AgentMemoryResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "显式确认并创建长期记忆",
+        "tags": [
+          "Agent - 用户记忆"
+        ]
+      }
+    },
+    "/agent/memories/update": {
+      "post": {
+        "operationId": "AgentMemoryController_update",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMemoryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/AgentMemoryResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "显式确认并纠正长期记忆",
+        "tags": [
+          "Agent - 用户记忆"
+        ]
+      }
+    },
+    "/agent/memories/delete": {
+      "post": {
+        "operationId": "AgentMemoryController_delete",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeleteMemoryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/DeleteAgentMemoryResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "删除长期记忆",
+        "tags": [
+          "Agent - 用户记忆"
+        ]
+      }
+    },
     "/agent/runs/events": {
       "post": {
         "operationId": "AgentStreamController_events",
@@ -536,6 +1102,630 @@
           "Agent - 事件流"
         ]
       }
+    },
+    "/agent/reports/list": {
+      "post": {
+        "operationId": "ResearchReportController_list",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ListResearchReportsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/ResearchReportListResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "分页查询当前用户已确认的 Agent 研究报告",
+        "tags": [
+          "Agent - 研究报告"
+        ]
+      }
+    },
+    "/agent/reports/detail": {
+      "post": {
+        "operationId": "ResearchReportController_detail",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResearchReportIdDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/ResearchReportDetailResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "读取当前用户的 Agent 研究报告及可安全展示的内容块",
+        "tags": [
+          "Agent - 研究报告"
+        ]
+      }
+    },
+    "/agent/reports/save": {
+      "post": {
+        "operationId": "ResearchReportController_save",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaveResearchReportDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/ResearchReportSaveResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "预览并确认保存 Agent 研究报告；未确认不会写入报告或日志",
+        "tags": [
+          "Agent - 研究报告"
+        ]
+      }
+    },
+    "/agent/reports/delete": {
+      "post": {
+        "operationId": "ResearchReportController_delete",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeleteResearchReportDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/ResearchReportResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "软删除 Agent 研究报告，并异步清理受管报告文件",
+        "tags": [
+          "Agent - 研究报告"
+        ]
+      }
+    },
+    "/agent/schedules/create": {
+      "post": {
+        "operationId": "ScheduledResearchController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateScheduledResearchDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/ScheduledResearchTaskResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "创建定时或结构化条件 Agent 研究任务",
+        "tags": [
+          "Agent - 定时与条件研究"
+        ]
+      }
+    },
+    "/agent/schedules/list": {
+      "post": {
+        "operationId": "ScheduledResearchController_list",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ListScheduledResearchDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/ScheduledResearchTaskListResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "分页查询当前用户的定时研究任务",
+        "tags": [
+          "Agent - 定时与条件研究"
+        ]
+      }
+    },
+    "/agent/schedules/detail": {
+      "post": {
+        "operationId": "ScheduledResearchController_detail",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScheduledResearchIdDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/ScheduledResearchTaskResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "查询定时研究任务详情",
+        "tags": [
+          "Agent - 定时与条件研究"
+        ]
+      }
+    },
+    "/agent/schedules/update": {
+      "post": {
+        "operationId": "ScheduledResearchController_update",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateScheduledResearchDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/ScheduledResearchTaskResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CAS 更新下一次触发使用的任务配置",
+        "tags": [
+          "Agent - 定时与条件研究"
+        ]
+      }
+    },
+    "/agent/schedules/pause": {
+      "post": {
+        "operationId": "ScheduledResearchController_pause",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScheduledResearchVersionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/ScheduledResearchTaskResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CAS 暂停后续触发，不取消已入队 Run",
+        "tags": [
+          "Agent - 定时与条件研究"
+        ]
+      }
+    },
+    "/agent/schedules/resume": {
+      "post": {
+        "operationId": "ScheduledResearchController_resume",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScheduledResearchVersionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/ScheduledResearchTaskResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CAS 恢复任务，从下一逻辑触发点开始",
+        "tags": [
+          "Agent - 定时与条件研究"
+        ]
+      }
+    },
+    "/agent/schedules/delete": {
+      "post": {
+        "operationId": "ScheduledResearchController_delete",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScheduledResearchVersionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/ScheduledResearchTaskResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "软删除任务，保留 execution 审计",
+        "tags": [
+          "Agent - 定时与条件研究"
+        ]
+      }
+    },
+    "/agent/schedules/run": {
+      "post": {
+        "operationId": "ScheduledResearchController_run",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RunScheduledResearchDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/RunScheduledResearchResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "按 request key 幂等地手动运行 ACTIVE 任务",
+        "tags": [
+          "Agent - 定时与条件研究"
+        ]
+      }
+    },
+    "/agent/schedules/executions/list": {
+      "post": {
+        "operationId": "ScheduledResearchController_listExecutions",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ListScheduledResearchExecutionsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/ScheduledResearchExecutionListResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "分页查询任务 execution 与关联 Run 状态",
+        "tags": [
+          "Agent - 定时与条件研究"
+        ]
+      }
     }
   },
   "info": {
@@ -548,6 +1738,1103 @@
   "servers": [],
   "components": {
     "schemas": {
+      "ScheduledResearchExecutionListResponseDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScheduledResearchExecutionResponseDto"
+            }
+          },
+          "nextCursor": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "ScheduledResearchExecutionResponseDto": {
+        "type": "object",
+        "properties": {
+          "executionId": {
+            "type": "string"
+          },
+          "taskId": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "DEFERRED",
+              "QUEUED",
+              "RUNNING",
+              "SUCCEEDED",
+              "FAILED",
+              "CANCELLED",
+              "SKIPPED"
+            ]
+          },
+          "requestKey": {
+            "type": "string"
+          },
+          "scheduledFor": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "gateEvidence": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "runId": {
+            "type": "string",
+            "nullable": true
+          },
+          "errorCode": {
+            "type": "number",
+            "nullable": true
+          },
+          "errorMessage": {
+            "type": "string",
+            "nullable": true
+          },
+          "costCny": {
+            "type": "number",
+            "nullable": true
+          },
+          "queuedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "startedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "endedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "executionId",
+          "taskId",
+          "status",
+          "requestKey",
+          "scheduledFor",
+          "gateEvidence",
+          "createdAt"
+        ]
+      },
+      "ResponseModel": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "number",
+            "default": 0
+          },
+          "message": {
+            "type": "string",
+            "default": ""
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ]
+      },
+      "ListScheduledResearchExecutionsDto": {
+        "type": "object",
+        "properties": {
+          "taskId": {
+            "type": "string"
+          },
+          "cursor": {
+            "type": "string",
+            "nullable": true
+          },
+          "limit": {
+            "type": "number",
+            "default": 30,
+            "minimum": 1,
+            "maximum": 100
+          }
+        },
+        "required": [
+          "taskId"
+        ]
+      },
+      "RunScheduledResearchResponseDto": {
+        "type": "object",
+        "properties": {
+          "executionId": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "DEFERRED",
+              "QUEUED",
+              "RUNNING",
+              "SUCCEEDED",
+              "FAILED",
+              "CANCELLED",
+              "SKIPPED"
+            ]
+          },
+          "runId": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "executionId",
+          "status"
+        ]
+      },
+      "RunScheduledResearchDto": {
+        "type": "object",
+        "properties": {
+          "taskId": {
+            "type": "string"
+          },
+          "clientRequestId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "taskId",
+          "clientRequestId"
+        ]
+      },
+      "ScheduledResearchTaskResponseDto": {
+        "type": "object",
+        "properties": {
+          "taskId": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "PAUSED",
+              "DELETED"
+            ]
+          },
+          "version": {
+            "type": "number"
+          },
+          "trigger": {
+            "type": "string",
+            "enum": [
+              "CRON",
+              "ONE_TIME",
+              "STRUCTURED_CONDITION"
+            ]
+          },
+          "cronExpression": {
+            "type": "string",
+            "nullable": true
+          },
+          "timeZone": {
+            "type": "string"
+          },
+          "oneTimeAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "condition": {
+            "type": "object",
+            "nullable": true,
+            "additionalProperties": true
+          },
+          "tradingDayOnly": {
+            "type": "boolean"
+          },
+          "input": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "allowedCapabilities": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "requiredWatermarks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": true
+            }
+          },
+          "workflowKey": {
+            "type": "string"
+          },
+          "workflowVersion": {
+            "type": "number"
+          },
+          "modelPolicy": {
+            "type": "string",
+            "enum": [
+              "AUTO",
+              "MANUAL"
+            ]
+          },
+          "preferredModel": {
+            "type": "string",
+            "nullable": true
+          },
+          "maxCostCny": {
+            "type": "number"
+          },
+          "nextRunAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "pausedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "taskId",
+          "name",
+          "status",
+          "version",
+          "trigger",
+          "timeZone",
+          "tradingDayOnly",
+          "input",
+          "allowedCapabilities",
+          "requiredWatermarks",
+          "workflowKey",
+          "workflowVersion",
+          "modelPolicy",
+          "maxCostCny",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "ScheduledResearchVersionDto": {
+        "type": "object",
+        "properties": {
+          "taskId": {
+            "type": "string"
+          },
+          "expectedVersion": {
+            "type": "number",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "taskId",
+          "expectedVersion"
+        ]
+      },
+      "UpdateScheduledResearchDto": {
+        "type": "object",
+        "properties": {
+          "taskId": {
+            "type": "string"
+          },
+          "expectedVersion": {
+            "type": "number",
+            "minimum": 1
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "trigger": {
+            "type": "string",
+            "enum": [
+              "CRON",
+              "ONE_TIME",
+              "STRUCTURED_CONDITION"
+            ]
+          },
+          "cronExpression": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 128
+          },
+          "timeZone": {
+            "type": "string",
+            "maxLength": 64
+          },
+          "oneTimeAt": {
+            "format": "date-time",
+            "type": "string",
+            "nullable": true
+          },
+          "condition": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/StructuredConditionDto"
+              }
+            ]
+          },
+          "tradingDayOnly": {
+            "type": "boolean"
+          },
+          "prompt": {
+            "type": "string",
+            "maxLength": 10000
+          },
+          "input": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "allowedCapabilities": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "INTERNAL_DATA",
+                "QUANT_COMPUTE",
+                "WEB_SEARCH"
+              ]
+            }
+          },
+          "requiredWatermarks": {
+            "maxItems": 1,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RequiredWatermarkDto"
+            }
+          },
+          "modelPolicy": {
+            "type": "string",
+            "enum": [
+              "AUTO",
+              "MANUAL"
+            ]
+          },
+          "preferredModel": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 128
+          },
+          "maxCostCny": {
+            "type": "number",
+            "minimum": 0.01,
+            "maximum": 10000
+          }
+        },
+        "required": [
+          "taskId",
+          "expectedVersion"
+        ]
+      },
+      "RequiredWatermarkDto": {
+        "type": "object",
+        "properties": {
+          "dataset": {
+            "type": "string",
+            "enum": [
+              "DAILY"
+            ]
+          },
+          "minTradeDate": {
+            "type": "string",
+            "pattern": "^\\d{8}$",
+            "example": "20260722"
+          },
+          "maxAgeMinutes": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 43200,
+            "example": 180
+          }
+        },
+        "required": [
+          "dataset"
+        ]
+      },
+      "StructuredConditionDto": {
+        "type": "object",
+        "properties": {
+          "metricKey": {
+            "type": "string",
+            "enum": [
+              "DAILY_CLOSE"
+            ]
+          },
+          "resourceId": {
+            "type": "string",
+            "example": "600519.SH",
+            "maxLength": 32
+          },
+          "operator": {
+            "type": "string",
+            "enum": [
+              "GT",
+              "GTE",
+              "LT",
+              "LTE"
+            ]
+          },
+          "threshold": {
+            "type": "number",
+            "example": 1500
+          },
+          "cooldownMinutes": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 43200,
+            "example": 60
+          }
+        },
+        "required": [
+          "metricKey",
+          "resourceId",
+          "operator",
+          "threshold",
+          "cooldownMinutes"
+        ]
+      },
+      "ScheduledResearchIdDto": {
+        "type": "object",
+        "properties": {
+          "taskId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "taskId"
+        ]
+      },
+      "ScheduledResearchTaskListResponseDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ScheduledResearchTaskResponseDto"
+            }
+          },
+          "nextCursor": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "ListScheduledResearchDto": {
+        "type": "object",
+        "properties": {
+          "cursor": {
+            "type": "string",
+            "nullable": true
+          },
+          "limit": {
+            "type": "number",
+            "default": 30,
+            "minimum": 1,
+            "maximum": 100
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "PAUSED",
+              "DELETED"
+            ]
+          },
+          "includeDeleted": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      },
+      "CreateScheduledResearchDto": {
+        "type": "object",
+        "properties": {
+          "clientRequestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 160,
+            "example": "收盘后自选股研究"
+          },
+          "trigger": {
+            "type": "string",
+            "enum": [
+              "CRON",
+              "ONE_TIME",
+              "STRUCTURED_CONDITION"
+            ]
+          },
+          "cronExpression": {
+            "type": "string",
+            "maxLength": 128,
+            "example": "0 30 18 * * 1-5"
+          },
+          "timeZone": {
+            "type": "string",
+            "default": "Asia/Shanghai",
+            "maxLength": 64
+          },
+          "oneTimeAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "condition": {
+            "$ref": "#/components/schemas/StructuredConditionDto"
+          },
+          "tradingDayOnly": {
+            "type": "boolean",
+            "default": false
+          },
+          "prompt": {
+            "type": "string",
+            "maxLength": 10000,
+            "example": "总结今日市场变化与自选股风险。"
+          },
+          "input": {
+            "type": "object",
+            "additionalProperties": true,
+            "default": {}
+          },
+          "allowedCapabilities": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "INTERNAL_DATA",
+                "QUANT_COMPUTE",
+                "WEB_SEARCH"
+              ]
+            }
+          },
+          "requiredWatermarks": {
+            "maxItems": 1,
+            "default": [],
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RequiredWatermarkDto"
+            }
+          },
+          "workflowKey": {
+            "type": "string",
+            "default": "stock_research"
+          },
+          "workflowVersion": {
+            "type": "number",
+            "default": 1,
+            "minimum": 1
+          },
+          "modelPolicy": {
+            "type": "string",
+            "enum": [
+              "AUTO",
+              "MANUAL"
+            ],
+            "default": "AUTO"
+          },
+          "preferredModel": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 128
+          },
+          "maxCostCny": {
+            "type": "number",
+            "minimum": 0.01,
+            "maximum": 10000,
+            "example": 2
+          }
+        },
+        "required": [
+          "clientRequestId",
+          "name",
+          "trigger",
+          "prompt",
+          "allowedCapabilities",
+          "maxCostCny"
+        ]
+      },
+      "ResearchReportResponseDto": {
+        "type": "object",
+        "properties": {
+          "reportId": {
+            "type": "string"
+          },
+          "runId": {
+            "type": "string"
+          },
+          "conversationId": {
+            "type": "string"
+          },
+          "messageId": {
+            "type": "string"
+          },
+          "messageVersion": {
+            "type": "number"
+          },
+          "version": {
+            "type": "number"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "QUEUED",
+              "GENERATING",
+              "COMPLETED",
+              "FAILED",
+              "DELETED"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "dataAsOf": {
+            "type": "string",
+            "nullable": true,
+            "format": "date"
+          },
+          "journalId": {
+            "type": "number",
+            "nullable": true
+          },
+          "errorMessage": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "renderedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "deletedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "reportId",
+          "runId",
+          "conversationId",
+          "messageId",
+          "messageVersion",
+          "version",
+          "status",
+          "title",
+          "summary",
+          "createdAt"
+        ]
+      },
+      "DeleteResearchReportDto": {
+        "type": "object",
+        "properties": {
+          "reportId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "reportId"
+        ]
+      },
+      "ResearchReportSaveResponseDto": {
+        "type": "object",
+        "properties": {
+          "requiresConfirmation": {
+            "type": "boolean"
+          },
+          "preview": {
+            "$ref": "#/components/schemas/ResearchReportPreviewDto"
+          },
+          "confirmationToken": {
+            "type": "string",
+            "description": "仅预览阶段返回"
+          },
+          "report": {
+            "$ref": "#/components/schemas/ResearchReportResponseDto"
+          }
+        },
+        "required": [
+          "requiresConfirmation"
+        ]
+      },
+      "ResearchReportPreviewDto": {
+        "type": "object",
+        "properties": {
+          "runId": {
+            "type": "string"
+          },
+          "messageId": {
+            "type": "string"
+          },
+          "messageVersion": {
+            "type": "number"
+          },
+          "title": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "dataAsOf": {
+            "type": "string",
+            "nullable": true,
+            "format": "date"
+          },
+          "citations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ResearchReportCitationDto"
+            }
+          },
+          "contentBlocks": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "confirmationExpiresAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "runId",
+          "messageId",
+          "messageVersion",
+          "title",
+          "summary",
+          "citations",
+          "contentBlocks",
+          "confirmationExpiresAt"
+        ]
+      },
+      "ResearchReportCitationDto": {
+        "type": "object",
+        "properties": {
+          "citationId": {
+            "type": "string"
+          },
+          "blockId": {
+            "type": "string"
+          },
+          "claimKey": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "canonicalUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "retrievedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "citationId",
+          "blockId",
+          "claimKey",
+          "title",
+          "retrievedAt"
+        ]
+      },
+      "SaveResearchReportDto": {
+        "type": "object",
+        "properties": {
+          "runId": {
+            "type": "string",
+            "description": "首次预览必须提供；确认阶段由 token 绑定"
+          },
+          "confirmationToken": {
+            "type": "string",
+            "description": "首次预览返回的短期确认 token"
+          },
+          "clientRequestId": {
+            "type": "string",
+            "description": "确认保存必填；同一用户内幂等"
+          },
+          "journal": {
+            "$ref": "#/components/schemas/ResearchReportJournalDto"
+          }
+        }
+      },
+      "ResearchReportJournalDto": {
+        "type": "object",
+        "properties": {
+          "tsCode": {
+            "type": "string",
+            "example": "600519.SH"
+          },
+          "thesis": {
+            "type": "string",
+            "maxLength": 4000
+          },
+          "risks": {
+            "maxItems": 20,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "decision": {
+            "type": "string",
+            "maxLength": 4000
+          },
+          "outcome": {
+            "type": "string",
+            "maxLength": 4000
+          },
+          "reviewAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ResearchReportDetailResponseDto": {
+        "type": "object",
+        "properties": {
+          "reportId": {
+            "type": "string"
+          },
+          "runId": {
+            "type": "string"
+          },
+          "conversationId": {
+            "type": "string"
+          },
+          "messageId": {
+            "type": "string"
+          },
+          "messageVersion": {
+            "type": "number"
+          },
+          "version": {
+            "type": "number"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "QUEUED",
+              "GENERATING",
+              "COMPLETED",
+              "FAILED",
+              "DELETED"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "summary": {
+            "type": "string"
+          },
+          "dataAsOf": {
+            "type": "string",
+            "nullable": true,
+            "format": "date"
+          },
+          "journalId": {
+            "type": "number",
+            "nullable": true
+          },
+          "errorMessage": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "renderedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "deletedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "contentText": {
+            "type": "string",
+            "nullable": true
+          },
+          "contentBlocks": {
+            "type": "array",
+            "items": {
+              "type": "object"
+            }
+          },
+          "citations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ResearchReportDetailCitationDto"
+            }
+          },
+          "manifest": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "reportId",
+          "runId",
+          "conversationId",
+          "messageId",
+          "messageVersion",
+          "version",
+          "status",
+          "title",
+          "summary",
+          "createdAt",
+          "contentBlocks",
+          "citations",
+          "manifest"
+        ]
+      },
+      "ResearchReportDetailCitationDto": {
+        "type": "object",
+        "properties": {
+          "citationId": {
+            "type": "string"
+          },
+          "blockId": {
+            "type": "string"
+          },
+          "claimKey": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "canonicalUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "retrievedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "conclusionLevel": {
+            "type": "string"
+          },
+          "sourceType": {
+            "type": "string"
+          },
+          "publisher": {
+            "type": "string",
+            "nullable": true
+          },
+          "contentHash": {
+            "type": "string"
+          },
+          "locator": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "citationId",
+          "blockId",
+          "claimKey",
+          "title",
+          "retrievedAt",
+          "conclusionLevel",
+          "sourceType",
+          "contentHash",
+          "locator"
+        ]
+      },
+      "ResearchReportIdDto": {
+        "type": "object",
+        "properties": {
+          "reportId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "reportId"
+        ]
+      },
+      "ResearchReportListResponseDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ResearchReportResponseDto"
+            }
+          },
+          "nextCursor": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "ListResearchReportsDto": {
+        "type": "object",
+        "properties": {
+          "cursor": {
+            "type": "string",
+            "nullable": true
+          },
+          "limit": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 30
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "QUEUED",
+              "GENERATING",
+              "COMPLETED",
+              "FAILED",
+              "DELETED"
+            ]
+          }
+        }
+      },
       "AgentRunEventsDto": {
         "type": "object",
         "properties": {
@@ -564,6 +2851,361 @@
           "runId",
           "afterSequence"
         ]
+      },
+      "DeleteAgentMemoryResponseDto": {
+        "type": "object",
+        "properties": {
+          "memoryId": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "REVOKED"
+            ]
+          },
+          "deletedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "memoryId",
+          "status",
+          "deletedAt"
+        ]
+      },
+      "DeleteMemoryDto": {
+        "type": "object",
+        "properties": {
+          "memoryId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "memoryId"
+        ]
+      },
+      "AgentMemoryResponseDto": {
+        "type": "object",
+        "properties": {
+          "memoryId": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "PREFERENCE",
+              "PROFILE",
+              "CONSTRAINT",
+              "DOMAIN_FACT"
+            ]
+          },
+          "key": {
+            "type": "string"
+          },
+          "value": {
+            "oneOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "array"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              }
+            ]
+          },
+          "sensitivity": {
+            "type": "string",
+            "enum": [
+              "NORMAL",
+              "PERSONAL",
+              "FINANCIAL"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "CANDIDATE",
+              "CONFIRMED",
+              "REVOKED",
+              "EXPIRED"
+            ]
+          },
+          "sourceConversationId": {
+            "type": "string",
+            "nullable": true
+          },
+          "sourceMessageId": {
+            "type": "string",
+            "nullable": true
+          },
+          "confidence": {
+            "type": "number"
+          },
+          "version": {
+            "type": "number"
+          },
+          "validFrom": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "confirmedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "expiresAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "revokedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "deletedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "memoryId",
+          "category",
+          "key",
+          "value",
+          "sensitivity",
+          "status",
+          "confidence",
+          "version",
+          "validFrom",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "UpdateMemoryDto": {
+        "type": "object",
+        "properties": {
+          "memoryId": {
+            "type": "string"
+          },
+          "value": {
+            "oneOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "array"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              }
+            ]
+          },
+          "sensitivity": {
+            "type": "string",
+            "enum": [
+              "NORMAL",
+              "PERSONAL",
+              "FINANCIAL"
+            ]
+          },
+          "sourceConversationId": {
+            "type": "string",
+            "nullable": true
+          },
+          "sourceMessageId": {
+            "type": "string",
+            "nullable": true
+          },
+          "confidence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "expiresAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "topic": {
+            "type": "string",
+            "enum": [
+              "GENERAL",
+              "PORTFOLIO_POSITION",
+              "TRADING_LOG",
+              "CREDENTIAL",
+              "HEALTH",
+              "POLITICAL_INFERENCE"
+            ]
+          },
+          "confirmation": {
+            "type": "number",
+            "enum": [
+              true
+            ],
+            "description": "记忆纠错必须由用户明确确认"
+          }
+        },
+        "required": [
+          "memoryId",
+          "value",
+          "topic",
+          "confirmation"
+        ]
+      },
+      "CreateMemoryDto": {
+        "type": "object",
+        "properties": {
+          "category": {
+            "type": "string",
+            "enum": [
+              "PREFERENCE",
+              "PROFILE",
+              "CONSTRAINT",
+              "DOMAIN_FACT"
+            ]
+          },
+          "key": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 128,
+            "example": "response.style"
+          },
+          "value": {
+            "oneOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "array"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "boolean"
+              }
+            ]
+          },
+          "sensitivity": {
+            "type": "string",
+            "enum": [
+              "NORMAL",
+              "PERSONAL",
+              "FINANCIAL"
+            ],
+            "default": "NORMAL"
+          },
+          "sourceConversationId": {
+            "type": "string",
+            "nullable": true
+          },
+          "sourceMessageId": {
+            "type": "string",
+            "nullable": true
+          },
+          "confidence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1,
+            "default": 1
+          },
+          "expiresAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "topic": {
+            "type": "string",
+            "enum": [
+              "GENERAL",
+              "PORTFOLIO_POSITION",
+              "TRADING_LOG",
+              "CREDENTIAL",
+              "HEALTH",
+              "POLITICAL_INFERENCE"
+            ]
+          },
+          "confirmation": {
+            "type": "number",
+            "enum": [
+              true
+            ],
+            "description": "长期记忆写入必须由用户明确确认"
+          }
+        },
+        "required": [
+          "category",
+          "key",
+          "value",
+          "topic",
+          "confirmation"
+        ]
+      },
+      "AgentMemoryListResponseDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AgentMemoryResponseDto"
+            }
+          },
+          "nextCursor": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "ListMemoriesDto": {
+        "type": "object",
+        "properties": {
+          "cursor": {
+            "type": "string",
+            "nullable": true
+          },
+          "limit": {
+            "type": "number",
+            "default": 30,
+            "minimum": 1,
+            "maximum": 100
+          },
+          "includeInactive": {
+            "type": "boolean",
+            "default": false
+          }
+        }
       },
       "AgentToolCallListResponseDto": {
         "type": "object",
@@ -661,23 +3303,6 @@
           "attemptCount",
           "inputSummary",
           "startedAt"
-        ]
-      },
-      "ResponseModel": {
-        "type": "object",
-        "properties": {
-          "code": {
-            "type": "number",
-            "default": 0
-          },
-          "message": {
-            "type": "string",
-            "default": ""
-          }
-        },
-        "required": [
-          "code",
-          "message"
         ]
       },
       "ListAgentToolCallsDto": {
@@ -1073,6 +3698,67 @@
           "end"
         ]
       },
+      "AgentModelListResponseDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AgentModelListItemResponseDto"
+            }
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "AgentModelListItemResponseDto": {
+        "type": "object",
+        "properties": {
+          "model": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "provider": {
+            "type": "string"
+          },
+          "capabilities": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "costTier": {
+            "type": "string",
+            "enum": [
+              "LOW",
+              "MEDIUM",
+              "HIGH"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "AVAILABLE",
+              "UNAVAILABLE"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "model",
+          "displayName",
+          "provider",
+          "capabilities",
+          "costTier",
+          "status"
+        ]
+      },
       "UpdateConversationModelResponseDto": {
         "type": "object",
         "properties": {
@@ -1362,6 +4048,14 @@
           },
           "statusVersion": {
             "type": "number"
+          },
+          "currentSummary": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AgentConversationCurrentSummaryDto"
+              }
+            ]
           }
         },
         "required": [
@@ -1374,6 +4068,50 @@
           "createdAt",
           "updatedAt",
           "statusVersion"
+        ]
+      },
+      "AgentConversationCurrentSummaryDto": {
+        "type": "object",
+        "properties": {
+          "summaryId": {
+            "type": "string"
+          },
+          "version": {
+            "type": "number"
+          },
+          "fromMessageId": {
+            "type": "string"
+          },
+          "throughMessageId": {
+            "type": "string"
+          },
+          "promptVersionId": {
+            "type": "string"
+          },
+          "modelName": {
+            "type": "string"
+          },
+          "sourceTokenCount": {
+            "type": "number"
+          },
+          "contentHash": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "summaryId",
+          "version",
+          "fromMessageId",
+          "throughMessageId",
+          "promptVersionId",
+          "modelName",
+          "sourceTokenCount",
+          "contentHash",
+          "createdAt"
         ]
       },
       "ConversationDetailDto": {
@@ -1533,6 +4271,349 @@
           "title",
           "modelPolicy"
         ]
+      },
+      "NotificationDeliveryResponseDto": {
+        "type": "object",
+        "properties": {
+          "deliveryId": {
+            "type": "string"
+          },
+          "channelId": {
+            "type": "string"
+          },
+          "channelName": {
+            "type": "string"
+          },
+          "channelType": {
+            "type": "string",
+            "enum": [
+              "IN_APP",
+              "WEBHOOK"
+            ]
+          },
+          "executionId": {
+            "type": "string",
+            "nullable": true
+          },
+          "runId": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "SENDING",
+              "DELIVERED",
+              "RETRY",
+              "FAILED",
+              "SUPPRESSED"
+            ]
+          },
+          "attempt": {
+            "type": "number"
+          },
+          "maxAttempts": {
+            "type": "number"
+          },
+          "nextAttemptAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "deliveredAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "providerMessageId": {
+            "type": "string",
+            "nullable": true
+          },
+          "errorClass": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "deliveryId",
+          "channelId",
+          "channelName",
+          "channelType",
+          "status",
+          "attempt",
+          "maxAttempts",
+          "nextAttemptAt",
+          "createdAt"
+        ]
+      },
+      "RetryNotificationDeliveryDto": {
+        "type": "object",
+        "properties": {
+          "deliveryId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "deliveryId"
+        ]
+      },
+      "NotificationDeliveryListResponseDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NotificationDeliveryResponseDto"
+            }
+          },
+          "nextCursor": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "ListNotificationDeliveriesDto": {
+        "type": "object",
+        "properties": {
+          "cursor": {
+            "type": "string",
+            "nullable": true
+          },
+          "limit": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 30
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "SENDING",
+              "DELIVERED",
+              "RETRY",
+              "FAILED",
+              "SUPPRESSED"
+            ]
+          }
+        }
+      },
+      "NotificationChannelResponseDto": {
+        "type": "object",
+        "properties": {
+          "channelId": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "IN_APP",
+              "WEBHOOK"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE",
+              "DISABLED",
+              "DELETED"
+            ]
+          },
+          "version": {
+            "type": "number"
+          },
+          "isVerified": {
+            "type": "boolean"
+          },
+          "lastFour": {
+            "type": "string",
+            "nullable": true
+          },
+          "verifiedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "channelId",
+          "type",
+          "name",
+          "status",
+          "version",
+          "isVerified",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "DeleteNotificationChannelDto": {
+        "type": "object",
+        "properties": {
+          "channelId": {
+            "type": "string"
+          },
+          "expectedVersion": {
+            "type": "number",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "channelId",
+          "expectedVersion"
+        ]
+      },
+      "NotificationChannelTestResponseDto": {
+        "type": "object",
+        "properties": {
+          "channelId": {
+            "type": "string"
+          },
+          "verified": {
+            "type": "boolean"
+          },
+          "verifiedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "channelId",
+          "verified"
+        ]
+      },
+      "NotificationChannelIdDto": {
+        "type": "object",
+        "properties": {
+          "channelId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "channelId"
+        ]
+      },
+      "UpdateNotificationChannelDto": {
+        "type": "object",
+        "properties": {
+          "channelId": {
+            "type": "string"
+          },
+          "expectedVersion": {
+            "type": "number",
+            "minimum": 1
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 160
+          },
+          "enabled": {
+            "type": "boolean",
+            "description": "启用或停用渠道"
+          },
+          "webhookUrl": {
+            "type": "string",
+            "format": "uri",
+            "maxLength": 2048,
+            "description": "仅 WEBHOOK；修改后需再次 test 验证"
+          },
+          "secret": {
+            "type": "string",
+            "writeOnly": true,
+            "minLength": 16,
+            "maxLength": 512,
+            "description": "仅 WEBHOOK；不传则保留当前 secret"
+          }
+        },
+        "required": [
+          "channelId",
+          "expectedVersion"
+        ]
+      },
+      "CreateNotificationChannelDto": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "IN_APP",
+              "WEBHOOK"
+            ]
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 160,
+            "example": "我的站内通知"
+          },
+          "webhookUrl": {
+            "type": "string",
+            "format": "uri",
+            "maxLength": 2048,
+            "description": "仅 WEBHOOK，必须匹配服务端 HTTPS allowlist"
+          },
+          "secret": {
+            "type": "string",
+            "writeOnly": true,
+            "minLength": 16,
+            "maxLength": 512,
+            "description": "仅 WEBHOOK，创建后不再返回"
+          }
+        },
+        "required": [
+          "type",
+          "name"
+        ]
+      },
+      "NotificationChannelListResponseDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NotificationChannelResponseDto"
+            }
+          },
+          "nextCursor": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "ListNotificationChannelsDto": {
+        "type": "object",
+        "properties": {
+          "cursor": {
+            "type": "string",
+            "nullable": true
+          },
+          "limit": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 30
+          }
+        }
       }
     },
     "securitySchemes": {

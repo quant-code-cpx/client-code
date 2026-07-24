@@ -6,6 +6,10 @@ import type { AgentRequest } from '../agent';
 
 const mockFetch = vi.fn();
 
+function requestPath(url: string): string {
+  return new URL(url, 'http://test.local').pathname;
+}
+
 function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
     status,
@@ -52,7 +56,7 @@ describe('agentApi', () => {
       createdAt: '2026-07-20T00:00:00.000Z',
     });
     const [url, init] = mockFetch.mock.calls[0] as [string, RequestInit];
-    expect(url).toBe('/api/agent/conversations/create');
+    expect(requestPath(url)).toBe('/api/agent/conversations/create');
     expect(init.method).toBe('POST');
     expect(JSON.parse(String(init.body))).toEqual(input);
     expect(new Headers(init.headers).get('Authorization')).toBe('Bearer agent-token');
@@ -67,6 +71,33 @@ describe('agentApi', () => {
 
     const [, init] = mockFetch.mock.calls[0] as [string, RequestInit];
     expect(init.signal).toBe(controller.signal);
+  });
+
+  it('posts models list through the canonical Agent facade', async () => {
+    mockFetch.mockResolvedValueOnce(
+      jsonResponse({
+        code: 0,
+        data: { items: [] },
+      })
+    );
+
+    await agentApi.listModels();
+
+    const [url, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    expect(requestPath(url)).toBe('/api/agent/models/list');
+    expect(init.method).toBe('POST');
+    expect(init.body).toBeUndefined();
+  });
+
+  it('posts memory list requests through canonical Agent facade', async () => {
+    mockFetch.mockResolvedValueOnce(jsonResponse({ code: 0, data: { items: [], nextCursor: null } }));
+
+    await agentApi.listMemories({ cursor: null, limit: 100, includeInactive: false });
+
+    const [url, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    expect(requestPath(url)).toBe('/api/agent/memories/list');
+    expect(init.method).toBe('POST');
+    expect(JSON.parse(String(init.body))).toEqual({ cursor: null, limit: 100, includeInactive: false });
   });
 
   it('maps successful HTTP responses with Agent business error codes', async () => {

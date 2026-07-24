@@ -37,6 +37,7 @@ export function SignInView() {
 
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const passwordVisibilityLabel = showPassword ? '隐藏密码' : '显示密码';
 
   const fetchCaptcha = useCallback(async (keepError = false) => {
     setCaptchaLoading(true);
@@ -228,10 +229,10 @@ export function SignInView() {
             input: {
               endAdornment: (
                 <InputAdornment position="end">
-                  <Tooltip title="显示密码">
+                  <Tooltip title={passwordVisibilityLabel}>
                     <IconButton
-                      aria-label="显示密码"
-                      onClick={() => setShowPassword(!showPassword)}
+                      aria-label={passwordVisibilityLabel}
+                      onClick={() => setShowPassword((visible) => !visible)}
                       edge="end"
                     >
                       <Iconify icon={showPassword ? 'solar:eye-bold' : 'solar:eye-closed-bold'} />

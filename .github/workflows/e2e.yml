@@ -1,25 +1,85 @@
 name: E2E Tests
+
+run-name: Fixed-digest E2E [server-release:${{ github.event.client_payload.server_release_run_id || github.run_id }}]
+
 on:
-  push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+  workflow_dispatch:
+    inputs:
+      server_image:
+        description: Immutable server image reference (image@sha256:...)
+        required: true
+        type: string
+  repository_dispatch:
+    types: [server-image-released]
+  workflow_call:
+    inputs:
+      server_image:
+        description: Immutable server image reference (image@sha256:...)
+        required: true
+        type: string
+    secrets:
+      TEST_DATABASE_URL:
+        required: true
+      E2E_PASSWORD:
+        required: true
 
 permissions:
   contents: read
+  packages: read
 
 jobs:
+  validate-server-image:
+    runs-on: ubuntu-latest
+    outputs:
+      server-image: ${{ steps.validate.outputs.server-image }}
+      server-release-run-id: ${{ steps.validate.outputs.server-release-run-id }}
+    steps:
+      - id: validate
+        env:
+          SERVER_IMAGE: ${{ inputs.server_image || github.event.client_payload.server_image }}
+          SERVER_RELEASE_RUN_ID: ${{ github.event.client_payload.server_release_run_id || github.run_id }}
+        run: |
+          set -euo pipefail
+
+          if [[ ! "$SERVER_IMAGE" =~ ^ghcr\.io/[a-z0-9._-]+/[a-z0-9._/-]+@sha256:[0-9a-f]{64}$ ]]; then
+            echo 'server_image must be a lowercase GHCR image digest' >&2
+            exit 1
+          fi
+          if [[ "$GITHUB_EVENT_NAME" = repository_dispatch && ! "$SERVER_RELEASE_RUN_ID" =~ ^[1-9][0-9]*$ ]]; then
+            echo 'server_release_run_id must be a positive GitHub Actions run ID' >&2
+            exit 1
+          fi
+          echo "server-image=$SERVER_IMAGE" >> "$GITHUB_OUTPUT"
+          echo "server-release-run-id=$SERVER_RELEASE_RUN_ID" >> "$GITHUB_OUTPUT"
+
   e2e:
+    needs: validate-server-image
     runs-on: ubuntu-latest
     timeout-minutes: 30
     services:
       backend:
-        image: ghcr.io/quant-code-cpx/server-code:latest
+        image: ${{ needs.validate-server-image.outputs.server-image }}
         ports:
           - 3000:3000
         env:
           NODE_ENV: test
           DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
+          REDIS_HOST: redis
+          REDIS_PORT: 6379
+          REDIS_USERNAME: default
+          ACCESS_TOKEN_SECRET: ci_access_token_secret_at_least_32_chars
+          REFRESH_TOKEN_SECRET: ci_refresh_token_secret_at_least_32_chars
+          AGENT_MODEL_PROVIDER: fake
+          AGENT_REPORT_CONFIRMATION_SECRET: ci_agent_report_confirmation_secret_at_least_32_chars
+      redis:
+        image: redis:7.4-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
 
     steps:
       - uses: actions/checkout@v4
@@ -34,6 +94,65 @@ jobs:
           E2E_ACCOUNT: e2e-test
           E2E_PASSWORD: ${{ secrets.E2E_PASSWORD }}
           E2E_CAPTCHA_CODE: '1234'
+      - name: Build correlated production frontend
+        if: github.event_name == 'repository_dispatch'
+        run: yarn build
+      - name: Package immutable frontend release
+        if: github.event_name == 'repository_dispatch'
+        env:
+          SERVER_IMAGE: ${{ needs.validate-server-image.outputs.server-image }}
+          SERVER_RELEASE_RUN_ID: ${{ needs.validate-server-image.outputs.server-release-run-id }}
+        run: |
+          set -euo pipefail
+
+          release_dir=frontend-release
+          mkdir -p "$release_dir"
+          tar \
+            --sort=name \
+            --mtime='UTC 1970-01-01' \
+            --owner=0 \
+            --group=0 \
+            --numeric-owner \
+            -cf - \
+            -C dist . \
+            | gzip -n > "$release_dir/frontend-dist.tar.gz"
+          archive_sha256="$(sha256sum "$release_dir/frontend-dist.tar.gz" | awk '{print $1}')"
+          jq -n \
+            --arg artifact frontend-dist.tar.gz \
+            --arg artifactSha256 "$archive_sha256" \
+            --arg clientRepository "$GITHUB_REPOSITORY" \
+            --arg clientCommit "$GITHUB_SHA" \
+            --arg clientRef "$GITHUB_REF" \
+            --arg clientRunId "$GITHUB_RUN_ID" \
+            --arg serverReleaseRunId "$SERVER_RELEASE_RUN_ID" \
+            --arg serverImage "$SERVER_IMAGE" \
+            '{
+              schemaVersion: 1,
+              artifact: $artifact,
+              artifactSha256: $artifactSha256,
+              client: {
+                repository: $clientRepository,
+                commit: $clientCommit,
+                ref: $clientRef,
+                runId: $clientRunId
+              },
+              server: {
+                releaseRunId: $serverReleaseRunId,
+                image: $serverImage
+              }
+            }' > "$release_dir/frontend-release-manifest.json"
+          (
+            cd "$release_dir"
+            sha256sum frontend-dist.tar.gz frontend-release-manifest.json > SHA256SUMS
+          )
+      - name: Upload correlated frontend release
+        if: github.event_name == 'repository_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-release-${{ needs.validate-server-image.outputs.server-release-run-id }}
+          path: frontend-release/
+          if-no-files-found: error
+          retention-days: 90
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

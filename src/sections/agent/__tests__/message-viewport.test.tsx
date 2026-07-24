@@ -54,6 +54,7 @@ function renderViewport(messages: AgentMessageEntity[]) {
       onRetryLoad={vi.fn()}
       onRegenerate={vi.fn()}
       onRetryMessage={vi.fn()}
+      onSaveReport={vi.fn()}
     />
   );
 }

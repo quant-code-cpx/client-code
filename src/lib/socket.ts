@@ -2,6 +2,8 @@ import type { Socket } from 'socket.io-client';
 
 import { io } from 'socket.io-client';
 
+import { tokenStorage } from 'src/api/client';
+
 // ----------------------------------------------------------------------
 // Socket.io 客户端单例
 // WS 命名空间: /ws
@@ -12,9 +14,6 @@ import { io } from 'socket.io-client';
 const WS_BASE_URL = (import.meta.env.VITE_WS_URL as string | undefined) ?? '';
 
 let _socket: Socket | null = null;
-
-/** 最近一次收到事件的时间戳（毫秒），用于重连后请求回放 */
-let lastEventTimestamp: number = Date.now();
 
 // ── 连接状态管理 ────────────────────────────────────────────────
 export type SocketStatus = 'connected' | 'reconnecting' | 'disconnected';
@@ -48,6 +47,8 @@ export function getSocket(): Socket {
       autoConnect: false,
       transports: ['websocket', 'polling'],
       path: '/socket.io',
+      // 每次初始连接和重连都读取最新内存 token，绝不放入 query string。
+      auth: (callback) => callback({ token: tokenStorage.get() ?? '' }),
       // 显式配置重连参数
       reconnection: true,
       reconnectionAttempts: 10,
@@ -55,10 +56,16 @@ export function getSocket(): Socket {
       reconnectionDelayMax: 30000,
     });
 
-    setupReconnectReplay(_socket);
     setupStatusTracking(_socket);
   }
   return _socket;
+}
+
+/** Token 刷新后用新凭据重新握手；未创建 socket 时不主动创建连接。 */
+export function refreshSocketAuth(): void {
+  if (!_socket) return;
+  if (_socket.connected) _socket.disconnect();
+  _socket.connect();
 }
 
 export function destroySocket(): void {
@@ -67,29 +74,6 @@ export function destroySocket(): void {
     _socket = null;
   }
   setStatus('disconnected');
-}
-
-// ── 重连事件回放 ────────────────────────────────────────────────
-
-function setupReconnectReplay(socket: Socket): void {
-  // 每次收到事件，更新时间戳
-  socket.onAny(() => {
-    lastEventTimestamp = Date.now();
-  });
-
-  // 重连后请求回放离线期间事件
-  socket.io.on('reconnect', () => {
-    socket.emit('replay_missed_events', { since: lastEventTimestamp });
-  });
-
-  // 接收回放批次
-  socket.on('replayed_events', (events: Array<{ event: string; data: unknown }>) => {
-    events.forEach(({ event, data }) => {
-      socket.listeners(event).forEach((fn) => {
-        (fn as (d: unknown) => void)(data);
-      });
-    });
-  });
 }
 
 // ── 连接状态跟踪 ────────────────────────────────────────────────

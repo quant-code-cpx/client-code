@@ -38,6 +38,7 @@ export default defineConfig({
     {
       name: 'agent-chromium',
       testMatch: '**/agent-*.e2e.ts',
+      testIgnore: '**/agent-real-backend.e2e.ts',
       use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:3040' },
     },
   ],

@@ -31,6 +31,7 @@
     "test:ui": "vitest --ui",
     "check:buttons": "node scripts/check-button-rules.mjs",
     "e2e": "playwright test",
+    "e2e:agent-real": "playwright test --config playwright.agent-real.config.ts",
     "e2e:ui": "playwright test --ui",
     "mock:generate": "node scripts/capture-mock-data.mjs",
     "mock:generate:fetch": "node scripts/capture-mock-data.mjs",

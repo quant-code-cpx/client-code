@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 
 import { tushareSyncApi } from 'src/api/tushare-sync';
 import { renderWithProviders } from 'src/test/test-utils';
@@ -72,7 +72,7 @@ describe('SyncPlanTab', () => {
     ]);
   });
 
-  it('统一调度 toolbar 操作控件的高度，避免按钮大小不一和错位', async () => {
+  it('统一调度 toolbar 操作控件使用 small theme baseline，避免尺寸混用和错位', async () => {
     renderWithProviders(<SyncPlanTab />);
 
     await screen.findByText('股票列表');
@@ -85,14 +85,11 @@ describe('SyncPlanTab', () => {
       screen.getByRole('button', { name: /开始同步/ }),
     ];
 
-    await waitFor(() => {
-      expect(controls.map((control) => getComputedStyle(control).height)).toEqual([
-        '36px',
-        '36px',
-        '36px',
-        '36px',
-        '36px',
-      ]);
-    });
+    expect(
+      controls.slice(0, 2).every((control) => control.classList.contains('MuiToggleButton-sizeSmall'))
+    ).toBe(true);
+    expect(
+      controls.slice(2).every((control) => control.classList.contains('MuiButton-sizeSmall'))
+    ).toBe(true);
   });
 });

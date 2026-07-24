@@ -22,13 +22,17 @@ import { Composer } from './composer';
 import { RunStatusBar } from './run-status-bar';
 import { MessageViewport } from './message-viewport';
 import { useAgentRun } from '../hooks/use-agent-run';
+import { AgentMemoryDrawer } from './agent-memory-drawer';
 import { useConversation } from '../hooks/use-conversation';
 import { ConversationSidebar } from './conversation-sidebar';
 import { useComposerDraft } from '../hooks/use-composer-draft';
 import { TERMINAL_RUN_STATUSES } from '../state/agent-state.types';
 import { useConversationList } from '../hooks/use-conversation-list';
 import { ConversationModelControl } from './conversation-model-control';
+import { AgentReportPreviewDialog } from './agent-report-preview-dialog';
+import { AgentReportLibraryDialog } from './agent-report-library-dialog';
 import { useAgentState, useAgentDispatch } from '../state/agent-provider';
+import { NotificationChannelSettings } from './notification-channel-settings';
 
 export function AgentShell() {
   const theme = useTheme();
@@ -39,6 +43,11 @@ export function AgentShell() {
   const { lastAgentRunUpdate } = useSyncNotification();
   const handledSocketUpdateRef = useRef('');
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [memoryDrawerOpen, setMemoryDrawerOpen] = useState(false);
+  const [notificationSettingsOpen, setNotificationSettingsOpen] = useState(false);
+  const [reportPreviewRunId, setReportPreviewRunId] = useState<string | null>(null);
+  const [reportLibraryOpen, setReportLibraryOpen] = useState(false);
+  const [reportNotice, setReportNotice] = useState<string | null>(null);
   const [modelSaving, setModelSaving] = useState(false);
   const [modelError, setModelError] = useState<string | null>(null);
   const conversationId = state.currentConversationId;
@@ -65,12 +74,9 @@ export function AgentShell() {
     if (accepted) draft.clear();
   }, [draft, run]);
 
-  const handleSelect = useCallback(
-    (_nextConversationId: string) => {
-      setSidebarOpen(false);
-    },
-    []
-  );
+  const handleSelect = useCallback((_nextConversationId: string) => {
+    setSidebarOpen(false);
+  }, []);
 
   const handleNew = useCallback(() => {
     setSidebarOpen(false);
@@ -103,6 +109,10 @@ export function AgentShell() {
 
   const activeConversationIds = Object.keys(state.runs.activeRunIdByConversation);
   const pageError = conversationState.loadState?.detailStatus === 'error';
+  const handleReportSaved = useCallback(() => {
+    setReportPreviewRunId(null);
+    setReportNotice('研究报告已保存，正在异步生成归档文件。');
+  }, []);
 
   return (
     <Box
@@ -135,7 +145,10 @@ export function AgentShell() {
         onLoadMore={conversationList.loadMore}
       />
 
-      <Box component="main" sx={{ minWidth: 0, minHeight: 0, flex: 1, display: 'flex', flexDirection: 'column' }}>
+      <Box
+        component="main"
+        sx={{ minWidth: 0, minHeight: 0, flex: 1, display: 'flex', flexDirection: 'column' }}
+      >
         <Box sx={{ px: { xs: 1.5, md: 3 }, py: 1.5, borderBottom: 1, borderColor: 'divider' }}>
           <PageHeader
             variant="h5"
@@ -154,6 +167,24 @@ export function AgentShell() {
                     </IconButton>
                   </Tooltip>
                 ) : null}
+                <Tooltip title="管理长期记忆">
+                  <IconButton aria-label="管理长期记忆" onClick={() => setMemoryDrawerOpen(true)}>
+                    <Iconify icon="solar:notebook-bookmark-bold" width={20} />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title="管理通知渠道">
+                  <IconButton
+                    aria-label="管理通知渠道"
+                    onClick={() => setNotificationSettingsOpen(true)}
+                  >
+                    <Iconify icon="solar:bell-bing-bold" width={20} />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title="查看研究报告">
+                  <IconButton aria-label="查看研究报告" onClick={() => setReportLibraryOpen(true)}>
+                    <Iconify icon="solar:document-text-bold" width={20} />
+                  </IconButton>
+                </Tooltip>
                 {conversationState.conversation ? (
                   <ConversationModelControl
                     policy={conversationState.conversation.modelPolicy}
@@ -172,6 +203,11 @@ export function AgentShell() {
             {modelError}
           </Alert>
         ) : null}
+        {reportNotice ? (
+          <Alert severity="success" onClose={() => setReportNotice(null)} sx={{ borderRadius: 0 }}>
+            {reportNotice}
+          </Alert>
+        ) : null}
 
         <RunStatusBar run={run.activeRun} onContinue={run.continueReceiving} />
 
@@ -185,6 +221,7 @@ export function AgentShell() {
             onRetryLoad={conversationState.refresh}
             onRegenerate={run.regenerate}
             onRetryMessage={run.retryUnsent}
+            onSaveReport={setReportPreviewRunId}
           />
         ) : (
           <MessageViewport
@@ -196,6 +233,7 @@ export function AgentShell() {
             onRetryLoad={conversationState.refresh}
             onRegenerate={run.regenerate}
             onRetryMessage={run.retryUnsent}
+            onSaveReport={setReportPreviewRunId}
           />
         )}
 
@@ -213,6 +251,19 @@ export function AgentShell() {
           />
         ) : null}
       </Box>
+
+      <AgentMemoryDrawer open={memoryDrawerOpen} onClose={() => setMemoryDrawerOpen(false)} />
+      <NotificationChannelSettings
+        open={notificationSettingsOpen}
+        onClose={() => setNotificationSettingsOpen(false)}
+      />
+      <AgentReportPreviewDialog
+        open={reportPreviewRunId !== null}
+        runId={reportPreviewRunId}
+        onClose={() => setReportPreviewRunId(null)}
+        onSaved={handleReportSaved}
+      />
+      <AgentReportLibraryDialog open={reportLibraryOpen} onClose={() => setReportLibraryOpen(false)} />
     </Box>
   );
 }

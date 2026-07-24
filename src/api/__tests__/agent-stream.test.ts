@@ -8,6 +8,10 @@ import { tokenStorage, setAuthCallbacks } from '../client';
 const encoder = new TextEncoder();
 const mockFetch = vi.fn();
 
+function requestPath(url: string): string {
+  return new URL(url, 'http://test.local').pathname;
+}
+
 function agentEvent(type: AgentSseEvent['type'], sequence: number): AgentSseEvent {
   const fixture = AGENT_EVENT_FIXTURES.find((event) => event.type === type);
   if (!fixture) throw new Error(`Missing fixture for ${type}`);
@@ -100,7 +104,7 @@ describe('streamAgentRun', () => {
     expect(cb.onTerminal).toHaveBeenCalledTimes(1);
 
     const [url, init] = mockFetch.mock.calls[0] as [string, RequestInit];
-    expect(url).toBe('/api/agent/runs/events');
+    expect(requestPath(url)).toBe('/api/agent/runs/events');
     expect(init.method).toBe('POST');
     expect(JSON.parse(String(init.body))).toEqual({ runId: 'run_fixture', afterSequence: 0 });
     const headers = new Headers(init.headers);
@@ -319,7 +323,7 @@ describe('streamAgentRun', () => {
     expect(result.status).toBe('completed');
     expect(mockFetch).toHaveBeenCalledTimes(3);
     const [retryUrl, retryInit] = mockFetch.mock.calls[2] as [string, RequestInit];
-    expect(retryUrl).toBe('/api/agent/runs/events');
+    expect(requestPath(retryUrl)).toBe('/api/agent/runs/events');
     expect(new Headers(retryInit.headers).get('Authorization')).toBe('Bearer fresh-token');
     expect(JSON.parse(String(retryInit.body))).toEqual({ runId: 'run_fixture', afterSequence: 0 });
   });

@@ -22,12 +22,18 @@ const { mockGetSocket, mockDestroySocket, mockGetSocketStatus, mockOnSocketStatu
   mockOnSocketStatusChange: vi.fn(() => vi.fn()),
 }));
 
+const { mockUseAuth } = vi.hoisted(() => ({
+  mockUseAuth: vi.fn(() => ({ isAuthenticated: true })),
+}));
+
 vi.mock('src/lib/socket', () => ({
   getSocket: mockGetSocket,
   destroySocket: mockDestroySocket,
   getSocketStatus: mockGetSocketStatus,
   onSocketStatusChange: mockOnSocketStatusChange,
 }));
+
+vi.mock('src/auth', () => ({ useAuth: mockUseAuth }));
 
 // ----------------------------------------------------------------------
 
@@ -62,6 +68,7 @@ beforeEach(() => {
   };
   mockGetSocket.mockReturnValue(mockSocket);
   mockDestroySocket.mockReset();
+  mockUseAuth.mockReturnValue({ isAuthenticated: true });
 });
 
 afterEach(() => {
@@ -77,6 +84,15 @@ describe('SyncNotificationProvider', () => {
 
       expect(mockGetSocket).toHaveBeenCalled();
       expect(mockSocket.connect).toHaveBeenCalledTimes(1);
+    });
+
+    it('未认证时不创建连接并销毁旧 socket', () => {
+      mockUseAuth.mockReturnValue({ isAuthenticated: false });
+
+      renderHook(useSyncNotification, { wrapper });
+
+      expect(mockGetSocket).not.toHaveBeenCalled();
+      expect(mockDestroySocket).toHaveBeenCalledTimes(1);
     });
 
     it('mount 时注册全部 8 个事件监听器', () => {

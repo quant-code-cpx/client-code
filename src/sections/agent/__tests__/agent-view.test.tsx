@@ -76,6 +76,7 @@ describe('AgentView', () => {
     expect(screen.getByRole('heading', { name: 'AI 量化研究' })).toBeInTheDocument();
     expect(screen.getByText('开始一次量化研究')).toBeInTheDocument();
     expect(screen.getByLabelText('研究问题')).toBeInTheDocument();
+    expect(screen.getByLabelText('管理长期记忆')).toBeInTheDocument();
   });
 
   it('深链把指定 conversationId 交给加载 hook', () => {

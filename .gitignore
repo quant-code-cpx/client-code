@@ -39,5 +39,6 @@ knip.jsonc
 
 # Playwright E2E artifacts
 e2e/.auth/*.json
+e2e/.agent-real-state.json
 playwright-report/
 test-results/

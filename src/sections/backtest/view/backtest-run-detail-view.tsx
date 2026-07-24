@@ -51,6 +51,7 @@ import { BacktestPositionsTable } from '../backtest-positions-table';
 import { BacktestRebalanceLogTable } from '../backtest-rebalance-log-table';
 import { BacktestMonthlyReturnTable } from '../backtest-monthly-return-table';
 import { BacktestAdvancedAnalysisTab } from './backtest-advanced-analysis-tab';
+import { BacktestReproducibilityAlert } from '../backtest-reproducibility-alert';
 import { BacktestApplyPortfolioDialog } from '../backtest-apply-portfolio-dialog';
 
 // ----------------------------------------------------------------------
@@ -298,6 +299,17 @@ export function BacktestRunDetailView() {
           </Button>
         )}
       </Box>
+
+      <BacktestReproducibilityAlert
+        engineVersion={detail.engineVersion}
+        dataContractVersion={detail.dataContractVersion}
+        universePolicyVersion={detail.universePolicyVersion}
+        financialAsOfPolicyVersion={detail.financialAsOfPolicyVersion}
+        adjustmentPolicyVersion={detail.adjustmentPolicyVersion}
+        reproducibilityStatus={detail.reproducibilityStatus}
+        reproducibilityManifest={detail.reproducibilityManifest}
+        qualityFlags={detail.qualityFlags}
+      />
 
       {/* Progress banner */}
       {(detail.status === 'QUEUED' || detail.status === 'RUNNING') && (

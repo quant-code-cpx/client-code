@@ -150,15 +150,14 @@ describe('SignInView', () => {
       const passwordInput = screen.getByLabelText('密码');
       expect(passwordInput).toHaveAttribute('type', 'password');
 
-      // Click the eye IconButton
-      const eyeButton = screen.getByRole('button', { name: '' });
-      await user.click(eyeButton);
+      await user.click(screen.getByRole('button', { name: '显示密码' }));
 
       expect(passwordInput).toHaveAttribute('type', 'text');
+      expect(screen.getByRole('button', { name: '隐藏密码' })).toBeInTheDocument();
 
-      // Click again to hide
-      await user.click(eyeButton);
+      await user.click(screen.getByRole('button', { name: '隐藏密码' }));
       expect(passwordInput).toHaveAttribute('type', 'password');
+      expect(screen.getByRole('button', { name: '显示密码' })).toBeInTheDocument();
     });
   });
 

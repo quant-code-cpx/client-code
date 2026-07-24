@@ -28,6 +28,7 @@ type MessageItemProps = {
   message: AgentMessageEntity;
   onRegenerate: (messageId: string) => void;
   onRetry: (message: AgentMessageEntity) => void;
+  onSaveReport: (runId: string) => void;
 };
 
 const STATUS_LABELS = {
@@ -45,7 +46,7 @@ function statusColor(status: AgentMessageEntity['status']): LabelColor {
   return 'info';
 }
 
-function MessageItemComponent({ message, onRegenerate, onRetry }: MessageItemProps) {
+function MessageItemComponent({ message, onRegenerate, onRetry, onSaveReport }: MessageItemProps) {
   const [copied, setCopied] = useState(false);
   const isUser = message.role === 'USER';
   const isAssistant = message.role === 'ASSISTANT';
@@ -58,6 +59,7 @@ function MessageItemComponent({ message, onRegenerate, onRetry }: MessageItemPro
   const canRegenerate =
     message.role === 'ASSISTANT' &&
     ['COMPLETED', 'FAILED', 'CANCELLED'].includes(message.status);
+  const canSaveReport = isAssistant && message.status === 'COMPLETED' && Boolean(message.run?.runId);
 
   const handleCopy = useCallback(async () => {
     if (!message.contentText) return;
@@ -164,6 +166,13 @@ function MessageItemComponent({ message, onRegenerate, onRetry }: MessageItemPro
                 onClick={() => onRegenerate(message.messageId)}
               >
                 <Iconify icon="solar:restart-bold" width={17} />
+              </IconButton>
+            </Tooltip>
+          ) : null}
+          {canSaveReport && message.run?.runId ? (
+            <Tooltip title="保存研究报告">
+              <IconButton size="small" aria-label="保存研究报告" onClick={() => onSaveReport(message.run!.runId)}>
+                <Iconify icon="solar:document-add-bold" width={17} />
               </IconButton>
             </Tooltip>
           ) : null}

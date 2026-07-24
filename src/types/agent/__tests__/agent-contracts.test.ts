@@ -16,8 +16,8 @@ import {
 } from '../generated';
 
 describe('Agent 公共契约', () => {
-  it('解析后端生成的全部 14 个 SSE fixture', () => {
-    expect(AGENT_EVENT_FIXTURES).toHaveLength(14);
+  it('解析后端生成的全部 SSE fixture', () => {
+    expect(AGENT_EVENT_FIXTURES).toHaveLength(AGENT_EVENT_TYPES.length);
     expect(AGENT_EVENT_FIXTURES.map((event) => event.type)).toEqual(AGENT_EVENT_TYPES);
 
     for (const fixture of AGENT_EVENT_FIXTURES) {
@@ -46,7 +46,7 @@ describe('Agent 公共契约', () => {
     expect(() => parseMessageBlock(invalidBlock)).toThrow(AgentProtocolError);
   });
 
-  it('固定 15 个 MVP Tool key', () => {
+  it('固定 16 个 Agent Tool key', () => {
     expect(AGENT_TOOL_KEYS).toEqual([
       'resolve_security',
       'get_stock_price_history',
@@ -63,6 +63,7 @@ describe('Agent 公共契约', () => {
       'compute_valuation_percentile',
       'search_web',
       'fetch_web_page',
+      'save_research_report',
     ]);
   });
 
@@ -95,10 +96,10 @@ describe('Agent 公共契约', () => {
     ]);
   });
 
-  it('错误码覆盖 6001–6031 与 6099，且无重复', () => {
+  it('错误码覆盖 6001–6046 与 6099，且无重复', () => {
     const codes = AGENT_ERROR_DEFINITIONS.map((definition) => definition.code);
 
-    expect(codes).toEqual([...Array.from({ length: 31 }, (_, index) => 6001 + index), 6099]);
-    expect(new Set(codes).size).toBe(32);
+    expect(codes).toEqual([...Array.from({ length: 46 }, (_, index) => 6001 + index), 6099]);
+    expect(new Set(codes).size).toBe(47);
   });
 });
