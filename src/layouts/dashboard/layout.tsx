@@ -7,16 +7,19 @@ import Box from '@mui/material/Box';
 import Alert from '@mui/material/Alert';
 import { useTheme } from '@mui/material/styles';
 
+import { useAuth } from 'src/auth';
+import { CONFIG } from 'src/config-global';
+
 import { NavMobile, NavDesktop } from './nav';
 import { layoutClasses } from '../core/classes';
 import { _account } from '../nav-config-account';
 import { dashboardLayoutVars } from './css-vars';
-import { navData } from '../nav-config-dashboard';
 import { MainSection } from '../core/main-section';
 import { Searchbar } from '../components/searchbar';
 import { HeaderSection } from '../core/header-section';
 import { LayoutSection } from '../core/layout-section';
 import { MenuButton } from '../components/menu-button';
+import { createNavData } from '../nav-config-dashboard';
 import { ThemePopover } from '../components/theme-popover';
 import { AccountPopover } from '../components/account-popover';
 import { DarkModeButton } from '../components/dark-mode-button';
@@ -47,6 +50,8 @@ export function DashboardLayout({
   layoutQuery = 'lg',
 }: DashboardLayoutProps) {
   const theme = useTheme();
+  const { role } = useAuth();
+  const visibleNavData = createNavData(CONFIG.agentEnabled, role ?? undefined);
 
   const { value: open, onFalse: onClose, onTrue: onOpen } = useBoolean();
 
@@ -70,7 +75,7 @@ export function DashboardLayout({
             onClick={onOpen}
             sx={{ mr: 1, ml: -1, [theme.breakpoints.up(layoutQuery)]: { display: 'none' } }}
           />
-          <NavMobile data={navData} open={open} onClose={onClose} />
+          <NavMobile data={visibleNavData} open={open} onClose={onClose} />
         </>
       ),
       rightArea: (
@@ -121,7 +126,7 @@ export function DashboardLayout({
       /** **************************************
        * @Sidebar
        *************************************** */
-      sidebarSection={<NavDesktop data={navData} layoutQuery={layoutQuery} />}
+      sidebarSection={<NavDesktop data={visibleNavData} layoutQuery={layoutQuery} />}
       /** **************************************
        * @Footer
        *************************************** */

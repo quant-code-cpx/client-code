@@ -56,6 +56,14 @@ describe('路由结构 — 静态配置断言', () => {
     });
   });
 
+  describe('模型供应商权限', () => {
+    it('仅超级管理员显示模型供应商导航', () => {
+      expect(createNavData(true, 'SUPER_ADMIN').some((item) => item.path === '/admin/model-providers')).toBe(true);
+      expect(createNavData(true, 'ADMIN').some((item) => item.path === '/admin/model-providers')).toBe(false);
+      expect(createNavData(true, 'USER').some((item) => item.path === '/admin/model-providers')).toBe(false);
+    });
+  });
+
   describe('公开路由 — /sign-in', () => {
     it('/sign-in 路由存在且 path 正确', () => {
       const signInRoute = routesSection.find((r) => r.path === 'sign-in');

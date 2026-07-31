@@ -718,7 +718,7 @@ const eventStudyDynamicHandlers = [
 // Auth handlers first (higher priority in MSW)
 export const handlers = [
   ...authHandlers,
-  ...agentHandlers,
   ...eventStudyDynamicHandlers,
+  ...agentHandlers,
   ...dataHandlers,
 ];

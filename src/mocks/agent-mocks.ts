@@ -162,17 +162,7 @@ export const agentHandlers = [
   ),
   http.post('*/api/agent/models/list', () =>
     ok({
-      items: [
-        {
-          model: 'fake-deterministic-v1',
-          displayName: '本地验证模型',
-          provider: 'fake',
-          capabilities: ['STREAMING', 'STRUCTURED_OUTPUT', 'TOOL_CALLING'],
-          costTier: 'LOW',
-          status: 'AVAILABLE',
-          reason: null,
-        },
-      ],
+      items: [],
     } satisfies AgentResponse<'/agent/models/list'>)
   ),
   http.post('*/api/agent/messages/send', () =>

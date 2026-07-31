@@ -67,6 +67,7 @@ export const PatternPage = lazy(() => import('src/pages/pattern'));
 export const FactorAdvancedAnalysisPage = lazy(() => import('src/pages/factor-advanced-analysis'));
 export const FactorAdminPage = lazy(() => import('src/pages/factor-admin'));
 export const AgentPage = lazy(() => import('src/pages/agent'));
+export const ModelProvidersPage = lazy(() => import('src/pages/model-providers'));
 
 export function createAgentRoutes(enabled = CONFIG.agentEnabled): RouteObject[] {
   return enabled
@@ -162,6 +163,7 @@ export const routesSection: RouteObject[] = [
       { path: 'research/report/:id', element: <ReportDetailPage /> },
       { path: 'stock/pattern', element: <PatternPage /> },
       { path: 'admin/user-manage', element: <UserManagePage /> },
+      { path: 'admin/model-providers', element: <ModelProvidersPage /> },
       { path: 'admin/tushare-sync', element: <Navigate to="/tushare-sync" replace /> },
       // ─── backward-compat redirects ───────────────────────
       { path: 'signal', element: <Navigate to="/strategy/signal" replace /> },

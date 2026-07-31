@@ -1,3 +1,5 @@
+import type { UserRole } from 'src/api/user-manage';
+
 import { CONFIG } from 'src/config-global';
 
 import { Iconify } from 'src/components/iconify';
@@ -18,7 +20,7 @@ export type NavItem = {
   children?: Omit<NavItem, 'children'>[];
 };
 
-export function createNavData(agentEnabled = CONFIG.agentEnabled): NavItem[] {
+export function createNavData(agentEnabled = CONFIG.agentEnabled, role?: UserRole): NavItem[] {
   return [
   // ─── 概览 ────────────────────────────────────────────────
   {
@@ -250,6 +252,13 @@ export function createNavData(agentEnabled = CONFIG.agentEnabled): NavItem[] {
     path: '/admin/user-manage',
     icon: icon('ic-user'),
   },
+  ...(role === 'SUPER_ADMIN'
+    ? [{
+        title: '模型供应商',
+        path: '/admin/model-providers',
+        icon: <Iconify icon="solar:settings-bold-duotone" width={24} />,
+      }]
+    : []),
   ];
 }
 
