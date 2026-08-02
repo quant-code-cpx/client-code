@@ -14,6 +14,7 @@ const icon = (name: string) => (
 export type NavItem = {
   title: string;
   path: string;
+  activePaths?: string[];
   icon: React.ReactNode;
   info?: React.ReactNode;
   exact?: boolean;
@@ -151,6 +152,7 @@ export function createNavData(agentEnabled = CONFIG.agentEnabled, role?: UserRol
       {
         title: '因子库',
         path: '/factor/library',
+        activePaths: ['/factor/detail'],
         icon: <Iconify icon="solar:library-bold" width={24} />,
       },
       {

@@ -194,7 +194,7 @@ export type StockChartData = {
   adjustType: string;
   items: StockChartItem[];
   /** 是否还有更早的历史数据（用于前端分页加载） */
-  hasMore?: boolean;
+  hasMore: boolean;
 };
 
 /** 资金流向汇总 */

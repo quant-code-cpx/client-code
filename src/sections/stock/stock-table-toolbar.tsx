@@ -311,7 +311,7 @@ export function StockTableToolbar({
 
         {conditionChips.length > 0 && (
           <>
-            <Box sx={{ width: 1, height: 20, bgcolor: 'divider', mx: 0.5 }} />
+            <Box sx={{ width: '1px', height: 20, bgcolor: 'divider', mx: 0.5 }} />
             {conditionChips.map((c) => (
               <Chip
                 key={c.key}

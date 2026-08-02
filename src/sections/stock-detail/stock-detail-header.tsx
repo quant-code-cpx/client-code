@@ -15,6 +15,7 @@ import * as numberFormat from 'src/utils/format-number';
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
 
+import { mapLimitStatus } from './stock-limit-status';
 import { RealtimeQuoteBadge } from './realtime-quote-badge';
 
 // ----------------------------------------------------------------------
@@ -56,12 +57,6 @@ function mapListStatus(value: string | null | undefined) {
 function mapHs(value: string | null | undefined) {
   if (!value || value === 'N') return '';
   return { H: '沪股通', S: '深股通' }[value] ?? value;
-}
-
-function mapLimitStatus(value: number | null | undefined) {
-  if (value === 1) return { label: '涨停', color: 'error' as const };
-  if (value === -1) return { label: '跌停', color: 'success' as const };
-  return null;
 }
 
 // ----------------------------------------------------------------------

@@ -82,7 +82,7 @@ export function StockDetailView() {
       nextParams.set('tab', 'market');
       setActiveTab('market');
       setNotesDrawerOpen(true);
-      setSearchParams(nextParams);
+      setSearchParams(nextParams, { replace: true });
       return;
     }
 
@@ -94,7 +94,7 @@ export function StockDetailView() {
     const nextParams = new URLSearchParams(searchParams);
     nextParams.set('tab', value);
     setActiveTab(value);
-    setSearchParams(nextParams);
+    setSearchParams(nextParams, { replace: true });
   };
 
   if (!tsCode) {

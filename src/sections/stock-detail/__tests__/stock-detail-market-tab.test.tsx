@@ -5,83 +5,51 @@ import { renderWithProviders } from 'src/test/test-utils';
 import { StockDetailMarketTab } from '../stock-detail-market-tab';
 
 const mocks = vi.hoisted(() => ({
-  klineSeries: null as Record<string, unknown> | null,
-  chart: vi.fn(),
   moneyFlow: vi.fn(),
   todayFlow: vi.fn(),
 }));
 
-vi.mock('src/components/chart', () => ({
-  Chart: () => <div data-testid="legacy-chart" />,
-  useChart: (options: unknown) => options,
+vi.mock('../market/market-chart-card', () => ({
+  MarketChartCard: ({ tsCode }: { tsCode: string }) => (
+    <div data-testid="klinechart-card">{tsCode}</div>
+  ),
 }));
 
-vi.mock('src/components/stock-kline/stock-kline', () => ({
-  StockKline: ({ series }: { series: Record<string, unknown> }) => {
-    mocks.klineSeries = series;
-    return <div data-testid="shared-stock-kline" />;
-  },
+vi.mock('../market/market-flow-cards', () => ({
+  TodayFlowCard: ({ data }: { data: { tsCode?: string } | null }) => (
+    <div data-testid="today-flow-card">{data?.tsCode ?? 'loading'}</div>
+  ),
+  MoneyFlowCard: ({ data }: { data: { tsCode?: string } | null }) => (
+    <div data-testid="money-flow-card">{data?.tsCode ?? 'loading'}</div>
+  ),
 }));
 
 vi.mock('src/api/stock', () => ({
   stockDetailApi: {
-    chart: mocks.chart,
     moneyFlow: mocks.moneyFlow,
     todayFlow: mocks.todayFlow,
   },
 }));
 
 beforeEach(() => {
-  mocks.klineSeries = null;
-  mocks.chart.mockResolvedValue({
-    tsCode: '600519.SH',
-    period: 'D',
-    adjustType: 'qfq',
-    hasMore: false,
-    items: [
-      {
-        tradeDate: '2026-07-17',
-        open: 1498,
-        high: 1520,
-        low: 1490,
-        close: 1512,
-        vol: 920,
-        amount: 1390000,
-        pctChg: 0.94,
-        ma5: 1490,
-        ma10: 1480,
-        ma20: 1470,
-        ma60: 1450,
-      },
-    ],
-  });
   mocks.moneyFlow.mockResolvedValue({
+    tsCode: '600519.SH',
     items: [],
     summary: { netMfAmount5d: 0, netMfAmount20d: 0, netMfAmount60d: 0 },
   });
-  mocks.todayFlow.mockResolvedValue(null);
+  mocks.todayFlow.mockResolvedValue({ tsCode: '600519.SH' });
 });
 
 describe('StockDetailMarketTab', () => {
-  it('保留取数职责并把标准 OHLCV 交给共享 StockKline 内核', async () => {
+  it('把行情图交给详情专用 KLineChart 卡片，并继续加载两类资金流数据', async () => {
     renderWithProviders(<StockDetailMarketTab tsCode="600519.SH" />);
 
-    await waitFor(() => expect(screen.getByTestId('shared-stock-kline')).toBeInTheDocument());
-    expect(mocks.klineSeries).toMatchObject({
-      tsCode: '600519.SH',
-      adjustment: 'FORWARD',
-      timezone: 'Asia/Shanghai',
-      bars: [
-        {
-          tradeDate: '2026-07-17',
-          open: 1498,
-          high: 1520,
-          low: 1490,
-          close: 1512,
-          volume: 920,
-          amount: 1390000,
-        },
-      ],
-    });
+    expect(screen.getByTestId('klinechart-card')).toHaveTextContent('600519.SH');
+    await waitFor(() =>
+      expect(screen.getByTestId('today-flow-card')).toHaveTextContent('600519.SH')
+    );
+    expect(screen.getByTestId('money-flow-card')).toHaveTextContent('600519.SH');
+    expect(mocks.todayFlow).toHaveBeenCalledWith('600519.SH');
+    expect(mocks.moneyFlow).toHaveBeenCalledWith('600519.SH', 60);
   });
 });

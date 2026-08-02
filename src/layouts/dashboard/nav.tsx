@@ -110,9 +110,18 @@ type NavItemWithChildrenProps = {
 
 type NavChildItem = Omit<NavItem, 'children'>;
 
-const isNavPathActive = (pathname: string, item: NavChildItem, parentPath: string) =>
-  pathname === item.path ||
-  (!item.exact && item.path !== parentPath && pathname.startsWith(`${item.path}/`));
+export const isNavPathActive = (pathname: string, item: NavChildItem, parentPath: string) => {
+  const matchesItemPath =
+    pathname === item.path ||
+    (!item.exact && item.path !== parentPath && pathname.startsWith(`${item.path}/`));
+
+  return (
+    matchesItemPath ||
+    item.activePaths?.some((activePath) =>
+      pathname === activePath || (!item.exact && pathname.startsWith(`${activePath}/`))
+    ) === true
+  );
+};
 
 const getActiveChildPath = (
   children: NavChildItem[] | undefined,
