@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 
 import Tab from '@mui/material/Tab';
 import Card from '@mui/material/Card';
@@ -29,15 +29,29 @@ const SUB_TABS = [
   { value: 'institutional', label: '机构持仓' },
 ];
 
+function isAnalysisSubTab(value: string | null): value is (typeof SUB_TABS)[number]['value'] {
+  return SUB_TABS.some((tab) => tab.value === value);
+}
+
 export function StockDetailAnalysisTab({ tsCode }: Props) {
-  const [subTab, setSubTab] = useState('technical');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const analysisParam = searchParams.get('analysis');
+  const subTab = isAnalysisSubTab(analysisParam) ? analysisParam : 'technical';
+
+  const handleSubTabChange = (_: unknown, nextSubTab: string | null) => {
+    if (!nextSubTab || !isAnalysisSubTab(nextSubTab)) return;
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.set('tab', 'analysis');
+    nextParams.set('analysis', nextSubTab);
+    setSearchParams(nextParams, { replace: true });
+  };
 
   return (
     <Stack spacing={3}>
       <Card>
         <Tabs
           value={subTab}
-          onChange={(_, v) => setSubTab(v)}
+          onChange={handleSubTabChange}
           variant="scrollable"
           scrollButtons="auto"
           sx={{ borderBottom: 1, borderColor: 'divider', px: 2 }}

@@ -1,0 +1,241 @@
+import type {
+  TechnicalSignalPeriod,
+  TechnicalSignalEntryMode,
+  TechnicalSignalDefinition,
+} from 'src/api/technical-signal';
+
+import Box from '@mui/material/Box';
+import Card from '@mui/material/Card';
+import Chip from '@mui/material/Chip';
+import Alert from '@mui/material/Alert';
+import Stack from '@mui/material/Stack';
+import Button from '@mui/material/Button';
+import Select from '@mui/material/Select';
+import Switch from '@mui/material/Switch';
+import MenuItem from '@mui/material/MenuItem';
+import TextField from '@mui/material/TextField';
+import InputLabel from '@mui/material/InputLabel';
+import Typography from '@mui/material/Typography';
+import CardContent from '@mui/material/CardContent';
+import Autocomplete from '@mui/material/Autocomplete';
+import ToggleButton from '@mui/material/ToggleButton';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
+
+import { PERIOD_LABELS, DIRECTION_LABELS } from './technical-signal-formatters';
+
+import type { TechnicalSignalStatisticsFilters } from './use-technical-signal-statistics';
+
+// ----------------------------------------------------------------------
+
+type Props = {
+  definitions: TechnicalSignalDefinition[];
+  disabled: boolean;
+  filters: TechnicalSignalStatisticsFilters;
+  loading: boolean;
+  onApply: () => void;
+  onChange: (update: Partial<TechnicalSignalStatisticsFilters>) => void;
+  validationError: string | null;
+};
+
+const HORIZON_OPTIONS = [1, 3, 5, 10, 20, 30, 60];
+
+function directionColor(direction: TechnicalSignalDefinition['direction']) {
+  if (direction === 'BULLISH') return 'error' as const;
+  if (direction === 'BEARISH') return 'success' as const;
+  return 'info' as const;
+}
+
+export function TechnicalSignalFilterCard({
+  definitions,
+  disabled,
+  filters,
+  loading,
+  onApply,
+  onChange,
+  validationError,
+}: Props) {
+  const selectedDefinitions = definitions.filter((definition) =>
+    filters.signals.some(
+      (selected) =>
+        selected.signalKey === definition.signalKey &&
+        selected.semanticsVersion === definition.semanticsVersion
+    )
+  );
+  const includesCustomPeriod = filters.periods.includes('CUSTOM');
+
+  return (
+    <Card>
+      <CardContent>
+        <Stack spacing={2.5}>
+          <Box>
+            <Typography variant="subtitle1">历史信号统计口径</Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+              统计结果只使用标准技术信号目录，与旧版择时信号分开计算。
+            </Typography>
+          </Box>
+
+          {validationError && <Alert severity="warning">{validationError}</Alert>}
+
+          <Box
+            sx={{
+              display: 'grid',
+              gap: 2,
+              gridTemplateColumns: { lg: 'minmax(300px, 1.4fr) repeat(3, minmax(160px, 1fr))' },
+            }}
+          >
+            <Autocomplete
+              multiple
+              disableCloseOnSelect
+              disabled={disabled}
+              options={definitions}
+              value={selectedDefinitions}
+              onChange={(_, value) =>
+                onChange({
+                  signals: value.map(({ signalKey, semanticsVersion }) => ({
+                    signalKey,
+                    semanticsVersion,
+                  })),
+                })
+              }
+              getOptionLabel={(option) => option.displayName}
+              isOptionEqualToValue={(option, value) =>
+                option.signalKey === value.signalKey && option.semanticsVersion === value.semanticsVersion
+              }
+              renderOption={(props, option) => (
+                <li {...props} key={`${option.signalKey}-${option.semanticsVersion}`}>
+                  <Stack direction="row" alignItems="center" spacing={1} sx={{ minWidth: 0 }}>
+                    <Typography variant="body2" noWrap>
+                      {option.displayName}
+                    </Typography>
+                    <Chip
+                      color={directionColor(option.direction)}
+                      label={DIRECTION_LABELS[option.direction]}
+                      size="small"
+                    />
+                  </Stack>
+                </li>
+              )}
+              renderInput={(params) => (
+                <TextField
+                  {...params}
+                  label="信号定义"
+                  helperText="留空时使用全部稳定定义"
+                />
+              )}
+            />
+
+            <Box>
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75 }}>
+                统计区间
+              </Typography>
+              <ToggleButtonGroup
+                color="primary"
+                disabled={disabled}
+                value={filters.periods}
+                onChange={(_, value: TechnicalSignalPeriod[]) => {
+                  if (value.length > 0) onChange({ periods: value });
+                }}
+                size="small"
+                sx={{ flexWrap: 'wrap' }}
+              >
+                {(['1Y', '3Y', 'CUSTOM'] as TechnicalSignalPeriod[]).map((period) => (
+                  <ToggleButton key={period} value={period}>
+                    {PERIOD_LABELS[period]}
+                  </ToggleButton>
+                ))}
+              </ToggleButtonGroup>
+            </Box>
+
+            <Box>
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75 }}>
+                入场口径
+              </Typography>
+              <ToggleButtonGroup
+                color="primary"
+                disabled={disabled}
+                exclusive
+                value={filters.entryMode}
+                onChange={(_, value: TechnicalSignalEntryMode | null) => {
+                  if (value) onChange({ entryMode: value });
+                }}
+                size="small"
+              >
+                <ToggleButton value="SIGNAL_CLOSE">信号日收盘</ToggleButton>
+                <ToggleButton value="NEXT_OPEN">次日开盘</ToggleButton>
+              </ToggleButtonGroup>
+            </Box>
+
+            <Box>
+              <InputLabel id="technical-signal-horizons-label" shrink>
+                观察周期
+              </InputLabel>
+              <Select
+                labelId="technical-signal-horizons-label"
+                disabled={disabled}
+                fullWidth
+                multiple
+                value={filters.horizons}
+                onChange={(event) => {
+                  const nextValues = event.target.value;
+                  const horizons = (typeof nextValues === 'string'
+                    ? nextValues.split(',').map(Number)
+                    : nextValues
+                  ) as number[];
+                  onChange({ horizons });
+                }}
+                renderValue={(values) => (values as number[]).map((value) => `T+${value}`).join('、')}
+                size="small"
+              >
+                {HORIZON_OPTIONS.map((value) => (
+                  <MenuItem key={value} value={value}>
+                    T+{value}
+                  </MenuItem>
+                ))}
+              </Select>
+            </Box>
+          </Box>
+
+          {includesCustomPeriod && (
+            <Stack direction="row" spacing={2}>
+              <TextField
+                disabled={disabled}
+                fullWidth
+                label="自定义开始日"
+                onChange={(event) => onChange({ customStartDate: event.target.value })}
+                slotProps={{ inputLabel: { shrink: true } }}
+                type="date"
+                value={filters.customStartDate}
+              />
+              <TextField
+                disabled={disabled}
+                fullWidth
+                label="自定义结束日"
+                onChange={(event) => onChange({ customEndDate: event.target.value })}
+                slotProps={{ inputLabel: { shrink: true } }}
+                type="date"
+                value={filters.customEndDate}
+              />
+            </Stack>
+          )}
+
+          <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2}>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={filters.includeBenchmark}
+                  disabled={disabled}
+                  onChange={(event) => onChange({ includeBenchmark: event.target.checked })}
+                />
+              }
+              label="对比沪深 300 超额收益"
+            />
+            <Button disabled={disabled || loading} onClick={onApply} variant="contained">
+              {loading ? '正在计算…' : '应用筛选'}
+            </Button>
+          </Stack>
+        </Stack>
+      </CardContent>
+    </Card>
+  );
+}

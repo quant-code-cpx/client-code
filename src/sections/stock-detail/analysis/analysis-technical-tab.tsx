@@ -1,5 +1,6 @@
 import type { StockTechnicalData } from 'src/api/stock';
 
+import { useSearchParams } from 'react-router-dom';
 import { useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
@@ -15,6 +16,7 @@ import { AnalysisTechnicalMaCard } from './analysis-technical-ma-card';
 import { AnalysisTechnicalVolumeCard } from './analysis-technical-volume-card';
 import { AnalysisTechnicalSignalPanel } from './analysis-technical-signal-panel';
 import { AnalysisTechnicalIndicatorCard } from './analysis-technical-indicator-card';
+import { TechnicalSignalStatisticsPanel } from './technical-signal-statistics/technical-signal-statistics-panel';
 
 // ----------------------------------------------------------------------
 
@@ -23,11 +25,14 @@ export { fmtTradeDate as fmtD } from 'src/utils/format-time';
 type Props = { tsCode: string };
 
 export function AnalysisTechnicalTab({ tsCode }: Props) {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [period, setPeriod] = useState<'D' | 'W' | 'M'>('D');
   const [days, setDays] = useState(120);
   const [data, setData] = useState<StockTechnicalData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const technicalView =
+    searchParams.get('technicalView') === 'signal-statistics' ? 'signal-statistics' : 'indicators';
 
   const fetchData = useCallback(async () => {
     if (!tsCode) return;
@@ -44,27 +49,49 @@ export function AnalysisTechnicalTab({ tsCode }: Props) {
   }, [tsCode, period, days]);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    if (technicalView === 'indicators') fetchData();
+  }, [fetchData, technicalView]);
 
-  if (loading) {
-    return (
-      <Stack spacing={2}>
-        <Skeleton variant="rectangular" height={60} sx={{ borderRadius: 1.5 }} />
-        {[...Array(3)].map((_, i) => (
-          <Skeleton key={i} variant="rectangular" height={300} sx={{ borderRadius: 1.5 }} />
-        ))}
-      </Stack>
-    );
-  }
-
-  if (error) {
-    return <Alert severity="error">{error}</Alert>;
-  }
+  const handleTechnicalViewChange = (_: unknown, nextView: string | null) => {
+    if (!nextView) return;
+    const nextParams = new URLSearchParams(searchParams);
+    nextParams.set('technicalView', nextView);
+    setSearchParams(nextParams, { replace: true });
+  };
 
   return (
     <Stack spacing={3}>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+      <ToggleButtonGroup
+        color="primary"
+        exclusive
+        onChange={handleTechnicalViewChange}
+        size="small"
+        value={technicalView}
+      >
+        <ToggleButton value="indicators">指标概览</ToggleButton>
+        <ToggleButton value="signal-statistics">历史信号统计</ToggleButton>
+      </ToggleButtonGroup>
+
+      {technicalView === 'signal-statistics' ? (
+        <TechnicalSignalStatisticsPanel key={tsCode} tsCode={tsCode} />
+      ) : null}
+
+      {technicalView === 'indicators' ? (
+        <>
+          {loading ? (
+            <Stack spacing={2}>
+              <Skeleton variant="rectangular" height={60} sx={{ borderRadius: 1.5 }} />
+              {[...Array(3)].map((_, i) => (
+                <Skeleton key={i} variant="rectangular" height={300} sx={{ borderRadius: 1.5 }} />
+              ))}
+            </Stack>
+          ) : null}
+
+          {!loading && error ? <Alert severity="error">{error}</Alert> : null}
+
+          {!loading && !error ? (
+            <>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
         <ToggleButtonGroup
           value={period}
           exclusive
@@ -92,14 +119,18 @@ export function AnalysisTechnicalTab({ tsCode }: Props) {
         </ToggleButtonGroup>
       </Box>
 
-      {data && (
-        <>
-          <AnalysisTechnicalSignalPanel signals={data.signals} maStatus={data.maStatus} />
-          <AnalysisTechnicalMaCard history={data.history} />
-          <AnalysisTechnicalIndicatorCard history={data.history} />
-          <AnalysisTechnicalVolumeCard history={data.history} />
+              {data ? (
+                <>
+                  <AnalysisTechnicalSignalPanel signals={data.signals} maStatus={data.maStatus} />
+                  <AnalysisTechnicalMaCard history={data.history} />
+                  <AnalysisTechnicalIndicatorCard history={data.history} />
+                  <AnalysisTechnicalVolumeCard history={data.history} />
+                </>
+              ) : null}
+            </>
+          ) : null}
         </>
-      )}
+      ) : null}
     </Stack>
   );
 }

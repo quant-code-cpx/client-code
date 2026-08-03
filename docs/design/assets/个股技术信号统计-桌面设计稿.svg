@@ -1,0 +1,303 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1680" viewBox="0 0 1440 1680" role="img" aria-labelledby="title desc">
+  <title id="title">个股技术信号统计桌面端设计稿</title>
+  <desc id="desc">嵌入现有股票详情分析页技术指标子页的历史信号统计工作台，包含筛选、统计矩阵、单信号深度指标和样本明细入口。</desc>
+  <defs>
+    <filter id="cardShadow" x="-10%" y="-10%" width="120%" height="135%">
+      <feDropShadow dx="0" dy="2" stdDeviation="8" flood-color="#919EAB" flood-opacity="0.14"/>
+    </filter>
+    <style>
+      .page-title { font: 700 24px Inter, "PingFang SC", "Microsoft YaHei", sans-serif; fill: #212B36; }
+      .price { font: 700 28px ui-monospace, SFMono-Regular, Menlo, monospace; fill: #FF5630; }
+      .section-title { font: 600 15px Inter, "PingFang SC", "Microsoft YaHei", sans-serif; fill: #212B36; }
+      .body { font: 400 14px Inter, "PingFang SC", "Microsoft YaHei", sans-serif; fill: #212B36; }
+      .body-strong { font: 600 14px Inter, "PingFang SC", "Microsoft YaHei", sans-serif; fill: #212B36; }
+      .small { font: 400 12px Inter, "PingFang SC", "Microsoft YaHei", sans-serif; fill: #637381; }
+      .small-strong { font: 600 12px Inter, "PingFang SC", "Microsoft YaHei", sans-serif; fill: #212B36; }
+      .tab { font: 600 14px Inter, "PingFang SC", "Microsoft YaHei", sans-serif; }
+      .button { font: 600 13px Inter, "PingFang SC", "Microsoft YaHei", sans-serif; }
+      .number { font: 700 22px ui-monospace, SFMono-Regular, Menlo, monospace; fill: #212B36; }
+      .matrix { font: 600 12px ui-monospace, SFMono-Regular, Menlo, monospace; fill: #212B36; }
+      .matrix-sub { font: 400 11px ui-monospace, SFMono-Regular, Menlo, monospace; fill: #637381; }
+    </style>
+  </defs>
+
+  <rect width="1440" height="1680" fill="#F4F6F8"/>
+
+  <g transform="translate(70 28)">
+    <!-- 沿用现有个股头部：本稿只压缩示意，不改变其既有结构 -->
+    <g filter="url(#cardShadow)">
+      <rect width="1300" height="112" rx="16" fill="#FFFFFF"/>
+      <text class="page-title" x="28" y="38">贵州茅台</text>
+      <text class="small" x="28" y="64">600519.SH · 上交所 · 主板 · 食品饮料</text>
+      <rect x="28" y="76" width="88" height="22" rx="11" fill="#EAF3FF"/>
+      <text class="small-strong" x="72" y="91" fill="#1877F2" text-anchor="middle">现有个股头部</text>
+
+      <text class="price" x="350" y="47">1,426.30</text>
+      <text class="body-strong" x="350" y="72" fill="#FF5630">+1.28%</text>
+      <text class="small" x="455" y="72">数据日期 2026-07-31</text>
+
+      <rect x="1012" y="34" width="116" height="40" rx="8" fill="#FFFFFF" stroke="#DDE3EA"/>
+      <text class="button" x="1070" y="59" fill="#212B36" text-anchor="middle">我的研究</text>
+      <rect x="1140" y="34" width="132" height="40" rx="8" fill="#FFFFFF" stroke="#DDE3EA"/>
+      <text class="button" x="1206" y="59" fill="#212B36" text-anchor="middle">生成研报</text>
+    </g>
+
+    <!-- 现有四主 Tab -->
+    <g transform="translate(0 132)" filter="url(#cardShadow)">
+      <rect width="1300" height="52" rx="12" fill="#FFFFFF"/>
+      <text class="tab" x="40" y="32" fill="#637381">行情</text>
+      <text class="tab" x="126" y="32" fill="#1877F2">分析</text>
+      <text class="tab" x="212" y="32" fill="#637381">财务</text>
+      <text class="tab" x="298" y="32" fill="#637381">公司与股本</text>
+      <line x1="112" y1="50" x2="170" y2="50" stroke="#1877F2" stroke-width="2"/>
+    </g>
+
+    <!-- 现有分析子 Tab，不新增全局导航 -->
+    <g transform="translate(0 200)" filter="url(#cardShadow)">
+      <rect width="1300" height="52" rx="12" fill="#FFFFFF"/>
+      <text class="tab" x="28" y="32" fill="#1877F2">技术指标</text>
+      <text class="tab" x="128" y="32" fill="#637381">择时信号</text>
+      <text class="tab" x="228" y="32" fill="#637381">筹码分布</text>
+      <text class="tab" x="328" y="32" fill="#637381">主力资金</text>
+      <text class="tab" x="428" y="32" fill="#637381">融资融券</text>
+      <text class="tab" x="528" y="32" fill="#637381">相对强弱</text>
+      <text class="tab" x="628" y="32" fill="#637381">形态识别</text>
+      <text class="tab" x="728" y="32" fill="#637381">机构持仓</text>
+      <line x1="18" y1="50" x2="94" y2="50" stroke="#1877F2" stroke-width="2"/>
+      <rect x="1090" y="14" width="182" height="24" rx="12" fill="#F7F9FB"/>
+      <text class="small" x="1181" y="30" text-anchor="middle">旧择时信号保持 legacy.v1</text>
+    </g>
+
+    <!-- 技术指标内部二级模式 -->
+    <g transform="translate(0 272)">
+      <rect width="1300" height="48" rx="10" fill="#E9EEF4"/>
+      <rect x="6" y="6" width="128" height="36" rx="8" fill="#FFFFFF"/>
+      <text class="tab" x="70" y="30" fill="#637381" text-anchor="middle">指标概览</text>
+      <rect x="140" y="6" width="164" height="36" rx="8" fill="#1877F2"/>
+      <text class="tab" x="222" y="30" fill="#FFFFFF" text-anchor="middle">历史信号统计</text>
+      <text class="small" x="1272" y="29" text-anchor="end">单股 · 日频 · 历史描述，不构成投资建议</text>
+    </g>
+
+    <!-- 筛选区 -->
+    <g transform="translate(0 338)" filter="url(#cardShadow)">
+      <rect width="1300" height="158" rx="16" fill="#FFFFFF"/>
+      <text class="section-title" x="28" y="34">统计口径</text>
+      <text class="small" x="1272" y="34" text-anchor="end">筛选后点击“应用”，避免频繁触发冷计算</text>
+
+      <text class="small" x="28" y="64">信号定义</text>
+      <rect x="28" y="74" width="294" height="42" rx="8" fill="#FFFFFF" stroke="#DDE3EA"/>
+      <text class="body" x="42" y="100">全部 14 个标准事件</text>
+      <path d="M294 91 l6 6 6-6" fill="none" stroke="#637381" stroke-width="1.5"/>
+
+      <text class="small" x="348" y="64">统计区间</text>
+      <rect x="348" y="74" width="62" height="34" rx="8" fill="#EAF3FF" stroke="#1877F2"/>
+      <text class="button" x="379" y="96" fill="#1877F2" text-anchor="middle">近1年</text>
+      <rect x="410" y="74" width="62" height="34" fill="#FFFFFF" stroke="#DDE3EA"/>
+      <text class="button" x="441" y="96" fill="#637381" text-anchor="middle">近3年</text>
+      <rect x="472" y="74" width="70" height="34" rx="0 8 8 0" fill="#FFFFFF" stroke="#DDE3EA"/>
+      <text class="button" x="507" y="96" fill="#637381" text-anchor="middle">自定义</text>
+
+      <text class="small" x="568" y="64">入场口径</text>
+      <rect x="568" y="74" width="148" height="42" rx="8" fill="#FFFFFF" stroke="#DDE3EA"/>
+      <text class="body" x="582" y="100">信号日收盘</text>
+      <path d="M688 91 l6 6 6-6" fill="none" stroke="#637381" stroke-width="1.5"/>
+
+      <text class="small" x="742" y="64">观察周期</text>
+      <rect x="742" y="74" width="226" height="42" rx="8" fill="#FFFFFF" stroke="#DDE3EA"/>
+      <text class="body" x="756" y="100">T+1 / 3 / 5 / 10 / 20</text>
+
+      <rect x="994" y="83" width="28" height="16" rx="8" fill="#1877F2"/>
+      <circle cx="1014" cy="91" r="6" fill="#FFFFFF"/>
+      <text class="body" x="1032" y="96">沪深300对标</text>
+
+      <rect x="1172" y="74" width="100" height="42" rx="8" fill="#1877F2"/>
+      <text class="button" x="1222" y="100" fill="#FFFFFF" text-anchor="middle">应用筛选</text>
+
+      <text class="small" x="28" y="140">定义与阈值来自后端 Catalog；前端不复制 MACD/KDJ/RSI/BOLL/MA/SAR/量比判定表达式。</text>
+    </g>
+
+    <!-- 元数据与 warning -->
+    <g transform="translate(0 514)">
+      <rect width="1300" height="62" rx="12" fill="#EAF3FF"/>
+      <circle cx="26" cy="31" r="7" fill="#1877F2"/>
+      <text class="small-strong" x="44" y="26" fill="#1877F2">数据截至 2026-07-31 · 前复权 OHLCV · SIGNAL_CLOSE</text>
+      <text class="small" x="44" y="45">统计版本 signal-statistics.v1 · 定义版本按 Catalog 回显 · 缓存命中 · 计算于 10:32:08</text>
+      <rect x="1100" y="18" width="172" height="28" rx="14" fill="#FFFFFF"/>
+      <text class="small-strong" x="1186" y="37" fill="#1877F2" text-anchor="middle">查看口径与版本</text>
+    </g>
+
+    <!-- 统计矩阵 -->
+    <g transform="translate(0 594)" filter="url(#cardShadow)">
+      <rect width="1300" height="486" rx="16" fill="#FFFFFF"/>
+      <text class="section-title" x="28" y="36">信号表现矩阵</text>
+      <text class="small" x="28" y="58">单元格第一行：方向性成功率；第二行：平均方向性收益。量比事件改为上涨率 / 平均原始收益。</text>
+      <text class="small" x="1272" y="36" text-anchor="end">近1年 · 共14个定义</text>
+
+      <rect x="28" y="76" width="1244" height="42" rx="8" fill="#F4F6F8"/>
+      <text class="small-strong" x="44" y="102">信号</text>
+      <text class="small-strong" x="304" y="102">方向</text>
+      <text class="small-strong" x="390" y="102">发生</text>
+      <text class="small-strong" x="525" y="102" text-anchor="middle">T+1</text>
+      <text class="small-strong" x="685" y="102" text-anchor="middle">T+3</text>
+      <text class="small-strong" x="845" y="102" text-anchor="middle">T+5</text>
+      <text class="small-strong" x="1005" y="102" text-anchor="middle">T+10</text>
+      <text class="small-strong" x="1165" y="102" text-anchor="middle">T+20</text>
+
+      <!-- row helper dimensions: y=118 + n*46 -->
+      <g>
+        <rect x="28" y="122" width="1244" height="46" rx="6" fill="#F7FBFF" stroke="#B8D7FF"/>
+        <rect x="28" y="122" width="3" height="46" rx="1.5" fill="#FF5630"/>
+        <text class="body-strong" x="44" y="150">MACD 金叉</text>
+        <rect x="286" y="134" width="58" height="22" rx="11" fill="#FFF0ED"/>
+        <text class="small-strong" x="315" y="149" fill="#C9362B" text-anchor="middle">看多</text>
+        <text class="matrix" x="402" y="150">18</text>
+        <text class="matrix" x="525" y="143" text-anchor="middle">61.1%</text><text class="matrix-sub" x="525" y="158" text-anchor="middle">+0.42%</text>
+        <text class="matrix" x="685" y="143" text-anchor="middle">64.7%</text><text class="matrix-sub" x="685" y="158" text-anchor="middle">+1.08%</text>
+        <text class="matrix" x="845" y="143" text-anchor="middle">66.7%</text><text class="matrix-sub" x="845" y="158" text-anchor="middle">+2.14%</text>
+        <text class="matrix" x="1005" y="143" text-anchor="middle">60.0%</text><text class="matrix-sub" x="1005" y="158" text-anchor="middle">+2.82%</text>
+        <text class="matrix" x="1165" y="143" text-anchor="middle">57.1%</text><text class="matrix-sub" x="1165" y="158" text-anchor="middle">+3.26%</text>
+      </g>
+
+      <g transform="translate(0 48)">
+        <line x1="28" y1="168" x2="1272" y2="168" stroke="#E7EBF0"/>
+        <text class="body" x="44" y="150">MACD 死叉</text>
+        <rect x="286" y="134" width="58" height="22" rx="11" fill="#EAF8F1"/>
+        <text class="small-strong" x="315" y="149" fill="#14804A" text-anchor="middle">看空</text>
+        <text class="matrix" x="402" y="150">17</text>
+        <text class="matrix" x="525" y="143" text-anchor="middle">58.8%</text><text class="matrix-sub" x="525" y="158" text-anchor="middle">+0.36%</text>
+        <text class="matrix" x="685" y="143" text-anchor="middle">62.5%</text><text class="matrix-sub" x="685" y="158" text-anchor="middle">+0.88%</text>
+        <text class="matrix" x="845" y="143" text-anchor="middle">62.5%</text><text class="matrix-sub" x="845" y="158" text-anchor="middle">+1.31%</text>
+        <text class="matrix" x="1005" y="143" text-anchor="middle">56.3%</text><text class="matrix-sub" x="1005" y="158" text-anchor="middle">+1.70%</text>
+        <text class="matrix" x="1165" y="143" text-anchor="middle">53.3%</text><text class="matrix-sub" x="1165" y="158" text-anchor="middle">+2.08%</text>
+      </g>
+
+      <g transform="translate(0 96)">
+        <line x1="28" y1="168" x2="1272" y2="168" stroke="#E7EBF0"/>
+        <text class="body" x="44" y="150">KDJ 金叉</text>
+        <rect x="286" y="134" width="58" height="22" rx="11" fill="#FFF0ED"/>
+        <text class="small-strong" x="315" y="149" fill="#C9362B" text-anchor="middle">看多</text>
+        <text class="matrix" x="402" y="150">26</text>
+        <text class="matrix" x="525" y="143" text-anchor="middle">53.8%</text><text class="matrix-sub" x="525" y="158" text-anchor="middle">+0.18%</text>
+        <text class="matrix" x="685" y="143" text-anchor="middle">56.0%</text><text class="matrix-sub" x="685" y="158" text-anchor="middle">+0.47%</text>
+        <text class="matrix" x="845" y="143" text-anchor="middle">58.3%</text><text class="matrix-sub" x="845" y="158" text-anchor="middle">+0.92%</text>
+        <text class="matrix" x="1005" y="143" text-anchor="middle">54.2%</text><text class="matrix-sub" x="1005" y="158" text-anchor="middle">+1.20%</text>
+        <text class="matrix" x="1165" y="143" text-anchor="middle">52.4%</text><text class="matrix-sub" x="1165" y="158" text-anchor="middle">+1.54%</text>
+      </g>
+
+      <g transform="translate(0 144)">
+        <line x1="28" y1="168" x2="1272" y2="168" stroke="#E7EBF0"/>
+        <text class="body" x="44" y="150">RSI6 进入超卖</text>
+        <rect x="286" y="134" width="58" height="22" rx="11" fill="#FFF0ED"/>
+        <text class="small-strong" x="315" y="149" fill="#C9362B" text-anchor="middle">看多</text>
+        <text class="matrix" x="402" y="150">9</text>
+        <text class="matrix" x="525" y="143" text-anchor="middle">55.6%</text><text class="matrix-sub" x="525" y="158" text-anchor="middle">+0.22%</text>
+        <text class="matrix" x="685" y="143" text-anchor="middle">62.5%</text><text class="matrix-sub" x="685" y="158" text-anchor="middle">+0.81%</text>
+        <text class="matrix" x="845" y="143" text-anchor="middle">62.5%</text><text class="matrix-sub" x="845" y="158" text-anchor="middle">+1.46%</text>
+        <text class="matrix" x="1005" y="143" text-anchor="middle">57.1%</text><text class="matrix-sub" x="1005" y="158" text-anchor="middle">+1.88%</text>
+        <text class="matrix" x="1165" y="143" text-anchor="middle">57.1%</text><text class="matrix-sub" x="1165" y="158" text-anchor="middle">+2.19%</text>
+      </g>
+
+      <g transform="translate(0 192)">
+        <line x1="28" y1="168" x2="1272" y2="168" stroke="#E7EBF0"/>
+        <text class="body" x="44" y="150">BOLL 上轨突破</text>
+        <rect x="286" y="134" width="58" height="22" rx="11" fill="#FFF0ED"/>
+        <text class="small-strong" x="315" y="149" fill="#C9362B" text-anchor="middle">看多</text>
+        <text class="matrix" x="402" y="150">13</text>
+        <text class="matrix" x="525" y="143" text-anchor="middle">61.5%</text><text class="matrix-sub" x="525" y="158" text-anchor="middle">+0.37%</text>
+        <text class="matrix" x="685" y="143" text-anchor="middle">61.5%</text><text class="matrix-sub" x="685" y="158" text-anchor="middle">+0.91%</text>
+        <text class="matrix" x="845" y="143" text-anchor="middle">58.3%</text><text class="matrix-sub" x="845" y="158" text-anchor="middle">+1.22%</text>
+        <text class="matrix" x="1005" y="143" text-anchor="middle">58.3%</text><text class="matrix-sub" x="1005" y="158" text-anchor="middle">+1.69%</text>
+        <text class="matrix" x="1165" y="143" text-anchor="middle">54.5%</text><text class="matrix-sub" x="1165" y="158" text-anchor="middle">+1.94%</text>
+      </g>
+
+      <g transform="translate(0 240)">
+        <line x1="28" y1="168" x2="1272" y2="168" stroke="#E7EBF0"/>
+        <text class="body" x="44" y="150">MA 多头排列进入</text>
+        <rect x="286" y="134" width="58" height="22" rx="11" fill="#FFF0ED"/>
+        <text class="small-strong" x="315" y="149" fill="#C9362B" text-anchor="middle">看多</text>
+        <text class="matrix" x="402" y="150">6</text>
+        <text class="matrix" x="525" y="143" text-anchor="middle">66.7%</text><text class="matrix-sub" x="525" y="158" text-anchor="middle">+0.51%</text>
+        <text class="matrix" x="685" y="143" text-anchor="middle">66.7%</text><text class="matrix-sub" x="685" y="158" text-anchor="middle">+1.18%</text>
+        <text class="matrix" x="845" y="143" text-anchor="middle">66.7%</text><text class="matrix-sub" x="845" y="158" text-anchor="middle">+1.92%</text>
+        <text class="matrix" x="1005" y="143" text-anchor="middle">60.0%</text><text class="matrix-sub" x="1005" y="158" text-anchor="middle">+2.34%</text>
+        <text class="matrix" x="1165" y="143" text-anchor="middle">60.0%</text><text class="matrix-sub" x="1165" y="158" text-anchor="middle">+2.86%</text>
+      </g>
+
+      <g transform="translate(0 288)">
+        <line x1="28" y1="168" x2="1272" y2="168" stroke="#E7EBF0"/>
+        <text class="body" x="44" y="150">20日量比放大进入</text>
+        <rect x="276" y="134" width="78" height="22" rx="11" fill="#FFF7E6"/>
+        <text class="small-strong" x="315" y="149" fill="#8A5A00" text-anchor="middle">情境</text>
+        <text class="matrix" x="402" y="150">21</text>
+        <text class="matrix" x="525" y="143" text-anchor="middle">57.1%</text><text class="matrix-sub" x="525" y="158" text-anchor="middle">+0.24%</text>
+        <text class="matrix" x="685" y="143" text-anchor="middle">55.0%</text><text class="matrix-sub" x="685" y="158" text-anchor="middle">+0.44%</text>
+        <text class="matrix" x="845" y="143" text-anchor="middle">52.6%</text><text class="matrix-sub" x="845" y="158" text-anchor="middle">+0.62%</text>
+        <text class="matrix" x="1005" y="143" text-anchor="middle">52.6%</text><text class="matrix-sub" x="1005" y="158" text-anchor="middle">+0.81%</text>
+        <text class="matrix" x="1165" y="143" text-anchor="middle">50.0%</text><text class="matrix-sub" x="1165" y="158" text-anchor="middle">+0.94%</text>
+      </g>
+
+      <text class="small" x="44" y="470">其余 7 个定义继续按 Catalog 顺序展示；点击任一行或 T+N 单元格，下方同步切换深度分析。</text>
+    </g>
+
+    <!-- 单信号深度分析 -->
+    <g transform="translate(0 1098)" filter="url(#cardShadow)">
+      <rect width="1300" height="452" rx="16" fill="#FFFFFF"/>
+      <text class="section-title" x="28" y="36">MACD 金叉 · 深度分析</text>
+      <rect x="232" y="18" width="76" height="26" rx="13" fill="#FFF0ED"/>
+      <text class="small-strong" x="270" y="36" fill="#C9362B" text-anchor="middle">看多事件</text>
+      <text class="small" x="28" y="58">近1年 · T+5 · 有效样本为收益与比例分母</text>
+      <rect x="1112" y="18" width="160" height="38" rx="8" fill="#FFFFFF" stroke="#1877F2"/>
+      <text class="button" x="1192" y="42" fill="#1877F2" text-anchor="middle">查看样本明细（18）</text>
+
+      <!-- KPI -->
+      <g transform="translate(28 78)">
+        <rect width="172" height="84" rx="10" fill="#F7F9FB"/>
+        <text class="small" x="16" y="25">发生次数</text><text class="number" x="16" y="58">18</text>
+        <rect x="184" width="172" height="84" rx="10" fill="#F7F9FB"/>
+        <text class="small" x="200" y="25">有效样本</text><text class="number" x="200" y="58">15</text>
+        <rect x="368" width="172" height="84" rx="10" fill="#FFF0ED"/>
+        <text class="small" x="384" y="25">方向性成功率</text><text class="number" x="384" y="58" fill="#C9362B">66.7%</text>
+        <rect x="552" width="172" height="84" rx="10" fill="#F7F9FB"/>
+        <text class="small" x="568" y="25">平均方向收益</text><text class="number" x="568" y="58">+2.14%</text>
+        <rect x="736" width="172" height="84" rx="10" fill="#F7F9FB"/>
+        <text class="small" x="752" y="25">平均超额收益</text><text class="number" x="752" y="58">+0.84%</text>
+        <rect x="920" width="172" height="84" rx="10" fill="#FFF7E6"/>
+        <text class="small" x="936" y="25">缺失 / 未到期</text><text class="number" x="936" y="58">1 / 2</text>
+        <rect x="1104" width="168" height="84" rx="10" fill="#F7F9FB"/>
+        <text class="small" x="1120" y="25">完整路径</text><text class="number" x="1120" y="58">14</text>
+      </g>
+
+      <!-- chart -->
+      <g transform="translate(28 184)">
+        <text class="body-strong" x="0" y="18">平均方向性收益与 95% 均值区间</text>
+        <text class="small" x="0" y="40">仅使用摘要接口已提供的均值与置信区间，不从分页明细反推总体分布。</text>
+        <rect x="0" y="56" width="794" height="178" rx="10" fill="#F7F9FB"/>
+        <line x1="58" y1="82" x2="760" y2="82" stroke="#E0E5EA"/>
+        <line x1="58" y1="122" x2="760" y2="122" stroke="#E0E5EA"/>
+        <line x1="58" y1="162" x2="760" y2="162" stroke="#E0E5EA"/>
+        <line x1="58" y1="202" x2="760" y2="202" stroke="#E0E5EA"/>
+        <text class="small" x="18" y="86">4%</text><text class="small" x="18" y="126">2%</text><text class="small" x="18" y="166">0%</text><text class="small" x="8" y="206">-2%</text>
+        <path d="M90 154 L245 142 L400 121 L555 108 L710 98 L710 150 L555 156 L400 166 L245 176 L90 182 Z" fill="#B8D7FF" fill-opacity="0.5"/>
+        <path d="M90 160 L245 147 L400 128 L555 115 L710 105" fill="none" stroke="#1877F2" stroke-width="3"/>
+        <circle cx="90" cy="160" r="4" fill="#1877F2"/><circle cx="245" cy="147" r="4" fill="#1877F2"/><circle cx="400" cy="128" r="4" fill="#1877F2"/><circle cx="555" cy="115" r="4" fill="#1877F2"/><circle cx="710" cy="105" r="4" fill="#1877F2"/>
+        <text class="small" x="90" y="224" text-anchor="middle">T+1</text><text class="small" x="245" y="224" text-anchor="middle">T+3</text><text class="small" x="400" y="224" text-anchor="middle">T+5</text><text class="small" x="555" y="224" text-anchor="middle">T+10</text><text class="small" x="710" y="224" text-anchor="middle">T+20</text>
+
+        <g transform="translate(820 56)">
+          <rect width="424" height="178" rx="10" fill="#F7F9FB"/>
+          <text class="body-strong" x="18" y="30">T+5 统计明细</text>
+          <text class="small" x="18" y="58">中位方向收益</text><text class="small-strong" x="226" y="58">+1.76%</text>
+          <text class="small" x="18" y="82">P25 / P75</text><text class="small-strong" x="226" y="82">-0.62% / +3.88%</text>
+          <text class="small" x="18" y="106">MFE / MAE 均值</text><text class="small-strong" x="226" y="106">+4.20% / -1.72%</text>
+          <text class="small" x="18" y="130">成功率 95% 区间</text><text class="small-strong" x="226" y="130">41.7% – 84.8%</text>
+          <text class="small" x="18" y="154">样本重叠</text><text class="small-strong" x="226" y="154">3 个 · 查看说明</text>
+        </g>
+      </g>
+
+      <rect x="28" y="426" width="1244" height="1" fill="#E7EBF0"/>
+      <text class="small" x="28" y="448">示意数据仅用于表达布局；实现时所有显示值、定义名称、版本、日期与 warning 均来自后端响应。</text>
+    </g>
+
+    <text class="small" x="650" y="1600" text-anchor="middle">样本明细从右侧 Drawer 打开：稳定分页、质量状态、T+N 收益、MFE/MAE、基准超额与前后证据可展开查看。</text>
+    <text class="small" x="650" y="1624" text-anchor="middle">桌面端目标宽度：1440 / 1920；实现色值使用 theme.palette / varAlpha，本 SVG 色值仅作视觉说明。</text>
+  </g>
+</svg>

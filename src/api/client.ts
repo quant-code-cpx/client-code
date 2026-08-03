@@ -43,9 +43,43 @@ export function setAuthCallbacks(callbacks: AuthCallbacks): void {
 let refreshPromise: Promise<string> | null = null;
 
 interface ApiWrapper<T> {
-  code: number;
+  code: number | string;
   data: T;
   message?: string | string[];
+}
+
+type ApiErrorBody = {
+  code?: number | string;
+  details?: unknown;
+  message?: string | string[];
+  requestId?: string;
+};
+
+export class ApiError extends Error {
+  readonly status: number;
+
+  readonly code?: number | string;
+
+  readonly details?: unknown;
+
+  readonly requestId?: string;
+
+  constructor(
+    message: string,
+    options: {
+      status: number;
+      code?: number | string;
+      details?: unknown;
+      requestId?: string;
+    }
+  ) {
+    super(message);
+    this.name = 'ApiError';
+    this.status = options.status;
+    this.code = options.code;
+    this.details = options.details;
+    this.requestId = options.requestId;
+  }
 }
 
 function resolveApiInput(input: RequestInfo | URL): RequestInfo | URL {
@@ -168,13 +202,23 @@ function responseMessage(body: unknown): string {
   return message ?? '请求失败';
 }
 
+function toApiError(response: Response, body: unknown): ApiError {
+  const errorBody = body as ApiErrorBody;
+  return new ApiError(responseMessage(body), {
+    status: response.status,
+    code: errorBody?.code,
+    details: errorBody?.details,
+    requestId: errorBody?.requestId,
+  });
+}
+
 async function parseResponse<T>(response: Response): Promise<T> {
   const contentType = response.headers.get('content-type') ?? '';
   if (!contentType.includes('application/json')) return null as T;
 
-  const json = (await response.json()) as ApiWrapper<T>;
+  const json = (await response.json()) as ApiWrapper<T> & ApiErrorBody;
   if (json !== null && typeof json === 'object' && 'data' in json) {
-    if ('code' in json && json.code !== 0) throw new Error(responseMessage(json));
+    if ('code' in json && json.code !== 0 && json.code !== '0') throw toApiError(response, json);
     return json.data;
   }
   return json as T;
@@ -188,7 +232,7 @@ async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
 
   if (!response.ok) {
     const errorBody = await response.json().catch(() => ({}));
-    throw new Error(responseMessage(errorBody));
+    throw toApiError(response, errorBody);
   }
 
   return parseResponse<T>(response);

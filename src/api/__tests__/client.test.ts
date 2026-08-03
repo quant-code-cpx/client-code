@@ -1,4 +1,4 @@
-import { apiClient, tokenStorage, setAuthCallbacks, authenticatedFetch } from '../client';
+import { ApiError, apiClient, tokenStorage, setAuthCallbacks, authenticatedFetch } from '../client';
 
 // ----------------------------------------------------------------------
 // Helpers
@@ -138,6 +138,31 @@ describe('apiClient.post', () => {
     mockFetch.mockResolvedValueOnce(jsonResp({ message: 'not found' }, 404));
 
     await expect(apiClient.post('/api/test')).rejects.toThrow('not found');
+  });
+
+  it('preserves structured API error fields while remaining an Error', async () => {
+    mockFetch.mockResolvedValueOnce(
+      jsonResp(
+        {
+          code: 'TECHNICAL_SIGNAL_BENCHMARK_NOT_READY',
+          details: { missing: ['INDEX_DAILY'] },
+          message: '基准数据未就绪',
+          requestId: 'req-001',
+        },
+        409
+      )
+    );
+
+    const error = await apiClient.post('/api/test').catch((reason: unknown) => reason);
+
+    expect(error).toBeInstanceOf(ApiError);
+    expect(error).toMatchObject({
+      status: 409,
+      code: 'TECHNICAL_SIGNAL_BENCHMARK_NOT_READY',
+      details: { missing: ['INDEX_DAILY'] },
+      requestId: 'req-001',
+    });
+    expect((error as Error).message).toBe('基准数据未就绪');
   });
 
   it('joins array message from server on non-ok response', async () => {
