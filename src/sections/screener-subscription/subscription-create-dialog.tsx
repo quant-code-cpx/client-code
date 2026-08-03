@@ -48,6 +48,7 @@ export function SubscriptionCreateDialog({
   const [minRevenueYoy, setMinRevenueYoy] = useState('');
   const [minTotalMv, setMinTotalMv] = useState('');
   const [maxTotalMv, setMaxTotalMv] = useState('');
+  const [minBuySignalCount, setMinBuySignalCount] = useState('');
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -72,6 +73,7 @@ export function SubscriptionCreateDialog({
     setMinRevenueYoy('');
     setMinTotalMv('');
     setMaxTotalMv('');
+    setMinBuySignalCount('');
     setError('');
     onClose();
   };
@@ -97,6 +99,7 @@ export function SubscriptionCreateDialog({
               ...(minRevenueYoy ? { minRevenueYoy: Number(minRevenueYoy) } : {}),
               ...(minTotalMv ? { minTotalMv: Number(minTotalMv) * 10000 } : {}),
               ...(maxTotalMv ? { maxTotalMv: Number(maxTotalMv) * 10000 } : {}),
+              ...(minBuySignalCount ? { minBuySignalCount: Number(minBuySignalCount) } : {}),
             }
           : undefined;
 
@@ -232,6 +235,15 @@ export function SubscriptionCreateDialog({
                   size="small"
                 />
               </Box>
+              <TextField
+                label="至少命中偏多信号数"
+                type="number"
+                value={minBuySignalCount}
+                onChange={(e) => setMinBuySignalCount(e.target.value)}
+                disabled={loading}
+                size="small"
+                slotProps={{ htmlInput: { min: 1, max: 5, step: 1 } }}
+              />
             </Box>
           )}
         </Box>

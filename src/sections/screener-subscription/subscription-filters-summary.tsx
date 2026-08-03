@@ -48,6 +48,7 @@ const FILTER_LABELS: Record<string, string> = {
   maxAmount: '成交额 ≤',
   minMainNetInflow5d: '5日主力净流入 ≥',
   minMainNetInflow20d: '20日主力净流入 ≥',
+  minBuySignalCount: '偏多信号数 ≥',
   exchange: '交易所',
   market: '市场',
   industry: '行业',
@@ -80,6 +81,7 @@ const SORT_FIELD_LABELS: Record<string, string> = {
   dvTtm: '股息率',
   grossMargin: '毛利率',
   netMargin: '净利率',
+  buySignalCount: '偏多信号数',
 };
 
 const NESTED_FIELD_LABELS: Record<string, string> = {

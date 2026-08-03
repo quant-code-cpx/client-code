@@ -130,7 +130,7 @@ export function ScreenerSubscriptionListView() {
       } else {
         await resumeSubscription(sub.id);
       }
-      // 后端 pause/resume 仅返回 message，需重新拉取以同步 consecutiveFails 等字段
+      // 重新拉取以同步连续失败次数及可能由服务端更新的运行状态。
       fetchList();
     } catch (err) {
       setSubscriptions((prev) =>

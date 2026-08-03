@@ -1,4 +1,4 @@
-import type { ScreenerFilters } from 'src/api/screener';
+import type { BuySignal, ScreenerFilters } from 'src/api/screener';
 
 import type { HeadCell } from './types';
 
@@ -48,6 +48,7 @@ export const SORT_OPTIONS = [
   { value: 'revenueYoy', label: '营收增速' },
   { value: 'netprofitYoy', label: '净利增速' },
   { value: 'mainNetInflow5d', label: '5日主力净流入' },
+  { value: 'buySignalCount', label: '偏多信号数' },
 ] as const;
 
 // ----------------------------------------------------------------------
@@ -194,6 +195,14 @@ export const SCREENER_HEAD_CELLS: HeadCell[] = [
     defaultVisible: false,
   },
   {
+    id: 'buySignalCount',
+    label: '偏多信号',
+    sortable: true,
+    align: 'left',
+    minWidth: 180,
+    defaultVisible: false,
+  },
+  {
     id: 'psTtm',
     label: 'PS TTM',
     sortable: true,
@@ -260,6 +269,7 @@ export const FILTER_TO_COLUMN_MAP: Record<string, string[]> = {
   maxPsTtm: ['psTtm'],
   conceptCodes: ['concepts'],
   northboundOnly: ['mainNetInflow5d'],
+  minBuySignalCount: ['buySignalCount'],
 };
 
 // 排序字段 → 触发显示的列 ID 映射
@@ -270,6 +280,15 @@ export const SORT_TO_COLUMN_MAP: Record<string, string> = {
   mainNetInflow5d: 'mainNetInflow5d',
   psTtm: 'psTtm',
   close: 'close',
+  buySignalCount: 'buySignalCount',
+};
+
+export const BUY_SIGNAL_LABELS: Record<BuySignal, string> = {
+  MACD_GOLDEN_CROSS: 'MACD 金叉',
+  KDJ_GOLDEN_CROSS: 'KDJ 金叉',
+  MA_BULLISH: '均线多头',
+  BOLL_OVERSOLD: 'BOLL 超卖',
+  RSI_OVERSOLD: 'RSI 超卖',
 };
 
 // ----------------------------------------------------------------------
