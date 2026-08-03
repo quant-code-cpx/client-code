@@ -44,11 +44,21 @@ type FilterNumberInputProps = {
   label: string;
   value: number | undefined;
   onChange: (v: number | undefined) => void;
+  min?: number;
+  max?: number;
   unit?: string;
   step?: number;
 };
 
-function FilterNumberInput({ label, value, onChange, unit, step }: FilterNumberInputProps) {
+function FilterNumberInput({
+  label,
+  value,
+  onChange,
+  min,
+  max,
+  unit,
+  step,
+}: FilterNumberInputProps) {
   const [local, setLocal] = useState(() => (value != null ? String(value) : ''));
 
   useEffect(() => {
@@ -72,7 +82,14 @@ function FilterNumberInput({ label, value, onChange, unit, step }: FilterNumberI
         placeholder="不限"
         onChange={(e) => setLocal(e.target.value)}
         onBlur={() => onChange(local === '' ? undefined : Number(local))}
-        slotProps={{ ...slotProps, ...(step != null ? { htmlInput: { step } } : {}) }}
+        slotProps={{
+          ...slotProps,
+          htmlInput: {
+            ...(max != null ? { max } : {}),
+            ...(min != null ? { min } : {}),
+            ...(step != null ? { step } : {}),
+          },
+        }}
       />
     </>
   );
@@ -599,6 +616,16 @@ export const ScreenerFilterPanel = memo(function ScreenerFilterPanel({
                 </MenuItem>
               ))}
             </Select>
+          </Grid>
+          <Grid size={{ xs: 6, sm: 4, md: 3 }}>
+            <FilterNumberInput
+              label="至少命中偏多信号数"
+              value={filters.minBuySignalCount}
+              onChange={(v) => set('minBuySignalCount', v)}
+              min={1}
+              max={5}
+              step={1}
+            />
           </Grid>
         </Grid>
 

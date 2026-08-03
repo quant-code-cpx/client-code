@@ -1,6 +1,7 @@
 import type { StockScreenerItem } from 'src/api/screener';
 
 import Chip from '@mui/material/Chip';
+import Stack from '@mui/material/Stack';
 import TableRow from '@mui/material/TableRow';
 import TableCell from '@mui/material/TableCell';
 import Typography from '@mui/material/Typography';
@@ -11,6 +12,8 @@ import { fDate } from 'src/utils/format-time';
 import { fNumber, fPctChg, fWanYuan, fRatePercent } from 'src/utils/format-number';
 
 import { Label } from 'src/components/label';
+
+import { BUY_SIGNAL_LABELS } from './constants';
 
 // ----------------------------------------------------------------------
 
@@ -226,6 +229,24 @@ export function ScreenerResultTableRow({ row, visibleColumns }: ScreenerResultTa
           <Typography variant="body2" sx={{ color: signColor(row.mainNetInflow20d) }}>
             {fMainNetInflow(row.mainNetInflow20d)}
           </Typography>
+        </TableCell>
+      )}
+
+      {/* 偏多信号 */}
+      {visible.has('buySignalCount') && (
+        <TableCell>
+          {row.buySignalCount === null ? (
+            '—'
+          ) : (
+            <Stack direction="row" spacing={0.5} useFlexGap flexWrap="wrap" alignItems="center">
+              <Label color={row.buySignalCount > 0 ? 'success' : 'default'} variant="soft">
+                {row.buySignalCount} 项
+              </Label>
+              {row.buySignals?.map((signal) => (
+                <Chip key={signal} label={BUY_SIGNAL_LABELS[signal]} size="small" variant="outlined" />
+              ))}
+            </Stack>
+          )}
         </TableCell>
       )}
 

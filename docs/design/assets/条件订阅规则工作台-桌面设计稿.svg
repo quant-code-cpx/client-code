@@ -1,0 +1,208 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1280" viewBox="0 0 1440 1280" role="img" aria-labelledby="title desc">
+  <title id="title">条件订阅规则工作台桌面端设计稿</title>
+  <desc id="desc">遵循现有 DashboardContent、MUI Card、Tabs、TextField、ToggleButtonGroup 和因子选股条件行样式的桌面端规则创建页面。</desc>
+  <defs>
+    <filter id="cardShadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="2" stdDeviation="8" flood-color="#919EAB" flood-opacity="0.14"/>
+    </filter>
+    <style>
+      .page-title { font: 700 26px Inter, "PingFang SC", "Microsoft YaHei", sans-serif; fill: #212B36; }
+      .subtitle { font: 400 13px Inter, "PingFang SC", "Microsoft YaHei", sans-serif; fill: #637381; }
+      .section-title { font: 600 15px Inter, "PingFang SC", "Microsoft YaHei", sans-serif; fill: #212B36; }
+      .body { font: 400 14px Inter, "PingFang SC", "Microsoft YaHei", sans-serif; fill: #212B36; }
+      .small { font: 400 12px Inter, "PingFang SC", "Microsoft YaHei", sans-serif; fill: #637381; }
+      .small-strong { font: 600 12px Inter, "PingFang SC", "Microsoft YaHei", sans-serif; fill: #212B36; }
+      .button { font: 600 13px Inter, "PingFang SC", "Microsoft YaHei", sans-serif; }
+      .tab { font: 600 14px Inter, "PingFang SC", "Microsoft YaHei", sans-serif; }
+      .number { font: 700 22px ui-monospace, SFMono-Regular, Menlo, monospace; fill: #212B36; }
+    </style>
+  </defs>
+
+  <rect width="1440" height="1280" fill="#F4F6F8"/>
+
+  <!-- DashboardContent：只画业务内容；导航和顶部栏由现有 DashboardLayout 提供 -->
+  <g transform="translate(70 36)">
+    <text class="page-title" x="0" y="28">新建条件订阅</text>
+    <text class="subtitle" x="0" y="54">配置盘后规则，预览命中证据后创建订阅</text>
+
+    <rect x="1100" y="2" width="78" height="40" rx="8" fill="#FFFFFF" stroke="#DDE3EA"/>
+    <text class="button" x="1139" y="27" fill="#212B36" text-anchor="middle">取消</text>
+    <rect x="1190" y="2" width="110" height="40" rx="8" fill="#1877F2"/>
+    <text class="button" x="1245" y="27" fill="#FFFFFF" text-anchor="middle">创建订阅</text>
+
+    <!-- 基础信息与来源 Tabs -->
+    <g transform="translate(0 82)" filter="url(#cardShadow)">
+      <rect width="1300" height="176" rx="16" fill="#FFFFFF"/>
+      <line x1="0" y1="54" x2="1300" y2="54" stroke="#E7EBF0"/>
+
+      <text class="tab" x="28" y="34" fill="#637381">基础选股</text>
+      <text class="tab" x="130" y="34" fill="#637381">因子选股</text>
+      <text class="tab" x="232" y="34" fill="#1877F2">技术信号</text>
+      <line x1="220" y1="52" x2="306" y2="52" stroke="#1877F2" stroke-width="2"/>
+
+      <text class="small" x="28" y="82">订阅名称 *</text>
+      <rect x="28" y="92" width="420" height="42" rx="8" fill="#FFFFFF" stroke="#DDE3EA"/>
+      <text class="body" x="42" y="118">贵州茅台技术拐点</text>
+
+      <text class="small" x="474" y="82">执行频率</text>
+      <rect x="474" y="92" width="70" height="32" rx="8" fill="#EAF3FF" stroke="#1877F2"/>
+      <text class="button" x="509" y="113" fill="#1877F2" text-anchor="middle">每日</text>
+      <rect x="544" y="92" width="70" height="32" fill="#FFFFFF" stroke="#DDE3EA"/>
+      <text class="button" x="579" y="113" fill="#637381" text-anchor="middle">每周</text>
+      <rect x="614" y="92" width="70" height="32" rx="0 8 8 0" fill="#FFFFFF" stroke="#DDE3EA"/>
+      <text class="button" x="649" y="113" fill="#637381" text-anchor="middle">每月</text>
+
+      <text class="small" x="724" y="82">创建后状态</text>
+      <rect x="724" y="92" width="158" height="42" rx="8" fill="#FFFFFF" stroke="#DDE3EA"/>
+      <text class="body" x="740" y="118">立即启用</text>
+      <path d="M855 109 l6 6 6-6" fill="none" stroke="#637381" stroke-width="1.5"/>
+
+      <rect x="1040" y="92" width="232" height="42" rx="8" fill="#EAF3FF"/>
+      <circle cx="1060" cy="113" r="4" fill="#1877F2"/>
+      <text class="small" x="1072" y="117" fill="#1877F2">来自 600519.SH 个股详情</text>
+    </g>
+
+    <!-- 股票范围 -->
+    <g transform="translate(0 282)" filter="url(#cardShadow)">
+      <rect width="1300" height="150" rx="16" fill="#FFFFFF"/>
+      <text class="section-title" x="28" y="35">股票范围</text>
+      <text class="small" x="28" y="57">固定股票规则只追踪指定股票的日线事件</text>
+
+      <text class="small" x="28" y="86">范围</text>
+      <rect x="28" y="96" width="360" height="42" rx="8" fill="#FFFFFF" stroke="#DDE3EA"/>
+      <text class="body" x="42" y="122">固定股票 · 600519.SH 贵州茅台</text>
+      <path d="M360 112 l6 6 6-6" fill="none" stroke="#637381" stroke-width="1.5"/>
+
+      <rect x="422" y="102" width="28" height="16" rx="8" fill="#1877F2"/>
+      <circle cx="442" cy="110" r="6" fill="#FFFFFF"/>
+      <text class="body" x="460" y="115">排除 ST</text>
+
+      <rect x="548" y="102" width="28" height="16" rx="8" fill="#1877F2"/>
+      <circle cx="568" cy="110" r="6" fill="#FFFFFF"/>
+      <text class="body" x="586" y="115">排除停牌</text>
+
+      <rect x="696" y="102" width="28" height="16" rx="8" fill="#C4CDD5"/>
+      <circle cx="704" cy="110" r="6" fill="#FFFFFF"/>
+      <text class="body" x="734" y="115">排除北交所</text>
+    </g>
+
+    <!-- 条件构建器：复用因子选股条件行语言 -->
+    <g transform="translate(0 456)" filter="url(#cardShadow)">
+      <rect width="1300" height="392" rx="16" fill="#FFFFFF"/>
+      <text class="section-title" x="28" y="36">事件条件（AND）</text>
+      <text class="small" x="28" y="58">事件使用相邻交易日前后值判定，提醒中保留触发证据</text>
+      <text class="small" x="1272" y="38" text-anchor="end">最多 10 条 · 当前 3</text>
+
+      <!-- row 1 -->
+      <g transform="translate(28 82)">
+        <rect width="1244" height="70" rx="8" fill="#F7F9FB"/>
+        <rect x="0" y="8" width="3" height="54" rx="1.5" fill="#22A06B"/>
+        <text class="small" x="18" y="38">#1</text>
+        <text class="small" x="62" y="20">指标</text>
+        <rect x="62" y="26" width="340" height="38" rx="8" fill="#FFFFFF" stroke="#DDE3EA"/>
+        <text class="body" x="76" y="50">MACD · macd</text>
+        <text class="small" x="426" y="20">条件</text>
+        <rect x="426" y="26" width="156" height="38" rx="8" fill="#FFFFFF" stroke="#DDE3EA"/>
+        <text class="body" x="440" y="50">出现</text>
+        <text class="small" x="606" y="20">事件</text>
+        <rect x="606" y="26" width="226" height="38" rx="8" fill="#FFFFFF" stroke="#DDE3EA"/>
+        <text class="body" x="620" y="50">金叉</text>
+        <text class="small" x="1160" y="48" fill="#637381">复制</text>
+        <text class="small" x="1208" y="48" fill="#D32F2F">删除</text>
+      </g>
+
+      <!-- row 2 -->
+      <g transform="translate(28 162)">
+        <rect width="1244" height="70" rx="8" fill="#F7F9FB"/>
+        <rect x="0" y="8" width="3" height="54" rx="1.5" fill="#22A06B"/>
+        <text class="small" x="18" y="38">#2</text>
+        <text class="small" x="62" y="20">指标</text>
+        <rect x="62" y="26" width="340" height="38" rx="8" fill="#FFFFFF" stroke="#DDE3EA"/>
+        <text class="body" x="76" y="50">RSI6 · rsi6</text>
+        <text class="small" x="426" y="20">条件</text>
+        <rect x="426" y="26" width="156" height="38" rx="8" fill="#FFFFFF" stroke="#DDE3EA"/>
+        <text class="body" x="440" y="50">进入</text>
+        <text class="small" x="606" y="20">事件</text>
+        <rect x="606" y="26" width="226" height="38" rx="8" fill="#FFFFFF" stroke="#DDE3EA"/>
+        <text class="body" x="620" y="50">超卖区（&lt; 30）</text>
+        <text class="small" x="1160" y="48" fill="#637381">复制</text>
+        <text class="small" x="1208" y="48" fill="#D32F2F">删除</text>
+      </g>
+
+      <!-- row 3 -->
+      <g transform="translate(28 242)">
+        <rect width="1244" height="70" rx="8" fill="#F7F9FB"/>
+        <rect x="0" y="8" width="3" height="54" rx="1.5" fill="#22A06B"/>
+        <text class="small" x="18" y="38">#3</text>
+        <text class="small" x="62" y="20">指标</text>
+        <rect x="62" y="26" width="340" height="38" rx="8" fill="#FFFFFF" stroke="#DDE3EA"/>
+        <text class="body" x="76" y="50">成交量 · volume_ratio_20</text>
+        <text class="small" x="426" y="20">条件</text>
+        <rect x="426" y="26" width="156" height="38" rx="8" fill="#FFFFFF" stroke="#DDE3EA"/>
+        <text class="body" x="440" y="50">大于</text>
+        <text class="small" x="606" y="20">比较值</text>
+        <rect x="606" y="26" width="226" height="38" rx="8" fill="#FFFFFF" stroke="#DDE3EA"/>
+        <text class="body" x="620" y="50">20 日均量 × 1.5</text>
+        <text class="small" x="1160" y="48" fill="#637381">复制</text>
+        <text class="small" x="1208" y="48" fill="#D32F2F">删除</text>
+      </g>
+
+      <line x1="28" y1="330" x2="1272" y2="330" stroke="#E7EBF0"/>
+      <rect x="28" y="344" width="108" height="32" rx="8" fill="#FFFFFF" stroke="#1877F2"/>
+      <text class="button" x="82" y="365" fill="#1877F2" text-anchor="middle">＋ 添加条件</text>
+      <text class="small" x="1044" y="365">至少满足</text>
+      <rect x="1110" y="344" width="54" height="32" rx="8" fill="#FFFFFF" stroke="#DDE3EA"/>
+      <text class="body" x="1137" y="365" text-anchor="middle">2</text>
+      <text class="small" x="1174" y="365">/ 3 条</text>
+    </g>
+
+    <!-- 触发与通知 -->
+    <g transform="translate(0 872)" filter="url(#cardShadow)">
+      <rect width="1300" height="154" rx="16" fill="#FFFFFF"/>
+      <text class="section-title" x="28" y="36">触发与通知</text>
+      <text class="small" x="28" y="58">技术信号按事件日期去重；指标状态不等同于交易建议</text>
+
+      <text class="small" x="28" y="88">提醒方式</text>
+      <rect x="28" y="98" width="92" height="32" rx="8" fill="#EAF3FF" stroke="#1877F2"/>
+      <text class="button" x="74" y="119" fill="#1877F2" text-anchor="middle">新事件</text>
+      <rect x="120" y="98" width="92" height="32" rx="0 8 8 0" fill="#FFFFFF" stroke="#DDE3EA"/>
+      <text class="button" x="166" y="119" fill="#637381" text-anchor="middle">状态反转</text>
+
+      <text class="small" x="256" y="88">事件窗口</text>
+      <rect x="256" y="98" width="240" height="38" rx="8" fill="#FFFFFF" stroke="#DDE3EA"/>
+      <text class="body" x="270" y="122">当前交易日</text>
+      <path d="M468 113 l6 6 6-6" fill="none" stroke="#637381" stroke-width="1.5"/>
+
+      <rect x="544" y="104" width="28" height="16" rx="8" fill="#1877F2"/>
+      <circle cx="564" cy="112" r="6" fill="#FFFFFF"/>
+      <text class="body" x="582" y="117">初次执行提醒当天新事件</text>
+
+      <rect x="942" y="94" width="330" height="42" rx="8" fill="#FFF7E6"/>
+      <text class="small" x="960" y="119" fill="#8A5A00">周/月频自动使用上次成功执行后的事件窗口</text>
+    </g>
+
+    <!-- 预览：纵向 Card，不使用右侧 sticky 面板 -->
+    <g transform="translate(0 1050)" filter="url(#cardShadow)">
+      <rect width="1300" height="180" rx="16" fill="#FFFFFF"/>
+      <text class="section-title" x="28" y="36">规则预览</text>
+      <text class="small" x="28" y="58">数据日期 2026-08-01 · 目录版本 signal-v1 · 结果仅用于创建前核对</text>
+      <rect x="1160" y="18" width="112" height="40" rx="8" fill="#1877F2"/>
+      <text class="button" x="1216" y="43" fill="#FFFFFF" text-anchor="middle">运行预览</text>
+
+      <rect x="28" y="80" width="208" height="72" rx="8" fill="#F7F9FB"/>
+      <text class="small" x="44" y="104">样本股票</text>
+      <text class="number" x="44" y="137">1</text>
+      <rect x="252" y="80" width="208" height="72" rx="8" fill="#F7F9FB"/>
+      <text class="small" x="268" y="104">当前命中</text>
+      <text class="number" x="268" y="137" fill="#22A06B">1</text>
+
+      <line x1="488" y1="78" x2="488" y2="154" stroke="#E7EBF0"/>
+      <text class="small-strong" x="516" y="101">贵州茅台</text>
+      <text class="small" x="590" y="101">600519.SH</text>
+      <rect x="696" y="84" width="78" height="24" rx="12" fill="#EAF8F1"/>
+      <text class="small-strong" x="735" y="101" fill="#14804A" text-anchor="middle">MACD 金叉</text>
+      <text class="small" x="516" y="130">证据：DIF -0.12 → 0.08，上穿 DEA 0.03；RSI6 由 34.8 降至 28.6</text>
+      <text class="small" x="516" y="151">提醒语义：事件出现，不代表买入建议</text>
+    </g>
+  </g>
+</svg>

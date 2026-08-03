@@ -4,6 +4,13 @@ import { apiClient } from './client';
 // 类型定义
 // ----------------------------------------------------------------------
 
+export type BuySignal =
+  | 'MACD_GOLDEN_CROSS'
+  | 'KDJ_GOLDEN_CROSS'
+  | 'MA_BULLISH'
+  | 'BOLL_OVERSOLD'
+  | 'RSI_OVERSOLD';
+
 export type ScreenerFilters = {
   // 基本面
   exchange?: string;
@@ -56,6 +63,7 @@ export type ScreenerFilters = {
   minMainNetInflow5d?: number;
   minMainNetInflow20d?: number;
   // 技术信号
+  minBuySignalCount?: number;
   macdSignal?: string;
   kdjSignal?: string;
   rsiSignal?: string;
@@ -102,6 +110,8 @@ export type StockScreenerItem = {
   mainNetInflow20d: number | null;
   latestFinDate: string | null;
   psTtm: number | null;
+  buySignalCount: number | null;
+  buySignals: BuySignal[] | null;
   concepts: string[] | null;
 };
 

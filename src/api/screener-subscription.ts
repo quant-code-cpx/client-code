@@ -81,11 +81,11 @@ export function deleteSubscription(id: number) {
 }
 
 export function pauseSubscription(id: number) {
-  return apiClient.post<{ message: string }>('/api/screener-subscription/pause', { id });
+  return apiClient.post<ScreenerSubscription>('/api/screener-subscription/pause', { id });
 }
 
 export function resumeSubscription(id: number) {
-  return apiClient.post<{ message: string }>('/api/screener-subscription/resume', { id });
+  return apiClient.post<ScreenerSubscription>('/api/screener-subscription/resume', { id });
 }
 
 export type ManualRunResponse = {
@@ -116,10 +116,6 @@ export function getSubscriptionLogs(id: number, page = 1, pageSize = 20) {
   });
 }
 
-/** swagger 无 /detail 端点，改用 list + 客户端过滤 */
-export async function getSubscriptionById(id: number): Promise<ScreenerSubscription> {
-  const { subscriptions } = await listSubscriptions();
-  const found = subscriptions.find((s) => s.id === id);
-  if (!found) throw new Error(`订阅 ${id} 不存在`);
-  return found;
+export function getSubscriptionById(id: number): Promise<ScreenerSubscription> {
+  return apiClient.post<ScreenerSubscription>('/api/screener-subscription/detail', { id });
 }

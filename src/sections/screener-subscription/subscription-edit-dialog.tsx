@@ -1,3 +1,4 @@
+import type { ScreenerFilters } from 'src/api/screener';
 import type { ScreenerSubscription, SubscriptionFrequency } from 'src/api/screener-subscription';
 
 import { useState, useEffect } from 'react';
@@ -27,6 +28,10 @@ type SubscriptionEditDialogProps = {
   onSuccess: (updated: ScreenerSubscription) => void;
 };
 
+function toOptionalNumber(value: string, multiplier = 1): number | undefined {
+  return value === '' ? undefined : Number(value) * multiplier;
+}
+
 export function SubscriptionEditDialog({
   open,
   subscription,
@@ -35,6 +40,7 @@ export function SubscriptionEditDialog({
 }: SubscriptionEditDialogProps) {
   const [name, setName] = useState('');
   const [frequency, setFrequency] = useState<SubscriptionFrequency>('DAILY');
+  const [filters, setFilters] = useState<Partial<ScreenerFilters>>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -42,6 +48,7 @@ export function SubscriptionEditDialog({
     if (!subscription) return;
     setName(subscription.name);
     setFrequency(subscription.frequency);
+    setFilters({ ...subscription.filters });
   }, [subscription]);
 
   const handleClose = () => {
@@ -62,6 +69,7 @@ export function SubscriptionEditDialog({
         id: subscription.id,
         name: name.trim(),
         frequency,
+        filters,
       });
       handleClose();
       onSuccess(result);
@@ -112,8 +120,113 @@ export function SubscriptionEditDialog({
           </Box>
 
           <Alert severity="info" variant="outlined">
-            目前后端仅支持修改名称与频率。如需调整筛选条件，请删除此订阅后重新创建。
+            可修改常用筛选条件；其他历史条件会保留。完整规则工作台将在新契约上线后提供。
           </Alert>
+
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+            <Typography variant="subtitle2">常用筛选条件</Typography>
+            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5 }}>
+              <TextField
+                label="PE 最小值"
+                type="number"
+                value={filters.minPeTtm ?? ''}
+                onChange={(e) =>
+                  setFilters((prev) => ({
+                    ...prev,
+                    minPeTtm: toOptionalNumber(e.target.value),
+                  }))
+                }
+                disabled={loading}
+                size="small"
+                sx={{ flex: '1 1 160px' }}
+              />
+              <TextField
+                label="PE 最大值"
+                type="number"
+                value={filters.maxPeTtm ?? ''}
+                onChange={(e) =>
+                  setFilters((prev) => ({
+                    ...prev,
+                    maxPeTtm: toOptionalNumber(e.target.value),
+                  }))
+                }
+                disabled={loading}
+                size="small"
+                sx={{ flex: '1 1 160px' }}
+              />
+              <TextField
+                label="ROE 最小值 (%)"
+                type="number"
+                value={filters.minRoe ?? ''}
+                onChange={(e) =>
+                  setFilters((prev) => ({
+                    ...prev,
+                    minRoe: toOptionalNumber(e.target.value),
+                  }))
+                }
+                disabled={loading}
+                size="small"
+                sx={{ flex: '1 1 160px' }}
+              />
+              <TextField
+                label="营收增速最小值 (%)"
+                type="number"
+                value={filters.minRevenueYoy ?? ''}
+                onChange={(e) =>
+                  setFilters((prev) => ({
+                    ...prev,
+                    minRevenueYoy: toOptionalNumber(e.target.value),
+                  }))
+                }
+                disabled={loading}
+                size="small"
+                sx={{ flex: '1 1 180px' }}
+              />
+              <TextField
+                label="市值最小值 (亿)"
+                type="number"
+                value={filters.minTotalMv != null ? filters.minTotalMv / 10000 : ''}
+                onChange={(e) =>
+                  setFilters((prev) => ({
+                    ...prev,
+                    minTotalMv: toOptionalNumber(e.target.value, 10000),
+                  }))
+                }
+                disabled={loading}
+                size="small"
+                sx={{ flex: '1 1 160px' }}
+              />
+              <TextField
+                label="市值最大值 (亿)"
+                type="number"
+                value={filters.maxTotalMv != null ? filters.maxTotalMv / 10000 : ''}
+                onChange={(e) =>
+                  setFilters((prev) => ({
+                    ...prev,
+                    maxTotalMv: toOptionalNumber(e.target.value, 10000),
+                  }))
+                }
+                disabled={loading}
+                size="small"
+                sx={{ flex: '1 1 160px' }}
+              />
+              <TextField
+                label="至少命中偏多信号数"
+                type="number"
+                value={filters.minBuySignalCount ?? ''}
+                onChange={(e) =>
+                  setFilters((prev) => ({
+                    ...prev,
+                    minBuySignalCount: toOptionalNumber(e.target.value),
+                  }))
+                }
+                disabled={loading}
+                size="small"
+                slotProps={{ htmlInput: { min: 1, max: 5, step: 1 } }}
+                sx={{ flex: '1 1 180px' }}
+              />
+            </Box>
+          </Box>
 
           {subscription && (
             <Box>
@@ -121,7 +234,7 @@ export function SubscriptionEditDialog({
                 variant="caption"
                 sx={{ color: 'text.secondary', mb: 1, display: 'block' }}
               >
-                当前筛选条件（只读）
+                筛选条件摘要
               </Typography>
               <SubscriptionFiltersSummary
                 filters={subscription.filters}
