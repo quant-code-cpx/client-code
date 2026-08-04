@@ -1,4 +1,4 @@
-import type { LimitListItem, LimitSealPattern, LimitStreakStatus } from 'src/api/alert';
+import type { LimitType, LimitListItem, LimitSealPattern, LimitStreakStatus } from 'src/api/alert';
 
 // ----------------------------------------------------------------------
 // 口径文案集中（图标 Tooltip / 列说明都从这里取）
@@ -11,7 +11,7 @@ export const LIMIT_GLOSSARY = {
   streakStatus:
     '首板：今日首次封板；续板：连续封板；晋级：昨日 N 板 → 今日 N+1 板；断板：昨日封板今日未封；炸板：触板后开板未再封住。',
   sealPattern:
-    '一字板：开盘即封板未开；T 字板：盘中触板回封；普通板：常规封板；烂板：多次开板并伴随大量换手。',
+    '一字板：开盘即封板未开；早封：10:00 前封板；晚封：10:00 后封板；回封：盘中开板后再次封住。',
   promoteRate: '晋级率 = 昨日 N 板今日续板数 / 昨日 N 板总数。',
   failRate: '炸板率 = 当日触板后未封住数 / 当日触板总数。',
   pctChgLimit: '该股涨跌停板上限：主板 10%、创业/科创 20%、北交所 30%、ST 5%。',
@@ -21,6 +21,8 @@ export const LIMIT_GLOSSARY = {
 // 板高度推断兜底（后端 BE-3 字段未上线时）
 // ----------------------------------------------------------------------
 
+const VALID_LIMIT_PCTS = new Set([5, 10, 20, 30]);
+
 /**
  * 通过 ts_code 兜底推断板高度上限（百分比，不含 %）。
  * 优先返回后端 `pctChgLimit`，否则按交易所规则推断。
@@ -28,7 +30,8 @@ export const LIMIT_GLOSSARY = {
 export function resolvePctChgLimit(
   item: Pick<LimitListItem, 'tsCode' | 'stockName' | 'pctChgLimit'>
 ): number {
-  if (item.pctChgLimit != null) return item.pctChgLimit;
+  const pctChgLimit = Math.abs(item.pctChgLimit ?? Number.NaN);
+  if (VALID_LIMIT_PCTS.has(pctChgLimit)) return pctChgLimit;
 
   const name = (item.stockName ?? '').toUpperCase();
   if (name.includes('ST')) return 5;
@@ -51,6 +54,20 @@ export function getStreakDays(item: Pick<LimitListItem, 'consecutiveDays' | 'str
 // 状态文案与配色（基于 theme palette key，避免硬编码颜色）
 // ----------------------------------------------------------------------
 
+export type LimitToneColor = 'default' | 'primary' | 'info' | 'success' | 'warning' | 'error';
+
+export const LIMIT_TYPE_LABEL: Record<LimitType, string> = {
+  UP: '涨停',
+  DOWN: '跌停',
+  BROKEN: '炸板',
+};
+
+export const LIMIT_TYPE_COLOR: Record<LimitType, LimitToneColor> = {
+  UP: 'error',
+  DOWN: 'success',
+  BROKEN: 'warning',
+};
+
 export const STREAK_STATUS_LABEL: Record<LimitStreakStatus, string> = {
   FIRST_LIMIT: '首板',
   CONSECUTIVE: '续板',
@@ -59,15 +76,7 @@ export const STREAK_STATUS_LABEL: Record<LimitStreakStatus, string> = {
   FLUSH: '炸板',
 };
 
-export type StreakStatusToneColor =
-  | 'default'
-  | 'primary'
-  | 'info'
-  | 'success'
-  | 'warning'
-  | 'error';
-
-export const STREAK_STATUS_COLOR: Record<LimitStreakStatus, StreakStatusToneColor> = {
+export const STREAK_STATUS_COLOR: Record<LimitStreakStatus, LimitToneColor> = {
   FIRST_LIMIT: 'info',
   CONSECUTIVE: 'warning',
   PROMOTE: 'error',
@@ -76,17 +85,17 @@ export const STREAK_STATUS_COLOR: Record<LimitStreakStatus, StreakStatusToneColo
 };
 
 export const SEAL_PATTERN_LABEL: Record<LimitSealPattern, string> = {
-  ONE_WORD: '一字',
-  T_SHAPE: 'T 字',
-  NORMAL: '普通',
-  WEAK: '烂板',
+  ONE_LINE: '一字板',
+  EARLY_SEAL: '早封',
+  LATE_SEAL: '晚封',
+  REOPENED: '回封',
 };
 
-export const SEAL_PATTERN_COLOR: Record<LimitSealPattern, StreakStatusToneColor> = {
-  ONE_WORD: 'error',
-  T_SHAPE: 'warning',
-  NORMAL: 'info',
-  WEAK: 'default',
+export const SEAL_PATTERN_COLOR: Record<LimitSealPattern, LimitToneColor> = {
+  ONE_LINE: 'error',
+  EARLY_SEAL: 'info',
+  LATE_SEAL: 'default',
+  REOPENED: 'warning',
 };
 
 /**

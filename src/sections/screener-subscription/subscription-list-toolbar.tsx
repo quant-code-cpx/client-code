@@ -1,4 +1,8 @@
-import type { SubscriptionStatus, SubscriptionFrequency } from 'src/api/screener-subscription';
+import type {
+  SubscriptionStatus,
+  SubscriptionRuleType,
+  SubscriptionFrequency,
+} from 'src/api/screener-subscription';
 
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
@@ -27,6 +31,13 @@ const FREQUENCY_OPTIONS: { value: SubscriptionFrequency | 'ALL'; label: string }
   { value: 'MONTHLY', label: '每月' },
 ];
 
+const RULE_TYPE_OPTIONS: { value: SubscriptionRuleType | 'ALL'; label: string }[] = [
+  { value: 'ALL', label: '全部规则' },
+  { value: 'STOCK_SCREENING', label: '基础选股' },
+  { value: 'FACTOR_SCREENING', label: '因子选股' },
+  { value: 'SIGNAL_EVENT', label: '技术信号' },
+];
+
 const SORT_OPTIONS: { value: SortKey; label: string }[] = [
   { value: 'lastRunDesc', label: '最近执行 ↓' },
   { value: 'lastRunAsc', label: '最近执行 ↑' },
@@ -41,6 +52,8 @@ type Props = {
   onStatusChange: (val: SubscriptionStatus | 'ALL') => void;
   frequency: SubscriptionFrequency | 'ALL';
   onFrequencyChange: (val: SubscriptionFrequency | 'ALL') => void;
+  ruleType: SubscriptionRuleType | 'ALL';
+  onRuleTypeChange: (val: SubscriptionRuleType | 'ALL') => void;
   sort: SortKey;
   onSortChange: (val: SortKey) => void;
   total: number;
@@ -54,6 +67,8 @@ export function SubscriptionListToolbar({
   onStatusChange,
   frequency,
   onFrequencyChange,
+  ruleType,
+  onRuleTypeChange,
   sort,
   onSortChange,
   total,
@@ -87,6 +102,20 @@ export function SubscriptionListToolbar({
           sx={{ minWidth: 140 }}
         >
           {STATUS_OPTIONS.map((opt) => (
+            <MenuItem key={opt.value} value={opt.value}>
+              {opt.label}
+            </MenuItem>
+          ))}
+        </TextField>
+        <TextField
+          select
+          size="small"
+          label="规则类型"
+          value={ruleType}
+          onChange={(e) => onRuleTypeChange(e.target.value as SubscriptionRuleType | 'ALL')}
+          sx={{ minWidth: 150 }}
+        >
+          {RULE_TYPE_OPTIONS.map((opt) => (
             <MenuItem key={opt.value} value={opt.value}>
               {opt.label}
             </MenuItem>

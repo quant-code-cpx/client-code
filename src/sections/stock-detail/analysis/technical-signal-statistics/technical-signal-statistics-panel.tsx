@@ -13,6 +13,8 @@ import ToggleButton from '@mui/material/ToggleButton';
 import LinearProgress from '@mui/material/LinearProgress';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
+import { ApiError } from 'src/api/client';
+
 import { TechnicalSignalMatrix } from './technical-signal-matrix';
 import { TechnicalSignalMetaAlert } from './technical-signal-meta-alert';
 import { TechnicalSignalFilterCard } from './technical-signal-filter-card';
@@ -33,6 +35,13 @@ function parseHorizon(value: string | null): number | null {
   if (!value || !/^\d+$/.test(value)) return null;
   const parsed = Number(value);
   return parsed >= 1 && parsed <= 60 ? parsed : null;
+}
+
+function catalogErrorMessage(error: unknown): string {
+  if (error instanceof ApiError && error.status === 404) {
+    return '标准信号目录暂不可用，请稍后重试。';
+  }
+  return error instanceof Error ? error.message : '标准信号目录加载失败';
 }
 
 export function TechnicalSignalStatisticsPanel({ tsCode }: Props) {
@@ -104,7 +113,7 @@ export function TechnicalSignalStatisticsPanel({ tsCode }: Props) {
           }
           severity="error"
         >
-          {catalog.error instanceof Error ? catalog.error.message : '标准信号目录加载失败'}
+          {catalogErrorMessage(catalog.error)}
         </Alert>
       ) : null}
 

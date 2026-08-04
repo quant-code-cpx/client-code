@@ -46,6 +46,10 @@ export type TechnicalSignalDefinitionListRequest = {
   includeDeprecated?: boolean;
 };
 
+export type TechnicalSignalDefinitionListResponse = {
+  definitions: TechnicalSignalDefinition[];
+};
+
 export type TechnicalSignalSelector = {
   signalKey: string;
   semanticsVersion?: string;
@@ -253,11 +257,13 @@ export const technicalSignalApi = {
     request: TechnicalSignalDefinitionListRequest = {},
     signal?: AbortSignal
   ): Promise<TechnicalSignalDefinition[]> =>
-    apiClient.post<TechnicalSignalDefinition[]>(
-      '/api/stock/detail/analysis/signal-definitions/list',
-      request,
-      signal
-    ),
+    apiClient
+      .post<TechnicalSignalDefinitionListResponse>(
+        '/api/stock/detail/analysis/signal-definitions/list',
+        request,
+        signal
+      )
+      .then((response) => response.definitions),
 
   queryStatistics: (
     request: TechnicalSignalStatisticsRequest,

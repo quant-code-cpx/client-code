@@ -1,6 +1,7 @@
 import type {
   SubscriptionStatus,
   ScreenerSubscription,
+  SubscriptionRuleType,
   SubscriptionFrequency,
 } from 'src/api/screener-subscription';
 
@@ -30,9 +31,7 @@ import { Iconify } from 'src/components/iconify';
 import { ConfirmDialog } from 'src/components/confirm-dialog';
 
 import { SubscriptionListCard } from '../subscription-list-card';
-import { SubscriptionEditDialog } from '../subscription-edit-dialog';
 import { SubscriptionSummaryCards } from '../subscription-summary-cards';
-import { SubscriptionCreateDialog } from '../subscription-create-dialog';
 import { type SortKey, SubscriptionListToolbar } from '../subscription-list-toolbar';
 
 // ----------------------------------------------------------------------
@@ -41,6 +40,7 @@ const QUOTA_LIMIT = 10;
 
 type StatusFilter = SubscriptionStatus | 'ALL';
 type FrequencyFilter = SubscriptionFrequency | 'ALL';
+type RuleTypeFilter = SubscriptionRuleType | 'ALL';
 
 type ScreenerSubscriptionAlertPayload = {
   subscriptionId: number;
@@ -61,8 +61,6 @@ export function ScreenerSubscriptionListView() {
   const [actionError, setActionError] = useState('');
   const [actionInfo, setActionInfo] = useState('');
 
-  const [createOpen, setCreateOpen] = useState(false);
-  const [editTarget, setEditTarget] = useState<ScreenerSubscription | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<ScreenerSubscription | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
@@ -70,6 +68,7 @@ export function ScreenerSubscriptionListView() {
   const search = searchParams.get('q') ?? '';
   const status = (searchParams.get('status') ?? 'ALL') as StatusFilter;
   const frequency = (searchParams.get('freq') ?? 'ALL') as FrequencyFilter;
+  const ruleType = (searchParams.get('type') ?? 'ALL') as RuleTypeFilter;
   const sort = (searchParams.get('sort') ?? 'lastRunDesc') as SortKey;
 
   const updateQuery = useCallback(
@@ -160,6 +159,7 @@ export function ScreenerSubscriptionListView() {
     const list = subscriptions.filter((s) => {
       if (status !== 'ALL' && s.status !== status) return false;
       if (frequency !== 'ALL' && s.frequency !== frequency) return false;
+      if (ruleType !== 'ALL' && (s.ruleType ?? 'STOCK_SCREENING') !== ruleType) return false;
       if (trimmed && !s.name.toLowerCase().includes(trimmed)) return false;
       return true;
     });
@@ -184,7 +184,7 @@ export function ScreenerSubscriptionListView() {
       }
     });
     return sorted;
-  }, [subscriptions, search, status, frequency, sort]);
+  }, [subscriptions, search, status, frequency, ruleType, sort]);
 
   const reachedQuota = subscriptions.length >= QUOTA_LIMIT;
 
@@ -205,7 +205,7 @@ export function ScreenerSubscriptionListView() {
             <Button
               variant="contained"
               startIcon={<Iconify icon="solar:add-circle-bold" />}
-              onClick={() => setCreateOpen(true)}
+              onClick={() => router.push('/stock/subscription/new')}
               disabled={reachedQuota || loading}
             >
               新建订阅
@@ -228,6 +228,8 @@ export function ScreenerSubscriptionListView() {
         onStatusChange={(val) => updateQuery({ status: val === 'ALL' ? null : val })}
         frequency={frequency}
         onFrequencyChange={(val) => updateQuery({ freq: val === 'ALL' ? null : val })}
+        ruleType={ruleType}
+        onRuleTypeChange={(val) => updateQuery({ type: val === 'ALL' ? null : val })}
         sort={sort}
         onSortChange={(val) => updateQuery({ sort: val === 'lastRunDesc' ? null : val })}
         total={subscriptions.length}
@@ -289,30 +291,12 @@ export function ScreenerSubscriptionListView() {
                 fetchList();
               }}
               onRunError={(msg) => setActionError(msg)}
-              onEdit={() => setEditTarget(sub)}
+              onEdit={() => router.push(`/stock/subscription/${sub.id}/edit`)}
               onDelete={() => setDeleteTarget(sub)}
             />
           ))}
         </Box>
       )}
-
-      <SubscriptionCreateDialog
-        open={createOpen}
-        onClose={() => setCreateOpen(false)}
-        onSuccess={(sub) => {
-          setSubscriptions((prev) => [sub, ...prev]);
-        }}
-      />
-
-      <SubscriptionEditDialog
-        open={editTarget !== null}
-        subscription={editTarget}
-        onClose={() => setEditTarget(null)}
-        onSuccess={(updated) => {
-          setSubscriptions((prev) => prev.map((s) => (s.id === updated.id ? updated : s)));
-          setEditTarget(null);
-        }}
-      />
 
       <ConfirmDialog
         open={deleteTarget !== null}

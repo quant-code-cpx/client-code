@@ -74,6 +74,27 @@ describe('limit alert APIs', () => {
     });
   });
 
+  it('normalizes legacy OTHER limit-list records as broken boards', async () => {
+    vi.mocked(apiClient.post).mockResolvedValueOnce({
+      items: [
+        {
+          tradeDate: '20260731',
+          tsCode: '300378.SZ',
+          stockName: '鼎捷数智',
+          limitType: 'OTHER',
+          close: 10,
+          pctChg: 16.84,
+          firstSealTime: '10:09:00',
+          lastSealTime: '14:57:00',
+        },
+      ],
+    });
+
+    await expect(fetchLimitList()).resolves.toMatchObject({
+      items: [{ tsCode: '300378.SZ', limitType: 'BROKEN' }],
+    });
+  });
+
   it('maps limit-summary payload to backend camelCase DTO', async () => {
     vi.mocked(apiClient.post).mockResolvedValueOnce([]);
 

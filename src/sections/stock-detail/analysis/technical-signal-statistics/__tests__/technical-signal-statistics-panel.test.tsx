@@ -9,6 +9,7 @@ import { act, screen, fireEvent } from '@testing-library/react';
 
 import { ThemeProvider } from '@mui/material/styles';
 
+import { ApiError } from 'src/api/client';
 import { render } from 'src/test/test-utils';
 import { createTheme } from 'src/theme/create-theme';
 
@@ -246,9 +247,14 @@ describe('TechnicalSignalStatisticsPanel', () => {
     });
   });
 
-  it('offers a retry when the signal catalog request fails', async () => {
+  it('blocks the summary request and hides raw route errors when the signal catalog fails', async () => {
     mocks.listDefinitions
-      .mockRejectedValueOnce(new Error('标准目录暂不可用'))
+      .mockRejectedValueOnce(
+        new ApiError('Cannot POST /api/stock/detail/analysis/signal-definitions/list', {
+          status: 404,
+          code: 404,
+        })
+      )
       .mockResolvedValueOnce(definitions);
 
     await act(async () => {
@@ -263,13 +269,110 @@ describe('TechnicalSignalStatisticsPanel', () => {
       await Promise.resolve();
     });
 
-    await vi.waitFor(() => expect(screen.getByText('标准目录暂不可用')).toBeInTheDocument());
+    await vi.waitFor(() => expect(screen.getByText('标准信号目录暂不可用，请稍后重试。')).toBeInTheDocument());
+    expect(screen.queryByText(/Cannot POST/)).not.toBeInTheDocument();
+    expect(mocks.queryStatistics).not.toHaveBeenCalled();
+
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: '重试' }));
       await Promise.resolve();
     });
 
     await vi.waitFor(() => expect(mocks.listDefinitions).toHaveBeenCalledTimes(2));
+    await vi.waitFor(() => expect(mocks.queryStatistics).toHaveBeenCalledTimes(1));
     await vi.waitFor(() => expect(screen.getByText('MACD 金叉')).toBeInTheDocument());
+  });
+
+  it('hides the raw route error when the statistics endpoint is unavailable', async () => {
+    mocks.queryStatistics.mockRejectedValueOnce(
+      new ApiError('Cannot POST /api/stock/detail/analysis/signal-statistics/query', {
+        status: 404,
+        code: 404,
+      })
+    );
+
+    await act(async () => {
+      render(
+        <ThemeProvider theme={createTheme()}>
+          <MemoryRouter>
+            <TechnicalSignalStatisticsPanel tsCode="600519.SH" />
+          </MemoryRouter>
+        </ThemeProvider>
+      );
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    await vi.waitFor(() =>
+      expect(screen.getByText('当前环境暂未提供技术信号统计服务，请稍后重试。')).toBeInTheDocument()
+    );
+    expect(screen.queryByText(/Cannot POST/)).not.toBeInTheDocument();
+  });
+
+  it('offers to disable the benchmark for the current numeric-code backend error contract', async () => {
+    mocks.queryStatistics
+      .mockRejectedValueOnce(
+        new ApiError('TECHNICAL_SIGNAL_BENCHMARK_NOT_READY: 000300.SH 全历史基座尚未就绪', {
+          status: 409,
+          code: 409,
+        })
+      )
+      .mockResolvedValueOnce({
+        ...response,
+        meta: { ...response.meta, benchmarkTsCode: null },
+      });
+
+    await act(async () => {
+      render(
+        <ThemeProvider theme={createTheme()}>
+          <MemoryRouter>
+            <TechnicalSignalStatisticsPanel tsCode="600519.SH" />
+          </MemoryRouter>
+        </ThemeProvider>
+      );
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    await vi.waitFor(() => expect(screen.getByText('沪深 300 基准数据未就绪')).toBeInTheDocument());
+    expect(screen.getByText('000300.SH 全历史基座尚未就绪')).toBeInTheDocument();
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: '关闭对标后重试' }));
+      await Promise.resolve();
+    });
+
+    await vi.waitFor(() =>
+      expect(mocks.queryStatistics).toHaveBeenLastCalledWith(
+        expect.objectContaining({ includeBenchmark: false }),
+        expect.any(AbortSignal)
+      )
+    );
+    await vi.waitFor(() => expect(screen.getByText('信号表现矩阵')).toBeInTheDocument());
+  });
+
+  it('shows a readable data-readiness error without exposing the backend error code', async () => {
+    mocks.queryStatistics.mockRejectedValueOnce(
+      new ApiError('TECHNICAL_SIGNAL_DATA_NOT_READY: 19980520 缺日线且无停牌事实', {
+        status: 409,
+        code: 409,
+      })
+    );
+
+    await act(async () => {
+      render(
+        <ThemeProvider theme={createTheme()}>
+          <MemoryRouter>
+            <TechnicalSignalStatisticsPanel tsCode="600089.SH" />
+          </MemoryRouter>
+        </ThemeProvider>
+      );
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    await vi.waitFor(() => expect(screen.getByText('基础行情数据未就绪')).toBeInTheDocument());
+    expect(screen.getByText('19980520 缺日线且无停牌事实')).toBeInTheDocument();
+    expect(screen.queryByText(/TECHNICAL_SIGNAL_DATA_NOT_READY/)).not.toBeInTheDocument();
   });
 });

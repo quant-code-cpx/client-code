@@ -1,4 +1,9 @@
-import type { SubscriptionLog, ScreenerSubscription } from 'src/api/screener-subscription';
+import type {
+  SubscriptionHit,
+  SubscriptionLog,
+  ScreenerSubscription,
+  SubscriptionRunStatus,
+} from 'src/api/screener-subscription';
 
 import { useParams } from 'react-router-dom';
 import { useRef, useState, useEffect, useCallback } from 'react';
@@ -24,7 +29,9 @@ import {
   pauseSubscription,
   resumeSubscription,
   getSubscriptionById,
+  getSubscriptionHits,
   getSubscriptionLogs,
+  getSubscriptionRunStatus,
 } from 'src/api/screener-subscription';
 
 import { Label } from 'src/components/label';
@@ -32,18 +39,65 @@ import { Iconify } from 'src/components/iconify';
 
 import { SubscriptionLogTable } from '../subscription-log-table';
 import { SubscriptionRunButton } from '../subscription-run-button';
-import { SubscriptionEditDialog } from '../subscription-edit-dialog';
 import { SubscriptionStatusLabel } from '../subscription-status-label';
 import { SubscriptionMatchPreview } from '../subscription-match-preview';
+import { SubscriptionHitEvidenceTable } from '../subscription-hit-evidence';
 import { SubscriptionFiltersSummary } from '../subscription-filters-summary';
 
 // ----------------------------------------------------------------------
 
 const FREQUENCY_LABELS = { DAILY: '每日', WEEKLY: '每周', MONTHLY: '每月' } as const;
+const RULE_TYPE_LABELS = {
+  STOCK_SCREENING: '基础选股',
+  FACTOR_SCREENING: '因子选股',
+  SIGNAL_EVENT: '技术信号',
+  COMPOSITE: '组合规则',
+} as const;
 
 type ScreenerSubscriptionAlertPayload = {
   subscriptionId: number;
 };
+
+function RuleSnapshotSummary({ subscription }: { subscription: ScreenerSubscription }) {
+  const ruleSpec = subscription.ruleSpec;
+  if (!ruleSpec) {
+    return (
+      <SubscriptionFiltersSummary
+        filters={subscription.filters}
+        sortBy={subscription.sortBy}
+        sortOrder={subscription.sortOrder}
+      />
+    );
+  }
+  const conditionCount =
+    ruleSpec.type === 'STOCK_SCREENING'
+      ? Object.keys(ruleSpec.filters).length
+      : ruleSpec.conditions.length;
+  return (
+    <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+      <Label color="info" variant="soft">
+        {RULE_TYPE_LABELS[ruleSpec.type]}
+      </Label>
+      <Label color="default" variant="soft">
+        规则版本 {subscription.ruleVersion ?? ruleSpec.version}
+      </Label>
+      <Label color="default" variant="soft">
+        {conditionCount} 条条件
+      </Label>
+      {subscription.triggerSpec?.mode ? (
+        <Label color="default" variant="soft">
+          {subscription.triggerSpec.mode === 'ENTER'
+            ? '新进入'
+            : subscription.triggerSpec.mode === 'EXIT'
+              ? '退出'
+              : subscription.triggerSpec.mode === 'BOTH'
+                ? '进入和退出'
+                : '事件出现'}
+        </Label>
+      ) : null}
+    </Stack>
+  );
+}
 
 export function ScreenerSubscriptionDetailView() {
   const { id } = useParams<{ id: string }>();
@@ -60,7 +114,13 @@ export function ScreenerSubscriptionDetailView() {
   const [logsError, setLogsError] = useState('');
   const logsPageSize = 20;
 
-  const [editOpen, setEditOpen] = useState(false);
+  const [hits, setHits] = useState<SubscriptionHit[]>([]);
+  const [hitsLoading, setHitsLoading] = useState(false);
+  const [hitsError, setHitsError] = useState('');
+  const [hitLogId, setHitLogId] = useState<number | null>(null);
+  const [runStatus, setRunStatus] = useState<SubscriptionRunStatus | null>(null);
+  const runStatusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const [actionError, setActionError] = useState('');
   const [actionInfo, setActionInfo] = useState('');
 
@@ -111,6 +171,13 @@ export function ScreenerSubscriptionDetailView() {
     fetchLogs(logsPage);
   }, [fetchLogs, logsPage]);
 
+  useEffect(
+    () => () => {
+      if (runStatusTimerRef.current) clearTimeout(runStatusTimerRef.current);
+    },
+    []
+  );
+
   // ── WebSocket 推送：本订阅命中新股票时刷新 ──
   const refetchAllRef = useRef<() => void>(() => {});
   refetchAllRef.current = () => {
@@ -150,6 +217,47 @@ export function ScreenerSubscriptionDetailView() {
       setActionError(err instanceof Error ? err.message : '操作失败');
     }
   };
+
+  const handleLoadHits = async (logId: number) => {
+    if (!subscription) return;
+    setHitsLoading(true);
+    setHitsError('');
+    setHitLogId(logId);
+    try {
+      const result = await getSubscriptionHits(subscription.id, logId);
+      setHits(result.hits);
+    } catch (err) {
+      setHits([]);
+      setHitsError(err instanceof Error ? err.message : '加载触发证据失败');
+    } finally {
+      setHitsLoading(false);
+    }
+  };
+
+  const trackRunStatus = useCallback(
+    async (jobId: string): Promise<void> => {
+      try {
+        const nextStatus = await getSubscriptionRunStatus(jobId);
+        setRunStatus(nextStatus);
+        if (nextStatus.status === 'SUCCESS') {
+          fetchDetail();
+          fetchLogs(logsPage);
+          return;
+        }
+        if (nextStatus.status === 'FAILED') return;
+        runStatusTimerRef.current = setTimeout(() => {
+          void trackRunStatus(jobId);
+        }, 2000);
+      } catch (err) {
+        setRunStatus({
+          jobId,
+          status: 'FAILED',
+          message: err instanceof Error ? err.message : '执行状态查询失败',
+        });
+      }
+    },
+    [fetchDetail, fetchLogs, logsPage]
+  );
 
   // ── 渲染分支 ──
   if (!isValidId) {
@@ -214,19 +322,45 @@ export function ScreenerSubscriptionDetailView() {
         <SubscriptionRunButton
           subscriptionId={subscription.id}
           lastRunAt={subscription.lastRunAt}
-          onSuccess={(msg) => {
+          onSuccess={(msg, jobId) => {
             setActionInfo(msg);
-            // 触发后日志可能稍后产出，等待 WebSocket 或下次刷新
             fetchLogs(logsPage);
+            if (jobId) void trackRunStatus(jobId);
           }}
           onError={(msg) => setActionError(msg)}
           label="手动执行"
           size="medium"
         />
-        <Button variant="contained" onClick={() => setEditOpen(true)}>
+        <Button
+          variant="contained"
+          onClick={() => router.push(`/stock/subscription/${subscription.id}/edit`)}
+        >
           编辑
         </Button>
       </Box>
+
+      {runStatus ? (
+        <Alert
+          severity={
+            runStatus.status === 'FAILED'
+              ? 'error'
+              : runStatus.status === 'SUCCESS'
+                ? 'success'
+                : 'info'
+          }
+          sx={{ mb: 3 }}
+        >
+          手动执行任务 {runStatus.jobId}：
+          {runStatus.status === 'QUEUED'
+            ? '排队中'
+            : runStatus.status === 'RUNNING'
+              ? '执行中'
+              : runStatus.status === 'SUCCESS'
+                ? '已完成'
+                : '失败'}
+          {runStatus.message ? ` · ${runStatus.message}` : ''}
+        </Alert>
+      ) : null}
 
       {/* Info row */}
       <Card sx={{ mb: 3 }}>
@@ -287,11 +421,7 @@ export function ScreenerSubscriptionDetailView() {
           <Typography variant="subtitle2" sx={{ mb: 1 }}>
             筛选条件快照
           </Typography>
-          <SubscriptionFiltersSummary
-            filters={subscription.filters}
-            sortBy={subscription.sortBy}
-            sortOrder={subscription.sortOrder}
-          />
+          <RuleSnapshotSummary subscription={subscription} />
         </CardContent>
       </Card>
 
@@ -330,6 +460,26 @@ export function ScreenerSubscriptionDetailView() {
                 exitCodes={logs[0]?.exitCodes ?? []}
               />
             )}
+            {logs[0] ? (
+              <Button
+                size="small"
+                sx={{ mt: 1.5 }}
+                onClick={() => handleLoadHits(logs[0].id)}
+                disabled={hitsLoading}
+              >
+                {hitsLoading && hitLogId === logs[0].id ? '加载证据中…' : '查看触发证据'}
+              </Button>
+            ) : null}
+            {hitsError ? (
+              <Alert severity="warning" sx={{ mt: 1.5 }}>
+                {hitsError}
+              </Alert>
+            ) : null}
+            {hitLogId && !hitsLoading && !hitsError ? (
+              <Box sx={{ mt: 1.5 }}>
+                <SubscriptionHitEvidenceTable evidence={hits} />
+              </Box>
+            ) : null}
           </CardContent>
         </Card>
       )}
@@ -368,16 +518,6 @@ export function ScreenerSubscriptionDetailView() {
           )}
         </CardContent>
       </Card>
-
-      <SubscriptionEditDialog
-        open={editOpen}
-        subscription={subscription}
-        onClose={() => setEditOpen(false)}
-        onSuccess={(updated) => {
-          setSubscription(updated);
-          setEditOpen(false);
-        }}
-      />
 
       <Snackbar
         open={Boolean(actionError)}

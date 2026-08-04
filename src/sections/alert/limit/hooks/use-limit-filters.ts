@@ -7,7 +7,7 @@ import { useSearchParams } from 'react-router-dom';
 
 // ----------------------------------------------------------------------
 
-export type LimitTypeFilter = 'ALL' | 'UP' | 'DOWN';
+export type LimitTypeFilter = 'ALL' | 'UP' | 'DOWN' | 'BROKEN';
 export type MvBucket = 'UNDER_50' | '50_200' | '200_500' | '500_1000' | 'ABOVE_1000';
 export type PctChgLimit = 5 | 10 | 20 | 30;
 export type LimitTabKey = 'today' | 'next-day' | 'history';
@@ -36,7 +36,7 @@ const DEFAULT_STATE: LimitFilterState = {
   minStreak: '',
 };
 
-const SEAL_PATTERNS: LimitSealPattern[] = ['ONE_WORD', 'T_SHAPE', 'NORMAL', 'WEAK'];
+const SEAL_PATTERNS: LimitSealPattern[] = ['ONE_LINE', 'EARLY_SEAL', 'LATE_SEAL', 'REOPENED'];
 const TABS: LimitTabKey[] = ['today', 'next-day', 'history'];
 
 function parseDate(value: string | null): Dayjs | null {
@@ -65,7 +65,9 @@ export function useLimitFilters() {
     ) as LimitTabKey;
 
     const limitType = (
-      ['UP', 'DOWN', 'ALL'].includes(searchParams.get('lt') ?? '') ? searchParams.get('lt') : 'ALL'
+      ['UP', 'DOWN', 'BROKEN', 'ALL'].includes(searchParams.get('lt') ?? '')
+        ? searchParams.get('lt')
+        : 'ALL'
     ) as LimitTypeFilter;
 
     const pctRaw = Number(searchParams.get('pct'));

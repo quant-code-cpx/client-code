@@ -367,19 +367,22 @@ export type LimitStreakStatus =
   | 'BREAK' // 断板（昨日涨停今日未涨停）
   | 'FLUSH'; // 炸板
 
+/** 涨跌停类型。BROKEN = 触及涨停后开板（炸板）。 */
+export type LimitType = 'UP' | 'DOWN' | 'BROKEN';
+
 /** 封板形态 — 后端 P0 字段 BE-4 */
 export type LimitSealPattern =
-  | 'ONE_WORD' // 一字板
-  | 'T_SHAPE' // T 字板
-  | 'NORMAL' // 普通板
-  | 'WEAK'; // 烂板
+  | 'ONE_LINE' // 一字板
+  | 'EARLY_SEAL' // 早封
+  | 'LATE_SEAL' // 晚封
+  | 'REOPENED'; // 回封
 
 export type LimitListItem = {
   tradeDate: string;
   tsCode: string;
   stockName: string;
-  /** UP = 涨停, DOWN = 跌停 */
-  limitType: 'UP' | 'DOWN';
+  /** UP = 涨停, DOWN = 跌停, BROKEN = 炸板 */
+  limitType: LimitType;
   close: number;
   pctChg: number;
   amount?: number | null;
@@ -428,6 +431,12 @@ export type LimitListItem = {
   upStat?: string | null;
 };
 
+type RawLimitType = LimitType | 'OTHER';
+
+type RawLimitListItem = Omit<LimitListItem, 'limitType'> & {
+  limitType: RawLimitType;
+};
+
 /** 列表响应 meta（后端 P0 字段 BE-7） */
 export type LimitListMeta = {
   /** 实际数据归属交易日 */
@@ -443,9 +452,13 @@ export type LimitListResponse = {
   meta?: LimitListMeta;
 };
 
+type RawLimitListResponse = Omit<LimitListResponse, 'items'> & {
+  items: RawLimitListItem[];
+};
+
 export type LimitListQuery = {
   trade_date?: string;
-  limit_type?: 'UP' | 'DOWN';
+  limit_type?: LimitType;
   min_consecutive?: number;
   /** 行业过滤（前端 P0；后端 BE-1 上线后生效） */
   industry?: string;
@@ -474,6 +487,14 @@ function toLimitListBody(query?: LimitListQuery) {
   });
 }
 
+function normalizeLimitType(type: RawLimitType): LimitType {
+  return type === 'OTHER' ? 'BROKEN' : type;
+}
+
+function normalizeLimitListItem(item: RawLimitListItem): LimitListItem {
+  return { ...item, limitType: normalizeLimitType(item.limitType) };
+}
+
 /**
  * 拉取涨跌停明细。
  *
@@ -481,12 +502,12 @@ function toLimitListBody(query?: LimitListQuery) {
  * 此处统一归一为 `LimitListResponse`。
  */
 export async function fetchLimitList(query?: LimitListQuery): Promise<LimitListResponse> {
-  const raw = await apiClient.post<LimitListItem[] | LimitListResponse>(
+  const raw = await apiClient.post<RawLimitListItem[] | RawLimitListResponse>(
     '/api/alert/limit-list',
     toLimitListBody(query)
   );
-  if (Array.isArray(raw)) return { items: raw };
-  return raw;
+  if (Array.isArray(raw)) return { items: raw.map(normalizeLimitListItem) };
+  return { ...raw, items: raw.items.map(normalizeLimitListItem) };
 }
 
 // ── 多日汇总（后端 BE-8） ───────────────────────────────────────
@@ -555,7 +576,7 @@ export type LimitNextDayResponse = {
 
 export type LimitNextDayQuery = {
   trade_date?: string;
-  limit_type?: 'UP' | 'DOWN';
+  limit_type?: LimitType;
   min_consecutive?: number;
 };
 
@@ -564,18 +585,26 @@ export type LimitNextDayPerfItem = LimitListItem & {
   nextPctChg: number | null;
 };
 
+type LimitNextDayRawItem = Omit<LimitNextDayPerfItem, 'limitType'> & {
+  limitType: RawLimitType;
+};
+
 type LimitNextDayRawResponse = {
   meta?: LimitListMeta;
   nextTradeDate: string | null;
   total: number;
   avgPctChg: number | null;
   upRatio: number | null;
-  items: LimitNextDayPerfItem[];
+  items: LimitNextDayRawItem[];
 };
 
 type LimitNextDayLegacyResponse = Partial<Omit<LimitNextDayResponse, 'rows'>> & {
   rows: LimitNextDayRow[];
 };
+
+function normalizeLimitNextDayItem(item: LimitNextDayRawItem): LimitNextDayPerfItem {
+  return { ...item, limitType: normalizeLimitType(item.limitType) };
+}
 
 const EMPTY_BUCKETS: Record<LimitNextDayBucket, number> = {
   IN_5: 0,
@@ -586,10 +615,11 @@ const EMPTY_BUCKETS: Record<LimitNextDayBucket, number> = {
   LIMIT_DOWN: 0,
 };
 
+const VALID_LIMIT_PCTS = new Set([5, 10, 20, 30]);
+
 function resolveLimitPct(item: Pick<LimitListItem, 'tsCode' | 'stockName' | 'pctChgLimit'>) {
-  if (item.pctChgLimit != null && Number.isFinite(item.pctChgLimit)) {
-    return Math.abs(item.pctChgLimit);
-  }
+  const pctChgLimit = Math.abs(item.pctChgLimit ?? Number.NaN);
+  if (VALID_LIMIT_PCTS.has(pctChgLimit)) return pctChgLimit;
 
   const code = item.tsCode.split('.')[0] ?? '';
   const name = item.stockName.toUpperCase();
@@ -641,7 +671,7 @@ function normalizeLimitNextDayResponse(
     { today: Record<LimitNextDayBucket, number>; total: number; pctSum: number }
   >();
 
-  raw.items.forEach((item) => {
+  raw.items.map(normalizeLimitNextDayItem).forEach((item) => {
     if (item.nextPctChg == null) return;
 
     const prevStreak = Math.max(1, item.streakDays ?? item.consecutiveDays ?? 1);

@@ -1,9 +1,6 @@
-import type { Page, Route } from '@playwright/test';
-import type { AgentSseEvent } from '../src/types/agent/generated';
+import { test, expect, type Page, type Route } from '@playwright/test';
 
-import { test, expect } from '@playwright/test';
-
-import { AGENT_EVENT_FIXTURES } from '../src/types/agent/generated';
+import { type AgentSseEvent, AGENT_EVENT_FIXTURES } from '../src/types/agent/generated';
 
 const USER_ID = 903;
 
@@ -382,7 +379,7 @@ test('AR-002：取消终态后重新生成，新旧回答独立且历史保留',
   await page.getByRole('button', { name: '发送问题' }).click();
   await page.getByRole('button', { name: '停止研究' }).click();
 
-  expect(cancelRequested).toBe(true);
+  await expect.poll(() => cancelRequested).toBe(true);
   await expect(page.getByLabel('Agent 回答').getByText('已停止')).toBeVisible();
   await page.getByRole('button', { name: '重新生成回答' }).click();
 

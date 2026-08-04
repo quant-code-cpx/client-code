@@ -12,15 +12,16 @@ describe('technicalSignalApi', () => {
   });
 
   it('uses POST to load stable signal definitions', async () => {
-    mocks.post.mockResolvedValueOnce([]);
+    mocks.post.mockResolvedValueOnce({ definitions: [] });
 
-    await technicalSignalApi.listDefinitions({ includeDeprecated: false });
+    const definitions = await technicalSignalApi.listDefinitions({ includeDeprecated: false });
 
     expect(mocks.post).toHaveBeenCalledWith(
       '/api/stock/detail/analysis/signal-definitions/list',
       { includeDeprecated: false },
       undefined
     );
+    expect(definitions).toEqual([]);
   });
 
   it('passes the complete statistics request through the request body', async () => {

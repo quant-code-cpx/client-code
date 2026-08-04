@@ -25,6 +25,13 @@ const FREQUENCY_LABELS: Record<SubscriptionFrequency, string> = {
   MONTHLY: '每月',
 };
 
+const RULE_TYPE_LABELS = {
+  STOCK_SCREENING: '基础选股',
+  FACTOR_SCREENING: '因子选股',
+  SIGNAL_EVENT: '技术信号',
+  COMPOSITE: '组合规则',
+} as const;
+
 type SubscriptionListCardProps = {
   subscription: ScreenerSubscription;
   onView: () => void;
@@ -57,6 +64,9 @@ export function SubscriptionListCard({
           <SubscriptionStatusLabel status={subscription.status} />
           <Label color="default" variant="soft">
             {FREQUENCY_LABELS[subscription.frequency]}
+          </Label>
+          <Label color="info" variant="soft">
+            {RULE_TYPE_LABELS[subscription.ruleType ?? 'STOCK_SCREENING']}
           </Label>
         </Box>
 
@@ -130,21 +140,12 @@ export function SubscriptionListCard({
             }}
           >
             <Tooltip title="编辑">
-              <IconButton
-                size="small"
-                aria-label="编辑订阅"
-                onClick={onEdit}
-              >
+              <IconButton size="small" aria-label="编辑订阅" onClick={onEdit}>
                 <Iconify icon="solar:pen-bold" width={16} />
               </IconButton>
             </Tooltip>
             <Tooltip title="删除">
-              <IconButton
-                size="small"
-                color="error"
-                aria-label="删除订阅"
-                onClick={onDelete}
-              >
+              <IconButton size="small" color="error" aria-label="删除订阅" onClick={onDelete}>
                 <Iconify icon="solar:trash-bin-trash-bold" width={16} />
               </IconButton>
             </Tooltip>

@@ -15,7 +15,7 @@ type Props = {
   items: LimitListItem[];
 };
 
-type Bucket = { label: string; up: number; down: number };
+type Bucket = { label: string; up: number; broken: number };
 
 function timeToMinutes(t: string | null | undefined): number | null {
   if (!t) return null;
@@ -37,7 +37,7 @@ function buildBuckets(items: LimitListItem[]): Bucket[] {
     for (let t = start; t < end; t += WINDOW_MIN) {
       const hh = String(Math.floor(t / 60)).padStart(2, '0');
       const mm = String(t % 60).padStart(2, '0');
-      buckets.push({ label: `${hh}:${mm}`, up: 0, down: 0 });
+      buckets.push({ label: `${hh}:${mm}`, up: 0, broken: 0 });
     }
   });
 
@@ -51,7 +51,7 @@ function buildBuckets(items: LimitListItem[]): Bucket[] {
         const target = buckets[offset];
         if (target) {
           if (it.limitType === 'UP') target.up += 1;
-          else target.down += 1;
+          if (it.limitType === 'BROKEN') target.broken += 1;
         }
         return;
       }
@@ -66,7 +66,7 @@ export function AlertLimitSealTimeHistogram({ items }: Props) {
   const theme = useTheme();
   const buckets = useMemo(() => buildBuckets(items), [items]);
 
-  const max = buckets.reduce((m, b) => Math.max(m, b.up + b.down), 1);
+  const max = buckets.reduce((m, b) => Math.max(m, b.up + b.broken), 1);
   const hasFirstSealTime = items.some((it) => it.firstSealTime);
 
   return (
@@ -87,9 +87,9 @@ export function AlertLimitSealTimeHistogram({ items }: Props) {
           <Box sx={{ position: 'relative' }}>
             <Stack direction="row" alignItems="flex-end" spacing={0.25} sx={{ height: 120, mb: 1 }}>
               {buckets.map((b, idx) => {
-                const total = b.up + b.down;
+                const total = b.up + b.broken;
                 const upH = (b.up / max) * 100;
-                const downH = (b.down / max) * 100;
+                const brokenH = (b.broken / max) * 100;
                 return (
                   <Box
                     key={`${b.label}-${idx}`}
@@ -101,7 +101,7 @@ export function AlertLimitSealTimeHistogram({ items }: Props) {
                       justifyContent: 'flex-end',
                       minWidth: 2,
                     }}
-                    title={`${b.label} | 涨停 ${b.up} · 跌停 ${b.down}`}
+                    title={`${b.label} | 涨停 ${b.up} · 炸板 ${b.broken}`}
                   >
                     {total === 0 ? null : (
                       <>
@@ -114,8 +114,8 @@ export function AlertLimitSealTimeHistogram({ items }: Props) {
                         />
                         <Box
                           sx={{
-                            height: `${downH}%`,
-                            bgcolor: theme.vars.palette.success.main,
+                            height: `${brokenH}%`,
+                            bgcolor: theme.vars.palette.warning.main,
                           }}
                         />
                       </>

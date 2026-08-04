@@ -14,7 +14,6 @@ import Select from '@mui/material/Select';
 import Switch from '@mui/material/Switch';
 import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
-import InputLabel from '@mui/material/InputLabel';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 import Autocomplete from '@mui/material/Autocomplete';
@@ -39,6 +38,24 @@ type Props = {
 };
 
 const HORIZON_OPTIONS = [1, 3, 5, 10, 20, 30, 60];
+
+const fieldLabelSx = {
+  display: 'block',
+  mb: 0.75,
+  minHeight: 18,
+};
+
+const toggleGroupSx = {
+  display: 'flex',
+  width: '100%',
+  '& .MuiToggleButton-root': {
+    flex: 1,
+    minHeight: 40,
+    minWidth: 0,
+    px: 0.75,
+    whiteSpace: 'nowrap',
+  },
+};
 
 function directionColor(direction: TechnicalSignalDefinition['direction']) {
   if (direction === 'BULLISH') return 'error' as const;
@@ -79,54 +96,75 @@ export function TechnicalSignalFilterCard({
 
           <Box
             sx={{
+              alignItems: 'start',
               display: 'grid',
               gap: 2,
-              gridTemplateColumns: { lg: 'minmax(300px, 1.4fr) repeat(3, minmax(160px, 1fr))' },
+              gridTemplateColumns: {
+                xs: '1fr',
+                sm: 'repeat(2, minmax(0, 1fr))',
+                lg: 'repeat(4, minmax(0, 1fr))',
+              },
             }}
           >
-            <Autocomplete
-              multiple
-              disableCloseOnSelect
-              disabled={disabled}
-              options={definitions}
-              value={selectedDefinitions}
-              onChange={(_, value) =>
-                onChange({
-                  signals: value.map(({ signalKey, semanticsVersion }) => ({
-                    signalKey,
-                    semanticsVersion,
-                  })),
-                })
-              }
-              getOptionLabel={(option) => option.displayName}
-              isOptionEqualToValue={(option, value) =>
-                option.signalKey === value.signalKey && option.semanticsVersion === value.semanticsVersion
-              }
-              renderOption={(props, option) => (
-                <li {...props} key={`${option.signalKey}-${option.semanticsVersion}`}>
-                  <Stack direction="row" alignItems="center" spacing={1} sx={{ minWidth: 0 }}>
-                    <Typography variant="body2" noWrap>
-                      {option.displayName}
-                    </Typography>
-                    <Chip
-                      color={directionColor(option.direction)}
-                      label={DIRECTION_LABELS[option.direction]}
-                      size="small"
-                    />
-                  </Stack>
-                </li>
-              )}
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  label="信号定义"
-                  helperText="留空时使用全部稳定定义"
-                />
-              )}
-            />
+            <Box sx={{ minWidth: 0 }}>
+              <Typography
+                id="technical-signal-definitions-label"
+                variant="caption"
+                color="text.secondary"
+                sx={fieldLabelSx}
+              >
+                信号定义
+              </Typography>
+              <Autocomplete
+                multiple
+                disableCloseOnSelect
+                disabled={disabled}
+                fullWidth
+                options={definitions}
+                value={selectedDefinitions}
+                onChange={(_, value) =>
+                  onChange({
+                    signals: value.map(({ signalKey, semanticsVersion }) => ({
+                      signalKey,
+                      semanticsVersion,
+                    })),
+                  })
+                }
+                getOptionLabel={(option) => option.displayName}
+                isOptionEqualToValue={(option, value) =>
+                  option.signalKey === value.signalKey && option.semanticsVersion === value.semanticsVersion
+                }
+                renderOption={(props, option) => (
+                  <li {...props} key={`${option.signalKey}-${option.semanticsVersion}`}>
+                    <Stack direction="row" alignItems="center" spacing={1} sx={{ minWidth: 0 }}>
+                      <Typography variant="body2" noWrap>
+                        {option.displayName}
+                      </Typography>
+                      <Chip
+                        color={directionColor(option.direction)}
+                        label={DIRECTION_LABELS[option.direction]}
+                        size="small"
+                      />
+                    </Stack>
+                  </li>
+                )}
+                renderInput={(params) => (
+                  <TextField
+                    {...params}
+                    helperText="留空时使用全部稳定定义"
+                    inputProps={{
+                      ...params.inputProps,
+                      'aria-labelledby': 'technical-signal-definitions-label',
+                    }}
+                    placeholder="全部稳定定义"
+                    size="small"
+                  />
+                )}
+              />
+            </Box>
 
-            <Box>
-              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75 }}>
+            <Box sx={{ minWidth: 0 }}>
+              <Typography variant="caption" color="text.secondary" sx={fieldLabelSx}>
                 统计区间
               </Typography>
               <ToggleButtonGroup
@@ -137,7 +175,7 @@ export function TechnicalSignalFilterCard({
                   if (value.length > 0) onChange({ periods: value });
                 }}
                 size="small"
-                sx={{ flexWrap: 'wrap' }}
+                sx={toggleGroupSx}
               >
                 {(['1Y', '3Y', 'CUSTOM'] as TechnicalSignalPeriod[]).map((period) => (
                   <ToggleButton key={period} value={period}>
@@ -147,8 +185,8 @@ export function TechnicalSignalFilterCard({
               </ToggleButtonGroup>
             </Box>
 
-            <Box>
-              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75 }}>
+            <Box sx={{ minWidth: 0 }}>
+              <Typography variant="caption" color="text.secondary" sx={fieldLabelSx}>
                 入场口径
               </Typography>
               <ToggleButtonGroup
@@ -160,18 +198,24 @@ export function TechnicalSignalFilterCard({
                   if (value) onChange({ entryMode: value });
                 }}
                 size="small"
+                sx={toggleGroupSx}
               >
                 <ToggleButton value="SIGNAL_CLOSE">信号日收盘</ToggleButton>
                 <ToggleButton value="NEXT_OPEN">次日开盘</ToggleButton>
               </ToggleButtonGroup>
             </Box>
 
-            <Box>
-              <InputLabel id="technical-signal-horizons-label" shrink>
+            <Box sx={{ minWidth: 0 }}>
+              <Typography
+                id="technical-signal-horizons-label"
+                variant="caption"
+                color="text.secondary"
+                sx={fieldLabelSx}
+              >
                 观察周期
-              </InputLabel>
+              </Typography>
               <Select
-                labelId="technical-signal-horizons-label"
+                aria-labelledby="technical-signal-horizons-label"
                 disabled={disabled}
                 fullWidth
                 multiple

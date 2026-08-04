@@ -20,12 +20,15 @@ import Snackbar from '@mui/material/Snackbar';
 import Skeleton from '@mui/material/Skeleton';
 import Typography from '@mui/material/Typography';
 
+import { useRouter } from 'src/routes/hooks';
+
 import { factorApi } from 'src/api/factor';
 import { DashboardContent } from 'src/layouts/dashboard';
 
 import { Iconify } from 'src/components/iconify';
 
 import { StockWatchlistBatchDialog } from 'src/sections/stock/stock-watchlist-batch-dialog';
+import { saveSubscriptionDraft } from 'src/sections/screener-subscription/rule-builder/draft-handoff';
 
 import {
   PAGE_SIZE,
@@ -58,6 +61,7 @@ type ResultTab = 'table' | 'diagnostics' | 'log';
 // ----------------------------------------------------------------------
 
 export function FactorScreeningView() {
+  const router = useRouter();
   const { state, patch } = useScreeningQueryState();
 
   const [library, setLibrary] = useState<FactorLibraryResult | null>(null);
@@ -323,12 +327,54 @@ export function FactorScreeningView() {
   }, []);
 
   const handleCreateSubscription = useCallback(() => {
-    setToast({
-      open: true,
-      severity: 'info',
-      message: '条件订阅需要 BE-11 扩展，暂未启用',
+    const operatorMap = {
+      gt: 'GT',
+      gte: 'GTE',
+      lt: 'LT',
+      lte: 'LTE',
+      between: 'BETWEEN',
+      top_pct: 'TOP_PERCENT',
+      bottom_pct: 'BOTTOM_PERCENT',
+    } as const;
+    const validConditions = pickValidConditions(conditions);
+    if (validConditions.length === 0) {
+      setToast({ open: true, severity: 'warning', message: '请先添加并运行至少一条有效因子条件' });
+      return;
+    }
+    const fixedCodes = selected.size > 0 ? Array.from(selected) : [];
+    saveSubscriptionDraft({
+      source: 'factor',
+      name: '因子选股订阅',
+      ruleSpec: {
+        type: 'FACTOR_SCREENING',
+        version: 1,
+        universe:
+          fixedCodes.length > 0
+            ? { type: 'FIXED', tsCodes: fixedCodes }
+            : {
+                type: 'ALL_A',
+                excludeSt: state.tradeConstraints.excludeSt ?? true,
+                excludeSuspended: state.tradeConstraints.excludeSuspended ?? true,
+                excludeBse: state.tradeConstraints.excludeBse ?? false,
+              },
+        conditions: validConditions.map((condition) => ({
+          factorId: condition.factorName,
+          operator: operatorMap[condition.operator],
+          value:
+            condition.operator === 'between'
+              ? [condition.min ?? 0, condition.max ?? 0]
+              : condition.operator === 'top_pct' || condition.operator === 'bottom_pct'
+                ? (condition.percent ?? 0)
+                : (condition.value ?? 0),
+        })),
+        ...(state.sortMode === 'single' && state.sortBy ? { sortBy: state.sortBy } : {}),
+        ...(state.sortMode === 'single' && state.sortBy
+          ? { sortOrder: state.sortOrder === 'asc' ? 'ASC' : 'DESC' }
+          : {}),
+      },
     });
-  }, []);
+    router.push('/stock/subscription/new?source=factor');
+  }, [conditions, router, selected, state]);
 
   const factorColumns = useMemo(
     () =>

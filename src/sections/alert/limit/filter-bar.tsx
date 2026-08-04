@@ -44,10 +44,10 @@ const MV_BUCKETS: Array<{ value: MvBucket; label: string }> = [
 const PCT_LIMITS: PctChgLimit[] = [10, 20, 30, 5];
 
 const SEAL_PATTERNS: Array<{ value: LimitSealPattern; label: string }> = [
-  { value: 'ONE_WORD', label: '一字' },
-  { value: 'T_SHAPE', label: 'T 字' },
-  { value: 'NORMAL', label: '普通' },
-  { value: 'WEAK', label: '烂板' },
+  { value: 'ONE_LINE', label: '一字板' },
+  { value: 'EARLY_SEAL', label: '早封' },
+  { value: 'LATE_SEAL', label: '晚封' },
+  { value: 'REOPENED', label: '回封' },
 ];
 
 const ACTION_BUTTON_SX: SxProps<Theme> = {
@@ -89,6 +89,7 @@ export function AlertLimitFilterBar({
         <ToggleButton value="ALL">全部</ToggleButton>
         <ToggleButton value="UP">涨停</ToggleButton>
         <ToggleButton value="DOWN">跌停</ToggleButton>
+        <ToggleButton value="BROKEN">炸板</ToggleButton>
       </ToggleButtonGroup>
 
       <FormControl size="small" sx={{ minWidth: 140 }}>

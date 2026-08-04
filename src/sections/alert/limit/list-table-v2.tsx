@@ -29,6 +29,8 @@ import { ColoredNumber } from 'src/components/colored-number';
 
 import {
   getStreakDays,
+  LIMIT_TYPE_COLOR,
+  LIMIT_TYPE_LABEL,
   resolvePctChgLimit,
   SEAL_PATTERN_LABEL,
   SEAL_PATTERN_COLOR,
@@ -152,6 +154,8 @@ export function AlertLimitListTableV2({ items, onSelect, onCreateAlert }: Props)
                 const streakDays = getStreakDays(row);
                 const limit = resolvePctChgLimit(row);
                 const status = row.streakStatus;
+                const sealPattern = row.sealPattern;
+                const sealPatternLabel = sealPattern ? SEAL_PATTERN_LABEL[sealPattern] : null;
                 return (
                   <TableRow
                     key={`${row.tsCode}-${row.limitType}`}
@@ -183,8 +187,8 @@ export function AlertLimitListTableV2({ items, onSelect, onCreateAlert }: Props)
                       </Stack>
                     </TableCell>
                     <TableCell>
-                      <Label color={row.limitType === 'UP' ? 'error' : 'success'}>
-                        {row.limitType === 'UP' ? '涨停' : '跌停'}
+                      <Label color={LIMIT_TYPE_COLOR[row.limitType]}>
+                        {LIMIT_TYPE_LABEL[row.limitType]}
                       </Label>
                     </TableCell>
                     <TableCell>
@@ -201,28 +205,34 @@ export function AlertLimitListTableV2({ items, onSelect, onCreateAlert }: Props)
                       <ColoredNumber value={row.pctChg} format="percent" decimals={2} />
                     </TableCell>
                     <TableCell>
-                      <Stack direction="row" spacing={0.5} alignItems="center">
-                        <Label
-                          color={
-                            streakDays >= 5 ? 'error' : streakDays >= 3 ? 'warning' : 'default'
-                          }
-                          variant={streakDays >= 3 ? 'filled' : 'outlined'}
-                        >
-                          {streakDays}
+                      {row.limitType === 'BROKEN' ? (
+                        <Label color="warning" variant="outlined">
+                          {row.openTimes != null ? `开板 ${row.openTimes} 次` : '炸板'}
                         </Label>
-                        {status != null && STREAK_STATUS_LABEL[status] ? (
-                          <Tooltip title={STREAK_STATUS_LABEL[status]} arrow>
-                            <Label color={STREAK_STATUS_COLOR[status]} variant="outlined">
-                              {STREAK_STATUS_LABEL[status]}
-                            </Label>
-                          </Tooltip>
-                        ) : null}
-                      </Stack>
+                      ) : (
+                        <Stack direction="row" spacing={0.5} alignItems="center">
+                          <Label
+                            color={
+                              streakDays >= 5 ? 'error' : streakDays >= 3 ? 'warning' : 'default'
+                            }
+                            variant={streakDays >= 3 ? 'filled' : 'outlined'}
+                          >
+                            {streakDays}
+                          </Label>
+                          {status != null && STREAK_STATUS_LABEL[status] ? (
+                            <Tooltip title={STREAK_STATUS_LABEL[status]} arrow>
+                              <Label color={STREAK_STATUS_COLOR[status]} variant="outlined">
+                                {STREAK_STATUS_LABEL[status]}
+                              </Label>
+                            </Tooltip>
+                          ) : null}
+                        </Stack>
+                      )}
                     </TableCell>
                     <TableCell>
-                      {row.sealPattern ? (
-                        <Label color={SEAL_PATTERN_COLOR[row.sealPattern]} variant="outlined">
-                          {SEAL_PATTERN_LABEL[row.sealPattern]}
+                      {sealPattern && sealPatternLabel ? (
+                        <Label color={SEAL_PATTERN_COLOR[sealPattern]} variant="outlined">
+                          {sealPatternLabel}
                         </Label>
                       ) : (
                         <Typography variant="caption" sx={{ color: 'text.disabled' }}>

@@ -27,20 +27,39 @@ const WARNING_MESSAGES: Record<string, string> = {
   PARTIAL_EXCURSION_PATHS: '部分有效样本的路径覆盖不完整，MFE/MAE 样本量较少。',
 };
 
+const BENCHMARK_NOT_READY = 'TECHNICAL_SIGNAL_BENCHMARK_NOT_READY';
+const DATA_NOT_READY = 'TECHNICAL_SIGNAL_DATA_NOT_READY';
+
+function hasErrorCode(error: ApiError, code: string): boolean {
+  return error.code === code || error.message.startsWith(`${code}:`);
+}
+
 function errorTitle(error: ApiError): string {
-  if (error.code === 'TECHNICAL_SIGNAL_BENCHMARK_NOT_READY') return '沪深 300 基准数据未就绪';
-  if (error.code === 'TECHNICAL_SIGNAL_INSUFFICIENT_HISTORY') return '可用历史不足';
+  if (hasErrorCode(error, BENCHMARK_NOT_READY)) return '沪深 300 基准数据未就绪';
+  if (hasErrorCode(error, DATA_NOT_READY)) return '基础行情数据未就绪';
+  if (hasErrorCode(error, 'TECHNICAL_SIGNAL_INSUFFICIENT_HISTORY')) return '可用历史不足';
   if (error.code === 'TOO_MANY_REQUESTS') return '请求过于频繁';
-  if (error.code === 'TECHNICAL_SIGNAL_TIMEOUT') return '统计计算超时';
+  if (hasErrorCode(error, 'TECHNICAL_SIGNAL_TIMEOUT')) return '统计计算超时';
   if (error.status === 404) return '技术信号统计接口暂不可用';
   return '历史信号统计加载失败';
+}
+
+function errorMessage(error: unknown, apiError: ApiError | null): string {
+  if (apiError?.status === 404) return '当前环境暂未提供技术信号统计服务，请稍后重试。';
+  if (apiError && hasErrorCode(apiError, BENCHMARK_NOT_READY)) {
+    return apiError.message.slice(`${BENCHMARK_NOT_READY}:`.length).trim();
+  }
+  if (apiError && hasErrorCode(apiError, DATA_NOT_READY)) {
+    return apiError.message.slice(`${DATA_NOT_READY}:`.length).trim();
+  }
+  return error instanceof Error ? error.message : '加载历史信号统计时发生未知错误';
 }
 
 export function TechnicalSignalMetaAlert({ error, meta, onDisableBenchmark, onRetry }: Props) {
   if (error) {
     const apiError = error instanceof ApiError ? error : null;
-    const canDisableBenchmark = apiError?.code === 'TECHNICAL_SIGNAL_BENCHMARK_NOT_READY';
-    const message = error instanceof Error ? error.message : '加载历史信号统计时发生未知错误';
+    const canDisableBenchmark = apiError ? hasErrorCode(apiError, BENCHMARK_NOT_READY) : false;
+    const message = errorMessage(error, apiError);
 
     return (
       <Alert

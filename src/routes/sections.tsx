@@ -38,6 +38,12 @@ export const ScreenerSubscriptionPage = lazy(() => import('src/pages/screener-su
 export const ScreenerSubscriptionDetailPage = lazy(
   () => import('src/pages/screener-subscription-detail')
 );
+export const ScreenerSubscriptionBuilderPage = lazy(
+  () => import('src/pages/screener-subscription-builder')
+);
+export const ScreenerSubscriptionEditPage = lazy(
+  () => import('src/pages/screener-subscription-edit')
+);
 export const StrategyListPage = lazy(() => import('src/pages/strategy'));
 export const StrategyDetailPage = lazy(() => import('src/pages/strategy-detail'));
 export const ProfilePage = lazy(() => import('src/pages/profile'));
@@ -147,6 +153,8 @@ export const routesSection: RouteObject[] = [
       { path: 'research/notes', element: <ResearchNotesPage /> },
       { path: 'research/notes/:noteId', element: <ResearchNoteDetailPage /> },
       { path: 'stock/subscription', element: <ScreenerSubscriptionPage /> },
+      { path: 'stock/subscription/new', element: <ScreenerSubscriptionBuilderPage /> },
+      { path: 'stock/subscription/:id/edit', element: <ScreenerSubscriptionEditPage /> },
       { path: 'stock/subscription/:id', element: <ScreenerSubscriptionDetailPage /> },
       { path: 'profile', element: <ProfilePage /> },
       { path: 'portfolio', element: <PortfolioPage /> },

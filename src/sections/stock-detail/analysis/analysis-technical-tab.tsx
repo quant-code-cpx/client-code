@@ -92,36 +92,40 @@ export function AnalysisTechnicalTab({ tsCode }: Props) {
           {!loading && !error ? (
             <>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-        <ToggleButtonGroup
-          value={period}
-          exclusive
-          onChange={(_, v) => {
-            if (v) setPeriod(v);
-          }}
-          size="small"
-        >
-          <ToggleButton value="D">日线</ToggleButton>
-          <ToggleButton value="W">周线</ToggleButton>
-          <ToggleButton value="M">月线</ToggleButton>
-        </ToggleButtonGroup>
+                <ToggleButtonGroup
+                  value={period}
+                  exclusive
+                  onChange={(_, v) => {
+                    if (v) setPeriod(v);
+                  }}
+                  size="small"
+                >
+                  <ToggleButton value="D">日线</ToggleButton>
+                  <ToggleButton value="W">周线</ToggleButton>
+                  <ToggleButton value="M">月线</ToggleButton>
+                </ToggleButtonGroup>
 
-        <ToggleButtonGroup
-          value={days}
-          exclusive
-          onChange={(_, v) => {
-            if (v) setDays(v);
-          }}
-          size="small"
-        >
-          <ToggleButton value={60}>60日</ToggleButton>
-          <ToggleButton value={120}>120日</ToggleButton>
-          <ToggleButton value={250}>250日</ToggleButton>
-        </ToggleButtonGroup>
-      </Box>
+                <ToggleButtonGroup
+                  value={days}
+                  exclusive
+                  onChange={(_, v) => {
+                    if (v) setDays(v);
+                  }}
+                  size="small"
+                >
+                  <ToggleButton value={60}>60日</ToggleButton>
+                  <ToggleButton value={120}>120日</ToggleButton>
+                  <ToggleButton value={250}>250日</ToggleButton>
+                </ToggleButtonGroup>
+              </Box>
 
               {data ? (
                 <>
-                  <AnalysisTechnicalSignalPanel signals={data.signals} maStatus={data.maStatus} />
+                  <AnalysisTechnicalSignalPanel
+                    tsCode={tsCode}
+                    signals={data.signals}
+                    maStatus={data.maStatus}
+                  />
                   <AnalysisTechnicalMaCard history={data.history} />
                   <AnalysisTechnicalIndicatorCard history={data.history} />
                   <AnalysisTechnicalVolumeCard history={data.history} />

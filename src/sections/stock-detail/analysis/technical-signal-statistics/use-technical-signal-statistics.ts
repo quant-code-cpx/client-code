@@ -126,7 +126,7 @@ export function useTechnicalSignalStatistics(tsCode: string, enabled: boolean) {
     summaryAbortRef.current = null;
   }, []);
 
-  const loadCatalog = useCallback(async () => {
+  const loadCatalog = useCallback(async (): Promise<boolean> => {
     cancelCatalogRequest();
     const controller = new AbortController();
     const sequence = catalogSequenceRef.current + 1;
@@ -140,11 +140,13 @@ export function useTechnicalSignalStatistics(tsCode: string, enabled: boolean) {
         { includeDeprecated: false },
         controller.signal
       );
-      if (catalogSequenceRef.current !== sequence) return;
+      if (catalogSequenceRef.current !== sequence) return false;
       setCatalog({ data: definitions, error: null, loading: false, refreshing: false });
+      return true;
     } catch (error) {
-      if (isAbortError(error) || catalogSequenceRef.current !== sequence) return;
+      if (isAbortError(error) || catalogSequenceRef.current !== sequence) return false;
       setCatalog((current) => ({ ...current, error, loading: false, refreshing: false }));
+      return false;
     }
   }, [cancelCatalogRequest]);
 
@@ -208,6 +210,20 @@ export function useTechnicalSignalStatistics(tsCode: string, enabled: boolean) {
 
   const retrySummary = useCallback(() => requestSummary(appliedFilters), [appliedFilters, requestSummary]);
 
+  const loadCatalogAndSummary = useCallback(
+    async (filters: TechnicalSignalStatisticsFilters) => {
+      const catalogLoaded = await loadCatalog();
+      if (!catalogLoaded) return false;
+      return requestSummary(filters);
+    },
+    [loadCatalog, requestSummary]
+  );
+
+  const retryCatalog = useCallback(
+    () => loadCatalogAndSummary(appliedFilters),
+    [appliedFilters, loadCatalogAndSummary]
+  );
+
   useEffect(() => {
     if (!enabled || !tsCode) return undefined;
 
@@ -216,15 +232,14 @@ export function useTechnicalSignalStatistics(tsCode: string, enabled: boolean) {
     setAppliedFilters(initialFilters);
     setValidationError(null);
     setSummaryTsCode(tsCode);
-    setSummary({ data: null, error: null, loading: true, refreshing: false });
-    void loadCatalog();
-    void requestSummary(initialFilters);
+    setSummary({ data: null, error: null, loading: false, refreshing: false });
+    void loadCatalogAndSummary(initialFilters);
 
     return () => {
       cancelCatalogRequest();
       cancelSummaryRequest();
     };
-  }, [cancelCatalogRequest, cancelSummaryRequest, enabled, loadCatalog, requestSummary, tsCode]);
+  }, [cancelCatalogRequest, cancelSummaryRequest, enabled, loadCatalogAndSummary, tsCode]);
 
   const visibleSummary =
     summaryTsCode === tsCode
@@ -236,7 +251,7 @@ export function useTechnicalSignalStatistics(tsCode: string, enabled: boolean) {
     applyFilters,
     catalog,
     draftFilters,
-    retryCatalog: loadCatalog,
+    retryCatalog,
     retrySummary,
     summary: visibleSummary,
     updateDraftFilters,

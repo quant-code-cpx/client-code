@@ -21,6 +21,8 @@ import { ColoredNumber } from 'src/components/colored-number';
 
 import {
   getStreakDays,
+  LIMIT_TYPE_COLOR,
+  LIMIT_TYPE_LABEL,
   resolvePctChgLimit,
   SEAL_PATTERN_LABEL,
   formatFirstSealTime,
@@ -52,6 +54,16 @@ export function AlertLimitStockDrawer({ open, item, onClose, onCreateAlert }: Pr
 
   const streakDays = getStreakDays(item);
   const limit = resolvePctChgLimit(item);
+  const streakStatusLabel = item.streakStatus ? STREAK_STATUS_LABEL[item.streakStatus] : null;
+  const sealPatternLabel = item.sealPattern ? SEAL_PATTERN_LABEL[item.sealPattern] : null;
+  const streakLabel =
+    item.limitType === 'UP'
+      ? `${streakDays} 连板`
+      : item.limitType === 'DOWN'
+        ? `${streakDays} 连续跌停`
+        : item.openTimes != null
+          ? `开板 ${item.openTimes} 次`
+          : '炸板';
 
   return (
     <Drawer anchor="right" open={open} onClose={onClose}>
@@ -82,8 +94,8 @@ export function AlertLimitStockDrawer({ open, item, onClose, onCreateAlert }: Pr
                 类型
               </Typography>
               <Box sx={{ mt: 0.5 }}>
-                <Label color={item.limitType === 'UP' ? 'error' : 'success'}>
-                  {item.limitType === 'UP' ? '涨停' : '跌停'} · {limit}cm
+                <Label color={LIMIT_TYPE_COLOR[item.limitType]}>
+                  {LIMIT_TYPE_LABEL[item.limitType]} · {limit}cm
                 </Label>
               </Box>
             </Box>
@@ -110,14 +122,17 @@ export function AlertLimitStockDrawer({ open, item, onClose, onCreateAlert }: Pr
 
           {/* 连板 / 形态 */}
           <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
-            <Label color={streakDays >= 3 ? 'warning' : 'default'} variant="filled">
-              {item.limitType === 'UP' ? `${streakDays} 连板` : `${streakDays} 连续跌停`}
+            <Label
+              color={item.limitType === 'BROKEN' ? 'warning' : streakDays >= 3 ? 'warning' : 'default'}
+              variant="filled"
+            >
+              {streakLabel}
             </Label>
-            {item.streakStatus ? (
-              <Label variant="outlined">{STREAK_STATUS_LABEL[item.streakStatus]}</Label>
+            {streakStatusLabel ? (
+              <Label variant="outlined">{streakStatusLabel}</Label>
             ) : null}
-            {item.sealPattern ? (
-              <Label variant="outlined">{SEAL_PATTERN_LABEL[item.sealPattern]}</Label>
+            {sealPatternLabel ? (
+              <Label variant="outlined">{sealPatternLabel}</Label>
             ) : null}
           </Stack>
 

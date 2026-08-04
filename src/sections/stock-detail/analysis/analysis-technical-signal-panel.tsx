@@ -1,11 +1,17 @@
 import type { SignalSummary, MaStatusSummary } from 'src/api/stock';
+import type { SignalEventType } from 'src/api/screener-subscription';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
+import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
+
+import { useRouter } from 'src/routes/hooks';
+
+import { saveSubscriptionDraft } from 'src/sections/screener-subscription/rule-builder/draft-handoff';
 
 // ----------------------------------------------------------------------
 
@@ -62,11 +68,39 @@ function getSignalColor(signal: string | null): 'error' | 'success' | 'warning' 
 }
 
 type Props = {
+  tsCode: string;
   signals: SignalSummary;
   maStatus: MaStatusSummary;
 };
 
-export function AnalysisTechnicalSignalPanel({ signals, maStatus }: Props) {
+function eventForSignal(key: keyof SignalSummary, value: string) {
+  if (value === 'golden_cross') return { metricId: key, eventType: 'GOLDEN_CROSS' as const };
+  if (value === 'death_cross') return { metricId: key, eventType: 'DEATH_CROSS' as const };
+  if (key === 'rsi' && value === 'oversold')
+    return { metricId: 'rsi6', eventType: 'OVERSOLD_ENTER' as const };
+  if (key === 'rsi' && value === 'overbought')
+    return { metricId: 'rsi6', eventType: 'OVERBOUGHT_ENTER' as const };
+  return null;
+}
+
+export function AnalysisTechnicalSignalPanel({ tsCode, signals, maStatus }: Props) {
+  const router = useRouter();
+  const subscribe = (metricId: string, eventType: SignalEventType) => {
+    saveSubscriptionDraft({
+      source: 'signal',
+      name: `${tsCode} 技术信号订阅`,
+      ruleSpec: {
+        type: 'SIGNAL_EVENT',
+        version: 1,
+        universe: { type: 'FIXED', tsCodes: [tsCode] },
+        conditions: [{ metricId, eventType }],
+        minSatisfied: 1,
+      },
+      triggerSpec: { mode: 'EVENT', notifyOnInitialMatch: true, eventWindow: 'CURRENT_TRADE_DATE' },
+    });
+    router.push('/stock/subscription/new?source=signal');
+  };
+
   return (
     <Card>
       <CardContent>
@@ -77,18 +111,40 @@ export function AnalysisTechnicalSignalPanel({ signals, maStatus }: Props) {
           {(Object.keys(SIGNAL_LABELS) as Array<keyof SignalSummary>).map((key) => {
             const value = signals[key];
             if (!value) return null;
+            const event = eventForSignal(key, value);
             return (
-              <Chip
-                key={key}
-                label={`${SIGNAL_LABELS[key]}: ${SIGNAL_VALUE_LABELS[value] ?? value}`}
-                color={getSignalColor(value)}
-                size="small"
-                variant="outlined"
-              />
+              <Tooltip key={key} title={event ? '订阅此信号' : '当前信号暂不支持订阅'}>
+                <span>
+                  <Chip
+                    label={`${SIGNAL_LABELS[key]}: ${SIGNAL_VALUE_LABELS[value] ?? value}`}
+                    color={getSignalColor(value)}
+                    size="small"
+                    variant="outlined"
+                    clickable={Boolean(event)}
+                    onClick={event ? () => subscribe(event.metricId, event.eventType) : undefined}
+                  />
+                </span>
+              </Tooltip>
             );
           })}
-          {maStatus.bullishAlign && <Chip label="MA 多头排列" color="error" size="small" />}
-          {maStatus.bearishAlign && <Chip label="MA 空头排列" color="success" size="small" />}
+          {maStatus.bullishAlign && (
+            <Chip
+              label="MA 多头排列"
+              color="error"
+              size="small"
+              clickable
+              onClick={() => subscribe('ma_alignment', 'BULLISH_STATE_ENTER')}
+            />
+          )}
+          {maStatus.bearishAlign && (
+            <Chip
+              label="MA 空头排列"
+              color="success"
+              size="small"
+              clickable
+              onClick={() => subscribe('ma_alignment', 'BEARISH_STATE_ENTER')}
+            />
+          )}
         </Stack>
         {maStatus.latestCross && (
           <Box sx={{ mt: 1 }}>
