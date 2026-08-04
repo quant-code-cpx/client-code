@@ -64,6 +64,7 @@ docs/
 | [测试框架与计划-前端设计](design/测试框架与计划-前端设计.md) | Vitest + RTL 测试框架搭建、分阶段测试计划、Mock 策略、覆盖率目标 | 🔧 待实现 |
 | [测试Phase3-集成测试-详细设计](design/测试Phase3-集成测试-详细设计.md) | Phase 3 集成测试（AuthGuard、ErrorBoundary、SyncNotification、路由结构）详细设计 | 🔧 待实现 |
 | [接口联调校验-规划](design/接口联调校验-规划.md) | 基于 swagger.json 的前后端接口出入参逐模块校验规划（21 模块 / 242 端点） | 🔧 待实现 |
+| [AI研究工作台-重构-前端设计](design/AI研究工作台-重构-前端设计.md) | AI 研究 v2：保留现有 POST-SSE/状态层，采用 MUI 原生三栏研究工作台；含 Ant Design X、MUI X Chat、assistant-ui、CopilotKit 等技术调研与可交互 UI 稿 | 🔧 待实现 |
 | [Agent会话壳-前端设计](design/Agent会话壳-前端设计.md) | Batch 016 路由、会话状态、流恢复、Composer 与响应式工作台落地边界 | ✅ 已实现 |
 | [智能体富响应块-前端设计](design/智能体富响应块-前端设计.md) | Batch 017 安全 Markdown、白名单 BlockRenderer、Tool/引用、表格/图表/K线/财务/风险展示 | ✅ 已实现 |
 
