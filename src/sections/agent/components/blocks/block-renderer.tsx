@@ -65,7 +65,17 @@ export function BlockRenderer({ block: input, context }: BlockRendererProps) {
       <Box
         component="section"
         data-block-type={block.type}
-        sx={{ p: { xs: 1.5, md: 2 }, border: '1px solid', borderColor: 'divider', borderRadius: 1.5, bgcolor: 'background.paper' }}
+        sx={
+          block.type === 'MARKDOWN'
+            ? { p: 0, bgcolor: 'transparent' }
+            : {
+                p: { xs: 1.5, md: 2 },
+                border: '1px solid',
+                borderColor: 'divider',
+                borderRadius: 1.5,
+                bgcolor: 'background.paper',
+              }
+        }
       >
         {content}
       </Box>

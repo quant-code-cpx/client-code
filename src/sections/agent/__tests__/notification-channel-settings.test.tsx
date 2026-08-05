@@ -50,6 +50,7 @@ describe('NotificationChannelSettings', () => {
   it('渠道列表仅展示末四位，不回显 Webhook Secret', async () => {
     renderWithProviders(<NotificationChannelSettings open onClose={vi.fn()} />);
 
+    expect(screen.getByRole('dialog')).not.toHaveAttribute('data-color-scheme');
     expect(await screen.findByText('研究完成 Webhook')).toBeInTheDocument();
     expect(screen.getByText('签名 Webhook · ••••4f9a')).toBeInTheDocument();
     expect(document.body).not.toHaveTextContent('webhook-secret-must-never-appear');

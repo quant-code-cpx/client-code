@@ -1,5 +1,6 @@
 import type { LabelColor } from 'src/components/label/types';
 
+import { varAlpha } from 'minimal-shared/utils';
 import { memo, useState, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
@@ -19,16 +20,19 @@ import { Markdown } from 'src/components/markdown/markdown';
 
 import { CitationList } from './citation-list';
 import { ToolCallList } from './tool-call-card';
+import { RunActivityPanel } from './run-activity-panel';
 import { BlockRenderer } from './blocks/block-renderer';
 import { parseSupportedMessageBlock } from '../lib/message-block-guards';
 
-import type { AgentMessageEntity } from '../state/agent-state.types';
+import type { AgentMessageEntity, AgentRunProjection } from '../state/agent-state.types';
 
 type MessageItemProps = {
   message: AgentMessageEntity;
+  run: AgentRunProjection | null;
   onRegenerate: (messageId: string) => void;
   onRetry: (message: AgentMessageEntity) => void;
   onSaveReport: (runId: string) => void;
+  onContinue: () => void;
 };
 
 const STATUS_LABELS = {
@@ -46,20 +50,40 @@ function statusColor(status: AgentMessageEntity['status']): LabelColor {
   return 'info';
 }
 
-function MessageItemComponent({ message, onRegenerate, onRetry, onSaveReport }: MessageItemProps) {
+function MessageItemComponent({
+  message,
+  run,
+  onRegenerate,
+  onRetry,
+  onSaveReport,
+  onContinue,
+}: MessageItemProps) {
   const [copied, setCopied] = useState(false);
   const isUser = message.role === 'USER';
   const isAssistant = message.role === 'ASSISTANT';
-  const roleLabel = isUser ? '你' : isAssistant ? 'Agent' : message.role === 'TOOL' ? 'Tool' : '系统';
+  const roleLabel = isUser
+    ? '研究命题'
+    : isAssistant
+      ? '研究助理'
+      : message.role === 'TOOL'
+        ? '工具记录'
+        : '系统';
   const streaming = message.status === 'PENDING' || message.status === 'STREAMING';
+  const currentRun =
+    isAssistant &&
+    streaming &&
+    run &&
+    (run.assistantMessageId === message.messageId || run.runId === message.run?.runId)
+      ? run
+      : null;
   const hasMarkdownBlock = message.contentBlocks.some((input) => {
     const result = parseSupportedMessageBlock(input);
     return result.ok && result.block.type === 'MARKDOWN';
   });
   const canRegenerate =
-    message.role === 'ASSISTANT' &&
-    ['COMPLETED', 'FAILED', 'CANCELLED'].includes(message.status);
-  const canSaveReport = isAssistant && message.status === 'COMPLETED' && Boolean(message.run?.runId);
+    message.role === 'ASSISTANT' && ['COMPLETED', 'FAILED', 'CANCELLED'].includes(message.status);
+  const canSaveReport =
+    isAssistant && message.status === 'COMPLETED' && Boolean(message.run?.runId);
 
   const handleCopy = useCallback(async () => {
     if (!message.contentText) return;
@@ -74,34 +98,130 @@ function MessageItemComponent({ message, onRegenerate, onRetry, onSaveReport }: 
 
   return (
     <Box
-      component="article"
+      component="div"
       aria-label={isUser ? '你的消息' : 'Agent 回答'}
-      sx={{ display: 'flex', justifyContent: isUser ? 'flex-end' : 'flex-start', px: { xs: 2, md: 4 }, py: 1.5 }}
+      sx={{
+        width: 1,
+        maxWidth: 1160,
+        mx: 'auto',
+        px: { xs: 2, md: 3.25 },
+        py: { xs: 1.75, md: 2.25 },
+      }}
     >
       <Box
         sx={(theme) => ({
-          width: isUser ? 'min(78%, 680px)' : 'min(100%, 860px)',
+          width: 1,
+          maxWidth: isUser ? 760 : 1080,
           minWidth: 0,
+          ml: isUser ? 'auto' : 0,
           ...(isUser && {
-            px: 2,
-            py: 1.5,
-            borderRadius: 1,
-            bgcolor: theme.vars.palette.action.selected,
+            px: 2.25,
+            py: 1.75,
+            borderRadius: '12px 12px 2px 12px',
+            bgcolor: varAlpha(theme.vars.palette.primary.mainChannel, 0.16),
             border: `1px solid ${theme.vars.palette.divider}`,
           }),
+          ...(isAssistant && {
+            px: { xs: 2, md: 2.5 },
+            pt: 2,
+            pb: 1.25,
+            border: '1px solid',
+            borderColor: 'divider',
+            borderRadius: 1.5,
+            bgcolor: theme.vars.palette.background.paper,
+          }),
+          '&:hover .agent-message-actions, &:focus-within .agent-message-actions': {
+            opacity: 1,
+          },
         })}
       >
-        <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.75, minHeight: 24 }}>
-          <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700 }}>
+        <Stack
+          direction="row"
+          alignItems="center"
+          spacing={0.75}
+          sx={{ mb: isUser ? 0.75 : 1.5, minHeight: 24 }}
+        >
+          {isAssistant ? (
+            <Box
+              sx={(theme) => ({
+                width: 24,
+                height: 24,
+                display: 'grid',
+                placeItems: 'center',
+                border: '1px solid',
+                borderColor: 'divider',
+                borderRadius: 0.75,
+                color: 'primary.main',
+                bgcolor: theme.vars.palette.background.default,
+              })}
+            >
+              <Iconify icon="solar:magic-stick-3-bold-duotone" width={15} />
+            </Box>
+          ) : null}
+          <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500 }}>
             {roleLabel}
           </Typography>
-          <Label color={statusColor(message.status)} variant="soft">
-            {message.deliveryStatus === 'UNSENT' ? '未发送' : STATUS_LABELS[message.status]}
-          </Label>
+          {message.deliveryStatus === 'UNSENT' || message.status !== 'COMPLETED' ? (
+            <Label color={statusColor(message.status)} variant="soft">
+              {message.deliveryStatus === 'UNSENT' ? '未发送' : STATUS_LABELS[message.status]}
+            </Label>
+          ) : null}
           <Typography variant="caption" sx={{ ml: 'auto !important', color: 'text.disabled' }}>
             {fDateTime(message.createdAt)}
           </Typography>
         </Stack>
+
+        {isAssistant ? (
+          <Stack
+            direction="row"
+            spacing={2}
+            alignItems="flex-start"
+            justifyContent="space-between"
+            sx={{ mb: 2, pb: 2, borderBottom: 1, borderColor: 'divider' }}
+          >
+            <Box sx={{ minWidth: 0 }}>
+              <Typography
+                variant="caption"
+                sx={{
+                  display: 'block',
+                  mb: 0.5,
+                  color: 'primary.light',
+                  fontWeight: 700,
+                  letterSpacing: 1.05,
+                }}
+              >
+                RESEARCH DOSSIER{message.modelName ? ` / ${message.modelName}` : ''}
+              </Typography>
+              <Typography component="h2" variant="h6" sx={{ fontWeight: 700 }}>
+                研究结论
+              </Typography>
+            </Box>
+            {message.citations.length > 0 ? (
+              <Box
+                sx={{
+                  minWidth: 90,
+                  px: 1.5,
+                  py: 1,
+                  border: 1,
+                  borderColor: 'divider',
+                  borderRadius: 1,
+                  bgcolor: 'background.default',
+                }}
+              >
+                <Typography variant="caption" sx={{ display: 'block', color: 'text.disabled' }}>
+                  已关联引用
+                </Typography>
+                <Typography variant="h6" sx={{ mt: 0.25, fontWeight: 500 }}>
+                  {message.citations.length} 条
+                </Typography>
+              </Box>
+            ) : null}
+          </Stack>
+        ) : null}
+
+        {currentRun ? (
+          <RunActivityPanel run={currentRun} startedAt={message.createdAt} onContinue={onContinue} />
+        ) : null}
 
         {message.contentText && (isUser || !hasMarkdownBlock) ? (
           isUser ? (
@@ -115,7 +235,7 @@ function MessageItemComponent({ message, onRegenerate, onRetry, onSaveReport }: 
           ) : (
             <Markdown streaming={streaming}>{message.contentText}</Markdown>
           )
-        ) : message.contentBlocks.length === 0 ? (
+        ) : message.contentBlocks.length === 0 && !currentRun ? (
           <Typography variant="body2" sx={{ py: 1, color: 'text.secondary' }}>
             {message.status === 'PENDING' ? '等待研究开始…' : '暂无可展示内容'}
           </Typography>
@@ -147,10 +267,27 @@ function MessageItemComponent({ message, onRegenerate, onRetry, onSaveReport }: 
           runId={message.run?.runId}
           statusVersion={message.run?.statusVersion}
           enabled={isAssistant && CONFIG.agentRichBlocksEnabled}
+          defaultExpanded={message.status === 'FAILED'}
         />
         <CitationList citations={message.citations} />
 
-        <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mt: 1 }}>
+        <Stack
+          className="agent-message-actions"
+          direction="row"
+          spacing={0.5}
+          alignItems="center"
+          sx={(theme) => ({
+            mt: isAssistant ? 1.25 : 1,
+            pt: isAssistant ? 1 : 0,
+            borderTop: isAssistant ? 1 : 0,
+            borderColor: 'divider',
+            opacity: { xs: 1, md: 0.64 },
+            transition: theme.transitions.create('opacity', {
+              duration: theme.transitions.duration.short,
+            }),
+            '@media (prefers-reduced-motion: reduce)': { transition: 'none' },
+          })}
+        >
           {message.contentText ? (
             <Tooltip title={copied ? '已复制' : '复制'}>
               <IconButton size="small" aria-label="复制消息" onClick={handleCopy}>
@@ -171,7 +308,11 @@ function MessageItemComponent({ message, onRegenerate, onRetry, onSaveReport }: 
           ) : null}
           {canSaveReport && message.run?.runId ? (
             <Tooltip title="保存研究报告">
-              <IconButton size="small" aria-label="保存研究报告" onClick={() => onSaveReport(message.run!.runId)}>
+              <IconButton
+                size="small"
+                aria-label="保存研究报告"
+                onClick={() => onSaveReport(message.run!.runId)}
+              >
                 <Iconify icon="solar:document-add-bold" width={17} />
               </IconButton>
             </Tooltip>

@@ -16,6 +16,8 @@ const models = {
       displayName: '快速研究',
       provider: 'primary',
       capabilities: ['STREAMING', 'STRUCTURED_OUTPUT'],
+      contextWindow: 128000,
+      maxOutputTokens: 8192,
       costTier: 'LOW' as const,
       status: 'AVAILABLE' as const,
       reason: null,
@@ -25,6 +27,8 @@ const models = {
       displayName: '暂停模型',
       provider: 'secondary',
       capabilities: ['STREAMING'],
+      contextWindow: 32000,
+      maxOutputTokens: 4096,
       costTier: 'HIGH' as const,
       status: 'UNAVAILABLE' as const,
       reason: '模型供应商暂时不可用',
@@ -47,7 +51,9 @@ describe('ConversationModelControl', () => {
     await user.click(screen.getByRole('button', { name: '自动模型' }));
     await user.click(screen.getByRole('button', { name: '指定模型' }));
 
+    expect(screen.getByRole('dialog')).not.toHaveAttribute('data-color-scheme');
     await waitFor(() => expect(screen.getByText('快速研究')).toBeInTheDocument());
+    expect(screen.getByText(/上下文 128K · 最大输出 8.2K/)).toBeInTheDocument();
     expect(screen.getByText('暂停模型')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '保存' })).toBeDisabled();
 

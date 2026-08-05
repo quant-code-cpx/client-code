@@ -1103,6 +1103,370 @@
         ]
       }
     },
+    "/agent/admin/evaluations/run": {
+      "post": {
+        "operationId": "AgentEvaluationAdminController_run",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RunAgentEvaluationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "object"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "执行版本化 fake Agent 评测（管理员）",
+        "tags": [
+          "Agent - 管理员评测"
+        ]
+      }
+    },
+    "/agent/admin/evaluations/status": {
+      "post": {
+        "operationId": "AgentEvaluationAdminController_status",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AgentEvaluationStatusDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "object"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "查询 Agent 评测运行状态与版本摘要（管理员）",
+        "tags": [
+          "Agent - 管理员评测"
+        ]
+      }
+    },
+    "/agent/admin/evaluations/detail": {
+      "post": {
+        "operationId": "AgentEvaluationAdminController_detail",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AgentEvaluationDetailDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "object"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "查询 Agent 评测单例结果（管理员）",
+        "tags": [
+          "Agent - 管理员评测"
+        ]
+      }
+    },
+    "/agent/admin/model-providers/list": {
+      "post": {
+        "operationId": "ModelProviderAdminController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/ModelProviderListResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "查询模型供应商配置（不返回 API key）",
+        "tags": [
+          "Agent - 模型供应商管理"
+        ]
+      }
+    },
+    "/agent/admin/model-providers/create": {
+      "post": {
+        "operationId": "ModelProviderAdminController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateModelProviderDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/ModelProviderAdminResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "新增模型供应商并立即刷新网关",
+        "tags": [
+          "Agent - 模型供应商管理"
+        ]
+      }
+    },
+    "/agent/admin/model-providers/update": {
+      "post": {
+        "operationId": "ModelProviderAdminController_update",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateModelProviderDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/ModelProviderAdminResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "更新模型供应商并立即刷新网关",
+        "tags": [
+          "Agent - 模型供应商管理"
+        ]
+      }
+    },
+    "/agent/admin/model-providers/delete": {
+      "post": {
+        "operationId": "ModelProviderAdminController_delete",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModelProviderIdDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/ModelProviderDeleteResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "删除模型供应商并立即刷新网关",
+        "tags": [
+          "Agent - 模型供应商管理"
+        ]
+      }
+    },
+    "/agent/admin/model-providers/reload": {
+      "post": {
+        "operationId": "ModelProviderAdminController_reload",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "object"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "从数据库重新加载模型供应商配置",
+        "tags": [
+          "Agent - 模型供应商管理"
+        ]
+      }
+    },
     "/agent/reports/list": {
       "post": {
         "operationId": "ResearchReportController_list",
@@ -2352,7 +2716,7 @@
           },
           "workflowVersion": {
             "type": "number",
-            "default": 1,
+            "default": 4,
             "minimum": 1
           },
           "modelPolicy": {
@@ -2834,6 +3198,454 @@
             ]
           }
         }
+      },
+      "ModelProviderDeleteResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "deleted": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "deleted"
+        ]
+      },
+      "ModelProviderIdDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,128}$"
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
+      "ModelProviderAdminResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "providerId": {
+            "type": "string",
+            "description": "供应商标识；同一供应商可对应多个模型配置"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          },
+          "priority": {
+            "type": "number"
+          },
+          "costTier": {
+            "type": "string"
+          },
+          "baseUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "apiKeyConfigured": {
+            "type": "boolean"
+          },
+          "apiKeyLastFour": {
+            "type": "string",
+            "nullable": true
+          },
+          "contextWindow": {
+            "type": "number"
+          },
+          "maxOutputTokens": {
+            "type": "number"
+          },
+          "capabilities": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "reasoningEfforts": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "dataClasses": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "timeoutMs": {
+            "type": "number"
+          },
+          "maxRetries": {
+            "type": "number"
+          },
+          "retryBaseMs": {
+            "type": "number"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "updatedAt": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "providerId",
+          "kind",
+          "displayName",
+          "model",
+          "priority",
+          "costTier",
+          "apiKeyConfigured",
+          "contextWindow",
+          "maxOutputTokens",
+          "capabilities",
+          "reasoningEfforts",
+          "dataClasses",
+          "timeoutMs",
+          "maxRetries",
+          "retryBaseMs",
+          "enabled",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "UpdateModelProviderDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,128}$"
+          },
+          "providerId": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,128}$",
+            "description": "可被多个模型配置复用的供应商标识"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "openai-compatible"
+            ]
+          },
+          "displayName": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "model": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "priority": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1000
+          },
+          "costTier": {
+            "type": "string",
+            "enum": [
+              "LOW",
+              "MEDIUM",
+              "HIGH"
+            ]
+          },
+          "baseUrl": {
+            "type": "string",
+            "format": "uri"
+          },
+          "apiKey": {
+            "type": "string",
+            "writeOnly": true,
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "contextWindow": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 10000000
+          },
+          "maxOutputTokens": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 1000000
+          },
+          "capabilities": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "STREAMING",
+                "STRUCTURED_OUTPUT",
+                "TOOL_CALLING",
+                "PARALLEL_TOOL_CALLING",
+                "VISION",
+                "REASONING_EFFORT"
+              ]
+            }
+          },
+          "reasoningEfforts": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "LOW",
+                "MEDIUM",
+                "HIGH"
+              ]
+            }
+          },
+          "dataClasses": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "PUBLIC",
+                "USER_PRIVATE",
+                "PORTFOLIO_SENSITIVE"
+              ]
+            }
+          },
+          "timeoutMs": {
+            "type": "number",
+            "minimum": 100,
+            "maximum": 300000
+          },
+          "maxRetries": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 2
+          },
+          "retryBaseMs": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 10000
+          },
+          "enabled": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
+      "CreateModelProviderDto": {
+        "type": "object",
+        "properties": {
+          "providerId": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,128}$",
+            "example": "deepseek",
+            "description": "可被多个模型配置复用的供应商标识"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "openai-compatible"
+            ]
+          },
+          "displayName": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "model": {
+            "type": "string",
+            "maxLength": 128,
+            "example": "deepseek-chat"
+          },
+          "priority": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1000,
+            "default": 0
+          },
+          "costTier": {
+            "type": "string",
+            "enum": [
+              "LOW",
+              "MEDIUM",
+              "HIGH"
+            ],
+            "default": "MEDIUM"
+          },
+          "baseUrl": {
+            "type": "string",
+            "format": "uri",
+            "description": "OpenAI-compatible API 根地址，生产必须是 allowlist 中的 HTTPS"
+          },
+          "apiKey": {
+            "type": "string",
+            "writeOnly": true,
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "contextWindow": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 10000000
+          },
+          "maxOutputTokens": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 1000000
+          },
+          "capabilities": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "STREAMING",
+                "STRUCTURED_OUTPUT",
+                "TOOL_CALLING",
+                "PARALLEL_TOOL_CALLING",
+                "VISION",
+                "REASONING_EFFORT"
+              ]
+            }
+          },
+          "reasoningEfforts": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "LOW",
+                "MEDIUM",
+                "HIGH"
+              ]
+            }
+          },
+          "dataClasses": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "PUBLIC",
+                "USER_PRIVATE",
+                "PORTFOLIO_SENSITIVE"
+              ]
+            }
+          },
+          "timeoutMs": {
+            "type": "number",
+            "minimum": 100,
+            "maximum": 300000,
+            "default": 120000
+          },
+          "maxRetries": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 2,
+            "default": 2
+          },
+          "retryBaseMs": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 10000,
+            "default": 200
+          },
+          "enabled": {
+            "type": "object",
+            "default": true
+          }
+        },
+        "required": [
+          "providerId",
+          "kind",
+          "displayName",
+          "model",
+          "priority",
+          "costTier",
+          "contextWindow",
+          "maxOutputTokens",
+          "capabilities",
+          "reasoningEfforts",
+          "dataClasses",
+          "timeoutMs",
+          "maxRetries",
+          "retryBaseMs"
+        ]
+      },
+      "ModelProviderListResponseDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ModelProviderAdminResponseDto"
+            }
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "AgentEvaluationDetailDto": {
+        "type": "object",
+        "properties": {
+          "evaluationRunId": {
+            "type": "string"
+          },
+          "caseId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "evaluationRunId",
+          "caseId"
+        ]
+      },
+      "AgentEvaluationStatusDto": {
+        "type": "object",
+        "properties": {
+          "evaluationRunId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "evaluationRunId"
+        ]
+      },
+      "RunAgentEvaluationDto": {
+        "type": "object",
+        "properties": {
+          "clientRequestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "dataset": {
+            "type": "string",
+            "enum": [
+              "mvp"
+            ],
+            "default": "mvp"
+          },
+          "provider": {
+            "type": "string",
+            "enum": [
+              "fake"
+            ],
+            "default": "fake"
+          }
+        },
+        "required": [
+          "clientRequestId"
+        ]
       },
       "AgentRunEventsDto": {
         "type": "object",
@@ -3730,6 +4542,12 @@
               "type": "string"
             }
           },
+          "contextWindow": {
+            "type": "number"
+          },
+          "maxOutputTokens": {
+            "type": "number"
+          },
           "costTier": {
             "type": "string",
             "enum": [
@@ -3755,6 +4573,8 @@
           "displayName",
           "provider",
           "capabilities",
+          "contextWindow",
+          "maxOutputTokens",
           "costTier",
           "status"
         ]
@@ -3776,6 +4596,9 @@
             "type": "string",
             "nullable": true
           },
+          "contextPreparation": {
+            "$ref": "#/components/schemas/ConversationContextPreparationResponseDto"
+          },
           "updatedAt": {
             "type": "string",
             "format": "date-time"
@@ -3784,7 +4607,52 @@
         "required": [
           "conversationId",
           "modelPolicy",
+          "contextPreparation",
           "updatedAt"
+        ]
+      },
+      "ConversationContextPreparationResponseDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "READY",
+              "COMPACTION_REQUIRED",
+              "INCOMPATIBLE"
+            ]
+          },
+          "targetModel": {
+            "type": "string"
+          },
+          "contextWindow": {
+            "type": "number"
+          },
+          "estimatedRecentTokens": {
+            "type": "number"
+          },
+          "triggerTokens": {
+            "type": "number"
+          },
+          "targetTokens": {
+            "type": "number"
+          },
+          "willAutoCompactOnNextRun": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "targetModel",
+          "contextWindow",
+          "estimatedRecentTokens",
+          "triggerTokens",
+          "targetTokens",
+          "willAutoCompactOnNextRun",
+          "message"
         ]
       },
       "UpdateConversationModelDto": {

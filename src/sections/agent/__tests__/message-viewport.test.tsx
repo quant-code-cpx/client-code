@@ -1,29 +1,39 @@
-import { screen } from '@testing-library/react';
+import { useState } from 'react';
+import { screen, fireEvent } from '@testing-library/react';
 
 import { renderWithProviders } from 'src/test/test-utils';
 
 import { MessageViewport } from '../components/message-viewport';
+import { toChatMessages } from '../components/mui-x-chat/agent-chat-mappers';
+import { AgentMuiXProvider } from '../components/mui-x-chat/agent-mui-x-provider';
 
-import type { AgentMessageEntity } from '../state/agent-state.types';
+import type { AgentMessageEntity, AgentRunProjection } from '../state/agent-state.types';
 
-const virtuosoCapture = vi.hoisted(() => ({ props: null as Record<string, unknown> | null }));
+const { scrollToBottom } = vi.hoisted(() => ({ scrollToBottom: vi.fn() }));
 
-vi.mock('react-virtuoso', () => ({
-  Virtuoso: (props: Record<string, unknown>) => {
-    virtuosoCapture.props = props;
-    const data = props.data as AgentMessageEntity[];
-    const itemContent = props.itemContent as (
-      index: number,
-      message: AgentMessageEntity
-    ) => React.ReactNode;
-    return (
-      <div data-testid="virtuoso">
-        {data.length > 0 ? itemContent(0, data[0]) : null}
-        {data.length > 1 ? itemContent(data.length - 1, data[data.length - 1]) : null}
-      </div>
-    );
-  },
-}));
+vi.mock('@mui/x-chat/ChatMessageList', async () => {
+  const React = await import('react');
+
+  return {
+    ChatMessageList: React.forwardRef<
+      { scrollToBottom: () => void },
+      {
+        items: string[];
+        renderItem: ({ id, index }: { id: string; index: number }) => React.ReactNode;
+      }
+    >(({ items, renderItem }, ref) => {
+      React.useImperativeHandle(ref, () => ({ scrollToBottom }));
+
+      return (
+        <div className="MuiChatMessageList-root">
+          {items.map((id, index) => (
+            <React.Fragment key={id}>{renderItem({ id, index })}</React.Fragment>
+          ))}
+        </div>
+      );
+    }),
+  };
+});
 
 function message(index: number, contentText = `消息 ${index}`): AgentMessageEntity {
   return {
@@ -43,39 +53,86 @@ function message(index: number, contentText = `消息 ${index}`): AgentMessageEn
   };
 }
 
-function renderViewport(messages: AgentMessageEntity[]) {
-  return renderWithProviders(
-    <MessageViewport
-      messages={messages}
-      status="ready"
-      error={null}
+type MessageViewportFixtureProps = {
+  messages: AgentMessageEntity[];
+  activeRun?: AgentRunProjection | null;
+};
+
+function MessageViewportFixture({ messages, activeRun = null }: MessageViewportFixtureProps) {
+  return (
+    <AgentMuiXProvider
+      activeConversationId="cm_1"
+      composerValue=""
+      conversations={[]}
+      messages={toChatMessages(messages)}
       hasOlder={false}
-      onLoadOlder={vi.fn()}
-      onRetryLoad={vi.fn()}
-      onRegenerate={vi.fn()}
-      onRetryMessage={vi.fn()}
-      onSaveReport={vi.fn()}
-    />
+      onActiveConversationChange={vi.fn()}
+      onComposerValueChange={vi.fn()}
+    >
+      <MessageViewport
+        messages={messages}
+        activeRun={activeRun}
+        status="ready"
+        error={null}
+        hasOlder={false}
+        onLoadOlder={vi.fn()}
+        onRetryLoad={vi.fn()}
+        onRegenerate={vi.fn()}
+        onRetryMessage={vi.fn()}
+        onSaveReport={vi.fn()}
+        onContinue={vi.fn()}
+      />
+    </AgentMuiXProvider>
   );
 }
 
-describe('MessageViewport', () => {
-  it('长会话交给 react-virtuoso，不在页面层直接展开全部消息', () => {
-    const messages = Array.from({ length: 200 }, (_, index) => message(index));
-    renderViewport(messages);
+function FollowLatestFixture() {
+  const [messages, setMessages] = useState([message(0)]);
 
-    expect(screen.getByTestId('virtuoso')).toBeInTheDocument();
-    expect((virtuosoCapture.props?.data as AgentMessageEntity[]).length).toBe(200);
-    expect(screen.getByText('消息 0')).toBeInTheDocument();
-    expect(screen.getByText('消息 199')).toBeInTheDocument();
+  return (
+    <>
+      <button type="button" onClick={() => setMessages((current) => [...current, message(1)])}>
+        追加消息
+      </button>
+      <MessageViewportFixture messages={messages} />
+    </>
+  );
+}
+
+function renderViewport(messages: AgentMessageEntity[], activeRun: AgentRunProjection | null = null) {
+  return renderWithProviders(<MessageViewportFixture messages={messages} activeRun={activeRun} />);
+}
+
+describe('MessageViewport', () => {
+  beforeEach(() => {
+    scrollToBottom.mockReset();
+    vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
+      callback(0);
+      return 1;
+    });
+    vi.stubGlobal('cancelAnimationFrame', vi.fn());
   });
 
-  it('只有位于底部时跟随增量，离开底部时返回 false', () => {
-    renderViewport([message(1)]);
-    const followOutput = virtuosoCapture.props?.followOutput as (atBottom: boolean) => unknown;
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
 
-    expect(followOutput(true)).toBe('auto');
-    expect(followOutput(false)).toBe(false);
+  it('使用 MUI X ChatMessageList 和自定义研究消息 renderer', () => {
+    const messages = [message(0), message(1)];
+    const { container } = renderViewport(messages);
+
+    expect(container.querySelector('.MuiChatMessageList-root')).toBeInTheDocument();
+    expect(container.querySelectorAll('.MuiChatMessage-root')).toHaveLength(2);
+    expect(screen.getByText('消息 0')).toBeInTheDocument();
+    expect(screen.getByText('消息 1')).toBeInTheDocument();
+  });
+
+  it('保留消息列表 roving focus 的 article 语义', () => {
+    renderViewport([message(0), message(1)]);
+
+    expect(screen.getAllByRole('article')).toHaveLength(2);
+    expect(screen.getByLabelText('你的消息')).toBeInTheDocument();
+    expect(screen.getByLabelText('Agent 回答')).toBeInTheDocument();
   });
 
   it('Batch 017 对助手内容启用安全 Markdown，raw HTML 不进入 DOM', () => {
@@ -83,5 +140,60 @@ describe('MessageViewport', () => {
 
     expect(document.querySelector('img')).toBeNull();
     expect(document.body).not.toHaveTextContent('onerror');
+  });
+
+  it('将当前 Run 的公开执行状态投影到对应的助手占位消息', () => {
+    const assistantMessage: AgentMessageEntity = {
+      ...message(1, ''),
+      status: 'PENDING',
+      run: { runId: 'run_1', status: 'RUNNING', statusVersion: 3, endedAt: null },
+    };
+    const activeRun: AgentRunProjection = {
+      runId: 'run_1',
+      conversationId: 'cm_1',
+      assistantMessageId: assistantMessage.messageId,
+      status: 'RUNNING',
+      statusVersion: 3,
+      canCancel: true,
+      currentStep: null,
+      latestEventSequence: 3,
+      connectionGeneration: 1,
+      connectionState: 'OPEN',
+      reconnects: 0,
+      stageLabel: '正在组织研究结论',
+      planSummary: '核验行情与财务数据后形成结论。',
+      progress: { label: '研究数据', completed: 2, total: 4 },
+      needsFinalSnapshot: false,
+      cancelRequested: false,
+    };
+
+    renderViewport([assistantMessage], activeRun);
+
+    expect(screen.getByLabelText('实时执行进度')).toBeInTheDocument();
+    expect(screen.getByText('正在组织研究结论')).toBeInTheDocument();
+    expect(screen.getByText('计划摘要：核验行情与财务数据后形成结论。')).toBeInTheDocument();
+    expect(screen.queryByText('等待研究开始…')).not.toBeInTheDocument();
+  });
+
+  it('发送乐观用户消息后自动滚动到底部', () => {
+    const optimisticMessage = {
+      ...message(0),
+      messageId: 'local:request_1',
+      role: 'USER' as const,
+      deliveryStatus: 'SENDING' as const,
+    };
+
+    renderViewport([optimisticMessage]);
+
+    expect(scrollToBottom).toHaveBeenCalled();
+  });
+
+  it('已在底部时跟随新消息维持在底部', () => {
+    renderWithProviders(<FollowLatestFixture />);
+    scrollToBottom.mockReset();
+
+    fireEvent.click(screen.getByRole('button', { name: '追加消息' }));
+
+    expect(scrollToBottom).toHaveBeenCalled();
   });
 });

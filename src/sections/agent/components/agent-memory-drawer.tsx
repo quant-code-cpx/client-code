@@ -157,7 +157,16 @@ function MemoryEditorDialog({ memory, open, onClose, onSaved }: MemoryEditorDial
       onClose={!saving ? onClose : undefined}
       fullWidth
       maxWidth="sm"
-      slotProps={{ paper: { sx: { overscrollBehavior: 'contain' } } }}
+      slotProps={{
+        paper: {
+          sx: {
+            color: 'text.primary',
+            bgcolor: 'background.paper',
+            backgroundImage: 'none',
+            overscrollBehavior: 'contain',
+          },
+        },
+      }}
     >
       <DialogTitle>{memory ? '纠正长期记忆' : '保存长期记忆'}</DialogTitle>
       <DialogContent>
@@ -327,25 +336,32 @@ export function AgentMemoryDrawer({ open, onClose }: AgentMemoryDrawerProps) {
         slotProps={{
           paper: {
             sx: {
-              width: { xs: 1, sm: 480 },
+              width: { xs: 1, sm: 520 },
+              color: 'text.primary',
+              bgcolor: 'background.default',
+              backgroundImage: 'none',
               overflowX: 'hidden',
               overscrollBehavior: 'contain',
             },
           },
         }}
       >
-        <Box sx={{ px: 2.5, py: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Box sx={{ px: 2.5, py: 2.25, display: 'flex', alignItems: 'center', gap: 1 }}>
           <Box sx={{ minWidth: 0, flexGrow: 1 }}>
             <Typography variant="h6">长期记忆</Typography>
             <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-              仅将明确确认的信息用于后续研究。
+              管理研究偏好、关注项与口径约束。
             </Typography>
           </Box>
-          <Tooltip title="保存长期记忆">
-            <IconButton aria-label="保存长期记忆" onClick={() => setEditorMemory(null)}>
-              <Iconify icon="solar:add-circle-bold" width={21} />
-            </IconButton>
-          </Tooltip>
+          <Button
+            size="small"
+            variant="contained"
+            aria-label="保存长期记忆"
+            startIcon={<Iconify icon="solar:add-circle-bold" width={18} />}
+            onClick={() => setEditorMemory(null)}
+          >
+            新建记忆
+          </Button>
           <Tooltip title="关闭长期记忆">
             <IconButton aria-label="关闭长期记忆" onClick={onClose}>
               <Iconify icon="solar:close-circle-bold" width={21} />
@@ -354,6 +370,44 @@ export function AgentMemoryDrawer({ open, onClose }: AgentMemoryDrawerProps) {
         </Box>
 
         <Divider />
+
+        {!loading && items.length > 0 ? (
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+              gap: 1,
+              px: 2.5,
+              py: 1.5,
+              borderBottom: 1,
+              borderColor: 'divider',
+            }}
+          >
+            {[
+              { label: '有效记忆', value: items.length },
+              {
+                label: '敏感项',
+                value: items.filter((item) => item.sensitivity !== 'NORMAL').length,
+              },
+              {
+                label: '设有期限',
+                value: items.filter((item) => Boolean(item.expiresAt)).length,
+              },
+            ].map((item) => (
+              <Box
+                key={item.label}
+                sx={{ p: 1.25, border: 1, borderColor: 'divider', borderRadius: 1.25 }}
+              >
+                <Typography variant="caption" sx={{ display: 'block', color: 'text.disabled' }}>
+                  {item.label}
+                </Typography>
+                <Typography variant="h6" sx={{ mt: 0.25 }}>
+                  {item.value}
+                </Typography>
+              </Box>
+            ))}
+          </Box>
+        ) : null}
 
         {error ? (
           <Alert severity="error" action={<Button onClick={load}>重试</Button>} sx={{ borderRadius: 0 }}>
@@ -384,6 +438,7 @@ export function AgentMemoryDrawer({ open, onClose }: AgentMemoryDrawerProps) {
                     border: 1,
                     borderColor: 'divider',
                     borderRadius: 1.5,
+                    bgcolor: 'background.paper',
                     contentVisibility: 'auto',
                     containIntrinsicSize: 'auto 208px',
                   }}

@@ -95,6 +95,7 @@ export function TechnicalSignalStatisticsPanel({ tsCode }: Props) {
   return (
     <Stack spacing={3}>
       <TechnicalSignalFilterCard
+        dataAsOf={summary.data?.meta.dataAsOf}
         definitions={catalog.data ?? []}
         disabled={catalog.loading || !catalog.data}
         filters={draftFilters}

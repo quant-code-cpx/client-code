@@ -7,7 +7,6 @@ import Chip from '@mui/material/Chip';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
-import Divider from '@mui/material/Divider';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import DialogTitle from '@mui/material/DialogTitle';
@@ -19,6 +18,7 @@ import { fDateTime } from 'src/utils/format-time';
 import { agentApi } from 'src/api/agent';
 
 import { Iconify } from 'src/components/iconify';
+import { Markdown } from 'src/components/markdown/markdown';
 
 import { AgentReportContent } from './agent-report-content';
 
@@ -71,6 +71,13 @@ function journalPayload(form: JournalForm): ResearchReportJournal | undefined {
 function createClientRequestId(): string {
   if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') return crypto.randomUUID();
   return `report-${Date.now()}-${Math.random().toString(36).slice(2, 12)}`;
+}
+
+function presentationTitle(value: string): string {
+  return value
+    .replace(/\*\*|__|`/g, '')
+    .replace(/^#+\s*/, '')
+    .trim();
 }
 
 export function AgentReportPreviewDialog({ open, runId, onClose, onSaved }: AgentReportPreviewDialogProps) {
@@ -151,11 +158,28 @@ export function AgentReportPreviewDialog({ open, runId, onClose, onSaved }: Agen
       open={open}
       onClose={!saving ? onClose : undefined}
       fullWidth
-      maxWidth="md"
+      maxWidth="xl"
       aria-labelledby="agent-report-preview-title"
+      slotProps={{
+        paper: {
+          sx: {
+            height: { md: 'min(820px, calc(100dvh - 64px))' },
+            color: 'text.primary',
+            bgcolor: 'background.default',
+            backgroundImage: 'none',
+            overflow: 'hidden',
+            overscrollBehavior: 'contain',
+          },
+        },
+      }}
     >
-      <DialogTitle id="agent-report-preview-title">保存研究报告</DialogTitle>
-      <DialogContent dividers>
+      <DialogTitle component="div" id="agent-report-preview-title">
+        <Typography variant="caption" sx={{ color: 'primary.light', letterSpacing: 1 }}>
+          RESEARCH REPORTS
+        </Typography>
+        <Typography variant="h6">保存研究报告</Typography>
+      </DialogTitle>
+      <DialogContent dividers sx={{ p: 0 }}>
         {error ? <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert> : null}
 
         {loadingPreview ? (
@@ -165,8 +189,20 @@ export function AgentReportPreviewDialog({ open, runId, onClose, onSaved }: Agen
         ) : null}
 
         {preview ? (
-          <Box>
-            <Typography variant="h6">{preview.title}</Typography>
+          <Box
+            sx={{
+              minHeight: 1,
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', md: 'minmax(0, 1.7fr) 340px' },
+            }}
+          >
+            <Box sx={{ p: { xs: 2, md: 3 }, bgcolor: 'background.default' }}>
+            <Typography variant="caption" sx={{ color: 'primary.light', letterSpacing: 0.8 }}>
+              QUANTDESK RESEARCH
+            </Typography>
+            <Typography variant="h5" sx={{ mt: 0.5, fontWeight: 700, textWrap: 'balance' }}>
+              {presentationTitle(preview.title)}
+            </Typography>
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1, mb: 2 }}>
               <Chip
                 size="small"
@@ -179,19 +215,40 @@ export function AgentReportPreviewDialog({ open, runId, onClose, onSaved }: Agen
               />
               <Chip size="small" label={`确认截止 ${fDateTime(preview.confirmationExpiresAt)}`} />
             </Box>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 2, whiteSpace: 'pre-wrap' }}>
-              {preview.summary}
-            </Typography>
-            <AgentReportContent
-              messageId={preview.messageId}
-              runId={preview.runId}
-              contentBlocks={preview.contentBlocks}
-              citations={preview.citations}
-            />
+            <Box sx={{ mb: 2, color: 'text.secondary', '& p': { m: 0 } }}>
+              <Markdown>{preview.summary}</Markdown>
+            </Box>
+            <Box
+              sx={{
+                minHeight: 420,
+                p: 3,
+                border: 1,
+                borderColor: 'divider',
+                borderRadius: 1.5,
+                bgcolor: 'background.paper',
+              }}
+            >
+              <AgentReportContent
+                messageId={preview.messageId}
+                runId={preview.runId}
+                contentBlocks={preview.contentBlocks}
+                citations={preview.citations}
+              />
+            </Box>
+            </Box>
 
-            <Divider sx={{ my: 3 }} />
-            <Typography variant="subtitle1" sx={{ mb: 1 }}>投资日志（可选）</Typography>
-            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, minmax(0, 1fr))' }, gap: 1.5 }}>
+            <Box
+              component="aside"
+              aria-label="报告保存设置"
+              sx={{ p: 3, borderLeft: { md: 1 }, borderColor: 'divider' }}
+            >
+            <Typography variant="subtitle1" sx={{ mb: 0.5, fontWeight: 700 }}>
+              保存设置
+            </Typography>
+            <Typography variant="caption" sx={{ display: 'block', mb: 2, color: 'text.secondary' }}>
+              引用与数据口径随报告保留；投资日志可选。
+            </Typography>
+            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr', gap: 1.5 }}>
               <TextField
                 label="证券代码"
                 value={journal.tsCode}
@@ -244,6 +301,7 @@ export function AgentReportPreviewDialog({ open, runId, onClose, onSaved }: Agen
                 投资日志已修改，请先更新预览再确认保存。
               </Alert>
             ) : null}
+            </Box>
           </Box>
         ) : null}
       </DialogContent>

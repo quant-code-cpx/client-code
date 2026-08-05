@@ -9,7 +9,7 @@ import { fmtTradeDate } from 'src/utils/format-time';
 
 // ----------------------------------------------------------------------
 
-export const DEFAULT_SIGNAL_PERIODS: TechnicalSignalPeriod[] = ['1Y', '3Y'];
+export const DEFAULT_SIGNAL_PERIOD: TechnicalSignalPeriod = '3Y';
 
 export const DEFAULT_SIGNAL_HORIZONS = [1, 3, 5, 10, 20];
 

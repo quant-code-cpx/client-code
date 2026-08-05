@@ -93,7 +93,15 @@ export function AgentReportContent({
                   component="li"
                   id={`citation-${citation.citationId}`}
                   key={citation.citationId}
-                  sx={{ display: 'flex', gap: 1, borderBottom: 1, borderColor: 'divider', pb: 1 }}
+                  sx={{
+                    display: 'flex',
+                    gap: 1,
+                    p: 1.25,
+                    border: 1,
+                    borderColor: 'divider',
+                    borderRadius: 1,
+                    bgcolor: 'background.default',
+                  }}
                 >
                   <Typography variant="caption" sx={{ color: 'text.disabled' }}>
                     [{index + 1}]

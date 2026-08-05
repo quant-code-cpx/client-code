@@ -4,6 +4,8 @@ import type {
   TechnicalSignalDefinition,
 } from 'src/api/technical-signal';
 
+import dayjs from 'dayjs';
+
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Chip from '@mui/material/Chip';
@@ -21,6 +23,8 @@ import ToggleButton from '@mui/material/ToggleButton';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
+import { DatePicker } from 'src/components/date-picker';
+
 import { PERIOD_LABELS, DIRECTION_LABELS } from './technical-signal-formatters';
 
 import type { TechnicalSignalStatisticsFilters } from './use-technical-signal-statistics';
@@ -28,6 +32,7 @@ import type { TechnicalSignalStatisticsFilters } from './use-technical-signal-st
 // ----------------------------------------------------------------------
 
 type Props = {
+  dataAsOf?: string;
   definitions: TechnicalSignalDefinition[];
   disabled: boolean;
   filters: TechnicalSignalStatisticsFilters;
@@ -38,6 +43,8 @@ type Props = {
 };
 
 const HORIZON_OPTIONS = [1, 3, 5, 10, 20, 30, 60];
+const CUSTOM_PERIOD_MAX_YEARS = 5;
+const CUSTOM_PERIOD_MAX_DATE = dayjs().endOf('day');
 
 const fieldLabelSx = {
   display: 'block',
@@ -65,6 +72,7 @@ function directionColor(direction: TechnicalSignalDefinition['direction']) {
 
 export function TechnicalSignalFilterCard({
   definitions,
+  dataAsOf,
   disabled,
   filters,
   loading,
@@ -79,7 +87,9 @@ export function TechnicalSignalFilterCard({
         selected.semanticsVersion === definition.semanticsVersion
     )
   );
-  const includesCustomPeriod = filters.periods.includes('CUSTOM');
+  const includesCustomPeriod = filters.period === 'CUSTOM';
+  const customPeriodMaxDate = dataAsOf ? dayjs(dataAsOf).endOf('day') : CUSTOM_PERIOD_MAX_DATE;
+  const customPeriodMinDate = customPeriodMaxDate.subtract(CUSTOM_PERIOD_MAX_YEARS, 'year').startOf('day');
 
   return (
     <Card>
@@ -168,11 +178,13 @@ export function TechnicalSignalFilterCard({
                 统计区间
               </Typography>
               <ToggleButtonGroup
+                aria-label="统计区间"
                 color="primary"
                 disabled={disabled}
-                value={filters.periods}
-                onChange={(_, value: TechnicalSignalPeriod[]) => {
-                  if (value.length > 0) onChange({ periods: value });
+                exclusive
+                value={filters.period}
+                onChange={(_, value: TechnicalSignalPeriod | null) => {
+                  if (value) onChange({ period: value });
                 }}
                 size="small"
                 sx={toggleGroupSx}
@@ -242,23 +254,27 @@ export function TechnicalSignalFilterCard({
 
           {includesCustomPeriod && (
             <Stack direction="row" spacing={2}>
-              <TextField
+              <DatePicker
                 disabled={disabled}
-                fullWidth
                 label="自定义开始日"
-                onChange={(event) => onChange({ customStartDate: event.target.value })}
-                slotProps={{ inputLabel: { shrink: true } }}
-                type="date"
-                value={filters.customStartDate}
+                maxDate={filters.customEndDate ? dayjs(filters.customEndDate) : customPeriodMaxDate}
+                minDate={customPeriodMinDate}
+                onChange={(value) =>
+                  onChange({ customStartDate: value?.format('YYYY-MM-DD') ?? '' })
+                }
+                slotProps={{ textField: { fullWidth: true, helperText: '仅支持最近 5 年' } }}
+                sx={{ flex: 1 }}
+                value={filters.customStartDate ? dayjs(filters.customStartDate) : null}
               />
-              <TextField
+              <DatePicker
                 disabled={disabled}
-                fullWidth
                 label="自定义结束日"
-                onChange={(event) => onChange({ customEndDate: event.target.value })}
-                slotProps={{ inputLabel: { shrink: true } }}
-                type="date"
-                value={filters.customEndDate}
+                maxDate={customPeriodMaxDate}
+                minDate={filters.customStartDate ? dayjs(filters.customStartDate) : customPeriodMinDate}
+                onChange={(value) => onChange({ customEndDate: value?.format('YYYY-MM-DD') ?? '' })}
+                slotProps={{ textField: { fullWidth: true, helperText: '仅支持最近 5 年' } }}
+                sx={{ flex: 1 }}
+                value={filters.customEndDate ? dayjs(filters.customEndDate) : null}
               />
             </Stack>
           )}

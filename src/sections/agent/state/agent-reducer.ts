@@ -7,6 +7,7 @@ import type {
   AgentRunProjection,
   AgentConversationEntity,
   AgentConversationLoadState,
+  AgentModelDiagnostic,
 } from './agent-state.types';
 
 const EMPTY_LOAD: AgentConversationLoadState = {
@@ -209,6 +210,30 @@ function updateRunMessage(
       [message.messageId]: { ...message, ...patch },
     },
   };
+}
+
+function upsertModelDiagnostic(
+  run: AgentRunProjection,
+  modelCallId: string,
+  patch: Partial<AgentModelDiagnostic>
+): AgentModelDiagnostic[] {
+  const diagnostics = run.modelDiagnostics ?? [];
+  const index = diagnostics.findIndex((item) => item.modelCallId === modelCallId);
+  const current =
+    index >= 0
+      ? diagnostics[index]
+      : {
+          modelCallId,
+          provider: 'unknown',
+          model: 'unknown',
+          purpose: 'UNKNOWN',
+          phase: 'STARTED' as const,
+          attempt: 1,
+          status: 'RUNNING' as const,
+        };
+  const next = { ...current, ...patch } satisfies AgentModelDiagnostic;
+  if (index < 0) return [...diagnostics, next].slice(-8);
+  return diagnostics.map((item, itemIndex) => (itemIndex === index ? next : item));
 }
 
 export function agentReducer(state: AgentState, action: AgentAction): AgentState {
@@ -686,6 +711,37 @@ export function agentReducer(state: AgentState, action: AgentAction): AgentState
             },
           };
           break;
+        case 'context.compaction.started':
+          nextRun = {
+            ...nextRun,
+            stageLabel: `正在整理历史会话以适配 ${action.event.payload.model}`,
+            errorCode: undefined,
+            errorMessage: null,
+            retryable: undefined,
+            modelActivity: undefined,
+            draftPreview: undefined,
+          };
+          break;
+        case 'context.compaction.completed':
+          nextRun = {
+            ...nextRun,
+            stageLabel: '历史会话整理完成，正在继续处理',
+            errorCode: undefined,
+            errorMessage: null,
+            retryable: undefined,
+          };
+          break;
+        case 'context.compaction.failed':
+          nextRun = {
+            ...nextRun,
+            stageLabel: '历史会话整理失败',
+            errorCode: action.event.payload.code,
+            errorMessage: action.event.payload.message,
+            retryable: action.event.payload.retryable,
+            modelActivity: undefined,
+            draftPreview: undefined,
+          };
+          break;
         case 'tool.started':
           nextRun = { ...nextRun, stageLabel: `正在调用 ${action.event.payload.toolName}` };
           break;
@@ -704,17 +760,163 @@ export function agentReducer(state: AgentState, action: AgentAction): AgentState
         case 'model.started':
           nextRun = {
             ...nextRun,
+            modelDiagnostics: upsertModelDiagnostic(nextRun, action.event.payload.modelCallId, {
+              ...action.event.payload,
+              phase: 'STARTED',
+              attempt: 1,
+              status: 'RUNNING',
+              error: undefined,
+              willFallback: undefined,
+            }),
+            modelActivity: undefined,
+            ...(action.event.payload.purpose === 'SYNTHESIZE'
+              ? { draftPreview: undefined }
+              : {}),
             stageLabel:
-              action.event.payload.purpose === 'PLAN' ? '正在规划研究' : '正在组织研究结论',
+              action.event.payload.purpose === 'PLAN'
+                ? '正在规划研究'
+                : action.event.payload.purpose === 'SUMMARIZE'
+                  ? '正在整理历史会话'
+                  : action.event.payload.purpose === 'VERIFY'
+                    ? '正在核验研究结论'
+                    : action.event.payload.purpose === 'CLASSIFY'
+                      ? '正在理解研究问题'
+                      : '正在组织研究结论',
           };
           break;
+        case 'model.trace': {
+          const trace = action.event.payload;
+          const patch: Partial<AgentModelDiagnostic> = {
+            phase: trace.phase,
+            attempt: trace.attempt,
+            status: 'RUNNING',
+          };
+          if (trace.phase === 'REQUEST_DISPATCHED') {
+            patch.messageCount = trace.messageCount;
+            patch.estimatedInputTokens = trace.estimatedInputTokens;
+            patch.maxOutputTokens = trace.maxOutputTokens;
+            patch.contextWindow = trace.contextWindow;
+          }
+          if (trace.phase === 'FIRST_PROVIDER_CHUNK') patch.firstChunkType = trace.chunkType;
+          if (trace.phase === 'PROVIDER_COMPLETED') patch.finishReason = trace.finishReason;
+          nextRun = {
+            ...nextRun,
+            modelDiagnostics: upsertModelDiagnostic(nextRun, trace.modelCallId, patch),
+            stageLabel:
+              trace.phase === 'REQUEST_DISPATCHED'
+                ? '模型请求已发送，等待供应商响应'
+                : trace.phase === 'FIRST_PROVIDER_CHUNK'
+                  ? trace.chunkType === 'REASONING'
+                    ? '模型正在深度分析（推理内容已隐藏）'
+                    : '模型正在生成结构化输出'
+                  : trace.phase === 'STRUCTURED_REPAIR'
+                    ? '模型输出格式校验失败，正在修复'
+                    : '模型输出已接收，正在校验',
+          };
+          break;
+        }
         case 'model.fallback':
           nextRun = {
             ...nextRun,
             stageLabel: `正在切换到 ${action.event.payload.toModel}`,
+            modelActivity: undefined,
+            draftPreview: undefined,
+          };
+          break;
+        case 'model.activity':
+          nextRun = {
+            ...nextRun,
+            modelDiagnostics: upsertModelDiagnostic(nextRun, action.event.payload.modelCallId, {
+              phase: 'REASONING',
+              status: 'RUNNING',
+            }),
+            stageLabel: nextRun.stageLabel.includes('历史会话')
+              ? '模型正在整理历史会话（推理内容已隐藏）'
+              : '模型正在深度分析（推理内容已隐藏）',
+            modelActivity: action.event.payload,
+          };
+          break;
+        case 'model.preview.reset':
+          nextRun = {
+            ...nextRun,
+            modelDiagnostics: upsertModelDiagnostic(nextRun, action.event.payload.modelCallId, {
+              phase: 'DRAFT_STREAMING',
+              attempt: action.event.payload.attempt,
+              status: 'RUNNING',
+            }),
+            stageLabel: '正在生成答案草稿',
+            modelActivity: undefined,
+            draftPreview: {
+              modelCallId: action.event.payload.modelCallId,
+              attempt: action.event.payload.attempt,
+              text: '',
+            },
+          };
+          break;
+        case 'model.preview.delta': {
+          const currentPreview = nextRun.draftPreview;
+          const sameAttempt =
+            currentPreview?.modelCallId === action.event.payload.modelCallId &&
+            currentPreview.attempt === action.event.payload.attempt;
+          const text = `${sameAttempt ? currentPreview.text : ''}${action.event.payload.delta}`.slice(
+            0,
+            8000
+          );
+          nextRun = {
+            ...nextRun,
+            modelDiagnostics: upsertModelDiagnostic(nextRun, action.event.payload.modelCallId, {
+              phase: 'DRAFT_STREAMING',
+              attempt: action.event.payload.attempt,
+              status: 'RUNNING',
+            }),
+            stageLabel: '正在生成答案草稿',
+            modelActivity: undefined,
+            draftPreview: {
+              modelCallId: action.event.payload.modelCallId,
+              attempt: action.event.payload.attempt,
+              text,
+            },
+          };
+          break;
+        }
+        case 'model.completed':
+          nextRun = {
+            ...nextRun,
+            modelDiagnostics: upsertModelDiagnostic(nextRun, action.event.payload.modelCallId, {
+              ...action.event.payload,
+              phase: 'COMPLETED',
+              attempt: nextRun.modelDiagnostics?.find(
+                (item) => item.modelCallId === action.event.payload.modelCallId
+              )?.attempt ?? 1,
+              status: 'COMPLETED',
+              error: undefined,
+              willFallback: undefined,
+            }),
+            stageLabel: '模型输出已通过结构化校验',
+            modelActivity: undefined,
+          };
+          break;
+        case 'model.failed':
+          nextRun = {
+            ...nextRun,
+            modelDiagnostics: upsertModelDiagnostic(nextRun, action.event.payload.modelCallId, {
+              ...action.event.payload,
+              phase: 'FAILED',
+              attempt: nextRun.modelDiagnostics?.find(
+                (item) => item.modelCallId === action.event.payload.modelCallId
+              )?.attempt ?? 1,
+              status: 'FAILED',
+            }),
+            stageLabel: action.event.payload.willFallback ? '模型调用失败，正在切换' : '模型调用失败',
+            errorCode: action.event.payload.error.code,
+            errorMessage: action.event.payload.error.message,
+            retryable: action.event.payload.error.retryable,
+            modelActivity: undefined,
+            draftPreview: action.event.payload.willFallback ? undefined : nextRun.draftPreview,
           };
           break;
         case 'model.delta': {
+          nextRun = { ...nextRun, modelActivity: undefined, draftPreview: undefined };
           const messageId = action.event.messageId ?? nextRun.assistantMessageId;
           const message = messages.byId[messageId];
           if (message) {
@@ -753,6 +955,8 @@ export function agentReducer(state: AgentState, action: AgentAction): AgentState
             needsFinalSnapshot: true,
             connectionState: 'COMPLETED',
             stageLabel: '研究完成',
+            modelActivity: undefined,
+            draftPreview: undefined,
           };
           break;
         }
@@ -768,6 +972,8 @@ export function agentReducer(state: AgentState, action: AgentAction): AgentState
             errorCode: action.event.payload.error.code,
             errorMessage: action.event.payload.error.message,
             retryable: action.event.payload.retryable,
+            modelActivity: undefined,
+            draftPreview: undefined,
           };
           break;
         case 'agent.cancelled':
@@ -779,6 +985,8 @@ export function agentReducer(state: AgentState, action: AgentAction): AgentState
             needsFinalSnapshot: true,
             connectionState: 'COMPLETED',
             stageLabel: '已停止',
+            modelActivity: undefined,
+            draftPreview: undefined,
           };
           break;
         default:

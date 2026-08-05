@@ -4,6 +4,7 @@ import { screen, fireEvent } from '@testing-library/react';
 import { renderWithProviders } from 'src/test/test-utils';
 
 import { Composer } from '../components/composer';
+import { AgentMuiXProvider } from '../components/mui-x-chat/agent-mui-x-provider';
 
 function renderComposer(overrides?: Partial<React.ComponentProps<typeof Composer>>) {
   const props: React.ComponentProps<typeof Composer> = {
@@ -13,15 +14,34 @@ function renderComposer(overrides?: Partial<React.ComponentProps<typeof Composer
     isRunning: false,
     stopping: false,
     error: null,
-    onChange: vi.fn(),
     onSubmit: vi.fn(),
     onStop: vi.fn(),
     ...overrides,
   };
-  return { props, ...renderWithProviders(<Composer {...props} />) };
+  return {
+    props,
+    ...renderWithProviders(
+      <AgentMuiXProvider
+        activeConversationId={null}
+        composerValue={props.value}
+        conversations={[]}
+        messages={[]}
+        hasOlder={false}
+        onActiveConversationChange={vi.fn()}
+        onComposerValueChange={vi.fn()}
+      >
+        <Composer {...props} />
+      </AgentMuiXProvider>
+    ),
+  };
 }
 
 describe('Agent Composer', () => {
+  it('渲染真实 MUI X ChatComposer 根节点', () => {
+    const { container } = renderComposer();
+    expect(container.querySelector('.MuiChatComposer-root')).toBeInTheDocument();
+  });
+
   it('空白内容不能发送', () => {
     const { props } = renderComposer({ value: '   ' });
 
@@ -52,6 +72,13 @@ describe('Agent Composer', () => {
     fireEvent.compositionEnd(input);
     fireEvent.keyDown(input, { key: 'Enter' });
     expect(props.onSubmit).toHaveBeenCalledTimes(1);
+  });
+
+  it('输入事件不被取消，允许中文输入法完成组词', () => {
+    renderComposer();
+    const input = screen.getByLabelText('研究问题');
+
+    expect(fireEvent.change(input, { target: { value: 'zhongwen' } })).toBe(true);
   });
 
   it('超过 10,000 字显示原地错误并禁用发送', () => {

@@ -62,6 +62,24 @@ export const AGENT_TOOL_KEYS = [
   'compute_valuation_percentile',
   'search_web',
   'fetch_web_page',
+  'get_stock_technical_indicators',
+  'get_stock_technical_signals',
+  'get_data_availability',
+  'get_stock_chip_profile',
+  'get_stock_margin_history',
+  'get_stock_relative_strength',
+  'get_stock_events',
+  'get_stock_shareholder_profile',
+  'get_index_market_data',
+  'get_fund_research',
+  'get_industry_rotation',
+  'get_factor_analysis',
+  'get_macro_snapshot',
+  'get_option_market',
+  'get_convertible_bond_market',
+  'run_event_study',
+  'get_backtest_analytics',
+  'get_portfolio_analytics',
   'save_research_report',
 ] as const;
 export const AGENT_EVENT_TYPES = [
@@ -69,11 +87,20 @@ export const AGENT_EVENT_TYPES = [
   'agent.started',
   'agent.planning',
   'agent.progress',
+  'context.compaction.started',
+  'context.compaction.completed',
+  'context.compaction.failed',
   'tool.started',
   'tool.completed',
   'tool.failed',
   'model.started',
+  'model.trace',
   'model.fallback',
+  'model.activity',
+  'model.preview.reset',
+  'model.preview.delta',
+  'model.completed',
+  'model.failed',
   'model.delta',
   'citation.created',
   'report.generated',
@@ -405,6 +432,27 @@ export const AGENT_ERROR_DEFINITIONS = [
     message: '研究报告幂等请求或版本冲突',
   },
   {
+    code: 6047,
+    key: 'AI_CONTEXT_COMPACTION_FAILED',
+    httpStatus: 503,
+    retryable: true,
+    message: '会话上下文整理失败，请重试或切换到上下文更大的模型',
+  },
+  {
+    code: 6048,
+    key: 'AI_MODEL_CONTEXT_INCOMPATIBLE',
+    httpStatus: 422,
+    retryable: false,
+    message: '当前会话无法装入所选模型的上下文窗口',
+  },
+  {
+    code: 6049,
+    key: 'AI_CURRENT_INPUT_TOO_LARGE',
+    httpStatus: 422,
+    retryable: false,
+    message: '当前输入本身超过所选模型的上下文窗口',
+  },
+  {
     code: 6099,
     key: 'AI_INTERNAL_ERROR',
     httpStatus: 500,
@@ -584,6 +632,19 @@ export type AgentEventPayloadMap = {
   'agent.started': { workflowKey: string; workflowVersion: number; modelPolicy: ModelPolicy };
   'agent.planning': { intent: string; capabilities: AgentCapability[]; planSummary: string };
   'agent.progress': { stepKey: string; label: string; completed: number; total: number | null };
+  'context.compaction.started': {
+    model: string;
+    reason: 'MODEL_CONTEXT_PRESSURE' | 'MODEL_SWITCH';
+    estimatedTokens: number;
+    targetTokens: number;
+  };
+  'context.compaction.completed': {
+    model: string;
+    summaryVersion: number;
+    sourceMessageCount: number;
+    sourceTokenCount: number;
+  };
+  'context.compaction.failed': { model: string; code: 6047; retryable: boolean; message: string };
   'tool.started': {
     toolCallId: string;
     toolName: AgentToolKey;
@@ -601,12 +662,62 @@ export type AgentEventPayloadMap = {
   };
   'tool.failed': { toolCallId: string; error: StreamError; attempt: number; willRetry: boolean };
   'model.started': { modelCallId: string; provider: string; model: string; purpose: string };
+  'model.trace':
+    | {
+        modelCallId: string;
+        attempt: number;
+        phase: 'REQUEST_DISPATCHED';
+        messageCount: number;
+        estimatedInputTokens: number;
+        maxOutputTokens: number;
+        contextWindow: number;
+      }
+    | {
+        modelCallId: string;
+        attempt: number;
+        phase: 'FIRST_PROVIDER_CHUNK';
+        chunkType: 'REASONING' | 'OUTPUT' | 'TOOL_CALL' | 'USAGE' | 'COMPLETED';
+      }
+    | { modelCallId: string; attempt: number; phase: 'STRUCTURED_REPAIR' }
+    | {
+        modelCallId: string;
+        attempt: number;
+        phase: 'PROVIDER_COMPLETED';
+        finishReason: string | null;
+      };
   'model.fallback': {
     fromProvider: string;
     fromModel: string;
     toProvider: string;
     toModel: string;
     reasonCode: string;
+  };
+  'model.activity': { modelCallId: string; phase: 'REASONING'; processedCharacters: number };
+  'model.preview.reset': { modelCallId: string; attempt: number };
+  'model.preview.delta': { modelCallId: string; attempt: number; delta: string };
+  'model.completed': {
+    modelCallId: string;
+    provider: string;
+    model: string;
+    purpose: string;
+    durationMs: number;
+    repaired: boolean;
+    finishReason: string | null;
+    usage: {
+      inputTokens: number;
+      outputTokens: number;
+      cachedTokens?: number;
+      reasoningTokens?: number;
+    } | null;
+  };
+  'model.failed': {
+    modelCallId: string;
+    provider: string;
+    model: string;
+    purpose: string;
+    durationMs: number;
+    error: StreamError;
+    willFallback: boolean;
   };
   'model.delta': { modelCallId: string; blockIndex: number; delta: string };
   'citation.created': { citation: Citation };
@@ -992,6 +1103,252 @@ export const AGENT_CONTRACT_JSON_SCHEMA = {
               maximum: 9007199254740991,
             },
             type: {
+              const: 'context.compaction.started',
+            },
+            runId: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 128,
+            },
+            conversationId: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 128,
+            },
+            messageId: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 128,
+            },
+            occurredAt: {
+              type: 'string',
+              format: 'date-time',
+            },
+            traceId: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 128,
+            },
+            payload: {
+              type: 'object',
+              additionalProperties: false,
+              required: ['model', 'reason', 'estimatedTokens', 'targetTokens'],
+              properties: {
+                model: {
+                  type: 'string',
+                  minLength: 1,
+                  maxLength: 128,
+                },
+                reason: {
+                  enum: ['MODEL_CONTEXT_PRESSURE', 'MODEL_SWITCH'],
+                },
+                estimatedTokens: {
+                  type: 'integer',
+                  minimum: 1,
+                  maximum: 9007199254740991,
+                },
+                targetTokens: {
+                  type: 'integer',
+                  minimum: 1,
+                  maximum: 9007199254740991,
+                },
+              },
+            },
+          },
+        },
+        {
+          type: 'object',
+          additionalProperties: true,
+          required: [
+            'schemaVersion',
+            'eventId',
+            'sequence',
+            'type',
+            'runId',
+            'conversationId',
+            'occurredAt',
+            'traceId',
+            'payload',
+          ],
+          properties: {
+            schemaVersion: {
+              const: '1.0',
+            },
+            eventId: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 128,
+            },
+            sequence: {
+              type: 'integer',
+              minimum: 0,
+              maximum: 9007199254740991,
+            },
+            type: {
+              const: 'context.compaction.completed',
+            },
+            runId: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 128,
+            },
+            conversationId: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 128,
+            },
+            messageId: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 128,
+            },
+            occurredAt: {
+              type: 'string',
+              format: 'date-time',
+            },
+            traceId: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 128,
+            },
+            payload: {
+              type: 'object',
+              additionalProperties: false,
+              required: ['model', 'summaryVersion', 'sourceMessageCount', 'sourceTokenCount'],
+              properties: {
+                model: {
+                  type: 'string',
+                  minLength: 1,
+                  maxLength: 128,
+                },
+                summaryVersion: {
+                  type: 'integer',
+                  minimum: 1,
+                  maximum: 9007199254740991,
+                },
+                sourceMessageCount: {
+                  type: 'integer',
+                  minimum: 1,
+                  maximum: 9007199254740991,
+                },
+                sourceTokenCount: {
+                  type: 'integer',
+                  minimum: 1,
+                  maximum: 9007199254740991,
+                },
+              },
+            },
+          },
+        },
+        {
+          type: 'object',
+          additionalProperties: true,
+          required: [
+            'schemaVersion',
+            'eventId',
+            'sequence',
+            'type',
+            'runId',
+            'conversationId',
+            'occurredAt',
+            'traceId',
+            'payload',
+          ],
+          properties: {
+            schemaVersion: {
+              const: '1.0',
+            },
+            eventId: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 128,
+            },
+            sequence: {
+              type: 'integer',
+              minimum: 0,
+              maximum: 9007199254740991,
+            },
+            type: {
+              const: 'context.compaction.failed',
+            },
+            runId: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 128,
+            },
+            conversationId: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 128,
+            },
+            messageId: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 128,
+            },
+            occurredAt: {
+              type: 'string',
+              format: 'date-time',
+            },
+            traceId: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 128,
+            },
+            payload: {
+              type: 'object',
+              additionalProperties: false,
+              required: ['model', 'code', 'retryable', 'message'],
+              properties: {
+                model: {
+                  type: 'string',
+                  minLength: 1,
+                  maxLength: 128,
+                },
+                code: {
+                  const: 6047,
+                },
+                retryable: {
+                  type: 'boolean',
+                },
+                message: {
+                  type: 'string',
+                  minLength: 1,
+                  maxLength: 1000,
+                },
+              },
+            },
+          },
+        },
+        {
+          type: 'object',
+          additionalProperties: true,
+          required: [
+            'schemaVersion',
+            'eventId',
+            'sequence',
+            'type',
+            'runId',
+            'conversationId',
+            'occurredAt',
+            'traceId',
+            'payload',
+          ],
+          properties: {
+            schemaVersion: {
+              const: '1.0',
+            },
+            eventId: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 128,
+            },
+            sequence: {
+              type: 'integer',
+              minimum: 0,
+              maximum: 9007199254740991,
+            },
+            type: {
               const: 'tool.started',
             },
             runId: {
@@ -1046,6 +1403,24 @@ export const AGENT_CONTRACT_JSON_SCHEMA = {
                     'compute_valuation_percentile',
                     'search_web',
                     'fetch_web_page',
+                    'get_stock_technical_indicators',
+                    'get_stock_technical_signals',
+                    'get_data_availability',
+                    'get_stock_chip_profile',
+                    'get_stock_margin_history',
+                    'get_stock_relative_strength',
+                    'get_stock_events',
+                    'get_stock_shareholder_profile',
+                    'get_index_market_data',
+                    'get_fund_research',
+                    'get_industry_rotation',
+                    'get_factor_analysis',
+                    'get_macro_snapshot',
+                    'get_option_market',
+                    'get_convertible_bond_market',
+                    'run_event_study',
+                    'get_backtest_analytics',
+                    'get_portfolio_analytics',
                     'save_research_report',
                   ],
                 },
@@ -1393,6 +1768,183 @@ export const AGENT_CONTRACT_JSON_SCHEMA = {
               maximum: 9007199254740991,
             },
             type: {
+              const: 'model.trace',
+            },
+            runId: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 128,
+            },
+            conversationId: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 128,
+            },
+            messageId: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 128,
+            },
+            occurredAt: {
+              type: 'string',
+              format: 'date-time',
+            },
+            traceId: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 128,
+            },
+            payload: {
+              oneOf: [
+                {
+                  type: 'object',
+                  additionalProperties: false,
+                  required: [
+                    'modelCallId',
+                    'attempt',
+                    'phase',
+                    'messageCount',
+                    'estimatedInputTokens',
+                    'maxOutputTokens',
+                    'contextWindow',
+                  ],
+                  properties: {
+                    modelCallId: {
+                      type: 'string',
+                      minLength: 1,
+                      maxLength: 128,
+                    },
+                    attempt: {
+                      type: 'integer',
+                      minimum: 1,
+                      maximum: 9007199254740991,
+                    },
+                    phase: {
+                      const: 'REQUEST_DISPATCHED',
+                    },
+                    messageCount: {
+                      type: 'integer',
+                      minimum: 0,
+                      maximum: 9007199254740991,
+                    },
+                    estimatedInputTokens: {
+                      type: 'integer',
+                      minimum: 0,
+                      maximum: 9007199254740991,
+                    },
+                    maxOutputTokens: {
+                      type: 'integer',
+                      minimum: 1,
+                      maximum: 9007199254740991,
+                    },
+                    contextWindow: {
+                      type: 'integer',
+                      minimum: 1,
+                      maximum: 9007199254740991,
+                    },
+                  },
+                },
+                {
+                  type: 'object',
+                  additionalProperties: false,
+                  required: ['modelCallId', 'attempt', 'phase', 'chunkType'],
+                  properties: {
+                    modelCallId: {
+                      type: 'string',
+                      minLength: 1,
+                      maxLength: 128,
+                    },
+                    attempt: {
+                      type: 'integer',
+                      minimum: 1,
+                      maximum: 9007199254740991,
+                    },
+                    phase: {
+                      const: 'FIRST_PROVIDER_CHUNK',
+                    },
+                    chunkType: {
+                      enum: ['REASONING', 'OUTPUT', 'TOOL_CALL', 'USAGE', 'COMPLETED'],
+                    },
+                  },
+                },
+                {
+                  type: 'object',
+                  additionalProperties: false,
+                  required: ['modelCallId', 'attempt', 'phase'],
+                  properties: {
+                    modelCallId: {
+                      type: 'string',
+                      minLength: 1,
+                      maxLength: 128,
+                    },
+                    attempt: {
+                      type: 'integer',
+                      minimum: 1,
+                      maximum: 9007199254740991,
+                    },
+                    phase: {
+                      const: 'STRUCTURED_REPAIR',
+                    },
+                  },
+                },
+                {
+                  type: 'object',
+                  additionalProperties: false,
+                  required: ['modelCallId', 'attempt', 'phase', 'finishReason'],
+                  properties: {
+                    modelCallId: {
+                      type: 'string',
+                      minLength: 1,
+                      maxLength: 128,
+                    },
+                    attempt: {
+                      type: 'integer',
+                      minimum: 1,
+                      maximum: 9007199254740991,
+                    },
+                    phase: {
+                      const: 'PROVIDER_COMPLETED',
+                    },
+                    finishReason: {
+                      type: ['string', 'null'],
+                      minLength: 1,
+                      maxLength: 128,
+                    },
+                  },
+                },
+              ],
+            },
+          },
+        },
+        {
+          type: 'object',
+          additionalProperties: true,
+          required: [
+            'schemaVersion',
+            'eventId',
+            'sequence',
+            'type',
+            'runId',
+            'conversationId',
+            'occurredAt',
+            'traceId',
+            'payload',
+          ],
+          properties: {
+            schemaVersion: {
+              const: '1.0',
+            },
+            eventId: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 128,
+            },
+            sequence: {
+              type: 'integer',
+              minimum: 0,
+              maximum: 9007199254740991,
+            },
+            type: {
               const: 'model.fallback',
             },
             runId: {
@@ -1448,6 +2000,503 @@ export const AGENT_CONTRACT_JSON_SCHEMA = {
                   type: 'string',
                   minLength: 1,
                   maxLength: 128,
+                },
+              },
+            },
+          },
+        },
+        {
+          type: 'object',
+          additionalProperties: true,
+          required: [
+            'schemaVersion',
+            'eventId',
+            'sequence',
+            'type',
+            'runId',
+            'conversationId',
+            'occurredAt',
+            'traceId',
+            'payload',
+          ],
+          properties: {
+            schemaVersion: {
+              const: '1.0',
+            },
+            eventId: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 128,
+            },
+            sequence: {
+              type: 'integer',
+              minimum: 0,
+              maximum: 9007199254740991,
+            },
+            type: {
+              const: 'model.activity',
+            },
+            runId: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 128,
+            },
+            conversationId: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 128,
+            },
+            messageId: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 128,
+            },
+            occurredAt: {
+              type: 'string',
+              format: 'date-time',
+            },
+            traceId: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 128,
+            },
+            payload: {
+              type: 'object',
+              additionalProperties: false,
+              required: ['modelCallId', 'phase', 'processedCharacters'],
+              properties: {
+                modelCallId: {
+                  type: 'string',
+                  minLength: 1,
+                  maxLength: 128,
+                },
+                phase: {
+                  const: 'REASONING',
+                },
+                processedCharacters: {
+                  type: 'integer',
+                  minimum: 1,
+                  maximum: 9007199254740991,
+                },
+              },
+            },
+          },
+        },
+        {
+          type: 'object',
+          additionalProperties: true,
+          required: [
+            'schemaVersion',
+            'eventId',
+            'sequence',
+            'type',
+            'runId',
+            'conversationId',
+            'occurredAt',
+            'traceId',
+            'payload',
+          ],
+          properties: {
+            schemaVersion: {
+              const: '1.0',
+            },
+            eventId: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 128,
+            },
+            sequence: {
+              type: 'integer',
+              minimum: 0,
+              maximum: 9007199254740991,
+            },
+            type: {
+              const: 'model.preview.reset',
+            },
+            runId: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 128,
+            },
+            conversationId: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 128,
+            },
+            messageId: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 128,
+            },
+            occurredAt: {
+              type: 'string',
+              format: 'date-time',
+            },
+            traceId: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 128,
+            },
+            payload: {
+              type: 'object',
+              additionalProperties: false,
+              required: ['modelCallId', 'attempt'],
+              properties: {
+                modelCallId: {
+                  type: 'string',
+                  minLength: 1,
+                  maxLength: 128,
+                },
+                attempt: {
+                  type: 'integer',
+                  minimum: 1,
+                  maximum: 9007199254740991,
+                },
+              },
+            },
+          },
+        },
+        {
+          type: 'object',
+          additionalProperties: true,
+          required: [
+            'schemaVersion',
+            'eventId',
+            'sequence',
+            'type',
+            'runId',
+            'conversationId',
+            'occurredAt',
+            'traceId',
+            'payload',
+          ],
+          properties: {
+            schemaVersion: {
+              const: '1.0',
+            },
+            eventId: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 128,
+            },
+            sequence: {
+              type: 'integer',
+              minimum: 0,
+              maximum: 9007199254740991,
+            },
+            type: {
+              const: 'model.preview.delta',
+            },
+            runId: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 128,
+            },
+            conversationId: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 128,
+            },
+            messageId: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 128,
+            },
+            occurredAt: {
+              type: 'string',
+              format: 'date-time',
+            },
+            traceId: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 128,
+            },
+            payload: {
+              type: 'object',
+              additionalProperties: false,
+              required: ['modelCallId', 'attempt', 'delta'],
+              properties: {
+                modelCallId: {
+                  type: 'string',
+                  minLength: 1,
+                  maxLength: 128,
+                },
+                attempt: {
+                  type: 'integer',
+                  minimum: 1,
+                  maximum: 9007199254740991,
+                },
+                delta: {
+                  type: 'string',
+                  minLength: 1,
+                  maxLength: 2048,
+                },
+              },
+            },
+          },
+        },
+        {
+          type: 'object',
+          additionalProperties: true,
+          required: [
+            'schemaVersion',
+            'eventId',
+            'sequence',
+            'type',
+            'runId',
+            'conversationId',
+            'occurredAt',
+            'traceId',
+            'payload',
+          ],
+          properties: {
+            schemaVersion: {
+              const: '1.0',
+            },
+            eventId: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 128,
+            },
+            sequence: {
+              type: 'integer',
+              minimum: 0,
+              maximum: 9007199254740991,
+            },
+            type: {
+              const: 'model.completed',
+            },
+            runId: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 128,
+            },
+            conversationId: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 128,
+            },
+            messageId: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 128,
+            },
+            occurredAt: {
+              type: 'string',
+              format: 'date-time',
+            },
+            traceId: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 128,
+            },
+            payload: {
+              type: 'object',
+              additionalProperties: false,
+              required: [
+                'modelCallId',
+                'provider',
+                'model',
+                'purpose',
+                'durationMs',
+                'repaired',
+                'finishReason',
+                'usage',
+              ],
+              properties: {
+                modelCallId: {
+                  type: 'string',
+                  minLength: 1,
+                  maxLength: 128,
+                },
+                provider: {
+                  type: 'string',
+                  minLength: 1,
+                  maxLength: 128,
+                },
+                model: {
+                  type: 'string',
+                  minLength: 1,
+                  maxLength: 256,
+                },
+                purpose: {
+                  type: 'string',
+                  minLength: 1,
+                  maxLength: 500,
+                },
+                durationMs: {
+                  type: 'integer',
+                  minimum: 0,
+                  maximum: 9007199254740991,
+                },
+                repaired: {
+                  type: 'boolean',
+                },
+                finishReason: {
+                  type: ['string', 'null'],
+                  minLength: 1,
+                  maxLength: 128,
+                },
+                usage: {
+                  type: ['object', 'null'],
+                  additionalProperties: false,
+                  required: ['inputTokens', 'outputTokens'],
+                  properties: {
+                    inputTokens: {
+                      type: 'integer',
+                      minimum: 0,
+                      maximum: 9007199254740991,
+                    },
+                    outputTokens: {
+                      type: 'integer',
+                      minimum: 0,
+                      maximum: 9007199254740991,
+                    },
+                    cachedTokens: {
+                      type: 'integer',
+                      minimum: 0,
+                      maximum: 9007199254740991,
+                    },
+                    reasoningTokens: {
+                      type: 'integer',
+                      minimum: 0,
+                      maximum: 9007199254740991,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        {
+          type: 'object',
+          additionalProperties: true,
+          required: [
+            'schemaVersion',
+            'eventId',
+            'sequence',
+            'type',
+            'runId',
+            'conversationId',
+            'occurredAt',
+            'traceId',
+            'payload',
+          ],
+          properties: {
+            schemaVersion: {
+              const: '1.0',
+            },
+            eventId: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 128,
+            },
+            sequence: {
+              type: 'integer',
+              minimum: 0,
+              maximum: 9007199254740991,
+            },
+            type: {
+              const: 'model.failed',
+            },
+            runId: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 128,
+            },
+            conversationId: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 128,
+            },
+            messageId: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 128,
+            },
+            occurredAt: {
+              type: 'string',
+              format: 'date-time',
+            },
+            traceId: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 128,
+            },
+            payload: {
+              type: 'object',
+              additionalProperties: false,
+              required: [
+                'modelCallId',
+                'provider',
+                'model',
+                'purpose',
+                'durationMs',
+                'error',
+                'willFallback',
+              ],
+              properties: {
+                modelCallId: {
+                  type: 'string',
+                  minLength: 1,
+                  maxLength: 128,
+                },
+                provider: {
+                  type: 'string',
+                  minLength: 1,
+                  maxLength: 128,
+                },
+                model: {
+                  type: 'string',
+                  minLength: 1,
+                  maxLength: 256,
+                },
+                purpose: {
+                  type: 'string',
+                  minLength: 1,
+                  maxLength: 500,
+                },
+                durationMs: {
+                  type: 'integer',
+                  minimum: 0,
+                  maximum: 9007199254740991,
+                },
+                error: {
+                  type: 'object',
+                  additionalProperties: false,
+                  required: ['code', 'message', 'retryable', 'category'],
+                  properties: {
+                    code: {
+                      type: 'integer',
+                      minimum: 1,
+                      maximum: 9999,
+                    },
+                    message: {
+                      type: 'string',
+                      minLength: 1,
+                      maxLength: 1000,
+                    },
+                    retryable: {
+                      type: 'boolean',
+                    },
+                    category: {
+                      enum: [
+                        'VALIDATION',
+                        'AUTH',
+                        'MODEL',
+                        'TOOL',
+                        'SEARCH',
+                        'TIMEOUT',
+                        'INTERNAL',
+                      ],
+                    },
+                    safeDetails: {
+                      type: 'object',
+                    },
+                  },
+                },
+                willFallback: {
+                  type: 'boolean',
                 },
               },
             },
@@ -3276,6 +4325,24 @@ export const AGENT_CONTRACT_JSON_SCHEMA = {
       'compute_valuation_percentile',
       'search_web',
       'fetch_web_page',
+      'get_stock_technical_indicators',
+      'get_stock_technical_signals',
+      'get_data_availability',
+      'get_stock_chip_profile',
+      'get_stock_margin_history',
+      'get_stock_relative_strength',
+      'get_stock_events',
+      'get_stock_shareholder_profile',
+      'get_index_market_data',
+      'get_fund_research',
+      'get_industry_rotation',
+      'get_factor_analysis',
+      'get_macro_snapshot',
+      'get_option_market',
+      'get_convertible_bond_market',
+      'run_event_study',
+      'get_backtest_analytics',
+      'get_portfolio_analytics',
       'save_research_report',
     ],
   },
@@ -3603,6 +4670,27 @@ export const AGENT_CONTRACT_JSON_SCHEMA = {
       message: '研究报告幂等请求或版本冲突',
     },
     {
+      code: 6047,
+      key: 'AI_CONTEXT_COMPACTION_FAILED',
+      httpStatus: 503,
+      retryable: true,
+      message: '会话上下文整理失败，请重试或切换到上下文更大的模型',
+    },
+    {
+      code: 6048,
+      key: 'AI_MODEL_CONTEXT_INCOMPATIBLE',
+      httpStatus: 422,
+      retryable: false,
+      message: '当前会话无法装入所选模型的上下文窗口',
+    },
+    {
+      code: 6049,
+      key: 'AI_CURRENT_INPUT_TOO_LARGE',
+      httpStatus: 422,
+      retryable: false,
+      message: '当前输入本身超过所选模型的上下文窗口',
+    },
+    {
       code: 6099,
       key: 'AI_INTERNAL_ERROR',
       httpStatus: 500,
@@ -3675,6 +4763,57 @@ export const AGENT_EVENT_FIXTURES = [
       label: '读取行情',
       completed: 1,
       total: 3,
+    },
+  },
+  {
+    schemaVersion: '1.0',
+    eventId: 'evt_fixture',
+    sequence: 1,
+    runId: 'run_fixture',
+    conversationId: 'conversation_fixture',
+    messageId: 'message_fixture',
+    occurredAt: '2026-07-19T02:11:31.102Z',
+    traceId: 'trace_fixture',
+    type: 'context.compaction.started',
+    payload: {
+      model: 'research-model',
+      reason: 'MODEL_CONTEXT_PRESSURE',
+      estimatedTokens: 12000,
+      targetTokens: 8000,
+    },
+  },
+  {
+    schemaVersion: '1.0',
+    eventId: 'evt_fixture',
+    sequence: 1,
+    runId: 'run_fixture',
+    conversationId: 'conversation_fixture',
+    messageId: 'message_fixture',
+    occurredAt: '2026-07-19T02:11:31.102Z',
+    traceId: 'trace_fixture',
+    type: 'context.compaction.completed',
+    payload: {
+      model: 'research-model',
+      summaryVersion: 2,
+      sourceMessageCount: 12,
+      sourceTokenCount: 4000,
+    },
+  },
+  {
+    schemaVersion: '1.0',
+    eventId: 'evt_fixture',
+    sequence: 1,
+    runId: 'run_fixture',
+    conversationId: 'conversation_fixture',
+    messageId: 'message_fixture',
+    occurredAt: '2026-07-19T02:11:31.102Z',
+    traceId: 'trace_fixture',
+    type: 'context.compaction.failed',
+    payload: {
+      model: 'research-model',
+      code: 6047,
+      retryable: true,
+      message: '会话整理失败，请重试或切换到上下文更大的模型',
     },
   },
   {
@@ -3762,6 +4901,26 @@ export const AGENT_EVENT_FIXTURES = [
     messageId: 'message_fixture',
     occurredAt: '2026-07-19T02:11:31.102Z',
     traceId: 'trace_fixture',
+    type: 'model.trace',
+    payload: {
+      modelCallId: 'model_call_fixture',
+      attempt: 1,
+      phase: 'REQUEST_DISPATCHED',
+      messageCount: 4,
+      estimatedInputTokens: 1024,
+      maxOutputTokens: 2048,
+      contextWindow: 32768,
+    },
+  },
+  {
+    schemaVersion: '1.0',
+    eventId: 'evt_fixture',
+    sequence: 1,
+    runId: 'run_fixture',
+    conversationId: 'conversation_fixture',
+    messageId: 'message_fixture',
+    occurredAt: '2026-07-19T02:11:31.102Z',
+    traceId: 'trace_fixture',
     type: 'model.fallback',
     payload: {
       fromProvider: 'primary',
@@ -3769,6 +4928,103 @@ export const AGENT_EVENT_FIXTURES = [
       toProvider: 'secondary',
       toModel: 'secondary-model',
       reasonCode: 'RATE_LIMIT',
+    },
+  },
+  {
+    schemaVersion: '1.0',
+    eventId: 'evt_fixture',
+    sequence: 1,
+    runId: 'run_fixture',
+    conversationId: 'conversation_fixture',
+    messageId: 'message_fixture',
+    occurredAt: '2026-07-19T02:11:31.102Z',
+    traceId: 'trace_fixture',
+    type: 'model.activity',
+    payload: {
+      modelCallId: 'model_call_fixture',
+      phase: 'REASONING',
+      processedCharacters: 2048,
+    },
+  },
+  {
+    schemaVersion: '1.0',
+    eventId: 'evt_fixture',
+    sequence: 1,
+    runId: 'run_fixture',
+    conversationId: 'conversation_fixture',
+    messageId: 'message_fixture',
+    occurredAt: '2026-07-19T02:11:31.102Z',
+    traceId: 'trace_fixture',
+    type: 'model.preview.reset',
+    payload: {
+      modelCallId: 'model_call_fixture',
+      attempt: 1,
+    },
+  },
+  {
+    schemaVersion: '1.0',
+    eventId: 'evt_fixture',
+    sequence: 1,
+    runId: 'run_fixture',
+    conversationId: 'conversation_fixture',
+    messageId: 'message_fixture',
+    occurredAt: '2026-07-19T02:11:31.102Z',
+    traceId: 'trace_fixture',
+    type: 'model.preview.delta',
+    payload: {
+      modelCallId: 'model_call_fixture',
+      attempt: 1,
+      delta: '正在形成研究结论',
+    },
+  },
+  {
+    schemaVersion: '1.0',
+    eventId: 'evt_fixture',
+    sequence: 1,
+    runId: 'run_fixture',
+    conversationId: 'conversation_fixture',
+    messageId: 'message_fixture',
+    occurredAt: '2026-07-19T02:11:31.102Z',
+    traceId: 'trace_fixture',
+    type: 'model.completed',
+    payload: {
+      modelCallId: 'model_call_fixture',
+      provider: 'openai-compatible',
+      model: 'research-model',
+      purpose: 'SYNTHESIZE',
+      durationMs: 1024,
+      repaired: false,
+      finishReason: 'stop',
+      usage: {
+        inputTokens: 1000,
+        outputTokens: 500,
+        reasoningTokens: 120,
+      },
+    },
+  },
+  {
+    schemaVersion: '1.0',
+    eventId: 'evt_fixture',
+    sequence: 1,
+    runId: 'run_fixture',
+    conversationId: 'conversation_fixture',
+    messageId: 'message_fixture',
+    occurredAt: '2026-07-19T02:11:31.102Z',
+    traceId: 'trace_fixture',
+    type: 'model.failed',
+    payload: {
+      modelCallId: 'model_call_fixture',
+      provider: 'openai-compatible',
+      model: 'research-model',
+      purpose: 'SYNTHESIZE',
+      durationMs: 1024,
+      error: {
+        code: 6011,
+        message: 'Tool 执行超时',
+        retryable: true,
+        category: 'TOOL',
+      },
+      willFallback: true,
     },
   },
   {

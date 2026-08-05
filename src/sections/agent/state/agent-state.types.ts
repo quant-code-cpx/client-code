@@ -43,6 +43,50 @@ export type AgentRunProgress = {
   total: number | null;
 };
 
+export type AgentModelActivity = {
+  modelCallId: string;
+  phase: 'REASONING';
+  processedCharacters: number;
+};
+
+export type AgentDraftPreview = {
+  modelCallId: string;
+  attempt: number;
+  text: string;
+};
+
+export type AgentModelDiagnosticPhase =
+  | 'STARTED'
+  | 'REQUEST_DISPATCHED'
+  | 'FIRST_PROVIDER_CHUNK'
+  | 'REASONING'
+  | 'DRAFT_STREAMING'
+  | 'STRUCTURED_REPAIR'
+  | 'PROVIDER_COMPLETED'
+  | 'COMPLETED'
+  | 'FAILED';
+
+export type AgentModelDiagnostic = {
+  modelCallId: string;
+  provider: string;
+  model: string;
+  purpose: string;
+  phase: AgentModelDiagnosticPhase;
+  attempt: number;
+  status: 'RUNNING' | 'COMPLETED' | 'FAILED';
+  messageCount?: number;
+  estimatedInputTokens?: number;
+  maxOutputTokens?: number;
+  contextWindow?: number;
+  firstChunkType?: 'REASONING' | 'OUTPUT' | 'TOOL_CALL' | 'USAGE' | 'COMPLETED';
+  finishReason?: string | null;
+  durationMs?: number;
+  repaired?: boolean;
+  usage?: { inputTokens: number; outputTokens: number; cachedTokens?: number; reasoningTokens?: number } | null;
+  error?: { code: number; message: string; retryable: boolean; category: string };
+  willFallback?: boolean;
+};
+
 export type AgentRunProjection = {
   runId: string;
   conversationId: string;
@@ -59,6 +103,9 @@ export type AgentRunProjection = {
   stageLabel: string;
   planSummary?: string;
   progress?: AgentRunProgress;
+  modelActivity?: AgentModelActivity;
+  modelDiagnostics?: AgentModelDiagnostic[];
+  draftPreview?: AgentDraftPreview;
   errorCode?: number | null;
   errorMessage?: string | null;
   retryable?: boolean;

@@ -19,8 +19,8 @@ export function AgentView() {
           xs: 'calc(100dvh - var(--layout-header-mobile-height))',
           lg: 'calc(100dvh - var(--layout-header-desktop-height))',
         },
-        px: { xs: 1, sm: 2, lg: 3 },
-        pb: { xs: 1, lg: 2 },
+        px: 0,
+        pb: 0,
       }}
     >
       <Box sx={{ minHeight: 0, height: 1 }}>

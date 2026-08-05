@@ -19,7 +19,7 @@ const preview: ReportSaveResponse = {
     runId: 'run_1',
     messageId: 'message_1',
     messageVersion: 1,
-    title: '贵州茅台估值研究',
+    title: '**贵州茅台估值研究**',
     summary: '关注估值与需求变化。',
     dataAsOf: '2026-07-22',
     citations: [
@@ -70,7 +70,9 @@ describe('AgentReportPreviewDialog', () => {
       <AgentReportPreviewDialog open runId="run_1" onClose={vi.fn()} onSaved={onSaved} />
     );
 
+    expect(screen.getByRole('dialog')).not.toHaveAttribute('data-color-scheme');
     expect(await screen.findByText('贵州茅台估值研究')).toBeInTheDocument();
+    expect(screen.queryByText('**贵州茅台估值研究**')).not.toBeInTheDocument();
     expect(screen.getByText('上市公司公告')).toBeInTheDocument();
     expect(mocks.saveReport).toHaveBeenCalledTimes(1);
     expect(mocks.saveReport).toHaveBeenCalledWith({ runId: 'run_1' });

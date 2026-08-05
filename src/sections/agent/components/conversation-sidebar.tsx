@@ -1,91 +1,101 @@
-import { useMemo, useState } from 'react';
+import { varAlpha } from 'minimal-shared/utils';
 
 import Box from '@mui/material/Box';
-import List from '@mui/material/List';
 import Alert from '@mui/material/Alert';
 import Drawer from '@mui/material/Drawer';
 import Button from '@mui/material/Button';
-import Divider from '@mui/material/Divider';
 import Skeleton from '@mui/material/Skeleton';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import InputAdornment from '@mui/material/InputAdornment';
-import ListItemButton from '@mui/material/ListItemButton';
-
-import { RouterLink } from 'src/routes/components';
-
-import { fToNow } from 'src/utils/format-time';
+import { ChatConversationList } from '@mui/x-chat/ChatConversationList';
 
 import { Iconify } from 'src/components/iconify';
 import { EmptyContent } from 'src/components/empty-content';
 
-import type { AsyncStatus, AgentConversationEntity } from '../state/agent-state.types';
+import type { AsyncStatus } from '../state/agent-state.types';
 
 type ConversationSidebarProps = {
-  items: AgentConversationEntity[];
-  currentConversationId: string | null;
+  totalItemCount: number;
+  visibleItemCount: number;
+  query: string;
   status: AsyncStatus;
   error: string | null;
   hasMore: boolean;
   loadingMore: boolean;
   mobileOpen: boolean;
   mobile: boolean;
-  activeConversationIds: string[];
-  staleConversationIds: string[];
   onClose: () => void;
   onNew: () => void;
-  onSelect: (conversationId: string) => void;
+  onQueryChange: (query: string) => void;
   onRetry: () => void;
   onLoadMore: () => void;
 };
 
-function groupLabel(dateValue: string): string {
-  const value = new Date(dateValue);
-  const now = new Date();
-  const startToday = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-  const startValue = new Date(value.getFullYear(), value.getMonth(), value.getDate()).getTime();
-  const days = Math.floor((startToday - startValue) / 86_400_000);
-  if (days <= 0) return '今天';
-  if (days <= 7) return '最近 7 天';
-  return '更早';
+function EmptyConversationAvatar() {
+  return null;
 }
 
 function SidebarContent({
-  items,
-  currentConversationId,
+  totalItemCount,
+  visibleItemCount,
+  query,
   status,
   error,
   hasMore,
   loadingMore,
-  activeConversationIds,
-  staleConversationIds,
   onNew,
-  onSelect,
+  onQueryChange,
   onRetry,
   onLoadMore,
 }: Omit<ConversationSidebarProps, 'mobileOpen' | 'mobile' | 'onClose'>) {
-  const [query, setQuery] = useState('');
-  const groupedItems = useMemo(() => {
-    const normalized = query.trim().toLocaleLowerCase();
-    const filtered = normalized
-      ? items.filter((item) => item.title.toLocaleLowerCase().includes(normalized))
-      : items;
-    const groups = new Map<string, AgentConversationEntity[]>();
-    filtered.forEach((item) => {
-      const label = groupLabel(item.updatedAt);
-      groups.set(label, [...(groups.get(label) ?? []), item]);
-    });
-    return [...groups.entries()];
-  }, [items, query]);
-
   return (
     <Box sx={{ minHeight: 0, height: 1, display: 'flex', flexDirection: 'column' }}>
-      <Box sx={{ p: 2 }}>
+      <Box
+        sx={{
+          minHeight: 64,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1,
+          px: 2.25,
+          borderBottom: 1,
+          borderColor: 'divider',
+        }}
+      >
+        <Box
+          sx={(theme) => ({
+            width: 30,
+            height: 30,
+            display: 'grid',
+            placeItems: 'center',
+            borderRadius: 1.25,
+            color: 'primary.contrastText',
+            bgcolor: 'primary.main',
+            boxShadow: `0 4px 12px ${varAlpha(theme.vars.palette.primary.mainChannel, 0.24)}`,
+          })}
+        >
+          <Iconify icon="solar:magic-stick-3-bold-duotone" width={17} />
+        </Box>
+        <Box sx={{ minWidth: 0 }}>
+          <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+            AI 研究
+          </Typography>
+          <Typography
+            variant="caption"
+            sx={{ display: 'block', color: 'text.disabled', letterSpacing: 0.8 }}
+          >
+            RESEARCH DESK
+          </Typography>
+        </Box>
+      </Box>
+
+      <Box sx={{ px: 1.5, pt: 1.75, pb: 1.25 }}>
         <Button
           fullWidth
           variant="contained"
           startIcon={<Iconify icon="solar:add-circle-bold" width={18} />}
           onClick={onNew}
+          sx={{ minHeight: 40, boxShadow: 'none' }}
         >
           新建研究
         </Button>
@@ -96,8 +106,13 @@ function SidebarContent({
           name="agent-conversation-search"
           autoComplete="off"
           placeholder="搜索会话…"
-          onChange={(event) => setQuery(event.target.value)}
-          sx={{ mt: 1.5 }}
+          onChange={(event) => onQueryChange(event.target.value)}
+          sx={(theme) => ({
+            mt: 1.25,
+            '& .MuiOutlinedInput-root': {
+              bgcolor: theme.vars.palette.background.default,
+            },
+          })}
           slotProps={{
             input: {
               startAdornment: (
@@ -109,10 +124,8 @@ function SidebarContent({
           }}
         />
       </Box>
-      <Divider />
-
-      <Box sx={{ minHeight: 0, flex: 1, overflowY: 'auto', py: 1 }}>
-        {status === 'loading' && items.length === 0 ? (
+      <Box sx={{ minHeight: 0, flex: 1, display: 'flex', flexDirection: 'column' }}>
+        {status === 'loading' && totalItemCount === 0 ? (
           <Box sx={{ px: 2, py: 1 }}>
             {[0, 1, 2, 3].map((item) => (
               <Skeleton key={item} variant="rounded" height={54} sx={{ mb: 1 }} />
@@ -120,7 +133,7 @@ function SidebarContent({
           </Box>
         ) : null}
 
-        {error && items.length === 0 ? (
+        {error && totalItemCount === 0 ? (
           <Alert
             severity="error"
             action={
@@ -134,7 +147,7 @@ function SidebarContent({
           </Alert>
         ) : null}
 
-        {status !== 'loading' && !error && groupedItems.length === 0 ? (
+        {status !== 'loading' && !error && visibleItemCount === 0 ? (
           <EmptyContent
             title={query ? '没有匹配会话' : '暂无研究会话'}
             description={query ? '换个关键词试试' : undefined}
@@ -142,52 +155,46 @@ function SidebarContent({
           />
         ) : null}
 
-        {groupedItems.map(([label, group]) => (
-          <Box key={label} sx={{ mb: 1 }}>
-            <Typography
-              variant="caption"
-              sx={{ display: 'block', px: 2, py: 0.75, color: 'text.disabled' }}
-            >
-              {label}
-            </Typography>
-            <List disablePadding>
-              {group.map((item) => {
-                const selected = item.conversationId === currentConversationId;
-                const isActive = activeConversationIds.includes(item.conversationId);
-                const isStale = staleConversationIds.includes(item.conversationId);
-                return (
-                  <ListItemButton
-                    key={item.conversationId}
-                    component={RouterLink}
-                    href={`/agent/${item.conversationId}`}
-                    selected={selected}
-                    aria-current={selected ? 'page' : undefined}
-                    onClick={() => onSelect(item.conversationId)}
-                    sx={{ mx: 1, px: 1.5, py: 1, minHeight: 54, borderRadius: 0.75 }}
-                  >
-                    <Box sx={{ minWidth: 0, flex: 1 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                        <Typography variant="body2" noWrap sx={{ flex: 1, fontWeight: 600 }}>
-                          {item.title}
-                        </Typography>
-                        {isActive || isStale ? (
-                          <Box
-                            component="span"
-                            title={isActive ? '后台运行中' : '有新状态'}
-                            sx={{ width: 7, height: 7, flexShrink: 0, borderRadius: '50%', bgcolor: 'info.main' }}
-                          />
-                        ) : null}
-                      </Box>
-                      <Typography variant="caption" sx={{ color: 'text.disabled' }}>
-                        {item.messageCount} 条消息 · {fToNow(item.lastMessageAt)}
-                      </Typography>
-                    </Box>
-                  </ListItemButton>
-                );
-              })}
-            </List>
-          </Box>
-        ))}
+        {visibleItemCount > 0 ? (
+          <ChatConversationList
+            aria-label="研究会话"
+            slots={{ itemAvatar: EmptyConversationAvatar }}
+            sx={{
+              minHeight: 0,
+              flex: 1,
+              py: 0.5,
+              bgcolor: 'transparent',
+              '& .MuiChatConversationList-scroller': {
+                borderRight: 0,
+                bgcolor: 'transparent',
+              },
+              '& .MuiChatConversationList-item': {
+                position: 'relative',
+                minHeight: 68,
+                mx: 1,
+                px: 1.5,
+                border: '1px solid transparent',
+                borderRadius: 1.25,
+              },
+              '& .MuiChatConversationList-item[aria-selected="true"]': {
+                bgcolor: 'action.selected',
+                borderColor: 'primary.dark',
+                '&::before': {
+                  position: 'absolute',
+                  top: 10,
+                  bottom: 10,
+                  left: -1,
+                  width: 3,
+                  borderRadius: 2,
+                  bgcolor: 'primary.main',
+                  content: '""',
+                },
+              },
+              '& .MuiChatConversationList-itemTitle': { fontWeight: 600 },
+              '& .MuiChatConversationList-itemPreview': { color: 'text.disabled' },
+            }}
+          />
+        ) : null}
 
         {hasMore && !query ? (
           <Box sx={{ px: 2, pb: 1 }}>
@@ -221,7 +228,14 @@ export function ConversationSidebar(props: ConversationSidebarProps) {
     <Box
       component="aside"
       aria-label="研究会话"
-      sx={{ width: 288, minWidth: 288, minHeight: 0, borderRight: 1, borderColor: 'divider' }}
+      sx={{
+        width: { md: 248, lg: 264 },
+        minWidth: { md: 248, lg: 264 },
+        minHeight: 0,
+        borderRight: 1,
+        borderColor: 'divider',
+        bgcolor: 'background.neutral',
+      }}
     >
       <SidebarContent {...contentProps} />
     </Box>

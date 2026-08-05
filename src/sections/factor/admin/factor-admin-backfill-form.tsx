@@ -1,5 +1,6 @@
 import type { PrecomputeStatusItem } from 'src/api/factor';
 
+import dayjs from 'dayjs';
 import { useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
@@ -21,6 +22,7 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import { adminBackfill } from 'src/api/factor';
 
 import { Iconify } from 'src/components/iconify';
+import { DatePicker } from 'src/components/date-picker';
 
 // ─── Helpers ──────────────────────────────────────────────────
 
@@ -141,25 +143,19 @@ export function FactorAdminBackfillForm({
 
         {/* Date range */}
         <Stack direction="row" spacing={2} alignItems="center">
-          <TextField
-            type="date"
+          <DatePicker
             label="起始日期"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            size="small"
-            InputLabelProps={{ shrink: true }}
+            value={startDate ? dayjs(startDate) : null}
+            onChange={(value) => setStartDate(value?.format('YYYY-MM-DD') ?? '')}
             sx={{ flex: 1 }}
           />
           <Typography variant="body2" color="text.secondary">
             —
           </Typography>
-          <TextField
-            type="date"
+          <DatePicker
             label="结束日期"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            size="small"
-            InputLabelProps={{ shrink: true }}
+            value={endDate ? dayjs(endDate) : null}
+            onChange={(value) => setEndDate(value?.format('YYYY-MM-DD') ?? '')}
             sx={{ flex: 1 }}
           />
         </Stack>

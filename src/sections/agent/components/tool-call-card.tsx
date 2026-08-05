@@ -1,11 +1,10 @@
 import type { LabelColor } from 'src/components/label/types';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Alert from '@mui/material/Alert';
-import Button from '@mui/material/Button';
 import Accordion from '@mui/material/Accordion';
 import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -62,7 +61,13 @@ export function ToolCallCard({ toolCall }: { toolCall: AgentToolCall }) {
     <Accordion
       disableGutters
       elevation={0}
-      sx={{ border: '1px solid', borderColor: 'divider', '&::before': { display: 'none' } }}
+      sx={{
+        borderBottom: 1,
+        borderColor: 'divider',
+        bgcolor: 'transparent',
+        '&::before': { display: 'none' },
+        '&:last-of-type': { borderBottom: 0 },
+      }}
     >
       <AccordionSummary
         expandIcon={<Iconify icon="solar:alt-arrow-down-bold" width={16} />}
@@ -70,8 +75,10 @@ export function ToolCallCard({ toolCall }: { toolCall: AgentToolCall }) {
         id={`tool-${toolCall.toolCallId}-header`}
       >
         <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" alignItems="center">
-          <Iconify icon="solar:settings-bold-duotone" width={18} />
-          <Typography variant="subtitle2">{toolCall.toolName}</Typography>
+          <Iconify icon="solar:settings-bold-duotone" width={18} sx={{ color: 'primary.main' }} />
+          <Typography variant="subtitle2" sx={{ fontFamily: 'monospace', fontWeight: 600 }}>
+            {toolCall.toolName}
+          </Typography>
           <Label variant="soft" color={statusColor(toolCall.status)}>
             {STATUS_LABELS[toolCall.status]}
           </Label>
@@ -127,7 +134,11 @@ function SummarySection({
         <Stack component="dl" spacing={0.5} sx={{ m: 0, mt: 0.5 }}>
           {entries.map((entry) => (
             <Stack key={entry.key} direction="row" spacing={1}>
-              <Typography component="dt" variant="caption" sx={{ minWidth: 100, color: 'text.disabled' }}>
+              <Typography
+                component="dt"
+                variant="caption"
+                sx={{ minWidth: 100, color: 'text.disabled' }}
+              >
                 {entry.key}
               </Typography>
               <Typography component="dd" variant="caption" sx={{ m: 0, overflowWrap: 'anywhere' }}>
@@ -149,10 +160,19 @@ type ToolCallListProps = {
   runId?: string | null;
   statusVersion?: number | null;
   enabled: boolean;
+  defaultExpanded?: boolean;
 };
 
-export function ToolCallList({ runId, statusVersion, enabled }: ToolCallListProps) {
-  const [expanded, setExpanded] = useState(false);
+export function ToolCallList({
+  runId,
+  statusVersion,
+  enabled,
+  defaultExpanded = false,
+}: ToolCallListProps) {
+  const [expanded, setExpanded] = useState(defaultExpanded);
+  useEffect(() => {
+    if (defaultExpanded) setExpanded(true);
+  }, [defaultExpanded]);
   const { items, loading, error } = useAgentToolCalls(
     runId,
     statusVersion,
@@ -160,46 +180,58 @@ export function ToolCallList({ runId, statusVersion, enabled }: ToolCallListProp
   );
   if (!enabled || !runId) return null;
 
-  if (!expanded) {
-    return (
-      <Button
-        size="small"
-        variant="text"
-        startIcon={<Iconify icon="solar:settings-bold-duotone" width={17} />}
-        onClick={() => setExpanded(true)}
-        sx={{ mt: 1.5 }}
-      >
-        查看 Tool 执行记录
-      </Button>
-    );
-  }
-
-  if (loading && items.length === 0) {
-    return (
-      <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 1.5 }}>
-        <CircularProgress size={16} />
-        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-          加载 Tool 执行摘要…
-        </Typography>
-      </Stack>
-    );
-  }
-
-  if (error) return <Alert severity="warning" sx={{ mt: 1.5 }}>{error}</Alert>;
-  if (items.length === 0) {
-    return (
-      <Typography variant="caption" sx={{ display: 'block', mt: 1.5, color: 'text.disabled' }}>
-        此次 Run 无 Tool 执行记录
-      </Typography>
-    );
-  }
-
   return (
-    <Stack component="section" aria-label="Tool 执行记录" spacing={1} sx={{ mt: 2 }}>
-      <Typography variant="subtitle2">Tool 执行记录</Typography>
-      {items.map((item) => (
-        <ToolCallCard key={item.toolCallId} toolCall={item} />
-      ))}
-    </Stack>
+    <Accordion
+      disableGutters
+      expanded={expanded}
+      elevation={0}
+      onChange={(_event, value) => setExpanded(value)}
+      sx={{
+        mt: 2,
+        border: 1,
+        borderColor: 'divider',
+        borderRadius: 1.25,
+        bgcolor: 'background.default',
+        '&::before': { display: 'none' },
+        '&.Mui-expanded': { mt: 2 },
+      }}
+    >
+      <AccordionSummary expandIcon={<Iconify icon="solar:alt-arrow-down-bold" width={16} />}>
+        <Stack direction="row" spacing={0.75} alignItems="center">
+          <Iconify icon="solar:settings-bold-duotone" width={18} sx={{ color: 'primary.main' }} />
+          <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+            执行轨迹
+          </Typography>
+          {items.length > 0 ? (
+            <Typography variant="caption" sx={{ color: 'text.disabled' }}>
+              {items.length} 条
+            </Typography>
+          ) : null}
+        </Stack>
+      </AccordionSummary>
+      <AccordionDetails sx={{ pt: 0, px: 0 }}>
+        {loading && items.length === 0 ? (
+          <Stack direction="row" spacing={1} alignItems="center" sx={{ py: 1 }}>
+            <CircularProgress size={16} />
+            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+              加载 Tool 执行摘要…
+            </Typography>
+          </Stack>
+        ) : null}
+        {error ? <Alert severity="warning">{error}</Alert> : null}
+        {!loading && !error && items.length === 0 ? (
+          <Typography variant="caption" sx={{ display: 'block', py: 1, color: 'text.disabled' }}>
+            此次 Run 无 Tool 执行记录
+          </Typography>
+        ) : null}
+        {!loading && !error && items.length > 0 ? (
+          <Stack spacing={0}>
+            {items.map((item) => (
+              <ToolCallCard key={item.toolCallId} toolCall={item} />
+            ))}
+          </Stack>
+        ) : null}
+      </AccordionDetails>
+    </Accordion>
   );
 }

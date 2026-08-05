@@ -395,6 +395,142 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/agent/admin/evaluations/run": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** 执行版本化 fake Agent 评测（管理员） */
+    post: operations["AgentEvaluationAdminController_run"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/agent/admin/evaluations/status": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** 查询 Agent 评测运行状态与版本摘要（管理员） */
+    post: operations["AgentEvaluationAdminController_status"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/agent/admin/evaluations/detail": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** 查询 Agent 评测单例结果（管理员） */
+    post: operations["AgentEvaluationAdminController_detail"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/agent/admin/model-providers/list": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** 查询模型供应商配置（不返回 API key） */
+    post: operations["ModelProviderAdminController_list"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/agent/admin/model-providers/create": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** 新增模型供应商并立即刷新网关 */
+    post: operations["ModelProviderAdminController_create"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/agent/admin/model-providers/update": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** 更新模型供应商并立即刷新网关 */
+    post: operations["ModelProviderAdminController_update"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/agent/admin/model-providers/delete": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** 删除模型供应商并立即刷新网关 */
+    post: operations["ModelProviderAdminController_delete"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/agent/admin/model-providers/reload": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** 从数据库重新加载模型供应商配置 */
+    post: operations["ModelProviderAdminController_reload"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/agent/reports/list": {
     parameters: {
       query?: never;
@@ -819,7 +955,7 @@ export interface components {
       requiredWatermarks: components["schemas"]["RequiredWatermarkDto"][];
       /** @default stock_research */
       workflowKey: string;
-      /** @default 1 */
+      /** @default 4 */
       workflowVersion: number;
       /**
        * @default AUTO
@@ -956,6 +1092,137 @@ export interface components {
       limit: number;
       /** @enum {string} */
       status?: "QUEUED" | "GENERATING" | "COMPLETED" | "FAILED" | "DELETED";
+    };
+    ModelProviderDeleteResponseDto: {
+      id: string;
+      deleted: boolean;
+    };
+    ModelProviderIdDto: {
+      id: string;
+    };
+    ModelProviderAdminResponseDto: {
+      id: string;
+      /** @description 供应商标识；同一供应商可对应多个模型配置 */
+      providerId: string;
+      kind: string;
+      displayName: string;
+      model: string;
+      priority: number;
+      costTier: string;
+      baseUrl?: string | null;
+      apiKeyConfigured: boolean;
+      apiKeyLastFour?: string | null;
+      contextWindow: number;
+      maxOutputTokens: number;
+      capabilities: string[];
+      reasoningEfforts: string[];
+      dataClasses: string[];
+      timeoutMs: number;
+      maxRetries: number;
+      retryBaseMs: number;
+      enabled: boolean;
+      createdAt: string;
+      updatedAt: string;
+    };
+    UpdateModelProviderDto: {
+      id: string;
+      /** @description 可被多个模型配置复用的供应商标识 */
+      providerId?: string;
+      /** @enum {string} */
+      kind?: "openai-compatible";
+      displayName?: string;
+      model?: string;
+      priority?: number;
+      /** @enum {string} */
+      costTier?: "LOW" | "MEDIUM" | "HIGH";
+      /** Format: uri */
+      baseUrl?: string;
+      apiKey?: string;
+      contextWindow?: number;
+      maxOutputTokens?: number;
+      capabilities?: (
+        | "STREAMING"
+        | "STRUCTURED_OUTPUT"
+        | "TOOL_CALLING"
+        | "PARALLEL_TOOL_CALLING"
+        | "VISION"
+        | "REASONING_EFFORT"
+      )[];
+      reasoningEfforts?: ("LOW" | "MEDIUM" | "HIGH")[];
+      dataClasses?: ("PUBLIC" | "USER_PRIVATE" | "PORTFOLIO_SENSITIVE")[];
+      timeoutMs?: number;
+      maxRetries?: number;
+      retryBaseMs?: number;
+      enabled?: boolean;
+    };
+    CreateModelProviderDto: {
+      /**
+       * @description 可被多个模型配置复用的供应商标识
+       * @example deepseek
+       */
+      providerId: string;
+      /** @enum {string} */
+      kind: "openai-compatible";
+      displayName: string;
+      /** @example deepseek-chat */
+      model: string;
+      /** @default 0 */
+      priority: number;
+      /**
+       * @default MEDIUM
+       * @enum {string}
+       */
+      costTier: "LOW" | "MEDIUM" | "HIGH";
+      /**
+       * Format: uri
+       * @description OpenAI-compatible API 根地址，生产必须是 allowlist 中的 HTTPS
+       */
+      baseUrl?: string;
+      apiKey?: string;
+      contextWindow: number;
+      maxOutputTokens: number;
+      capabilities: (
+        | "STREAMING"
+        | "STRUCTURED_OUTPUT"
+        | "TOOL_CALLING"
+        | "PARALLEL_TOOL_CALLING"
+        | "VISION"
+        | "REASONING_EFFORT"
+      )[];
+      reasoningEfforts: ("LOW" | "MEDIUM" | "HIGH")[];
+      dataClasses: ("PUBLIC" | "USER_PRIVATE" | "PORTFOLIO_SENSITIVE")[];
+      /** @default 120000 */
+      timeoutMs: number;
+      /** @default 2 */
+      maxRetries: number;
+      /** @default 200 */
+      retryBaseMs: number;
+      /** @default true */
+      enabled: Record<string, never>;
+    };
+    ModelProviderListResponseDto: {
+      items: components["schemas"]["ModelProviderAdminResponseDto"][];
+    };
+    AgentEvaluationDetailDto: {
+      evaluationRunId: string;
+      caseId: string;
+    };
+    AgentEvaluationStatusDto: {
+      evaluationRunId: string;
+    };
+    RunAgentEvaluationDto: {
+      /** Format: uuid */
+      clientRequestId: string;
+      /**
+       * @default mvp
+       * @enum {string}
+       */
+      dataset: "mvp";
+      /**
+       * @default fake
+       * @enum {string}
+       */
+      provider: "fake";
     };
     AgentRunEventsDto: {
       runId: string;
@@ -1246,6 +1513,8 @@ export interface components {
       displayName: string;
       provider: string;
       capabilities: string[];
+      contextWindow: number;
+      maxOutputTokens: number;
       /** @enum {string} */
       costTier: "LOW" | "MEDIUM" | "HIGH";
       /** @enum {string} */
@@ -1257,8 +1526,20 @@ export interface components {
       /** @enum {string} */
       modelPolicy: "AUTO" | "MANUAL";
       preferredModel?: string | null;
+      contextPreparation: components["schemas"]["ConversationContextPreparationResponseDto"];
       /** Format: date-time */
       updatedAt: string;
+    };
+    ConversationContextPreparationResponseDto: {
+      /** @enum {string} */
+      status: "READY" | "COMPACTION_REQUIRED" | "INCOMPATIBLE";
+      targetModel: string;
+      contextWindow: number;
+      estimatedRecentTokens: number;
+      triggerTokens: number;
+      targetTokens: number;
+      willAutoCompactOnNextRun: boolean;
+      message: string;
     };
     UpdateConversationModelDto: {
       conversationId: string;
@@ -2089,6 +2370,198 @@ export interface operations {
         };
         content: {
           "text/event-stream": string;
+        };
+      };
+    };
+  };
+  AgentEvaluationAdminController_run: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["RunAgentEvaluationDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ResponseModel"] & {
+            data?: Record<string, never>;
+          };
+        };
+      };
+    };
+  };
+  AgentEvaluationAdminController_status: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["AgentEvaluationStatusDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ResponseModel"] & {
+            data?: Record<string, never>;
+          };
+        };
+      };
+    };
+  };
+  AgentEvaluationAdminController_detail: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["AgentEvaluationDetailDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ResponseModel"] & {
+            data?: Record<string, never>;
+          };
+        };
+      };
+    };
+  };
+  ModelProviderAdminController_list: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ResponseModel"] & {
+            data?: components["schemas"]["ModelProviderListResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  ModelProviderAdminController_create: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["CreateModelProviderDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ResponseModel"] & {
+            data?: components["schemas"]["ModelProviderAdminResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  ModelProviderAdminController_update: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["UpdateModelProviderDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ResponseModel"] & {
+            data?: components["schemas"]["ModelProviderAdminResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  ModelProviderAdminController_delete: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ModelProviderIdDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ResponseModel"] & {
+            data?: components["schemas"]["ModelProviderDeleteResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  ModelProviderAdminController_reload: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ResponseModel"] & {
+            data?: Record<string, never>;
+          };
         };
       };
     };

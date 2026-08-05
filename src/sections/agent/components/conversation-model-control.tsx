@@ -10,6 +10,7 @@ import Alert from '@mui/material/Alert';
 import Radio from '@mui/material/Radio';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
+import MenuItem from '@mui/material/MenuItem';
 import Skeleton from '@mui/material/Skeleton';
 import Typography from '@mui/material/Typography';
 import DialogTitle from '@mui/material/DialogTitle';
@@ -30,6 +31,8 @@ type ConversationModelControlProps = {
   policy: ModelPolicy;
   preferredModel: string | null;
   saving: boolean;
+  trigger?: 'button' | 'menu-item';
+  onTrigger?: () => void;
   onSave: (policy: ModelPolicy, preferredModel: string | null) => Promise<boolean>;
 };
 
@@ -39,10 +42,18 @@ const COST_TIER_LABEL: Record<AgentModel['costTier'], string> = {
   HIGH: '高费用',
 };
 
+function formatTokenCapacity(tokens: number): string {
+  if (tokens >= 1_000_000) return `${Number((tokens / 1_000_000).toFixed(1))}M`;
+  if (tokens >= 1_000) return `${Number((tokens / 1_000).toFixed(1))}K`;
+  return String(tokens);
+}
+
 export function ConversationModelControl({
   policy,
   preferredModel,
   saving,
+  trigger = 'button',
+  onTrigger,
   onSave,
 }: ConversationModelControlProps) {
   const [open, setOpen] = useState(false);
@@ -82,25 +93,52 @@ export function ConversationModelControl({
   const manualValid = selectedModel?.status === 'AVAILABLE';
   const valid = draftPolicy === 'AUTO' || manualValid;
   const buttonLabel = policy === 'AUTO' ? '自动模型' : preferredModel ?? '指定模型';
+  const handleOpen = () => {
+    onTrigger?.();
+    setOpen(true);
+  };
 
   return (
     <>
-      <Button
-        size="small"
-        variant="outlined"
-        startIcon={<Iconify icon="solar:settings-bold-duotone" width={17} />}
-        onClick={() => setOpen(true)}
-      >
-        {buttonLabel}
-      </Button>
+      {trigger === 'menu-item' ? (
+        <MenuItem onClick={handleOpen} sx={{ minWidth: 196, gap: 1 }}>
+          <Iconify icon="solar:settings-bold-duotone" width={18} />
+          模型偏好 · {buttonLabel}
+        </MenuItem>
+      ) : (
+        <Button
+          size="small"
+          variant="outlined"
+          startIcon={<Iconify icon="solar:settings-bold-duotone" width={17} />}
+          onClick={handleOpen}
+          sx={{ minHeight: 36, borderRadius: 1, bgcolor: 'action.hover' }}
+        >
+          {buttonLabel}
+        </Button>
+      )}
       <Dialog
         open={open}
         onClose={saving ? undefined : () => setOpen(false)}
         fullWidth
-        maxWidth="xs"
-        slotProps={{ paper: { sx: { overscrollBehavior: 'contain' } } }}
+        maxWidth="sm"
+        slotProps={{
+          paper: {
+            sx: {
+              maxWidth: 520,
+              color: 'text.primary',
+              bgcolor: 'background.paper',
+              backgroundImage: 'none',
+              overscrollBehavior: 'contain',
+            },
+          },
+        }}
       >
-        <DialogTitle>模型偏好</DialogTitle>
+        <DialogTitle component="div" sx={{ pb: 1 }}>
+          <Typography variant="h6">选择研究模型</Typography>
+          <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary' }}>
+            模型只影响后续消息，当前运行不会被中断。
+          </Typography>
+        </DialogTitle>
         <DialogContent>
           <ToggleButtonGroup
             exclusive
@@ -109,7 +147,7 @@ export function ConversationModelControl({
             onChange={(_event, value: ModelPolicy | null) => {
               if (value) setDraftPolicy(value);
             }}
-            sx={{ mt: 1 }}
+            sx={{ mt: 1, bgcolor: 'background.default' }}
           >
             <ToggleButton value="AUTO">自动选择</ToggleButton>
             <ToggleButton value="MANUAL">指定模型</ToggleButton>
@@ -145,11 +183,17 @@ export function ConversationModelControl({
                       onClick={() => setDraftModel(model.model)}
                       sx={{
                         alignItems: 'flex-start',
-                        borderBottom: 1,
+                        mb: 1,
+                        border: 1,
                         borderColor: 'divider',
-                        borderRadius: 1,
-                        px: 1,
-                        py: 1.25,
+                        borderRadius: 1.25,
+                        px: 1.25,
+                        py: 1.5,
+                        bgcolor: 'background.default',
+                        '&.Mui-selected': {
+                          borderColor: 'primary.main',
+                          bgcolor: 'action.selected',
+                        },
                       }}
                     >
                       <Radio
@@ -160,7 +204,7 @@ export function ConversationModelControl({
                       />
                       <ListItemText
                         primary={model.displayName}
-                        secondary={`${model.provider} · ${model.capabilities.join(' · ')}`}
+                        secondary={`${model.provider} · 上下文 ${formatTokenCapacity(model.contextWindow)} · 最大输出 ${formatTokenCapacity(model.maxOutputTokens)} · ${model.capabilities.join(' · ')}`}
                         slotProps={{
                           primary: { noWrap: true, sx: { fontWeight: 700 } },
                           secondary: { sx: { mt: 0.25, fontSize: 12, lineHeight: 1.45 } },

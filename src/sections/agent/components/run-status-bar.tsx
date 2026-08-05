@@ -1,6 +1,7 @@
 import { varAlpha } from 'minimal-shared/utils';
 
 import Box from '@mui/material/Box';
+import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import LinearProgress from '@mui/material/LinearProgress';
@@ -26,22 +27,42 @@ export function RunStatusBar({ run, onContinue }: RunStatusBarProps) {
       role="status"
       aria-live="polite"
       sx={(theme) => ({
-        px: { xs: 2, md: 3 },
+        px: { xs: 2, md: 3.25 },
         py: 1,
         borderBottom: 1,
         borderColor: 'divider',
         bgcolor: varAlpha(theme.vars.palette.info.mainChannel, 0.06),
       })}
     >
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minHeight: 28 }}>
+      <Stack direction="row" alignItems="center" spacing={1.25} sx={{ minHeight: 28 }}>
         <Iconify
           icon={run.status === 'FAILED' ? 'solar:danger-triangle-bold' : 'solar:pulse-2-bold-duotone'}
           width={18}
           sx={{ flexShrink: 0, color: run.status === 'FAILED' ? 'error.main' : 'info.main' }}
         />
-        <Typography variant="body2" sx={{ minWidth: 0, flex: 1, fontWeight: 600 }}>
-          {run.stageLabel}
-        </Typography>
+        <Box sx={{ minWidth: 0, flex: 1 }}>
+          <Typography variant="body2" noWrap sx={{ fontWeight: 600 }}>
+            {run.stageLabel}
+          </Typography>
+          {run.planSummary ? (
+            <Typography
+              variant="caption"
+              noWrap
+              sx={{ display: 'block', color: 'text.secondary' }}
+            >
+              {run.planSummary}
+            </Typography>
+          ) : null}
+        </Box>
+        {run.progress ? (
+          <Typography
+            variant="caption"
+            sx={{ color: 'text.secondary', fontVariantNumeric: 'tabular-nums' }}
+          >
+            {run.progress.label} · {run.progress.completed}
+            {run.progress.total ? ` / ${run.progress.total}` : ''}
+          </Typography>
+        ) : null}
         {run.connectionState === 'RETRYING' ? (
           <Typography variant="caption" sx={{ color: 'text.secondary' }}>
             正在恢复连接
@@ -52,13 +73,13 @@ export function RunStatusBar({ run, onContinue }: RunStatusBarProps) {
             继续接收
           </Button>
         ) : null}
-      </Box>
+      </Stack>
       {progressValue !== null ? (
         <LinearProgress
           variant="determinate"
           value={progressValue}
           aria-label={run.progress?.label}
-          sx={{ mt: 0.75, height: 3 }}
+          sx={{ mt: 0.5, height: 3, borderRadius: 2 }}
         />
       ) : null}
     </Box>

@@ -111,11 +111,41 @@ export function AgentReportLibraryDialog({ open, onClose }: AgentReportLibraryDi
 
   return (
     <>
-      <Dialog open={open} onClose={onClose} fullWidth maxWidth="lg" aria-labelledby="agent-report-library-title">
-        <DialogTitle id="agent-report-library-title">研究报告</DialogTitle>
+      <Dialog
+        open={open}
+        onClose={onClose}
+        fullWidth
+        maxWidth="xl"
+        aria-labelledby="agent-report-library-title"
+        slotProps={{
+          paper: {
+            sx: {
+              height: { md: 'min(820px, calc(100dvh - 64px))' },
+              color: 'text.primary',
+              bgcolor: 'background.default',
+              backgroundImage: 'none',
+              overflow: 'hidden',
+              overscrollBehavior: 'contain',
+            },
+          },
+        }}
+      >
+        <DialogTitle component="div" id="agent-report-library-title">
+          <Typography variant="caption" sx={{ color: 'primary.light', letterSpacing: 1 }}>
+            RESEARCH REPORTS
+          </Typography>
+          <Typography variant="h6">研究报告</Typography>
+        </DialogTitle>
         <DialogContent dividers sx={{ p: 0 }}>
           {error ? <Alert severity="error" sx={{ borderRadius: 0 }}>{error}</Alert> : null}
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'minmax(250px, 0.8fr) minmax(0, 1.8fr)' }, minHeight: 460 }}>
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', md: '300px minmax(0, 1fr)' },
+              minHeight: 1,
+              height: 1,
+            }}
+          >
             <Box sx={{ borderRight: { md: 1 }, borderBottom: { xs: 1, md: 0 }, borderColor: 'divider', minWidth: 0 }}>
               {loadingList && reports.length === 0 ? (
                 <Stack spacing={1} sx={{ p: 2 }}>
@@ -130,7 +160,17 @@ export function AgentReportLibraryDialog({ open, onClose }: AgentReportLibraryDi
                       key={report.reportId}
                       selected={selectedId === report.reportId}
                       onClick={() => void selectReport(report.reportId)}
-                      sx={{ alignItems: 'flex-start', px: 2, py: 1.5 }}
+                      sx={{
+                        alignItems: 'flex-start',
+                        mx: 1.5,
+                        my: 0.75,
+                        px: 1.5,
+                        py: 1.5,
+                        border: 1,
+                        borderColor: 'transparent',
+                        borderRadius: 1.25,
+                        '&.Mui-selected': { borderColor: 'primary.main' },
+                      }}
                     >
                       <ListItemText
                         primary={report.title}
@@ -153,11 +193,20 @@ export function AgentReportLibraryDialog({ open, onClose }: AgentReportLibraryDi
               ) : null}
             </Box>
 
-            <Box sx={{ minWidth: 0, p: { xs: 2, md: 3 } }}>
+            <Box sx={{ minWidth: 0, overflow: 'auto', p: { xs: 2, md: 3 } }}>
               {loadingDetail ? <Stack spacing={1}><Skeleton variant="text" width="60%" /><Skeleton variant="rounded" height={220} /></Stack> : null}
               {!loadingDetail && !detail ? <Typography variant="body2" color="text.secondary">选择左侧报告查看详情</Typography> : null}
               {detail ? (
-                <Box>
+                <Box
+                  sx={{
+                    minHeight: 560,
+                    p: { xs: 2, md: 4 },
+                    border: 1,
+                    borderColor: 'divider',
+                    borderRadius: 1.5,
+                    bgcolor: 'background.paper',
+                  }}
+                >
                   <Stack direction="row" spacing={1} alignItems="flex-start" justifyContent="space-between" sx={{ mb: 2 }}>
                     <Box sx={{ minWidth: 0 }}>
                       <Typography variant="h6">{detail.title}</Typography>

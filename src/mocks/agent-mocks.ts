@@ -157,6 +157,16 @@ export const agentHandlers = [
       conversationId: 'cm_mock_1',
       modelPolicy: 'AUTO',
       preferredModel: null,
+      contextPreparation: {
+        status: 'COMPACTION_REQUIRED',
+        targetModel: 'research-model',
+        contextWindow: 128000,
+        estimatedRecentTokens: 92000,
+        triggerTokens: 88473,
+        targetTokens: 58982,
+        willAutoCompactOnNextRun: true,
+        message: '下一轮发送前会自动整理历史会话，原始消息不会删除',
+      },
       updatedAt: '2026-07-20T00:00:05.000Z',
     } satisfies AgentResponse<'/agent/conversations/model/update'>)
   ),

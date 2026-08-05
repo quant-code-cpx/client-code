@@ -145,6 +145,137 @@ describe('Agent reducer', () => {
     expect(state.messages.byId.msg_assistant_1.contentText).toBe('');
   });
 
+  it('会话压缩事件把整理进度和失败原因明确投影到运行状态', () => {
+    let state = agentReducer(stateWithConfirmedRun(), {
+      type: 'RUN_EVENT_ACCEPTED',
+      event: streamEvent('context.compaction.started', 1),
+      connectionGeneration: 2,
+    });
+    expect(state.runs.byId.run_1.stageLabel).toBe('正在整理历史会话以适配 research-model');
+
+    const summaryStarted = streamEvent('model.started', 2);
+    if (summaryStarted.type !== 'model.started') throw new Error('model.started fixture 类型错误');
+    state = agentReducer(state, {
+      type: 'RUN_EVENT_ACCEPTED',
+      event: { ...summaryStarted, payload: { ...summaryStarted.payload, purpose: 'SUMMARIZE' } },
+      connectionGeneration: 2,
+    });
+    expect(state.runs.byId.run_1.stageLabel).toBe('正在整理历史会话');
+
+    state = agentReducer(state, {
+      type: 'RUN_EVENT_ACCEPTED',
+      event: streamEvent('context.compaction.failed', 3),
+      connectionGeneration: 2,
+    });
+    expect(state.runs.byId.run_1).toMatchObject({
+      stageLabel: '历史会话整理失败',
+      errorCode: 6047,
+      errorMessage: '会话整理失败，请重试或切换到上下文更大的模型',
+      retryable: true,
+    });
+    expect(state.messages.byId.msg_assistant_1.contentText).toBe('');
+  });
+
+  it('推理活动只更新安全阶段信号，不把思维链写入正式消息', () => {
+    const state = agentReducer(stateWithConfirmedRun(), {
+      type: 'RUN_EVENT_ACCEPTED',
+      event: streamEvent('model.activity', 1),
+      connectionGeneration: 2,
+    });
+
+    expect(state.runs.byId.run_1.stageLabel).toBe('模型正在深度分析（推理内容已隐藏）');
+    expect(state.runs.byId.run_1.modelActivity).toMatchObject({
+      phase: 'REASONING',
+      processedCharacters: 2048,
+    });
+    expect(state.messages.byId.msg_assistant_1.contentText).toBe('');
+  });
+
+  it('模型执行轨迹公开可诊断元数据，不写入 Prompt 或推理文本', () => {
+    let state = stateWithConfirmedRun();
+    const started = streamEvent('model.started', 1);
+    const trace = streamEvent('model.trace', 2);
+    const completed = streamEvent('model.completed', 3);
+    if (
+      started.type !== 'model.started' ||
+      trace.type !== 'model.trace' ||
+      completed.type !== 'model.completed'
+    ) {
+      throw new Error('模型诊断 fixture 类型错误');
+    }
+
+    state = agentReducer(state, {
+      type: 'RUN_EVENT_ACCEPTED',
+      event: started,
+      connectionGeneration: 2,
+    });
+    state = agentReducer(state, {
+      type: 'RUN_EVENT_ACCEPTED',
+      event: trace,
+      connectionGeneration: 2,
+    });
+    state = agentReducer(state, {
+      type: 'RUN_EVENT_ACCEPTED',
+      event: completed,
+      connectionGeneration: 2,
+    });
+
+    expect(state.runs.byId.run_1.modelDiagnostics).toEqual([
+      expect.objectContaining({
+        modelCallId: 'model_call_fixture',
+        provider: 'openai-compatible',
+        model: 'research-model',
+        phase: 'COMPLETED',
+        status: 'COMPLETED',
+        messageCount: 4,
+        estimatedInputTokens: 1024,
+        usage: { inputTokens: 1000, outputTokens: 500, reasoningTokens: 120 },
+      }),
+    ]);
+    expect(JSON.stringify(state.runs.byId.run_1.modelDiagnostics)).not.toContain('reasoning_content');
+    expect(state.messages.byId.msg_assistant_1.contentText).toBe('');
+  });
+
+  it('草稿流独立累加、修复重置，最终正文开始后清除草稿', () => {
+    let state = stateWithConfirmedRun();
+    const reset = streamEvent('model.preview.reset', 1);
+    const firstDelta = streamEvent('model.preview.delta', 2);
+    if (reset.type !== 'model.preview.reset' || firstDelta.type !== 'model.preview.delta') {
+      throw new Error('model preview fixture 类型错误');
+    }
+    state = agentReducer(state, {
+      type: 'RUN_EVENT_ACCEPTED',
+      event: reset,
+      connectionGeneration: 2,
+    });
+    state = agentReducer(state, {
+      type: 'RUN_EVENT_ACCEPTED',
+      event: firstDelta,
+      connectionGeneration: 2,
+    });
+    expect(state.runs.byId.run_1.draftPreview?.text).toBe('正在形成研究结论');
+    expect(state.messages.byId.msg_assistant_1.contentText).toBe('');
+
+    const repairedReset = streamEvent('model.preview.reset', 3);
+    if (repairedReset.type !== 'model.preview.reset') {
+      throw new Error('model.preview.reset fixture 类型错误');
+    }
+    state = agentReducer(state, {
+      type: 'RUN_EVENT_ACCEPTED',
+      event: { ...repairedReset, payload: { ...repairedReset.payload, attempt: 2 } },
+      connectionGeneration: 2,
+    });
+    expect(state.runs.byId.run_1.draftPreview?.text).toBe('');
+
+    state = agentReducer(state, {
+      type: 'RUN_EVENT_ACCEPTED',
+      event: streamEvent('model.delta', 4),
+      connectionGeneration: 2,
+    });
+    expect(state.runs.byId.run_1.draftPreview).toBeUndefined();
+    expect(state.messages.byId.msg_assistant_1.contentText).toBe('贵州茅台');
+  });
+
   it('Run 已完成后不被迟到的取消响应回退为 CANCEL_REQUESTED', () => {
     let state = stateWithConfirmedRun();
     state = agentReducer(state, {

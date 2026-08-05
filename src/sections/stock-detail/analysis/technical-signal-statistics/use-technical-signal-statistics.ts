@@ -14,7 +14,7 @@ import {
   isAbortError,
   normalizeHorizons,
   toCompactTradeDate,
-  DEFAULT_SIGNAL_PERIODS,
+  DEFAULT_SIGNAL_PERIOD,
   DEFAULT_SIGNAL_HORIZONS,
 } from './technical-signal-formatters';
 
@@ -22,7 +22,7 @@ import {
 
 export type TechnicalSignalStatisticsFilters = {
   signals: TechnicalSignalSelector[];
-  periods: TechnicalSignalPeriod[];
+  period: TechnicalSignalPeriod;
   customStartDate: string;
   customEndDate: string;
   horizons: number[];
@@ -39,7 +39,7 @@ export type AsyncDataState<T> = {
 
 const defaultFilters = (): TechnicalSignalStatisticsFilters => ({
   signals: [],
-  periods: [...DEFAULT_SIGNAL_PERIODS],
+  period: DEFAULT_SIGNAL_PERIOD,
   customStartDate: '',
   customEndDate: '',
   horizons: [...DEFAULT_SIGNAL_HORIZONS],
@@ -48,10 +48,9 @@ const defaultFilters = (): TechnicalSignalStatisticsFilters => ({
 });
 
 function validateFilters(filters: TechnicalSignalStatisticsFilters): string | null {
-  if (filters.periods.length === 0) return '请至少选择一个统计区间';
   if (filters.horizons.length === 0) return '请至少选择一个观察周期';
   if (filters.horizons.length > 10) return '观察周期最多选择 10 个';
-  if (filters.periods.includes('CUSTOM') && !filters.customStartDate) {
+  if (filters.period === 'CUSTOM' && !filters.customStartDate) {
     return '自定义区间需要填写开始日期';
   }
   if (
@@ -68,21 +67,20 @@ function normalizeFilters(filters: TechnicalSignalStatisticsFilters): TechnicalS
   return {
     ...filters,
     horizons: normalizeHorizons(filters.horizons),
-    periods: [...new Set(filters.periods)],
   };
 }
 
 function buildStatisticsRequest(tsCode: string, filters: TechnicalSignalStatisticsFilters) {
   const request = {
     tsCode,
-    periods: filters.periods,
+    periods: [filters.period],
     horizons: filters.horizons,
     entryMode: filters.entryMode,
     includeBenchmark: filters.includeBenchmark,
     ...(filters.signals.length > 0 ? { signals: filters.signals } : {}),
   };
 
-  if (!filters.periods.includes('CUSTOM')) return request;
+  if (filters.period !== 'CUSTOM') return request;
 
   return {
     ...request,

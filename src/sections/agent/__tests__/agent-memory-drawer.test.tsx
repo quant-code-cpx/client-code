@@ -53,6 +53,7 @@ describe('AgentMemoryDrawer', () => {
   it('仅展示当前用户已确认的记忆，并保留来源、到期和更新时间', async () => {
     renderWithProviders(<AgentMemoryDrawer open onClose={vi.fn()} />);
 
+    expect(document.querySelector('.MuiDrawer-paper')).not.toHaveAttribute('data-color-scheme');
     expect(await screen.findByText('response.style')).toBeInTheDocument();
     expect(screen.getByText('由你手动保存', { exact: false })).toBeInTheDocument();
     expect(screen.getByText('到期：', { exact: false })).toBeInTheDocument();

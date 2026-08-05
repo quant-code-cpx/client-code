@@ -46,11 +46,12 @@ describe('Agent 公共契约', () => {
     expect(() => parseMessageBlock(invalidBlock)).toThrow(AgentProtocolError);
   });
 
-  it('固定 16 个 Agent Tool key', () => {
+  it('固定 20 个 Agent Tool key', () => {
     expect(AGENT_TOOL_KEYS).toEqual([
       'resolve_security',
       'get_stock_price_history',
       'get_stock_overview',
+      'screen_stocks',
       'get_financial_statements',
       'get_financial_indicators',
       'get_stock_moneyflow',
@@ -63,6 +64,9 @@ describe('Agent 公共契约', () => {
       'compute_valuation_percentile',
       'search_web',
       'fetch_web_page',
+      'get_stock_technical_indicators',
+      'get_stock_technical_signals',
+      'get_data_availability',
       'save_research_report',
     ]);
   });
@@ -96,10 +100,10 @@ describe('Agent 公共契约', () => {
     ]);
   });
 
-  it('错误码覆盖 6001–6046 与 6099，且无重复', () => {
+  it('错误码覆盖 6001–6049 与 6099，且无重复', () => {
     const codes = AGENT_ERROR_DEFINITIONS.map((definition) => definition.code);
 
-    expect(codes).toEqual([...Array.from({ length: 46 }, (_, index) => 6001 + index), 6099]);
-    expect(new Set(codes).size).toBe(47);
+    expect(codes).toEqual([...Array.from({ length: 49 }, (_, index) => 6001 + index), 6099]);
+    expect(new Set(codes).size).toBe(50);
   });
 });

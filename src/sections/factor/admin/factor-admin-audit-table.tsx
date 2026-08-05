@@ -1,5 +1,6 @@
 import type { AdminAuditItem } from 'src/api/factor';
 
+import dayjs from 'dayjs';
 import { useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
@@ -26,6 +27,7 @@ import { adminAuditLog } from 'src/api/factor';
 
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
+import { DatePicker } from 'src/components/date-picker';
 
 import { ADMIN_AUDIT_ACTION_LABELS } from '../constants';
 
@@ -102,28 +104,22 @@ export function FactorAdminAuditTable() {
             ))}
           </Select>
         </FormControl>
-        <TextField
-          type="date"
-          size="small"
+        <DatePicker
           label="从"
-          value={filterFrom}
-          onChange={(e) => {
-            setFilterFrom(e.target.value);
+          value={filterFrom ? dayjs(filterFrom) : null}
+          onChange={(value) => {
+            setFilterFrom(value?.format('YYYY-MM-DD') ?? '');
             setPage(0);
           }}
-          InputLabelProps={{ shrink: true }}
           sx={{ width: 148 }}
         />
-        <TextField
-          type="date"
-          size="small"
+        <DatePicker
           label="至"
-          value={filterTo}
-          onChange={(e) => {
-            setFilterTo(e.target.value);
+          value={filterTo ? dayjs(filterTo) : null}
+          onChange={(value) => {
+            setFilterTo(value?.format('YYYY-MM-DD') ?? '');
             setPage(0);
           }}
-          InputLabelProps={{ shrink: true }}
           sx={{ width: 148 }}
         />
         <Button

@@ -1,4 +1,5 @@
 import type {} from '@mui/lab/themeAugmentation';
+import type {} from '@mui/x-chat/themeAugmentation';
 import type {} from '@mui/x-date-pickers/themeAugmentation';
 import type {} from '@mui/material/themeCssVarsAugmentation';
 

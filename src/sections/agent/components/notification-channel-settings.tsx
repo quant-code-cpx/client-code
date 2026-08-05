@@ -3,13 +3,10 @@ import type { AgentRequest, AgentResponse } from 'src/api/agent';
 import { useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
-import Tab from '@mui/material/Tab';
 import Chip from '@mui/material/Chip';
-import Tabs from '@mui/material/Tabs';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
-import Drawer from '@mui/material/Drawer';
 import Switch from '@mui/material/Switch';
 import Divider from '@mui/material/Divider';
 import Tooltip from '@mui/material/Tooltip';
@@ -128,7 +125,22 @@ function ChannelEditorDialog({ channel, open, onClose, onSaved }: ChannelEditorP
   }, [channel, name, onClose, onSaved, secret, type, valid, webhookUrl]);
 
   return (
-    <Dialog open={open} onClose={!saving ? onClose : undefined} fullWidth maxWidth="sm">
+    <Dialog
+      open={open}
+      onClose={!saving ? onClose : undefined}
+      fullWidth
+      maxWidth="sm"
+      slotProps={{
+        paper: {
+          sx: {
+            color: 'text.primary',
+            bgcolor: 'background.paper',
+            backgroundImage: 'none',
+            overscrollBehavior: 'contain',
+          },
+        },
+      }}
+    >
       <DialogTitle>{channel ? '编辑通知渠道' : '添加通知渠道'}</DialogTitle>
       <DialogContent>
         {error ? (
@@ -214,7 +226,6 @@ function ChannelEditorDialog({ channel, open, onClose, onSaved }: ChannelEditorP
 }
 
 export function NotificationChannelSettings({ open, onClose }: NotificationChannelSettingsProps) {
-  const [activeTab, setActiveTab] = useState<'channels' | 'deliveries'>('channels');
   const [channels, setChannels] = useState<NotificationChannel[]>([]);
   const [deliveries, setDeliveries] = useState<NotificationDelivery[]>([]);
   const [loading, setLoading] = useState(false);
@@ -329,38 +340,52 @@ export function NotificationChannelSettings({ open, onClose }: NotificationChann
 
   return (
     <>
-      <Drawer
-        anchor="right"
+      <Dialog
         open={open}
         onClose={onClose}
+        fullWidth
+        maxWidth="lg"
+        aria-labelledby="agent-notification-settings-title"
         slotProps={{
           paper: {
-            sx: { width: { xs: 1, sm: 520 }, overflowX: 'hidden', overscrollBehavior: 'contain' },
+            sx: {
+              height: { md: 'min(760px, calc(100dvh - 64px))' },
+              color: 'text.primary',
+              bgcolor: 'background.default',
+              backgroundImage: 'none',
+              overflow: 'hidden',
+              overscrollBehavior: 'contain',
+            },
           },
         }}
       >
-        <Box sx={{ px: 2.5, py: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Box sx={{ px: 2.75, py: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
           <Box sx={{ minWidth: 0, flexGrow: 1 }}>
-            <Typography variant="h6">通知渠道</Typography>
-            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-              研究完成后独立投递，失败不会重跑研究。
+            <Typography variant="caption" sx={{ color: 'primary.light', letterSpacing: 1 }}>
+              DELIVERY CENTER
+            </Typography>
+            <Typography
+              id="agent-notification-settings-title"
+              component="h2"
+              variant="h6"
+              sx={{ textWrap: 'balance' }}
+            >
+              通知与投递
             </Typography>
           </Box>
-          <Tooltip title="添加通知渠道">
-            <IconButton aria-label="添加通知渠道" onClick={() => setEditorChannel(null)}>
-              <Iconify icon="solar:add-circle-bold" width={21} />
-            </IconButton>
-          </Tooltip>
+          <Button
+            variant="contained"
+            startIcon={<Iconify icon="solar:add-circle-bold" width={18} />}
+            onClick={() => setEditorChannel(null)}
+          >
+            添加通知渠道
+          </Button>
           <Tooltip title="关闭通知渠道">
             <IconButton aria-label="关闭通知渠道" onClick={onClose}>
               <Iconify icon="solar:close-circle-bold" width={21} />
             </IconButton>
           </Tooltip>
         </Box>
-        <Tabs value={activeTab} onChange={(_event, next) => setActiveTab(next)} variant="fullWidth">
-          <Tab value="channels" label="渠道" />
-          <Tab value="deliveries" label="投递历史" />
-        </Tabs>
         <Divider />
 
         {error ? (
@@ -374,13 +399,29 @@ export function NotificationChannelSettings({ open, onClose }: NotificationChann
         ) : null}
 
         <Scrollbar sx={{ flex: 1 }}>
-          <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 1.25 }}>
+          <Box
+            sx={{
+              minHeight: 1,
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', md: '340px minmax(0, 1fr)' },
+            }}
+          >
             {loading ? (
-              Array.from({ length: 4 }).map((_, index) => (
-                <Skeleton key={index} variant="rounded" height={116} />
-              ))
-            ) : activeTab === 'channels' ? (
-              channels.length === 0 ? (
+              <Box sx={{ gridColumn: '1 / -1', display: 'grid', gap: 1.25, p: 2 }}>
+                {Array.from({ length: 4 }).map((_, index) => (
+                  <Skeleton key={index} variant="rounded" height={116} />
+                ))}
+              </Box>
+            ) : (
+              <>
+                <Box
+                  component="section"
+                  aria-label="通知渠道列表"
+                  sx={{ p: 2, borderRight: { md: 1 }, borderColor: 'divider' }}
+                >
+                  <StackHeader label="渠道" count={channels.length} />
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25 }}>
+                  {channels.length === 0 ? (
                 <EmptyState
                   icon="solar:bell-bing-bold"
                   title="还没有通知渠道"
@@ -477,14 +518,19 @@ export function NotificationChannelSettings({ open, onClose }: NotificationChann
                     </Box>
                   );
                 })
-              )
-            ) : deliveries.length === 0 ? (
+                  )}
+                  </Box>
+                </Box>
+                <Box component="section" aria-label="投递历史列表" sx={{ p: 2 }}>
+                  <StackHeader label="最近投递" count={deliveries.length} />
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25 }}>
+                  {deliveries.length === 0 ? (
               <EmptyState
                 icon="solar:inbox-line-bold"
                 title="还没有投递记录"
                 detail="完成的 Agent 研究会显示在这里。"
               />
-            ) : (
+                  ) : (
               deliveries.map((delivery) => {
                 const status = DELIVERY_STATUS[delivery.status];
                 const canRetry = delivery.status === 'FAILED' || delivery.status === 'SUPPRESSED';
@@ -539,10 +585,14 @@ export function NotificationChannelSettings({ open, onClose }: NotificationChann
                   </Box>
                 );
               })
+                  )}
+                  </Box>
+                </Box>
+              </>
             )}
           </Box>
         </Scrollbar>
-      </Drawer>
+      </Dialog>
 
       <ChannelEditorDialog
         open={editorOpen}
@@ -560,6 +610,17 @@ export function NotificationChannelSettings({ open, onClose }: NotificationChann
         confirmLabel="删除"
       />
     </>
+  );
+}
+
+function StackHeader({ label, count }: { label: string; count: number }) {
+  return (
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+      <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+        {label}
+      </Typography>
+      <Chip size="small" label={count} variant="outlined" />
+    </Box>
   );
 }
 
@@ -587,7 +648,8 @@ const rowSx = {
   p: 1.5,
   border: 1,
   borderColor: 'divider',
-  borderRadius: 1,
+  borderRadius: 1.25,
+  bgcolor: 'background.paper',
   contentVisibility: 'auto',
   containIntrinsicSize: 'auto 120px',
 };

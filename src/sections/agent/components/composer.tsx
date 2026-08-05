@@ -3,14 +3,21 @@ import { useRef, useMemo } from 'react';
 import Box from '@mui/material/Box';
 import Alert from '@mui/material/Alert';
 import Tooltip from '@mui/material/Tooltip';
-import TextField from '@mui/material/TextField';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
+import {
+  ChatComposer,
+  ChatComposerToolbar,
+  ChatComposerTextArea,
+  ChatComposerSendButton,
+  ChatComposerHelperText,
+} from '@mui/x-chat/ChatComposer';
 
 import { Iconify } from 'src/components/iconify';
 
 const MAX_MESSAGE_LENGTH = 10_000;
+const COMPOSER_FEATURES = { attachments: false } as const;
 
 type ComposerProps = {
   value: string;
@@ -19,7 +26,6 @@ type ComposerProps = {
   isRunning: boolean;
   stopping: boolean;
   error: string | null;
-  onChange: (value: string) => void;
   onSubmit: () => void;
   onStop: () => void;
 };
@@ -31,7 +37,6 @@ export function Composer({
   isRunning,
   stopping,
   error,
-  onChange,
   onSubmit,
   onStop,
 }: ComposerProps) {
@@ -42,43 +47,59 @@ export function Composer({
   const helperText = useMemo(() => {
     if (tooLong) return `已超过 ${MAX_MESSAGE_LENGTH.toLocaleString()} 字限制`;
     if (recovered && value.length > 0) return '已恢复未发送草稿';
-    return ' ';
+    return 'Enter 发送 · Shift + Enter 换行';
   }, [recovered, tooLong, value.length]);
 
   return (
     <Box
-      component="form"
-      aria-label="发送研究问题"
-      onSubmit={(event) => {
-        event.preventDefault();
-        if (canSubmit) onSubmit();
-      }}
+      component="section"
+      aria-label="研究问题输入区"
       sx={(theme) => ({
         borderTop: 1,
         borderColor: 'divider',
-        px: { xs: 1.5, md: 3 },
+        bgcolor: theme.vars.palette.background.default,
+        px: { xs: 1.5, md: 3.25 },
         pt: 1.5,
         pb: `max(${theme.spacing(1.5)}, env(safe-area-inset-bottom))`,
       })}
     >
       {error ? (
-        <Alert severity="warning" sx={{ mb: 1 }}>
+        <Alert severity="warning" sx={{ maxWidth: 1080, mx: 'auto', mb: 1 }}>
           {error}
         </Alert>
       ) : null}
-      <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: 1 }}>
-        <TextField
-          fullWidth
-          multiline
-          minRows={2}
+      <ChatComposer
+        aria-label="发送研究问题"
+        features={COMPOSER_FEATURES}
+        onSubmit={(event) => {
+          event.preventDefault();
+          if (canSubmit) onSubmit();
+        }}
+        sx={{
+          maxWidth: 1080,
+          mx: 'auto',
+          mb: 0,
+          px: 2,
+          pt: 1.5,
+          pb: 0.875,
+          gap: 0.75,
+          borderColor: tooLong ? 'error.main' : 'divider',
+          borderRadius: 1.75,
+          bgcolor: 'background.paper',
+          boxShadow: 'none',
+          '&:focus-within:not([data-disabled])': {
+            borderColor: tooLong ? 'error.main' : 'primary.main',
+            boxShadow: 2,
+          },
+        }}
+      >
+        <ChatComposerTextArea
           maxRows={6}
-          value={value}
           name="agent-prompt"
           autoComplete="off"
-          error={tooLong}
-          helperText={helperText}
-          placeholder="输入研究问题…"
-          onChange={(event) => onChange(event.target.value)}
+          placeholder="继续追问，或要求补充数据验证…"
+          aria-label="研究问题"
+          aria-describedby="agent-composer-helper agent-composer-count"
           onCompositionStart={() => {
             composingRef.current = true;
           }}
@@ -96,51 +117,68 @@ export function Composer({
               if (canSubmit) onSubmit();
             }
           }}
-          slotProps={{
-            htmlInput: { 'aria-label': '研究问题', 'aria-describedby': 'agent-composer-count' },
+          sx={{
+            minHeight: 52,
+            p: 0,
+            fontSize: '0.9375rem',
+            lineHeight: 1.7,
           }}
         />
-        {isRunning ? (
-          <Tooltip title="停止研究">
-            <span>
-              <IconButton
-                color="warning"
-                aria-label="停止研究"
-                disabled={stopping}
-                onClick={onStop}
-                sx={{ width: 44, height: 44, mb: 3 }}
-              >
-                <Iconify icon="solar:stop-circle-bold" width={24} />
-              </IconButton>
-            </span>
-          </Tooltip>
-        ) : (
-          <Tooltip title="发送">
-            <span>
-              <IconButton
-                type="submit"
-                color="primary"
-                disabled={!canSubmit}
-                aria-label="发送问题"
-                sx={{ width: 44, height: 44, mb: 3 }}
-              >
-                {isSending ? (
-                  <CircularProgress size={20} />
-                ) : (
-                  <Iconify icon="solar:arrow-right-bold" width={22} />
-                )}
-              </IconButton>
-            </span>
-          </Tooltip>
-        )}
-      </Box>
-      <Typography
-        id="agent-composer-count"
-        variant="caption"
-        sx={{ display: 'block', mt: -2.5, mr: 7, textAlign: 'right', color: tooLong ? 'error.main' : 'text.disabled', pointerEvents: 'none' }}
-      >
-        {value.length.toLocaleString()} / {MAX_MESSAGE_LENGTH.toLocaleString()}
-      </Typography>
+        <ChatComposerToolbar sx={{ minHeight: 44, gap: 1 }}>
+          <ChatComposerHelperText
+            id="agent-composer-helper"
+            sx={{
+              minWidth: 0,
+              flex: 1,
+              p: 0,
+              color: tooLong ? 'error.main' : recovered ? 'info.main' : 'text.disabled',
+            }}
+          >
+            {helperText}
+          </ChatComposerHelperText>
+          <Typography
+            id="agent-composer-count"
+            variant="caption"
+            sx={{
+              color: tooLong ? 'error.main' : 'text.disabled',
+              fontVariantNumeric: 'tabular-nums',
+            }}
+          >
+            {value.length.toLocaleString()} / {MAX_MESSAGE_LENGTH.toLocaleString()}
+          </Typography>
+          {isRunning ? (
+            <Tooltip title="停止研究">
+              <span>
+                <IconButton
+                  color="warning"
+                  aria-label="停止研究"
+                  disabled={stopping}
+                  onClick={onStop}
+                  sx={{ width: 44, height: 44 }}
+                >
+                  <Iconify icon="solar:stop-circle-bold" width={22} />
+                </IconButton>
+              </span>
+            </Tooltip>
+          ) : (
+            <Tooltip title="发送">
+              <span>
+                <ChatComposerSendButton
+                  disabled={!canSubmit}
+                  aria-label="发送问题"
+                  sx={{ width: 44, height: 44, borderRadius: 1 }}
+                >
+                  {isSending ? (
+                    <CircularProgress size={20} />
+                  ) : (
+                    <Iconify icon="solar:arrow-right-bold" width={20} />
+                  )}
+                </ChatComposerSendButton>
+              </span>
+            </Tooltip>
+          )}
+        </ChatComposerToolbar>
+      </ChatComposer>
     </Box>
   );
 }

@@ -5,7 +5,7 @@ import type {
 } from 'src/api/technical-signal';
 
 import { MemoryRouter } from 'react-router-dom';
-import { act, screen, fireEvent } from '@testing-library/react';
+import { act, screen, within, fireEvent } from '@testing-library/react';
 
 import { ThemeProvider } from '@mui/material/styles';
 
@@ -187,7 +187,7 @@ describe('TechnicalSignalStatisticsPanel', () => {
     expect(mocks.queryStatistics).toHaveBeenCalledWith(
       {
         tsCode: '600519.SH',
-        periods: ['1Y', '3Y'],
+        periods: ['3Y'],
         horizons: [1, 3, 5, 10, 20],
         entryMode: 'SIGNAL_CLOSE',
         includeBenchmark: true,
@@ -196,6 +196,48 @@ describe('TechnicalSignalStatisticsPanel', () => {
     );
     expect(screen.getByText('MACD 金叉')).toBeInTheDocument();
     expect(screen.getByText('数据截至 2026-07-31')).toBeInTheDocument();
+  });
+
+  it('uses one statistical period at a time because the three-year range includes the one-year range', async () => {
+    await act(async () => {
+      render(
+        <ThemeProvider theme={createTheme()}>
+          <MemoryRouter>
+            <TechnicalSignalStatisticsPanel tsCode="600519.SH" />
+          </MemoryRouter>
+        </ThemeProvider>
+      );
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    await vi.waitFor(() => expect(screen.getByText('信号表现矩阵')).toBeInTheDocument());
+
+    const periodSelector = screen.getByRole('group', { name: '统计区间' });
+    const oneYearButton = within(periodSelector).getByRole('button', { name: '近 1 年' });
+    const threeYearButton = within(periodSelector).getByRole('button', { name: '近 3 年' });
+    expect(threeYearButton).toHaveAttribute('aria-pressed', 'true');
+    expect(oneYearButton).toHaveAttribute('aria-pressed', 'false');
+
+    await act(async () => {
+      fireEvent.click(oneYearButton);
+      await Promise.resolve();
+    });
+
+    expect(oneYearButton).toHaveAttribute('aria-pressed', 'true');
+    expect(threeYearButton).toHaveAttribute('aria-pressed', 'false');
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: '应用筛选' }));
+      await Promise.resolve();
+    });
+
+    await vi.waitFor(() =>
+      expect(mocks.queryStatistics).toHaveBeenLastCalledWith(
+        expect.objectContaining({ periods: ['1Y'] }),
+        expect.any(AbortSignal)
+      )
+    );
   });
 
   it('hides the prior stock result while the next stock request is in flight', async () => {
@@ -312,7 +354,7 @@ describe('TechnicalSignalStatisticsPanel', () => {
   it('offers to disable the benchmark for the current numeric-code backend error contract', async () => {
     mocks.queryStatistics
       .mockRejectedValueOnce(
-        new ApiError('TECHNICAL_SIGNAL_BENCHMARK_NOT_READY: 000300.SH 全历史基座尚未就绪', {
+        new ApiError('TECHNICAL_SIGNAL_BENCHMARK_NOT_READY: 000300.SH 最近五年覆盖存在缺口', {
           status: 409,
           code: 409,
         })
@@ -335,7 +377,7 @@ describe('TechnicalSignalStatisticsPanel', () => {
     });
 
     await vi.waitFor(() => expect(screen.getByText('沪深 300 基准数据未就绪')).toBeInTheDocument());
-    expect(screen.getByText('000300.SH 全历史基座尚未就绪')).toBeInTheDocument();
+    expect(screen.getByText('000300.SH 最近五年覆盖存在缺口')).toBeInTheDocument();
 
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: '关闭对标后重试' }));

@@ -1,7 +1,9 @@
 import { Route, Routes } from 'react-router';
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 
+import { agentApi } from 'src/api/agent';
 import { renderWithProviders } from 'src/test/test-utils';
+import { agentMockConversation } from 'src/mocks/agent-mocks';
 import { createAuthenticatedContext } from 'src/test/factories/auth-context';
 
 import { AgentView } from '../view/agent-view';
@@ -102,5 +104,45 @@ describe('AgentView', () => {
 
     expect(screen.getByText('会话不存在或无权访问')).toBeInTheDocument();
     expect(screen.queryByLabelText('研究问题')).not.toBeInTheDocument();
+  });
+
+  it('模型切换需要压缩时显示明确提示', async () => {
+    const refresh = vi.fn();
+    vi.spyOn(agentApi, 'listModels').mockResolvedValue({ items: [] });
+    vi.spyOn(agentApi, 'updateConversationModel').mockResolvedValue({
+      conversationId: 'cm_mock_1',
+      modelPolicy: 'AUTO',
+      preferredModel: null,
+      contextPreparation: {
+        status: 'COMPACTION_REQUIRED',
+        targetModel: 'research-model',
+        contextWindow: 128000,
+        estimatedRecentTokens: 92000,
+        triggerTokens: 88473,
+        targetTokens: 58982,
+        willAutoCompactOnNextRun: true,
+        message: '下一轮发送前会自动整理历史会话，原始消息不会删除',
+      },
+      updatedAt: '2026-07-20T00:00:05.000Z',
+    });
+    mocks.useConversation.mockReturnValue({
+      conversation: agentMockConversation,
+      messages: [],
+      loadState: { detailStatus: 'ready', messagesStatus: 'ready', error: null },
+      refresh,
+      loadOlder: vi.fn(),
+      hasOlder: false,
+    });
+
+    const { user } = renderAgent('/agent/cm_mock_1');
+    await user.click(screen.getByRole('button', { name: '自动模型' }));
+    const saveButton = await screen.findByRole('button', { name: '保存' });
+    await waitFor(() => expect(saveButton).toBeEnabled());
+    await user.click(saveButton);
+
+    expect(
+      await screen.findByText(/下一轮发送前会自动整理历史会话，原始消息不会删除/)
+    ).toBeInTheDocument();
+    expect(refresh).toHaveBeenCalled();
   });
 });
