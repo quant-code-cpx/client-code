@@ -1,5 +1,7 @@
 import type { UserRole } from 'src/api/user-manage';
 
+import { paths } from 'src/routes/paths';
+
 import { CONFIG } from 'src/config-global';
 
 import { Iconify } from 'src/components/iconify';
@@ -38,6 +40,11 @@ export function createNavData(agentEnabled = CONFIG.agentEnabled, role?: UserRol
         title: '市场概览',
         path: '/market/overview',
         icon: icon('ic-analytics'),
+      },
+      {
+        title: '新闻时事',
+        path: paths.market.news,
+        icon: <Iconify icon="solar:document-text-bold" width={24} />,
       },
       {
         title: '指数详情',

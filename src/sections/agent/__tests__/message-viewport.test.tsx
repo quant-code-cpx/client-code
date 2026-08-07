@@ -56,9 +56,10 @@ function message(index: number, contentText = `消息 ${index}`): AgentMessageEn
 type MessageViewportFixtureProps = {
   messages: AgentMessageEntity[];
   activeRun?: AgentRunProjection | null;
+  runsById?: Record<string, AgentRunProjection>;
 };
 
-function MessageViewportFixture({ messages, activeRun = null }: MessageViewportFixtureProps) {
+function MessageViewportFixture({ messages, activeRun = null, runsById = {} }: MessageViewportFixtureProps) {
   return (
     <AgentMuiXProvider
       activeConversationId="cm_1"
@@ -72,6 +73,7 @@ function MessageViewportFixture({ messages, activeRun = null }: MessageViewportF
       <MessageViewport
         messages={messages}
         activeRun={activeRun}
+        runsById={runsById}
         status="ready"
         error={null}
         hasOlder={false}
@@ -99,8 +101,14 @@ function FollowLatestFixture() {
   );
 }
 
-function renderViewport(messages: AgentMessageEntity[], activeRun: AgentRunProjection | null = null) {
-  return renderWithProviders(<MessageViewportFixture messages={messages} activeRun={activeRun} />);
+function renderViewport(
+  messages: AgentMessageEntity[],
+  activeRun: AgentRunProjection | null = null,
+  runsById: Record<string, AgentRunProjection> = {}
+) {
+  return renderWithProviders(
+    <MessageViewportFixture messages={messages} activeRun={activeRun} runsById={runsById} />
+  );
 }
 
 describe('MessageViewport', () => {
@@ -171,8 +179,62 @@ describe('MessageViewport', () => {
 
     expect(screen.getByLabelText('实时执行进度')).toBeInTheDocument();
     expect(screen.getByText('正在组织研究结论')).toBeInTheDocument();
-    expect(screen.getByText('计划摘要：核验行情与财务数据后形成结论。')).toBeInTheDocument();
+    expect(screen.getByText('核验行情与财务数据后形成结论。')).toBeInTheDocument();
     expect(screen.queryByText('等待研究开始…')).not.toBeInTheDocument();
+  });
+
+  it('终态研究失败时展示后端返回的具体错误，而不是空内容提示', () => {
+    const assistantMessage: AgentMessageEntity = {
+      ...message(1, ''),
+      status: 'FAILED',
+      run: { runId: 'run_failed', status: 'FAILED', statusVersion: 4, endedAt: '2026-07-20T01:00:04.000Z' },
+    };
+    const failedRun: AgentRunProjection = {
+      runId: 'run_failed',
+      conversationId: 'cm_1',
+      assistantMessageId: assistantMessage.messageId,
+      status: 'FAILED',
+      statusVersion: 4,
+      canCancel: false,
+      currentStep: null,
+      latestEventSequence: 4,
+      connectionGeneration: 1,
+      connectionState: 'COMPLETED',
+      reconnects: 0,
+      stageLabel: '研究失败',
+      errorCode: 4012,
+      errorMessage: '供应商返回 401：API key 无效',
+      retryable: true,
+      needsFinalSnapshot: true,
+      cancelRequested: false,
+    };
+
+    renderViewport([assistantMessage], null, { [failedRun.runId]: failedRun });
+
+    expect(screen.getByRole('alert')).toHaveTextContent('错误 4012 · 供应商返回 401：API key 无效');
+    expect(screen.queryByText('暂无可展示内容')).not.toBeInTheDocument();
+  });
+
+  it('刷新后没有实时 Run 投影时，仍展示历史消息携带的失败原因', () => {
+    const assistantMessage: AgentMessageEntity = {
+      ...message(1, ''),
+      status: 'FAILED',
+      run: {
+        runId: 'run_historical_failed',
+        status: 'FAILED',
+        statusVersion: 8,
+        endedAt: '2026-08-07T12:00:04.000Z',
+        errorCode: 'MODEL_PROVIDER_UNAVAILABLE',
+        errorMessage: '模型供应商返回 HTTP 502，请检查上游服务状态或协议兼容日志',
+      },
+    };
+
+    renderViewport([assistantMessage]);
+
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      '错误 MODEL_PROVIDER_UNAVAILABLE · 模型供应商返回 HTTP 502，请检查上游服务状态或协议兼容日志'
+    );
+    expect(screen.queryByText('研究执行失败，暂未收到具体原因。')).not.toBeInTheDocument();
   });
 
   it('发送乐观用户消息后自动滚动到底部', () => {

@@ -80,6 +80,7 @@ export const AGENT_TOOL_KEYS = [
   'run_event_study',
   'get_backtest_analytics',
   'get_portfolio_analytics',
+  'get_market_news',
   'save_research_report',
 ] as const;
 export const AGENT_EVENT_TYPES = [
@@ -630,7 +631,17 @@ export type StreamError = {
 export type AgentEventPayloadMap = {
   'message.created': { messageId: string; role: MessageRole; status: MessageStatus };
   'agent.started': { workflowKey: string; workflowVersion: number; modelPolicy: ModelPolicy };
-  'agent.planning': { intent: string; capabilities: AgentCapability[]; planSummary: string };
+  'agent.planning': {
+    intent: string;
+    capabilities: AgentCapability[];
+    planSummary: string;
+    decision?: {
+      toolSelectionReason: string;
+      selectedTools: AgentToolKey[];
+      plannedTools: AgentToolKey[];
+      fallback: boolean;
+    };
+  };
   'agent.progress': { stepKey: string; label: string; completed: number; total: number | null };
   'context.compaction.started': {
     model: string;
@@ -985,6 +996,109 @@ export const AGENT_CONTRACT_JSON_SCHEMA = {
                   type: 'string',
                   minLength: 1,
                   maxLength: 4000,
+                },
+                decision: {
+                  type: 'object',
+                  additionalProperties: false,
+                  required: ['toolSelectionReason', 'selectedTools', 'plannedTools', 'fallback'],
+                  properties: {
+                    toolSelectionReason: {
+                      type: 'string',
+                      minLength: 1,
+                      maxLength: 500,
+                    },
+                    selectedTools: {
+                      type: 'array',
+                      maxItems: 18,
+                      items: {
+                        enum: [
+                          'resolve_security',
+                          'get_stock_price_history',
+                          'get_stock_overview',
+                          'screen_stocks',
+                          'get_financial_statements',
+                          'get_financial_indicators',
+                          'get_stock_moneyflow',
+                          'get_market_snapshot',
+                          'get_sector_membership',
+                          'get_user_watchlist',
+                          'get_portfolio_risk',
+                          'get_backtest_result',
+                          'compute_performance_metrics',
+                          'compute_valuation_percentile',
+                          'search_web',
+                          'fetch_web_page',
+                          'get_stock_technical_indicators',
+                          'get_stock_technical_signals',
+                          'get_data_availability',
+                          'get_stock_chip_profile',
+                          'get_stock_margin_history',
+                          'get_stock_relative_strength',
+                          'get_stock_events',
+                          'get_stock_shareholder_profile',
+                          'get_index_market_data',
+                          'get_fund_research',
+                          'get_industry_rotation',
+                          'get_factor_analysis',
+                          'get_macro_snapshot',
+                          'get_option_market',
+                          'get_convertible_bond_market',
+                          'run_event_study',
+                          'get_backtest_analytics',
+                          'get_portfolio_analytics',
+                          'get_market_news',
+                          'save_research_report',
+                        ],
+                      },
+                    },
+                    plannedTools: {
+                      type: 'array',
+                      maxItems: 20,
+                      items: {
+                        enum: [
+                          'resolve_security',
+                          'get_stock_price_history',
+                          'get_stock_overview',
+                          'screen_stocks',
+                          'get_financial_statements',
+                          'get_financial_indicators',
+                          'get_stock_moneyflow',
+                          'get_market_snapshot',
+                          'get_sector_membership',
+                          'get_user_watchlist',
+                          'get_portfolio_risk',
+                          'get_backtest_result',
+                          'compute_performance_metrics',
+                          'compute_valuation_percentile',
+                          'search_web',
+                          'fetch_web_page',
+                          'get_stock_technical_indicators',
+                          'get_stock_technical_signals',
+                          'get_data_availability',
+                          'get_stock_chip_profile',
+                          'get_stock_margin_history',
+                          'get_stock_relative_strength',
+                          'get_stock_events',
+                          'get_stock_shareholder_profile',
+                          'get_index_market_data',
+                          'get_fund_research',
+                          'get_industry_rotation',
+                          'get_factor_analysis',
+                          'get_macro_snapshot',
+                          'get_option_market',
+                          'get_convertible_bond_market',
+                          'run_event_study',
+                          'get_backtest_analytics',
+                          'get_portfolio_analytics',
+                          'get_market_news',
+                          'save_research_report',
+                        ],
+                      },
+                    },
+                    fallback: {
+                      type: 'boolean',
+                    },
+                  },
                 },
               },
             },
@@ -1421,6 +1535,7 @@ export const AGENT_CONTRACT_JSON_SCHEMA = {
                     'run_event_study',
                     'get_backtest_analytics',
                     'get_portfolio_analytics',
+                    'get_market_news',
                     'save_research_report',
                   ],
                 },
@@ -4343,6 +4458,7 @@ export const AGENT_CONTRACT_JSON_SCHEMA = {
       'run_event_study',
       'get_backtest_analytics',
       'get_portfolio_analytics',
+      'get_market_news',
       'save_research_report',
     ],
   },
@@ -4746,6 +4862,12 @@ export const AGENT_EVENT_FIXTURES = [
       intent: 'stock_research',
       capabilities: ['INTERNAL_DATA'],
       planSummary: '读取行情并计算指标',
+      decision: {
+        toolSelectionReason: '需要先读取行情，再核验技术指标。',
+        selectedTools: ['get_stock_price_history', 'get_stock_technical_indicators'],
+        plannedTools: ['get_stock_price_history', 'get_stock_technical_indicators'],
+        fallback: false,
+      },
     },
   },
   {

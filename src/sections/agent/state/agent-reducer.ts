@@ -3,11 +3,12 @@ import { messageStatusForRun, TERMINAL_RUN_STATUSES } from './agent-state.types'
 import type {
   AgentState,
   AgentAction,
+  AgentToolActivity,
   AgentMessageEntity,
   AgentRunProjection,
+  AgentModelDiagnostic,
   AgentConversationEntity,
   AgentConversationLoadState,
-  AgentModelDiagnostic,
 } from './agent-state.types';
 
 const EMPTY_LOAD: AgentConversationLoadState = {
@@ -236,6 +237,17 @@ function upsertModelDiagnostic(
   return diagnostics.map((item, itemIndex) => (itemIndex === index ? next : item));
 }
 
+function updateToolActivity(
+  run: AgentRunProjection,
+  toolCallId: string,
+  patch: Partial<AgentToolActivity>
+): AgentToolActivity[] {
+  const activities = run.toolActivities ?? [];
+  const index = activities.findIndex((item) => item.toolCallId === toolCallId);
+  if (index < 0) return activities;
+  return activities.map((item, itemIndex) => (itemIndex === index ? { ...item, ...patch } : item));
+}
+
 export function agentReducer(state: AgentState, action: AgentAction): AgentState {
   switch (action.type) {
     case 'CONVERSATION_SELECTED':
@@ -385,7 +397,10 @@ export function agentReducer(state: AgentState, action: AgentAction): AgentState
     case 'MESSAGES_SUCCEEDED': {
       const current = loadFor(state, action.conversationId);
       if (current.messagesGeneration !== action.generation) return state;
-      const items = action.items.map((item) => ({ ...item, conversationId: action.conversationId }));
+      const items = action.items.map((item) => ({
+        ...item,
+        conversationId: action.conversationId,
+      }));
       return {
         ...state,
         messages: mergeMessages(
@@ -548,7 +563,8 @@ export function agentReducer(state: AgentState, action: AgentAction): AgentState
 
     case 'RUN_DISCOVERED': {
       const existing = state.runs.byId[action.runId];
-      const run = existing ??
+      const run =
+        existing ??
         createRun(
           action.runId,
           action.conversationId,
@@ -556,16 +572,17 @@ export function agentReducer(state: AgentState, action: AgentAction): AgentState
           action.status,
           action.statusVersion
         );
+      const active = { ...state.runs.activeRunIdByConversation };
+      if (TERMINAL_RUN_STATUSES.has(action.status)) {
+        if (active[action.conversationId] === action.runId) delete active[action.conversationId];
+      } else {
+        active[action.conversationId] = action.runId;
+      }
       return {
         ...state,
         runs: {
           byId: { ...state.runs.byId, [run.runId]: run },
-          activeRunIdByConversation: TERMINAL_RUN_STATUSES.has(action.status)
-            ? state.runs.activeRunIdByConversation
-            : {
-                ...state.runs.activeRunIdByConversation,
-                [action.conversationId]: action.runId,
-              },
+          activeRunIdByConversation: active,
         },
       };
     }
@@ -662,30 +679,26 @@ export function agentReducer(state: AgentState, action: AgentAction): AgentState
         case 'message.created': {
           const messageId = action.event.messageId ?? action.event.payload.messageId;
           if (!messages.byId[messageId]) {
-            messages = withMessage(
-              { ...state, messages },
-              run.conversationId,
-              {
-                messageId,
-                conversationId: run.conversationId,
-                role: action.event.payload.role,
-                status: action.event.payload.status,
-                contentText: '',
-                contentBlocks: [],
-                citations: [],
-                version: 1,
-                parentMessageId: null,
-                modelName: null,
-                run: {
-                  runId: run.runId,
-                  status: run.status,
-                  statusVersion: run.statusVersion,
-                  endedAt: null,
-                },
-                createdAt: action.event.occurredAt,
-                completedAt: null,
-              }
-            );
+            messages = withMessage({ ...state, messages }, run.conversationId, {
+              messageId,
+              conversationId: run.conversationId,
+              role: action.event.payload.role,
+              status: action.event.payload.status,
+              contentText: '',
+              contentBlocks: [],
+              citations: [],
+              version: 1,
+              parentMessageId: null,
+              modelName: null,
+              run: {
+                runId: run.runId,
+                status: run.status,
+                statusVersion: run.statusVersion,
+                endedAt: null,
+              },
+              createdAt: action.event.occurredAt,
+              completedAt: null,
+            });
           }
           nextRun = { ...nextRun, assistantMessageId: messageId };
           break;
@@ -698,6 +711,7 @@ export function agentReducer(state: AgentState, action: AgentAction): AgentState
             ...nextRun,
             stageLabel: '研究计划已生成',
             planSummary: action.event.payload.planSummary,
+            planningDecision: action.event.payload.decision,
           };
           break;
         case 'agent.progress':
@@ -742,16 +756,48 @@ export function agentReducer(state: AgentState, action: AgentAction): AgentState
             draftPreview: undefined,
           };
           break;
-        case 'tool.started':
-          nextRun = { ...nextRun, stageLabel: `正在调用 ${action.event.payload.toolName}` };
+        case 'tool.started': {
+          const toolCall = action.event.payload;
+          nextRun = {
+            ...nextRun,
+            stageLabel: `正在调用 ${toolCall.toolName}`,
+            toolActivities: [
+              ...(nextRun.toolActivities ?? []).filter((item) => item.toolCallId !== toolCall.toolCallId),
+              {
+                toolCallId: toolCall.toolCallId,
+                toolName: toolCall.toolName,
+                status: 'RUNNING' as const,
+                attempt: toolCall.attempt,
+                inputSummary: toolCall.inputSummary,
+              },
+            ].slice(-8),
+          };
           break;
+        }
         case 'tool.completed':
-          nextRun = { ...nextRun, stageLabel: '数据处理完成' };
+          nextRun = {
+            ...nextRun,
+            stageLabel: '数据处理完成',
+            toolActivities: updateToolActivity(nextRun, action.event.payload.toolCallId, {
+              status: 'COMPLETED',
+              outputSummary: action.event.payload.outputSummary,
+              rowCount: action.event.payload.rowCount,
+              durationMs: action.event.payload.durationMs,
+              error: undefined,
+              willRetry: undefined,
+            }),
+          };
           break;
         case 'tool.failed':
           nextRun = {
             ...nextRun,
             stageLabel: action.event.payload.willRetry ? '数据调用重试中' : '部分数据调用失败',
+            toolActivities: updateToolActivity(nextRun, action.event.payload.toolCallId, {
+              status: 'FAILED',
+              attempt: action.event.payload.attempt,
+              error: action.event.payload.error,
+              willRetry: action.event.payload.willRetry,
+            }),
             errorCode: action.event.payload.error.code,
             errorMessage: action.event.payload.error.message,
             retryable: action.event.payload.error.retryable,
@@ -769,9 +815,7 @@ export function agentReducer(state: AgentState, action: AgentAction): AgentState
               willFallback: undefined,
             }),
             modelActivity: undefined,
-            ...(action.event.payload.purpose === 'SYNTHESIZE'
-              ? { draftPreview: undefined }
-              : {}),
+            ...(action.event.payload.purpose === 'SYNTHESIZE' ? { draftPreview: undefined } : {}),
             stageLabel:
               action.event.payload.purpose === 'PLAN'
                 ? '正在规划研究'
@@ -780,8 +824,8 @@ export function agentReducer(state: AgentState, action: AgentAction): AgentState
                   : action.event.payload.purpose === 'VERIFY'
                     ? '正在核验研究结论'
                     : action.event.payload.purpose === 'CLASSIFY'
-                      ? '正在理解研究问题'
-                      : '正在组织研究结论',
+                ? '正在理解研究问题'
+                : '正在组织研究结论',
           };
           break;
         case 'model.trace': {
@@ -807,7 +851,7 @@ export function agentReducer(state: AgentState, action: AgentAction): AgentState
                 ? '模型请求已发送，等待供应商响应'
                 : trace.phase === 'FIRST_PROVIDER_CHUNK'
                   ? trace.chunkType === 'REASONING'
-                    ? '模型正在深度分析（推理内容已隐藏）'
+                    ? '模型正在处理当前步骤，等待公开决策或结果'
                     : '模型正在生成结构化输出'
                   : trace.phase === 'STRUCTURED_REPAIR'
                     ? '模型输出格式校验失败，正在修复'
@@ -831,8 +875,8 @@ export function agentReducer(state: AgentState, action: AgentAction): AgentState
               status: 'RUNNING',
             }),
             stageLabel: nextRun.stageLabel.includes('历史会话')
-              ? '模型正在整理历史会话（推理内容已隐藏）'
-              : '模型正在深度分析（推理内容已隐藏）',
+              ? '模型正在整理历史会话，等待公开结果'
+              : '模型正在处理当前步骤，等待公开决策或结果',
             modelActivity: action.event.payload,
           };
           break;
@@ -858,10 +902,8 @@ export function agentReducer(state: AgentState, action: AgentAction): AgentState
           const sameAttempt =
             currentPreview?.modelCallId === action.event.payload.modelCallId &&
             currentPreview.attempt === action.event.payload.attempt;
-          const text = `${sameAttempt ? currentPreview.text : ''}${action.event.payload.delta}`.slice(
-            0,
-            8000
-          );
+          const text =
+            `${sameAttempt ? currentPreview.text : ''}${action.event.payload.delta}`.slice(0, 8000);
           nextRun = {
             ...nextRun,
             modelDiagnostics: upsertModelDiagnostic(nextRun, action.event.payload.modelCallId, {
@@ -879,15 +921,16 @@ export function agentReducer(state: AgentState, action: AgentAction): AgentState
           };
           break;
         }
-        case 'model.completed':
+        case 'model.completed': {
+          const modelCallId = action.event.payload.modelCallId;
           nextRun = {
             ...nextRun,
-            modelDiagnostics: upsertModelDiagnostic(nextRun, action.event.payload.modelCallId, {
+            modelDiagnostics: upsertModelDiagnostic(nextRun, modelCallId, {
               ...action.event.payload,
               phase: 'COMPLETED',
-              attempt: nextRun.modelDiagnostics?.find(
-                (item) => item.modelCallId === action.event.payload.modelCallId
-              )?.attempt ?? 1,
+              attempt:
+                nextRun.modelDiagnostics?.find((item) => item.modelCallId === modelCallId)
+                  ?.attempt ?? 1,
               status: 'COMPLETED',
               error: undefined,
               willFallback: undefined,
@@ -896,18 +939,22 @@ export function agentReducer(state: AgentState, action: AgentAction): AgentState
             modelActivity: undefined,
           };
           break;
-        case 'model.failed':
+        }
+        case 'model.failed': {
+          const modelCallId = action.event.payload.modelCallId;
           nextRun = {
             ...nextRun,
-            modelDiagnostics: upsertModelDiagnostic(nextRun, action.event.payload.modelCallId, {
+            modelDiagnostics: upsertModelDiagnostic(nextRun, modelCallId, {
               ...action.event.payload,
               phase: 'FAILED',
-              attempt: nextRun.modelDiagnostics?.find(
-                (item) => item.modelCallId === action.event.payload.modelCallId
-              )?.attempt ?? 1,
+              attempt:
+                nextRun.modelDiagnostics?.find((item) => item.modelCallId === modelCallId)
+                  ?.attempt ?? 1,
               status: 'FAILED',
             }),
-            stageLabel: action.event.payload.willFallback ? '模型调用失败，正在切换' : '模型调用失败',
+            stageLabel: action.event.payload.willFallback
+              ? '模型调用失败，正在切换'
+              : '模型调用失败',
             errorCode: action.event.payload.error.code,
             errorMessage: action.event.payload.error.message,
             retryable: action.event.payload.error.retryable,
@@ -915,6 +962,7 @@ export function agentReducer(state: AgentState, action: AgentAction): AgentState
             draftPreview: action.event.payload.willFallback ? undefined : nextRun.draftPreview,
           };
           break;
+        }
         case 'model.delta': {
           nextRun = { ...nextRun, modelActivity: undefined, draftPreview: undefined };
           const messageId = action.event.messageId ?? nextRun.assistantMessageId;

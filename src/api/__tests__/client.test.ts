@@ -24,6 +24,10 @@ function textResp(status = 200) {
 
 const mockFetch = vi.fn();
 
+function apiPath(input: unknown): string {
+  return new URL(String(input), 'http://localhost').pathname;
+}
+
 // ----------------------------------------------------------------------
 
 describe('tokenStorage', () => {
@@ -74,7 +78,7 @@ describe('apiClient.post', () => {
 
     expect(mockFetch).toHaveBeenCalledTimes(1);
     const [url, options] = mockFetch.mock.calls[0] as [string, RequestInit];
-    expect(url).toBe('/api/test');
+    expect(apiPath(url)).toBe('/api/test');
     expect(options.method).toBe('POST');
     expect(options.body).toBe(JSON.stringify({ foo: 'bar' }));
     const headers = new Headers(options.headers);
@@ -165,6 +169,35 @@ describe('apiClient.post', () => {
     expect((error as Error).message).toBe('基准数据未就绪');
   });
 
+  it('reads validation details from the standard data.details envelope', async () => {
+    mockFetch.mockResolvedValueOnce(
+      jsonResp(
+        {
+          code: 9001,
+          message: '请求参数校验失败',
+          data: {
+            details: [
+              {
+                field: 'modelId',
+                code: 'MODEL_ID_INVALID',
+                message: 'modelId 仅允许字母、数字及 . _ : / @ -',
+              },
+            ],
+          },
+        },
+        400
+      )
+    );
+
+    const error = await apiClient.post('/api/test').catch((reason: unknown) => reason);
+
+    expect(error).toBeInstanceOf(ApiError);
+    expect(error).toMatchObject({
+      status: 400,
+      details: [expect.objectContaining({ field: 'modelId', code: 'MODEL_ID_INVALID' })],
+    });
+  });
+
   it('joins array message from server on non-ok response', async () => {
     mockFetch.mockResolvedValueOnce(
       jsonResp({ message: ['field A is required', 'field B is required'] }, 400)
@@ -243,7 +276,7 @@ describe('apiClient.post', () => {
 
     // logout endpoint should be called (even if we can't await it from the outside)
     await vi.waitFor(() => {
-      const calls = mockFetch.mock.calls.map(([url]) => url as string);
+      const calls = mockFetch.mock.calls.map(([url]) => apiPath(url));
       expect(calls).toContain('/api/auth/logout');
     });
   });
@@ -266,7 +299,7 @@ describe('apiClient.post', () => {
     expect(resultB).toBe('result-b');
 
     const refreshCalls = mockFetch.mock.calls.filter(
-      ([url]) => (url as string) === '/api/auth/refresh'
+      ([url]) => apiPath(url) === '/api/auth/refresh'
     );
     // Only ONE refresh call should have been made despite two concurrent 401s
     expect(refreshCalls).toHaveLength(1);
@@ -282,19 +315,19 @@ describe('apiClient.post', () => {
     let requestBCount = 0;
 
     mockFetch.mockImplementation((url: string) => {
-      if (url === '/api/a') {
+      if (apiPath(url) === '/api/a') {
         requestACount += 1;
         if (requestACount === 1) return Promise.resolve(jsonResp({}, 401));
         resolveLate401?.(jsonResp({}, 401));
         return Promise.resolve(jsonResp({ data: 'result-a' }));
       }
-      if (url === '/api/b') {
+      if (apiPath(url) === '/api/b') {
         requestBCount += 1;
         return requestBCount === 1
           ? late401
           : Promise.resolve(jsonResp({ data: 'result-b' }));
       }
-      if (url === '/api/auth/refresh') {
+      if (apiPath(url) === '/api/auth/refresh') {
         return Promise.resolve(jsonResp({ data: { accessToken: 'fresh-token' } }));
       }
       return Promise.resolve(jsonResp({}));
@@ -305,10 +338,10 @@ describe('apiClient.post', () => {
     ).resolves.toEqual(['result-a', 'result-b']);
 
     expect(
-      mockFetch.mock.calls.filter(([url]) => (url as string) === '/api/auth/refresh')
+      mockFetch.mock.calls.filter(([url]) => apiPath(url) === '/api/auth/refresh')
     ).toHaveLength(1);
     const retryB = mockFetch.mock.calls.find(
-      ([url], index) => url === '/api/b' && index > 1
+      ([url], index) => apiPath(url) === '/api/b' && index > 1
     ) as [string, RequestInit] | undefined;
     expect(new Headers(retryB?.[1].headers).get('Authorization')).toBe('Bearer fresh-token');
   });
@@ -318,8 +351,8 @@ describe('apiClient.post', () => {
     setAuthCallbacks({ onUnauthorized });
     tokenStorage.set('expired-token');
     mockFetch.mockImplementation((url: string) => {
-      if (url === '/api/auth/refresh') return Promise.resolve(jsonResp({}, 401));
-      return Promise.resolve(jsonResp({}, url === '/api/auth/logout' ? 200 : 401));
+      if (apiPath(url) === '/api/auth/refresh') return Promise.resolve(jsonResp({}, 401));
+      return Promise.resolve(jsonResp({}, apiPath(url) === '/api/auth/logout' ? 200 : 401));
     });
 
     const results = await Promise.allSettled([
@@ -330,7 +363,7 @@ describe('apiClient.post', () => {
     expect(results.every((result) => result.status === 'rejected')).toBe(true);
     expect(onUnauthorized).toHaveBeenCalledTimes(1);
     expect(
-      mockFetch.mock.calls.filter(([url]) => (url as string) === '/api/auth/logout')
+      mockFetch.mock.calls.filter(([url]) => apiPath(url) === '/api/auth/logout')
     ).toHaveLength(1);
   });
 
@@ -352,7 +385,7 @@ describe('apiClient.post', () => {
     expect(jsonResult).toBe('json');
     expect(streamResponse).toBe(rawResponse);
     expect(
-      mockFetch.mock.calls.filter(([url]) => (url as string) === '/api/auth/refresh')
+      mockFetch.mock.calls.filter(([url]) => apiPath(url) === '/api/auth/refresh')
     ).toHaveLength(1);
 
     const replayHeaders = mockFetch.mock.calls.slice(-2).map(([, init]) => new Headers(init.headers));

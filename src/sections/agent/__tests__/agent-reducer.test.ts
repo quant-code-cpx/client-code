@@ -183,12 +183,56 @@ describe('Agent reducer', () => {
       connectionGeneration: 2,
     });
 
-    expect(state.runs.byId.run_1.stageLabel).toBe('模型正在深度分析（推理内容已隐藏）');
+    expect(state.runs.byId.run_1.stageLabel).toBe('模型正在处理当前步骤，等待公开决策或结果');
     expect(state.runs.byId.run_1.modelActivity).toMatchObject({
       phase: 'REASONING',
       processedCharacters: 2048,
     });
     expect(state.messages.byId.msg_assistant_1.contentText).toBe('');
+  });
+
+  it('公开展示模型已返回的决策理由、计划与工具执行结果', () => {
+    let state = stateWithConfirmedRun();
+    const planning = streamEvent('agent.planning', 1);
+    const toolStarted = streamEvent('tool.started', 2);
+    const toolCompleted = streamEvent('tool.completed', 3);
+    if (
+      planning.type !== 'agent.planning' ||
+      toolStarted.type !== 'tool.started' ||
+      toolCompleted.type !== 'tool.completed'
+    ) {
+      throw new Error('公开决策 fixture 类型错误');
+    }
+
+    state = agentReducer(state, {
+      type: 'RUN_EVENT_ACCEPTED',
+      event: planning,
+      connectionGeneration: 2,
+    });
+    state = agentReducer(state, {
+      type: 'RUN_EVENT_ACCEPTED',
+      event: toolStarted,
+      connectionGeneration: 2,
+    });
+    state = agentReducer(state, {
+      type: 'RUN_EVENT_ACCEPTED',
+      event: toolCompleted,
+      connectionGeneration: 2,
+    });
+
+    expect(state.runs.byId.run_1.planningDecision).toMatchObject({
+      toolSelectionReason: '需要先读取行情，再核验技术指标。',
+      selectedTools: ['get_stock_price_history', 'get_stock_technical_indicators'],
+      fallback: false,
+    });
+    expect(state.runs.byId.run_1.toolActivities).toEqual([
+      expect.objectContaining({
+        toolCallId: 'tool_call_fixture',
+        toolName: 'get_stock_overview',
+        status: 'COMPLETED',
+        outputSummary: '返回个股概览',
+      }),
+    ]);
   });
 
   it('模型执行轨迹公开可诊断元数据，不写入 Prompt 或推理文本', () => {
@@ -232,7 +276,9 @@ describe('Agent reducer', () => {
         usage: { inputTokens: 1000, outputTokens: 500, reasoningTokens: 120 },
       }),
     ]);
-    expect(JSON.stringify(state.runs.byId.run_1.modelDiagnostics)).not.toContain('reasoning_content');
+    expect(JSON.stringify(state.runs.byId.run_1.modelDiagnostics)).not.toContain(
+      'reasoning_content'
+    );
     expect(state.messages.byId.msg_assistant_1.contentText).toBe('');
   });
 
@@ -295,6 +341,19 @@ describe('Agent reducer', () => {
     expect(state.messages.byId.msg_assistant_1.status).toBe('COMPLETED');
   });
 
+  it('发现已终态 Run 时移除遗留的侧栏运行标记', () => {
+    const state = agentReducer(stateWithConfirmedRun(), {
+      type: 'RUN_DISCOVERED',
+      runId: 'run_1',
+      conversationId: CONVERSATION_ID,
+      assistantMessageId: 'msg_assistant_1',
+      status: 'COMPLETED',
+      statusVersion: 2,
+    });
+
+    expect(state.runs.activeRunIdByConversation[CONVERSATION_ID]).toBeUndefined();
+  });
+
   it('按模型调用 purpose 区分规划与结论阶段', () => {
     let state = stateWithConfirmedRun();
     const planStarted = streamEvent('model.started', 1);
@@ -307,10 +366,14 @@ describe('Agent reducer', () => {
     expect(state.runs.byId.run_1.stageLabel).toBe('正在规划研究');
 
     const synthesisStarted = streamEvent('model.started', 2);
-    if (synthesisStarted.type !== 'model.started') throw new Error('model.started fixture 类型错误');
+    if (synthesisStarted.type !== 'model.started')
+      throw new Error('model.started fixture 类型错误');
     state = agentReducer(state, {
       type: 'RUN_EVENT_ACCEPTED',
-      event: { ...synthesisStarted, payload: { ...synthesisStarted.payload, purpose: 'SYNTHESIZE' } },
+      event: {
+        ...synthesisStarted,
+        payload: { ...synthesisStarted.payload, purpose: 'SYNTHESIZE' },
+      },
       connectionGeneration: 2,
     });
     expect(state.runs.byId.run_1.stageLabel).toBe('正在组织研究结论');

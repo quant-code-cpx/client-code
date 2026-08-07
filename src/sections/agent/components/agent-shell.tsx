@@ -41,6 +41,13 @@ import { useAgentState, useAgentDispatch } from '../state/agent-provider';
 import { NotificationChannelSettings } from './notification-channel-settings';
 import { toChatMessages, toChatConversations } from './mui-x-chat/agent-chat-mappers';
 
+import type { AgentComposerModel } from '../state/agent-state.types';
+
+const DEFAULT_NEW_CONVERSATION_MODEL: AgentComposerModel = {
+  policy: 'AUTO',
+  preferredModel: null,
+};
+
 export function AgentShell() {
   const theme = useTheme();
   const mobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -65,10 +72,13 @@ export function AgentShell() {
     severity: 'success' | 'warning' | 'error';
     message: string;
   } | null>(null);
+  const [newConversationModel, setNewConversationModel] = useState<AgentComposerModel>(
+    DEFAULT_NEW_CONVERSATION_MODEL
+  );
   const conversationId = state.currentConversationId;
   const conversationList = useConversationList();
   const conversationState = useConversation(conversationId);
-  const run = useAgentRun(conversationId);
+  const run = useAgentRun(conversationId, newConversationModel);
   const draft = useComposerDraft(conversationId ?? 'new');
   const isRunning = Boolean(run.activeRun && !TERMINAL_RUN_STATUSES.has(run.activeRun.status));
   const pageError = conversationState.loadState?.detailStatus === 'error';
@@ -76,6 +86,16 @@ export function AgentShell() {
   const activeConversationIds = useMemo(
     () => Object.keys(state.runs.activeRunIdByConversation),
     [state.runs.activeRunIdByConversation]
+  );
+  const messageCountByConversation = useMemo(
+    () =>
+      Object.fromEntries(
+        Object.entries(state.messages.orderedIdsByConversation).map(([id, messageIds]) => [
+          id,
+          messageIds.length,
+        ])
+      ),
+    [state.messages.orderedIdsByConversation]
   );
   const visibleConversations = useMemo(() => {
     const normalizedQuery = conversationQuery.trim().toLocaleLowerCase();
@@ -89,8 +109,9 @@ export function AgentShell() {
       toChatConversations(visibleConversations, {
         activeConversationIds: new Set(activeConversationIds),
         staleConversationIds: new Set(state.staleConversationIds),
+        messageCountByConversation,
       }),
-    [activeConversationIds, state.staleConversationIds, visibleConversations]
+    [activeConversationIds, messageCountByConversation, state.staleConversationIds, visibleConversations]
   );
   const projectedMessages = useMemo(
     () => toChatMessages(pageError ? [] : conversationState.messages),
@@ -136,13 +157,26 @@ export function AgentShell() {
 
   const handleNew = useCallback(() => {
     setSidebarOpen(false);
+    setNewConversationModel(DEFAULT_NEW_CONVERSATION_MODEL);
     dispatch({ type: 'CONVERSATION_SELECTED', conversationId: null });
     router.push('/agent');
   }, [dispatch, router]);
 
   const handleModelSave = useCallback(
     async (policy: ModelPolicy, preferredModel: string | null) => {
-      if (!conversationId) return false;
+      if (!conversationId) {
+        const nextPreferredModel = policy === 'MANUAL' ? preferredModel : null;
+        setNewConversationModel({ policy, preferredModel: nextPreferredModel });
+        setModelError(null);
+        setModelNotice({
+          severity: 'success',
+          message:
+            policy === 'MANUAL'
+              ? `已选择 ${nextPreferredModel ?? '指定模型'}；首条消息将使用此模型。`
+              : '已选择自动模型；首条消息将由系统自动选择模型。',
+        });
+        return true;
+      }
       setModelSaving(true);
       setModelError(null);
       setModelNotice(null);
@@ -176,6 +210,12 @@ export function AgentShell() {
     },
     [conversationId, conversationState]
   );
+
+  const selectedModelPolicy =
+    conversationState.conversation?.modelPolicy ?? newConversationModel.policy;
+  const selectedPreferredModel =
+    conversationState.conversation?.preferredModel ?? newConversationModel.preferredModel;
+  const canConfigureModel = Boolean(conversationState.conversation) || !conversationId;
 
   const evidenceVisible = Boolean(evidenceMessage) && !evidenceDismissed;
   const evidencePanelOpen = wideEvidence ? evidenceVisible : evidenceDrawerOpen;
@@ -341,10 +381,10 @@ export function AgentShell() {
                   </IconButton>
                 </Tooltip>
               ) : null}
-              {!mobile && conversationState.conversation ? (
+              {!mobile && canConfigureModel ? (
                 <ConversationModelControl
-                  policy={conversationState.conversation.modelPolicy}
-                  preferredModel={conversationState.conversation.preferredModel ?? null}
+                  policy={selectedModelPolicy}
+                  preferredModel={selectedPreferredModel}
                   saving={modelSaving}
                   onSave={handleModelSave}
                 />
@@ -360,6 +400,8 @@ export function AgentShell() {
           {modelNotice ? (
             <Alert
               severity={modelNotice.severity}
+              role={modelNotice.severity === 'error' ? 'alert' : 'status'}
+              aria-live={modelNotice.severity === 'error' ? 'assertive' : 'polite'}
               onClose={() => setModelNotice(null)}
               sx={{ borderRadius: 0 }}
             >
@@ -382,6 +424,7 @@ export function AgentShell() {
             <MessageViewport
               messages={[]}
               activeRun={run.activeRun}
+              runsById={state.runs.byId}
               status="error"
               error={conversationState.loadState?.error ?? '会话不存在或无权访问'}
               hasOlder={false}
@@ -396,6 +439,7 @@ export function AgentShell() {
             <MessageViewport
               messages={conversationState.messages}
               activeRun={run.activeRun}
+              runsById={state.runs.byId}
               status={conversationState.loadState?.messagesStatus ?? 'ready'}
               error={conversationState.loadState?.error ?? null}
               hasOlder={conversationState.hasOlder}
@@ -455,11 +499,11 @@ export function AgentShell() {
           open={Boolean(moreActionsAnchor)}
           onClose={() => setMoreActionsAnchor(null)}
         >
-          {conversationState.conversation ? (
+          {canConfigureModel ? (
             <ConversationModelControl
               trigger="menu-item"
-              policy={conversationState.conversation.modelPolicy}
-              preferredModel={conversationState.conversation.preferredModel ?? null}
+              policy={selectedModelPolicy}
+              preferredModel={selectedPreferredModel}
               saving={modelSaving}
               onTrigger={() => setMoreActionsAnchor(null)}
               onSave={handleModelSave}

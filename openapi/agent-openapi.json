@@ -1467,6 +1467,682 @@
         ]
       }
     },
+    "/agent/admin/model-adapters/list": {
+      "post": {
+        "operationId": "ModelProviderConsoleController_listAdapters",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "object"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "查询已注册模型协议适配器及其能力定义",
+        "tags": [
+          "Agent - 模型供应商控制台"
+        ]
+      }
+    },
+    "/agent/admin/model-connections/list": {
+      "post": {
+        "operationId": "ModelProviderConsoleController_listConnections",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ListModelConnectionsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "object"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Agent - 模型供应商控制台"
+        ]
+      }
+    },
+    "/agent/admin/model-connections/create": {
+      "post": {
+        "operationId": "ModelProviderConsoleController_createConnection",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateModelConnectionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "object"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Agent - 模型供应商控制台"
+        ]
+      }
+    },
+    "/agent/admin/model-connections/update": {
+      "post": {
+        "operationId": "ModelProviderConsoleController_updateConnection",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateModelConnectionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "object"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Agent - 模型供应商控制台"
+        ]
+      }
+    },
+    "/agent/admin/model-connections/test": {
+      "post": {
+        "operationId": "ModelProviderConsoleController_testConnection",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TestModelConnectionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "object"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Agent - 模型供应商控制台"
+        ]
+      }
+    },
+    "/agent/admin/model-connections/delete-impact": {
+      "post": {
+        "operationId": "ModelProviderConsoleController_connectionDeleteImpact",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModelConnectionIdDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "object"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Agent - 模型供应商控制台"
+        ]
+      }
+    },
+    "/agent/admin/model-connections/delete": {
+      "post": {
+        "operationId": "ModelProviderConsoleController_deleteConnection",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModelConnectionIdDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "object"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Agent - 模型供应商控制台"
+        ]
+      }
+    },
+    "/agent/admin/model-deployments/list": {
+      "post": {
+        "operationId": "ModelProviderConsoleController_listDeployments",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ListModelDeploymentsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "object"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Agent - 模型供应商控制台"
+        ]
+      }
+    },
+    "/agent/admin/model-deployments/create": {
+      "post": {
+        "operationId": "ModelProviderConsoleController_createDeployment",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateModelDeploymentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "object"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Agent - 模型供应商控制台"
+        ]
+      }
+    },
+    "/agent/admin/model-deployments/update": {
+      "post": {
+        "operationId": "ModelProviderConsoleController_updateDeployment",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateModelDeploymentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "object"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Agent - 模型供应商控制台"
+        ]
+      }
+    },
+    "/agent/admin/model-deployments/probe": {
+      "post": {
+        "operationId": "ModelProviderConsoleController_probeDeployment",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProbeModelDeploymentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "object"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Agent - 模型供应商控制台"
+        ]
+      }
+    },
+    "/agent/admin/model-deployments/delete-impact": {
+      "post": {
+        "operationId": "ModelProviderConsoleController_deploymentDeleteImpact",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModelDeploymentIdDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "object"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Agent - 模型供应商控制台"
+        ]
+      }
+    },
+    "/agent/admin/model-deployments/delete": {
+      "post": {
+        "operationId": "ModelProviderConsoleController_deleteDeployment",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModelDeploymentIdDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "object"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Agent - 模型供应商控制台"
+        ]
+      }
+    },
+    "/agent/admin/model-routing/summary": {
+      "post": {
+        "operationId": "ModelProviderConsoleController_summary",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "object"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Agent - 模型供应商控制台"
+        ]
+      }
+    },
+    "/agent/admin/model-routing/publish": {
+      "post": {
+        "operationId": "ModelProviderConsoleController_publish",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "type": "object"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "tags": [
+          "Agent - 模型供应商控制台"
+        ]
+      }
+    },
     "/agent/reports/list": {
       "post": {
         "operationId": "ResearchReportController_list",
@@ -2716,7 +3392,7 @@
           },
           "workflowVersion": {
             "type": "number",
-            "default": 4,
+            "default": 11,
             "minimum": 1
           },
           "modelPolicy": {
@@ -3199,6 +3875,445 @@
           }
         }
       },
+      "ModelDeploymentIdDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,128}$"
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
+      "ProbeModelDeploymentDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,128}$"
+          },
+          "confirmBillable": {
+            "type": "boolean",
+            "default": false,
+            "description": "深度探测会产生一次最小模型调用"
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
+      "UpdateModelDeploymentDto": {
+        "type": "object",
+        "properties": {
+          "connectionId": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,128}$"
+          },
+          "modelId": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]{0,255}$",
+            "example": "gpt-5.6-sol"
+          },
+          "displayName": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "priority": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1000,
+            "default": 10
+          },
+          "costTier": {
+            "type": "string",
+            "enum": [
+              "LOW",
+              "MEDIUM",
+              "HIGH"
+            ],
+            "default": "MEDIUM"
+          },
+          "contextWindow": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 10000000
+          },
+          "maxOutputTokens": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 1000000
+          },
+          "capabilities": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "STREAMING",
+                "STRUCTURED_OUTPUT",
+                "TOOL_CALLING",
+                "PARALLEL_TOOL_CALLING",
+                "VISION",
+                "REASONING_EFFORT"
+              ]
+            }
+          },
+          "reasoningMode": {
+            "type": "string",
+            "enum": [
+              "AUTO",
+              "DISABLED",
+              "EFFORT",
+              "TOKEN_BUDGET"
+            ],
+            "default": "AUTO"
+          },
+          "reasoningEfforts": {
+            "description": "适配器已知或供应商原生推理档位",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "defaultReasoningEffort": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$"
+          },
+          "reasoningBudgetTokens": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 1000000
+          },
+          "dataClasses": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "PUBLIC",
+                "USER_PRIVATE",
+                "PORTFOLIO_SENSITIVE"
+              ]
+            }
+          },
+          "timeoutMs": {
+            "type": "number",
+            "minimum": 100,
+            "maximum": 300000,
+            "default": 120000
+          },
+          "maxRetries": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 2,
+            "default": 2
+          },
+          "retryBaseMs": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 10000,
+            "default": 200
+          },
+          "enabled": {
+            "type": "boolean",
+            "default": false
+          },
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,128}$"
+          },
+          "version": {
+            "type": "number",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "id",
+          "version"
+        ]
+      },
+      "CreateModelDeploymentDto": {
+        "type": "object",
+        "properties": {
+          "connectionId": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,128}$"
+          },
+          "modelId": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]{0,255}$",
+            "example": "gpt-5.6-sol"
+          },
+          "displayName": {
+            "type": "string",
+            "maxLength": 128
+          },
+          "priority": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1000,
+            "default": 10
+          },
+          "costTier": {
+            "type": "string",
+            "enum": [
+              "LOW",
+              "MEDIUM",
+              "HIGH"
+            ],
+            "default": "MEDIUM"
+          },
+          "contextWindow": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 10000000
+          },
+          "maxOutputTokens": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 1000000
+          },
+          "capabilities": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "STREAMING",
+                "STRUCTURED_OUTPUT",
+                "TOOL_CALLING",
+                "PARALLEL_TOOL_CALLING",
+                "VISION",
+                "REASONING_EFFORT"
+              ]
+            }
+          },
+          "reasoningMode": {
+            "type": "string",
+            "enum": [
+              "AUTO",
+              "DISABLED",
+              "EFFORT",
+              "TOKEN_BUDGET"
+            ],
+            "default": "AUTO"
+          },
+          "reasoningEfforts": {
+            "description": "适配器已知或供应商原生推理档位",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "defaultReasoningEffort": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$"
+          },
+          "reasoningBudgetTokens": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 1000000
+          },
+          "dataClasses": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "PUBLIC",
+                "USER_PRIVATE",
+                "PORTFOLIO_SENSITIVE"
+              ]
+            }
+          },
+          "timeoutMs": {
+            "type": "number",
+            "minimum": 100,
+            "maximum": 300000,
+            "default": 120000
+          },
+          "maxRetries": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 2,
+            "default": 2
+          },
+          "retryBaseMs": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 10000,
+            "default": 200
+          },
+          "enabled": {
+            "type": "boolean",
+            "default": false
+          }
+        },
+        "required": [
+          "connectionId",
+          "modelId",
+          "displayName",
+          "priority",
+          "costTier",
+          "contextWindow",
+          "maxOutputTokens",
+          "capabilities",
+          "reasoningMode",
+          "reasoningEfforts",
+          "dataClasses",
+          "timeoutMs",
+          "maxRetries",
+          "retryBaseMs"
+        ]
+      },
+      "ListModelDeploymentsDto": {
+        "type": "object",
+        "properties": {
+          "connectionId": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,128}$"
+          }
+        }
+      },
+      "ModelConnectionIdDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,128}$"
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
+      "TestModelConnectionDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,128}$"
+          },
+          "level": {
+            "type": "string",
+            "enum": [
+              "AUTH",
+              "STREAM"
+            ],
+            "default": "AUTH"
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
+      "UpdateModelConnectionDto": {
+        "type": "object",
+        "properties": {
+          "connectionKey": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$",
+            "example": "fishxcode-relay"
+          },
+          "adapterKind": {
+            "type": "string",
+            "enum": [
+              "openai-responses",
+              "openai-chat-compatible",
+              "anthropic-messages"
+            ]
+          },
+          "displayName": {
+            "type": "string",
+            "maxLength": 128,
+            "example": "FishXCode 中转站"
+          },
+          "baseUrl": {
+            "type": "string",
+            "format": "uri"
+          },
+          "apiKey": {
+            "type": "string",
+            "writeOnly": true,
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "enabled": {
+            "type": "boolean",
+            "default": false,
+            "description": "新连接默认保存为未启用草稿"
+          },
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{1,128}$"
+          },
+          "version": {
+            "type": "number",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "id",
+          "version"
+        ]
+      },
+      "CreateModelConnectionDto": {
+        "type": "object",
+        "properties": {
+          "connectionKey": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$",
+            "example": "fishxcode-relay"
+          },
+          "adapterKind": {
+            "type": "string",
+            "enum": [
+              "openai-responses",
+              "openai-chat-compatible",
+              "anthropic-messages"
+            ]
+          },
+          "displayName": {
+            "type": "string",
+            "maxLength": 128,
+            "example": "FishXCode 中转站"
+          },
+          "baseUrl": {
+            "type": "string",
+            "format": "uri"
+          },
+          "apiKey": {
+            "type": "string",
+            "writeOnly": true,
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "enabled": {
+            "type": "boolean",
+            "default": false,
+            "description": "新连接默认保存为未启用草稿"
+          }
+        },
+        "required": [
+          "connectionKey",
+          "adapterKind",
+          "displayName",
+          "baseUrl",
+          "apiKey"
+        ]
+      },
+      "ListModelConnectionsDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ALL",
+              "ENABLED",
+              "DISABLED",
+              "FAILED"
+            ]
+          }
+        }
+      },
       "ModelProviderDeleteResponseDto": {
         "type": "object",
         "properties": {
@@ -3219,7 +4334,7 @@
         "properties": {
           "id": {
             "type": "string",
-            "pattern": "^[A-Za-z0-9_-]{1,128}$"
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
           }
         },
         "required": [
@@ -3332,22 +4447,26 @@
         "properties": {
           "id": {
             "type": "string",
-            "pattern": "^[A-Za-z0-9_-]{1,128}$"
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
           },
           "providerId": {
             "type": "string",
-            "pattern": "^[A-Za-z0-9_-]{1,128}$",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$",
             "description": "可被多个模型配置复用的供应商标识"
           },
           "kind": {
             "type": "string",
             "enum": [
-              "openai-compatible"
+              "openai-compatible",
+              "openai-chat-compatible",
+              "openai-responses",
+              "anthropic-messages"
             ]
           },
           "displayName": {
             "type": "string",
-            "maxLength": 128
+            "maxLength": 256,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]{0,255}$"
           },
           "model": {
             "type": "string",
@@ -3405,9 +4524,13 @@
             "items": {
               "type": "string",
               "enum": [
+                "NONE",
+                "MINIMAL",
                 "LOW",
                 "MEDIUM",
-                "HIGH"
+                "HIGH",
+                "XHIGH",
+                "MAX"
               ]
             }
           },
@@ -3450,14 +4573,17 @@
         "properties": {
           "providerId": {
             "type": "string",
-            "pattern": "^[A-Za-z0-9_-]{1,128}$",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$",
             "example": "deepseek",
             "description": "可被多个模型配置复用的供应商标识"
           },
           "kind": {
             "type": "string",
             "enum": [
-              "openai-compatible"
+              "openai-compatible",
+              "openai-chat-compatible",
+              "openai-responses",
+              "anthropic-messages"
             ]
           },
           "displayName": {
@@ -3466,8 +4592,9 @@
           },
           "model": {
             "type": "string",
-            "maxLength": 128,
-            "example": "deepseek-chat"
+            "maxLength": 256,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]{0,255}$",
+            "example": "gpt-5.6-sol"
           },
           "priority": {
             "type": "number",
@@ -3521,12 +4648,17 @@
           },
           "reasoningEfforts": {
             "type": "array",
+            "description": "支持内置档位与经适配器验证的供应商原生档位",
             "items": {
               "type": "string",
               "enum": [
+                "NONE",
+                "MINIMAL",
                 "LOW",
                 "MEDIUM",
-                "HIGH"
+                "HIGH",
+                "XHIGH",
+                "MAX"
               ]
             }
           },
@@ -4843,6 +5975,14 @@
             "type": "string",
             "nullable": true,
             "format": "date-time"
+          },
+          "errorCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "errorMessage": {
+            "type": "string",
+            "nullable": true
           }
         },
         "required": [

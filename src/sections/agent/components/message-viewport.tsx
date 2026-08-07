@@ -23,6 +23,7 @@ import type {
 type MessageViewportProps = {
   messages: AgentMessageEntity[];
   activeRun: AgentRunProjection | null;
+  runsById: Record<string, AgentRunProjection>;
   status: AsyncStatus;
   error: string | null;
   hasOlder: boolean;
@@ -39,6 +40,7 @@ const AUTO_SCROLL_BUFFER = 24;
 export function MessageViewport({
   messages,
   activeRun,
+  runsById,
   status,
   error,
   hasOlder,
@@ -117,6 +119,13 @@ export function MessageViewport({
     ({ id }: { id: string; index: number }) => {
       const message = messageById.get(id);
       if (!message) return null;
+      const messageRun =
+        activeRun &&
+        (activeRun.assistantMessageId === message.messageId || activeRun.runId === message.run?.runId)
+          ? activeRun
+          : message.run?.runId
+            ? (runsById[message.run.runId] ?? null)
+            : null;
 
       return (
         <ChatMessage
@@ -130,13 +139,7 @@ export function MessageViewport({
         >
           <MessageItem
             message={message}
-            run={
-              activeRun &&
-              (activeRun.assistantMessageId === message.messageId ||
-                activeRun.runId === message.run?.runId)
-                ? activeRun
-                : null
-            }
+            run={messageRun}
             onRegenerate={onRegenerate}
             onRetry={onRetryMessage}
             onSaveReport={onSaveReport}
@@ -145,7 +148,7 @@ export function MessageViewport({
         </ChatMessage>
       );
     },
-    [activeRun, messageById, onContinue, onRegenerate, onRetryMessage, onSaveReport]
+    [activeRun, messageById, onContinue, onRegenerate, onRetryMessage, onSaveReport, runsById]
   );
   const handleScroll = useCallback((event: UIEvent<HTMLDivElement>) => {
     const viewport = event.currentTarget;

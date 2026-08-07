@@ -13,6 +13,7 @@ import { Iconify } from 'src/components/iconify';
 
 import { CitationItems } from './citation-list';
 import { DataProvenance } from './data-provenance';
+import { groupCitationSources } from '../lib/evidence-display';
 import { parseSupportedMessageBlock } from '../lib/message-block-guards';
 
 import type { AgentMessageEntity } from '../state/agent-state.types';
@@ -40,6 +41,10 @@ function collectProvenance(message: AgentMessageEntity): DataProvenanceValue[] {
 
 export function EvidenceRail({ message, drawer = false, onClose }: EvidenceRailProps) {
   const provenance = useMemo(() => collectProvenance(message), [message]);
+  const citationSourceCount = useMemo(
+    () => groupCitationSources(message.citations).length,
+    [message.citations]
+  );
 
   return (
     <Box
@@ -94,7 +99,7 @@ export function EvidenceRail({ message, drawer = false, onClose }: EvidenceRailP
           </Typography>
         </Stack>
         <ChatMessageSources
-          label={`${message.citations.length} 条已关联引用`}
+          label={`${citationSourceCount} 项已关联证据来源`}
           sx={{
             mt: 0,
             gap: 1,

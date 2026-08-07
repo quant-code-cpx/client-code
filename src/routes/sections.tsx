@@ -22,6 +22,7 @@ export const Page404 = lazy(() => import('src/pages/page-not-found'));
 export const StockPage = lazy(() => import('src/pages/stock'));
 export const StockDetailPage = lazy(() => import('src/pages/stock-detail'));
 export const MarketOverviewPage = lazy(() => import('src/pages/market-overview'));
+export const NewsPage = lazy(() => import('src/pages/news'));
 export const MarketMoneyFlowPage = lazy(() => import('src/pages/market-money-flow'));
 export const TushareSyncPage = lazy(() => import('src/pages/tushare-sync'));
 export const FactorLibraryPage = lazy(() => import('src/pages/factor-library'));
@@ -122,6 +123,7 @@ export const routesSection: RouteObject[] = [
       { path: 'stock/detail', element: <StockDetailPage /> },
       { path: 'stock/screener', element: <Navigate to="/stock" replace /> },
       { path: 'market/overview', element: <MarketOverviewPage /> },
+      { path: 'market/news', element: <NewsPage /> },
       { path: 'market/money-flow', element: <MarketMoneyFlowPage /> },
       { path: 'market/industry', element: <IndustryAnalysisPage /> },
       { path: 'market/index', element: <IndexDetailPage /> },

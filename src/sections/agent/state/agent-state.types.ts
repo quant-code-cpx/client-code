@@ -1,6 +1,7 @@
 import type { AgentResponse } from 'src/api/agent';
 import type {
   ModelPolicy,
+  AgentToolKey,
   MessageStatus,
   AgentSseEvent,
   AgentRunStatus,
@@ -82,9 +83,32 @@ export type AgentModelDiagnostic = {
   finishReason?: string | null;
   durationMs?: number;
   repaired?: boolean;
-  usage?: { inputTokens: number; outputTokens: number; cachedTokens?: number; reasoningTokens?: number } | null;
+  usage?: {
+    inputTokens: number;
+    outputTokens: number;
+    cachedTokens?: number;
+    reasoningTokens?: number;
+  } | null;
   error?: { code: number; message: string; retryable: boolean; category: string };
   willFallback?: boolean;
+};
+
+export type AgentPlanningDecision = Extract<
+  AgentSseEvent,
+  { type: 'agent.planning' }
+>['payload']['decision'];
+
+export type AgentToolActivity = {
+  toolCallId: string;
+  toolName: AgentToolKey;
+  status: 'RUNNING' | 'COMPLETED' | 'FAILED';
+  attempt: number;
+  inputSummary?: string;
+  outputSummary?: string;
+  rowCount?: number;
+  durationMs?: number;
+  error?: { code: number; message: string; retryable: boolean; category: string };
+  willRetry?: boolean;
 };
 
 export type AgentRunProjection = {
@@ -102,9 +126,11 @@ export type AgentRunProjection = {
   reconnects: number;
   stageLabel: string;
   planSummary?: string;
+  planningDecision?: AgentPlanningDecision;
   progress?: AgentRunProgress;
   modelActivity?: AgentModelActivity;
   modelDiagnostics?: AgentModelDiagnostic[];
+  toolActivities?: AgentToolActivity[];
   draftPreview?: AgentDraftPreview;
   errorCode?: number | null;
   errorMessage?: string | null;
@@ -260,11 +286,7 @@ export type AgentComposerModel = {
   preferredModel: string | null;
 };
 
-export const TERMINAL_RUN_STATUSES = new Set<AgentRunStatus>([
-  'COMPLETED',
-  'FAILED',
-  'CANCELLED',
-]);
+export const TERMINAL_RUN_STATUSES = new Set<AgentRunStatus>(['COMPLETED', 'FAILED', 'CANCELLED']);
 
 export function messageStatusForRun(status: AgentRunStatus): MessageStatus {
   if (status === 'COMPLETED') return 'COMPLETED';

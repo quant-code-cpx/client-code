@@ -9,11 +9,17 @@ import { Iconify } from 'src/components/iconify';
 import { Markdown, safeMarkdownUrl } from 'src/components/markdown/markdown';
 
 import { BlockRenderer } from './blocks/block-renderer';
+import {
+  sourceTypeLabel,
+  citationDisplayTitle,
+  groupCitationSources,
+} from '../lib/evidence-display';
 
 import type { AgentMessageEntity } from '../state/agent-state.types';
 
 export type AgentReportCitation = {
   citationId: string;
+  sourceId?: string;
   blockId: string;
   claimKey: string;
   title: string;
@@ -56,6 +62,7 @@ export function AgentReportContent({
   citations,
 }: AgentReportContentProps) {
   const renderCitations = blockCitations(citations);
+  const citationGroups = groupCitationSources(citations);
 
   return (
     <Stack spacing={2}>
@@ -86,7 +93,7 @@ export function AgentReportContent({
             <Typography variant="subtitle2">引用来源</Typography>
           </Stack>
           <Stack component="ol" spacing={1} sx={{ m: 0, p: 0, listStyle: 'none' }}>
-            {citations.map((citation, index) => {
+            {citationGroups.map(({ primary: citation, citations: groupedCitations }, index) => {
               const href = citation.canonicalUrl ? safeMarkdownUrl(citation.canonicalUrl) : '';
               return (
                 <Box
@@ -103,24 +110,38 @@ export function AgentReportContent({
                     bgcolor: 'background.default',
                   }}
                 >
+                  {groupedCitations.slice(1).map((item) => (
+                    <Box
+                      aria-hidden="true"
+                      component="span"
+                      id={`citation-${item.citationId}`}
+                      key={item.citationId}
+                      sx={{ position: 'absolute' }}
+                    />
+                  ))}
                   <Typography variant="caption" sx={{ color: 'text.disabled' }}>
                     [{index + 1}]
                   </Typography>
                   <Box sx={{ minWidth: 0, flex: 1 }}>
                     {href ? (
                       <Link href={href} target="_blank" rel="noopener noreferrer" variant="body2" sx={{ fontWeight: 700 }}>
-                        {citation.title}
+                        {citationDisplayTitle(citation.title)}
                       </Link>
                     ) : (
                       <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                        {citation.title}
+                        {citationDisplayTitle(citation.title)}
                       </Typography>
                     )}
                     <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary' }}>
-                      {[citation.publisher, citation.sourceType, fDateTime(citation.retrievedAt)]
+                      {[citation.publisher, sourceTypeLabel(citation.sourceType), fDateTime(citation.retrievedAt)]
                         .filter(Boolean)
                         .join(' · ')}
                     </Typography>
+                    {groupedCitations.length > 1 ? (
+                      <Typography variant="caption" sx={{ display: 'block', color: 'text.disabled' }}>
+                        已用于支撑 {groupedCitations.length} 条研究结论
+                      </Typography>
+                    ) : null}
                   </Box>
                 </Box>
               );

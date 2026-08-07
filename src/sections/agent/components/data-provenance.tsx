@@ -8,14 +8,7 @@ import { fDateTime } from 'src/utils/format-time';
 
 import { Label } from 'src/components/label';
 
-const SOURCE_LABELS: Record<DataProvenance['sourceType'], string> = {
-  DATABASE: '数据库',
-  PROGRAM_CALCULATION: '程序计算',
-  OFFICIAL: '官方来源',
-  MEDIA: '媒体',
-  INSTITUTION: '机构',
-  MODEL_INFERENCE: '模型推断',
-};
+import { sourceTypeLabel } from '../lib/evidence-display';
 
 const ADJUSTMENT_LABELS: Record<NonNullable<DataProvenance['adjustment']>, string> = {
   NONE: '不复权',
@@ -35,7 +28,24 @@ function asOfLabel(provenance: DataProvenance): string {
   return `获取于 ${fDateTime(asOf.retrievedAt)}`;
 }
 
+function timezoneLabel(timezone: string): string {
+  if (timezone === 'Asia/Shanghai') return '中国标准时间';
+  if (timezone === 'UTC') return '协调世界时';
+  return timezone;
+}
+
+function qualitySummary(qualityFlags: string[] | undefined): string | null {
+  if (!qualityFlags?.length) return null;
+  if (qualityFlags.every((flag) => /^WORKFLOW_WARNING_\d+$/.test(flag))) {
+    return '数据提示：本回答包含数据限制，具体说明见正文“数据限制”。';
+  }
+  if (qualityFlags.length === 1) return qualityFlags[0];
+  return `数据提示：本回答有 ${qualityFlags.length} 项数据限制，具体说明见正文“数据限制”。`;
+}
+
 export function DataProvenance({ provenance }: DataProvenanceProps) {
+  const quality = qualitySummary(provenance.qualityFlags);
+
   return (
     <Stack
       component="footer"
@@ -50,14 +60,14 @@ export function DataProvenance({ provenance }: DataProvenanceProps) {
         数据口径
       </Typography>
       <Label variant="soft" color="info">
-        {SOURCE_LABELS[provenance.sourceType]}
+        {sourceTypeLabel(provenance.sourceType)}
       </Label>
       <Typography variant="caption" sx={{ color: 'text.secondary' }}>
         {asOfLabel(provenance)}
       </Typography>
       <Divider flexItem orientation="vertical" />
       <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-        {provenance.timezone}
+        时区 {timezoneLabel(provenance.timezone)}
       </Typography>
       {provenance.currency ? (
         <Typography variant="caption" sx={{ color: 'text.secondary' }}>
@@ -79,11 +89,11 @@ export function DataProvenance({ provenance }: DataProvenanceProps) {
           {ADJUSTMENT_LABELS[provenance.adjustment]}
         </Typography>
       ) : null}
-      {provenance.qualityFlags?.map((flag) => (
-        <Label key={flag} variant="soft" color="warning">
-          {flag}
-        </Label>
-      ))}
+      {quality ? (
+        <Typography variant="caption" sx={{ color: 'warning.dark' }}>
+          {quality}
+        </Typography>
+      ) : null}
     </Stack>
   );
 }

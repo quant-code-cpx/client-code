@@ -14,9 +14,17 @@ import { nextAgentRequestGeneration } from '../lib/request-generation';
 import { useAgentState, useAgentDispatch } from '../state/agent-provider';
 import { selectActiveRun, selectCurrentConversation } from '../state/agent-selectors';
 
-import type { AgentMessageEntity, AgentRunProjection } from '../state/agent-state.types';
+import type {
+  AgentComposerModel,
+  AgentMessageEntity,
+  AgentRunProjection,
+} from '../state/agent-state.types';
 
 const MAX_MESSAGE_LENGTH = 10_000;
+const DEFAULT_NEW_CONVERSATION_MODEL: AgentComposerModel = {
+  policy: 'AUTO',
+  preferredModel: null,
+};
 
 type ActiveStream = {
   runId: string;
@@ -41,7 +49,10 @@ function conversationTitle(content: string): string {
   return firstLine.slice(0, 60);
 }
 
-export function useAgentRun(conversationId: string | null) {
+export function useAgentRun(
+  conversationId: string | null,
+  newConversationModel: AgentComposerModel = DEFAULT_NEW_CONVERSATION_MODEL
+) {
   const router = useRouter();
   const state = useAgentState();
   const dispatch = useAgentDispatch();
@@ -255,6 +266,7 @@ export function useAgentRun(conversationId: string | null) {
       setCommandError(null);
       let targetConversationId = conversationId;
       let localMessageId: string | null = null;
+      const modelPolicy = conversation?.modelPolicy ?? newConversationModel.policy;
 
       try {
         if (targetConversationId && !conversation) {
@@ -264,11 +276,13 @@ export function useAgentRun(conversationId: string | null) {
         if (!targetConversationId) {
           const createRequestId = newRequestId();
           const title = conversationTitle(content);
+          const preferredModel =
+            modelPolicy === 'MANUAL' ? newConversationModel.preferredModel : null;
           const created = await agentApi.createConversation({
             clientRequestId: createRequestId,
             title,
-            modelPolicy: 'AUTO',
-            preferredModel: null,
+            modelPolicy,
+            preferredModel,
           });
           targetConversationId = created.conversationId;
           dispatch({
@@ -277,8 +291,8 @@ export function useAgentRun(conversationId: string | null) {
               conversationId: created.conversationId,
               title,
               status: created.status,
-              modelPolicy: 'AUTO',
-              preferredModel: null,
+              modelPolicy,
+              preferredModel,
               messageCount: 0,
               lastMessageAt: created.createdAt,
               createdAt: created.createdAt,
@@ -319,7 +333,7 @@ export function useAgentRun(conversationId: string | null) {
           clientRequestId,
           conversationId: targetConversationId,
           content,
-          modelPolicy: conversation?.modelPolicy ?? 'AUTO',
+          modelPolicy,
           allowedCapabilities: [...AGENT_CAPABILITIES],
         });
         dispatch({
@@ -338,7 +352,7 @@ export function useAgentRun(conversationId: string | null) {
         sendingRef.current = false;
         setIsSending(false);
       }
-    }, [conversation, conversationId, dispatch, router, startStream]
+    }, [conversation, conversationId, dispatch, newConversationModel, router, startStream]
   );
 
   const cancel = useCallback(async (): Promise<void> => {

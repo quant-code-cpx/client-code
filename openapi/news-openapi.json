@@ -1,0 +1,1245 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/news/articles/list": {
+      "post": {
+        "operationId": "NewsController_list",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewsArticleListRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/NewsArticleListResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "快照分页查询新闻文章",
+        "tags": ["News - 新闻时事"]
+      }
+    },
+    "/news/articles/detail": {
+      "post": {
+        "operationId": "NewsController_detail",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewsArticleDetailRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/NewsArticleDetailResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "查询新闻文章详情与修订来源",
+        "tags": ["News - 新闻时事"]
+      }
+    },
+    "/news/coverage": {
+      "post": {
+        "operationId": "NewsController_getCoverage",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/NewsCoverageResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "查询新闻覆盖、水位与降级告警",
+        "tags": ["News - 新闻时事"]
+      }
+    },
+    "/news/admin/ingestion/run": {
+      "post": {
+        "operationId": "NewsAdminController_run",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/NewsIngestionPollFeedRequestDto"
+                  },
+                  {
+                    "$ref": "#/components/schemas/NewsIngestionBackfillSecurityNoticesRequestDto"
+                  }
+                ],
+                "discriminator": {
+                  "propertyName": "operation",
+                  "mapping": {
+                    "POLL_FEED": "#/components/schemas/NewsIngestionPollFeedRequestDto",
+                    "BACKFILL_SECURITY_NOTICES": "#/components/schemas/NewsIngestionBackfillSecurityNoticesRequestDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/NewsIngestionRunResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "幂等触发新闻采集或公告回补",
+        "tags": ["News - 采集管理"]
+      }
+    },
+    "/news/admin/ingestion/status": {
+      "post": {
+        "operationId": "NewsAdminController_status",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewsIngestionStatusRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/NewsIngestionStatusResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "查询新闻采集命令状态",
+        "tags": ["News - 采集管理"]
+      }
+    },
+    "/news/admin/providers/list": {
+      "post": {
+        "operationId": "NewsAdminController_providers",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/NewsProviderListResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "查询新闻 Provider 与 Feed 状态",
+        "tags": ["News - 采集管理"]
+      }
+    }
+  },
+  "info": {
+    "title": "Quant Server API",
+    "description": "量化交易后端接口文档",
+    "version": "1.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "schemas": {
+      "NewsProviderListResponseDto": {
+        "type": "object",
+        "properties": {
+          "generatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "providers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NewsProviderAdminDto"
+            }
+          }
+        },
+        "required": ["generatedAt", "providers"]
+      },
+      "NewsProviderAdminDto": {
+        "type": "object",
+        "properties": {
+          "providerKey": {
+            "type": "string"
+          },
+          "providerDisplayName": {
+            "type": "string"
+          },
+          "enabled": {
+            "type": "boolean"
+          },
+          "contractVersion": {
+            "type": "string"
+          },
+          "circuitState": {
+            "type": "string",
+            "enum": ["CLOSED", "OPEN", "HALF_OPEN"]
+          },
+          "quotaStatus": {
+            "type": "string",
+            "enum": ["UNKNOWN", "AVAILABLE", "THROTTLED", "EXHAUSTED"]
+          },
+          "quotaResetAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "feeds": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NewsFeedCoverageDto"
+            }
+          }
+        },
+        "required": [
+          "providerKey",
+          "providerDisplayName",
+          "enabled",
+          "contractVersion",
+          "circuitState",
+          "quotaStatus",
+          "feeds"
+        ]
+      },
+      "NewsFeedCoverageDto": {
+        "type": "object",
+        "properties": {
+          "providerKey": {
+            "type": "string"
+          },
+          "providerDisplayName": {
+            "type": "string"
+          },
+          "feedKey": {
+            "type": "string"
+          },
+          "feedDisplayName": {
+            "type": "string"
+          },
+          "sourceType": {
+            "type": "string",
+            "enum": [
+              "REGULATOR",
+              "EXCHANGE",
+              "COMPANY",
+              "MEDIA",
+              "INSTITUTION",
+              "AGGREGATOR",
+              "OTHER"
+            ]
+          },
+          "contentTypes": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["NOTICE", "NEWS", "FLASH"]
+            }
+          },
+          "scheduleMode": {
+            "type": "string",
+            "enum": ["SCHEDULED", "ON_DEMAND"]
+          },
+          "requiredForCompleteness": {
+            "type": "boolean"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["READY", "DEGRADED", "DISABLED"]
+          },
+          "lastSuccessfulAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "dataThrough": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "expectedIntervalSeconds": {
+            "type": "number",
+            "nullable": true
+          },
+          "freshnessSeconds": {
+            "type": "number",
+            "nullable": true
+          },
+          "consecutiveFailures": {
+            "type": "number"
+          },
+          "potentiallyTruncated": {
+            "type": "boolean"
+          },
+          "reasonCode": {
+            "type": "string",
+            "nullable": true,
+            "enum": [
+              "FEED_UNAVAILABLE",
+              "FEED_STALE",
+              "FEED_DISABLED",
+              "NO_SUCCESSFUL_SYNC",
+              "FEED_SCHEMA_CHANGED",
+              "POTENTIALLY_TRUNCATED",
+              "PARTIAL_INGESTION",
+              "SOURCE_WINDOW_LIMITED",
+              "COVERAGE_UNKNOWN"
+            ]
+          },
+          "publicReason": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "providerKey",
+          "providerDisplayName",
+          "feedKey",
+          "feedDisplayName",
+          "sourceType",
+          "contentTypes",
+          "scheduleMode",
+          "requiredForCompleteness",
+          "status",
+          "consecutiveFailures",
+          "potentiallyTruncated"
+        ]
+      },
+      "ResponseModel": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "number",
+            "default": 0
+          },
+          "message": {
+            "type": "string",
+            "default": ""
+          }
+        },
+        "required": ["code", "message"]
+      },
+      "NewsIngestionStatusResponseDto": {
+        "type": "object",
+        "properties": {
+          "commandId": {
+            "type": "string"
+          },
+          "clientRequestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "operation": {
+            "type": "string",
+            "enum": ["POLL_FEED", "BACKFILL_SECURITY_NOTICES"]
+          },
+          "status": {
+            "type": "string",
+            "enum": ["QUEUED", "RUNNING", "SUCCEEDED", "PARTIAL", "FAILED", "CANCELLED"]
+          },
+          "acceptedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "startedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "finishedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "runs": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NewsIngestionRunItemDto"
+            }
+          }
+        },
+        "required": ["commandId", "clientRequestId", "operation", "status", "acceptedAt", "runs"]
+      },
+      "NewsIngestionRunItemDto": {
+        "type": "object",
+        "properties": {
+          "runId": {
+            "type": "string"
+          },
+          "providerKey": {
+            "type": "string"
+          },
+          "feedKey": {
+            "type": "string"
+          },
+          "partitionKey": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["QUEUED", "RUNNING", "SUCCEEDED", "PARTIAL", "FAILED", "CANCELLED"]
+          },
+          "fetchedCount": {
+            "type": "number"
+          },
+          "insertedCount": {
+            "type": "number"
+          },
+          "revisedCount": {
+            "type": "number"
+          },
+          "duplicateCount": {
+            "type": "number"
+          },
+          "quarantinedCount": {
+            "type": "number"
+          },
+          "potentiallyTruncated": {
+            "type": "boolean"
+          },
+          "dataThroughBefore": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "dataThroughAfter": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "errorCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "errorMessage": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "startedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "finishedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "runId",
+          "providerKey",
+          "feedKey",
+          "partitionKey",
+          "status",
+          "fetchedCount",
+          "insertedCount",
+          "revisedCount",
+          "duplicateCount",
+          "quarantinedCount",
+          "potentiallyTruncated",
+          "createdAt"
+        ]
+      },
+      "NewsIngestionStatusRequestDto": {
+        "type": "object",
+        "properties": {
+          "commandId": {
+            "type": "string",
+            "pattern": "^[a-z0-9]{20,32}$"
+          }
+        },
+        "required": ["commandId"]
+      },
+      "NewsIngestionRunResponseDto": {
+        "type": "object",
+        "properties": {
+          "commandId": {
+            "type": "string"
+          },
+          "runIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": ["QUEUED", "RUNNING", "SUCCEEDED", "PARTIAL", "FAILED", "CANCELLED"]
+          },
+          "idempotentReplay": {
+            "type": "boolean"
+          },
+          "acceptedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": ["commandId", "runIds", "status", "idempotentReplay", "acceptedAt"]
+      },
+      "NewsIngestionBackfillSecurityNoticesRequestDto": {
+        "type": "object",
+        "properties": {
+          "clientRequestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "operation": {
+            "type": "string",
+            "enum": ["BACKFILL_SECURITY_NOTICES"]
+          },
+          "securityCodes": {
+            "minItems": 1,
+            "maxItems": 20,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^\\d{6}\\.(SH|SZ|BJ)$"
+            }
+          },
+          "beginDate": {
+            "type": "string",
+            "format": "date",
+            "example": "2026-08-01"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date",
+            "example": "2026-08-06"
+          }
+        },
+        "required": ["clientRequestId", "operation", "securityCodes", "beginDate", "endDate"]
+      },
+      "NewsIngestionPollFeedRequestDto": {
+        "type": "object",
+        "properties": {
+          "clientRequestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "operation": {
+            "type": "string",
+            "enum": ["POLL_FEED"]
+          },
+          "providerKey": {
+            "type": "string",
+            "pattern": "^[A-Z0-9_]{1,32}$"
+          },
+          "feedKey": {
+            "type": "string",
+            "pattern": "^[a-z0-9._-]{1,96}$"
+          }
+        },
+        "required": ["clientRequestId", "operation", "providerKey", "feedKey"]
+      },
+      "NewsCoverageResponseDto": {
+        "type": "object",
+        "properties": {
+          "generatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "overallStatus": {
+            "type": "string",
+            "enum": ["READY", "DEGRADED", "DISABLED"]
+          },
+          "dataThrough": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "partial": {
+            "type": "boolean"
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NewsCoverageWarningDto"
+            }
+          },
+          "feeds": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NewsFeedCoverageDto"
+            }
+          }
+        },
+        "required": ["generatedAt", "overallStatus", "partial", "warnings", "feeds"]
+      },
+      "NewsCoverageWarningDto": {
+        "type": "object",
+        "properties": {
+          "warningId": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string",
+            "enum": [
+              "FEED_UNAVAILABLE",
+              "FEED_STALE",
+              "FEED_DISABLED",
+              "NO_SUCCESSFUL_SYNC",
+              "FEED_SCHEMA_CHANGED",
+              "POTENTIALLY_TRUNCATED",
+              "PARTIAL_INGESTION",
+              "SOURCE_WINDOW_LIMITED",
+              "COVERAGE_UNKNOWN"
+            ]
+          },
+          "severity": {
+            "type": "string",
+            "enum": ["INFO", "WARNING", "ERROR"]
+          },
+          "affectsCompleteness": {
+            "type": "boolean"
+          },
+          "providerKey": {
+            "type": "string",
+            "nullable": true
+          },
+          "providerDisplayName": {
+            "type": "string",
+            "nullable": true
+          },
+          "feedKey": {
+            "type": "string",
+            "nullable": true
+          },
+          "feedDisplayName": {
+            "type": "string",
+            "nullable": true
+          },
+          "publicMessage": {
+            "type": "string"
+          },
+          "dataThrough": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "observedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "warningId",
+          "code",
+          "severity",
+          "affectsCompleteness",
+          "publicMessage",
+          "observedAt"
+        ]
+      },
+      "NewsArticleDetailResponseDto": {
+        "type": "object",
+        "properties": {
+          "articleId": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "number",
+            "minimum": 1
+          },
+          "contentType": {
+            "type": "string",
+            "enum": ["NOTICE", "NEWS", "FLASH"]
+          },
+          "sourceType": {
+            "type": "string",
+            "enum": [
+              "REGULATOR",
+              "EXCHANGE",
+              "COMPANY",
+              "MEDIA",
+              "INSTITUTION",
+              "AGGREGATOR",
+              "OTHER"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "excerpt": {
+            "type": "string",
+            "nullable": true
+          },
+          "publisher": {
+            "type": "string",
+            "nullable": true
+          },
+          "canonicalUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "publishedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "publishedDate": {
+            "type": "string",
+            "nullable": true,
+            "format": "date"
+          },
+          "publishedPrecision": {
+            "type": "string",
+            "enum": ["SECOND", "MINUTE", "DATE", "UNKNOWN"]
+          },
+          "firstSeenAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "securityCodes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "providerKeys": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "qualityFlags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "alternateUrls": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "sources": {
+            "$ref": "#/components/schemas/NewsArticleSourceListDto"
+          },
+          "revisions": {
+            "$ref": "#/components/schemas/NewsArticleRevisionListDto"
+          },
+          "coverage": {
+            "$ref": "#/components/schemas/NewsCoverageResponseDto"
+          }
+        },
+        "required": [
+          "articleId",
+          "revision",
+          "contentType",
+          "sourceType",
+          "title",
+          "publishedPrecision",
+          "firstSeenAt",
+          "securityCodes",
+          "providerKeys",
+          "qualityFlags",
+          "alternateUrls",
+          "sources",
+          "revisions",
+          "coverage"
+        ]
+      },
+      "NewsArticleRevisionListDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NewsArticleRevisionDto"
+            }
+          },
+          "total": {
+            "type": "number"
+          },
+          "truncated": {
+            "type": "boolean"
+          }
+        },
+        "required": ["items", "total", "truncated"]
+      },
+      "NewsArticleRevisionDto": {
+        "type": "object",
+        "properties": {
+          "revision": {
+            "type": "number"
+          },
+          "changedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "changedFields": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "title": {
+            "type": "string"
+          },
+          "excerpt": {
+            "type": "string",
+            "nullable": true
+          },
+          "publisher": {
+            "type": "string",
+            "nullable": true
+          },
+          "canonicalUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "publishedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "publishedDate": {
+            "type": "string",
+            "nullable": true,
+            "format": "date"
+          },
+          "publishedPrecision": {
+            "type": "string",
+            "enum": ["SECOND", "MINUTE", "DATE", "UNKNOWN"]
+          }
+        },
+        "required": ["revision", "changedAt", "changedFields", "title", "publishedPrecision"]
+      },
+      "NewsArticleSourceListDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NewsArticleSourceDto"
+            }
+          },
+          "total": {
+            "type": "number"
+          },
+          "truncated": {
+            "type": "boolean"
+          }
+        },
+        "required": ["items", "total", "truncated"]
+      },
+      "NewsArticleSourceDto": {
+        "type": "object",
+        "properties": {
+          "providerKey": {
+            "type": "string"
+          },
+          "providerDisplayName": {
+            "type": "string"
+          },
+          "feedKey": {
+            "type": "string"
+          },
+          "feedDisplayName": {
+            "type": "string"
+          },
+          "sourceType": {
+            "type": "string",
+            "enum": [
+              "REGULATOR",
+              "EXCHANGE",
+              "COMPANY",
+              "MEDIA",
+              "INSTITUTION",
+              "AGGREGATOR",
+              "OTHER"
+            ]
+          },
+          "sourceDiscoveredAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "firstSeenAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "lastSeenAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "retrievedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "providerKey",
+          "providerDisplayName",
+          "feedKey",
+          "feedDisplayName",
+          "sourceType",
+          "firstSeenAt",
+          "lastSeenAt",
+          "retrievedAt"
+        ]
+      },
+      "NewsArticleDetailRequestDto": {
+        "type": "object",
+        "properties": {
+          "articleId": {
+            "type": "string",
+            "pattern": "^[a-z0-9]{20,32}$"
+          }
+        },
+        "required": ["articleId"]
+      },
+      "NewsArticleListResponseDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NewsArticleListItemDto"
+            }
+          },
+          "nextCursor": {
+            "type": "string",
+            "nullable": true
+          },
+          "dataThrough": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "partial": {
+            "type": "boolean"
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NewsCoverageWarningDto"
+            }
+          }
+        },
+        "required": ["items", "partial", "warnings"]
+      },
+      "NewsArticleListItemDto": {
+        "type": "object",
+        "properties": {
+          "articleId": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "number",
+            "minimum": 1
+          },
+          "contentType": {
+            "type": "string",
+            "enum": ["NOTICE", "NEWS", "FLASH"]
+          },
+          "sourceType": {
+            "type": "string",
+            "enum": [
+              "REGULATOR",
+              "EXCHANGE",
+              "COMPANY",
+              "MEDIA",
+              "INSTITUTION",
+              "AGGREGATOR",
+              "OTHER"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "excerpt": {
+            "type": "string",
+            "nullable": true
+          },
+          "publisher": {
+            "type": "string",
+            "nullable": true
+          },
+          "canonicalUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "publishedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "publishedDate": {
+            "type": "string",
+            "nullable": true,
+            "format": "date"
+          },
+          "publishedPrecision": {
+            "type": "string",
+            "enum": ["SECOND", "MINUTE", "DATE", "UNKNOWN"]
+          },
+          "firstSeenAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "securityCodes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "providerKeys": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "qualityFlags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "articleId",
+          "revision",
+          "contentType",
+          "sourceType",
+          "title",
+          "publishedPrecision",
+          "firstSeenAt",
+          "securityCodes",
+          "providerKeys",
+          "qualityFlags"
+        ]
+      },
+      "NewsArticleListRequestDto": {
+        "type": "object",
+        "properties": {
+          "cursor": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 512
+          },
+          "limit": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 30
+          },
+          "scope": {
+            "type": "string",
+            "enum": ["ALL", "WATCHLIST", "PORTFOLIO", "SECURITIES"],
+            "default": "ALL"
+          },
+          "securityCodes": {
+            "minItems": 1,
+            "maxItems": 20,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^\\d{6}\\.(SH|SZ|BJ)$"
+            }
+          },
+          "keyword": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 64
+          },
+          "contentTypes": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["NOTICE", "NEWS", "FLASH"]
+            }
+          },
+          "sourceTypes": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "REGULATOR",
+                "EXCHANGE",
+                "COMPANY",
+                "MEDIA",
+                "INSTITUTION",
+                "AGGREGATOR",
+                "OTHER"
+              ]
+            }
+          },
+          "publishedAfter": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-08-01T00:00:00.000+08:00"
+          },
+          "publishedBefore": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-08-06T00:00:00.000+08:00"
+          },
+          "includeUnknownPublishedTime": {
+            "type": "boolean",
+            "default": false
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearer": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http"
+      },
+      "cookie": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "refresh_token"
+      }
+    }
+  }
+}

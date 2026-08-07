@@ -164,6 +164,27 @@ describe('agentApi', () => {
       message: 'Run 不存在',
     });
   });
+
+  it('shows safe validation details instead of only the generic 9001 message', async () => {
+    mockFetch.mockResolvedValueOnce(
+      jsonResponse(
+        {
+          code: 9001,
+          message: '请求参数校验失败',
+          data: { details: ['preferredModel 未注册或不可用'] },
+        },
+        400
+      )
+    );
+
+    await expect(agentApi.regenerateMessage({
+      clientRequestId: '60d92dab-4bf7-4c7b-a440-2913f5fae98d',
+      messageId: 'cmshw7ppw000yqw1hnorlhi2i',
+      modelPolicy: 'MANUAL',
+    })).rejects.toMatchObject({
+      message: '请求参数校验失败：preferredModel 未注册或不可用',
+    });
+  });
 });
 
 describe('toAgentClientError', () => {

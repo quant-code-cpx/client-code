@@ -21,6 +21,12 @@ function run(overrides: Partial<AgentRunProjection> = {}): AgentRunProjection {
     reconnects: 0,
     stageLabel: '正在组织研究结论',
     planSummary: '先核验行情与财务数据，再形成可验证结论。',
+    planningDecision: {
+      toolSelectionReason: '需要先读取行情与财务数据，才能形成可验证结论。',
+      selectedTools: ['get_stock_price_history', 'get_financial_indicators'],
+      plannedTools: ['get_stock_price_history', 'get_financial_indicators'],
+      fallback: false,
+    },
     progress: { label: '合成研究回答', completed: 4, total: 8 },
     needsFinalSnapshot: false,
     cancelRequested: false,
@@ -33,20 +39,19 @@ describe('RunActivityPanel', () => {
     vi.useRealTimers();
   });
 
-  it('持续显示公开阶段、计划摘要、真实进度和已用时间', () => {
+  it('持续显示公开决策、研究路径、真实进度和已用时间', () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-08-05T00:00:05.000Z'));
 
     renderWithProviders(
-      <RunActivityPanel
-        run={run()}
-        startedAt="2026-08-05T00:00:00.000Z"
-        onContinue={vi.fn()}
-      />
+      <RunActivityPanel run={run()} startedAt="2026-08-05T00:00:00.000Z" onContinue={vi.fn()} />
     );
 
     expect(screen.getByText('已用时 00:05')).toBeInTheDocument();
-    expect(screen.getByText('计划摘要：先核验行情与财务数据，再形成可验证结论。')).toBeInTheDocument();
+    expect(screen.getByLabelText('研究决策与证据')).toHaveTextContent('公开决策，不是隐藏推理');
+    expect(screen.getByText('需要先读取行情与财务数据，才能形成可验证结论。')).toBeInTheDocument();
+    expect(screen.getByText('先核验行情与财务数据，再形成可验证结论。')).toBeInTheDocument();
+    expect(screen.getByText('选用：个股历史行情、财务指标')).toBeInTheDocument();
     expect(screen.getByText('合成研究回答 · 4 / 8')).toBeInTheDocument();
     expect(screen.getByRole('progressbar', { name: '合成研究回答' })).toHaveAttribute(
       'aria-valuenow',
@@ -91,7 +96,7 @@ describe('RunActivityPanel', () => {
     );
 
     expect(
-      screen.getByText('深度分析信号持续更新，原始推理内容不会发送到页面')
+      screen.getByText('模型正在处理当前步骤；完成后会补充公开决策或数据结果')
     ).toBeInTheDocument();
 
     rerender(
@@ -148,9 +153,9 @@ describe('RunActivityPanel', () => {
       />
     );
 
-    expect(screen.getByLabelText('模型执行轨迹')).toHaveTextContent('不含原始推理或 Prompt');
+    expect(screen.getByLabelText('模型调用技术明细')).toHaveTextContent('排查模型问题用');
     expect(screen.getByText('结论生成 · research-model')).toBeInTheDocument();
     expect(screen.getByText('结构化校验通过')).toBeInTheDocument();
-    expect(screen.getByText('模型供应商限流 · 将切换模型重试')).toBeInTheDocument();
+    expect(screen.getByText('模型供应商限流', { exact: false })).toBeInTheDocument();
   });
 });

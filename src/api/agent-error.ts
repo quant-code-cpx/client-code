@@ -61,6 +61,7 @@ type ErrorPayload = {
   category?: AgentErrorCategory;
   traceId?: string;
   safeDetails?: Record<string, unknown>;
+  details?: unknown;
   data?: unknown;
 };
 
@@ -88,12 +89,33 @@ function normalizePayload(input: unknown): ErrorPayload {
       : {}),
     ...(typeof source.traceId === 'string' ? { traceId: source.traceId } : {}),
     ...(isRecord(source.safeDetails) ? { safeDetails: source.safeDetails } : {}),
+    ...('details' in input
+      ? { details: input.details }
+      : nested && 'details' in nested
+        ? { details: nested.details }
+        : {}),
   };
 }
 
 function payloadMessage(payload: ErrorPayload, fallback: string): string {
-  if (Array.isArray(payload.message)) return payload.message.join('；');
-  return payload.message ?? fallback;
+  const message = Array.isArray(payload.message)
+    ? payload.message.join('；')
+    : payload.message ?? fallback;
+  if (payload.code !== 9001) return message;
+  const details = validationDetailMessages(payload.details);
+  return details.length > 0 ? `${message}：${details.join('；')}` : message;
+}
+
+function validationDetailMessages(input: unknown): string[] {
+  if (!Array.isArray(input)) return [];
+  return input
+    .flatMap((item) => {
+      if (typeof item === 'string') return [item.trim()];
+      if (!isRecord(item) || typeof item.message !== 'string') return [];
+      return [item.message.trim()];
+    })
+    .filter(Boolean)
+    .slice(0, 3);
 }
 
 function categoryForCode(code?: number): AgentErrorCategory | undefined {

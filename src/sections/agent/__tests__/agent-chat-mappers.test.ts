@@ -49,6 +49,14 @@ describe('MUI X Chat projection mappers', () => {
     ]);
   });
 
+  it('本地已加载消息比列表快时，侧栏使用较大的真实消息数', () => {
+    const result = toChatConversations([{ ...conversation, messageCount: 2 }], {
+      messageCountByConversation: { cm_1: 6 },
+    });
+
+    expect(result[0]?.subtitle).toBe('6 条消息');
+  });
+
   it.each([
     ['PENDING', undefined, 'pending'],
     ['STREAMING', undefined, 'streaming'],

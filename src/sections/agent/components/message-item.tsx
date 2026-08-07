@@ -4,6 +4,7 @@ import { varAlpha } from 'minimal-shared/utils';
 import { memo, useState, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
+import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Tooltip from '@mui/material/Tooltip';
@@ -22,6 +23,7 @@ import { CitationList } from './citation-list';
 import { ToolCallList } from './tool-call-card';
 import { RunActivityPanel } from './run-activity-panel';
 import { BlockRenderer } from './blocks/block-renderer';
+import { groupCitationSources } from '../lib/evidence-display';
 import { parseSupportedMessageBlock } from '../lib/message-block-guards';
 
 import type { AgentMessageEntity, AgentRunProjection } from '../state/agent-state.types';
@@ -84,6 +86,17 @@ function MessageItemComponent({
     message.role === 'ASSISTANT' && ['COMPLETED', 'FAILED', 'CANCELLED'].includes(message.status);
   const canSaveReport =
     isAssistant && message.status === 'COMPLETED' && Boolean(message.run?.runId);
+  const citationSourceCount = groupCitationSources(message.citations).length;
+  const failedModelMessage = run?.modelDiagnostics?.find((item) => item.status === 'FAILED')?.error?.message;
+  const failureReason =
+    isAssistant && message.status === 'FAILED'
+      ? run?.errorMessage ??
+        failedModelMessage ??
+        message.run?.errorMessage ??
+        '研究执行失败，暂未收到具体原因。请检查模型、连接和调用日志。'
+      : null;
+  const errorCode = run?.errorCode ?? message.run?.errorCode;
+  const failureCode = errorCode != null ? `错误 ${errorCode} · ` : '';
 
   const handleCopy = useCallback(async () => {
     if (!message.contentText) return;
@@ -212,7 +225,7 @@ function MessageItemComponent({
                   已关联引用
                 </Typography>
                 <Typography variant="h6" sx={{ mt: 0.25, fontWeight: 500 }}>
-                  {message.citations.length} 条
+                  {citationSourceCount} 项
                 </Typography>
               </Box>
             ) : null}
@@ -221,6 +234,23 @@ function MessageItemComponent({
 
         {currentRun ? (
           <RunActivityPanel run={currentRun} startedAt={message.createdAt} onContinue={onContinue} />
+        ) : null}
+
+        {failureReason ? (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            <Typography variant="subtitle2" sx={{ mb: 0.25 }}>
+              研究失败
+            </Typography>
+            <Typography variant="body2" sx={{ overflowWrap: 'anywhere' }}>
+              {failureCode}
+              {failureReason}
+            </Typography>
+            {run?.retryable ? (
+              <Typography variant="caption" sx={{ display: 'block', mt: 0.5 }}>
+                此错误可重试；请修正配置后重新生成。
+              </Typography>
+            ) : null}
+          </Alert>
         ) : null}
 
         {message.contentText && (isUser || !hasMarkdownBlock) ? (
@@ -235,7 +265,7 @@ function MessageItemComponent({
           ) : (
             <Markdown streaming={streaming}>{message.contentText}</Markdown>
           )
-        ) : message.contentBlocks.length === 0 && !currentRun ? (
+        ) : message.contentBlocks.length === 0 && !currentRun && !failureReason ? (
           <Typography variant="body2" sx={{ py: 1, color: 'text.secondary' }}>
             {message.status === 'PENDING' ? '等待研究开始…' : '暂无可展示内容'}
           </Typography>

@@ -4,6 +4,9 @@
 // pattern.
 
 export const paths = {
+  market: {
+    news: '/market/news',
+  },
   research: {
     report: {
       list: '/research/report',

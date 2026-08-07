@@ -50,6 +50,7 @@ interface ApiWrapper<T> {
 
 type ApiErrorBody = {
   code?: number | string;
+  data?: unknown;
   details?: unknown;
   message?: string | string[];
   requestId?: string;
@@ -204,10 +205,14 @@ function responseMessage(body: unknown): string {
 
 function toApiError(response: Response, body: unknown): ApiError {
   const errorBody = body as ApiErrorBody;
+  const nestedDetails =
+    errorBody?.data && typeof errorBody.data === 'object' && !Array.isArray(errorBody.data)
+      ? (errorBody.data as { details?: unknown }).details
+      : undefined;
   return new ApiError(responseMessage(body), {
     status: response.status,
     code: errorBody?.code,
-    details: errorBody?.details,
+    details: errorBody?.details ?? nestedDetails,
     requestId: errorBody?.requestId,
   });
 }

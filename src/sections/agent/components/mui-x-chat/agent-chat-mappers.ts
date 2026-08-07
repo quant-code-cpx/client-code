@@ -5,6 +5,7 @@ import type { AgentMessageEntity, AgentConversationEntity } from '../../state/ag
 type ConversationProjectionOptions = {
   activeConversationIds?: ReadonlySet<string>;
   staleConversationIds?: ReadonlySet<string>;
+  messageCountByConversation?: Readonly<Record<string, number>>;
 };
 
 function toChatMessageStatus(message: AgentMessageEntity): ChatMessageStatus {
@@ -20,7 +21,11 @@ export function toChatConversations(
   conversations: AgentConversationEntity[],
   options: ConversationProjectionOptions = {}
 ): ChatConversation[] {
-  const { activeConversationIds = new Set(), staleConversationIds = new Set() } = options;
+  const {
+    activeConversationIds = new Set(),
+    staleConversationIds = new Set(),
+    messageCountByConversation = {},
+  } = options;
 
   return conversations.map((conversation) => {
     const stateLabel = activeConversationIds.has(conversation.conversationId)
@@ -28,7 +33,11 @@ export function toChatConversations(
       : staleConversationIds.has(conversation.conversationId)
         ? '有新状态'
         : null;
-    const messageLabel = `${conversation.messageCount} 条消息`;
+    const messageCount = Math.max(
+      conversation.messageCount,
+      messageCountByConversation[conversation.conversationId] ?? 0
+    );
+    const messageLabel = `${messageCount} 条消息`;
 
     return {
       id: conversation.conversationId,

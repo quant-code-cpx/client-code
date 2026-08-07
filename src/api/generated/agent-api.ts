@@ -531,6 +531,247 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/agent/admin/model-adapters/list": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** 查询已注册模型协议适配器及其能力定义 */
+    post: operations["ModelProviderConsoleController_listAdapters"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/agent/admin/model-connections/list": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["ModelProviderConsoleController_listConnections"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/agent/admin/model-connections/create": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["ModelProviderConsoleController_createConnection"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/agent/admin/model-connections/update": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["ModelProviderConsoleController_updateConnection"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/agent/admin/model-connections/test": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["ModelProviderConsoleController_testConnection"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/agent/admin/model-connections/delete-impact": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["ModelProviderConsoleController_connectionDeleteImpact"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/agent/admin/model-connections/delete": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["ModelProviderConsoleController_deleteConnection"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/agent/admin/model-deployments/list": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["ModelProviderConsoleController_listDeployments"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/agent/admin/model-deployments/create": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["ModelProviderConsoleController_createDeployment"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/agent/admin/model-deployments/update": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["ModelProviderConsoleController_updateDeployment"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/agent/admin/model-deployments/probe": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["ModelProviderConsoleController_probeDeployment"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/agent/admin/model-deployments/delete-impact": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["ModelProviderConsoleController_deploymentDeleteImpact"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/agent/admin/model-deployments/delete": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["ModelProviderConsoleController_deleteDeployment"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/agent/admin/model-routing/summary": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["ModelProviderConsoleController_summary"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/agent/admin/model-routing/publish": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    post: operations["ModelProviderConsoleController_publish"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/agent/reports/list": {
     parameters: {
       query?: never;
@@ -955,7 +1196,7 @@ export interface components {
       requiredWatermarks: components["schemas"]["RequiredWatermarkDto"][];
       /** @default stock_research */
       workflowKey: string;
-      /** @default 4 */
+      /** @default 11 */
       workflowVersion: number;
       /**
        * @default AUTO
@@ -1093,6 +1334,159 @@ export interface components {
       /** @enum {string} */
       status?: "QUEUED" | "GENERATING" | "COMPLETED" | "FAILED" | "DELETED";
     };
+    ModelDeploymentIdDto: {
+      id: string;
+    };
+    ProbeModelDeploymentDto: {
+      id: string;
+      /**
+       * @description 深度探测会产生一次最小模型调用
+       * @default false
+       */
+      confirmBillable: boolean;
+    };
+    UpdateModelDeploymentDto: {
+      connectionId?: string;
+      /** @example gpt-5.6-sol */
+      modelId?: string;
+      displayName?: string;
+      /** @default 10 */
+      priority: number;
+      /**
+       * @default MEDIUM
+       * @enum {string}
+       */
+      costTier: "LOW" | "MEDIUM" | "HIGH";
+      contextWindow?: number;
+      maxOutputTokens?: number;
+      capabilities?: (
+        | "STREAMING"
+        | "STRUCTURED_OUTPUT"
+        | "TOOL_CALLING"
+        | "PARALLEL_TOOL_CALLING"
+        | "VISION"
+        | "REASONING_EFFORT"
+      )[];
+      /**
+       * @default AUTO
+       * @enum {string}
+       */
+      reasoningMode: "AUTO" | "DISABLED" | "EFFORT" | "TOKEN_BUDGET";
+      /** @description 适配器已知或供应商原生推理档位 */
+      reasoningEfforts?: string[];
+      defaultReasoningEffort?: string;
+      reasoningBudgetTokens?: number;
+      dataClasses?: ("PUBLIC" | "USER_PRIVATE" | "PORTFOLIO_SENSITIVE")[];
+      /** @default 120000 */
+      timeoutMs: number;
+      /** @default 2 */
+      maxRetries: number;
+      /** @default 200 */
+      retryBaseMs: number;
+      /** @default false */
+      enabled: boolean;
+      id: string;
+      version: number;
+    };
+    CreateModelDeploymentDto: {
+      connectionId: string;
+      /** @example gpt-5.6-sol */
+      modelId: string;
+      displayName: string;
+      /** @default 10 */
+      priority: number;
+      /**
+       * @default MEDIUM
+       * @enum {string}
+       */
+      costTier: "LOW" | "MEDIUM" | "HIGH";
+      contextWindow: number;
+      maxOutputTokens: number;
+      capabilities: (
+        | "STREAMING"
+        | "STRUCTURED_OUTPUT"
+        | "TOOL_CALLING"
+        | "PARALLEL_TOOL_CALLING"
+        | "VISION"
+        | "REASONING_EFFORT"
+      )[];
+      /**
+       * @default AUTO
+       * @enum {string}
+       */
+      reasoningMode: "AUTO" | "DISABLED" | "EFFORT" | "TOKEN_BUDGET";
+      /** @description 适配器已知或供应商原生推理档位 */
+      reasoningEfforts: string[];
+      defaultReasoningEffort?: string;
+      reasoningBudgetTokens?: number;
+      dataClasses: ("PUBLIC" | "USER_PRIVATE" | "PORTFOLIO_SENSITIVE")[];
+      /** @default 120000 */
+      timeoutMs: number;
+      /** @default 2 */
+      maxRetries: number;
+      /** @default 200 */
+      retryBaseMs: number;
+      /** @default false */
+      enabled: boolean;
+    };
+    ListModelDeploymentsDto: {
+      connectionId?: string;
+    };
+    ModelConnectionIdDto: {
+      id: string;
+    };
+    TestModelConnectionDto: {
+      id: string;
+      /**
+       * @default AUTH
+       * @enum {string}
+       */
+      level: "AUTH" | "STREAM";
+    };
+    UpdateModelConnectionDto: {
+      /** @example fishxcode-relay */
+      connectionKey?: string;
+      /** @enum {string} */
+      adapterKind?:
+        | "openai-responses"
+        | "openai-chat-compatible"
+        | "anthropic-messages";
+      /** @example FishXCode 中转站 */
+      displayName?: string;
+      /** Format: uri */
+      baseUrl?: string;
+      apiKey?: string;
+      /**
+       * @description 新连接默认保存为未启用草稿
+       * @default false
+       */
+      enabled: boolean;
+      id: string;
+      version: number;
+    };
+    CreateModelConnectionDto: {
+      /** @example fishxcode-relay */
+      connectionKey: string;
+      /** @enum {string} */
+      adapterKind:
+        | "openai-responses"
+        | "openai-chat-compatible"
+        | "anthropic-messages";
+      /** @example FishXCode 中转站 */
+      displayName: string;
+      /** Format: uri */
+      baseUrl: string;
+      apiKey: string;
+      /**
+       * @description 新连接默认保存为未启用草稿
+       * @default false
+       */
+      enabled: boolean;
+    };
+    ListModelConnectionsDto: {
+      /** @enum {string} */
+      status?: "ALL" | "ENABLED" | "DISABLED" | "FAILED";
+    };
     ModelProviderDeleteResponseDto: {
       id: string;
       deleted: boolean;
@@ -1129,7 +1523,11 @@ export interface components {
       /** @description 可被多个模型配置复用的供应商标识 */
       providerId?: string;
       /** @enum {string} */
-      kind?: "openai-compatible";
+      kind?:
+        | "openai-compatible"
+        | "openai-chat-compatible"
+        | "openai-responses"
+        | "anthropic-messages";
       displayName?: string;
       model?: string;
       priority?: number;
@@ -1148,7 +1546,15 @@ export interface components {
         | "VISION"
         | "REASONING_EFFORT"
       )[];
-      reasoningEfforts?: ("LOW" | "MEDIUM" | "HIGH")[];
+      reasoningEfforts?: (
+        | "NONE"
+        | "MINIMAL"
+        | "LOW"
+        | "MEDIUM"
+        | "HIGH"
+        | "XHIGH"
+        | "MAX"
+      )[];
       dataClasses?: ("PUBLIC" | "USER_PRIVATE" | "PORTFOLIO_SENSITIVE")[];
       timeoutMs?: number;
       maxRetries?: number;
@@ -1162,9 +1568,13 @@ export interface components {
        */
       providerId: string;
       /** @enum {string} */
-      kind: "openai-compatible";
+      kind:
+        | "openai-compatible"
+        | "openai-chat-compatible"
+        | "openai-responses"
+        | "anthropic-messages";
       displayName: string;
-      /** @example deepseek-chat */
+      /** @example gpt-5.6-sol */
       model: string;
       /** @default 0 */
       priority: number;
@@ -1189,7 +1599,16 @@ export interface components {
         | "VISION"
         | "REASONING_EFFORT"
       )[];
-      reasoningEfforts: ("LOW" | "MEDIUM" | "HIGH")[];
+      /** @description 支持内置档位与经适配器验证的供应商原生档位 */
+      reasoningEfforts: (
+        | "NONE"
+        | "MINIMAL"
+        | "LOW"
+        | "MEDIUM"
+        | "HIGH"
+        | "XHIGH"
+        | "MAX"
+      )[];
       dataClasses: ("PUBLIC" | "USER_PRIVATE" | "PORTFOLIO_SENSITIVE")[];
       /** @default 120000 */
       timeoutMs: number;
@@ -1592,6 +2011,8 @@ export interface components {
       statusVersion: number;
       /** Format: date-time */
       endedAt?: string | null;
+      errorCode?: string | null;
+      errorMessage?: string | null;
     };
     ListConversationMessagesDto: {
       conversationId: string;
@@ -2546,6 +2967,369 @@ export interface operations {
     };
   };
   ModelProviderAdminController_reload: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ResponseModel"] & {
+            data?: Record<string, never>;
+          };
+        };
+      };
+    };
+  };
+  ModelProviderConsoleController_listAdapters: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ResponseModel"] & {
+            data?: Record<string, never>;
+          };
+        };
+      };
+    };
+  };
+  ModelProviderConsoleController_listConnections: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ListModelConnectionsDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ResponseModel"] & {
+            data?: Record<string, never>;
+          };
+        };
+      };
+    };
+  };
+  ModelProviderConsoleController_createConnection: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["CreateModelConnectionDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ResponseModel"] & {
+            data?: Record<string, never>;
+          };
+        };
+      };
+    };
+  };
+  ModelProviderConsoleController_updateConnection: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["UpdateModelConnectionDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ResponseModel"] & {
+            data?: Record<string, never>;
+          };
+        };
+      };
+    };
+  };
+  ModelProviderConsoleController_testConnection: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["TestModelConnectionDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ResponseModel"] & {
+            data?: Record<string, never>;
+          };
+        };
+      };
+    };
+  };
+  ModelProviderConsoleController_connectionDeleteImpact: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ModelConnectionIdDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ResponseModel"] & {
+            data?: Record<string, never>;
+          };
+        };
+      };
+    };
+  };
+  ModelProviderConsoleController_deleteConnection: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ModelConnectionIdDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ResponseModel"] & {
+            data?: Record<string, never>;
+          };
+        };
+      };
+    };
+  };
+  ModelProviderConsoleController_listDeployments: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ListModelDeploymentsDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ResponseModel"] & {
+            data?: Record<string, never>;
+          };
+        };
+      };
+    };
+  };
+  ModelProviderConsoleController_createDeployment: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["CreateModelDeploymentDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ResponseModel"] & {
+            data?: Record<string, never>;
+          };
+        };
+      };
+    };
+  };
+  ModelProviderConsoleController_updateDeployment: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["UpdateModelDeploymentDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ResponseModel"] & {
+            data?: Record<string, never>;
+          };
+        };
+      };
+    };
+  };
+  ModelProviderConsoleController_probeDeployment: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ProbeModelDeploymentDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ResponseModel"] & {
+            data?: Record<string, never>;
+          };
+        };
+      };
+    };
+  };
+  ModelProviderConsoleController_deploymentDeleteImpact: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ModelDeploymentIdDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ResponseModel"] & {
+            data?: Record<string, never>;
+          };
+        };
+      };
+    };
+  };
+  ModelProviderConsoleController_deleteDeployment: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ModelDeploymentIdDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ResponseModel"] & {
+            data?: Record<string, never>;
+          };
+        };
+      };
+    };
+  };
+  ModelProviderConsoleController_summary: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody?: never;
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ResponseModel"] & {
+            data?: Record<string, never>;
+          };
+        };
+      };
+    };
+  };
+  ModelProviderConsoleController_publish: {
     parameters: {
       query?: never;
       header?: never;

@@ -9,6 +9,7 @@ import { AgentProvider, useAgentState, useAgentDispatch } from '../state/agent-p
 
 const mocks = vi.hoisted(() => ({
   sendMessage: vi.fn(),
+  createConversation: vi.fn(),
   cancelRun: vi.fn(),
   streamAgentRun: vi.fn(),
   getRunStatus: vi.fn(),
@@ -18,6 +19,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock('src/api/agent', () => ({
   agentApi: {
     sendMessage: mocks.sendMessage,
+    createConversation: mocks.createConversation,
     cancelRun: mocks.cancelRun,
     getRunStatus: mocks.getRunStatus,
     listMessages: mocks.listMessages,
@@ -29,6 +31,14 @@ function wrapper({ children }: { children: ReactNode }) {
   return (
     <MemoryRouter>
       <AgentProvider initialConversationId="cm_1">{children}</AgentProvider>
+    </MemoryRouter>
+  );
+}
+
+function newConversationWrapper({ children }: { children: ReactNode }) {
+  return (
+    <MemoryRouter>
+      <AgentProvider initialConversationId={null}>{children}</AgentProvider>
     </MemoryRouter>
   );
 }
@@ -210,5 +220,49 @@ describe('useAgentRun', () => {
     expect(accepted).toBe(false);
     expect(hook.result.current.commandError).toBe('会话尚未加载完成');
     expect(mocks.sendMessage).not.toHaveBeenCalled();
+  });
+
+  it('新建会话将手动模型偏好同时传给创建和首条消息', async () => {
+    mocks.createConversation.mockResolvedValue({
+      conversationId: 'cm_new',
+      status: 'ACTIVE',
+      createdAt: '2026-08-07T01:00:00.000Z',
+    });
+    mocks.sendMessage.mockResolvedValue({
+      conversationId: 'cm_new',
+      userMessageId: 'msg_user_new',
+      assistantMessageId: 'msg_assistant_new',
+      runId: 'run_new',
+      runStatus: 'QUEUED',
+      streamEndpoint: '/api/agent/runs/events',
+    });
+    const hook = renderHook(
+      () =>
+        useAgentRun(null, {
+          policy: 'MANUAL',
+          preferredModel: 'research-fast-v1',
+        }),
+      { wrapper: newConversationWrapper }
+    );
+
+    let accepted = false;
+    await act(async () => {
+      accepted = await hook.result.current.send('分析贵州茅台');
+    });
+
+    expect(accepted).toBe(true);
+    expect(mocks.createConversation).toHaveBeenCalledWith({
+      clientRequestId: expect.any(String),
+      title: '分析贵州茅台',
+      modelPolicy: 'MANUAL',
+      preferredModel: 'research-fast-v1',
+    });
+    expect(mocks.sendMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        conversationId: 'cm_new',
+        modelPolicy: 'MANUAL',
+      })
+    );
+    hook.unmount();
   });
 });
