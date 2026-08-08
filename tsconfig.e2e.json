@@ -1,14 +1,14 @@
 {
   "compilerOptions": {
     "target": "ES2020",
-    "module": "CommonJS",
-    "moduleResolution": "node",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "strict": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
-    "outDir": "./dist-e2e"
+    "noEmit": true
   },
   "include": ["e2e/**/*.ts", "playwright.config.ts"]
 }

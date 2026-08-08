@@ -1,5 +1,6 @@
 /** @vitest-environment jsdom */
 
+import type { PropsWithChildren } from 'react';
 import type { BacktestRunListItem } from 'src/api/backtest';
 
 import { screen } from '@testing-library/react';
@@ -11,6 +12,12 @@ import { renderWithProviders } from 'src/test/test-utils';
 import { DashboardRecentBacktests } from '../dashboard-recent-backtests';
 
 vi.mock('src/api/backtest', () => ({ listRuns: vi.fn() }));
+
+vi.mock('src/components/scrollbar', () => ({
+  Scrollbar: ({ children }: PropsWithChildren) => (
+    <div className="simplebar-content-wrapper">{children}</div>
+  ),
+}));
 
 const runs: BacktestRunListItem[] = Array.from({ length: 5 }, (_, index) => ({
   runId: `run-${index}`,

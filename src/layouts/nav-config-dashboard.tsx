@@ -177,11 +177,15 @@ export function createNavData(agentEnabled = CONFIG.agentEnabled, role?: UserRol
         path: '/factor/advanced-analysis',
         icon: <Iconify icon="solar:chart-bold" width={24} />,
       },
-      {
-        title: '因子管理',
-        path: '/factor/admin',
-        icon: <Iconify icon="solar:pen-bold" width={24} />,
-      },
+      ...(role === 'ADMIN' || role === 'SUPER_ADMIN'
+        ? [
+            {
+              title: '因子管理',
+              path: '/factor/admin',
+              icon: <Iconify icon="solar:pen-bold" width={24} />,
+            },
+          ]
+        : []),
     ],
   },
   {

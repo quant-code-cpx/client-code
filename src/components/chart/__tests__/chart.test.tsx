@@ -25,8 +25,10 @@ import { chartClasses } from '../classes';
 
 // ----------------------------------------------------------------------
 
+const theme = createTheme();
+
 const wrapper = ({ children }: { children: React.ReactNode }) => (
-  <ThemeProvider theme={createTheme()}>{children}</ThemeProvider>
+  <ThemeProvider theme={theme}>{children}</ThemeProvider>
 );
 
 describe('useChart', () => {
@@ -69,6 +71,16 @@ describe('useChart', () => {
     });
     // zoom 保持原默认
     expect((result.current!.chart as { zoom: { enabled: boolean } }).zoom.enabled).toBe(false);
+  });
+
+  it('稳定的输入引用复用合并后的配置', () => {
+    const updatedOptions = { chart: { toolbar: { show: true } } };
+    const { result, rerender } = renderHook(() => useChart(updatedOptions), { wrapper });
+    const firstOptions = result.current;
+
+    rerender();
+
+    expect(result.current).toBe(firstOptions);
   });
 });
 

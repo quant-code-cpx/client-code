@@ -54,6 +54,7 @@ export function NavUpgrade({ sx, ...other }: StackProps) {
       <Button
         href="https://material-ui.com/store/items/minimal-dashboard/"
         target="_blank"
+        rel="noopener noreferrer"
         variant="contained"
         color="inherit"
       >

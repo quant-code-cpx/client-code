@@ -31,11 +31,11 @@ function makeHttpError(status: number, statusText: string, data: string) {
   return { status, statusText, internal: false, data };
 }
 
-function renderWithError(error: unknown) {
+function renderWithError(error: unknown, showDetails = true) {
   mockUseRouteError.mockReturnValue(error);
   return render(
     <ThemeProvider theme={theme}>
-      <ErrorBoundary />
+      <ErrorBoundary showDetails={showDetails} />
     </ThemeProvider>
   );
 }
@@ -47,6 +47,27 @@ afterEach(() => {
 // ----------------------------------------------------------------------
 
 describe('ErrorBoundary', () => {
+  it('生产模式不泄露异常消息、堆栈或源码路径', () => {
+    const err = new Error('database password: secret-value');
+    err.stack =
+      'Error: database password: secret-value\n    at handleSignIn (/src/sections/auth/sign-in-view.tsx:42:15)';
+
+    renderWithError(err, false);
+
+    expect(screen.getByText('页面暂时无法打开')).toBeInTheDocument();
+    expect(screen.getByText('请稍后重试。')).toBeInTheDocument();
+    expect(screen.queryByText(/secret-value/)).not.toBeInTheDocument();
+    expect(document.querySelector('pre')).toBeNull();
+    expect(document.querySelector('.error-boundary-file-path')).toBeNull();
+  });
+
+  it('生产模式不渲染路由错误返回体', () => {
+    renderWithError(makeHttpError(500, 'Internal Server Error', 'internal diagnostic'), false);
+
+    expect(screen.getByText('页面暂时无法打开')).toBeInTheDocument();
+    expect(screen.queryByText('internal diagnostic')).toBeNull();
+  });
+
   describe('Route Error Response（HTTP 错误）', () => {
     it('渲染 HTTP 状态码和 statusText', () => {
       renderWithError(makeHttpError(404, 'Not Found', 'Page not found'));

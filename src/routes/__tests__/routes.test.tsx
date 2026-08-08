@@ -6,6 +6,8 @@ import { renderHook } from '@testing-library/react';
 import { AuthGuard } from 'src/routes/components';
 import { useRouter } from 'src/routes/hooks/use-router';
 
+import { CONFIG } from 'src/config-global';
+
 // Lazy components are never rendered here; mock the layouts to avoid heavy imports
 vi.mock('src/layouts/auth', () => ({
   AuthLayout: ({ children }: { children: React.ReactNode }) => <>{children}</>,
@@ -86,6 +88,85 @@ describe('路由结构 — 静态配置断言', () => {
     it('通配符 * 路由存在', () => {
       const catchAll = routesSection.find((r) => r.path === '*');
       expect(catchAll).toBeDefined();
+    });
+  });
+
+  describe('页面元数据', () => {
+    const protectedRoutes = routesSection[0].children ?? [];
+    const expectedMetadataByPath = {
+      index: {
+        title: `市场快报 - ${CONFIG.appName}`,
+        description: '量化研究平台首页仪表盘：指数行情、市场情绪、资金流向、主力动态一览',
+        keywords: '量化,A股,行情,资金流向,市场情绪,回测,仪表盘',
+      },
+      stock: { title: `股票 - ${CONFIG.appName}` },
+      'stock/detail': { title: `股票详情 - ${CONFIG.appName}` },
+      'market/overview': { title: `市场概览 - ${CONFIG.appName}` },
+      'market/news': { title: `新闻时事 - ${CONFIG.appName}` },
+      'market/money-flow': { title: `资金动态 - ${CONFIG.appName}` },
+      'market/industry-rotation': { title: `行业轮动分析 - ${CONFIG.appName}` },
+      'factor/library': { title: `因子库 - ${CONFIG.appName}` },
+      'factor/detail/:name': { title: `因子详情 - ${CONFIG.appName}` },
+      'factor/correlation': { title: `因子相关性 - ${CONFIG.appName}` },
+      'factor/screening': { title: `因子选股 - ${CONFIG.appName}` },
+      'factor/advanced-analysis': { title: `因子高级分析 - ${CONFIG.appName}` },
+      'factor/admin': { title: `因子管理 - ${CONFIG.appName}` },
+      strategy: { title: `策略管理 - ${CONFIG.appName}` },
+      'strategy/:id': { title: `策略详情 - ${CONFIG.appName}` },
+      backtest: { title: `回测工作台 - ${CONFIG.appName}` },
+      'backtest/runs': { title: `回测历史 - ${CONFIG.appName}` },
+      'backtest/runs/:runId': { title: `回测详情 - ${CONFIG.appName}` },
+      'backtest/walk-forward': { title: `Walk-Forward 验证 - ${CONFIG.appName}` },
+      'backtest/walk-forward/create': { title: `新建 WF 任务 - ${CONFIG.appName}` },
+      'backtest/walk-forward/:wfRunId': { title: `WF 任务详情 - ${CONFIG.appName}` },
+      'backtest/comparison': { title: `多策略对比历史 - ${CONFIG.appName}` },
+      'backtest/comparison/create': { title: `多策略对比 - ${CONFIG.appName}` },
+      'backtest/comparison/:groupId': { title: `策略对比详情 - ${CONFIG.appName}` },
+      'research/watchlist': { title: `自选股 - ${CONFIG.appName}` },
+      'research/notes': { title: `研究笔记 - ${CONFIG.appName}` },
+      'research/notes/:noteId': { title: `笔记详情 - ${CONFIG.appName}` },
+      'stock/subscription': { title: `条件订阅 - ${CONFIG.appName}` },
+      'stock/subscription/new': { title: `新建条件订阅 - ${CONFIG.appName}` },
+      'stock/subscription/:id/edit': { title: `编辑条件订阅 - ${CONFIG.appName}` },
+      'stock/subscription/:id': { title: `订阅详情 - ${CONFIG.appName}` },
+      portfolio: { title: `我的组合 - ${CONFIG.appName}` },
+      'portfolio/:id': { title: `组合详情 - ${CONFIG.appName}` },
+      alert: { title: `事件日历 - ${CONFIG.appName}` },
+      'alert/price-rules': { title: `价格预警 - ${CONFIG.appName}` },
+      'alert/anomalies': { title: `异动监控 - ${CONFIG.appName}` },
+      'alert/limit-list': { title: `涨跌停明细 - ${CONFIG.appName}` },
+      'strategy/signal': { title: `策略信号 - ${CONFIG.appName}` },
+      'strategy/signal/history': { title: `信号历史 - ${CONFIG.appName}` },
+      'strategy/signal/history/compare': { title: `信号历史对比 - ${CONFIG.appName}` },
+      'research/event-study': { title: `事件驱动研究 - ${CONFIG.appName}` },
+      'research/report': { title: `量化报告 - ${CONFIG.appName}` },
+      'research/report/:id': { title: `报告详情 - ${CONFIG.appName}` },
+      'stock/pattern': { title: `形态匹配 - ${CONFIG.appName}` },
+      'admin/model-providers': { title: `模型供应商 - ${CONFIG.appName}` },
+    };
+
+    it('每个原页面标题迁移到对应的 route handle', () => {
+      Object.entries(expectedMetadataByPath).forEach(([path, expected]) => {
+        const route =
+          path === 'index'
+            ? protectedRoutes.find((candidate) => candidate.index === true)
+            : protectedRoutes.find((candidate) => candidate.path === path);
+
+        expect(route?.handle, path).toMatchObject(expected);
+      });
+    });
+
+    it('登录与 404 路由保留原页面标题', () => {
+      const signInRoute = routesSection.find((route) => route.path === 'sign-in');
+      const notFoundRoutes = routesSection.filter((route) => route.path === '404' || route.path === '*');
+
+      expect(signInRoute?.handle).toMatchObject({ title: `Sign in - ${CONFIG.appName}` });
+      expect(notFoundRoutes).toHaveLength(2);
+      notFoundRoutes.forEach((route) => {
+        expect(route.handle).toMatchObject({
+          title: `404 page not found! | Error - ${CONFIG.appName}`,
+        });
+      });
     });
   });
 

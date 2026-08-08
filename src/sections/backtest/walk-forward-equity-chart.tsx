@@ -1,11 +1,11 @@
 import type { WalkForwardEquityPoint } from 'src/api/backtest';
 
-import Chart from 'react-apexcharts';
+import { useMemo } from 'react';
 
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 
-import { useChart } from 'src/components/chart';
+import { Chart, useChart } from 'src/components/chart';
 
 // ----------------------------------------------------------------------
 
@@ -14,36 +14,53 @@ type Props = {
 };
 
 export function WalkForwardEquityChart({ points }: Props) {
-  const categories = points.map((p) => p.tradeDate);
-  const navData = points.map((p) => Number(p.nav.toFixed(4)));
-  const hasBenchmark = points.some((p) => p.benchmarkNav !== null && p.benchmarkNav !== undefined);
-  const benchmarkData = points.map((p) =>
-    p.benchmarkNav !== null && p.benchmarkNav !== undefined
-      ? Number(p.benchmarkNav.toFixed(4))
-      : null
+  const { categories, navData, hasBenchmark, benchmarkData } = useMemo(
+    () => ({
+      categories: points.map((point) => point.tradeDate),
+      navData: points.map((point) => Number(point.nav.toFixed(4))),
+      hasBenchmark: points.some(
+        (point) => point.benchmarkNav !== null && point.benchmarkNav !== undefined
+      ),
+      benchmarkData: points.map((point) =>
+        point.benchmarkNav !== null && point.benchmarkNav !== undefined
+          ? Number(point.benchmarkNav.toFixed(4))
+          : null
+      ),
+    }),
+    [points]
   );
-
-  const chartOptions = useChart({
-    chart: { type: 'area', toolbar: { show: false }, zoom: { enabled: false } },
-    xaxis: {
-      categories,
-      type: 'category',
-      tickAmount: 8,
-      labels: { rotate: -30, style: { fontSize: '12px' } },
-    },
-    yaxis: {
-      labels: {
-        formatter: (val: number) => val.toFixed(2),
+  const chartOptionsInput = useMemo(
+    () => ({
+      chart: { type: 'area' as const, toolbar: { show: false }, zoom: { enabled: false } },
+      xaxis: {
+        categories,
+        type: 'category' as const,
+        tickAmount: 8,
+        labels: { rotate: -30, style: { fontSize: '12px' } },
       },
-    },
-    dataLabels: { enabled: false },
-    stroke: { width: 2, curve: 'smooth' },
-    fill: { type: 'gradient', gradient: { opacityFrom: 0.4, opacityTo: 0 } },
-    tooltip: {
-      x: { show: true },
-      y: { formatter: (val: number) => `NAV ${val.toFixed(4)}` },
-    },
-  });
+      yaxis: {
+        labels: {
+          formatter: (val: number) => val.toFixed(2),
+        },
+      },
+      dataLabels: { enabled: false },
+      stroke: { width: 2, curve: 'smooth' as const },
+      fill: { type: 'gradient' as const, gradient: { opacityFrom: 0.4, opacityTo: 0 } },
+      tooltip: {
+        x: { show: true },
+        y: { formatter: (val: number) => `NAV ${val.toFixed(4)}` },
+      },
+    }),
+    [categories]
+  );
+  const chartOptions = useChart(chartOptionsInput);
+  const chartSeries = useMemo(
+    () => [
+      { name: 'OOS 净值', data: navData },
+      ...(hasBenchmark ? [{ name: '基准净值', data: benchmarkData }] : []),
+    ],
+    [benchmarkData, hasBenchmark, navData]
+  );
 
   if (points.length === 0) {
     return (
@@ -58,12 +75,9 @@ export function WalkForwardEquityChart({ points }: Props) {
   return (
     <Chart
       type="area"
-      series={[
-        { name: 'OOS 净值', data: navData },
-        ...(hasBenchmark ? [{ name: '基准净值', data: benchmarkData }] : []),
-      ]}
+      series={chartSeries}
       options={chartOptions}
-      height={280}
+      sx={{ height: 280 }}
     />
   );
 }

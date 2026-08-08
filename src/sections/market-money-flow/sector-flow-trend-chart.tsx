@@ -7,6 +7,7 @@ import Card from '@mui/material/Card';
 import Alert from '@mui/material/Alert';
 import Collapse from '@mui/material/Collapse';
 import Skeleton from '@mui/material/Skeleton';
+import { useTheme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 
@@ -34,6 +35,7 @@ type Props = {
 };
 
 export function SectorFlowTrendChart({ tsCode, sectorName, contentType, days = 20, open }: Props) {
+  const theme = useTheme();
   const [data, setData] = useState<SectorFlowTrendItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -74,8 +76,8 @@ export function SectorFlowTrendChart({ tsCode, sectorName, contentType, days = 2
         borderRadius: 2,
         colors: {
           ranges: [
-            { from: -9999999, to: 0, color: '#00B746' },
-            { from: 0, to: 9999999, color: '#FF4560' },
+            { from: -9999999, to: 0, color: theme.palette.success.main },
+            { from: 0, to: 9999999, color: theme.palette.error.main },
           ],
         },
       },

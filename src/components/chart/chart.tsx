@@ -2,7 +2,7 @@ import type ApexCharts from 'apexcharts';
 
 import { useIsClient } from 'minimal-shared/hooks';
 import { mergeClasses } from 'minimal-shared/utils';
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useMemo, useState, useEffect } from 'react';
 
 import { styled } from '@mui/material/styles';
 
@@ -224,24 +224,16 @@ export function Chart({ type, series, options, slotProps, className, sx, ...othe
   const containerRef = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<ApexCharts | null>(null);
   const frameRef = useRef<number | null>(null);
-  const configRef = useRef({
-    options: sanitizeApexValue(options ?? {}),
-    series: sanitizeApexValue(series ?? []),
-    type,
-  });
   const [isReady, setIsReady] = useState(false);
 
   const renderFallback = () => <ChartLoading type={type} sx={slotProps?.loading} />;
 
-  const safeOptions = sanitizeApexValue(options ?? {});
-  const safeSeries = sanitizeApexValue(series ?? []);
-  const renderSignature = stableSerialize({ type, options: safeOptions, series: safeSeries });
-
-  configRef.current = {
-    options: safeOptions,
-    series: safeSeries,
-    type,
-  };
+  // Most callers keep chart inputs referentially stable. Memoizing the signature
+  // avoids walking a large data series when an unrelated parent state changes.
+  const renderSignature = useMemo(
+    () => stableSerialize({ type, options: options ?? {}, series: series ?? [] }),
+    [type, options, series]
+  );
 
   useEffect(() => {
     const containerEl = containerRef.current;
@@ -252,6 +244,13 @@ export function Chart({ type, series, options, slotProps, className, sx, ...othe
 
     let isDisposed = false;
     let instance: ApexCharts | null = null;
+    // Clone only when the semantic chart configuration changes, rather than on
+    // every parent render. renderSignature intentionally captures all inputs.
+    const config = {
+      options: sanitizeApexValue(options ?? {}),
+      series: sanitizeApexValue(series ?? []),
+      type,
+    };
 
     setIsReady(false);
 
@@ -280,8 +279,6 @@ export function Chart({ type, series, options, slotProps, className, sx, ...othe
         if (isDisposed || !containerEl) {
           return;
         }
-
-        const config = configRef.current;
 
         // Pre-destroy any chart with the same ID still registered in ApexCharts'
         // global instance registry.
@@ -369,6 +366,9 @@ export function Chart({ type, series, options, slotProps, className, sx, ...othe
 
       containerEl.innerHTML = '';
     };
+    // renderSignature covers type/options/series while avoiding remounts for
+    // referentially-new but semantically-identical configuration objects.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isClient, renderSignature]);
 
   return (

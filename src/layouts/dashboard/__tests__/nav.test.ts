@@ -27,3 +27,17 @@ describe('因子库导航激活状态', () => {
     expect(isNavPathActive('/factor/correlation', factorLibrary, factorMarket.path)).toBe(false);
   });
 });
+
+describe('因子管理导航权限', () => {
+  it('仅向管理员及以上角色展示因子管理入口', () => {
+    const getFactorAdminItem = (role?: 'USER' | 'ADMIN' | 'SUPER_ADMIN') =>
+      createNavData(false, role)
+        .find((item) => item.path === '/factor')
+        ?.children?.find((item) => item.path === '/factor/admin');
+
+    expect(getFactorAdminItem()).toBeUndefined();
+    expect(getFactorAdminItem('USER')).toBeUndefined();
+    expect(getFactorAdminItem('ADMIN')).toBeDefined();
+    expect(getFactorAdminItem('SUPER_ADMIN')).toBeDefined();
+  });
+});

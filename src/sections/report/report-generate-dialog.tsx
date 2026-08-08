@@ -222,7 +222,7 @@ export function ReportGenerateDialog({
                     </Typography>
                     <Typography
                       variant="caption"
-                      sx={{ color: 'text.secondary', display: 'block', fontSize: 11 }}
+                      sx={{ color: 'text.secondary', display: 'block', fontSize: 12 }}
                     >
                       {opt.description}
                     </Typography>

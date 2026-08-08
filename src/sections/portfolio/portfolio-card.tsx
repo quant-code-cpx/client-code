@@ -15,6 +15,9 @@ import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import CardActions from '@mui/material/CardActions';
 import CardContent from '@mui/material/CardContent';
+import CardActionArea from '@mui/material/CardActionArea';
+
+import { RouterLink } from 'src/routes/components';
 
 import {
   fSignedRatio,
@@ -32,7 +35,6 @@ import { Iconify } from 'src/components/iconify';
 
 interface PortfolioCardProps {
   portfolio: PortfolioListItem;
-  onView: (id: string) => void;
   onEdit: (portfolio: PortfolioListItem) => void;
   onDelete: (portfolio: PortfolioListItem) => void;
 }
@@ -84,6 +86,7 @@ function MiniSparkline({ points, color }: { points?: PortfolioSparklinePoint[]; 
   return (
     <Box
       component="svg"
+      aria-hidden="true"
       viewBox="0 0 100 40"
       preserveAspectRatio="none"
       sx={{ width: 1, height: 44, color }}
@@ -93,7 +96,7 @@ function MiniSparkline({ points, color }: { points?: PortfolioSparklinePoint[]; 
   );
 }
 
-export function PortfolioCard({ portfolio, onView, onEdit, onDelete }: PortfolioCardProps) {
+export function PortfolioCard({ portfolio, onEdit, onDelete }: PortfolioCardProps) {
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
   const kind = portfolio.kind ?? 'PAPER';
   const isArchived = Boolean(portfolio.isArchived);
@@ -109,6 +112,7 @@ export function PortfolioCard({ portfolio, onView, onEdit, onDelete }: Portfolio
   const updatedAt = portfolio.lastUpdated ?? portfolio.updatedAt ?? portfolio.createdAt;
   const totalMarketValue = portfolio.totalMarketValue ?? portfolio.initialCash;
   const cumulativeReturn = portfolio.cumulativeReturn ?? null;
+  const portfolioPath = `/portfolio/${portfolio.id}`;
 
   const handleMenuOpen = (event: MouseEvent<HTMLElement>) => {
     setMenuAnchor(event.currentTarget);
@@ -125,127 +129,133 @@ export function PortfolioCard({ portfolio, onView, onEdit, onDelete }: Portfolio
         display: 'flex',
         borderLeft: 2,
         overflow: 'hidden',
-        cursor: 'pointer',
         flexDirection: 'column',
         borderLeftColor: accentColor,
         opacity: isArchived ? 0.68 : 1,
         transition: (theme) => theme.transitions.create(['box-shadow', 'transform']),
-        '&:hover': { boxShadow: 8, transform: 'translateY(-2px)' },
+        '&:hover, &:focus-within': { boxShadow: 8, transform: 'translateY(-2px)' },
+        '& .portfolio-card-main-link:focus-visible': (theme) => ({
+          outline: `2px solid ${theme.palette.primary.main}`,
+          outlineOffset: -2,
+        }),
       }}
-      onClick={() => onView(portfolio.id)}
     >
-      <CardContent sx={{ flexGrow: 1, pb: 1 }}>
-        <Stack direction="row" alignItems="flex-start" justifyContent="space-between" spacing={1}>
-          <Box sx={{ minWidth: 0 }}>
-            <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.5 }}>
+      <Box sx={{ display: 'flex', flex: 1, alignItems: 'stretch' }}>
+        <CardActionArea
+          className="portfolio-card-main-link"
+          component={RouterLink}
+          href={portfolioPath}
+          aria-label={`查看投资组合 ${portfolio.name} 的详情`}
+          sx={{ display: 'flex', flex: 1, alignItems: 'stretch', textAlign: 'left' }}
+        >
+          <CardContent sx={{ flex: 1, pb: 1 }}>
+            <Stack direction="row" alignItems="flex-start" spacing={1}>
+              <Box sx={{ minWidth: 0 }}>
+                <Stack direction="row" alignItems="center" spacing={1} sx={{ mb: 0.5 }}>
+                  <Typography
+                    variant="subtitle1"
+                    sx={{
+                      minWidth: 0,
+                      overflow: 'hidden',
+                      display: '-webkit-box',
+                      WebkitLineClamp: 1,
+                      WebkitBoxOrient: 'vertical',
+                    }}
+                  >
+                    {portfolio.name}
+                  </Typography>
+                  <Label color={kind === 'LIVE' ? 'primary' : 'secondary'} variant="soft">
+                    {kind === 'LIVE' ? '实盘' : '模拟'}
+                  </Label>
+                </Stack>
+                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                  {isArchived ? '已归档' : `${fPortfolioUpdatedAt(updatedAt)} 更新`}
+                </Typography>
+              </Box>
+            </Stack>
+
+            {portfolio.description && (
               <Typography
-                variant="subtitle1"
+                variant="body2"
+                color="text.secondary"
                 sx={{
-                  minWidth: 0,
+                  mt: 1.5,
                   overflow: 'hidden',
                   display: '-webkit-box',
-                  WebkitLineClamp: 1,
+                  WebkitLineClamp: 2,
                   WebkitBoxOrient: 'vertical',
                 }}
               >
-                {portfolio.name}
+                {portfolio.description}
               </Typography>
-              <Label color={kind === 'LIVE' ? 'primary' : 'secondary'} variant="soft">
-                {kind === 'LIVE' ? '实盘' : '模拟'}
-              </Label>
+            )}
+
+            <Stack spacing={2} sx={{ mt: 2 }}>
+              <Box>
+                <Typography variant="h4" sx={{ color: valueTone, fontWeight: 700 }}>
+                  {fSignedCurrency(todayPnl, pnlFallback)}
+                </Typography>
+                <Stack direction="row" spacing={1.5} sx={{ mt: 0.5 }}>
+                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                    今日盈亏
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: valueTone, fontWeight: 600 }}>
+                    {fSignedRatio(todayPnlPct, pnlFallback)}
+                  </Typography>
+                </Stack>
+              </Box>
+
+              <Stack direction="row" spacing={2} sx={{ flexWrap: 'wrap', rowGap: 1 }}>
+                <Box>
+                  <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary' }}>
+                    总市值
+                  </Typography>
+                  <Typography variant="body2" fontWeight={600}>
+                    {fNullableCurrency(totalMarketValue)}
+                  </Typography>
+                </Box>
+                <Box>
+                  <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary' }}>
+                    累计收益
+                  </Typography>
+                  <Typography
+                    variant="body2"
+                    fontWeight={600}
+                    sx={{ color: getPortfolioValueTone(cumulativeReturn) }}
+                  >
+                    {fNullableRatio(cumulativeReturn)}
+                  </Typography>
+                </Box>
+                <Box>
+                  <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary' }}>
+                    持仓
+                  </Typography>
+                  <Typography variant="body2" fontWeight={600}>
+                    {portfolio.holdingCount} 只
+                  </Typography>
+                </Box>
+              </Stack>
+
+              <MiniSparkline points={portfolio.sparkline} color={valueTone} />
             </Stack>
-            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-              {isArchived ? '已归档' : `${fPortfolioUpdatedAt(updatedAt)} 更新`}
-            </Typography>
-          </Box>
+          </CardContent>
+        </CardActionArea>
+
+        <Box sx={{ pt: 1, pr: 1 }}>
           <Tooltip title="更多操作">
             <IconButton
               size="small"
               aria-label="更多操作"
-              onClick={(event) => {
-                event.stopPropagation();
-                handleMenuOpen(event);
-              }}
+              onClick={handleMenuOpen}
             >
               <Iconify icon="solar:menu-dots-bold" width={20} />
             </IconButton>
           </Tooltip>
-        </Stack>
-
-        {portfolio.description && (
-          <Typography
-            variant="body2"
-            color="text.secondary"
-            sx={{
-              mt: 1.5,
-              overflow: 'hidden',
-              display: '-webkit-box',
-              WebkitLineClamp: 2,
-              WebkitBoxOrient: 'vertical',
-            }}
-          >
-            {portfolio.description}
-          </Typography>
-        )}
-
-        <Stack spacing={2} sx={{ mt: 2 }}>
-          <Box>
-            <Typography variant="h4" sx={{ color: valueTone, fontWeight: 700 }}>
-              {fSignedCurrency(todayPnl, pnlFallback)}
-            </Typography>
-            <Stack direction="row" spacing={1.5} sx={{ mt: 0.5 }}>
-              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                今日盈亏
-              </Typography>
-              <Typography variant="caption" sx={{ color: valueTone, fontWeight: 600 }}>
-                {fSignedRatio(todayPnlPct, pnlFallback)}
-              </Typography>
-            </Stack>
-          </Box>
-
-          <Stack direction="row" spacing={2} sx={{ flexWrap: 'wrap', rowGap: 1 }}>
-            <Box>
-              <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary' }}>
-                总市值
-              </Typography>
-              <Typography variant="body2" fontWeight={600}>
-                {fNullableCurrency(totalMarketValue)}
-              </Typography>
-            </Box>
-            <Box>
-              <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary' }}>
-                累计收益
-              </Typography>
-              <Typography
-                variant="body2"
-                fontWeight={600}
-                sx={{ color: getPortfolioValueTone(cumulativeReturn) }}
-              >
-                {fNullableRatio(cumulativeReturn)}
-              </Typography>
-            </Box>
-            <Box>
-              <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary' }}>
-                持仓
-              </Typography>
-              <Typography variant="body2" fontWeight={600}>
-                {portfolio.holdingCount} 只
-              </Typography>
-            </Box>
-          </Stack>
-
-          <MiniSparkline points={portfolio.sparkline} color={valueTone} />
-        </Stack>
-      </CardContent>
+        </Box>
+      </Box>
 
       <CardActions sx={{ pt: 0, justifyContent: 'space-between' }}>
-        <Button
-          size="small"
-          onClick={(event) => {
-            event.stopPropagation();
-            onView(portfolio.id);
-          }}
-        >
+        <Button component={RouterLink} href={portfolioPath} size="small">
           查看详情
         </Button>
         <Typography variant="caption" sx={{ color: 'text.secondary', pr: 1 }}>
@@ -261,8 +271,7 @@ export function PortfolioCard({ portfolio, onView, onEdit, onDelete }: Portfolio
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
         <MenuItem
-          onClick={(e) => {
-            e.stopPropagation();
+          onClick={() => {
             handleMenuClose();
             onEdit(portfolio);
           }}
@@ -280,8 +289,7 @@ export function PortfolioCard({ portfolio, onView, onEdit, onDelete }: Portfolio
         </MenuItem>
         <Divider />
         <MenuItem
-          onClick={(e) => {
-            e.stopPropagation();
+          onClick={() => {
             handleMenuClose();
             onDelete(portfolio);
           }}

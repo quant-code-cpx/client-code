@@ -228,7 +228,7 @@ function StrategyTableRow({ strategy, onView, onClone, onDelete }: StrategyTable
       </TableCell>
       <TableCell>
         {strategy.hasActiveSignal === true ? (
-          <Label color="success" variant="soft" sx={{ fontSize: 11 }}>
+          <Label color="success" variant="soft" sx={{ fontSize: 12 }}>
             ACTIVE
           </Label>
         ) : (

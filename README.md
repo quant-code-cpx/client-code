@@ -8,14 +8,17 @@
 ## 快速开始
 
 ```bash
+# 首次使用时启用 package.json 指定的 Yarn 版本
+corepack enable
+
 # 安装依赖
-pnpm install
+yarn install --frozen-lockfile
 
 # 启动开发服务器
-pnpm dev
+yarn dev
 
 # 构建生产包
-pnpm build
+yarn build
 ```
 
 浏览器打开 `http://localhost:3039`

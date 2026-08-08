@@ -8,6 +8,7 @@ import Button from '@mui/material/Button';
 import Tooltip from '@mui/material/Tooltip';
 import Skeleton from '@mui/material/Skeleton';
 import TextField from '@mui/material/TextField';
+import ButtonBase from '@mui/material/ButtonBase';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import InputAdornment from '@mui/material/InputAdornment';
@@ -18,6 +19,13 @@ import { authApi } from 'src/api';
 import { useAuth } from 'src/auth';
 
 import { Iconify } from 'src/components/iconify';
+
+// ----------------------------------------------------------------------
+
+function toCaptchaImageSource(svgImage: string): string {
+  // SVG 以图片文档加载时不会执行其中的脚本或事件处理器；不要把服务端字符串插入 DOM。
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgImage)}`;
+}
 
 // ----------------------------------------------------------------------
 
@@ -127,9 +135,12 @@ export function SignInView() {
         slotProps={{ inputLabel: { shrink: true } }}
       />
 
-      <Box
+      <ButtonBase
+        type="button"
         onClick={() => fetchCaptcha()}
+        aria-label="刷新验证码"
         title="点击刷新验证码"
+        disabled={captchaLoading}
         sx={{
           position: 'relative',
           width: 120,
@@ -143,6 +154,11 @@ export function SignInView() {
           bgcolor: 'background.paper',
           transition: 'opacity 0.2s',
           '&:hover': { opacity: 0.75 },
+          '&:focus-visible': {
+            outline: '2px solid',
+            outlineColor: 'primary.main',
+            outlineOffset: 2,
+          },
         }}
       >
         {captchaLoading || !captcha ? (
@@ -150,21 +166,16 @@ export function SignInView() {
         ) : (
           <>
             <Box
-              component="span"
-              dangerouslySetInnerHTML={{
-                __html: captcha.svgImage
-                  // 将 SVG 固定的 width/height 属性替换为 100% 以撑满容器
-                  .replace(/(<svg\b[^>]*?)\s+width="[^"]*"/i, '$1')
-                  .replace(/(<svg\b[^>]*?)\s+height="[^"]*"/i, '$1 width="100%" height="100%"')
-                  // 强制 SVG 填满容器，不留透明空白（覆盖默认 meet 行为）
-                  .replace(/(<svg\b[^>]*?)\s+preserveAspectRatio="[^"]*"/i, '$1')
-                  .replace(/<svg\b/i, '<svg preserveAspectRatio="xMidYMid slice"'),
-              }}
+              component="img"
+              src={toCaptchaImageSource(captcha.svgImage)}
+              alt="验证码图片"
               sx={{
                 position: 'absolute',
                 inset: 0,
+                width: '100%',
+                height: '100%',
                 display: 'block',
-                '& svg': { width: '100%', height: '100%', display: 'block' },
+                objectFit: 'cover',
               }}
             />
             {captchaExpired && (
@@ -188,7 +199,7 @@ export function SignInView() {
             )}
           </>
         )}
-      </Box>
+      </ButtonBase>
     </Box>
   );
 

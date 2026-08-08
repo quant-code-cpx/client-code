@@ -64,8 +64,9 @@ export function MarketOverviewView() {
   const [apiFetchDate, setApiFetchDate] = useState<string | undefined>(undefined);
   const [refreshKey, setRefreshKey] = useState(0);
   // Shared HSGT history — fetched once here, passed to Hero + HsgtMiniCard.
-  // null = initial/error (child will fall back to its own fetch); [] or items = fetched.
-  const [hsgtHistory, setHsgtHistory] = useState<HsgtTrendItem[] | null>(null);
+  const [hsgtHistory, setHsgtHistory] = useState<HsgtTrendItem[]>([]);
+  const [hsgtLoading, setHsgtLoading] = useState(true);
+  const [hsgtError, setHsgtError] = useState('');
 
   const handleRefresh = useCallback(() => setRefreshKey((k) => k + 1), []);
 
@@ -80,13 +81,20 @@ export function MarketOverviewView() {
   // displayDate — so Hero's onTradeDateResolved callback does NOT trigger a refetch.
   useEffect(() => {
     let cancelled = false;
-    setHsgtHistory(null); // reset so children fall back to their own fetch until resolved
+    setHsgtLoading(true);
+    setHsgtError('');
     fetchHsgtFlow({ trade_date: apiFetchDate, days: 10 })
       .then((res) => {
         if (!cancelled) setHsgtHistory(res?.history ?? []);
       })
-      .catch(() => {
-        if (!cancelled) setHsgtHistory(null); // stay null on error — children fetch themselves
+      .catch((err: unknown) => {
+        if (!cancelled) {
+          setHsgtHistory([]);
+          setHsgtError(err instanceof Error ? err.message : '加载沪深港通数据失败');
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setHsgtLoading(false);
       });
     return () => {
       cancelled = true;
@@ -170,12 +178,7 @@ export function MarketOverviewView() {
           <MarketSectorPanel refreshKey={refreshKey} tradeDate={apiFetchDate} />
         </Grid>
         <Grid size={{ xs: 12, md: 5 }}>
-          {/* history prop avoids duplicate fetchHsgtFlow */}
-          <MarketHsgtMiniCard
-            refreshKey={refreshKey}
-            tradeDate={apiFetchDate}
-            history={hsgtHistory}
-          />
+          <MarketHsgtMiniCard history={hsgtHistory} loading={hsgtLoading} error={hsgtError} />
         </Grid>
       </Grid>
 

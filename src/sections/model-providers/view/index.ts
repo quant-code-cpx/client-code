@@ -1,2 +1,1 @@
-export { ModelProvidersView } from './model-providers-view';
-
+export { ModelProvidersView, ModelProvidersPageView } from './model-providers-view';

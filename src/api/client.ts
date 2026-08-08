@@ -8,19 +8,23 @@ const API_BASE_URL =
   (import.meta.env.VITE_API_URL as string | undefined) ??
   (import.meta.env.VITE_API_BASE_URL as string | undefined) ??
   '';
+const DEFAULT_REQUEST_TIMEOUT_MS = 30_000;
 
 // ---------- Token 存储（内存，非 localStorage） ----------
 
 let accessToken: string | null = null;
 let sessionExpired = false;
+let tokenEpoch = 0;
 
 export const tokenStorage = {
   get: (): string | null => accessToken,
   set: (token: string): void => {
+    tokenEpoch += 1;
     accessToken = token;
     sessionExpired = false;
   },
   clear: (): void => {
+    tokenEpoch += 1;
     accessToken = null;
   },
 };
@@ -83,6 +87,51 @@ export class ApiError extends Error {
   }
 }
 
+export type ApiRequestOptions = {
+  retryOnUnauthorized?: boolean;
+  timeoutMs?: number;
+};
+
+class TokenStateChangedError extends Error {
+  constructor() {
+    super('Token state changed while refreshing');
+    this.name = 'TokenStateChangedError';
+  }
+}
+
+type TimeoutSignal = {
+  signal: AbortSignal | undefined;
+  didTimeout: () => boolean;
+  cleanup: () => void;
+};
+
+function createTimeoutSignal(signal: AbortSignal | undefined, timeoutMs: number | undefined): TimeoutSignal {
+  if (!timeoutMs || timeoutMs <= 0) {
+    return { signal, didTimeout: () => false, cleanup: () => {} };
+  }
+
+  const controller = new AbortController();
+  let timedOut = false;
+  const abortFromParent = () => controller.abort();
+
+  if (signal?.aborted) controller.abort();
+  else signal?.addEventListener('abort', abortFromParent, { once: true });
+
+  const timer = setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, timeoutMs);
+
+  return {
+    signal: controller.signal,
+    didTimeout: () => timedOut,
+    cleanup: () => {
+      clearTimeout(timer);
+      signal?.removeEventListener('abort', abortFromParent);
+    },
+  };
+}
+
 function resolveApiInput(input: RequestInfo | URL): RequestInfo | URL {
   if (typeof input !== 'string') return input;
   if (/^[a-z][a-z\d+.-]*:/i.test(input)) return input;
@@ -103,22 +152,31 @@ async function refreshAccessToken(): Promise<string> {
   if (refreshPromise) return refreshPromise;
 
   refreshPromise = (async () => {
-    const response = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
-      method: 'POST',
-      credentials: 'include',
-    });
+    const refreshStartEpoch = tokenEpoch;
+    const timeout = createTimeoutSignal(undefined, 10_000);
 
-    if (!response.ok) throw new Error('Refresh failed');
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
+        method: 'POST',
+        credentials: 'include',
+        signal: timeout.signal,
+      });
 
-    const json = (await response.json()) as ApiWrapper<{ accessToken: string }> & {
-      accessToken?: string;
-    };
-    const token = json.data?.accessToken ?? json.accessToken;
-    if (!token) throw new Error('Refresh response missing access token');
+      if (!response.ok) throw new Error('Refresh failed');
 
-    tokenStorage.set(token);
-    authCallbacks.onTokenRefreshed?.(token);
-    return token;
+      const json = (await response.json()) as ApiWrapper<{ accessToken: string }> & {
+        accessToken?: string;
+      };
+      const token = json.data?.accessToken ?? json.accessToken;
+      if (!token) throw new Error('Refresh response missing access token');
+      if (tokenEpoch !== refreshStartEpoch) throw new TokenStateChangedError();
+
+      tokenStorage.set(token);
+      authCallbacks.onTokenRefreshed?.(token);
+      return token;
+    } finally {
+      timeout.cleanup();
+    }
   })().finally(() => {
     refreshPromise = null;
   });
@@ -132,7 +190,7 @@ function expireSession(): void {
   // 刷新失败只结束当前页面的内存会话。这里不能调用 logout：多个标签共享
   // HttpOnly Refresh Cookie，一个陈旧标签的失败不应撤销其他标签刚轮换成功的 Token。
   // 服务端撤销只属于用户明确执行的 signOut。
-  accessToken = null;
+  tokenStorage.clear();
   authCallbacks.onUnauthorized?.();
 }
 
@@ -163,17 +221,26 @@ export async function authenticatedFetch(
   if (response.status !== 401 || options.retryOnUnauthorized === false) return response;
   void response.body?.cancel().catch(() => {});
 
-  let refreshedToken: string;
+  let refreshedToken: string | null;
   const currentToken = tokenStorage.get();
-  if (currentToken && currentToken !== requestToken) {
+  if (currentToken !== requestToken) {
     refreshedToken = currentToken;
   } else {
     try {
       refreshedToken = await refreshAccessToken();
-    } catch {
-      expireSession();
-      throw new Error('登录已过期，请重新登录');
+    } catch (error) {
+      if (error instanceof TokenStateChangedError) {
+        refreshedToken = tokenStorage.get();
+      } else {
+        expireSession();
+        throw new Error('登录已过期，请重新登录');
+      }
     }
+  }
+
+  // 用户已在请求期间主动登出时，不得把旧请求的 401 转换为刷新会话。
+  if (!refreshedToken) {
+    return response;
   }
 
   const retryResponse = await fetch(replayableInput(), {
@@ -224,11 +291,33 @@ async function parseResponse<T>(response: Response): Promise<T> {
   return json as T;
 }
 
-async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
+async function request<T>(
+  url: string,
+  options: RequestInit = {},
+  requestOptions: ApiRequestOptions = {}
+): Promise<T> {
   const headers = new Headers(options.headers);
   headers.set('Content-Type', 'application/json');
+  const timeout = createTimeoutSignal(
+    options.signal ?? undefined,
+    requestOptions.timeoutMs ?? DEFAULT_REQUEST_TIMEOUT_MS
+  );
 
-  const response = await authenticatedFetch(url, { ...options, headers });
+  let response: Response;
+  try {
+    response = await authenticatedFetch(
+      url,
+      { ...options, headers, signal: timeout.signal },
+      { retryOnUnauthorized: requestOptions.retryOnUnauthorized }
+    );
+  } catch (error) {
+    if (timeout.didTimeout()) {
+      throw new ApiError('请求超时，请稍后重试', { status: 408, code: 'REQUEST_TIMEOUT' });
+    }
+    throw error;
+  } finally {
+    timeout.cleanup();
+  }
 
   if (!response.ok) {
     const errorBody = await response.json().catch(() => ({}));
@@ -241,30 +330,57 @@ async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
 // ---------- 对外暴露的 API 方法 ----------
 
 export const apiClient = {
-  post: <T>(url: string, body?: unknown, signal?: AbortSignal): Promise<T> =>
-    request<T>(url, {
-      method: 'POST',
-      body: body !== undefined ? JSON.stringify(body) : undefined,
-      signal,
-    }),
+  post: <T>(
+    url: string,
+    body?: unknown,
+    signal?: AbortSignal,
+    requestOptions?: ApiRequestOptions
+  ): Promise<T> =>
+    request<T>(
+      url,
+      {
+        method: 'POST',
+        body: body !== undefined ? JSON.stringify(body) : undefined,
+        signal,
+      },
+      requestOptions
+    ),
 
-  get: <T>(url: string, signal?: AbortSignal): Promise<T> =>
-    request<T>(url, { method: 'GET', signal }),
+  get: <T>(url: string, signal?: AbortSignal, requestOptions?: ApiRequestOptions): Promise<T> =>
+    request<T>(url, { method: 'GET', signal }, requestOptions),
 
-  put: <T>(url: string, body?: unknown, signal?: AbortSignal): Promise<T> =>
-    request<T>(url, {
-      method: 'PUT',
-      body: body !== undefined ? JSON.stringify(body) : undefined,
-      signal,
-    }),
+  put: <T>(
+    url: string,
+    body?: unknown,
+    signal?: AbortSignal,
+    requestOptions?: ApiRequestOptions
+  ): Promise<T> =>
+    request<T>(
+      url,
+      {
+        method: 'PUT',
+        body: body !== undefined ? JSON.stringify(body) : undefined,
+        signal,
+      },
+      requestOptions
+    ),
 
-  patch: <T>(url: string, body?: unknown, signal?: AbortSignal): Promise<T> =>
-    request<T>(url, {
-      method: 'PATCH',
-      body: body !== undefined ? JSON.stringify(body) : undefined,
-      signal,
-    }),
+  patch: <T>(
+    url: string,
+    body?: unknown,
+    signal?: AbortSignal,
+    requestOptions?: ApiRequestOptions
+  ): Promise<T> =>
+    request<T>(
+      url,
+      {
+        method: 'PATCH',
+        body: body !== undefined ? JSON.stringify(body) : undefined,
+        signal,
+      },
+      requestOptions
+    ),
 
-  delete: <T>(url: string, signal?: AbortSignal): Promise<T> =>
-    request<T>(url, { method: 'DELETE', signal }),
+  delete: <T>(url: string, signal?: AbortSignal, requestOptions?: ApiRequestOptions): Promise<T> =>
+    request<T>(url, { method: 'DELETE', signal }, requestOptions),
 };

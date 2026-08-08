@@ -235,8 +235,9 @@ test('新建会话、发送并看到流式回答', async ({ page }) => {
   await page.getByRole('button', { name: '发送问题' }).click();
 
   await expect(page).toHaveURL(new RegExp(`/agent/${CONVERSATION_ID}$`));
-  await expect(page.getByText(ANSWER)).toBeVisible();
-  await expect(page.getByLabel('Agent 回答').getByText('已完成')).toBeVisible();
+  const answer = page.getByLabel('Agent 回答');
+  await expect(answer.getByText(ANSWER)).toBeVisible();
+  await expect(answer).not.toContainText('生成中');
 });
 
 test('显式停止进入取消中并禁用重复操作', async ({ page }) => {
@@ -249,6 +250,6 @@ test('显式停止进入取消中并禁用重复操作', async ({ page }) => {
   await expect(stop).toBeVisible();
   await stop.click();
 
-  await expect(page.getByRole('status')).toContainText('正在停止');
+  await expect(page.getByRole('status').filter({ hasText: '正在停止' })).toContainText('正在停止');
   await expect(stop).toBeDisabled();
 });

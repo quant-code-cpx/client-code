@@ -243,14 +243,19 @@ function NavSparkline({
             <Chip
               size="small"
               label="策略"
-              sx={{ height: 18, fontSize: 11, bgcolor: color, color: '#fff' }}
+              sx={{
+                height: 20,
+                fontSize: 12,
+                bgcolor: color ?? 'text.primary',
+                color: 'common.white',
+              }}
             />
           </Tooltip>
           <Tooltip title="基准 NAV 曲线（虚线）" placement="top">
             <Chip
               size="small"
               label={`基准 ${Number(baselineChange) > 0 ? '+' : ''}${baselineChange}%`}
-              sx={{ height: 18, fontSize: 11 }}
+              sx={{ height: 20, fontSize: 12 }}
               variant="outlined"
             />
           </Tooltip>

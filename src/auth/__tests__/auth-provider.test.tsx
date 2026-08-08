@@ -3,6 +3,8 @@ import type { ReactNode } from 'react';
 import { StrictMode } from 'react';
 import { act, render, screen, waitFor } from '@testing-library/react';
 
+import { readResearchNoteDraft, writeResearchNoteDraft } from 'src/utils/research-note-draft-storage';
+
 import { useAuth } from 'src/auth';
 
 import { AuthProvider } from '../provider';
@@ -115,6 +117,9 @@ describe('AuthProvider — initialization', () => {
     expect(screen.getByTestId('authenticated').textContent).toBe('true');
     expect(screen.getByTestId('profile').textContent).toBe('testuser');
     expect(vi.mocked(tokenStorage.set)).toHaveBeenCalledWith('fresh-token');
+    expect(vi.mocked(tokenStorage.set).mock.invocationCallOrder[0]).toBeLessThan(
+      vi.mocked(userManageApi.getProfile).mock.invocationCallOrder[0]
+    );
     expect(mockRefreshSocketAuth).toHaveBeenCalledTimes(1);
   });
 
@@ -183,6 +188,15 @@ describe('AuthProvider — initialization', () => {
 // ----------------------------------------------------------------------
 
 describe('AuthProvider — signIn / signOut', () => {
+  beforeEach(() => {
+    vi.mocked(authApi.refresh).mockReset();
+    vi.mocked(authApi.logout).mockReset();
+    vi.mocked(userManageApi.getProfile).mockReset();
+    vi.mocked(tokenStorage.get).mockReturnValue(null);
+    vi.mocked(tokenStorage.set).mockReset();
+    vi.mocked(tokenStorage.clear).mockReset();
+  });
+
   function SignInConsumer() {
     const { isAuthenticated, signIn, signOut } = useAuth();
     return (
@@ -215,6 +229,52 @@ describe('AuthProvider — signIn / signOut', () => {
     expect(vi.mocked(tokenStorage.set)).toHaveBeenCalledWith('manual-token');
     expect(mockRefreshSocketAuth).toHaveBeenCalledTimes(1);
     expect(screen.getByTestId('authenticated').textContent).toBe('true');
+  });
+
+  it('[RACE] a late startup refresh cannot overwrite an explicit sign-in', async () => {
+    let resolveRefresh: ((value: { accessToken: string }) => void) | undefined;
+    vi.mocked(authApi.refresh).mockReturnValue(
+      new Promise((resolve) => {
+        resolveRefresh = resolve;
+      })
+    );
+    vi.mocked(userManageApi.getProfile).mockResolvedValue(mockProfile);
+
+    render(<SignInConsumer />, { wrapper });
+
+    act(() => {
+      screen.getByText('sign in').click();
+    });
+    await act(async () => {
+      resolveRefresh?.({ accessToken: 'stale-startup-token' });
+    });
+
+    expect(vi.mocked(tokenStorage.set)).toHaveBeenCalledWith('manual-token');
+    expect(vi.mocked(tokenStorage.set)).not.toHaveBeenCalledWith('stale-startup-token');
+    expect(screen.getByTestId('authenticated').textContent).toBe('true');
+  });
+
+  it('[RACE] a late startup refresh cannot restore a signed-out session', async () => {
+    let resolveRefresh: ((value: { accessToken: string }) => void) | undefined;
+    vi.mocked(authApi.refresh).mockReturnValue(
+      new Promise((resolve) => {
+        resolveRefresh = resolve;
+      })
+    );
+    vi.mocked(authApi.logout).mockResolvedValue(undefined);
+    vi.mocked(userManageApi.getProfile).mockResolvedValue(mockProfile);
+
+    render(<SignInConsumer />, { wrapper });
+
+    await act(async () => {
+      screen.getByText('sign out').click();
+    });
+    await act(async () => {
+      resolveRefresh?.({ accessToken: 'stale-startup-token' });
+    });
+
+    expect(vi.mocked(tokenStorage.set)).not.toHaveBeenCalledWith('stale-startup-token');
+    expect(screen.getByTestId('authenticated').textContent).toBe('false');
   });
 
   it('signOut calls authApi.logout, clears tokenStorage, and marks unauthenticated', async () => {
@@ -257,6 +317,32 @@ describe('AuthProvider — signIn / signOut', () => {
     expect(vi.mocked(tokenStorage.clear)).toHaveBeenCalled();
     expect(mockDestroySocket).toHaveBeenCalledTimes(1);
     expect(screen.getByTestId('authenticated').textContent).toBe('false');
+  });
+
+  it('signOut clears local state and note drafts before a stalled logout request completes', async () => {
+    vi.mocked(authApi.refresh).mockResolvedValue({ accessToken: 'fresh-token' });
+    vi.mocked(userManageApi.getProfile).mockResolvedValue(mockProfile);
+    vi.mocked(authApi.logout).mockReturnValue(new Promise(() => {}));
+    writeResearchNoteDraft(mockProfile.id, 12, {
+      title: 'private draft',
+      content: 'private content',
+      tsCode: null,
+      tags: [],
+      isPinned: false,
+    });
+
+    render(<SignInConsumer />, { wrapper });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('authenticated').textContent).toBe('true');
+    });
+    act(() => {
+      screen.getByText('sign out').click();
+    });
+
+    expect(vi.mocked(tokenStorage.clear)).toHaveBeenCalled();
+    expect(screen.getByTestId('authenticated').textContent).toBe('false');
+    expect(readResearchNoteDraft(mockProfile.id, 12)).toBeNull();
   });
 });
 

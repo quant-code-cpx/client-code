@@ -8,6 +8,8 @@ vi.mock('simplebar-react', () => ({
     ({
       children,
       className,
+      scrollableNodeProps: _scrollableNodeProps,
+      clickOnTrack: _clickOnTrack,
       ...rest
     }: {
       children?: React.ReactNode;

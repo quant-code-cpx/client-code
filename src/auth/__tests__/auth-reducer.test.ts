@@ -52,14 +52,15 @@ describe('authReducer', () => {
     expect(result.isLoading).toBe(false);
   });
 
-  it('SIGN_IN sets accessToken', () => {
+  it('SIGN_IN sets accessToken, clears prior profile, and stops loading', () => {
     const result = authReducer(initialState, {
       type: 'SIGN_IN',
       accessToken: 'new-token',
     });
 
     expect(result.accessToken).toBe('new-token');
-    expect(result.isLoading).toBe(true); // preserves existing isLoading
+    expect(result.userProfile).toBeNull();
+    expect(result.isLoading).toBe(false);
   });
 
   it('SIGN_OUT clears token and profile', () => {
@@ -73,7 +74,7 @@ describe('authReducer', () => {
 
     expect(result.accessToken).toBeNull();
     expect(result.userProfile).toBeNull();
-    expect(result.isLoading).toBe(false); // preserves isLoading
+    expect(result.isLoading).toBe(false);
   });
 
   it('TOKEN_REFRESHED updates accessToken', () => {
@@ -90,6 +91,7 @@ describe('authReducer', () => {
 
     expect(result.accessToken).toBe('refreshed-token');
     expect(result.userProfile).toEqual(mockProfile); // preserved
+    expect(result.isLoading).toBe(false);
   });
 
   it('PROFILE_LOADED updates userProfile', () => {

@@ -33,6 +33,12 @@ export default defineConfig({
         'src/_mock/**',
         'src/vite-env.d.ts',
       ],
+      thresholds: {
+        statements: 30,
+        branches: 65,
+        functions: 55,
+        lines: 30,
+      },
     },
   },
 });

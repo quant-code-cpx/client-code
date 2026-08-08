@@ -24,8 +24,6 @@ import FormControl from '@mui/material/FormControl';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
-import { useRouter } from 'src/routes/hooks';
-
 import { DashboardContent } from 'src/layouts/dashboard';
 import {
   listPortfolios,
@@ -85,7 +83,6 @@ function EmptyGuideCard({
 }
 
 export function PortfolioListView() {
-  const router = useRouter();
   const [portfolios, setPortfolios] = useState<PortfolioListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -279,7 +276,6 @@ export function PortfolioListView() {
             <Grid key={p.id} size={{ xs: 12, sm: 6, md: 4 }}>
               <PortfolioCard
                 portfolio={p}
-                onView={(id) => router.push(`/portfolio/${id}`)}
                 onEdit={setEditPortfolio}
                 onDelete={setDeletePortfolioItem}
               />

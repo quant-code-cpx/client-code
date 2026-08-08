@@ -1,5 +1,7 @@
 import { apiClient } from './client';
 
+import type { ApiRequestOptions } from './client';
+
 // ----------------------------------------------------------------------
 // Auth 相关接口类型定义
 // ----------------------------------------------------------------------
@@ -34,29 +36,37 @@ export interface RefreshResponse {
 // Auth API 封装
 // ----------------------------------------------------------------------
 
+const AUTH_REQUEST_OPTIONS: ApiRequestOptions = {
+  retryOnUnauthorized: false,
+  timeoutMs: 10_000,
+};
+
 export const authApi = {
   /**
    * 获取图片验证码
    * POST /api/auth/captcha
    */
-  getCaptcha: (): Promise<CaptchaResponse> => apiClient.post<CaptchaResponse>('/api/auth/captcha'),
+  getCaptcha: (): Promise<CaptchaResponse> =>
+    apiClient.post<CaptchaResponse>('/api/auth/captcha', undefined, undefined, AUTH_REQUEST_OPTIONS),
 
   /**
    * 登录（验证码 + 账号密码）
    * POST /api/auth/login
    */
   login: (data: LoginDto): Promise<LoginResponse> =>
-    apiClient.post<LoginResponse>('/api/auth/login', data),
+    apiClient.post<LoginResponse>('/api/auth/login', data, undefined, AUTH_REQUEST_OPTIONS),
 
   /**
    * 刷新 AccessToken（依赖 HttpOnly Cookie refresh_token）
    * POST /api/auth/refresh
    */
-  refresh: (): Promise<RefreshResponse> => apiClient.post<RefreshResponse>('/api/auth/refresh'),
+  refresh: (): Promise<RefreshResponse> =>
+    apiClient.post<RefreshResponse>('/api/auth/refresh', undefined, undefined, AUTH_REQUEST_OPTIONS),
 
   /**
    * 登出
    * POST /api/auth/logout
    */
-  logout: (): Promise<void> => apiClient.post<void>('/api/auth/logout'),
+  logout: (): Promise<void> =>
+    apiClient.post<void>('/api/auth/logout', undefined, undefined, AUTH_REQUEST_OPTIONS),
 };

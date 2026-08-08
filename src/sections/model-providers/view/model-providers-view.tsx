@@ -11,6 +11,7 @@ import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 
+import { HasPermission } from 'src/permission';
 import { DashboardContent } from 'src/layouts/dashboard';
 import {
   testModelConnection,
@@ -52,6 +53,14 @@ export function getModelProbeFeedback(
       ? `${displayName} ${operation}失败：${reason}`
       : `${displayName} ${operation}失败。请检查连接、模型 ID 与能力配置。`,
   };
+}
+
+export function ModelProvidersPageView() {
+  return (
+    <HasPermission roles={['SUPER_ADMIN']} fallback={<ModelProvidersView unauthorized />}>
+      <ModelProvidersView />
+    </HasPermission>
+  );
 }
 
 export function ModelProvidersView({ unauthorized = false }: { unauthorized?: boolean }) {

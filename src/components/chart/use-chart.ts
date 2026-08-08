@@ -1,5 +1,6 @@
 import type { Theme } from '@mui/material/styles';
 
+import { useMemo } from 'react';
 import { merge } from 'es-toolkit';
 import { varAlpha } from 'minimal-shared/utils';
 
@@ -12,9 +13,10 @@ import type { ChartOptions } from './types';
 export function useChart(updatedOptions?: ChartOptions): ChartOptions {
   const theme = useTheme();
 
-  const baseOptions = baseChartOptions(theme) ?? {};
-
-  return merge(baseOptions, updatedOptions ?? {});
+  return useMemo(
+    () => merge(baseChartOptions(theme) ?? {}, updatedOptions ?? {}),
+    [theme, updatedOptions]
+  );
 }
 
 // ----------------------------------------------------------------------

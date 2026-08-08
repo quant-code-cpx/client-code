@@ -23,11 +23,11 @@ export function authReducer(state: AuthState, action: AuthAction): AuthState {
     case 'AUTH_FAILURE':
       return { accessToken: null, userProfile: null, isLoading: false };
     case 'SIGN_IN':
-      return { ...state, accessToken: action.accessToken };
+      return { accessToken: action.accessToken, userProfile: null, isLoading: false };
     case 'SIGN_OUT':
-      return { ...state, accessToken: null, userProfile: null };
+      return { accessToken: null, userProfile: null, isLoading: false };
     case 'TOKEN_REFRESHED':
-      return { ...state, accessToken: action.accessToken };
+      return { ...state, accessToken: action.accessToken, isLoading: false };
     case 'PROFILE_LOADED':
       return { ...state, userProfile: action.userProfile };
     default:

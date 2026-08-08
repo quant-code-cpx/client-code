@@ -5,8 +5,9 @@ import Grid from '@mui/material/Grid';
 import Card from '@mui/material/Card';
 import { useTheme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
+import CardActionArea from '@mui/material/CardActionArea';
 
-import { useRouter } from 'src/routes/hooks';
+import { RouterLink } from 'src/routes/components';
 
 import { Iconify } from 'src/components/iconify';
 
@@ -91,7 +92,6 @@ const NAV_ITEMS = [
 
 export function DashboardQuickNav() {
   const theme = useTheme();
-  const router = useRouter();
 
   return (
     <Box>
@@ -108,17 +108,16 @@ export function DashboardQuickNav() {
           return (
             <Grid key={item.path} size={{ xs: 4, sm: 3, md: 2, lg: 1.5 }}>
               <Card
-                onClick={() => router.push(item.path)}
                 sx={{
-                  py: 2,
-                  px: 1,
                   textAlign: 'center',
-                  cursor: 'pointer',
                   border: '1px solid',
                   borderColor: 'transparent',
                   boxShadow: 'none',
                   bgcolor: varAlpha(paletteColor.mainChannel, 0.04),
-                  transition: 'all 0.2s ease',
+                  transition: theme.transitions.create(
+                    ['background-color', 'border-color', 'box-shadow', 'transform'],
+                    { duration: theme.transitions.duration.shorter }
+                  ),
                   '&:hover': {
                     borderColor: paletteColor.main,
                     bgcolor: varAlpha(paletteColor.mainChannel, 0.1),
@@ -127,20 +126,34 @@ export function DashboardQuickNav() {
                   },
                 }}
               >
-                <Iconify
-                  icon={item.icon as any}
-                  width={24}
+                <CardActionArea
+                  component={RouterLink}
+                  href={item.path}
+                  aria-label={`前往${item.label}`}
                   sx={{
-                    color: paletteColor.main,
-                    mb: 0.75,
+                    py: 2,
+                    px: 1,
+                    '&:focus-visible': {
+                      outline: `2px solid ${theme.palette.primary.main}`,
+                      outlineOffset: -2,
+                    },
                   }}
-                />
-                <Typography
-                  variant="caption"
-                  sx={{ fontWeight: 600, fontSize: 12, display: 'block' }}
                 >
-                  {item.label}
-                </Typography>
+                  <Iconify
+                    icon={item.icon as any}
+                    width={24}
+                    sx={{
+                      color: paletteColor.main,
+                      mb: 0.75,
+                    }}
+                  />
+                  <Typography
+                    variant="caption"
+                    sx={{ fontWeight: 600, fontSize: 12, display: 'block' }}
+                  >
+                    {item.label}
+                  </Typography>
+                </CardActionArea>
               </Card>
             </Grid>
           );

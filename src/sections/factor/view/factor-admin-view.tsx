@@ -17,6 +17,7 @@ import { usePollingFetch } from 'src/hooks/use-polling-fetch';
 
 import { fmtTradeDate } from 'src/utils/format-time';
 
+import { HasPermission } from 'src/permission';
 import { DashboardContent } from 'src/layouts/dashboard';
 import { adminPrecompute, adminPrecomputeStatus } from 'src/api/factor';
 
@@ -53,6 +54,22 @@ export function formatPrecomputeSuccess(response: {
   totalRows: number;
 }) {
   return `预计算完成（${fmtTradeDate(response.tradeDate)}）：成功 ${response.factorsProcessed}，失败 ${response.factorsFailed}，写入 ${response.totalRows.toLocaleString()} 行`;
+}
+
+export function FactorAdminAccessDenied() {
+  return (
+    <DashboardContent maxWidth="xl">
+      <Alert severity="warning">只有管理员可以访问因子管理控制台。</Alert>
+    </DashboardContent>
+  );
+}
+
+export function FactorAdminPageView() {
+  return (
+    <HasPermission minRole="ADMIN" fallback={<FactorAdminAccessDenied />}>
+      <FactorAdminView />
+    </HasPermission>
+  );
 }
 
 export function FactorAdminView() {

@@ -1,6 +1,16 @@
 import type { ResearchNote } from 'src/api/research-note';
+import type {
+  StoredResearchNoteDraft,
+  ResearchNoteDraftPayload,
+} from 'src/utils/research-note-draft-storage';
 
 import { useRef, useState, useEffect, useCallback } from 'react';
+
+import {
+  readResearchNoteDraft,
+  writeResearchNoteDraft,
+  removeResearchNoteDraft,
+} from 'src/utils/research-note-draft-storage';
 
 import { updateNote, createNote } from 'src/api/research-note';
 
@@ -8,23 +18,18 @@ import { updateNote, createNote } from 'src/api/research-note';
 
 export type AutosaveStatus = 'idle' | 'dirty' | 'saving' | 'saved' | 'error' | 'offline';
 
-export type AutosavePayload = {
-  title: string;
-  content: string;
-  tsCode: string | null;
-  tags: string[];
-  isPinned: boolean;
-};
+export type AutosavePayload = ResearchNoteDraftPayload;
 
 type Options = {
   noteId: number | null; // null = 尚未创建
+  userId: number | null;
   initial: AutosavePayload;
   onCreated?: (note: ResearchNote) => void; // 首次保存返回 id 后回调
+  onRestore?: (draft: AutosavePayload) => void;
   enabled?: boolean;
   debounceMs?: number;
 };
 
-const DRAFT_KEY = (id: number | 'new') => `research-note-draft-${id}`;
 const DEBOUNCE_DEFAULT = 3000;
 
 function isEqual(a: AutosavePayload, b: AutosavePayload): boolean {
@@ -40,24 +45,37 @@ function isEqual(a: AutosavePayload, b: AutosavePayload): boolean {
 
 export function useNoteAutosave({
   noteId,
+  userId,
   initial,
   onCreated,
+  onRestore,
   enabled = true,
   debounceMs = DEBOUNCE_DEFAULT,
 }: Options) {
   const [status, setStatus] = useState<AutosaveStatus>('idle');
   const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
   const [errorMsg, setErrorMsg] = useState('');
+  const [restorableDraft, setRestorableDraft] = useState<StoredResearchNoteDraft | null>(null);
 
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastSavedSnapshot = useRef<AutosavePayload>(initial);
   const currentPayload = useRef<AutosavePayload>(initial);
   const noteIdRef = useRef<number | null>(noteId);
+  const draftScopeRef = useRef<number | 'new'>(noteId ?? 'new');
   const creatingRef = useRef(false);
 
   useEffect(() => {
     noteIdRef.current = noteId;
+    draftScopeRef.current = noteId ?? 'new';
   }, [noteId]);
+
+  useEffect(() => {
+    if (!enabled || userId === null) {
+      setRestorableDraft(null);
+      return;
+    }
+    setRestorableDraft(readResearchNoteDraft(userId, noteId ?? 'new'));
+  }, [enabled, noteId, userId]);
 
   // 初始 snapshot 也跟随外部初始值变化（详情加载完成后）
   useEffect(() => {
@@ -79,25 +97,34 @@ export function useNoteAutosave({
   }, []);
 
   const persistDraftLocally = useCallback((payload: AutosavePayload) => {
-    try {
-      const id = noteIdRef.current ?? 'new';
-      localStorage.setItem(
-        DRAFT_KEY(id),
-        JSON.stringify({ ...payload, savedAt: new Date().toISOString() })
-      );
-    } catch {
-      /* ignore quota */
-    }
-  }, []);
+    if (userId === null) return;
+    writeResearchNoteDraft(userId, draftScopeRef.current, payload);
+  }, [userId]);
 
   const clearDraftLocally = useCallback(() => {
-    try {
-      const id = noteIdRef.current ?? 'new';
-      localStorage.removeItem(DRAFT_KEY(id));
-    } catch {
-      /* ignore */
-    }
-  }, []);
+    if (userId === null) return;
+    removeResearchNoteDraft(userId, draftScopeRef.current);
+  }, [userId]);
+
+  const restoreDraft = useCallback(() => {
+    if (!restorableDraft) return;
+    const payload: AutosavePayload = {
+      title: restorableDraft.title,
+      content: restorableDraft.content,
+      tsCode: restorableDraft.tsCode,
+      tags: restorableDraft.tags,
+      isPinned: restorableDraft.isPinned,
+    };
+    currentPayload.current = payload;
+    onRestore?.(payload);
+    setRestorableDraft(null);
+    setStatus('dirty');
+  }, [onRestore, restorableDraft]);
+
+  const discardDraft = useCallback(() => {
+    clearDraftLocally();
+    setRestorableDraft(null);
+  }, [clearDraftLocally]);
 
   const flush = useCallback(async (): Promise<void> => {
     if (!enabled) return;
@@ -195,5 +222,14 @@ export function useNoteAutosave({
     return () => window.removeEventListener('beforeunload', handler);
   }, [status]);
 
-  return { status, lastSavedAt, errorMsg, schedule, flush };
+  return {
+    status,
+    lastSavedAt,
+    errorMsg,
+    restorableDraft,
+    schedule,
+    flush,
+    restoreDraft,
+    discardDraft,
+  };
 }

@@ -1,6 +1,5 @@
 import type { HsgtTrendItem } from 'src/api/market';
 
-import { useState, useEffect } from 'react';
 import { varAlpha } from 'minimal-shared/utils';
 
 import Box from '@mui/material/Box';
@@ -13,8 +12,6 @@ import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 
 import { RouterLink } from 'src/routes/components';
-
-import { fetchHsgtFlow } from 'src/api/market';
 
 import { Iconify } from 'src/components/iconify';
 
@@ -114,47 +111,13 @@ function FlowChannel({ label, value, history }: ChannelProps) {
 // ── Main Component ────────────────────────────────────────────────
 
 type Props = {
-  tradeDate?: string;
-  refreshKey?: number;
-  /** Parent-lifted HSGT history. null/undefined = fetch not yet done or failed; use internal fetch. */
-  history?: HsgtTrendItem[] | null;
+  history: HsgtTrendItem[];
+  loading: boolean;
+  error: string;
 };
 
-export function MarketHsgtMiniCard({ tradeDate, refreshKey, history: externalHistory }: Props) {
+export function MarketHsgtMiniCard({ history, loading, error }: Props) {
   const theme = useTheme();
-  const [fetchedHistory, setFetchedHistory] = useState<HsgtTrendItem[]>([]);
-  const [loading, setLoading] = useState(externalHistory == null);
-  const [error, setError] = useState('');
-
-  // Use externally provided history only when it is a real array (not null/undefined)
-  const history = externalHistory != null ? externalHistory : fetchedHistory;
-
-  useEffect(() => {
-    // Skip internal fetch only when parent provided a valid (non-null) array
-    if (externalHistory != null) {
-      setLoading(false);
-      return () => {};
-    }
-
-    let cancelled = false;
-    setLoading(true);
-    setError('');
-
-    fetchHsgtFlow({ trade_date: tradeDate, days: SPARKLINE_DAYS })
-      .then((res) => {
-        if (!cancelled) setFetchedHistory(res?.history ?? []);
-      })
-      .catch((err: unknown) => {
-        if (!cancelled) setError(err instanceof Error ? err.message : '加载沪深港通数据失败');
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [tradeDate, externalHistory, refreshKey]);
 
   const today = history[history.length - 1] ?? null;
   const northHistory = history.map((d) => toYi(d.northMoney));

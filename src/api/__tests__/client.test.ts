@@ -214,6 +214,76 @@ describe('apiClient.post', () => {
     await expect(apiClient.post('/api/test')).rejects.toThrow('请求失败');
   });
 
+  it('aborts a JSON request after the default timeout', async () => {
+    vi.useFakeTimers();
+    mockFetch.mockImplementationOnce(
+      (_url: string, options: RequestInit) =>
+        new Promise((_resolve, reject) => {
+          options.signal?.addEventListener('abort', () => reject(new Error('aborted')));
+        })
+    );
+
+    const request = apiClient.post('/api/slow');
+    const expectation = expect(request).rejects.toMatchObject({
+      status: 408,
+      code: 'REQUEST_TIMEOUT',
+    });
+    await vi.advanceTimersByTimeAsync(30_000);
+
+    await expectation;
+    vi.useRealTimers();
+  });
+
+  it('does not refresh a request that became unauthorized after local sign-out', async () => {
+    tokenStorage.set('old-token');
+    let resolveResponse: ((response: ReturnType<typeof jsonResp>) => void) | undefined;
+    mockFetch.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolveResponse = resolve;
+        })
+    );
+
+    const request = apiClient.post('/api/protected');
+    tokenStorage.clear();
+    resolveResponse?.(jsonResp({}, 401));
+
+    await expect(request).rejects.toMatchObject({ status: 401 });
+    expect(mockFetch.mock.calls.some(([url]) => apiPath(url) === '/api/auth/refresh')).toBe(false);
+  });
+
+  it('does not let a stale refresh overwrite a newer token', async () => {
+    tokenStorage.set('old-token');
+    let resolveRefresh: ((response: ReturnType<typeof jsonResp>) => void) | undefined;
+    let protectedRequestCount = 0;
+    mockFetch.mockImplementation((url: string) => {
+      if (apiPath(url) === '/api/protected') {
+        protectedRequestCount += 1;
+        return Promise.resolve(
+          protectedRequestCount === 1 ? jsonResp({}, 401) : jsonResp({ data: 'retried' })
+        );
+      }
+      if (apiPath(url) === '/api/auth/refresh') {
+        return new Promise((resolve) => {
+          resolveRefresh = resolve;
+        });
+      }
+      return Promise.resolve(jsonResp({}));
+    });
+
+    const request = apiClient.post('/api/protected');
+    await vi.waitFor(() => {
+      expect(resolveRefresh).toBeDefined();
+    });
+    tokenStorage.set('newer-token');
+    resolveRefresh?.(jsonResp({ data: { accessToken: 'stale-token' } }));
+
+    await expect(request).resolves.toBe('retried');
+    expect(tokenStorage.get()).toBe('newer-token');
+    const retryCall = mockFetch.mock.calls.at(-1) as [string, RequestInit];
+    expect(new Headers(retryCall[1].headers).get('Authorization')).toBe('Bearer newer-token');
+  });
+
   it('refreshes token on 401 and retries with new token', async () => {
     tokenStorage.set('expired-token');
     mockFetch

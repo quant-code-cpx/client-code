@@ -2,6 +2,7 @@ import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
+import IconButton from '@mui/material/IconButton';
 
 import { Iconify } from 'src/components/iconify';
 
@@ -25,7 +26,7 @@ export function InfoTooltip({ entry }: { entry: MethodologyEntry }) {
           <Box>
             <Typography
               variant="overline"
-              sx={{ display: 'block', color: 'text.secondary', fontSize: 10 }}
+              sx={{ display: 'block', color: 'text.secondary', fontSize: 12 }}
             >
               简化公式
             </Typography>
@@ -43,7 +44,7 @@ export function InfoTooltip({ entry }: { entry: MethodologyEntry }) {
           <Box>
             <Typography
               variant="overline"
-              sx={{ display: 'block', color: 'text.secondary', fontSize: 10 }}
+              sx={{ display: 'block', color: 'text.secondary', fontSize: 12 }}
             >
               输入 / 输出
             </Typography>
@@ -54,18 +55,16 @@ export function InfoTooltip({ entry }: { entry: MethodologyEntry }) {
         </Stack>
       }
     >
-      <Box
-        component="span"
+      <IconButton
+        size="small"
+        aria-label={`查看${entry.title}说明`}
         sx={{
-          display: 'inline-flex',
-          alignItems: 'center',
           color: 'text.secondary',
-          cursor: 'help',
           ml: 0.5,
         }}
       >
         <Iconify icon="solar:info-circle-bold" width={16} />
-      </Box>
+      </IconButton>
     </Tooltip>
   );
 }

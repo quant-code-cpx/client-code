@@ -23,6 +23,7 @@ import { useRouter } from 'src/routes/hooks';
 
 import { fDateTime } from 'src/utils/format-time';
 
+import { useAuth } from 'src/auth';
 import { DashboardContent } from 'src/layouts/dashboard';
 import { deleteNote, getNoteById } from 'src/api/research-note';
 
@@ -72,6 +73,7 @@ export function ResearchNoteDetailView() {
   const { noteId } = useParams<{ noteId: string }>();
   const [searchParams] = useSearchParams();
   const router = useRouter();
+  const { userProfile } = useAuth();
   const isNew = noteId === 'new';
 
   const [noteIdState, setNoteIdState] = useState<number | null>(isNew ? null : Number(noteId));
@@ -150,10 +152,22 @@ export function ResearchNoteDetailView() {
     setSnackbar('已自动保存为新笔记');
   }, []);
 
+  const handleRestoreDraft = useCallback((draft: AutosavePayload) => {
+    setTitle(draft.title);
+    setContent(draft.content);
+    setSelectedStock(stockItemFromCode(draft.tsCode));
+    setTags(draft.tags);
+    setIsPinned(draft.isPinned);
+    setMode('edit');
+    setSnackbar('已恢复本地草稿');
+  }, []);
+
   const autosave = useNoteAutosave({
     noteId: noteIdState,
+    userId: userProfile?.id ?? null,
     initial: initialPayload,
     onCreated: handleAutoCreated,
+    onRestore: handleRestoreDraft,
     enabled: !loading,
   });
 
@@ -221,6 +235,25 @@ export function ResearchNoteDetailView() {
 
   return (
     <DashboardContent>
+      {autosave.restorableDraft && (
+        <Alert
+          severity="warning"
+          sx={{ mb: 2 }}
+          action={
+            <Stack direction="row" spacing={0.5}>
+              <Button color="inherit" size="small" onClick={autosave.restoreDraft}>
+                恢复
+              </Button>
+              <Button color="inherit" size="small" onClick={autosave.discardDraft}>
+                丢弃
+              </Button>
+            </Stack>
+          }
+        >
+          发现未同步的本地草稿（{fDateTime(autosave.restorableDraft.savedAt)}）
+        </Alert>
+      )}
+
       {/* Header */}
       <Stack
         direction={{ xs: 'column', md: 'row' }}

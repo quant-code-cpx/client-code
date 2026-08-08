@@ -1,5 +1,5 @@
 import { StrictMode } from 'react';
-import { screen, waitFor } from '@testing-library/react';
+import { act, screen, waitFor } from '@testing-library/react';
 
 import { renderWithProviders } from 'src/test/test-utils';
 import { createMockCaptchaResponse } from 'src/test/factories/captcha';
@@ -112,27 +112,50 @@ describe('SignInView', () => {
       expect(skeleton).toBeInTheDocument();
     });
 
-    it('验证码加载成功后渲染 SVG 内容', async () => {
+    it('验证码加载成功后以图片文档渲染 SVG', async () => {
       renderWithProviders(<SignInView />);
       await waitFor(() => {
-        // The SVG from captcha.svgImage is rendered via dangerouslySetInnerHTML
-        const svgText = document.body.innerHTML;
-        expect(svgText).toContain('svg');
+        expect(screen.getByRole('img', { name: '验证码图片' })).toHaveAttribute(
+          'src',
+          expect.stringContaining('data:image/svg+xml')
+        );
       });
     });
 
-    it('点击验证码图片区域刷新验证码', async () => {
+    it('不将不可信 SVG 作为 HTML 插入页面', async () => {
+      mockGetCaptcha.mockResolvedValue({
+        ...defaultCaptcha,
+        svgImage: '<svg><script>window.captchaXss = true</script><rect /></svg>',
+      });
+
+      const { container } = renderWithProviders(<SignInView />);
+
+      await waitFor(() => {
+        expect(screen.getByRole('img', { name: '验证码图片' })).toBeInTheDocument();
+      });
+
+      expect(container.querySelector('script')).toBeNull();
+      expect(container.querySelector('svg')).toBeNull();
+    });
+
+    it('点击或按 Enter 刷新验证码', async () => {
       const { user } = renderWithProviders(<SignInView />);
 
       // Wait for initial captcha load
       await waitFor(() => expect(mockGetCaptcha).toHaveBeenCalledTimes(1));
 
-      // Click the captcha image area (title="点击刷新验证码")
-      const captchaBox = screen.getByTitle('点击刷新验证码');
-      await user.click(captchaBox);
+      const refreshButton = screen.getByRole('button', { name: '刷新验证码' });
+      await user.click(refreshButton);
 
       await waitFor(() => {
         expect(mockGetCaptcha).toHaveBeenCalledTimes(2);
+      });
+
+      refreshButton.focus();
+      await user.keyboard('{Enter}');
+
+      await waitFor(() => {
+        expect(mockGetCaptcha).toHaveBeenCalledTimes(3);
       });
     });
 
@@ -145,7 +168,9 @@ describe('SignInView', () => {
       await waitFor(() => expect(mockGetCaptcha).toHaveBeenCalledTimes(1));
 
       // Advance 60 seconds
-      vi.advanceTimersByTime(60_000);
+      await act(async () => {
+        vi.advanceTimersByTime(60_000);
+      });
 
       await waitFor(() => {
         expect(screen.getByText('已过期')).toBeInTheDocument();

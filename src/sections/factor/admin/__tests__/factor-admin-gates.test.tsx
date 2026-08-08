@@ -13,12 +13,16 @@ import { FactorAdminStatusTable } from '../factor-admin-status-table';
 import { formatBackfillSuccess } from '../factor-admin-backfill-form';
 import { FactorAdminSchedulePanel } from '../factor-admin-schedule-panel';
 import { FactorAdminBulkActionBar } from '../factor-admin-bulk-action-bar';
-import { FactorAdminView, formatPrecomputeSuccess } from '../../view/factor-admin-view';
 import {
   applyAdminFilters,
   FactorAdminFilterBar,
   DEFAULT_ADMIN_FILTERS,
 } from '../factor-admin-filter-bar';
+import {
+  FactorAdminView,
+  FactorAdminAccessDenied,
+  formatPrecomputeSuccess,
+} from '../../view/factor-admin-view';
 
 vi.mock('src/api/client', () => ({
   apiClient: {
@@ -87,6 +91,13 @@ describe('factor admin v3 hard gates', () => {
       expect(apiClient.post).toHaveBeenCalledTimes(1);
     });
     unmount();
+  });
+
+  it('renders an access message without calling admin APIs for unauthorized users', () => {
+    renderWithProviders(<FactorAdminAccessDenied />);
+
+    expect(screen.getByText('只有管理员可以访问因子管理控制台。')).toBeInTheDocument();
+    expect(apiClient.post).not.toHaveBeenCalled();
   });
 
   it('keeps exactly four KPI entries', () => {

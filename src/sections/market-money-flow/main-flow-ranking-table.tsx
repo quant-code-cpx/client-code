@@ -177,7 +177,7 @@ function FlowTable({
                           <Chip
                             label={row.industry ?? '-'}
                             size="small"
-                            sx={{ height: 20, fontSize: 11, opacity: 0.75 }}
+                            sx={{ height: 20, fontSize: 12, opacity: 0.75 }}
                           />
                         </TableCell>
                       )}

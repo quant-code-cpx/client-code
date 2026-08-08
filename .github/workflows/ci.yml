@@ -13,7 +13,7 @@ jobs:
   ci:
     name: Lint · Type-check · Build · Test
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
 
     steps:
       - uses: actions/checkout@v4
@@ -26,6 +26,9 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
+      - name: Audit production dependencies
+        run: yarn audit --groups dependencies --level moderate
+
       - name: Lint
         run: yarn lint
 
@@ -35,10 +38,19 @@ jobs:
         run: yarn api:agent:check
 
       - name: Type-check
-        run: npx tsc --noEmit
+        run: yarn typecheck
 
-      - name: Unit tests
-        run: yarn test
+      - name: E2E type-check
+        run: yarn typecheck:e2e
+
+      - name: Unit test coverage
+        run: yarn test:coverage
 
       - name: Build
         run: yarn build
+
+      - name: Install Playwright Chromium
+        run: yarn playwright install --with-deps chromium
+
+      - name: Mock E2E smoke
+        run: yarn e2e:smoke

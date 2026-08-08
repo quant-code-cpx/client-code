@@ -67,14 +67,28 @@ export function FactorDetailView() {
   const [committedParams, setCommittedParams] = useState<AnalysisParams>(params);
 
   useEffect(() => {
-    if (!factorName) return;
+    if (!factorName) return undefined;
+
+    const controller = new AbortController();
+
+    setFactor(null);
     setFactorLoading(true);
     setFactorError('');
     factorApi
-      .detail(factorName)
-      .then((data) => setFactor(data))
-      .catch((err) => setFactorError(err instanceof Error ? err.message : '获取因子详情失败'))
-      .finally(() => setFactorLoading(false));
+      .detail(factorName, controller.signal)
+      .then((data) => {
+        if (!controller.signal.aborted) setFactor(data);
+      })
+      .catch((err) => {
+        if (!controller.signal.aborted) {
+          setFactorError(err instanceof Error ? err.message : '获取因子详情失败');
+        }
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setFactorLoading(false);
+      });
+
+    return () => controller.abort();
   }, [factorName]);
 
   const handleAnalyze = useCallback(() => {

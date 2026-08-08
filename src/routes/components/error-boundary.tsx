@@ -6,7 +6,12 @@ import GlobalStyles from '@mui/material/GlobalStyles';
 
 // ----------------------------------------------------------------------
 
-export function ErrorBoundary() {
+type ErrorBoundaryProps = {
+  /** 仅用于本地排障；生产环境默认不输出异常细节。 */
+  showDetails?: boolean;
+};
+
+export function ErrorBoundary({ showDetails = import.meta.env.DEV }: ErrorBoundaryProps) {
   const error = useRouteError();
 
   return (
@@ -14,7 +19,7 @@ export function ErrorBoundary() {
       {inputGlobalStyles()}
 
       <div className={errorBoundaryClasses.root}>
-        <div className={errorBoundaryClasses.container}>{renderErrorMessage(error)}</div>
+        <div className={errorBoundaryClasses.container}>{renderErrorMessage(error, showDetails)}</div>
       </div>
     </>
   );
@@ -34,8 +39,17 @@ function parseStackTrace(stack?: string) {
   };
 }
 
-function renderErrorMessage(error: any) {
+function renderErrorMessage(error: unknown, showDetails: boolean) {
   if (isRouteErrorResponse(error)) {
+    if (!showDetails) {
+      return (
+        <>
+          <h1 className={errorBoundaryClasses.title}>页面暂时无法打开</h1>
+          <p className={errorBoundaryClasses.message}>请稍后重试。</p>
+        </>
+      );
+    }
+
     return (
       <>
         <h1 className={errorBoundaryClasses.title}>
@@ -47,6 +61,15 @@ function renderErrorMessage(error: any) {
   }
 
   if (error instanceof Error) {
+    if (!showDetails) {
+      return (
+        <>
+          <h1 className={errorBoundaryClasses.title}>页面暂时无法打开</h1>
+          <p className={errorBoundaryClasses.message}>请稍后重试。</p>
+        </>
+      );
+    }
+
     const { filePath, functionName } = parseStackTrace(error.stack);
 
     return (
@@ -65,7 +88,11 @@ function renderErrorMessage(error: any) {
     );
   }
 
-  return <h1 className={errorBoundaryClasses.title}>Unknown Error</h1>;
+  return (
+    <h1 className={errorBoundaryClasses.title}>
+      {showDetails ? 'Unknown Error' : '页面暂时无法打开'}
+    </h1>
+  );
 }
 
 // ----------------------------------------------------------------------

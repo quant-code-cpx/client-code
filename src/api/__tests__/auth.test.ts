@@ -11,13 +11,20 @@ import { apiClient } from 'src/api/client';
 
 // ----------------------------------------------------------------------
 
+const authRequestOptions = { retryOnUnauthorized: false, timeoutMs: 10_000 };
+
 describe('authApi.getCaptcha', () => {
   it('calls POST /api/auth/captcha with no body', async () => {
     vi.mocked(apiClient.post).mockResolvedValueOnce({ captchaId: 'id-1', svgImage: '<svg/>' });
 
     const result = await authApi.getCaptcha();
 
-    expect(vi.mocked(apiClient.post)).toHaveBeenCalledWith('/api/auth/captcha');
+    expect(vi.mocked(apiClient.post)).toHaveBeenCalledWith(
+      '/api/auth/captcha',
+      undefined,
+      undefined,
+      authRequestOptions
+    );
     expect(result.captchaId).toBe('id-1');
   });
 });
@@ -35,12 +42,17 @@ describe('authApi.login', () => {
       captchaCode: 'ABCD',
     });
 
-    expect(vi.mocked(apiClient.post)).toHaveBeenCalledWith('/api/auth/login', {
-      account: 'admin',
-      password: 'secret',
-      captchaId: 'cap-id',
-      captchaCode: 'ABCD',
-    });
+    expect(vi.mocked(apiClient.post)).toHaveBeenCalledWith(
+      '/api/auth/login',
+      {
+        account: 'admin',
+        password: 'secret',
+        captchaId: 'cap-id',
+        captchaCode: 'ABCD',
+      },
+      undefined,
+      authRequestOptions
+    );
   });
 
   it('returns accessToken from server response', async () => {
@@ -73,7 +85,12 @@ describe('authApi.refresh', () => {
 
     await authApi.refresh();
 
-    expect(vi.mocked(apiClient.post)).toHaveBeenCalledWith('/api/auth/refresh');
+    expect(vi.mocked(apiClient.post)).toHaveBeenCalledWith(
+      '/api/auth/refresh',
+      undefined,
+      undefined,
+      authRequestOptions
+    );
   });
 });
 
@@ -85,6 +102,11 @@ describe('authApi.logout', () => {
 
     await authApi.logout();
 
-    expect(vi.mocked(apiClient.post)).toHaveBeenCalledWith('/api/auth/logout');
+    expect(vi.mocked(apiClient.post)).toHaveBeenCalledWith(
+      '/api/auth/logout',
+      undefined,
+      undefined,
+      authRequestOptions
+    );
   });
 });

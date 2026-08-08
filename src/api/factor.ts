@@ -421,10 +421,11 @@ export const factorApi = {
 
   /** 获取单个因子详情 */
   detail: (
-    factorName: string
+    factorName: string,
+    signal?: AbortSignal
   ): Promise<
     FactorDef & { stats?: FactorValuesSummary & { latestDate: string; coverage: number } }
-  > => apiClient.post('/api/factor/detail', { factorName }),
+  > => apiClient.post('/api/factor/detail', { factorName }, signal),
 
   /** 获取因子截面值（带分页） */
   values: (params: {

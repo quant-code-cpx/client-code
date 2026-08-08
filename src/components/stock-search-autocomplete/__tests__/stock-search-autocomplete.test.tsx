@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react';
+import { act, screen, waitFor } from '@testing-library/react';
 
 import { renderWithProviders } from 'src/test/test-utils';
 import { createMockStockSearchItem } from 'src/test/factories/stock';
@@ -15,6 +15,12 @@ import { stockItemFromCode, StockSearchAutocomplete } from '../stock-search-auto
 // ----------------------------------------------------------------------
 
 const mockSearchStocks = vi.mocked(searchStocks);
+
+const advanceDebounce = async (milliseconds = 300) => {
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(milliseconds);
+  });
+};
 
 describe('StockSearchAutocomplete', () => {
   beforeEach(() => {
@@ -67,7 +73,7 @@ describe('StockSearchAutocomplete', () => {
       expect(mockSearchStocks).not.toHaveBeenCalled();
 
       // Advance fake timer by 300ms to trigger debounce
-      vi.advanceTimersByTime(300);
+      await advanceDebounce();
 
       await waitFor(() => {
         expect(mockSearchStocks).toHaveBeenCalledWith({ keyword: '平安', limit: 20 });
@@ -81,9 +87,9 @@ describe('StockSearchAutocomplete', () => {
 
       const input = screen.getByPlaceholderText('输入股票代码或名称...');
       await user.type(input, '平');
-      vi.advanceTimersByTime(100);
+      await advanceDebounce(100);
       // Simulate clearing and typing more (Autocomplete updates inputValue)
-      vi.advanceTimersByTime(300);
+      await advanceDebounce();
 
       await waitFor(() => {
         // searchStocks called at most once (debounced)
@@ -98,7 +104,7 @@ describe('StockSearchAutocomplete', () => {
       // Type then clear
       await user.type(input, 'a');
       await user.clear(input);
-      vi.advanceTimersByTime(300);
+      await advanceDebounce();
 
       // After clearing, no additional call with empty keyword
       // (the component guards: if !newInput || newInput.length < 1 → return)
@@ -118,7 +124,7 @@ describe('StockSearchAutocomplete', () => {
 
       const input = screen.getByPlaceholderText('输入股票代码或名称...');
       await user.type(input, '平安');
-      vi.advanceTimersByTime(300);
+      await advanceDebounce();
 
       await waitFor(() => {
         expect(screen.getByText('平安银行')).toBeInTheDocument();
@@ -132,7 +138,7 @@ describe('StockSearchAutocomplete', () => {
 
       const input = screen.getByPlaceholderText('输入股票代码或名称...');
       await user.type(input, '平安');
-      vi.advanceTimersByTime(300);
+      await advanceDebounce();
 
       // Should not throw; options remain empty
       await waitFor(() => {
@@ -154,7 +160,7 @@ describe('StockSearchAutocomplete', () => {
       const { user } = renderWithProviders(<StockSearchAutocomplete onChange={vi.fn()} />);
 
       await user.type(screen.getByPlaceholderText('输入股票代码或名称...'), '银');
-      vi.advanceTimersByTime(300);
+      await advanceDebounce();
 
       await waitFor(() => {
         expect(screen.getByText('平安银行')).toBeInTheDocument();
@@ -172,7 +178,7 @@ describe('StockSearchAutocomplete', () => {
       const { user } = renderWithProviders(<StockSearchAutocomplete onChange={vi.fn()} />);
 
       await user.type(screen.getByPlaceholderText('输入股票代码或名称...'), '平');
-      vi.advanceTimersByTime(300);
+      await advanceDebounce();
 
       await waitFor(() => {
         expect(screen.getByText(/主板.*银行|银行.*主板/)).toBeInTheDocument();
@@ -201,7 +207,7 @@ describe('StockSearchAutocomplete', () => {
       const { user } = renderWithProviders(<StockSearchAutocomplete onChange={handleChange} />);
 
       await user.type(screen.getByPlaceholderText('输入股票代码或名称...'), '平安');
-      vi.advanceTimersByTime(300);
+      await advanceDebounce();
 
       await waitFor(() => {
         expect(screen.getByText('平安银行')).toBeInTheDocument();
