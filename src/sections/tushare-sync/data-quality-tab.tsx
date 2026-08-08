@@ -41,13 +41,15 @@ import { DataQualityReportTable } from './data-quality-report-table';
 
 // ----------------------------------------------------------------------
 
+type QualityPanel = 'health' | 'tools' | 'results';
+type QualityErrorKey = 'health' | 'summary' | 'report' | 'validation' | 'repair';
+
 type Props = {
   isReadOnly?: boolean;
   refreshKey?: number;
+  focusPanel?: QualityPanel;
+  focusRequest?: number;
 };
-
-type QualityPanel = 'health' | 'tools' | 'results';
-type QualityErrorKey = 'health' | 'summary' | 'report' | 'validation' | 'repair';
 
 const READ_ONLY_TOOLTIP = '仅超级管理员可执行';
 const QUALITY_PANEL_STORAGE_KEY = 'tushare-sync:quality-panel:v2';
@@ -62,7 +64,12 @@ function getInitialPanel(): QualityPanel {
   return 'health';
 }
 
-export function DataQualityTab({ isReadOnly = false, refreshKey = 0 }: Props) {
+export function DataQualityTab({
+  isReadOnly = false,
+  refreshKey = 0,
+  focusPanel,
+  focusRequest = 0,
+}: Props) {
   // ── 原有状态 ──
   const [qualityDays, setQualityDays] = useState(7);
   const [qualityReport, setQualityReport] = useState<DataQualityCheckItem[]>([]);
@@ -210,6 +217,16 @@ export function DataQualityTab({ isReadOnly = false, refreshKey = 0 }: Props) {
     qualityDays,
     refreshKey,
   ]);
+
+  useEffect(() => {
+    if (!focusPanel || focusRequest === 0) return;
+    setExpandedPanel(focusPanel);
+    try {
+      sessionStorage.setItem(QUALITY_PANEL_STORAGE_KEY, focusPanel);
+    } catch {
+      // ignore storage unavailable
+    }
+  }, [focusPanel, focusRequest]);
 
   // ── WebSocket 推送的摘要实时更新 ──
   useEffect(() => {

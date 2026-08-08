@@ -81,6 +81,39 @@ describe('[OPS-B07] local request errors', () => {
     expect(await screen.findByText('summary down')).toBeInTheDocument();
   });
 
+  it('quality focus request expands the data-gap tools panel', async () => {
+    api.getQualityHealth.mockResolvedValue({
+      status: 'healthy',
+      lastCheckAt: null,
+      failCount: 0,
+      exhaustedRepairs: 0,
+    });
+    api.getQualitySummary.mockResolvedValue({
+      checkedAt: '2026-08-08T00:00:00.000Z',
+      totalDataSets: 0,
+      counts: { pass: 0, warn: 0, fail: 0 },
+      failures: [],
+      crossTableCounts: { pass: 0, warn: 0, fail: 0 },
+      autoRepairTriggered: false,
+      repairTaskCount: 0,
+    });
+    api.getQualityReport.mockResolvedValue([]);
+    api.getValidationLogs.mockResolvedValue([]);
+    api.getRepairQueueStatus.mockResolvedValue({
+      pending: 0,
+      retrying: 0,
+      succeeded: 0,
+      exhausted: 0,
+    });
+
+    renderWithProviders(<DataQualityTab focusPanel="tools" focusRequest={1} />);
+
+    expect(await screen.findByRole('button', { name: '主动检查工具' })).toHaveAttribute(
+      'aria-expanded',
+      'true'
+    );
+  });
+
   it('cache and retry workbenches show request errors', async () => {
     api.getCacheStats.mockRejectedValue(new Error('cache down'));
     const cacheRender = renderWithProviders(<CacheStatsTab />);

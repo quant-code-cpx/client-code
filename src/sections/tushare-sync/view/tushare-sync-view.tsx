@@ -30,17 +30,48 @@ import { SyncStatusOverviewPanel } from '../sync-status-overview';
 // ----------------------------------------------------------------------
 
 const TABS = [
-  { label: '任务调度', icon: 'solar:restart-bold' },
-  { label: '同步日志', icon: 'solar:document-text-bold' },
-  { label: '数据质量', icon: 'solar:shield-check-bold' },
-  { label: '运维工具', icon: 'solar:layers-bold' },
+  { value: 'overview', label: '运行概览', icon: 'solar:chart-2-bold' },
+  { value: 'plan', label: '任务调度', icon: 'solar:restart-bold' },
+  { value: 'logs', label: '同步日志', icon: 'solar:document-text-bold' },
+  { value: 'quality', label: '数据质量', icon: 'solar:shield-check-bold' },
+  { value: 'ops', label: '运维工具', icon: 'solar:layers-bold' },
 ] as const;
+
+type WorkspaceTab = (typeof TABS)[number]['value'];
 
 const SOCKET_STATUS_META = {
   connected: { label: '实时在线', color: 'success' as const },
   reconnecting: { label: '重连中', color: 'warning' as const },
   disconnected: { label: '实时断线', color: 'error' as const },
 };
+
+const ACTIVE_TAB_STORAGE_KEY = 'tushare-sync:active-tab:v1';
+const DEFAULT_WORKSPACE_TAB: WorkspaceTab = 'overview';
+
+function isWorkspaceTab(value: unknown): value is WorkspaceTab {
+  return TABS.some((tab) => tab.value === value);
+}
+
+function getInitialWorkspaceTab(): WorkspaceTab {
+  if (typeof window === 'undefined') return DEFAULT_WORKSPACE_TAB;
+
+  try {
+    const savedTab = window.sessionStorage.getItem(ACTIVE_TAB_STORAGE_KEY);
+    return isWorkspaceTab(savedTab) ? savedTab : DEFAULT_WORKSPACE_TAB;
+  } catch {
+    return DEFAULT_WORKSPACE_TAB;
+  }
+}
+
+function saveWorkspaceTab(tab: WorkspaceTab) {
+  if (typeof window === 'undefined') return;
+
+  try {
+    window.sessionStorage.setItem(ACTIVE_TAB_STORAGE_KEY, tab);
+  } catch {
+    // Storage may be unavailable in private browsing.
+  }
+}
 
 // ----------------------------------------------------------------------
 
@@ -51,18 +82,41 @@ export function TushareSyncView() {
   const isReadOnly = !isSuperAdmin;
   const { socketStatus, reconnect } = useSyncNotification();
 
-  const [currentTab, setCurrentTab] = useState(0);
-  const [refreshKey, setRefreshKey] = useState(0);
+  const [currentTab, setCurrentTab] = useState<WorkspaceTab>(getInitialWorkspaceTab);
+  const [visitedTabs, setVisitedTabs] = useState<WorkspaceTab[]>(() => [currentTab]);
+  const [refreshKeys, setRefreshKeys] = useState<Record<WorkspaceTab, number>>({
+    overview: 0,
+    plan: 0,
+    logs: 0,
+    quality: 0,
+    ops: 0,
+  });
   const [auditOpen, setAuditOpen] = useState(false);
+  const [qualityFocusRequest, setQualityFocusRequest] = useState(0);
   const [logFilters, setLogFilters] = useState<
     Pick<SyncLogQuery, 'task' | 'status' | 'startDate' | 'endDate'> | undefined
   >();
+
+  const setWorkspaceTab = (tab: WorkspaceTab, persist = false) => {
+    setCurrentTab(tab);
+    setVisitedTabs((tabs) => (tabs.includes(tab) ? tabs : [...tabs, tab]));
+    if (persist) saveWorkspaceTab(tab);
+  };
 
   const handleGoLogs = (
     filters?: Pick<SyncLogQuery, 'task' | 'status' | 'startDate' | 'endDate'>
   ) => {
     if (filters) setLogFilters(filters);
-    setCurrentTab(1);
+    setWorkspaceTab('logs');
+  };
+
+  const handleGoQuality = () => {
+    setQualityFocusRequest((value) => value + 1);
+    setWorkspaceTab('quality');
+  };
+
+  const handleRefreshCurrentTab = () => {
+    setRefreshKeys((keys) => ({ ...keys, [currentTab]: keys[currentTab] + 1 }));
   };
 
   // ── permission guard ─────────────────────────────────────────────────
@@ -155,32 +209,20 @@ export function TushareSyncView() {
           <Button
             size="small"
             variant="outlined"
-            onClick={() => setRefreshKey((value) => value + 1)}
+            onClick={handleRefreshCurrentTab}
             startIcon={<Iconify icon="solar:refresh-bold" />}
           >
-            刷新
+            刷新当前工作区
           </Button>
         </Stack>
       </Box>
 
-      {isReadOnly && (
-        <Alert severity="info" sx={{ mb: 3 }}>
-          当前账号为只读模式，可查看同步状态与日志；触发同步、质量检查、补数、重试等操作需
-          超级管理员权限。
-        </Alert>
-      )}
-
-      {/* 状态总览 */}
-      <SyncStatusOverviewPanel
-        refreshKey={refreshKey}
-        onGoLogs={handleGoLogs}
-        onGoQuality={() => setCurrentTab(2)}
-      />
-
-      {/* Tabs */}
+      {/* Workspace tabs */}
       <Tabs
         value={currentTab}
-        onChange={(_, v) => setCurrentTab(v)}
+        onChange={(_, value) => {
+          if (isWorkspaceTab(value)) setWorkspaceTab(value, true);
+        }}
         variant="scrollable"
         scrollButtons="auto"
         aria-label="数据运维工作区"
@@ -197,7 +239,10 @@ export function TushareSyncView() {
       >
         {TABS.map((tab) => (
           <Tab
-            key={tab.label}
+            key={tab.value}
+            value={tab.value}
+            id={`tushare-sync-${tab.value}-tab`}
+            aria-controls={`tushare-sync-${tab.value}-panel`}
             label={tab.label}
             icon={<Iconify icon={tab.icon} />}
             iconPosition="start"
@@ -205,10 +250,76 @@ export function TushareSyncView() {
         ))}
       </Tabs>
 
-      {currentTab === 0 && <SyncPlanTab isReadOnly={isReadOnly} refreshKey={refreshKey} />}
-      {currentTab === 1 && <SyncLogTab refreshKey={refreshKey} initialFilters={logFilters} />}
-      {currentTab === 2 && <DataQualityTab isReadOnly={isReadOnly} refreshKey={refreshKey} />}
-      {currentTab === 3 && <OpsTab isReadOnly={isReadOnly} refreshKey={refreshKey} />}
+      {isReadOnly && (
+        <Alert severity="info" sx={{ mt: 2 }}>
+          当前账号为只读模式，可查看同步状态与日志；触发同步、质量检查、补数、重试等操作需
+          超级管理员权限。
+        </Alert>
+      )}
+
+      {visitedTabs.includes('overview') && (
+        <Box
+          role="tabpanel"
+          id="tushare-sync-overview-panel"
+          aria-labelledby="tushare-sync-overview-tab"
+          hidden={currentTab !== 'overview'}
+        >
+          <SyncStatusOverviewPanel
+            refreshKey={refreshKeys.overview}
+            onGoLogs={handleGoLogs}
+            onGoQuality={handleGoQuality}
+          />
+        </Box>
+      )}
+
+      {visitedTabs.includes('plan') && (
+        <Box
+          role="tabpanel"
+          id="tushare-sync-plan-panel"
+          aria-labelledby="tushare-sync-plan-tab"
+          hidden={currentTab !== 'plan'}
+        >
+          <SyncPlanTab isReadOnly={isReadOnly} refreshKey={refreshKeys.plan} />
+        </Box>
+      )}
+
+      {visitedTabs.includes('logs') && (
+        <Box
+          role="tabpanel"
+          id="tushare-sync-logs-panel"
+          aria-labelledby="tushare-sync-logs-tab"
+          hidden={currentTab !== 'logs'}
+        >
+          <SyncLogTab refreshKey={refreshKeys.logs} initialFilters={logFilters} />
+        </Box>
+      )}
+
+      {visitedTabs.includes('quality') && (
+        <Box
+          role="tabpanel"
+          id="tushare-sync-quality-panel"
+          aria-labelledby="tushare-sync-quality-tab"
+          hidden={currentTab !== 'quality'}
+        >
+          <DataQualityTab
+            isReadOnly={isReadOnly}
+            refreshKey={refreshKeys.quality}
+            focusPanel={qualityFocusRequest > 0 ? 'tools' : undefined}
+            focusRequest={qualityFocusRequest}
+          />
+        </Box>
+      )}
+
+      {visitedTabs.includes('ops') && (
+        <Box
+          role="tabpanel"
+          id="tushare-sync-ops-panel"
+          aria-labelledby="tushare-sync-ops-tab"
+          hidden={currentTab !== 'ops'}
+        >
+          <OpsTab isReadOnly={isReadOnly} refreshKey={refreshKeys.ops} />
+        </Box>
+      )}
 
       <Drawer anchor="right" open={auditOpen} onClose={() => setAuditOpen(false)}>
         <Box sx={{ width: 360, p: 3 }}>

@@ -1,9 +1,21 @@
-import { screen } from '@testing-library/react';
+import { useState } from 'react';
+import { screen, waitFor } from '@testing-library/react';
 
 import { tushareSyncApi } from 'src/api/tushare-sync';
 import { renderWithProviders } from 'src/test/test-utils';
 
 import { SyncStatusOverviewPanel } from '../sync-status-overview';
+
+function RefreshKeyHarness() {
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  return (
+    <>
+      <button onClick={() => setRefreshKey((key) => key + 1)}>触发概览刷新</button>
+      <SyncStatusOverviewPanel refreshKey={refreshKey} />
+    </>
+  );
+}
 
 vi.mock('src/components/scrollbar', () => ({
   Scrollbar: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
@@ -65,14 +77,16 @@ describe('SyncStatusOverviewPanel', () => {
     });
   });
 
-  it('[OPS-B02] initial load uses cache while explicit panel refresh bypasses it', async () => {
-    const { user } = renderWithProviders(<SyncStatusOverviewPanel />);
+  it('[OPS-B02] initial load uses cache while page refresh bypasses it', async () => {
+    const { user } = renderWithProviders(<RefreshKeyHarness />);
     await screen.findByText('整体健康');
 
     expect(tushareSyncApi.getSyncStatusOverview).toHaveBeenNthCalledWith(1, false);
-    await user.click(screen.getByRole('button', { name: '刷新总览' }));
+    await user.click(screen.getByRole('button', { name: '触发概览刷新' }));
 
-    expect(tushareSyncApi.getSyncStatusOverview).toHaveBeenLastCalledWith(true);
+    await waitFor(() => {
+      expect(tushareSyncApi.getSyncStatusOverview).toHaveBeenLastCalledWith(true);
+    });
   });
 
   it('shows exact generatedAt time for the current or retained overview snapshot', async () => {
@@ -86,5 +100,63 @@ describe('SyncStatusOverviewPanel', () => {
     renderWithProviders(<SyncStatusOverviewPanel />);
 
     expect(await screen.findByText(/最后快照：2026-08-08 12:34:56/)).toBeInTheDocument();
+  });
+
+  it('新鲜度清单优先展示异常分类，并按需展开正常分类', async () => {
+    vi.mocked(tushareSyncApi.getSyncStatusOverview).mockResolvedValueOnce({
+      generatedAt: '2026-08-08T00:00:00.000Z',
+      totalRows: 0,
+      totalMissingDays: 0,
+      categories: [
+        {
+          name: '异常分类',
+          rowCount: 0,
+          items: [
+            {
+              tableName: 'FAILED_TASK',
+              displayName: '失败任务',
+              category: 'basic',
+              rowCount: 0,
+              minDate: null,
+              maxDate: null,
+              distinctDates: null,
+              missingDays: null,
+              lastSyncAt: '2026-08-05T12:00:00.000Z',
+              lastStatus: 'FAILED',
+              consecutiveFailures: 1,
+            },
+          ],
+        },
+        ...[1, 2, 3, 4, 5].map((index) => ({
+          name: '正常分类 ' + index,
+          rowCount: 0,
+          items: [
+            {
+              tableName: 'NORMAL_' + index,
+              displayName: '正常任务 ' + index,
+              category: 'basic',
+              rowCount: 0,
+              minDate: null,
+              maxDate: null,
+              distinctDates: null,
+              missingDays: null,
+              lastSyncAt: '2026-08-08T12:00:00.000Z',
+              lastStatus: 'SUCCESS' as const,
+              consecutiveFailures: 0,
+            },
+          ],
+        })),
+      ],
+    });
+
+    const { user } = renderWithProviders(<SyncStatusOverviewPanel />);
+
+    expect(await screen.findAllByText('异常分类')).toHaveLength(2);
+    expect(screen.getByText('正常分类 4')).toBeInTheDocument();
+    expect(screen.queryByText('正常分类 5')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: '查看全部 6 个分类' }));
+
+    expect(screen.getByText('正常分类 5')).toBeInTheDocument();
   });
 });
