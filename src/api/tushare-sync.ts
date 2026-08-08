@@ -52,7 +52,95 @@ export type TushareSyncPlan = {
  */
 export type ManualSyncAccepted = {
   message: string;
-  jobId?: string;
+  runId: string;
+  status: 'QUEUED' | 'RUNNING';
+};
+
+export type SyncRuntimeTask = {
+  task: string;
+  label: string;
+  category: string;
+  completedItems: number;
+  totalItems: number;
+  percentage: number;
+  currentKey?: string;
+  elapsedMs: number;
+  estimatedRemainingMs?: number;
+};
+
+export type SyncRuntimeSnapshot = {
+  status: 'IDLE' | 'QUEUED' | 'RUNNING' | 'STALE' | 'UNKNOWN';
+  runId: string | null;
+  sequence: number;
+  trigger: string | null;
+  mode: TushareSyncMode | null;
+  startedAt: string | null;
+  updatedAt: string | null;
+  heartbeatExpiresAt: string | null;
+  completedTasks: number;
+  totalTasks: number;
+  percentage: number;
+  elapsedMs: number;
+  estimatedRemainingMs: number | null;
+  activeTasks: SyncRuntimeTask[];
+  queue: { position: number; total: number };
+};
+
+export type OperationsFreshnessStatus =
+  | 'READY'
+  | 'SYNCING'
+  | 'WAITING'
+  | 'LATE'
+  | 'FAILED'
+  | 'BLOCKED'
+  | 'EMPTY'
+  | 'UNKNOWN';
+
+export type OperationsFreshnessItem = {
+  dataset: string;
+  displayName: string;
+  sourceTask: string;
+  sourceModels: string[];
+  frequency: 'DAILY' | 'QUARTERLY';
+  criticality: 'CORE' | 'IMPORTANT' | 'NORMAL';
+  expectedTradeDate: string | null;
+  dataThrough: string | null;
+  lagTradingDays: number | null;
+  status: OperationsFreshnessStatus;
+  reason: string;
+  schedule: string | null;
+  slaDueAt: string | null;
+  lastSuccessfulAt: string | null;
+  lastAttemptAt: string | null;
+  syncStatus: string;
+  qualityStatus: string;
+  recommendedTool: string | null;
+};
+
+export type DataOperationsOverview = {
+  generatedAt: string;
+  expectedTradeDate: string | null;
+  overallStatus: 'HEALTHY' | 'DEGRADED' | 'UNHEALTHY';
+  coreReadiness: { ready: number; total: number; percentage: number };
+  runtime: SyncRuntimeSnapshot;
+  attention: Array<{
+    type: string;
+    severity: 'HIGH' | 'MEDIUM';
+    title: string;
+    detail: string;
+    task: string;
+    dataset: string;
+  }>;
+  freshness: OperationsFreshnessItem[];
+  quality: { pass: number; warn: number; fail: number; unknown: number };
+  retryQueue: { pending: number; retrying: number; exhausted: number };
+  recentRun: {
+    task: string;
+    status: string;
+    startedAt: string;
+    finishedAt: string | null;
+    message: string | null;
+  } | null;
 };
 
 // ── 缓存统计 ──
@@ -325,6 +413,14 @@ function normalizeSyncLogQuery(query: SyncLogQuery): SyncLogQuery {
 }
 
 export const tushareSyncApi = {
+  /** 数据运维决策概览 */
+  getOperationsOverview: (): Promise<DataOperationsOverview> =>
+    apiClient.post<DataOperationsOverview>('/api/tushare/admin/operations-overview', {}),
+
+  /** 可恢复的同步运行态 */
+  getSyncRuntimeStatus: (): Promise<SyncRuntimeSnapshot> =>
+    apiClient.post<SyncRuntimeSnapshot>('/api/tushare/admin/sync/runtime-status', {}),
+
   /** 获取所有可用的同步任务计划（仅超级管理员） */
   getPlans: (): Promise<TushareSyncPlan[]> =>
     apiClient.post<TushareSyncPlan[]>('/api/tushare/admin/plans'),

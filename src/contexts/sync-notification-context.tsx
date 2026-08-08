@@ -2,7 +2,12 @@ import type { Socket } from 'socket.io-client';
 import type { SocketStatus } from 'src/lib/socket';
 import type { ViolationItem } from 'src/api/portfolio';
 import type { AgentRunStatus } from 'src/types/agent/generated';
-import type { RepairSummary, QualityCheckSummary } from 'src/api/tushare-sync';
+import type {
+  RepairSummary,
+  SyncRuntimeTask,
+  QualityCheckSummary,
+  SyncRuntimeSnapshot,
+} from 'src/api/tushare-sync';
 
 import { useRef, useState, useEffect, useContext, useCallback, createContext } from 'react';
 
@@ -15,11 +20,13 @@ import { getSocket, destroySocket, getSocketStatus, onSocketStatusChange } from 
 // ----------------------------------------------------------------------
 
 export type SyncStartedPayload = {
+  runId?: string;
   trigger: string;
   mode: string;
 };
 
 export type SyncCompletedPayload = {
+  runId?: string;
   trigger: string;
   mode: string;
   executedTasks: string[];
@@ -30,9 +37,21 @@ export type SyncCompletedPayload = {
 };
 
 export type SyncFailedPayload = {
+  runId?: string;
   trigger: string;
   mode: string;
   reason: string;
+};
+
+export type SyncProgressPayload = SyncRuntimeTask & { runId?: string };
+
+export type SyncOverallProgressPayload = {
+  runId?: string;
+  completedTasks: number;
+  totalTasks: number;
+  percentage: number;
+  elapsedMs: number;
+  estimatedRemainingMs?: number;
 };
 
 // 风控违规推送
@@ -91,6 +110,8 @@ type SyncNotificationContextValue = {
   reconnect: () => void;
   /** 当前是否有同步正在进行（通过 WebSocket started/completed/failed 维护） */
   isSyncing: boolean;
+  /** WebSocket 增量运行态；页面刷新后的权威状态由 runtime-status REST 恢复 */
+  runtimeSnapshot: SyncRuntimeSnapshot | null;
   /** 最新同步完成的结果（null 表示尚无结果） */
   lastSyncResult: SyncCompletedPayload | null;
   /** 最新同步失败原因（null 表示尚无错误） */
@@ -142,6 +163,7 @@ export function SyncNotificationProvider({ children }: ProviderProps) {
   const { isAuthenticated } = useAuth();
   const [socketStatus, setSocketStatus] = useState<SocketStatus>(getSocketStatus());
   const [isSyncing, setIsSyncing] = useState(false);
+  const [runtimeSnapshot, setRuntimeSnapshot] = useState<SyncRuntimeSnapshot | null>(null);
   const [lastSyncResult, setLastSyncResult] = useState<SyncCompletedPayload | null>(null);
   const [lastSyncError, setLastSyncError] = useState<SyncFailedPayload | null>(null);
   const [notifications, setNotifications] = useState<SyncNotificationItem[]>([]);
@@ -165,14 +187,33 @@ export function SyncNotificationProvider({ children }: ProviderProps) {
     setSocketStatus(getSocketStatus());
     const offStatus = onSocketStatusChange(setSocketStatus);
 
-    const handleStarted = (_payload: SyncStartedPayload) => {
+    const handleStarted = (payload: SyncStartedPayload) => {
       setIsSyncing(true);
       setLastSyncResult(null);
       setLastSyncError(null);
+      const now = new Date().toISOString();
+      setRuntimeSnapshot({
+        status: 'RUNNING',
+        runId: payload.runId ?? null,
+        sequence: 1,
+        trigger: payload.trigger,
+        mode: payload.mode === 'full' ? 'full' : 'incremental',
+        startedAt: now,
+        updatedAt: now,
+        heartbeatExpiresAt: null,
+        completedTasks: 0,
+        totalTasks: 0,
+        percentage: 0,
+        elapsedMs: 0,
+        estimatedRemainingMs: null,
+        activeTasks: [],
+        queue: { position: 0, total: 0 },
+      });
     };
 
     const handleCompleted = (payload: SyncCompletedPayload) => {
       setIsSyncing(false);
+      setRuntimeSnapshot(null);
       setLastSyncResult(payload);
 
       const hasFailed = payload.failedTasks.length > 0;
@@ -199,6 +240,7 @@ export function SyncNotificationProvider({ children }: ProviderProps) {
 
     const handleFailed = (payload: SyncFailedPayload) => {
       setIsSyncing(false);
+      setRuntimeSnapshot(null);
       setLastSyncError(payload);
 
       const item: SyncNotificationItem = {
@@ -215,9 +257,39 @@ export function SyncNotificationProvider({ children }: ProviderProps) {
       setNotifications((prev) => [item, ...prev.slice(0, MAX_NOTIFICATIONS - 1)]);
     };
 
+    const handleProgress = (payload: SyncProgressPayload) => {
+      setRuntimeSnapshot((current) => {
+        if (!current || (payload.runId && current.runId && payload.runId !== current.runId)) return current;
+        return {
+          ...current,
+          sequence: current.sequence + 1,
+          updatedAt: new Date().toISOString(),
+          activeTasks: [...current.activeTasks.filter((item) => item.task !== payload.task), payload],
+        };
+      });
+    };
+
+    const handleOverallProgress = (payload: SyncOverallProgressPayload) => {
+      setRuntimeSnapshot((current) => {
+        if (!current || (payload.runId && current.runId && payload.runId !== current.runId)) return current;
+        return {
+          ...current,
+          sequence: current.sequence + 1,
+          updatedAt: new Date().toISOString(),
+          completedTasks: payload.completedTasks,
+          totalTasks: payload.totalTasks,
+          percentage: payload.percentage,
+          elapsedMs: payload.elapsedMs,
+          estimatedRemainingMs: payload.estimatedRemainingMs ?? null,
+        };
+      });
+    };
+
     socket.on('tushare_sync_started', handleStarted);
     socket.on('tushare_sync_completed', handleCompleted);
     socket.on('tushare_sync_failed', handleFailed);
+    socket.on('tushare_sync_progress', handleProgress);
+    socket.on('tushare_sync_overall_progress', handleOverallProgress);
 
     // ── Phase 4 新增事件 ──
     const handleQualityCompleted = (summary: QualityCheckSummary) => {
@@ -292,6 +364,8 @@ export function SyncNotificationProvider({ children }: ProviderProps) {
       socket.off('tushare_sync_started', handleStarted);
       socket.off('tushare_sync_completed', handleCompleted);
       socket.off('tushare_sync_failed', handleFailed);
+      socket.off('tushare_sync_progress', handleProgress);
+      socket.off('tushare_sync_overall_progress', handleOverallProgress);
       socket.off('data_quality_completed', handleQualityCompleted);
       socket.off('auto_repair_queued', handleAutoRepairQueued);
       socket.off('risk_violation', handleRiskViolation);
@@ -329,6 +403,7 @@ export function SyncNotificationProvider({ children }: ProviderProps) {
         isConnected: socketStatus === 'connected',
         reconnect,
         isSyncing,
+        runtimeSnapshot,
         lastSyncResult,
         lastSyncError,
         notifications,

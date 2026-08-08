@@ -1,3 +1,5 @@
+import type { DataOperationsOverview } from 'src/api/tushare-sync';
+
 import { useState } from 'react';
 import { screen, waitFor } from '@testing-library/react';
 
@@ -8,7 +10,6 @@ import { SyncStatusOverviewPanel } from '../sync-status-overview';
 
 function RefreshKeyHarness() {
   const [refreshKey, setRefreshKey] = useState(0);
-
   return (
     <>
       <button onClick={() => setRefreshKey((key) => key + 1)}>触发概览刷新</button>
@@ -17,147 +18,121 @@ function RefreshKeyHarness() {
   );
 }
 
-vi.mock('src/components/scrollbar', () => ({
-  Scrollbar: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-}));
-
 vi.mock('src/api/tushare-sync', async (importOriginal) => {
   // eslint-disable-next-line @typescript-eslint/consistent-type-imports
   const actual = await importOriginal<typeof import('src/api/tushare-sync')>();
   return {
     ...actual,
-    tushareSyncApi: {
-      ...actual.tushareSyncApi,
-      getSyncLogs: vi.fn(),
-      getSyncStatusOverview: vi.fn(),
-    },
+    tushareSyncApi: { ...actual.tushareSyncApi, getOperationsOverview: vi.fn() },
   };
 });
+
+const overviewFixture: DataOperationsOverview = {
+  generatedAt: '2026-08-08T12:34:56+08:00',
+  expectedTradeDate: '20260808',
+  overallStatus: 'DEGRADED',
+  coreReadiness: { ready: 4, total: 5, percentage: 80 },
+  runtime: {
+    status: 'RUNNING',
+    runId: 'run-12345678',
+    sequence: 3,
+    trigger: 'schedule',
+    mode: 'incremental',
+    startedAt: '2026-08-08T18:30:00+08:00',
+    updatedAt: '2026-08-08T18:31:00+08:00',
+    heartbeatExpiresAt: '2026-08-08T18:33:00+08:00',
+    completedTasks: 2,
+    totalTasks: 5,
+    percentage: 40,
+    elapsedMs: 60000,
+    estimatedRemainingMs: 90000,
+    activeTasks: [
+      {
+        task: 'DAILY',
+        label: '日线行情',
+        category: 'market',
+        completedItems: 4,
+        totalItems: 10,
+        percentage: 40,
+        elapsedMs: 60000,
+      },
+    ],
+    queue: { position: 0, total: 0 },
+  },
+  attention: [
+    {
+      type: 'LATE',
+      severity: 'HIGH',
+      title: 'Daily · LATE',
+      detail: '期望 20260808，当前 20260807',
+      task: 'DAILY',
+      dataset: 'STOCK_DAILY',
+    },
+  ],
+  freshness: [
+    {
+      dataset: 'STOCK_DAILY',
+      displayName: 'Daily',
+      sourceTask: 'DAILY',
+      sourceModels: ['Daily'],
+      frequency: 'DAILY',
+      criticality: 'CORE',
+      expectedTradeDate: '20260808',
+      dataThrough: '20260807',
+      lagTradingDays: 1,
+      status: 'LATE',
+      reason: '期望 20260808，当前 20260807',
+      schedule: '交易日盘后同步',
+      slaDueAt: '2026-08-08T19:00:00+08:00',
+      lastSuccessfulAt: '2026-08-07T18:40:00+08:00',
+      lastAttemptAt: '2026-08-08T18:30:00+08:00',
+      syncStatus: 'SUCCESS',
+      qualityStatus: 'PASS',
+      recommendedTool: null,
+    },
+  ],
+  quality: { pass: 1, warn: 0, fail: 0, unknown: 0 },
+  retryQueue: { pending: 1, retrying: 0, exhausted: 0 },
+  recentRun: {
+    task: 'DAILY',
+    status: 'SUCCESS',
+    startedAt: '2026-08-08T18:30:00+08:00',
+    finishedAt: '2026-08-08T18:31:00+08:00',
+    message: null,
+  },
+};
 
 describe('SyncStatusOverviewPanel', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(tushareSyncApi.getSyncStatusOverview).mockResolvedValue({
-      generatedAt: '2026-08-08T00:00:00.000Z',
-      totalRows: 0,
-      totalMissingDays: 0,
-      categories: [],
-    });
-    vi.mocked(tushareSyncApi.getSyncLogs).mockResolvedValue({
-      total: 1,
-      page: 1,
-      pageSize: 100,
-      items: [
-        {
-          id: 7,
-          task: 'DAILY',
-          status: 'FAILED',
-          tradeDate: '20260808',
-          message: 'failed',
-          payload: null,
-          startedAt: '2026-08-08T09:30:00.000+08:00',
-          finishedAt: '2026-08-08T09:31:00.000+08:00',
-        },
-      ],
-    });
+    vi.mocked(tushareSyncApi.getOperationsOverview).mockResolvedValue(overviewFixture);
   });
 
-  it('[OPS-B08] timeline row opens logs with task, status and date filters', async () => {
+  it('优先展示核心日频就绪度与可恢复的当前任务', async () => {
+    renderWithProviders(<SyncStatusOverviewPanel />);
+
+    expect(await screen.findByText('核心日频就绪度')).toBeInTheDocument();
+    expect(screen.getByText('80%')).toBeInTheDocument();
+    expect(screen.getByText('正在同步')).toBeInTheDocument();
+    expect(screen.getByText('日线行情')).toBeInTheDocument();
+  });
+
+  it('按真实水位展示日频接口，并可进入对应日志', async () => {
     const onGoLogs = vi.fn();
     const { user } = renderWithProviders(<SyncStatusOverviewPanel onGoLogs={onGoLogs} />);
 
-    const task = await screen.findByText('DAILY');
-    await user.click(task.closest('button')!);
-
-    expect(onGoLogs).toHaveBeenCalledWith({
-      task: 'DAILY',
-      status: 'FAILED',
-      startDate: '2026-08-08',
-      endDate: '2026-08-08',
-    });
+    expect(await screen.findByText('2026-08-07')).toBeInTheDocument();
+    expect(screen.getAllByText('2026-08-08').length).toBeGreaterThan(0);
+    await user.click(screen.getByRole('button', { name: '日志' }));
+    expect(onGoLogs).toHaveBeenCalledWith({ task: 'DAILY' });
   });
 
-  it('[OPS-B02] initial load uses cache while page refresh bypasses it', async () => {
+  it('refreshKey 变化时重新读取统一概览', async () => {
     const { user } = renderWithProviders(<RefreshKeyHarness />);
-    await screen.findByText('整体健康');
+    await screen.findByText('核心日频就绪度');
+    expect(tushareSyncApi.getOperationsOverview).toHaveBeenCalledTimes(1);
 
-    expect(tushareSyncApi.getSyncStatusOverview).toHaveBeenNthCalledWith(1, false);
     await user.click(screen.getByRole('button', { name: '触发概览刷新' }));
-
-    await waitFor(() => {
-      expect(tushareSyncApi.getSyncStatusOverview).toHaveBeenLastCalledWith(true);
-    });
-  });
-
-  it('shows exact generatedAt time for the current or retained overview snapshot', async () => {
-    vi.mocked(tushareSyncApi.getSyncStatusOverview).mockResolvedValueOnce({
-      generatedAt: '2026-08-08T12:34:56',
-      totalRows: 0,
-      totalMissingDays: 0,
-      categories: [],
-    });
-
-    renderWithProviders(<SyncStatusOverviewPanel />);
-
-    expect(await screen.findByText(/最后快照：2026-08-08 12:34:56/)).toBeInTheDocument();
-  });
-
-  it('新鲜度清单优先展示异常分类，分类汇总始终展示全部分类', async () => {
-    vi.mocked(tushareSyncApi.getSyncStatusOverview).mockResolvedValueOnce({
-      generatedAt: '2026-08-08T00:00:00.000Z',
-      totalRows: 0,
-      totalMissingDays: 0,
-      categories: [
-        {
-          name: '异常分类',
-          rowCount: 0,
-          items: [
-            {
-              tableName: 'FAILED_TASK',
-              displayName: '失败任务',
-              category: 'basic',
-              rowCount: 0,
-              minDate: null,
-              maxDate: null,
-              distinctDates: null,
-              missingDays: null,
-              lastSyncAt: '2026-08-05T12:00:00.000Z',
-              lastStatus: 'FAILED',
-              consecutiveFailures: 1,
-            },
-          ],
-        },
-        ...[1, 2, 3, 4, 5].map((index) => ({
-          name: '正常分类 ' + index,
-          rowCount: 0,
-          items: [
-            {
-              tableName: 'NORMAL_' + index,
-              displayName: '正常任务 ' + index,
-              category: 'basic',
-              rowCount: 0,
-              minDate: null,
-              maxDate: null,
-              distinctDates: null,
-              missingDays: null,
-              lastSyncAt: '2026-08-08T12:00:00.000Z',
-              lastStatus: 'SUCCESS' as const,
-              consecutiveFailures: 0,
-            },
-          ],
-        })),
-      ],
-    });
-
-    const { user } = renderWithProviders(<SyncStatusOverviewPanel />);
-
-    expect(await screen.findAllByText('异常分类')).toHaveLength(2);
-    expect(screen.getAllByText('正常分类 4')).toHaveLength(2);
-    expect(screen.getByText('正常分类 5')).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: '展开全部' })).not.toBeInTheDocument();
-
-    await user.click(screen.getByRole('button', { name: '查看全部 6 个分类' }));
-
-    expect(screen.getAllByText('正常分类 5')).toHaveLength(2);
+    await waitFor(() => expect(tushareSyncApi.getOperationsOverview).toHaveBeenCalledTimes(2));
   });
 });

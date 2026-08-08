@@ -72,7 +72,11 @@ describe('SyncPlanTab', () => {
         consecutiveFailures: 1,
       },
     ]);
-    mockManualSync.mockResolvedValue({ message: '同步任务已提交' });
+    mockManualSync.mockResolvedValue({
+      message: '同步任务已提交',
+      runId: 'test-run',
+      status: 'QUEUED',
+    });
   });
 
   it('统一调度 toolbar 操作控件使用 small theme baseline，避免尺寸混用和错位', async () => {
@@ -266,7 +270,9 @@ describe('SyncPlanTab', () => {
   });
 
   it('本地请求进行中锁住所有同步入口，避免普通同步重复提交', async () => {
-    let resolveSubmission: ((value: { message: string }) => void) | undefined;
+    let resolveSubmission:
+      | ((value: { message: string; runId: string; status: 'QUEUED' }) => void)
+      | undefined;
     mockManualSync.mockImplementationOnce(
       () =>
         new Promise((resolve) => {
@@ -290,7 +296,7 @@ describe('SyncPlanTab', () => {
     expect(mockManualSync).toHaveBeenCalledTimes(1);
 
     await act(async () => {
-      resolveSubmission?.({ message: '同步任务已提交' });
+      resolveSubmission?.({ message: '同步任务已提交', runId: 'test-run', status: 'QUEUED' });
     });
 
     await waitFor(() => expect(startSync).not.toBeDisabled());

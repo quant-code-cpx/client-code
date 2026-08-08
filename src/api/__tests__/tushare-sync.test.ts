@@ -35,6 +35,16 @@ describe('tushareSyncApi overview and retry contracts', () => {
     vi.clearAllMocks();
   });
 
+  it('reads the operations overview and recoverable runtime with POST bodies', async () => {
+    mockPost().mockResolvedValue({});
+
+    await tushareSyncApi.getOperationsOverview();
+    await tushareSyncApi.getSyncRuntimeStatus();
+
+    expect(mockPost()).toHaveBeenNthCalledWith(1, '/api/tushare/admin/operations-overview', {});
+    expect(mockPost()).toHaveBeenNthCalledWith(2, '/api/tushare/admin/sync/runtime-status', {});
+  });
+
   it('[OPS-B02] regular overview read keeps an empty body', async () => {
     mockPost().mockResolvedValueOnce({
       generatedAt: '2026-08-08T00:00:00.000Z',

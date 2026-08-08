@@ -41,20 +41,13 @@ describe('[OPS-B07] local request errors', () => {
     sessionStorage.clear();
   });
 
-  it('overview keeps working while timeline shows its own retryable error', async () => {
-    api.getSyncStatusOverview.mockResolvedValue({
-      generatedAt: '2026-08-08T00:00:00.000Z',
-      totalRows: 0,
-      totalMissingDays: 0,
-      categories: [],
-    });
-    api.getSyncLogs.mockRejectedValue(new Error('timeline down'));
+  it('overview exposes request errors instead of presenting an empty healthy state', async () => {
+    api.getOperationsOverview.mockRejectedValue(new Error('overview down'));
 
     renderWithProviders(<SyncStatusOverviewPanel />);
 
-    expect(await screen.findByText('timeline down')).toBeInTheDocument();
-    expect(screen.getByText('整体健康')).toBeInTheDocument();
-    expect(screen.queryByText('今日暂无同步记录。')).not.toBeInTheDocument();
+    expect(await screen.findByText('overview down')).toBeInTheDocument();
+    expect(screen.queryByText('核心日频就绪度')).not.toBeInTheDocument();
   });
 
   it('sync logs expose summary and list errors instead of zero/empty results', async () => {

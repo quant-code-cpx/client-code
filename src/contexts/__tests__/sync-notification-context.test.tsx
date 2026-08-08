@@ -95,10 +95,10 @@ describe('SyncNotificationProvider', () => {
       expect(mockDestroySocket).toHaveBeenCalledTimes(1);
     });
 
-    it('mount 时注册全部 8 个事件监听器', () => {
+    it('mount 时注册全部 10 个事件监听器', () => {
       renderHook(useSyncNotification, { wrapper });
 
-      expect(mockSocket.on).toHaveBeenCalledTimes(8);
+      expect(mockSocket.on).toHaveBeenCalledTimes(10);
 
       const registeredEvents = (mockSocket.on.mock.calls as [string, ...unknown[]][]).map(
         ([event]) => event
@@ -106,6 +106,8 @@ describe('SyncNotificationProvider', () => {
       expect(registeredEvents).toContain('tushare_sync_started');
       expect(registeredEvents).toContain('tushare_sync_completed');
       expect(registeredEvents).toContain('tushare_sync_failed');
+      expect(registeredEvents).toContain('tushare_sync_progress');
+      expect(registeredEvents).toContain('tushare_sync_overall_progress');
       expect(registeredEvents).toContain('data_quality_completed');
       expect(registeredEvents).toContain('auto_repair_queued');
       expect(registeredEvents).toContain('risk_violation');
@@ -118,7 +120,7 @@ describe('SyncNotificationProvider', () => {
 
       unmount();
 
-      expect(mockSocket.off).toHaveBeenCalledTimes(8);
+      expect(mockSocket.off).toHaveBeenCalledTimes(10);
       expect(mockDestroySocket).toHaveBeenCalledTimes(1);
     });
   });
@@ -132,6 +134,41 @@ describe('SyncNotificationProvider', () => {
       });
 
       expect(result.current.isSyncing).toBe(true);
+    });
+
+    it('started 与进度事件合并为当前运行态快照', () => {
+      const { result } = renderHook(useSyncNotification, { wrapper });
+
+      act(() => {
+        emitSocket('tushare_sync_started', createSyncStartedPayload({ runId: 'run-1' }));
+        emitSocket('tushare_sync_progress', {
+          runId: 'run-1',
+          task: 'DAILY',
+          label: '日线行情',
+          category: 'market',
+          completedItems: 4,
+          totalItems: 10,
+          percentage: 40,
+          elapsedMs: 1000,
+        });
+        emitSocket('tushare_sync_overall_progress', {
+          runId: 'run-1',
+          completedTasks: 2,
+          totalTasks: 5,
+          percentage: 40,
+          elapsedMs: 2000,
+          estimatedRemainingMs: 3000,
+        });
+      });
+
+      expect(result.current.runtimeSnapshot).toMatchObject({
+        status: 'RUNNING',
+        runId: 'run-1',
+        completedTasks: 2,
+        totalTasks: 5,
+        percentage: 40,
+        activeTasks: [expect.objectContaining({ task: 'DAILY', percentage: 40 })],
+      });
     });
 
     it('started 事件清除上次的 lastSyncResult 和 lastSyncError', () => {
