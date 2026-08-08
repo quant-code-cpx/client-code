@@ -83,13 +83,13 @@ export function RotationMomentumChart({ tradeDate, period, onSectorClick, refres
       type: 'bar',
       toolbar: { show: false },
       events: {
-        dataPointSelection: (_event: unknown, _chartCtx: unknown, config: any) => {
+        dataPointSelection: (_event: unknown, _chartCtx: unknown, config: unknown) => {
           const name = sorted[(config as { dataPointIndex: number })?.dataPointIndex]?.name;
           if (name && onSectorClick) onSectorClick(name);
         },
       },
     },
-    colors: [theme.palette.error.main],
+    colors: barColors,
     plotOptions: {
       bar: {
         horizontal: true,
@@ -97,10 +97,6 @@ export function RotationMomentumChart({ tradeDate, period, onSectorClick, refres
         borderRadius: 3,
         barHeight: '60%',
         dataLabels: { position: 'top' },
-        colors: {
-          backgroundBarColors: [],
-          ranges: barColors.map((color, i) => ({ from: i, to: i, color })),
-        },
       },
     },
     dataLabels: {

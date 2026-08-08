@@ -1,9 +1,11 @@
 import type { SectorFlowItem } from 'src/api/market';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { varAlpha } from 'minimal-shared/utils';
 
 import Box from '@mui/material/Box';
+import Tab from '@mui/material/Tab';
+import Tabs from '@mui/material/Tabs';
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
 import Alert from '@mui/material/Alert';
@@ -21,6 +23,7 @@ import {
   getScatterColor,
   getScatterSectorKey,
   pickScatterLabelKeys,
+  computeLinearAxisBounds,
   buildScatterInsightLists,
   type ScatterInsightLists,
 } from './utils';
@@ -327,11 +330,12 @@ function ScatterInsightPanel({
   insights: ScatterInsightLists;
   onSectorClick?: (sector: SectorFlowItem) => void;
 }) {
+  const [activeIndex, setActiveIndex] = useState(0);
   const sections: InsightSection[] = [
-    { title: '净流入 Top', rows: insights.topInflow, valueMode: 'flow' },
-    { title: '净流出 Top', rows: insights.topOutflow, valueMode: 'flow' },
-    { title: '涨幅 Top', rows: insights.topGainers, valueMode: 'pct' },
-    { title: '跌幅 Top', rows: insights.topLosers, valueMode: 'pct' },
+    { title: '净流入', rows: insights.topInflow, valueMode: 'flow' },
+    { title: '净流出', rows: insights.topOutflow, valueMode: 'flow' },
+    { title: '涨幅', rows: insights.topGainers, valueMode: 'pct' },
+    { title: '跌幅', rows: insights.topLosers, valueMode: 'pct' },
     { title: '中心拥挤区', rows: insights.crowded, valueMode: 'crowded' },
   ];
 
@@ -362,15 +366,25 @@ function ScatterInsightPanel({
           </Typography>
         </Stack>
 
-        {sections.map((section) => (
-          <InsightList
-            rows={section.rows}
-            title={section.title}
-            key={section.title}
-            valueMode={section.valueMode}
-            onSectorClick={onSectorClick}
-          />
-        ))}
+        <Tabs
+          value={activeIndex}
+          onChange={(_event, value: number) => setActiveIndex(value)}
+          variant="scrollable"
+          scrollButtons="auto"
+          aria-label="散点图信息索引"
+        >
+          {sections.map((section) => (
+            <Tab key={section.title} label={section.title} sx={{ minWidth: 76 }} />
+          ))}
+        </Tabs>
+
+        <Box
+          role="region"
+          aria-label={`${sections[activeIndex].title}板块列表`}
+          sx={{ maxHeight: { xs: 360, lg: 560 }, overflowY: 'auto', pr: 0.5 }}
+        >
+          <InsightList {...sections[activeIndex]} onSectorClick={onSectorClick} />
+        </Box>
       </Stack>
     </Box>
   );
@@ -419,7 +433,8 @@ export function HeatmapScatterChart({
   const theme = useTheme();
 
   const labelKeys = useMemo(() => pickScatterLabelKeys(sectors, 8), [sectors]);
-  const insights = useMemo(() => buildScatterInsightLists(sectors, 4), [sectors]);
+  // 五组索引完整保留当前散点集合；每个板块至少能经方向列表或中心簇列表访问。
+  const insights = useMemo(() => buildScatterInsightLists(sectors, sectors.length), [sectors]);
 
   const tooltipPalette = useMemo<TooltipPalette>(
     () => ({
@@ -427,6 +442,18 @@ export function HeatmapScatterChart({
       border: theme.vars.palette.divider,
       positive: theme.vars.palette.error.main,
       negative: theme.vars.palette.success.main,
+    }),
+    [theme]
+  );
+  const colorPalette = useMemo(
+    () => ({
+      strongNegative: theme.vars.palette.success.dark,
+      negative: theme.vars.palette.success.main,
+      weakNegative: theme.vars.palette.success.light,
+      neutral: theme.vars.palette.grey[500],
+      weakPositive: theme.vars.palette.error.light,
+      positive: theme.vars.palette.error.main,
+      strongPositive: theme.vars.palette.error.dark,
     }),
     [theme]
   );
@@ -438,7 +465,7 @@ export function HeatmapScatterChart({
     // 按颜色分组
     const colorGroupMap = new Map<string, SectorFlowItem[]>();
     for (const sector of sectors) {
-      const color = getScatterColor(sector.netAmount ?? 0);
+      const color = getScatterColor(sector.netAmount ?? 0, colorPalette);
       if (!colorGroupMap.has(color)) colorGroupMap.set(color, []);
       colorGroupMap.get(color)!.push(sector);
     }
@@ -451,11 +478,12 @@ export function HeatmapScatterChart({
         name: color,
         color,
         data: items.map((sector) => {
-          const amountYi = Math.max(toYi(sector.amount), 0.01);
+          const amount = Number.isFinite(sector.amount) ? (sector.amount as number) : 0;
+          const netAmount = Number.isFinite(sector.netAmount) ? (sector.netAmount as number) : 0;
           return [
-            sector.pctChange ?? 0,
-            yuanToYi(sector.netAmount), // Y：netAmount 单位元 → 亿
-            Math.max(Math.sqrt(amountYi), 1), // Z：压缩成交额差异，避免大气泡吞掉中心簇
+            Number.isFinite(sector.pctChange) ? (sector.pctChange as number) : 0,
+            netAmount / 100_000_000, // Y：仅做元→亿元单位换算，不预先舍入
+            Math.max(amount / 10000, 0), // Z：仅做万元→亿元单位换算
           ] as [number, number, number];
         }),
       });
@@ -463,25 +491,28 @@ export function HeatmapScatterChart({
     });
 
     return { series: seriesList, pointToSector: sectorMatrix };
-  }, [sectors]);
+  }, [sectors, colorPalette]);
 
-  // 轴范围：用第 90 百分位数计算，避免极端値把其他点压到中心
+  // 全量线性轴：真实最小/最大值 + 8% padding，不裁点、不改变 X/Y 原值。
   const { xMin, xMax, yMin, yMax } = useMemo(() => {
-    if (!sectors.length) return { xMin: -5, xMax: 5, yMin: -20, yMax: 20 };
+    const xBounds = computeLinearAxisBounds(
+      sectors.map((sector) => sector.pctChange),
+      { min: -5, max: 5 }
+    );
+    const yBounds = computeLinearAxisBounds(
+      sectors.map((sector) => {
+        const value = Number.isFinite(sector.netAmount) ? (sector.netAmount as number) : 0;
+        return value / 100_000_000;
+      }),
+      { min: -20, max: 20 }
+    );
 
-    const absXArr = sectors.map((sector) => Math.abs(sector.pctChange ?? 0)).sort((a, b) => a - b);
-    const absYArr = sectors
-      .map((sector) => Math.abs(yuanToYi(sector.netAmount ?? 0)))
-      .sort((a, b) => a - b);
-
-    // 90 百分位限制极端影响，并保证最小显示范围
-    const p90X = absXArr[Math.floor(absXArr.length * 0.9)] ?? 3;
-    const p90Y = absYArr[Math.floor(absYArr.length * 0.9)] ?? 10;
-
-    const xPad = Math.max(p90X * 1.35, 3);
-    const yPad = Math.max(p90Y * 1.25, 10);
-
-    return { xMin: -xPad, xMax: xPad, yMin: -yPad, yMax: yPad };
+    return {
+      xMin: xBounds.min,
+      xMax: xBounds.max,
+      yMin: yBounds.min,
+      yMax: yBounds.max,
+    };
   }, [sectors]);
 
   const chartOptions = useChart({
@@ -520,8 +551,8 @@ export function HeatmapScatterChart({
     },
     plotOptions: {
       bubble: {
-        minBubbleRadius: 4,
-        maxBubbleRadius: 18,
+        minBubbleRadius: 3,
+        maxBubbleRadius: 14,
       },
     },
     annotations: {
@@ -542,8 +573,8 @@ export function HeatmapScatterChart({
         },
       ],
     },
-    fill: { opacity: 0.62 },
-    stroke: { width: 1.4, colors: [theme.vars.palette.background.paper] },
+    fill: { opacity: 0.52 },
+    stroke: { width: 1.6, colors: [theme.vars.palette.background.paper] },
     states: {
       hover: { filter: { type: 'lighten' } },
       active: { allowMultipleDataPointsSelection: false, filter: { type: 'darken' } },

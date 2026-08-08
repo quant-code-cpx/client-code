@@ -38,6 +38,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  '/news/articles/highlights': {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** 查询首页重磅新闻摘要 */
+    post: operations['NewsController_getHighlights'];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   '/news/coverage': {
     parameters: {
       query?: never;
@@ -298,6 +315,73 @@ export interface components {
       /** Format: date-time */
       observedAt: string;
     };
+    NewsHighlightsResponseDto: {
+      /** Format: date-time */
+      generatedAt: string;
+      /** Format: date-time */
+      dataThrough?: string | null;
+      partial: boolean;
+      warnings: components['schemas']['NewsCoverageWarningDto'][];
+      /** @enum {string} */
+      rankingVersion: 'impact-v1';
+      /** @enum {string} */
+      rankingStatus: 'READY' | 'STALE' | 'RECENT_FALLBACK';
+      /** @enum {string} */
+      displayMode: 'HIGHLIGHTS' | 'RECENT';
+      items: components['schemas']['NewsHighlightItemDto'][];
+    };
+    NewsHighlightItemDto: {
+      articleId: string;
+      revision: number;
+      /** @enum {string} */
+      contentType: 'NOTICE' | 'NEWS' | 'FLASH';
+      /** @enum {string} */
+      sourceType:
+        | 'REGULATOR'
+        | 'EXCHANGE'
+        | 'COMPANY'
+        | 'MEDIA'
+        | 'INSTITUTION'
+        | 'AGGREGATOR'
+        | 'OTHER';
+      title: string;
+      excerpt?: string | null;
+      publisher?: string | null;
+      canonicalUrl?: string | null;
+      /** Format: date-time */
+      publishedAt?: string | null;
+      /** Format: date */
+      publishedDate?: string | null;
+      /** @enum {string} */
+      publishedPrecision: 'SECOND' | 'MINUTE' | 'DATE' | 'UNKNOWN';
+      /** Format: date-time */
+      firstSeenAt: string;
+      securityCodes: string[];
+      providerKeys: string[];
+      qualityFlags: string[];
+      /** @enum {string} */
+      impactLevel: 'CRITICAL' | 'MAJOR' | 'RECENT';
+      impactScore: number;
+      reasonCodes: (
+        | 'AUTHORITATIVE_SOURCE'
+        | 'BREAKING_EVENT'
+        | 'CORROBORATED'
+        | 'FRESHNESS'
+        | 'MARKET_WIDE'
+        | 'SECURITY_RELEVANCE'
+      )[];
+      corroboratingSourceCount: number;
+      relatedArticleCount: number;
+    };
+    NewsHighlightsRequestDto: {
+      /**
+       * @default ALL
+       * @enum {string}
+       */
+      scope: 'ALL';
+      /** @default 5 */
+      limit: number;
+    };
     NewsArticleDetailResponseDto: {
       articleId: string;
       revision: number;
@@ -510,6 +594,31 @@ export interface operations {
         content: {
           'application/json': components['schemas']['ResponseModel'] & {
             data?: components['schemas']['NewsArticleDetailResponseDto'];
+          };
+        };
+      };
+    };
+  };
+  NewsController_getHighlights: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        'application/json': components['schemas']['NewsHighlightsRequestDto'];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          'application/json': components['schemas']['ResponseModel'] & {
+            data?: components['schemas']['NewsHighlightsResponseDto'];
           };
         };
       };

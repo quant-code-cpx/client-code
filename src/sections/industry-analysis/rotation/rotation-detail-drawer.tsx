@@ -261,7 +261,7 @@ export function RotationDetailDrawer({ open, onClose, sectorName, tsCode, period
     fetchRotationDetail({
       tsCode: tsCode ?? undefined,
       industry: sectorName ?? undefined,
-      days: period ? Math.min(periodToDays(period), 60) : undefined,
+        days: period ? periodToDays(period) : undefined,
     })
       .then((res) => {
         if (!cancelled) setDetail(res ?? null);
@@ -281,6 +281,15 @@ export function RotationDetailDrawer({ open, onClose, sectorName, tsCode, period
   const handleTabChange = useCallback((_: React.SyntheticEvent, val: DrawerTab) => {
     setActiveTab(val);
   }, []);
+
+  const handleStockKeyDown = useCallback(
+    (event: React.KeyboardEvent<HTMLTableRowElement>, stockCode: string) => {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      event.preventDefault();
+      router.push(`/stock/detail?code=${encodeURIComponent(stockCode)}`);
+    },
+    [router]
+  );
 
   const pctSign = detail && detail.pctChange > 0 ? '+' : '';
   const pctColor = detail
@@ -465,7 +474,18 @@ export function RotationDetailDrawer({ open, onClose, sectorName, tsCode, period
                           <TableRow
                             key={s.tsCode}
                             hover
-                            sx={{ cursor: 'pointer' }}
+                            tabIndex={0}
+                            aria-label={`查看 ${s.name} 股票详情`}
+                            sx={{
+                              height: 40,
+                              cursor: 'pointer',
+                              '&:focus-visible': {
+                                outline: '2px solid',
+                                outlineColor: 'primary.main',
+                                outlineOffset: -2,
+                              },
+                            }}
+                            onKeyDown={(event) => handleStockKeyDown(event, s.tsCode)}
                             onClick={() =>
                               router.push(`/stock/detail?code=${encodeURIComponent(s.tsCode)}`)
                             }

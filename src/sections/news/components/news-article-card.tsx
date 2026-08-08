@@ -1,6 +1,6 @@
 import type { NewsArticleListItem } from 'src/api/news';
 
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';

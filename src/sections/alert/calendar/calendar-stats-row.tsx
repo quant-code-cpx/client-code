@@ -57,15 +57,15 @@ export function CalendarStatsRow({ events, loading, onCardClick }: Props) {
       },
       {
         key: 'week',
-        label: '本周事件',
+        label: '未来一周',
         value: weekCount,
-        caption: '未来 7 天',
+        caption: '点击聚焦未来 7 天',
         icon: 'solar:calendar-search-bold',
         paletteKey: 'info',
       },
       {
         key: 'high-impact',
-        label: 'Top 影响力',
+        label: '高影响事件',
         value: highImpactCount,
         caption: '高影响力事件',
         icon: 'solar:fire-bold',
@@ -73,7 +73,7 @@ export function CalendarStatsRow({ events, loading, onCardClick }: Props) {
       },
       {
         key: 'watchlist',
-        label: '自选相关',
+        label: '自选股事件',
         value: watchlistCount,
         caption: '涉及自选股',
         icon: 'solar:star-bold',
@@ -83,20 +83,32 @@ export function CalendarStatsRow({ events, loading, onCardClick }: Props) {
   }, [events]);
 
   return (
-    <Box
+    <Card
       sx={{
         display: 'grid',
         gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' },
-        gap: 2,
         mb: 2.5,
+        overflow: 'hidden',
       }}
     >
-      {cards.map((card) => {
+      {cards.map((card, index) => {
         const color = theme.palette[card.paletteKey].main;
         const channel = theme.vars.palette[card.paletteKey].mainChannel;
         return (
-          <Card key={card.key} sx={{ overflow: 'hidden' }}>
-            <CardActionArea onClick={() => onCardClick(card.key)} sx={{ p: 2 }}>
+          <CardActionArea
+            key={card.key}
+            onClick={() => onCardClick(card.key)}
+            sx={{
+              p: 1.5,
+              minHeight: 82,
+              borderRight: {
+                xs: index % 2 === 0 ? '1px solid' : 0,
+                md: index < cards.length - 1 ? '1px solid' : 0,
+              },
+              borderBottom: { xs: index < 2 ? '1px solid' : 0, md: 0 },
+              borderColor: 'divider',
+            }}
+          >
               <Stack direction="row" spacing={1.5} alignItems="center">
                 <Box
                   sx={{
@@ -116,7 +128,7 @@ export function CalendarStatsRow({ events, loading, onCardClick }: Props) {
                   <Typography variant="caption" color="text.secondary">
                     {card.label}
                   </Typography>
-                  <Typography variant="h5" sx={{ fontWeight: 700 }}>
+                  <Typography variant="h5" sx={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
                     {loading ? '—' : fNumber(card.value)}
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
@@ -124,10 +136,9 @@ export function CalendarStatsRow({ events, loading, onCardClick }: Props) {
                   </Typography>
                 </Stack>
               </Stack>
-            </CardActionArea>
-          </Card>
+          </CardActionArea>
         );
       })}
-    </Box>
+    </Card>
   );
 }

@@ -32,7 +32,7 @@ export function RotationOverviewCards({ tradeDate, period, refreshKey }: Props) 
     setLoading(true);
     setError('');
 
-    const periodDays = period ? Math.min(periodToDays(period), 60) : undefined;
+      const periodDays = period ? periodToDays(period) : undefined;
 
     fetchRotationOverview({ trade_date: tradeDate, period_days: periodDays })
       .then((res) => {

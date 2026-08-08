@@ -79,6 +79,21 @@ export type AgentModelDiagnostic = {
   estimatedInputTokens?: number;
   maxOutputTokens?: number;
   contextWindow?: number;
+  inputTokenCountSource?:
+    | 'OPENAI_INPUT_TOKENS_API'
+    | 'ANTHROPIC_COUNT_TOKENS_API'
+    | 'LOCAL_CONSERVATIVE_V1';
+  inputTokenCountExact?: boolean;
+  inputTokenSafetyMarginTokens?: number;
+  runInputReservationTokens?: number;
+  runMaxCumulativeInputTokens?: number | null;
+  runInputTokensUsedBeforeCall?: number;
+  runInputGuardrailSource?:
+    | 'RUN_SNAPSHOT'
+    | 'LEGACY_RUN'
+    | 'ENV'
+    | 'LEGACY_ENV'
+    | 'DISABLED_BY_DEFAULT';
   firstChunkType?: 'REASONING' | 'OUTPUT' | 'TOOL_CALL' | 'USAGE' | 'COMPLETED';
   finishReason?: string | null;
   durationMs?: number;
@@ -89,6 +104,8 @@ export type AgentModelDiagnostic = {
     cachedTokens?: number;
     reasoningTokens?: number;
   } | null;
+  usageSource?: 'PROVIDER_ACTUAL' | 'PREFLIGHT_ESTIMATE';
+  accountingWarnings?: string[];
   error?: { code: number; message: string; retryable: boolean; category: string };
   willFallback?: boolean;
 };

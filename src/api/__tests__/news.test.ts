@@ -19,8 +19,28 @@ type NewsArticleListRequest = Omit<GeneratedListRequest, 'includeUnknownPublishe
 type NewsArticleListResponse = Schemas['NewsArticleListResponseDto'];
 type NewsArticleDetailResponse = Schemas['NewsArticleDetailResponseDto'];
 type NewsCoverageResponse = Schemas['NewsCoverageResponseDto'];
+type NewsHighlightsResponse = {
+  generatedAt: string;
+  dataThrough: string | null;
+  partial: boolean;
+  warnings: Schemas['NewsCoverageWarningDto'][];
+  rankingVersion: 'impact-v1';
+  rankingStatus: 'READY' | 'STALE' | 'RECENT_FALLBACK';
+  displayMode: 'HIGHLIGHTS' | 'RECENT';
+  items: Array<Schemas['NewsArticleListItemDto'] & {
+    impactLevel: 'CRITICAL' | 'MAJOR' | 'RECENT';
+    impactScore: number;
+    reasonCodes: string[];
+    corroboratingSourceCount: number;
+    relatedArticleCount: number;
+  }>;
+};
 
 type NewsApiContract = {
+  getHighlights: (
+    body: { scope: 'ALL'; limit: number },
+    signal?: AbortSignal
+  ) => Promise<NewsHighlightsResponse>;
   listArticles: (
     body: NewsArticleListRequest,
     signal?: AbortSignal
@@ -151,6 +171,26 @@ const detailResponse: NewsArticleDetailResponse = {
   coverage: coverageResponse,
 };
 
+const highlightsResponse: NewsHighlightsResponse = {
+  generatedAt: '2026-08-05T15:05:00.000Z',
+  dataThrough: '2026-08-05T15:00:00.000Z',
+  partial: false,
+  warnings: [],
+  rankingVersion: 'impact-v1',
+  rankingStatus: 'READY',
+  displayMode: 'HIGHLIGHTS',
+  items: [
+    {
+      ...listItem,
+      impactLevel: 'MAJOR',
+      impactScore: 76,
+      reasonCodes: ['AUTHORITATIVE_SOURCE', 'FRESHNESS'],
+      corroboratingSourceCount: 1,
+      relatedArticleCount: 0,
+    },
+  ],
+};
+
 function getNewsApi(): NewsApiContract {
   if (!loadedModule?.newsApi) throw new Error('news.ts 必须导出 newsApi 契约门面');
   return loadedModule.newsApi;
@@ -178,9 +218,33 @@ describe('新闻 API adapter RED 门禁', () => {
 describe.runIf(targetExists)('新闻 API adapter 契约', () => {
   it('导出统一 newsApi 门面', () => {
     expect(loadedModule?.newsApi).toMatchObject({
+      getHighlights: expect.any(Function),
       listArticles: expect.any(Function),
       getArticleDetail: expect.any(Function),
       getCoverage: expect.any(Function),
+    });
+  });
+
+  it('NEWS-FE-API-HIGHLIGHTS-001：首页摘要只 POST 固定路径与白名单 Body', async () => {
+    const signal = new AbortController().signal;
+    mockPost().mockResolvedValueOnce(highlightsResponse);
+
+    const result = await getNewsApi().getHighlights({ scope: 'ALL', limit: 5 }, signal);
+
+    expect(mockPost()).toHaveBeenCalledWith(
+      '/api/news/articles/highlights',
+      { scope: 'ALL', limit: 5 },
+      signal
+    );
+    expect(result).toBe(highlightsResponse);
+  });
+
+  it('NEWS-FE-API-HIGHLIGHTS-002：缺少排名状态时产生可观察契约错误', async () => {
+    const invalid = { ...highlightsResponse, rankingStatus: undefined };
+    mockPost().mockResolvedValueOnce(invalid);
+
+    await expect(getNewsApi().getHighlights({ scope: 'ALL', limit: 5 })).rejects.toMatchObject({
+      name: 'NewsContractError',
     });
   });
 

@@ -10,6 +10,7 @@ import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
 import { useTheme } from '@mui/material/styles';
+import ButtonBase from '@mui/material/ButtonBase';
 import Typography from '@mui/material/Typography';
 
 import { Iconify } from 'src/components/iconify';
@@ -94,12 +95,19 @@ export function CalendarTimelineView({ events, onSelectEvent }: Props) {
                   const impact = getEventImpactLevel(event);
                   const impactColor = IMPACT_COLOR[impact];
                   return (
-                    <Box
+                    <ButtonBase
                       key={`${event.tsCode}-${event.type}-${idx}`}
+                      aria-label={`查看 ${event.stockName || event.tsCode} ${event.title}`}
                       onClick={() => onSelectEvent(event)}
                       sx={{
+                        width: '100%',
                         display: 'flex',
                         alignItems: 'stretch',
+                        // The calendar API intentionally supports up to 1,000
+                        // events per deep link; defer off-screen card paint.
+                        contentVisibility: 'auto',
+                        containIntrinsicSize: '72px',
+                        textAlign: 'left',
                         borderRadius: 1.5,
                         overflow: 'hidden',
                         cursor: 'pointer',
@@ -107,6 +115,11 @@ export function CalendarTimelineView({ events, onSelectEvent }: Props) {
                         transition: theme.transitions.create('background-color'),
                         '&:hover': {
                           bgcolor: varAlpha(theme.vars.palette.primary.mainChannel, 0.06),
+                        },
+                        '&.Mui-focusVisible': {
+                          outline: '2px solid',
+                          outlineColor: 'primary.main',
+                          outlineOffset: 2,
                         },
                       }}
                     >
@@ -141,7 +154,7 @@ export function CalendarTimelineView({ events, onSelectEvent }: Props) {
                         <Stack spacing={0.25} sx={{ flexGrow: 1, minWidth: 0 }}>
                           <Stack direction="row" alignItems="center" spacing={0.75}>
                             <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-                              {event.stockName}
+                              {event.stockName || event.tsCode}
                             </Typography>
                             <Typography variant="caption" color="text.secondary">
                               {event.tsCode}
@@ -188,7 +201,7 @@ export function CalendarTimelineView({ events, onSelectEvent }: Props) {
                           )}
                         </Stack>
                       </Stack>
-                    </Box>
+                    </ButtonBase>
                   );
                 })}
               </Stack>

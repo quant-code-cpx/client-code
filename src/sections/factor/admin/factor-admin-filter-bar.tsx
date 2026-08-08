@@ -3,6 +3,7 @@ import type { FactorCategory, PrecomputeStatusItem } from 'src/api/factor';
 import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
+import Typography from '@mui/material/Typography';
 import Autocomplete from '@mui/material/Autocomplete';
 
 import { SOURCE_LABELS, CATEGORY_LABELS, FACTOR_CATEGORIES } from '../constants';
@@ -50,20 +51,12 @@ export function FactorAdminFilterBar({ filters, onChange }: Props) {
     onChange({ ...filters, statuses: next });
   };
 
-  const handleCategoryChange = (_: unknown, val: FactorCategory[]) => {
-    onChange({ ...filters, categories: val });
-  };
-
-  const handleSourceChange = (_: unknown, val: string[]) => {
-    onChange({ ...filters, sources: val });
-  };
-
   return (
-    <Stack spacing={1.5}>
+    <Stack spacing={2}>
       <Stack direction="row" spacing={1.5} flexWrap="wrap" alignItems="center">
         <TextField
           size="small"
-          placeholder="搜索因子标识 / 名称..."
+          placeholder="搜索因子标识 / 名称…"
           value={filters.search}
           onChange={handleSearch}
           sx={{ width: 240 }}
@@ -75,9 +68,9 @@ export function FactorAdminFilterBar({ filters, onChange }: Props) {
           options={FACTOR_CATEGORIES}
           getOptionLabel={(cat) => CATEGORY_LABELS[cat] ?? cat}
           value={filters.categories}
-          onChange={handleCategoryChange}
           renderInput={(params) => <TextField {...params} label="分类" />}
           sx={{ width: 220 }}
+          disabled
           disableCloseOnSelect
         />
 
@@ -87,39 +80,46 @@ export function FactorAdminFilterBar({ filters, onChange }: Props) {
           options={SOURCE_OPTIONS.map((o) => o.value)}
           getOptionLabel={(v) => SOURCE_LABELS[v as keyof typeof SOURCE_LABELS] ?? v}
           value={filters.sources}
-          onChange={handleSourceChange}
           renderInput={(params) => <TextField {...params} label="来源" />}
           sx={{ width: 180 }}
+          disabled
           disableCloseOnSelect
         />
-      </Stack>
 
-      {/* Status quick-filter chips */}
-      <Stack direction="row" spacing={1} flexWrap="wrap">
-        {STATUS_OPTIONS.map((opt) => (
-          <Chip
-            key={opt.value}
-            label={opt.label}
-            size="small"
-            variant={filters.statuses.includes(opt.value) ? 'filled' : 'outlined'}
-            color={filters.statuses.includes(opt.value) ? 'primary' : 'default'}
-            onClick={() => handleToggleStatus(opt.value)}
-            sx={{ cursor: 'pointer' }}
-          />
-        ))}
-        {(filters.statuses.length > 0 ||
-          filters.categories.length > 0 ||
-          filters.sources.length > 0 ||
-          filters.search) && (
+        <Typography variant="caption" color="text.secondary">
+          分类/来源能力待接入
+        </Typography>
+
+        {(filters.statuses.length > 0 || filters.search) && (
           <Chip
             label="清除筛选"
             size="small"
             variant="outlined"
             color="error"
             onClick={() => onChange(DEFAULT_ADMIN_FILTERS)}
-            sx={{ cursor: 'pointer' }}
+            sx={{ cursor: 'pointer', ml: 'auto' }}
           />
         )}
+      </Stack>
+
+      <Stack direction="row" spacing={1} flexWrap="wrap" alignItems="center">
+        <Typography variant="caption" color="text.secondary" sx={{ mr: 0.5 }}>
+          状态 · 可多选
+        </Typography>
+        {STATUS_OPTIONS.map((option) => {
+          const isSelected = filters.statuses.includes(option.value);
+          return (
+            <Chip
+              key={option.value}
+              label={option.label}
+              size="small"
+              variant={isSelected ? 'filled' : 'outlined'}
+              color={isSelected ? 'primary' : 'default'}
+              onClick={() => handleToggleStatus(option.value)}
+              sx={{ cursor: 'pointer' }}
+            />
+          );
+        })}
       </Stack>
     </Stack>
   );
@@ -142,14 +142,6 @@ export function applyAdminFilters(
 
   if (filters.statuses.length > 0) {
     result = result.filter((it) => filters.statuses.includes(it.status));
-  }
-
-  if (filters.categories.length > 0) {
-    result = result.filter((it) => it.category && filters.categories.includes(it.category));
-  }
-
-  if (filters.sources.length > 0) {
-    result = result.filter((it) => it.sourceType && filters.sources.includes(it.sourceType));
   }
 
   return result;

@@ -273,7 +273,14 @@ describe('Agent reducer', () => {
         status: 'COMPLETED',
         messageCount: 4,
         estimatedInputTokens: 1024,
+        contextWindow: 32768,
+        maxOutputTokens: 2048,
+        inputTokenCountSource: 'LOCAL_CONSERVATIVE_V1',
+        inputTokenSafetyMarginTokens: 128,
+        runMaxCumulativeInputTokens: null,
+        runInputGuardrailSource: 'DISABLED_BY_DEFAULT',
         usage: { inputTokens: 1000, outputTokens: 500, reasoningTokens: 120 },
+        usageSource: 'PROVIDER_ACTUAL',
       }),
     ]);
     expect(JSON.stringify(state.runs.byId.run_1.modelDiagnostics)).not.toContain(

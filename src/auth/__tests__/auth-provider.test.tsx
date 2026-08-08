@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 
+import { StrictMode } from 'react';
 import { act, render, screen, waitFor } from '@testing-library/react';
 
 import { useAuth } from 'src/auth';
@@ -82,6 +83,9 @@ beforeEach(() => {
 
 describe('AuthProvider — initialization', () => {
   beforeEach(() => {
+    vi.mocked(authApi.refresh).mockReset();
+    vi.mocked(authApi.logout).mockReset();
+    vi.mocked(userManageApi.getProfile).mockReset();
     vi.mocked(tokenStorage.get).mockReturnValue(null);
     vi.mocked(tokenStorage.set).mockReset();
     vi.mocked(tokenStorage.clear).mockReset();
@@ -111,6 +115,27 @@ describe('AuthProvider — initialization', () => {
     expect(screen.getByTestId('authenticated').textContent).toBe('true');
     expect(screen.getByTestId('profile').textContent).toBe('testuser');
     expect(vi.mocked(tokenStorage.set)).toHaveBeenCalledWith('fresh-token');
+    expect(mockRefreshSocketAuth).toHaveBeenCalledTimes(1);
+  });
+
+  it('[REG] React StrictMode 初始化只恢复一次会话', async () => {
+    vi.mocked(authApi.refresh).mockResolvedValue({ accessToken: 'strict-token' });
+    vi.mocked(userManageApi.getProfile).mockResolvedValue(mockProfile);
+
+    render(
+      <StrictMode>
+        <AuthProvider>
+          <AuthConsumer />
+        </AuthProvider>
+      </StrictMode>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByTestId('authenticated').textContent).toBe('true');
+    });
+
+    expect(vi.mocked(authApi.refresh)).toHaveBeenCalledTimes(1);
+    expect(vi.mocked(userManageApi.getProfile)).toHaveBeenCalledTimes(1);
     expect(mockRefreshSocketAuth).toHaveBeenCalledTimes(1);
   });
 
@@ -248,6 +273,13 @@ describe('AuthProvider — BroadcastChannel cross-tab sync', () => {
   let mockChannel: MockBroadcastChannel;
 
   beforeEach(() => {
+    vi.mocked(authApi.refresh).mockReset();
+    vi.mocked(authApi.logout).mockReset();
+    vi.mocked(userManageApi.getProfile).mockReset();
+    vi.mocked(tokenStorage.get).mockReturnValue(null);
+    vi.mocked(tokenStorage.set).mockReset();
+    vi.mocked(tokenStorage.clear).mockReset();
+    vi.mocked(setAuthCallbacks).mockReset();
     mockChannel = {
       onmessage: null,
       postMessage: vi.fn(),
@@ -260,6 +292,7 @@ describe('AuthProvider — BroadcastChannel cross-tab sync', () => {
 
     vi.mocked(authApi.refresh).mockRejectedValue(new Error('no cookie'));
     vi.mocked(authApi.logout).mockResolvedValue(undefined);
+    vi.mocked(userManageApi.getProfile).mockRejectedValue(new Error('profile unavailable'));
   });
 
   afterEach(() => {
@@ -283,6 +316,61 @@ describe('AuthProvider — BroadcastChannel cross-tab sync', () => {
     expect(vi.mocked(tokenStorage.set)).toHaveBeenCalledWith('cross-tab-token');
     expect(mockRefreshSocketAuth).toHaveBeenCalledTimes(1);
     expect(screen.getByTestId('authenticated').textContent).toBe('true');
+  });
+
+  it('[RACE] startup refresh failure yields to a token refreshed by another tab', async () => {
+    let rejectRefresh: ((reason?: unknown) => void) | undefined;
+    vi.mocked(authApi.refresh).mockReturnValue(
+      new Promise((_, reject) => {
+        rejectRefresh = reject;
+      })
+    );
+    vi.mocked(userManageApi.getProfile).mockResolvedValue(mockProfile);
+
+    render(<AuthConsumer />, { wrapper });
+
+    await act(async () => {
+      mockChannel.onmessage?.({
+        data: { type: 'TOKEN_REFRESHED', token: 'winner-tab-token' },
+      } as MessageEvent);
+      rejectRefresh?.(new Error('stale refresh token'));
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('profile').textContent).toBe('testuser');
+    });
+
+    expect(screen.getByTestId('authenticated').textContent).toBe('true');
+    expect(vi.mocked(tokenStorage.clear)).not.toHaveBeenCalled();
+  });
+
+  it('broadcasts a token restored successfully during startup', async () => {
+    vi.mocked(authApi.refresh).mockResolvedValue({ accessToken: 'startup-token' });
+    vi.mocked(userManageApi.getProfile).mockResolvedValue(mockProfile);
+
+    render(<AuthConsumer />, { wrapper });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('authenticated').textContent).toBe('true');
+    });
+
+    expect(mockChannel.postMessage).toHaveBeenCalledWith({
+      type: 'TOKEN_REFRESHED',
+      token: 'startup-token',
+    });
+  });
+
+  it('does not broadcast SIGNED_OUT when only this tab becomes unauthorized', async () => {
+    render(<AuthConsumer />, { wrapper });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('loading').textContent).toBe('false');
+    });
+
+    const callbacks = vi.mocked(setAuthCallbacks).mock.calls.at(-1)?.[0];
+    act(() => callbacks?.onUnauthorized?.());
+
+    expect(mockChannel.postMessage).not.toHaveBeenCalledWith({ type: 'SIGNED_OUT' });
   });
 
   it('clears auth state when another tab broadcasts SIGNED_OUT', async () => {

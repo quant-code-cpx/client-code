@@ -63,7 +63,6 @@ export function ScreenerSaveDialog({
         sx={{ pt: '16px !important', display: 'flex', flexDirection: 'column', gap: 2 }}
       >
         <TextField
-          autoFocus
           label="策略名称"
           size="small"
           fullWidth

@@ -129,14 +129,9 @@ async function refreshAccessToken(): Promise<string> {
 function expireSession(): void {
   if (sessionExpired) return;
   sessionExpired = true;
-  const currentToken = tokenStorage.get();
-
-  fetch(`${API_BASE_URL}/api/auth/logout`, {
-    method: 'POST',
-    credentials: 'include',
-    headers: currentToken ? { Authorization: `Bearer ${currentToken}` } : {},
-  }).catch(() => {});
-
+  // 刷新失败只结束当前页面的内存会话。这里不能调用 logout：多个标签共享
+  // HttpOnly Refresh Cookie，一个陈旧标签的失败不应撤销其他标签刚轮换成功的 Token。
+  // 服务端撤销只属于用户明确执行的 signOut。
   accessToken = null;
   authCallbacks.onUnauthorized?.();
 }

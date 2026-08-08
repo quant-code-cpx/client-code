@@ -59,7 +59,7 @@ export function ScreenerFilterRangeInput({
           placeholder={placeholder[0]}
           onChange={(e) => setLocalMin(e.target.value)}
           onBlur={() => onMinChange(localMin === '' ? undefined : Number(localMin))}
-          slotProps={{ ...slotProps, htmlInput: { step } }}
+          slotProps={{ ...slotProps, htmlInput: { step, 'aria-label': `${label}下限` } }}
           sx={{ flex: 1 }}
         />
         <Typography variant="body2" sx={{ color: 'text.secondary', flexShrink: 0 }}>
@@ -72,7 +72,7 @@ export function ScreenerFilterRangeInput({
           placeholder={placeholder[1]}
           onChange={(e) => setLocalMax(e.target.value)}
           onBlur={() => onMaxChange(localMax === '' ? undefined : Number(localMax))}
-          slotProps={{ ...slotProps, htmlInput: { step } }}
+          slotProps={{ ...slotProps, htmlInput: { step, 'aria-label': `${label}上限` } }}
           sx={{ flex: 1 }}
         />
       </Box>

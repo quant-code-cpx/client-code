@@ -87,6 +87,15 @@ export function AgentShell() {
     () => Object.keys(state.runs.activeRunIdByConversation),
     [state.runs.activeRunIdByConversation]
   );
+  const backgroundRunKey = useMemo(
+    () =>
+      Object.entries(state.runs.activeRunIdByConversation)
+        .filter(([id]) => id !== conversationId)
+        .map(([id, runId]) => `${id}:${runId}`)
+        .sort()
+        .join('|'),
+    [conversationId, state.runs.activeRunIdByConversation]
+  );
   const messageCountByConversation = useMemo(
     () =>
       Object.fromEntries(
@@ -138,8 +147,45 @@ export function AgentShell() {
     const updatedRun = state.runs.byId[lastAgentRunUpdate.runId];
     if (!updatedRun) return;
     dispatch({ type: 'CONVERSATION_INVALIDATED', conversationId: updatedRun.conversationId });
-    if (updatedRun.conversationId === conversationId) run.continueReceiving();
+    if (updatedRun.conversationId === conversationId) {
+      run.continueReceiving();
+      return;
+    }
+    void agentApi
+      .getRunStatus({ runId: updatedRun.runId })
+      .then((snapshot) =>
+        dispatch({
+          type: 'RUN_STATUS_RECEIVED',
+          snapshot,
+          assistantMessageId: updatedRun.assistantMessageId,
+        })
+      )
+      .catch(() => undefined);
   }, [conversationId, dispatch, lastAgentRunUpdate, run, state.runs.byId]);
+
+  useEffect(() => {
+    if (!backgroundRunKey) return undefined;
+    const targets = backgroundRunKey.split('|').map((entry) => {
+      const separator = entry.indexOf(':');
+      return { conversationId: entry.slice(0, separator), runId: entry.slice(separator + 1) };
+    });
+    const reconcile = () => {
+      for (const target of targets) {
+        void agentApi
+          .getRunStatus({ runId: target.runId })
+          .then((snapshot) => {
+            dispatch({ type: 'RUN_STATUS_RECEIVED', snapshot });
+            if (TERMINAL_RUN_STATUSES.has(snapshot.status)) {
+              dispatch({ type: 'CONVERSATION_INVALIDATED', conversationId: target.conversationId });
+            }
+          })
+          .catch(() => undefined);
+      }
+    };
+    reconcile();
+    const intervalId = window.setInterval(reconcile, 15_000);
+    return () => window.clearInterval(intervalId);
+  }, [backgroundRunKey, dispatch]);
 
   const handleSubmit = useCallback(async () => {
     const accepted = await run.send(draft.value);

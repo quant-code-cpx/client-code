@@ -57,6 +57,18 @@ export function HeatmapTreemapChart({
   const theme = useTheme();
   const itemsRef = useRef<HeatmapItem[]>([]);
   const [displayCount, setDisplayCount] = useState<DisplayCount>(100);
+  const colorPalette = useMemo(
+    () => ({
+      strongNegative: theme.vars.palette.success.dark,
+      negative: theme.vars.palette.success.main,
+      weakNegative: theme.vars.palette.success.light,
+      neutral: theme.vars.palette.grey[500],
+      weakPositive: theme.vars.palette.error.light,
+      positive: theme.vars.palette.error.main,
+      strongPositive: theme.vars.palette.error.dark,
+    }),
+    [theme]
+  );
 
   useEffect(() => {
     itemsRef.current = items;
@@ -82,7 +94,7 @@ export function HeatmapTreemapChart({
         data: stocks.map((s) => ({
           x: getStockDisplayName(s),
           y: Math.max(s[sizeBy] ?? 1, 1),
-          fillColor: getHeatmapColor(s.pctChg),
+          fillColor: getHeatmapColor(s.pctChg, colorPalette),
         })),
       }));
     }
@@ -94,11 +106,11 @@ export function HeatmapTreemapChart({
         data: sorted.map((s) => ({
           x: getStockDisplayName(s),
           y: Math.max(s[sizeBy] ?? 1, 1),
-          fillColor: getHeatmapColor(s.pctChg),
+          fillColor: getHeatmapColor(s.pctChg, colorPalette),
         })),
       },
     ];
-  }, [items, groupBy, sizeBy, displayCount]);
+  }, [items, groupBy, sizeBy, displayCount, colorPalette]);
 
   const chartOptions = useChart({
     chart: {
@@ -119,7 +131,7 @@ export function HeatmapTreemapChart({
     },
     dataLabels: {
       enabled: true,
-      style: { fontSize: '12px', fontWeight: 500, colors: ['#fff'] },
+      style: { fontSize: '12px', fontWeight: 500, colors: [theme.vars.palette.common.white] },
       formatter(text: string) {
         const item = itemsRef.current.find((s) => getStockDisplayName(s) === text);
         if (!item) return text;
@@ -133,16 +145,19 @@ export function HeatmapTreemapChart({
         if (!point) return '';
         const item = itemsRef.current.find((s) => getStockDisplayName(s) === point.x);
         if (!item) return `<div style="padding:8px"><b>${point.x}</b></div>`;
-        const pnlColor = (item.pctChg ?? 0) >= 0 ? '#F44336' : '#2E7D32';
+        const pnlColor =
+          (item.pctChg ?? 0) >= 0
+            ? theme.vars.palette.error.main
+            : theme.vars.palette.success.main;
         const amtBillion = ((item.amount ?? 0) / 100000).toFixed(2);
         const group = item.groupName ?? item.industry ?? '-';
         return `
           <div style="padding:10px 14px;font-size:13px;line-height:1.8">
             <b style="font-size:14px">${getStockDisplayName(item)}</b>
-            <span style="color:#9e9e9e;font-size:12px"> ${item.tsCode}</span><br/>
-            <span style="color:#9e9e9e">分组：</span>${group}<br/>
+            <span style="color:${theme.vars.palette.text.secondary};font-size:12px"> ${item.tsCode}</span><br/>
+            <span style="color:${theme.vars.palette.text.secondary}">分组：</span>${group}<br/>
             <span style="color:${pnlColor};font-weight:600">${formatLabel(item.pctChg)}</span><br/>
-            <span style="color:#9e9e9e">成交额：</span>${amtBillion} 亿
+            <span style="color:${theme.vars.palette.text.secondary}">成交额：</span>${amtBillion} 亿
           </div>`;
       },
     },
@@ -175,27 +190,27 @@ export function HeatmapTreemapChart({
               <Chip
                 size="small"
                 label={`涨停 ${distribution.limitUp}`}
-                sx={{ bgcolor: '#B71C1C', color: '#fff', fontWeight: 700, fontSize: 12 }}
+                sx={{ bgcolor: 'error.dark', color: 'common.white', fontWeight: 700, fontSize: 12 }}
               />
               <Chip
                 size="small"
                 label={`上涨 ${distribution.upCount}`}
-                sx={{ bgcolor: '#F44336', color: '#fff', fontWeight: 700, fontSize: 12 }}
+                sx={{ bgcolor: 'error.main', color: 'common.white', fontWeight: 700, fontSize: 12 }}
               />
               <Chip
                 size="small"
                 label={`平盘 ${distribution.flatCount}`}
-                sx={{ bgcolor: '#757575', color: '#fff', fontWeight: 700, fontSize: 12 }}
+                sx={{ bgcolor: 'grey.600', color: 'common.white', fontWeight: 700, fontSize: 12 }}
               />
               <Chip
                 size="small"
                 label={`下跌 ${distribution.downCount}`}
-                sx={{ bgcolor: '#2E7D32', color: '#fff', fontWeight: 700, fontSize: 12 }}
+                sx={{ bgcolor: 'success.main', color: 'common.white', fontWeight: 700, fontSize: 12 }}
               />
               <Chip
                 size="small"
                 label={`跌停 ${distribution.limitDown}`}
-                sx={{ bgcolor: '#00695C', color: '#fff', fontWeight: 700, fontSize: 12 }}
+                sx={{ bgcolor: 'success.dark', color: 'common.white', fontWeight: 700, fontSize: 12 }}
               />
             </Stack>
           )}

@@ -1,6 +1,6 @@
 import type { NewsArticleListItem, NewsArticleListRequest } from 'src/api/news';
 
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router';
 import { useRef, useMemo, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';

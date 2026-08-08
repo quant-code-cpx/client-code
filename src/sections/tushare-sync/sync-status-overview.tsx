@@ -2,7 +2,7 @@ import type { IconifyName } from 'src/components/iconify/register-icons';
 import type { SyncLogItem, SyncStatusOverview } from 'src/api/tushare-sync';
 
 import dayjs from 'dayjs';
-import { useState, useEffect, useCallback } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -24,13 +24,15 @@ import ButtonBase from '@mui/material/ButtonBase';
 import CardHeader from '@mui/material/CardHeader';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
+import LinearProgress from '@mui/material/LinearProgress';
 
-import { fToNow } from 'src/utils/format-time';
+import { fToNow, fDateTime } from 'src/utils/format-time';
 
 import { tushareSyncApi, TUSHARE_SYNC_LOG_MAX_PAGE_SIZE } from 'src/api/tushare-sync';
 
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
+import { Scrollbar } from 'src/components/scrollbar';
 
 // ----------------------------------------------------------------------
 
@@ -51,9 +53,22 @@ const STATUS_COLOR: Record<string, 'success' | 'error' | 'warning' | 'default'> 
   SKIPPED: 'warning',
 };
 
+const STATUS_LABEL: Record<string, string> = {
+  SUCCESS: '成功',
+  FAILED: '失败',
+  SKIPPED: '跳过',
+};
+
+const EXACT_DATE_TIME_FORMAT = 'YYYY-MM-DD HH:mm:ss';
+
 type Props = {
   refreshKey?: number;
-  onGoLogs?: () => void;
+  onGoLogs?: (filters?: {
+    task?: string;
+    status?: SyncLogItem['status'];
+    startDate?: string;
+    endDate?: string;
+  }) => void;
   onGoQuality?: () => void;
 };
 
@@ -70,17 +85,6 @@ function freshnessMeta(lagDays: number | null): {
   return { label: `落后 ${lagDays} 天`, color: 'error', activeCells: 1 };
 }
 
-function getTimelineMetrics(log: SyncLogItem) {
-  const start = dayjs(log.startedAt);
-  const end = log.finishedAt ? dayjs(log.finishedAt) : dayjs();
-  const startMinute = start.hour() * 60 + start.minute();
-  const durationMinute = Math.max(end.diff(start, 'minute'), 8);
-  return {
-    left: Math.min(96, Math.max(0, (startMinute / 1440) * 100)),
-    width: Math.min(100, Math.max(2, (durationMinute / 1440) * 100)),
-  };
-}
-
 // ----------------------------------------------------------------------
 
 export function SyncStatusOverviewPanel({ refreshKey = 0, onGoLogs, onGoQuality }: Props) {
@@ -89,13 +93,16 @@ export function SyncStatusOverviewPanel({ refreshKey = 0, onGoLogs, onGoQuality 
   const [loading, setLoading] = useState(true);
   const [timelineLoading, setTimelineLoading] = useState(true);
   const [error, setError] = useState('');
+  const [timelineError, setTimelineError] = useState('');
   const [collapsed, setCollapsed] = useState(false);
+  const [summaryExpanded, setSummaryExpanded] = useState(false);
+  const previousRefreshKey = useRef(refreshKey);
 
-  const fetchOverview = useCallback(async () => {
+  const fetchOverview = useCallback(async (forceRefresh = false) => {
     setLoading(true);
     setError('');
     try {
-      const data = await tushareSyncApi.getSyncStatusOverview();
+      const data = await tushareSyncApi.getSyncStatusOverview(forceRefresh);
       setOverview(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : '获取同步状态总览失败');
@@ -106,6 +113,7 @@ export function SyncStatusOverviewPanel({ refreshKey = 0, onGoLogs, onGoQuality 
 
   const fetchTimeline = useCallback(async () => {
     setTimelineLoading(true);
+    setTimelineError('');
     try {
       const result = await tushareSyncApi.getSyncLogs({
         startDate: dayjs().format('YYYY-MM-DD'),
@@ -113,15 +121,17 @@ export function SyncStatusOverviewPanel({ refreshKey = 0, onGoLogs, onGoQuality 
         pageSize: TUSHARE_SYNC_LOG_MAX_PAGE_SIZE,
       });
       setTimelineLogs(result.items ?? []);
-    } catch {
-      setTimelineLogs([]);
+    } catch (err) {
+      setTimelineError(err instanceof Error ? err.message : '获取今日同步动态失败');
     } finally {
       setTimelineLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    fetchOverview();
+    const forceRefresh = refreshKey !== previousRefreshKey.current;
+    previousRefreshKey.current = refreshKey;
+    fetchOverview(forceRefresh);
     fetchTimeline();
   }, [fetchOverview, fetchTimeline, refreshKey]);
 
@@ -146,18 +156,35 @@ export function SyncStatusOverviewPanel({ refreshKey = 0, onGoLogs, onGoQuality 
     .filter((i) => i.lastStatus === 'FAILED')
     .map((i) => i.displayName || i.tableName);
 
+  const categoryRows = overview?.categories ?? [];
+  const visibleCategoryRows = summaryExpanded ? categoryRows : categoryRows.slice(0, 1);
+  const generatedAt = overview?.generatedAt
+    ? fDateTime(overview.generatedAt, EXACT_DATE_TIME_FORMAT)
+    : '—';
+
   return (
-    <Card sx={{ mb: 3 }}>
+    <Card sx={{ mb: 2, overflow: 'hidden' }}>
       <CardHeader
         title="状态总览"
         titleTypographyProps={{ variant: 'subtitle1' }}
+        subheader={
+          <Tooltip title={`服务端快照生成于 ${generatedAt}`} placement="bottom-start">
+            <Typography component="span" variant="caption" color="text.secondary">
+              数据口径来自当前总览与日志接口 · 最后快照：{generatedAt}
+            </Typography>
+          </Tooltip>
+        }
+        sx={{ py: 1.25, px: 2 }}
         action={
-          <Box sx={{ display: 'flex', gap: 0.5 }}>
-            <Tooltip title="刷新同步状态总览">
-              <IconButton size="small" onClick={fetchOverview} aria-label="刷新同步状态总览">
-                <Iconify icon="solar:refresh-bold" />
-              </IconButton>
-            </Tooltip>
+          <Stack direction="row" spacing={0.5} alignItems="center">
+            <Button
+              size="small"
+              variant="outlined"
+              onClick={() => fetchOverview(true)}
+              startIcon={<Iconify icon="solar:refresh-bold" />}
+            >
+              刷新总览
+            </Button>
             <Tooltip title={collapsed ? '展开同步状态总览' : '折叠同步状态总览'}>
               <IconButton
                 size="small"
@@ -169,392 +196,451 @@ export function SyncStatusOverviewPanel({ refreshKey = 0, onGoLogs, onGoQuality 
                 />
               </IconButton>
             </Tooltip>
-          </Box>
+          </Stack>
         }
       />
 
       <Collapse in={!collapsed}>
-        <Divider />
-
-        {loading ? (
-          <Box sx={{ p: 3 }}>
-            <Grid container spacing={2} sx={{ mb: 3 }}>
+        {loading && !overview ? (
+          <Box sx={{ p: 2 }}>
+            <Grid container spacing={1.5} sx={{ mb: 1.5 }}>
               {[1, 2, 3, 4].map((i) => (
                 <Grid key={i} size={{ xs: 6, md: 3 }}>
-                  <Skeleton variant="rectangular" height={100} sx={{ borderRadius: 1 }} />
+                  <Skeleton variant="rectangular" height={78} sx={{ borderRadius: 1 }} />
                 </Grid>
               ))}
             </Grid>
-            <Skeleton height={200} />
+            <Skeleton variant="rectangular" height={176} sx={{ borderRadius: 1 }} />
           </Box>
-        ) : error ? (
-          <Box sx={{ p: 3 }}>
+        ) : !overview ? (
+          <Box sx={{ p: 2 }}>
             <Alert
               severity="error"
               action={
-                <Button color="inherit" size="small" onClick={fetchOverview}>
+                <Button color="inherit" size="small" onClick={() => fetchOverview(true)}>
                   重试
                 </Button>
               }
             >
-              {error}
+              {error || '暂无同步状态总览'}
             </Alert>
           </Box>
         ) : (
-          overview && (
-            <Box sx={{ p: 3 }}>
-              {/* 四张统计卡片 */}
-              <Grid container spacing={2} alignItems="stretch" sx={{ mb: 3 }}>
-                {/* 1. 整体健康状态 */}
-                <Grid size={{ xs: 6, md: 3 }}>
-                  <Paper variant="outlined" sx={{ p: 2, textAlign: 'center', height: '100%' }}>
+          <Box sx={{ px: { xs: 1.5, md: 2 }, pb: 2 }}>
+              {loading && <LinearProgress aria-label="状态总览更新中" sx={{ mb: 1.5 }} />}
+              {error && (
+                <Alert
+                  severity="error"
+                  sx={{ mb: 1.5 }}
+                  action={
+                    <Button color="inherit" size="small" onClick={() => fetchOverview(true)}>
+                      重试
+                    </Button>
+                  }
+                >
+                  {error}，当前展示上次成功快照（最后快照：{generatedAt}）。
+                </Alert>
+              )}
+              <Box
+                sx={{
+                  display: 'grid',
+                  overflow: 'hidden',
+                  borderRadius: 1,
+                  bgcolor: 'background.neutral',
+                  border: (theme) => `1px solid ${theme.vars.palette.divider}`,
+                  gridTemplateColumns: { xs: 'repeat(2, minmax(0, 1fr))', lg: 'repeat(4, minmax(0, 1fr))' },
+                }}
+              >
+                <Box
+                  sx={{
+                    p: 1.5,
+                    minWidth: 0,
+                    borderLeft: (theme) => `3px solid ${theme.vars.palette.primary.main}`,
+                  }}
+                >
+                  <Typography variant="caption" color="text.secondary">
+                    整体健康
+                  </Typography>
+                  <Stack direction="row" spacing={0.75} alignItems="center" sx={{ mt: 0.5 }}>
                     <Iconify
                       icon={(HEALTH_MAP[derivedHealth] ?? HEALTH_DEFAULT).icon}
                       sx={{
-                        fontSize: 32,
                         color: `${(HEALTH_MAP[derivedHealth] ?? HEALTH_DEFAULT).color}.main`,
-                        mb: 1,
-                        display: 'block',
-                        mx: 'auto',
+                        fontSize: 18,
                       }}
                     />
                     <Typography variant="h6">
                       {(HEALTH_MAP[derivedHealth] ?? HEALTH_DEFAULT).text}
                     </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      整体健康状态
-                    </Typography>
-                  </Paper>
-                </Grid>
+                  </Stack>
+                  <Typography variant="caption" color="text.secondary">
+                    基于任务最新状态
+                  </Typography>
+                </Box>
 
-                {/* 2. 任务统计 */}
-                <Grid size={{ xs: 6, md: 3 }}>
-                  <Paper variant="outlined" sx={{ p: 2, textAlign: 'center', height: '100%' }}>
-                    <Typography variant="h4">{allItems.length}</Typography>
+                <Box
+                  sx={{
+                    p: 1.5,
+                    minWidth: 0,
+                    borderLeft: (theme) => `1px solid ${theme.vars.palette.divider}`,
+                  }}
+                >
+                  <Typography variant="caption" color="text.secondary">
+                    同步任务总数
+                  </Typography>
+                  <Stack direction="row" spacing={1} alignItems="baseline" sx={{ mt: 0.5 }}>
+                    <Typography variant="h6">{allItems.length}</Typography>
                     <Typography variant="caption" color="text.secondary">
-                      同步任务总数
+                      成功 {totalSuccess} · 失败 {totalFailed} · 跳过 {totalSkipped}
                     </Typography>
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        justifyContent: 'center',
-                        gap: 0.5,
-                        mt: 1,
-                        flexWrap: 'wrap',
-                      }}
-                    >
-                      <Label color="success" variant="soft">
-                        ✅ {totalSuccess}
-                      </Label>
-                      <Label color="error" variant="soft">
-                        ❌ {totalFailed}
-                      </Label>
-                      <Label color="default" variant="soft">
-                        ⏭ {totalSkipped}
-                      </Label>
-                    </Box>
-                  </Paper>
-                </Grid>
+                  </Stack>
+                  <Typography variant="caption" color="text.secondary">
+                    当前分类汇总
+                  </Typography>
+                </Box>
 
-                {/* 3. 最近同步 */}
-                <Grid size={{ xs: 6, md: 3 }}>
-                  <Paper variant="outlined" sx={{ p: 2, height: '100%' }}>
-                    <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                      最近同步
-                    </Typography>
-                    <Typography variant="body2">
+                <Box
+                  sx={{
+                    p: 1.5,
+                    minWidth: 0,
+                    borderLeft: (theme) => `1px solid ${theme.vars.palette.divider}`,
+                  }}
+                >
+                  <Typography variant="caption" color="text.secondary">
+                    最近同步
+                  </Typography>
+                  <Tooltip
+                    title={
+                      lastSyncOverall
+                        ? `最近同步：${fDateTime(lastSyncOverall, EXACT_DATE_TIME_FORMAT)}`
+                        : '暂无同步记录'
+                    }
+                  >
+                    <Typography variant="h6" noWrap sx={{ mt: 0.5 }}>
                       {lastSyncOverall ? fToNow(lastSyncOverall) : '—'}
                     </Typography>
+                  </Tooltip>
+                  <Typography variant="caption" color="text.secondary" noWrap>
+                    {lastSyncOverall
+                      ? fDateTime(lastSyncOverall, EXACT_DATE_TIME_FORMAT)
+                      : '暂无任务记录'}
+                  </Typography>
+                </Box>
+
+                <Box
+                  sx={{
+                    p: 1.5,
+                    minWidth: 0,
+                    borderLeft: (theme) => `1px solid ${theme.vars.palette.divider}`,
+                  }}
+                >
+                  <Typography variant="caption" color="text.secondary">
+                    失败任务
+                  </Typography>
+                  <Stack direction="row" spacing={1} alignItems="baseline" sx={{ mt: 0.5 }}>
+                    <Typography variant="h6" color={failedTableNames.length > 0 ? 'error.main' : 'text.primary'}>
+                      {failedTableNames.length}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" noWrap>
+                      {failedTableNames[0] ?? '当前无失败任务'}
+                    </Typography>
+                  </Stack>
+                  <Typography variant="caption" color="text.secondary">
+                    {failedTableNames.length > 1 ? `另有 ${failedTableNames.length - 1} 个失败任务` : '按最新状态统计'}
+                  </Typography>
+                </Box>
+              </Box>
+
+              <Grid container spacing={1.5} sx={{ mt: 1.5 }}>
+                <Grid size={{ xs: 12, lg: 6 }}>
+                  <Paper variant="outlined" sx={{ p: 1.5, height: '100%' }}>
+                    <Stack direction="row" alignItems="center" sx={{ mb: 1 }}>
+                      <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+                        <Typography variant="subtitle2">分类保鲜度 · 前端估算</Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          基于最近同步时间，不代表交易日 SLA。
+                        </Typography>
+                      </Box>
+                      <Button size="small" variant="text" onClick={onGoQuality}>
+                        查看数据缺口
+                      </Button>
+                    </Stack>
+                    <Scrollbar fillContent={false} sx={{ maxHeight: 164 }}>
+                      <Box
+                        sx={{
+                          gap: 0.75,
+                          display: 'grid',
+                          gridTemplateColumns: {
+                            xs: 'repeat(1, minmax(0, 1fr))',
+                            sm: 'repeat(2, minmax(0, 1fr))',
+                            md: 'repeat(3, minmax(0, 1fr))',
+                            xl: 'repeat(4, minmax(0, 1fr))',
+                          },
+                        }}
+                      >
+                        {categoryRows.map((cat) => {
+                          const catLastSync = cat.items.reduce<string | null>((max, item) => {
+                            if (!item.lastSyncAt) return max;
+                            return !max || item.lastSyncAt > max ? item.lastSyncAt : max;
+                          }, null);
+                          const lagDays = catLastSync
+                            ? dayjs().startOf('day').diff(dayjs(catLastSync).startOf('day'), 'day')
+                            : null;
+                          const meta = freshnessMeta(lagDays);
+
+                          return (
+                            <ButtonBase
+                              key={cat.name}
+                              onClick={onGoQuality}
+                              aria-label={`查看${cat.name}数据缺口`}
+                              disabled={!onGoQuality}
+                              sx={{
+                                p: 1,
+                                gap: 0.5,
+                                minWidth: 0,
+                                minHeight: 50,
+                                borderRadius: 0.75,
+                                alignItems: 'flex-start',
+                                flexDirection: 'column',
+                                border: (theme) => `1px solid ${theme.vars.palette.divider}`,
+                                '&:hover': {
+                                  borderColor: onGoQuality ? `${meta.color}.main` : 'divider',
+                                },
+                              }}
+                            >
+                              <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ width: 1, minWidth: 0 }}>
+                                <Typography variant="body2" noWrap sx={{ fontWeight: 600, minWidth: 0 }}>
+                                  {cat.name}
+                                </Typography>
+                                <Label color={meta.color} variant="soft">
+                                  {meta.label}
+                                </Label>
+                              </Stack>
+                              <Tooltip
+                                title={
+                                  catLastSync
+                                    ? `最近同步：${fDateTime(catLastSync, EXACT_DATE_TIME_FORMAT)}`
+                                    : '暂无同步记录'
+                                }
+                              >
+                                <Typography variant="caption" color="text.secondary" noWrap>
+                                  最近同步：{catLastSync ? fDateTime(catLastSync, 'MM-DD HH:mm') : '—'}
+                                </Typography>
+                              </Tooltip>
+                            </ButtonBase>
+                          );
+                        })}
+                      </Box>
+                    </Scrollbar>
                   </Paper>
                 </Grid>
 
-                {/* 4. 失败告警 */}
-                <Grid size={{ xs: 6, md: 3 }}>
-                  <Paper
-                    variant="outlined"
-                    sx={{
-                      p: 2,
-                      height: '100%',
-                      borderColor: failedTableNames.length > 0 ? 'error.main' : 'divider',
-                    }}
-                  >
-                    <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                      失败任务 ({failedTableNames.length})
-                    </Typography>
-                    {failedTableNames.length === 0 ? (
+                <Grid size={{ xs: 12, lg: 6 }}>
+                  <Paper variant="outlined" sx={{ p: 1.5, height: '100%' }}>
+                    <Stack direction="row" alignItems="center" sx={{ mb: 1 }}>
+                      <Box sx={{ flexGrow: 1 }}>
+                        <Typography variant="subtitle2">今日同步动态 · 最多 8 条</Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          点击记录可带入任务、状态和日期筛选。
+                        </Typography>
+                      </Box>
+                      <Button size="small" variant="text" onClick={() => onGoLogs?.()}>
+                        查看日志
+                      </Button>
+                    </Stack>
+
+                    {timelineError && (
+                      <Alert
+                        severity="error"
+                        sx={{ mb: 1 }}
+                        action={
+                          <Button color="inherit" size="small" onClick={fetchTimeline}>
+                            重试
+                          </Button>
+                        }
+                      >
+                        {timelineError}
+                        {timelineLogs.length > 0 ? '，当前展示上次成功快照。' : ''}
+                      </Alert>
+                    )}
+
+                    {timelineLoading && timelineLogs.length === 0 ? (
+                      <Skeleton variant="rectangular" height={132} sx={{ borderRadius: 1 }} />
+                    ) : !timelineError && timelineLogs.length === 0 ? (
                       <Typography variant="body2" color="text.secondary">
-                        无
+                        今日暂无同步记录。
                       </Typography>
                     ) : (
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                        {failedTableNames.slice(0, 5).map((name) => (
-                          <Label key={name} color="error" variant="soft">
-                            {name}
-                          </Label>
-                        ))}
-                        {failedTableNames.length > 5 && (
-                          <Typography variant="caption" color="text.secondary">
-                            +{failedTableNames.length - 5} 更多
-                          </Typography>
-                        )}
-                      </Box>
+                      <Scrollbar fillContent={false} sx={{ maxHeight: 164 }}>
+                        <Stack spacing={0.25}>
+                          {timelineLogs.slice(0, 8).map((log) => {
+                            const color = STATUS_COLOR[log.status] ?? 'default';
+                            const detail = log.message || `${STATUS_LABEL[log.status] ?? log.status}任务`;
+
+                            return (
+                              <ButtonBase
+                                key={log.id}
+                                onClick={() =>
+                                  onGoLogs?.({
+                                    task: log.task,
+                                    status: log.status,
+                                    startDate: dayjs(log.startedAt).format('YYYY-MM-DD'),
+                                    endDate: dayjs(log.startedAt).format('YYYY-MM-DD'),
+                                  })
+                                }
+                                aria-label={`查看 ${log.task} 同步日志`}
+                                disabled={!onGoLogs}
+                                sx={{
+                                  gap: 1,
+                                  px: 0.75,
+                                  minHeight: 40,
+                                  textAlign: 'left',
+                                  borderRadius: 0.75,
+                                  justifyContent: 'flex-start',
+                                  '&:hover': { bgcolor: 'action.hover' },
+                                }}
+                              >
+                                <Typography
+                                  variant="caption"
+                                  color="text.secondary"
+                                  sx={{ width: 60, flexShrink: 0, fontVariantNumeric: 'tabular-nums' }}
+                                >
+                                  {fDateTime(log.startedAt, 'HH:mm:ss')}
+                                </Typography>
+                                <Typography variant="body2" noWrap sx={{ width: 108, flexShrink: 0 }}>
+                                  {log.task}
+                                </Typography>
+                                <Tooltip title={detail}>
+                                  <Typography
+                                    variant="body2"
+                                    color="text.secondary"
+                                    noWrap
+                                    sx={{ flexGrow: 1, minWidth: 0 }}
+                                  >
+                                    {detail}
+                                  </Typography>
+                                </Tooltip>
+                                <Label color={color} variant="soft">
+                                  {STATUS_LABEL[log.status] ?? log.status}
+                                </Label>
+                              </ButtonBase>
+                            );
+                          })}
+                        </Stack>
+                      </Scrollbar>
                     )}
                   </Paper>
                 </Grid>
               </Grid>
 
-              {/* 数据保鲜度热条（基于现有 lastSyncAt 的前端估算版） */}
-              <Paper variant="outlined" sx={{ p: 2, mb: 3 }}>
-                <Stack
-                  direction={{ xs: 'column', md: 'row' }}
-                  spacing={2}
-                  alignItems={{ xs: 'flex-start', md: 'center' }}
-                  sx={{ mb: 1.5 }}
-                >
-                  <Box sx={{ flexGrow: 1 }}>
-                    <Typography variant="subtitle2">分类保鲜度（前端估算）</Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      基于分类最近同步时间推断；后端 freshness 接口就绪后切换为最新 trade_date。
-                    </Typography>
-                  </Box>
-                  <Button size="small" variant="text" onClick={onGoQuality}>
-                    查看数据缺口
-                  </Button>
-                </Stack>
-                <Grid container spacing={1.5}>
-                  {(overview.categories ?? []).map((cat) => {
-                    const catLastSync = cat.items.reduce<string | null>((max, i) => {
-                      if (!i.lastSyncAt) return max;
-                      return !max || i.lastSyncAt > max ? i.lastSyncAt : max;
-                    }, null);
-                    const lagDays = catLastSync
-                      ? dayjs().startOf('day').diff(dayjs(catLastSync).startOf('day'), 'day')
-                      : null;
-                    const meta = freshnessMeta(lagDays);
-
-                    return (
-                      <Grid key={cat.name} size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
-                        <ButtonBase
-                          onClick={onGoQuality}
-                          sx={{
-                            width: 1,
-                            borderRadius: 1,
-                            textAlign: 'left',
-                            display: 'block',
-                          }}
-                          disabled={!onGoQuality}
-                        >
-                          <Paper
-                            variant="outlined"
-                            sx={{
-                              p: 1.25,
-                              '&:hover': {
-                                borderColor: onGoQuality ? `${meta.color}.main` : 'divider',
-                              },
-                            }}
-                          >
-                            <Stack
-                              direction="row"
-                              alignItems="center"
-                              justifyContent="space-between"
-                            >
-                              <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                                {cat.name}
-                              </Typography>
-                              <Label color={meta.color} variant="soft">
-                                {meta.label}
-                              </Label>
-                            </Stack>
-                            <Stack direction="row" spacing={0.5} sx={{ mt: 1 }}>
-                              {Array.from({ length: 5 }).map((_, index) => (
-                                <Box
-                                  key={index}
-                                  sx={{
-                                    width: 1,
-                                    height: 8,
-                                    borderRadius: 0.75,
-                                    bgcolor:
-                                      index < meta.activeCells
-                                        ? `${meta.color}.main`
-                                        : 'background.neutral',
-                                  }}
-                                />
-                              ))}
-                            </Stack>
-                            <Typography variant="caption" color="text.secondary">
-                              最近同步：{catLastSync ? fToNow(catLastSync) : '—'}
-                            </Typography>
-                          </Paper>
-                        </ButtonBase>
-                      </Grid>
-                    );
-                  })}
-                </Grid>
-              </Paper>
-
-              {/* 今日同步时间线（轻量版） */}
-              <Paper variant="outlined" sx={{ p: 2, mb: 3 }}>
-                <Stack
-                  direction={{ xs: 'column', md: 'row' }}
-                  spacing={2}
-                  alignItems={{ xs: 'flex-start', md: 'center' }}
-                  sx={{ mb: 2 }}
-                >
-                  <Box sx={{ flexGrow: 1 }}>
-                    <Typography variant="subtitle2">今日同步时间线</Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      按今天同步日志生成，点击可跳转同步日志筛选。
-                    </Typography>
-                  </Box>
-                  <Button size="small" variant="text" onClick={onGoLogs}>
-                    查看日志
-                  </Button>
-                </Stack>
-
-                {timelineLoading ? (
-                  <Skeleton variant="rectangular" height={132} sx={{ borderRadius: 1 }} />
-                ) : timelineLogs.length === 0 ? (
-                  <Typography variant="body2" color="text.secondary">
-                    今日暂无同步记录。
+              <Paper variant="outlined" sx={{ mt: 1.5, overflow: 'hidden' }}>
+                <Stack direction="row" spacing={1} alignItems="center" sx={{ px: 1.5, py: 0.75 }}>
+                  <Typography variant="subtitle2">分类汇总</Typography>
+                  <Typography variant="caption" color="text.secondary" sx={{ flexGrow: 1 }}>
+                    {categoryRows.length} 个分类
                   </Typography>
-                ) : (
-                  <Stack spacing={1.25}>
-                    {timelineLogs.slice(0, 8).map((log) => {
-                      const metrics = getTimelineMetrics(log);
-                      const color = STATUS_COLOR[log.status] ?? 'default';
-
-                      return (
-                        <ButtonBase
-                          key={log.id}
-                          onClick={onGoLogs}
-                          disabled={!onGoLogs}
-                          sx={{ width: 1, borderRadius: 1, textAlign: 'left', display: 'block' }}
-                        >
-                          <Stack direction="row" spacing={1.5} alignItems="center">
-                            <Typography
-                              variant="caption"
-                              color="text.secondary"
-                              sx={{ width: 112, flexShrink: 0 }}
-                            >
-                              {log.task}
-                            </Typography>
-                            <Box
-                              sx={{
-                                height: 16,
-                                flexGrow: 1,
-                                minWidth: 160,
-                                borderRadius: 1,
-                                position: 'relative',
-                                bgcolor: 'background.neutral',
-                              }}
-                            >
-                              <Box
-                                title={`${log.task} · ${log.status}`}
-                                sx={{
-                                  top: 2,
-                                  bottom: 2,
-                                  left: `${metrics.left}%`,
-                                  width: `${metrics.width}%`,
-                                  minWidth: 12,
-                                  borderRadius: 0.75,
-                                  position: 'absolute',
-                                  bgcolor: `${color}.main`,
-                                }}
-                              />
-                            </Box>
-                            <Label color={color} variant="soft">
-                              {log.status}
-                            </Label>
-                          </Stack>
-                        </ButtonBase>
-                      );
-                    })}
-                    {timelineLogs.length > 8 && (
-                      <Typography variant="caption" color="text.secondary">
-                        仅展示最近 8 条，更多记录请进入同步日志。
-                      </Typography>
-                    )}
-                  </Stack>
-                )}
-              </Paper>
-
-              {/* 分类别状态表格 */}
-              <Typography variant="subtitle2" sx={{ mb: 1 }}>
-                分类别状态
-              </Typography>
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>类别</TableCell>
-                    <TableCell align="center">任务数</TableCell>
-                    <TableCell align="center">成功</TableCell>
-                    <TableCell align="center">失败</TableCell>
-                    <TableCell align="center">跳过</TableCell>
-                    <TableCell>最近同步</TableCell>
-                    <TableCell align="center">连续失败</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {(overview.categories ?? []).map((cat) => {
-                    const catSuccess = cat.items.filter((i) => i.lastStatus === 'SUCCESS').length;
-                    const catFailed = cat.items.filter((i) => i.lastStatus === 'FAILED').length;
-                    const catSkipped = cat.items.filter((i) => i.lastStatus === 'SKIPPED').length;
-                    const catLastSync = cat.items.reduce<string | null>((max, i) => {
-                      if (!i.lastSyncAt) return max;
-                      return !max || i.lastSyncAt > max ? i.lastSyncAt : max;
-                    }, null);
-                    const catConsecFail = cat.items.reduce(
-                      (sum, i) => sum + (i.consecutiveFailures || 0),
-                      0
-                    );
-                    return (
-                      <TableRow key={cat.name}>
-                        <TableCell>
-                          <Label color="default" variant="soft">
-                            {cat.name}
-                          </Label>
-                        </TableCell>
-                        <TableCell align="center">{cat.items.length}</TableCell>
-                        <TableCell align="center">
-                          <Typography
-                            variant="body2"
-                            sx={{ color: catSuccess > 0 ? 'success.main' : 'text.secondary' }}
-                          >
-                            {catSuccess}
-                          </Typography>
-                        </TableCell>
-                        <TableCell align="center">
-                          <Typography
-                            variant="body2"
-                            sx={{ color: catFailed > 0 ? 'error.main' : 'text.primary' }}
-                          >
-                            {catFailed}
-                          </Typography>
-                        </TableCell>
-                        <TableCell align="center">{catSkipped}</TableCell>
-                        <TableCell>
-                          <Typography variant="body2" color="text.secondary">
-                            {catLastSync ? fToNow(catLastSync) : '—'}
-                          </Typography>
-                        </TableCell>
-                        <TableCell align="center">
-                          {catConsecFail > 0 ? (
-                            <Label color={catConsecFail >= 3 ? 'error' : 'warning'} variant="soft">
-                              {catConsecFail}
-                            </Label>
-                          ) : (
-                            <Typography variant="body2" color="text.secondary">
-                              0
-                            </Typography>
-                          )}
-                        </TableCell>
+                  {categoryRows.length > 1 && (
+                    <Button
+                      size="small"
+                      color="inherit"
+                      onClick={() => setSummaryExpanded((value) => !value)}
+                      endIcon={<Iconify icon={summaryExpanded ? 'solar:alt-arrow-up-bold' : 'solar:alt-arrow-down-bold'} />}
+                    >
+                      {summaryExpanded ? '收起' : '展开全部'}
+                    </Button>
+                  )}
+                </Stack>
+                <Divider />
+                <Box sx={{ overflowX: 'auto' }}>
+                  <Table
+                    size="small"
+                    sx={{
+                      minWidth: 720,
+                      '& .MuiTableCell-root': { py: 0.75 },
+                    }}
+                  >
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>类别</TableCell>
+                        <TableCell align="center">任务数</TableCell>
+                        <TableCell align="center">成功</TableCell>
+                        <TableCell align="center">失败</TableCell>
+                        <TableCell align="center">跳过</TableCell>
+                        <TableCell>最近同步</TableCell>
+                        <TableCell align="center">连续失败</TableCell>
                       </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
+                    </TableHead>
+                    <TableBody>
+                      {visibleCategoryRows.map((cat) => {
+                        const catSuccess = cat.items.filter((item) => item.lastStatus === 'SUCCESS').length;
+                        const catFailed = cat.items.filter((item) => item.lastStatus === 'FAILED').length;
+                        const catSkipped = cat.items.filter((item) => item.lastStatus === 'SKIPPED').length;
+                        const catLastSync = cat.items.reduce<string | null>((max, item) => {
+                          if (!item.lastSyncAt) return max;
+                          return !max || item.lastSyncAt > max ? item.lastSyncAt : max;
+                        }, null);
+                        const catConsecFail = cat.items.reduce(
+                          (sum, item) => sum + (item.consecutiveFailures || 0),
+                          0
+                        );
+
+                        return (
+                          <TableRow key={cat.name}>
+                            <TableCell>
+                              <Label color="default" variant="soft">
+                                {cat.name}
+                              </Label>
+                            </TableCell>
+                            <TableCell align="center">{cat.items.length}</TableCell>
+                            <TableCell align="center">
+                              <Typography
+                                variant="body2"
+                                sx={{ color: catSuccess > 0 ? 'success.main' : 'text.secondary' }}
+                              >
+                                {catSuccess}
+                              </Typography>
+                            </TableCell>
+                            <TableCell align="center">
+                              <Typography
+                                variant="body2"
+                                sx={{ color: catFailed > 0 ? 'error.main' : 'text.primary' }}
+                              >
+                                {catFailed}
+                              </Typography>
+                            </TableCell>
+                            <TableCell align="center">{catSkipped}</TableCell>
+                            <TableCell>
+                              <Tooltip
+                                title={
+                                  catLastSync
+                                    ? fDateTime(catLastSync, EXACT_DATE_TIME_FORMAT)
+                                    : '暂无同步记录'
+                                }
+                              >
+                                <Typography variant="body2" color="text.secondary" noWrap>
+                                  {catLastSync ? fDateTime(catLastSync, 'YYYY-MM-DD HH:mm') : '—'}
+                                </Typography>
+                              </Tooltip>
+                            </TableCell>
+                            <TableCell align="center">
+                              {catConsecFail > 0 ? (
+                                <Label color={catConsecFail >= 3 ? 'error' : 'warning'} variant="soft">
+                                  {catConsecFail}
+                                </Label>
+                              ) : (
+                                <Typography variant="body2" color="text.secondary">
+                                  0
+                                </Typography>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </Box>
+              </Paper>
             </Box>
-          )
         )}
       </Collapse>
     </Card>

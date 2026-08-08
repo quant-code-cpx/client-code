@@ -2,7 +2,7 @@ import type { Dayjs } from 'dayjs';
 import type { HeatmapItem } from 'src/api/heatmap';
 
 import { useState, useCallback } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router';
 
 import Box from '@mui/material/Box';
 import Tab from '@mui/material/Tab';
@@ -44,9 +44,7 @@ const CONTROL_HEIGHT = 40;
 export function IndustryAnalysisView() {
   const [searchParams, setSearchParams] = useSearchParams();
   const tabParam = Number(searchParams.get('tab') ?? '1');
-  const [currentTab, setCurrentTab] = useState<number>(
-    tabParam >= 0 && tabParam < TABS.length ? tabParam : 1
-  );
+  const currentTab = tabParam >= 0 && tabParam < TABS.length ? tabParam : 1;
 
   // ── 共享状态 ─────────────────────────────────
   const [tradeDate, setTradeDate] = useState<string | undefined>(undefined);
@@ -65,10 +63,11 @@ export function IndustryAnalysisView() {
   // ── 事件处理 ─────────────────────────────────
   const handleTabChange = useCallback(
     (_: React.SyntheticEvent, value: number) => {
-      setCurrentTab(value);
-      setSearchParams({ tab: String(value) });
+      const next = new URLSearchParams(searchParams);
+      next.set('tab', String(value));
+      setSearchParams(next);
     },
-    [setSearchParams]
+    [searchParams, setSearchParams]
   );
 
   const handleRefresh = useCallback(() => {
@@ -88,11 +87,16 @@ export function IndustryAnalysisView() {
         swName: resolved.swName ?? undefined,
         dcName: resolved.dcName ?? undefined,
       });
-      setCurrentTab(1);
-      setSearchParams({ tab: '1' });
+      const next = new URLSearchParams(searchParams);
+      next.set('tab', '1');
+      setSearchParams(next);
     },
-    [indexes, setSearchParams]
+    [indexes, searchParams, setSearchParams]
   );
+
+  const handleFocusedSectorConsumed = useCallback(() => {
+    setFocusedSector(null);
+  }, []);
 
   // ── 副标题 ───────────────────────────────────
   const subtitle =
@@ -247,6 +251,7 @@ export function IndustryAnalysisView() {
           refreshKey={refreshKey}
           embedded
           focusedSector={focusedSector}
+          onFocusedSectorConsumed={handleFocusedSectorConsumed}
         />
       )}
     </DashboardContent>

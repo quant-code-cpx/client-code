@@ -1,3 +1,5 @@
+import type { SyncLogQuery } from 'src/api/tushare-sync';
+
 import { useState } from 'react';
 
 import Box from '@mui/material/Box';
@@ -52,11 +54,21 @@ export function TushareSyncView() {
   const [currentTab, setCurrentTab] = useState(0);
   const [refreshKey, setRefreshKey] = useState(0);
   const [auditOpen, setAuditOpen] = useState(false);
+  const [logFilters, setLogFilters] = useState<
+    Pick<SyncLogQuery, 'task' | 'status' | 'startDate' | 'endDate'> | undefined
+  >();
+
+  const handleGoLogs = (
+    filters?: Pick<SyncLogQuery, 'task' | 'status' | 'startDate' | 'endDate'>
+  ) => {
+    if (filters) setLogFilters(filters);
+    setCurrentTab(1);
+  };
 
   // ── permission guard ─────────────────────────────────────────────────
   if (!isAdmin) {
     return (
-      <DashboardContent>
+      <DashboardContent maxWidth="xl">
         <Box
           sx={{
             display: 'flex',
@@ -86,33 +98,34 @@ export function TushareSyncView() {
   const statusMeta = SOCKET_STATUS_META[socketStatus];
 
   return (
-    <DashboardContent>
+    <DashboardContent maxWidth="xl">
       {/* Header */}
       <Box
         sx={{
-          mb: 3,
-          gap: 2,
+          mb: 2,
+          gap: 1.5,
+          minHeight: 56,
           display: 'flex',
           alignItems: { xs: 'flex-start', md: 'center' },
           flexDirection: { xs: 'column', md: 'row' },
         }}
       >
         <Box sx={{ flexGrow: 1 }}>
-          <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.75 }}>
-            <Typography variant="h4">数据同步</Typography>
-            <Chip
-              size="small"
-              color={isReadOnly ? 'info' : 'success'}
-              label={isReadOnly ? '管理员（只读）' : '超级管理员'}
-              variant="outlined"
-            />
-          </Stack>
+          <Typography variant="h5" sx={{ mb: 0.25 }}>
+            数据运维
+          </Typography>
           <Typography variant="body2" color="text.secondary">
-            独立数据运维控制台：同步计划、日志、质量、缓存与重试队列集中治理。
+            Tushare 数据同步与质量治理
           </Typography>
         </Box>
 
         <Stack direction="row" spacing={1} alignItems="center" sx={{ flexWrap: 'wrap' }}>
+          <Chip
+            size="small"
+            color={isReadOnly ? 'info' : 'success'}
+            label={isReadOnly ? '管理员（只读）' : '超级管理员'}
+            variant="outlined"
+          />
           <Chip
             size="small"
             color={statusMeta.color}
@@ -125,14 +138,6 @@ export function TushareSyncView() {
               重连
             </Button>
           )}
-          <Button
-            size="small"
-            variant="outlined"
-            onClick={() => setRefreshKey((value) => value + 1)}
-            startIcon={<Iconify icon="solar:refresh-bold" />}
-          >
-            刷新
-          </Button>
           <Tooltip title="等待后端告警订阅接口启用">
             <span>
               <Button size="small" variant="outlined" disabled>
@@ -147,6 +152,14 @@ export function TushareSyncView() {
           >
             审计
           </Button>
+          <Button
+            size="small"
+            variant="outlined"
+            onClick={() => setRefreshKey((value) => value + 1)}
+            startIcon={<Iconify icon="solar:refresh-bold" />}
+          >
+            刷新
+          </Button>
         </Stack>
       </Box>
 
@@ -160,7 +173,7 @@ export function TushareSyncView() {
       {/* 状态总览 */}
       <SyncStatusOverviewPanel
         refreshKey={refreshKey}
-        onGoLogs={() => setCurrentTab(1)}
+        onGoLogs={handleGoLogs}
         onGoQuality={() => setCurrentTab(2)}
       />
 
@@ -170,7 +183,17 @@ export function TushareSyncView() {
         onChange={(_, v) => setCurrentTab(v)}
         variant="scrollable"
         scrollButtons="auto"
-        aria-label="数据同步工作区"
+        aria-label="数据运维工作区"
+        sx={{
+          top: 0,
+          zIndex: 5,
+          position: 'sticky',
+          minHeight: 48,
+          borderRadius: 1,
+          bgcolor: 'background.paper',
+          borderBottom: (theme) => `1px solid ${theme.vars.palette.divider}`,
+          '& .MuiTab-root': { minHeight: 48 },
+        }}
       >
         {TABS.map((tab) => (
           <Tab
@@ -183,7 +206,7 @@ export function TushareSyncView() {
       </Tabs>
 
       {currentTab === 0 && <SyncPlanTab isReadOnly={isReadOnly} refreshKey={refreshKey} />}
-      {currentTab === 1 && <SyncLogTab refreshKey={refreshKey} />}
+      {currentTab === 1 && <SyncLogTab refreshKey={refreshKey} initialFilters={logFilters} />}
       {currentTab === 2 && <DataQualityTab isReadOnly={isReadOnly} refreshKey={refreshKey} />}
       {currentTab === 3 && <OpsTab isReadOnly={isReadOnly} refreshKey={refreshKey} />}
 

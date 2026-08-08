@@ -231,10 +231,10 @@ export const AGENT_ERROR_DEFINITIONS = [
   },
   {
     code: 6018,
-    key: 'AI_CONTEXT_TOO_LARGE',
+    key: 'AI_RUN_INPUT_TOKEN_GUARDRAIL_EXCEEDED',
     httpStatus: 422,
     retryable: false,
-    message: '上下文超过模型限制',
+    message: 'Agent Run 累计输入 Token 成本护栏已达上限',
   },
   {
     code: 6019,
@@ -682,6 +682,21 @@ export type AgentEventPayloadMap = {
         estimatedInputTokens: number;
         maxOutputTokens: number;
         contextWindow: number;
+        inputTokenCountSource:
+          | 'OPENAI_INPUT_TOKENS_API'
+          | 'ANTHROPIC_COUNT_TOKENS_API'
+          | 'LOCAL_CONSERVATIVE_V1';
+        inputTokenCountExact: boolean;
+        inputTokenSafetyMarginTokens: number;
+        runInputReservationTokens: number;
+        runMaxCumulativeInputTokens: number | null;
+        runInputTokensUsedBeforeCall: number;
+        runInputGuardrailSource:
+          | 'RUN_SNAPSHOT'
+          | 'LEGACY_RUN'
+          | 'ENV'
+          | 'LEGACY_ENV'
+          | 'DISABLED_BY_DEFAULT';
       }
     | {
         modelCallId: string;
@@ -1922,6 +1937,13 @@ export const AGENT_CONTRACT_JSON_SCHEMA = {
                     'estimatedInputTokens',
                     'maxOutputTokens',
                     'contextWindow',
+                    'inputTokenCountSource',
+                    'inputTokenCountExact',
+                    'inputTokenSafetyMarginTokens',
+                    'runInputReservationTokens',
+                    'runMaxCumulativeInputTokens',
+                    'runInputTokensUsedBeforeCall',
+                    'runInputGuardrailSource',
                   ],
                   properties: {
                     modelCallId: {
@@ -1956,6 +1978,45 @@ export const AGENT_CONTRACT_JSON_SCHEMA = {
                       type: 'integer',
                       minimum: 1,
                       maximum: 9007199254740991,
+                    },
+                    inputTokenCountSource: {
+                      enum: [
+                        'OPENAI_INPUT_TOKENS_API',
+                        'ANTHROPIC_COUNT_TOKENS_API',
+                        'LOCAL_CONSERVATIVE_V1',
+                      ],
+                    },
+                    inputTokenCountExact: {
+                      type: 'boolean',
+                    },
+                    inputTokenSafetyMarginTokens: {
+                      type: 'integer',
+                      minimum: 0,
+                      maximum: 9007199254740991,
+                    },
+                    runInputReservationTokens: {
+                      type: 'integer',
+                      minimum: 1,
+                      maximum: 9007199254740991,
+                    },
+                    runMaxCumulativeInputTokens: {
+                      type: ['integer', 'null'],
+                      minimum: 1,
+                      maximum: 9007199254740991,
+                    },
+                    runInputTokensUsedBeforeCall: {
+                      type: 'integer',
+                      minimum: 0,
+                      maximum: 9007199254740991,
+                    },
+                    runInputGuardrailSource: {
+                      enum: [
+                        'RUN_SNAPSHOT',
+                        'LEGACY_RUN',
+                        'ENV',
+                        'LEGACY_ENV',
+                        'DISABLED_BY_DEFAULT',
+                      ],
                     },
                   },
                 },
@@ -2417,6 +2478,8 @@ export const AGENT_CONTRACT_JSON_SCHEMA = {
                 'repaired',
                 'finishReason',
                 'usage',
+                'usageSource',
+                'accountingWarnings',
               ],
               properties: {
                 modelCallId: {
@@ -2477,6 +2540,18 @@ export const AGENT_CONTRACT_JSON_SCHEMA = {
                       minimum: 0,
                       maximum: 9007199254740991,
                     },
+                  },
+                },
+                usageSource: {
+                  enum: ['PROVIDER_ACTUAL', 'PREFLIGHT_ESTIMATE'],
+                },
+                accountingWarnings: {
+                  type: 'array',
+                  maxItems: 20,
+                  items: {
+                    type: 'string',
+                    minLength: 1,
+                    maxLength: 1000,
                   },
                 },
               },
@@ -4584,10 +4659,10 @@ export const AGENT_CONTRACT_JSON_SCHEMA = {
     },
     {
       code: 6018,
-      key: 'AI_CONTEXT_TOO_LARGE',
+      key: 'AI_RUN_INPUT_TOKEN_GUARDRAIL_EXCEEDED',
       httpStatus: 422,
       retryable: false,
-      message: '上下文超过模型限制',
+      message: 'Agent Run 累计输入 Token 成本护栏已达上限',
     },
     {
       code: 6019,
@@ -5032,6 +5107,13 @@ export const AGENT_EVENT_FIXTURES = [
       estimatedInputTokens: 1024,
       maxOutputTokens: 2048,
       contextWindow: 32768,
+      inputTokenCountSource: 'LOCAL_CONSERVATIVE_V1',
+      inputTokenCountExact: false,
+      inputTokenSafetyMarginTokens: 128,
+      runInputReservationTokens: 4096,
+      runMaxCumulativeInputTokens: null,
+      runInputTokensUsedBeforeCall: 0,
+      runInputGuardrailSource: 'DISABLED_BY_DEFAULT',
     },
   },
   {
@@ -5122,6 +5204,8 @@ export const AGENT_EVENT_FIXTURES = [
         outputTokens: 500,
         reasoningTokens: 120,
       },
+      usageSource: 'PROVIDER_ACTUAL',
+      accountingWarnings: [],
     },
   },
   {

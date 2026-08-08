@@ -1,3 +1,4 @@
+import { StrictMode } from 'react';
 import { screen, waitFor } from '@testing-library/react';
 
 import { renderWithProviders } from 'src/test/test-utils';
@@ -86,6 +87,18 @@ describe('SignInView', () => {
   describe('验证码', () => {
     it('mount 时自动请求验证码', async () => {
       renderWithProviders(<SignInView />);
+      await waitFor(() => {
+        expect(mockGetCaptcha).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('[REG] React StrictMode 首次渲染只请求一个验证码', async () => {
+      renderWithProviders(
+        <StrictMode>
+          <SignInView />
+        </StrictMode>
+      );
+
       await waitFor(() => {
         expect(mockGetCaptcha).toHaveBeenCalledTimes(1);
       });

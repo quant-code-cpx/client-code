@@ -88,9 +88,9 @@ function newsDocument(source) {
 }
 
 const filteredDocument = newsDocument(document);
-if (Object.keys(filteredDocument.paths).length !== 6) {
+if (Object.keys(filteredDocument.paths).length !== 7) {
   throw new Error(
-    `News OpenAPI must contain exactly 6 /news/** paths, received ${Object.keys(filteredDocument.paths).length}.`
+    `News OpenAPI must contain exactly 7 /news/** paths, received ${Object.keys(filteredDocument.paths).length}.`
   );
 }
 let artifactContent = `${JSON.stringify(filteredDocument, null, 2)}\n`;

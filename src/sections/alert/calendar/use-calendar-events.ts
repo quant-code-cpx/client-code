@@ -1,6 +1,6 @@
-import type { CalendarEvent, CalendarResponse } from 'src/api/alert';
+import type { CalendarEvent, CalendarResponse, CalendarListParams } from 'src/api/alert';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useRef, useMemo, useState, useEffect, useCallback } from 'react';
 
 import { alertApi } from 'src/api/alert';
 
@@ -14,6 +14,7 @@ type State = {
   truncated: boolean;
   currentTradeDate?: string;
   dataAsOf?: string;
+  hasLoaded: boolean;
   loading: boolean;
   error: string | null;
 };
@@ -22,6 +23,7 @@ const INITIAL: State = {
   events: [],
   totalCount: 0,
   truncated: false,
+  hasLoaded: false,
   loading: true,
   error: null,
 };
@@ -30,56 +32,79 @@ const DEBOUNCE_MS = 200;
 
 export function useCalendarEvents(filters: FilterState) {
   const [state, setState] = useState<State>(INITIAL);
+  const requestSequenceRef = useRef(0);
+  const activeControllerRef = useRef<AbortController | null>(null);
+  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const queryKey = JSON.stringify(filtersToQueryParams(filters));
+  const query = useMemo(
+    () => JSON.parse(queryKey) as CalendarListParams,
+    [queryKey]
+  );
 
-  const fetchEvents = useCallback(
-    async (signal: AbortSignal) => {
-      if (!filters.startDate || !filters.endDate) return;
+  const runRequest = useCallback(async () => {
+      if (!query.startDate || !query.endDate) return;
+      activeControllerRef.current?.abort();
+      const controller = new AbortController();
+      activeControllerRef.current = controller;
+      const requestSequence = requestSequenceRef.current + 1;
+      requestSequenceRef.current = requestSequence;
       setState((prev) => ({ ...prev, loading: true, error: null }));
       try {
         const data: CalendarResponse = await alertApi.getCalendar(
-          { ...filtersToQueryParams(filters), pageSize: 1000 },
-          signal
+          { ...query, pageSize: 1000 },
+          controller.signal
         );
-        if (signal.aborted) return;
+        if (controller.signal.aborted || requestSequence !== requestSequenceRef.current) return;
         setState({
           events: data.events ?? [],
           totalCount: data.totalCount ?? data.events?.length ?? 0,
           truncated: data.truncated ?? false,
           currentTradeDate: data.currentTradeDate,
           dataAsOf: data.dataAsOf,
+          hasLoaded: true,
           loading: false,
           error: null,
         });
       } catch (err) {
-        if (signal.aborted) return;
+        if (controller.signal.aborted || requestSequence !== requestSequenceRef.current) return;
         if (err instanceof DOMException && err.name === 'AbortError') return;
         setState((prev) => ({
           ...prev,
           loading: false,
           error: err instanceof Error ? err.message : '加载事件数据失败',
         }));
+      } finally {
+        if (activeControllerRef.current === controller) activeControllerRef.current = null;
       }
-    },
-    [filters]
-  );
+    }, [query]);
 
   useEffect(() => {
-    const controller = new AbortController();
-    // 立即清空旧数据 + 标记 loading，避免视图切换时用大量陈旧数据渲染新视图
-    setState((prev) => ({ ...prev, events: [], totalCount: 0, loading: true, error: null }));
-    const timer = setTimeout(() => {
-      fetchEvents(controller.signal);
+    requestSequenceRef.current += 1;
+    activeControllerRef.current?.abort();
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    setState((prev) => ({ ...prev, loading: true, error: null }));
+    debounceTimerRef.current = setTimeout(() => {
+      debounceTimerRef.current = null;
+      void runRequest();
     }, DEBOUNCE_MS);
     return () => {
-      clearTimeout(timer);
-      controller.abort();
+      requestSequenceRef.current += 1;
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+      debounceTimerRef.current = null;
+      activeControllerRef.current?.abort();
     };
-  }, [fetchEvents]);
+  }, [runRequest]);
 
   const refresh = useCallback(() => {
-    const controller = new AbortController();
-    fetchEvents(controller.signal);
-  }, [fetchEvents]);
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
+    debounceTimerRef.current = null;
+    void runRequest();
+  }, [runRequest]);
 
-  return { ...state, refresh };
+  return {
+    ...state,
+    refresh,
+    initialLoading: state.loading && !state.hasLoaded,
+    refreshing: state.loading && state.hasLoaded,
+  };
 }

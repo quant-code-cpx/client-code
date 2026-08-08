@@ -1,7 +1,7 @@
 import type { CalendarEvent } from 'src/api/alert';
 
-import { useMemo, useState } from 'react';
 import { varAlpha } from 'minimal-shared/utils';
+import { useMemo, useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -40,31 +40,67 @@ type Props = {
   onBatchSubscribe: (events: CalendarEvent[]) => void;
 };
 
+function getCalendarRowKey(event: CalendarEvent): string {
+  return event.id ?? `${event.tsCode}-${event.date}-${event.type}-${event.title}`;
+}
+
+type CalendarRow = { event: CalendarEvent; key: string };
+
+export function createCalendarRows(events: CalendarEvent[]): CalendarRow[] {
+  const occurrences = new Map<string, number>();
+  return events.map((event) => {
+    const baseKey = getCalendarRowKey(event);
+    const occurrence = (occurrences.get(baseKey) ?? 0) + 1;
+    occurrences.set(baseKey, occurrence);
+    return { event, key: occurrence === 1 ? baseKey : `${baseKey}#${occurrence}` };
+  });
+}
+
+export function reconcileCalendarSelection(
+  selected: ReadonlySet<string>,
+  events: CalendarEvent[]
+): Set<string> {
+  const availableKeys = new Set(createCalendarRows(events).map((row) => row.key));
+  return new Set([...selected].filter((key) => availableKeys.has(key)));
+}
+
 export function CalendarTableView({ events, onSelectEvent, onBatchSubscribe }: Props) {
   const theme = useTheme();
   const [sortKey, setSortKey] = useState<SortKey>('date');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [selected, setSelected] = useState<Set<string>>(new Set());
 
-  const rowKey = (e: CalendarEvent) => e.id ?? `${e.tsCode}-${e.date}-${e.type}-${e.title}`;
+  const rows = useMemo(() => createCalendarRows(events), [events]);
 
   const sorted = useMemo(() => {
-    const list = [...events];
+    const list = [...rows];
     list.sort((a, b) => {
       let cmp = 0;
-      if (sortKey === 'date') cmp = a.date.localeCompare(b.date);
-      else if (sortKey === 'tsCode') cmp = a.tsCode.localeCompare(b.tsCode);
-      else if (sortKey === 'impact') cmp = (a.impactScore ?? 0) - (b.impactScore ?? 0);
+      if (sortKey === 'date') cmp = a.event.date.localeCompare(b.event.date);
+      else if (sortKey === 'tsCode') cmp = a.event.tsCode.localeCompare(b.event.tsCode);
+      else if (sortKey === 'impact') {
+        cmp = (a.event.impactScore ?? 0) - (b.event.impactScore ?? 0);
+      }
       return sortOrder === 'asc' ? cmp : -cmp;
     });
     return list;
-  }, [events, sortKey, sortOrder]);
+  }, [rows, sortKey, sortOrder]);
+
+  useEffect(() => {
+    setSelected((previous) => {
+      const next = reconcileCalendarSelection(previous, events);
+      if (next.size === previous.size) return previous;
+      return next;
+    });
+  }, [events]);
+
+  const selectedEvents = sorted.filter((row) => selected.has(row.key)).map((row) => row.event);
 
   const toggleAll = () => {
-    if (selected.size === sorted.length) {
+    if (selectedEvents.length === sorted.length) {
       setSelected(new Set());
     } else {
-      setSelected(new Set(sorted.map(rowKey)));
+      setSelected(new Set(sorted.map((row) => row.key)));
     }
   };
 
@@ -77,6 +113,12 @@ export function CalendarTableView({ events, onSelectEvent, onBatchSubscribe }: P
     });
   };
 
+  const handleRowKeyDown = (event: React.KeyboardEvent<HTMLTableRowElement>, row: CalendarRow) => {
+    if (event.target !== event.currentTarget || (event.key !== 'Enter' && event.key !== ' ')) return;
+    event.preventDefault();
+    onSelectEvent(row.event);
+  };
+
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {
       setSortOrder((o) => (o === 'asc' ? 'desc' : 'asc'));
@@ -85,8 +127,6 @@ export function CalendarTableView({ events, onSelectEvent, onBatchSubscribe }: P
       setSortOrder('asc');
     }
   };
-
-  const selectedEvents = sorted.filter((e) => selected.has(rowKey(e)));
 
   if (events.length === 0) {
     return (
@@ -98,7 +138,7 @@ export function CalendarTableView({ events, onSelectEvent, onBatchSubscribe }: P
 
   return (
     <Card>
-      {selected.size > 0 && (
+      {selectedEvents.length > 0 && (
         <Stack
           direction="row"
           alignItems="center"
@@ -110,7 +150,7 @@ export function CalendarTableView({ events, onSelectEvent, onBatchSubscribe }: P
           }}
         >
           <Typography variant="body2" sx={{ fontWeight: 600 }}>
-            已选 {selected.size} 项
+            已选 {selectedEvents.length} 项
           </Typography>
           <Box sx={{ flexGrow: 1 }} />
           <Button
@@ -134,9 +174,10 @@ export function CalendarTableView({ events, onSelectEvent, onBatchSubscribe }: P
               <TableCell padding="checkbox">
                 <Checkbox
                   size="small"
-                  indeterminate={selected.size > 0 && selected.size < sorted.length}
-                  checked={selected.size > 0 && selected.size === sorted.length}
+                  indeterminate={selectedEvents.length > 0 && selectedEvents.length < sorted.length}
+                  checked={selectedEvents.length > 0 && selectedEvents.length === sorted.length}
                   onChange={toggleAll}
+                  inputProps={{ 'aria-label': '选择全部事件' }}
                 />
               </TableCell>
               <TableCell>
@@ -171,8 +212,8 @@ export function CalendarTableView({ events, onSelectEvent, onBatchSubscribe }: P
             </TableRow>
           </TableHead>
           <TableBody>
-            {sorted.map((event) => {
-              const key = rowKey(event);
+            {sorted.map((row) => {
+              const { event, key } = row;
               const cfg = getEventTypeConfig(event.type);
               const impact = getEventImpactLevel(event);
               const impactColor = IMPACT_COLOR[impact];
@@ -183,17 +224,39 @@ export function CalendarTableView({ events, onSelectEvent, onBatchSubscribe }: P
                   hover
                   selected={isSelected}
                   onClick={() => onSelectEvent(event)}
-                  sx={{ cursor: 'pointer' }}
+                  onKeyDown={(keyboardEvent) => handleRowKeyDown(keyboardEvent, row)}
+                  tabIndex={0}
+                  aria-label={`查看事件 ${event.stockName || event.tsCode} ${event.title}`}
+                  sx={{
+                    cursor: 'pointer',
+                    // A 14-day deep link can return up to 1,000 events. Keep
+                    // off-screen table rows out of the paint work until they
+                    // enter the scrollport.
+                    contentVisibility: 'auto',
+                    containIntrinsicSize: '40px',
+                    '&:focus-visible': {
+                      outline: '2px solid',
+                      outlineColor: 'primary.main',
+                      outlineOffset: -2,
+                    },
+                  }}
                 >
                   <TableCell padding="checkbox" onClick={(e) => e.stopPropagation()}>
-                    <Checkbox size="small" checked={isSelected} onChange={() => toggleRow(key)} />
+                    <Checkbox
+                      size="small"
+                      checked={isSelected}
+                      onChange={() => toggleRow(key)}
+                      inputProps={{
+                        'aria-label': `选择事件 ${event.stockName || event.tsCode} ${event.title}`,
+                      }}
+                    />
                   </TableCell>
                   <TableCell>
                     {event.date.slice(0, 4)}-{event.date.slice(4, 6)}-{event.date.slice(6)}
                   </TableCell>
                   <TableCell>
                     <Stack direction="row" alignItems="center" spacing={0.5}>
-                      <Typography variant="body2">{event.stockName}</Typography>
+                      <Typography variant="body2">{event.stockName || event.tsCode}</Typography>
                       <Typography variant="caption" color="text.secondary">
                         {event.tsCode}
                       </Typography>

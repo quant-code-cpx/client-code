@@ -1,10 +1,11 @@
-import type { PrecomputeStatusItem } from 'src/api/factor';
+import type { PrecomputeStatusItem, AdminBackfillResponse } from 'src/api/factor';
 
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router';
 import { useRef, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Tab from '@mui/material/Tab';
+import Card from '@mui/material/Card';
 import Tabs from '@mui/material/Tabs';
 import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
@@ -14,8 +15,10 @@ import Typography from '@mui/material/Typography';
 
 import { usePollingFetch } from 'src/hooks/use-polling-fetch';
 
+import { fmtTradeDate } from 'src/utils/format-time';
+
 import { DashboardContent } from 'src/layouts/dashboard';
-import { adminPrecompute, adminToggleFactor, adminPrecomputeStatus } from 'src/api/factor';
+import { adminPrecompute, adminPrecomputeStatus } from 'src/api/factor';
 
 import { Iconify } from 'src/components/iconify';
 
@@ -23,14 +26,15 @@ import { FactorAdminKpiRow } from '../admin/factor-admin-kpi-row';
 import { FactorAdminJobsTable } from '../admin/factor-admin-jobs-table';
 import { FactorAdminAuditTable } from '../admin/factor-admin-audit-table';
 import { FactorAdminStatusTable } from '../admin/factor-admin-status-table';
-import { FactorAdminBackfillForm } from '../admin/factor-admin-backfill-form';
 import { FactorAdminSchedulePanel } from '../admin/factor-admin-schedule-panel';
 import { FactorAdminBulkActionBar } from '../admin/factor-admin-bulk-action-bar';
 import { FactorAdminFilterBar, DEFAULT_ADMIN_FILTERS } from '../admin/factor-admin-filter-bar';
+import {
+  formatBackfillSuccess,
+  FactorAdminBackfillForm,
+} from '../admin/factor-admin-backfill-form';
 
 import type { AdminStatusFilters } from '../admin/factor-admin-filter-bar';
-
-// ─── Tab definitions ──────────────────────────────────────────
 
 const TABS = [
   { value: 'status', label: '状态总览' },
@@ -42,56 +46,68 @@ const TABS = [
 
 type TabValue = (typeof TABS)[number]['value'];
 
-// ─── View ─────────────────────────────────────────────────────
+export function formatPrecomputeSuccess(response: {
+  tradeDate: string;
+  factorsProcessed: number;
+  factorsFailed: number;
+  totalRows: number;
+}) {
+  return `预计算完成（${fmtTradeDate(response.tradeDate)}）：成功 ${response.factorsProcessed}，失败 ${response.factorsFailed}，写入 ${response.totalRows.toLocaleString()} 行`;
+}
 
 export function FactorAdminView() {
   const [searchParams, setSearchParams] = useSearchParams();
   const rawTab = searchParams.get('tab') ?? 'status';
-  const activeTab: TabValue = TABS.some((t) => t.value === rawTab)
+  const activeTab: TabValue = TABS.some((tab) => tab.value === rawTab)
     ? (rawTab as TabValue)
     : 'status';
 
-  // Status data
   const [statusItems, setStatusItems] = useState<PrecomputeStatusItem[]>([]);
+  const [statusLoading, setStatusLoading] = useState(true);
   const [statusError, setStatusError] = useState('');
+  const [targetTradeDate, setTargetTradeDate] = useState<string | null>(null);
   const [lastRefreshTime, setLastRefreshTime] = useState<Date | null>(null);
+  const hasLoadedStatusRef = useRef(false);
 
-  // Selected rows (bridged to backfill tab)
   const [selected, setSelected] = useState<PrecomputeStatusItem[]>([]);
   const [injectedForBackfill, setInjectedForBackfill] = useState<string[]>([]);
-
-  // Filters
   const [filters, setFilters] = useState<AdminStatusFilters>(DEFAULT_ADMIN_FILTERS);
 
-  // Job highlights (after backfill submit)
-  const [highlightJobId, setHighlightJobId] = useState<string | null>(null);
-
-  // Action feedback
   const [actionMsg, setActionMsg] = useState('');
   const actionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const showAction = (msg: string) => {
-    setActionMsg(msg);
+  const showAction = useCallback((message: string) => {
+    setActionMsg(message);
     if (actionTimerRef.current) clearTimeout(actionTimerRef.current);
-    actionTimerRef.current = setTimeout(() => setActionMsg(''), 4000);
-  };
+    actionTimerRef.current = setTimeout(() => setActionMsg(''), 6000);
+  }, []);
 
-  // ── Fetch status ──────────────────────────────────────────
+  useEffect(
+    () => () => {
+      if (actionTimerRef.current) clearTimeout(actionTimerRef.current);
+    },
+    []
+  );
 
   const fetchStatus = useCallback(async () => {
+    if (!hasLoadedStatusRef.current) setStatusLoading(true);
     setStatusError('');
     try {
-      const res = await adminPrecomputeStatus();
-      setStatusItems(Array.isArray(res?.items) ? res.items : []);
+      const response = await adminPrecomputeStatus();
+      setStatusItems(Array.isArray(response.items) ? response.items : []);
+      setTargetTradeDate(response.targetTradeDate);
       setLastRefreshTime(new Date());
-    } catch {
+      hasLoadedStatusRef.current = true;
+    } catch (error) {
       setStatusError('加载因子状态失败');
+      throw error;
+    } finally {
+      setStatusLoading(false);
     }
   }, []);
 
-  // Determine if fast poll needed (active jobs)
   const statusHasRunning = useCallback(
-    () => statusItems.some((it) => it.status === 'RUNNING'),
+    () => statusItems.some((item) => item.status === 'RUNNING'),
     [statusItems]
   );
 
@@ -103,91 +119,67 @@ export function FactorAdminView() {
     enabled: activeTab === 'status',
   });
 
-  // Also fetch once when tab changes to status
-  useEffect(() => {
-    if (activeTab === 'status') fetchStatus();
-  }, [activeTab, fetchStatus]);
-
-  // ── KPI filtering ─────────────────────────────────────────
-
   const handleKpiClick = (status: string) => {
-    setFilters((prev) => ({
-      ...prev,
-      statuses: prev.statuses.includes(status)
-        ? prev.statuses.filter((s) => s !== status)
+    setFilters((previous) => ({
+      ...previous,
+      statuses: previous.statuses.includes(status)
+        ? previous.statuses.filter((item) => item !== status)
         : [status],
     }));
   };
 
-  // ── Precompute ────────────────────────────────────────────
-
   const handlePrecompute = useCallback(
-    async (names: string[]) => {
+    async (factorNames: string[]) => {
+      if (!targetTradeDate) {
+        showAction('无法确定最近有效交易日，未发送预计算请求');
+        return;
+      }
       try {
-        const today = new Date();
-        const tradeDate = `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}`;
-        await adminPrecompute({ factorNames: names, tradeDate });
-        showAction(`预计算已触发（${names.length} 个因子）`);
-        fetchStatus();
+        const response = await adminPrecompute({ factorNames, tradeDate: targetTradeDate });
+        showAction(formatPrecomputeSuccess(response));
+        await fetchStatus();
       } catch {
-        showAction('预计算触发失败');
+        showAction('预计算失败');
       }
     },
-    [fetchStatus]
+    [fetchStatus, showAction, targetTradeDate]
   );
 
-  // ── Toggle enable ─────────────────────────────────────────
-
-  const handleToggleEnable = useCallback(
-    async (factorNameOrNames: string | string[], enable: boolean) => {
-      const names = Array.isArray(factorNameOrNames) ? factorNameOrNames : [factorNameOrNames];
-      try {
-        await adminToggleFactor({ factorNames: names, isEnabled: enable });
-        showAction(`已${enable ? '启用' : '禁用'} ${names.length} 个因子`);
-        fetchStatus();
-      } catch {
-        showAction('操作失败');
-      }
-    },
-    [fetchStatus]
-  );
-
-  // ── Bulk backfill injection ───────────────────────────────
-
-  const handleBulkBackfill = (names: string[]) => {
-    setInjectedForBackfill(names);
-    setSearchParams((prev) => {
-      prev.set('tab', 'backfill');
-      return prev;
+  const handleBulkBackfill = (factorNames: string[]) => {
+    setInjectedForBackfill(factorNames);
+    setSearchParams((previous) => {
+      previous.set('tab', 'backfill');
+      return previous;
     });
   };
 
-  // ── Tab change ────────────────────────────────────────────
+  const handleBackfillSubmitted = (response: AdminBackfillResponse) => {
+    showAction(formatBackfillSuccess(response));
+  };
 
-  const handleTabChange = (_: React.SyntheticEvent, val: TabValue) => {
-    setSearchParams((prev) => {
-      prev.set('tab', val);
-      return prev;
+  const handleTabChange = (_: React.SyntheticEvent, value: TabValue) => {
+    setSearchParams((previous) => {
+      previous.set('tab', value);
+      return previous;
     });
   };
 
   return (
     <DashboardContent>
-      {/* Header */}
-      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 3 }}>
+      <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2.5 }}>
         <Box>
           <Typography variant="h4">因子管理</Typography>
-          {lastRefreshTime && (
-            <Typography variant="caption" color="text.secondary">
-              最后刷新：{lastRefreshTime.toLocaleTimeString('zh-CN')}
-            </Typography>
-          )}
+          <Typography variant="caption" color="text.secondary">
+            {lastRefreshTime
+              ? `最后刷新：${lastRefreshTime.toLocaleTimeString('zh-CN')}`
+              : '正在加载最新状态'}
+          </Typography>
         </Box>
         <Tooltip title="立即刷新状态数据">
           <Button
             variant="outlined"
             size="small"
-            onClick={fetchStatus}
+            onClick={() => void fetchStatus().catch(() => {})}
             startIcon={<Iconify icon="solar:refresh-bold" />}
           >
             刷新
@@ -195,72 +187,80 @@ export function FactorAdminView() {
         </Tooltip>
       </Stack>
 
-      {/* KPI row */}
       <FactorAdminKpiRow items={statusItems} onFilterStatus={handleKpiClick} />
 
-      {/* Action message */}
-      {actionMsg && (
-        <Alert severity="info" sx={{ mb: 2 }} onClose={() => setActionMsg('')}>
+      {actionMsg ? (
+        <Alert severity="info" sx={{ mt: 2 }} onClose={() => setActionMsg('')}>
           {actionMsg}
         </Alert>
-      )}
+      ) : null}
 
-      {/* Tabs */}
-      <Tabs value={activeTab} onChange={handleTabChange} sx={{ mb: 3 }}>
-        {TABS.map((tab) => (
-          <Tab key={tab.value} value={tab.value} label={tab.label} />
-        ))}
-      </Tabs>
+      <Card sx={{ mt: 2.5, overflow: 'hidden' }}>
+        <Tabs
+          value={activeTab}
+          onChange={handleTabChange}
+          variant="scrollable"
+          scrollButtons="auto"
+          sx={{ px: 2, borderBottom: 1, borderColor: 'divider' }}
+        >
+          {TABS.map((tab) => (
+            <Tab key={tab.value} value={tab.value} label={tab.label} />
+          ))}
+        </Tabs>
 
-      {/* ── Tab: 状态总览 ── */}
-      {activeTab === 'status' && (
-        <Box>
-          <FactorAdminFilterBar filters={filters} onChange={setFilters} />
-          <FactorAdminBulkActionBar
-            selected={selected}
-            onPrecompute={handlePrecompute}
-            onBackfill={handleBulkBackfill}
-            onToggleEnable={(names, enable) => handleToggleEnable(names, enable)}
-            onCopyNames={() => {}}
-            onClearSelection={() => setSelected([])}
-          />
-          <FactorAdminStatusTable
-            items={statusItems}
-            loading={false}
-            error={statusError}
-            filters={filters}
-            selected={selected}
-            onSelectedChange={setSelected}
-            onToggleEnable={(name, enable) => handleToggleEnable(name, enable)}
-            onPrecomputeOne={(name) => handlePrecompute([name])}
-            onRefetch={fetchStatus}
-          />
-        </Box>
-      )}
+        {activeTab === 'status' ? (
+          <Box>
+            <Box sx={{ p: 2 }}>
+              <FactorAdminFilterBar filters={filters} onChange={setFilters} />
+            </Box>
+            <FactorAdminBulkActionBar
+              selected={selected}
+              onPrecompute={handlePrecompute}
+              onBackfill={handleBulkBackfill}
+              onCopyNames={(factorNames) => showAction(`已复制 ${factorNames.length} 个因子标识`)}
+              onClearSelection={() => setSelected([])}
+            />
+            <FactorAdminStatusTable
+              items={statusItems}
+              loading={statusLoading}
+              error={statusError}
+              filters={filters}
+              selected={selected}
+              onSelectedChange={setSelected}
+              onPrecomputeOne={(factorName) => void handlePrecompute([factorName])}
+              onRefetch={() => void fetchStatus().catch(() => {})}
+            />
+          </Box>
+        ) : null}
 
-      {/* ── Tab: 任务历史 ── */}
-      {activeTab === 'jobs' && <FactorAdminJobsTable highlightJobId={highlightJobId} />}
+        {activeTab === 'jobs' ? (
+          <Box sx={{ p: 2 }}>
+            <FactorAdminJobsTable />
+          </Box>
+        ) : null}
 
-      {/* ── Tab: 历史回补 ── */}
-      {activeTab === 'backfill' && (
-        <FactorAdminBackfillForm
-          statusItems={statusItems}
-          injectedFactorNames={injectedForBackfill}
-          onSubmitted={(jobId) => {
-            setHighlightJobId(jobId);
-            setSearchParams((prev) => {
-              prev.set('tab', 'jobs');
-              return prev;
-            });
-          }}
-        />
-      )}
+        {activeTab === 'backfill' ? (
+          <Box sx={{ p: 2 }}>
+            <FactorAdminBackfillForm
+              statusItems={statusItems}
+              injectedFactorNames={injectedForBackfill}
+              onSubmitted={handleBackfillSubmitted}
+            />
+          </Box>
+        ) : null}
 
-      {/* ── Tab: 调度配置 ── */}
-      {activeTab === 'schedule' && <FactorAdminSchedulePanel />}
+        {activeTab === 'schedule' ? (
+          <Box sx={{ p: 2 }}>
+            <FactorAdminSchedulePanel />
+          </Box>
+        ) : null}
 
-      {/* ── Tab: 审计日志 ── */}
-      {activeTab === 'audit' && <FactorAdminAuditTable />}
+        {activeTab === 'audit' ? (
+          <Box sx={{ p: 2 }}>
+            <FactorAdminAuditTable />
+          </Box>
+        ) : null}
+      </Card>
     </DashboardContent>
   );
 }

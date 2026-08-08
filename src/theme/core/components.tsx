@@ -17,6 +17,17 @@ const MuiBackdrop: Components<Theme>['MuiBackdrop'] = {
   },
 };
 
+const MuiButtonBase: Components<Theme>['MuiButtonBase'] = {
+  styleOverrides: {
+    root: ({ theme }) => ({
+      '&.Mui-focusVisible, &:focus-visible': {
+        outline: `2px solid ${theme.vars.palette.primary.main}`,
+        outlineOffset: 2,
+      },
+    }),
+  },
+};
+
 const MuiButton: Components<Theme>['MuiButton'] = {
   defaultProps: {
     disableElevation: true,
@@ -215,6 +226,7 @@ export const components = {
   MuiPaper,
   MuiRadio,
   MuiButton,
+  MuiButtonBase,
   MuiBackdrop,
   MuiIconButton,
   MuiMenuItem,

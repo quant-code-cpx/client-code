@@ -16,6 +16,7 @@ import type { AuthContextValue } from './context';
 type AuthBroadcastMessage = { type: 'TOKEN_REFRESHED'; token: string } | { type: 'SIGNED_OUT' };
 
 const BROADCAST_CHANNEL_NAME = 'quant-auth';
+const AUTH_SYNC_GRACE_MS = 250;
 
 type AuthProviderProps = {
   children: React.ReactNode;
@@ -32,6 +33,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   // BroadcastChannel 实例引用，用于跨标签页广播 token 变更
   const channelRef = useRef<BroadcastChannel | null>(null);
+  const latestSynchronizedTokenRef = useRef<string | null>(null);
+  const sessionRestoreRef = useRef<
+    Promise<{ accessToken: string; userProfile: Awaited<ReturnType<typeof userManageApi.getProfile>> | null }> | null
+  >(null);
 
   // 跨标签页同步：监听其他标签页的 token 刷新 / 登出事件
   useEffect(() => {
@@ -44,11 +49,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const msg = event.data;
       if (msg.type === 'TOKEN_REFRESHED') {
         // 其他标签页刷新了 token，同步到本标签页内存
+        latestSynchronizedTokenRef.current = msg.token;
         tokenStorage.set(msg.token);
         refreshSocketAuth();
         dispatch({ type: 'TOKEN_REFRESHED', accessToken: msg.token });
       } else if (msg.type === 'SIGNED_OUT') {
         // 其他标签页已登出，本标签页同步清除状态
+        latestSynchronizedTokenRef.current = null;
         tokenStorage.clear();
         destroySocket();
         clearAgentDrafts();
@@ -66,16 +73,18 @@ export function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     setAuthCallbacks({
       onTokenRefreshed: (token) => {
+        latestSynchronizedTokenRef.current = token;
         refreshSocketAuth();
         dispatch({ type: 'TOKEN_REFRESHED', accessToken: token });
         channelRef.current?.postMessage({ type: 'TOKEN_REFRESHED', token });
       },
       onUnauthorized: () => {
+        latestSynchronizedTokenRef.current = null;
         tokenStorage.clear();
         destroySocket();
         clearAgentDrafts();
         dispatch({ type: 'SIGN_OUT' });
-        channelRef.current?.postMessage({ type: 'SIGNED_OUT' });
+        // 当前标签刷新失败不等于用户主动登出，不能让陈旧标签清空其他标签的会话。
       },
     });
   }, []);
@@ -85,28 +94,62 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // 使用单次 dispatch 将 accessToken / userProfile / isLoading 一起更新，避免多次
   // 独立 setState 触发多余渲染，从而减少子组件（如用户管理列表）的重复请求。
   useEffect(() => {
-    authApi
-      .refresh()
-      .then(async ({ accessToken: newToken }) => {
+    if (!sessionRestoreRef.current) {
+      sessionRestoreRef.current = authApi.refresh().then(async ({ accessToken: newToken }) => {
+        latestSynchronizedTokenRef.current = newToken;
         tokenStorage.set(newToken);
         refreshSocketAuth();
+        channelRef.current?.postMessage({ type: 'TOKEN_REFRESHED', token: newToken });
         const profile = await userManageApi.getProfile().catch(() => null);
+        return { accessToken: newToken, userProfile: profile };
+      });
+    }
+
+    let active = true;
+    sessionRestoreRef.current
+      .then(({ accessToken: newToken, userProfile: profile }) => {
+        if (!active) return;
         // 单次 dispatch → 单次渲染，auth 状态原子更新
         dispatch({ type: 'AUTH_SUCCESS', accessToken: newToken, userProfile: profile });
       })
-      .catch(() => {
+      .catch(async () => {
+        if (!active) return;
+
+        // 并发标签可能刚完成轮换并广播新 Token。给广播一个极短窗口；若收到，
+        // 复用它恢复当前标签，避免先失败的旧请求把成功登录态覆盖成登出。
+        await new Promise((resolve) => setTimeout(resolve, AUTH_SYNC_GRACE_MS));
+        if (!active) return;
+        const synchronizedToken = latestSynchronizedTokenRef.current;
+        if (synchronizedToken) {
+          const profile = await userManageApi.getProfile().catch(() => null);
+          if (active) {
+            dispatch({
+              type: 'AUTH_SUCCESS',
+              accessToken: synchronizedToken,
+              userProfile: profile,
+            });
+          }
+          return;
+        }
+
         // refresh token 已过期或不存在，清除状态，由 AuthGuard 重定向到登录页
         tokenStorage.clear();
         destroySocket();
         clearAgentDrafts();
         dispatch({ type: 'AUTH_FAILURE' });
       });
+
+    return () => {
+      active = false;
+    };
   }, []);
 
   const signIn = useCallback((token: string) => {
+    latestSynchronizedTokenRef.current = token;
     tokenStorage.set(token);
     refreshSocketAuth();
     dispatch({ type: 'SIGN_IN', accessToken: token });
+    channelRef.current?.postMessage({ type: 'TOKEN_REFRESHED', token });
   }, []);
 
   const loadProfile = useCallback(async () => {
@@ -120,6 +163,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     } catch {
       // 即使接口失败也要清除本地状态
     } finally {
+      latestSynchronizedTokenRef.current = null;
       tokenStorage.clear();
       destroySocket();
       clearAgentDrafts();

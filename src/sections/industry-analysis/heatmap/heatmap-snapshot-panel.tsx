@@ -31,12 +31,12 @@ export function HeatmapSnapshotPanel() {
 
   if (role !== 'ADMIN' && role !== 'SUPER_ADMIN') return null;
 
-  return <SnapshotPanelInner />;
+  return <SnapshotPanelInner canTrigger={role === 'SUPER_ADMIN'} />;
 }
 
 // ── Inner implementation (only rendered for admins) ──────────────────────────
 
-function SnapshotPanelInner() {
+function SnapshotPanelInner({ canTrigger }: { canTrigger: boolean }) {
   const [snapshotDate, setSnapshotDate] = useState<Dayjs | null>(null);
   const [triggerResult, setTriggerResult] = useState<{
     success: boolean;
@@ -116,16 +116,18 @@ function SnapshotPanelInner() {
               }}
             />
 
-            <Button
-              variant="contained"
-              color="warning"
-              disabled={loading}
-              startIcon={<Iconify icon="solar:refresh-bold" />}
-              onClick={() => setConfirmOpen(true)}
-              sx={{ mt: 0.25 }}
-            >
-              触发快照聚合
-            </Button>
+            {canTrigger && (
+              <Button
+                variant="contained"
+                color="warning"
+                disabled={loading}
+                startIcon={<Iconify icon="solar:refresh-bold" />}
+                onClick={() => setConfirmOpen(true)}
+                sx={{ mt: 0.25 }}
+              >
+                触发快照聚合
+              </Button>
+            )}
 
             <Button
               variant="outlined"
@@ -169,7 +171,12 @@ function SnapshotPanelInner() {
         </CardContent>
       </Card>
 
-      <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)} maxWidth="xs" fullWidth>
+      <Dialog
+        open={canTrigger && confirmOpen}
+        onClose={() => setConfirmOpen(false)}
+        maxWidth="xs"
+        fullWidth
+      >
         <DialogTitle>确认触发快照聚合</DialogTitle>
         <DialogContent>
           <DialogContentText>

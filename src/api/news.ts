@@ -16,6 +16,38 @@ export type NewsCoverageResponse = NewsSchemas['NewsCoverageResponseDto'];
 export type NewsCoverageWarning = NewsSchemas['NewsCoverageWarningDto'];
 export type NewsFeedCoverage = NewsSchemas['NewsFeedCoverageDto'];
 
+export type NewsHighlightsRequest = {
+  scope: 'ALL';
+  limit: number;
+};
+
+export type NewsImpactReasonCode =
+  | 'AUTHORITATIVE_SOURCE'
+  | 'BREAKING_EVENT'
+  | 'CORROBORATED'
+  | 'FRESHNESS'
+  | 'MARKET_WIDE'
+  | 'SECURITY_RELEVANCE';
+
+export type NewsHighlightItem = NewsArticleListItem & {
+  impactLevel: 'CRITICAL' | 'MAJOR' | 'RECENT';
+  impactScore: number;
+  reasonCodes: NewsImpactReasonCode[];
+  corroboratingSourceCount: number;
+  relatedArticleCount: number;
+};
+
+export type NewsHighlightsResponse = {
+  generatedAt: string;
+  dataThrough: string | null;
+  partial: boolean;
+  warnings: NewsCoverageWarning[];
+  rankingVersion: 'impact-v1';
+  rankingStatus: 'READY' | 'STALE' | 'RECENT_FALLBACK';
+  displayMode: 'HIGHLIGHTS' | 'RECENT';
+  items: NewsHighlightItem[];
+};
+
 export const NEWS_ERROR_CODE = {
   ARTICLE_NOT_FOUND: 7001,
   CURSOR_INVALID: 7002,
@@ -85,7 +117,35 @@ function assertCoverageResponse(value: unknown): asserts value is NewsCoverageRe
   }
 }
 
+function assertHighlightsResponse(value: unknown): asserts value is NewsHighlightsResponse {
+  const response = requireObject(value, '首页新闻');
+  if (typeof response.generatedAt !== 'string')
+    throw new NewsContractError('首页新闻缺少 generatedAt');
+  if (!Array.isArray(response.items)) throw new NewsContractError('首页新闻缺少 items');
+  if (typeof response.partial !== 'boolean') throw new NewsContractError('首页新闻缺少 partial');
+  if (!Array.isArray(response.warnings)) throw new NewsContractError('首页新闻缺少 warnings');
+  if (response.rankingVersion !== 'impact-v1')
+    throw new NewsContractError('首页新闻 rankingVersion 无效');
+  if (!['READY', 'STALE', 'RECENT_FALLBACK'].includes(String(response.rankingStatus)))
+    throw new NewsContractError('首页新闻 rankingStatus 无效');
+  if (!['HIGHLIGHTS', 'RECENT'].includes(String(response.displayMode)))
+    throw new NewsContractError('首页新闻 displayMode 无效');
+}
+
 export const newsApi = {
+  async getHighlights(
+    body: NewsHighlightsRequest,
+    signal?: AbortSignal
+  ): Promise<NewsHighlightsResponse> {
+    const response = await post<NewsHighlightsResponse>(
+      '/api/news/articles/highlights',
+      { scope: body.scope, limit: body.limit },
+      signal
+    );
+    assertHighlightsResponse(response);
+    return response;
+  },
+
   async listArticles(
     body: NewsArticleListRequest,
     signal?: AbortSignal

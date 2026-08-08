@@ -6,7 +6,7 @@ import type {
 } from 'src/api/model-provider';
 
 import { varAlpha } from 'minimal-shared/utils';
-import { useMemo, useState, useEffect } from 'react';
+import { useRef, useMemo, useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Step from '@mui/material/Step';
@@ -69,6 +69,7 @@ export function ConnectionWizardDrawer({
   const [message, setMessage] = useState('');
   const [fieldErrors, setFieldErrors] = useState<ModelProviderFieldErrors>({});
   const [probe, setProbe] = useState<ModelProbeResult | null>(null);
+  const baseUrlUserEditedRef = useRef(false);
 
   const selectedAdapter = useMemo(
     () => adapters.find((adapter) => adapter.kind === draft.adapterKind),
@@ -78,6 +79,7 @@ export function ConnectionWizardDrawer({
   useEffect(() => {
     if (!open) return;
     const adapter = adapters.find((item) => item.kind === connection?.adapterKind) ?? adapters[0];
+    baseUrlUserEditedRef.current = Boolean(connection);
     setDraft(
       connection
         ? {
@@ -111,7 +113,9 @@ export function ConnectionWizardDrawer({
     setDraft((current) => ({
       ...current,
       adapterKind: adapter.kind,
-      baseUrl: adapter.defaultBaseUrl ?? current.baseUrl,
+      baseUrl: baseUrlUserEditedRef.current
+        ? current.baseUrl
+        : (adapter.defaultBaseUrl ?? current.baseUrl),
     }));
     setStep(1);
   };
@@ -311,7 +315,10 @@ export function ConnectionWizardDrawer({
               name="baseUrl"
               type="url"
               value={draft.baseUrl}
-              onChange={(event) => update('baseUrl', event.target.value)}
+              onChange={(event) => {
+                baseUrlUserEditedRef.current = true;
+                update('baseUrl', event.target.value);
+              }}
               onBlur={() => update('baseUrl', draft.baseUrl.trim().replace(/\/$/, ''))}
               error={Boolean(fieldErrors.baseUrl)}
               helperText={fieldErrors.baseUrl ?? selectedAdapter?.summary}

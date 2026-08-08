@@ -93,6 +93,52 @@
         "tags": ["News - 新闻时事"]
       }
     },
+    "/news/articles/highlights": {
+      "post": {
+        "operationId": "NewsController_getHighlights",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewsHighlightsRequestDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/NewsHighlightsResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "查询首页重磅新闻摘要",
+        "tags": ["News - 新闻时事"]
+      }
+    },
     "/news/coverage": {
       "post": {
         "operationId": "NewsController_getCoverage",
@@ -775,6 +821,199 @@
           "publicMessage",
           "observedAt"
         ]
+      },
+      "NewsHighlightsResponseDto": {
+        "type": "object",
+        "properties": {
+          "generatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "dataThrough": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "partial": {
+            "type": "boolean"
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NewsCoverageWarningDto"
+            }
+          },
+          "rankingVersion": {
+            "type": "string",
+            "enum": ["impact-v1"]
+          },
+          "rankingStatus": {
+            "type": "string",
+            "enum": ["READY", "STALE", "RECENT_FALLBACK"]
+          },
+          "displayMode": {
+            "type": "string",
+            "enum": ["HIGHLIGHTS", "RECENT"]
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NewsHighlightItemDto"
+            }
+          }
+        },
+        "required": [
+          "generatedAt",
+          "partial",
+          "warnings",
+          "rankingVersion",
+          "rankingStatus",
+          "displayMode",
+          "items"
+        ]
+      },
+      "NewsHighlightItemDto": {
+        "type": "object",
+        "properties": {
+          "articleId": {
+            "type": "string"
+          },
+          "revision": {
+            "type": "number",
+            "minimum": 1
+          },
+          "contentType": {
+            "type": "string",
+            "enum": ["NOTICE", "NEWS", "FLASH"]
+          },
+          "sourceType": {
+            "type": "string",
+            "enum": [
+              "REGULATOR",
+              "EXCHANGE",
+              "COMPANY",
+              "MEDIA",
+              "INSTITUTION",
+              "AGGREGATOR",
+              "OTHER"
+            ]
+          },
+          "title": {
+            "type": "string"
+          },
+          "excerpt": {
+            "type": "string",
+            "nullable": true
+          },
+          "publisher": {
+            "type": "string",
+            "nullable": true
+          },
+          "canonicalUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "publishedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "publishedDate": {
+            "type": "string",
+            "nullable": true,
+            "format": "date"
+          },
+          "publishedPrecision": {
+            "type": "string",
+            "enum": ["SECOND", "MINUTE", "DATE", "UNKNOWN"]
+          },
+          "firstSeenAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "securityCodes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "providerKeys": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "qualityFlags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "impactLevel": {
+            "type": "string",
+            "enum": ["CRITICAL", "MAJOR", "RECENT"]
+          },
+          "impactScore": {
+            "type": "number",
+            "minimum": 0
+          },
+          "reasonCodes": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "AUTHORITATIVE_SOURCE",
+                "BREAKING_EVENT",
+                "CORROBORATED",
+                "FRESHNESS",
+                "MARKET_WIDE",
+                "SECURITY_RELEVANCE"
+              ]
+            }
+          },
+          "corroboratingSourceCount": {
+            "type": "number",
+            "minimum": 1
+          },
+          "relatedArticleCount": {
+            "type": "number",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "articleId",
+          "revision",
+          "contentType",
+          "sourceType",
+          "title",
+          "publishedPrecision",
+          "firstSeenAt",
+          "securityCodes",
+          "providerKeys",
+          "qualityFlags",
+          "impactLevel",
+          "impactScore",
+          "reasonCodes",
+          "corroboratingSourceCount",
+          "relatedArticleCount"
+        ]
+      },
+      "NewsHighlightsRequestDto": {
+        "type": "object",
+        "properties": {
+          "scope": {
+            "type": "string",
+            "enum": ["ALL"],
+            "default": "ALL"
+          },
+          "limit": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 5,
+            "default": 5
+          }
+        },
+        "required": ["scope", "limit"]
       },
       "NewsArticleDetailResponseDto": {
         "type": "object",

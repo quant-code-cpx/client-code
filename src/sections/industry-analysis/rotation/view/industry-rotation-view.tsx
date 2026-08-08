@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
@@ -36,6 +36,7 @@ export type IndustryRotationViewProps = {
   refreshKey?: number;
   embedded?: boolean;
   focusedSector?: FocusedSector | null;
+  onFocusedSectorConsumed?: () => void;
 };
 
 export function IndustryRotationView({
@@ -43,6 +44,7 @@ export function IndustryRotationView({
   refreshKey,
   embedded = false,
   focusedSector,
+  onFocusedSectorConsumed,
 }: IndustryRotationViewProps = {}) {
   const [period, setPeriod] = useState<Period>('1m');
   const [selectedSector, setSelectedSector] = useState<string | null>(null);
@@ -64,10 +66,13 @@ export function IndustryRotationView({
     setSelectedTsCode(undefined);
   }, []);
 
-  // ── 联动：从外壳传入 focusedSector 时自动打开详情抽屉 ──
-  // 通过 focusedSector 的 dcTsCode 或 swName/dcName 定位行业
-  const effectiveSector = selectedSector ?? focusedSector?.dcName ?? focusedSector?.swName ?? null;
-  const effectiveTsCode = selectedTsCode ?? focusedSector?.dcTsCode ?? undefined;
+  // 外部焦点只消费一次；之后抽屉完全由本地状态控制，关闭不会被旧焦点重新打开。
+  useEffect(() => {
+    if (!focusedSector) return;
+    setSelectedSector(focusedSector.dcName ?? focusedSector.swName ?? null);
+    setSelectedTsCode(focusedSector.dcTsCode);
+    onFocusedSectorConsumed?.();
+  }, [focusedSector, onFocusedSectorConsumed]);
 
   // ── 工具栏 ───────────────────────────────────
   const toolbar = (
@@ -161,10 +166,10 @@ export function IndustryRotationView({
   // ── 行业详情抽屉 ─────────────────────────────
   const detailDrawer = (
     <RotationDetailDrawer
-      open={Boolean(effectiveSector)}
+      open={Boolean(selectedSector)}
       onClose={handleDrawerClose}
-      sectorName={effectiveSector}
-      tsCode={effectiveTsCode}
+      sectorName={selectedSector}
+      tsCode={selectedTsCode}
       period={period}
     />
   );

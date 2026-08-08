@@ -106,4 +106,24 @@ describe('RotationHeatmapChart', () => {
 
     expect(tooltipHtml).toContain('+30.89 亿');
   });
+
+  it('1Y 请求 250 日，辅助资金失败时保留涨跌热力图并显式提示', async () => {
+    apiMock.fetchRotationHeatmap.mockResolvedValueOnce({
+      tradeDate: '20260703',
+      sectors: [{ name: '银行', pctChange: 2, amount: 0, netAmount: 0 }],
+    });
+    apiMock.fetchFlowAnalysis.mockRejectedValueOnce(new Error('flow failed'));
+
+    renderWithProviders(<RotationHeatmapChart period="1y" />);
+
+    await screen.findByTestId('rotation-heatmap-chart');
+    expect(await screen.findByText('净流入暂不可用')).toBeInTheDocument();
+    expect(apiMock.fetchRotationHeatmap).toHaveBeenCalledWith({
+      trade_date: undefined,
+      periods: [250],
+    });
+    expect(apiMock.fetchFlowAnalysis).toHaveBeenCalledWith(
+      expect.objectContaining({ days: 250 })
+    );
+  });
 });

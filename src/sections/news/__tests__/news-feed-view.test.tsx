@@ -8,7 +8,7 @@ import type {
 import { Fragment } from 'react';
 import { resolve } from 'node:path';
 import { existsSync } from 'node:fs';
-import { useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router';
 import { screen, waitFor } from '@testing-library/react';
 
 import { newsApi } from 'src/api/news';

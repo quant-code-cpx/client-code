@@ -49,9 +49,10 @@ type Props = {
   rows: DataQualityCheckItem[];
   loading: boolean;
   days: number;
+  showEmptyState?: boolean;
 };
 
-export function DataQualityReportTable({ rows, loading, days }: Props) {
+export function DataQualityReportTable({ rows, loading, days, showEmptyState = true }: Props) {
   return (
     <Scrollbar>
       <TableContainer sx={{ overflow: 'unset' }}>
@@ -138,7 +139,7 @@ export function DataQualityReportTable({ rows, loading, days }: Props) {
                     </TableCell>
                   </TableRow>
                 ))}
-            {!loading && rows.length === 0 && (
+            {!loading && showEmptyState && rows.length === 0 && (
               <TableRow>
                 <TableCell colSpan={5} align="center" sx={{ py: 4 }}>
                   <Typography variant="body2" sx={{ color: 'text.disabled' }}>

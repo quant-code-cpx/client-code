@@ -6,9 +6,11 @@ import { useState, useCallback } from 'react';
 import Box from '@mui/material/Box';
 import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
+import Alert from '@mui/material/Alert';
 import Table from '@mui/material/Table';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
+import Skeleton from '@mui/material/Skeleton';
 import TableRow from '@mui/material/TableRow';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
@@ -32,6 +34,8 @@ type Props = {
   stocks: HeatmapItem[];
   stockFlows: MainFlowRankingItem[];
   heatmapItem?: HeatmapItem | null;
+  loading?: boolean;
+  error?: string;
   onSwitchToRotation?: (item: HeatmapItem) => void;
 };
 
@@ -44,6 +48,8 @@ export function HeatmapSectorDetailDialog({
   stocks,
   stockFlows,
   heatmapItem,
+  loading = false,
+  error = '',
   onSwitchToRotation,
 }: Props) {
   const [tab, setTab] = useState(0);
@@ -97,13 +103,18 @@ export function HeatmapSectorDetailDialog({
           />
         </Box>
 
-        {/* Tabs */}
-        <Tabs value={tab} onChange={handleTabChange} sx={{ mb: 2 }}>
-          <Tab label="涨跌排名" />
-          <Tab label="资金排名" />
-        </Tabs>
+        {loading && <Skeleton variant="rectangular" height={220} sx={{ borderRadius: 1 }} />}
 
-        {tab === 0 && (
+        {!loading && error && <Alert severity="warning">{error}</Alert>}
+
+        {!loading && !error && (
+          <Tabs value={tab} onChange={handleTabChange} sx={{ mb: 2 }}>
+            <Tab label="涨跌排名" />
+            <Tab label="资金排名" />
+          </Tabs>
+        )}
+
+        {!loading && !error && tab === 0 && (
           <TableContainer sx={{ maxHeight: 400 }}>
             <Table size="small" stickyHeader>
               <TableHead>
@@ -137,7 +148,7 @@ export function HeatmapSectorDetailDialog({
           </TableContainer>
         )}
 
-        {tab === 1 && (
+        {!loading && !error && tab === 1 && (
           <TableContainer sx={{ maxHeight: 400 }}>
             <Table size="small" stickyHeader>
               <TableHead>

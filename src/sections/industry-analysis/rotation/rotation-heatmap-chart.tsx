@@ -46,14 +46,16 @@ export function RotationHeatmapChart({ tradeDate, period, onSectorClick, refresh
   const [flowMap, setFlowMap] = useState<Map<string, number>>(new Map());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [flowError, setFlowError] = useState('');
 
   // Primary: fetch heatmap (period returns per sector)
   useEffect(() => {
     let cancelled = false;
+    setFlowError('');
     setLoading(true);
     setError('');
 
-    const periodDays = period ? Math.min(periodToDays(period), 60) : undefined;
+    const periodDays = period ? periodToDays(period) : undefined;
 
     fetchRotationHeatmap({
       trade_date: tradeDate,
@@ -77,7 +79,7 @@ export function RotationHeatmapChart({ tradeDate, period, onSectorClick, refresh
   // Secondary: fetch flow analysis to populate netAmount per sector (best-effort, silent on error)
   useEffect(() => {
     let cancelled = false;
-    const periodDays = period ? Math.min(periodToDays(period), 60) : undefined;
+    const periodDays = period ? periodToDays(period) : undefined;
     fetchFlowAnalysis({
       trade_date: tradeDate,
       days: periodDays,
@@ -94,7 +96,10 @@ export function RotationHeatmapChart({ tradeDate, period, onSectorClick, refresh
         }
       })
       .catch(() => {
-        /* silently ignore — heatmap still works without flow data */
+        if (!cancelled) {
+          setFlowMap(new Map());
+          setFlowError('净流入暂不可用');
+        }
       });
     return () => {
       cancelled = true;
@@ -159,7 +164,7 @@ export function RotationHeatmapChart({ tradeDate, period, onSectorClick, refresh
       type: 'treemap',
       toolbar: { show: false },
       events: {
-        dataPointSelection: (_event: unknown, _chartCtx: unknown, config: any) => {
+        dataPointSelection: (_event: unknown, _chartCtx: unknown, config: unknown) => {
           const name =
             chartData[(config as { dataPointIndex: number })?.dataPointIndex]?.sector.name;
           if (name && onSectorClick) onSectorClick(name);
@@ -177,12 +182,15 @@ export function RotationHeatmapChart({ tradeDate, period, onSectorClick, refresh
     dataLabels: {
       enabled: true,
       style: { fontSize: '12px', fontWeight: '600' },
-      formatter: (_val: unknown, opts: any) => {
+      formatter: (_val: unknown, options?: unknown) => {
+        const opts = options as
+          | { seriesIndex: number; dataPointIndex: number; w?: { config?: { series?: unknown[] } } }
+          | undefined;
         const item = (
           opts?.w?.config?.series?.[opts.seriesIndex] as
             | { data: Array<{ x: string; y: number }> }
             | undefined
-        )?.data?.[opts.dataPointIndex];
+        )?.data?.[opts?.dataPointIndex ?? -1];
         if (!item) return '';
         const sign = item.y > 0 ? '+' : '';
         const unit = colorMode === 'pctChange' ? '%' : '亿';
@@ -231,6 +239,12 @@ export function RotationHeatmapChart({ tradeDate, period, onSectorClick, refresh
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
             {error}
+          </Alert>
+        )}
+
+        {!error && flowError && (
+          <Alert severity="warning" sx={{ mb: 2 }}>
+            {flowError}
           </Alert>
         )}
 

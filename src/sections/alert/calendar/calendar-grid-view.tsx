@@ -3,13 +3,14 @@ import type { Theme, SxProps } from '@mui/material/styles';
 
 import dayjs from 'dayjs';
 import { varAlpha } from 'minimal-shared/utils';
-import { memo, useMemo, useState, useCallback } from 'react';
+import { memo, useMemo, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
 import Tooltip from '@mui/material/Tooltip';
 import { useTheme } from '@mui/material/styles';
+import ButtonBase from '@mui/material/ButtonBase';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 
@@ -25,26 +26,56 @@ const WEEKDAY_LABELS = ['一', '二', '三', '四', '五', '六', '日'];
 type Props = {
   events: CalendarEvent[];
   startDate: string;
+  endDate: string;
   onSelectDay: (date: string) => void;
   onSelectEvent: (event: CalendarEvent) => void;
+  onNavigateMonth: (startDate: string, endDate: string) => void;
 };
 
-export function CalendarGridView({ events, startDate, onSelectDay, onSelectEvent }: Props) {
+export function CalendarGridView({
+  events,
+  startDate,
+  endDate,
+  onSelectDay,
+  onSelectEvent,
+  onNavigateMonth,
+}: Props) {
   const theme = useTheme();
 
   const [cursorMonth, setCursorMonth] = useState(() =>
     startDate ? dayjs(startDate, 'YYYYMMDD').startOf('month') : dayjs().startOf('month')
   );
 
+  useEffect(() => {
+    if (!startDate) return;
+    const nextMonth = dayjs(startDate, 'YYYYMMDD').startOf('month');
+    setCursorMonth((currentMonth) =>
+      currentMonth.isSame(nextMonth, 'month') ? currentMonth : nextMonth
+    );
+  }, [startDate]);
+
   const eventsByDate = useMemo(() => {
     const map = new Map<string, CalendarEvent[]>();
     events.forEach((event) => {
+      if (event.date < startDate || event.date > endDate) return;
       const list = map.get(event.date) ?? [];
       list.push(event);
       map.set(event.date, list);
     });
     return map;
-  }, [events]);
+  }, [endDate, events, startDate]);
+
+  const navigateMonth = useCallback(
+    (offset: -1 | 1) => {
+      const nextMonth = cursorMonth.add(offset, 'month').startOf('month');
+      setCursorMonth(nextMonth);
+      onNavigateMonth(
+        nextMonth.format('YYYYMMDD'),
+        nextMonth.endOf('month').format('YYYYMMDD')
+      );
+    },
+    [cursorMonth, onNavigateMonth]
+  );
 
   // 月历网格：起始周一（0=周日 → 偏移 6；其他 → day-1）
   const cells = useMemo(() => {
@@ -66,7 +97,7 @@ export function CalendarGridView({ events, startDate, onSelectDay, onSelectEvent
           <IconButton
             aria-label="上个月"
             size="small"
-            onClick={() => setCursorMonth((m) => m.subtract(1, 'month'))}
+            onClick={() => navigateMonth(-1)}
           >
             <Iconify icon="solar:arrow-left-bold" width={18} />
           </IconButton>
@@ -78,7 +109,7 @@ export function CalendarGridView({ events, startDate, onSelectDay, onSelectEvent
           <IconButton
             aria-label="下个月"
             size="small"
-            onClick={() => setCursorMonth((m) => m.add(1, 'month'))}
+            onClick={() => navigateMonth(1)}
           >
             <Iconify icon="solar:arrow-right-bold" width={18} />
           </IconButton>
@@ -185,7 +216,7 @@ function DayCell({
       ? varAlpha(theme.vars.palette.text.disabledChannel, 0.04)
       : 'background.paper',
     opacity: inMonth ? 1 : 0.45,
-    cursor: 'pointer',
+    position: 'relative',
     transition: theme.transitions.create(['background-color', 'border-color']),
     '&:hover': {
       bgcolor: varAlpha(theme.vars.palette.primary.mainChannel, 0.06),
@@ -197,8 +228,24 @@ function DayCell({
   const moreCount = events.length - 3;
 
   return (
-    <Box sx={sxCell} onClick={handleSelect}>
-      <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mb: 0.5 }}>
+    <Box sx={sxCell}>
+      <ButtonBase
+        aria-label={`${date.format('YYYY-MM-DD')}，${totalCount} 项事件`}
+        onClick={handleSelect}
+        sx={{
+          position: 'absolute',
+          inset: 0,
+          zIndex: 0,
+          borderRadius: 1.25,
+          '&.Mui-focusVisible': {
+            outline: '2px solid',
+            outlineColor: 'primary.main',
+            outlineOffset: 2,
+          },
+        }}
+      />
+      <Box sx={{ position: 'relative', zIndex: 1, pointerEvents: 'none' }}>
+        <Stack direction="row" alignItems="center" spacing={0.5} sx={{ mb: 0.5 }}>
         <Typography
           variant="caption"
           sx={{
@@ -213,10 +260,10 @@ function DayCell({
             {totalCount}
           </Typography>
         )}
-      </Stack>
+        </Stack>
 
-      {totalCount > 0 && (
-        <Stack direction="row" spacing={0.25} sx={{ mb: 0.5 }}>
+        {totalCount > 0 && (
+          <Stack direction="row" spacing={0.25} sx={{ mb: 0.5 }}>
           {visibleTypes.map((t) => {
             const cfg = getEventTypeConfig(t);
             return (
@@ -236,47 +283,55 @@ function DayCell({
               <Iconify icon="solar:fire-bold" width={10} sx={{ color: 'error.main', ml: 0.25 }} />
             </Tooltip>
           )}
-        </Stack>
-      )}
-
-      <Stack spacing={0.25}>
-        {events.slice(0, 3).map((event, idx) => {
-          const cfg = getEventTypeConfig(event.type);
-          return (
-            <Box
-              key={`${event.tsCode}-${event.type}-${idx}`}
-              role="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onSelectEvent(event);
-              }}
-              sx={{
-                px: 0.5,
-                py: 0.25,
-                borderRadius: 0.5,
-                bgcolor: varAlpha(theme.vars.palette[cfg.paletteKey].mainChannel, 0.1),
-                color: `${cfg.paletteKey}.darker`,
-                fontSize: 12,
-                lineHeight: 1.3,
-                whiteSpace: 'nowrap',
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                cursor: 'pointer',
-                '&:hover': {
-                  bgcolor: varAlpha(theme.vars.palette[cfg.paletteKey].mainChannel, 0.2),
-                },
-              }}
-            >
-              {event.stockName}·{cfg.label}
-            </Box>
-          );
-        })}
-        {moreCount > 0 && (
-          <Typography variant="caption" color="text.secondary" sx={{ pl: 0.5 }}>
-            +{moreCount} 更多
-          </Typography>
+          </Stack>
         )}
-      </Stack>
+
+        <Stack spacing={0.25}>
+          {events.slice(0, 3).map((event, index) => {
+            const cfg = getEventTypeConfig(event.type);
+            return (
+              <ButtonBase
+                key={`${event.tsCode}-${event.type}-${index}`}
+                aria-label={`查看 ${event.stockName || event.tsCode} ${cfg.label}`}
+                onClick={(clickEvent) => {
+                  clickEvent.stopPropagation();
+                  onSelectEvent(event);
+                }}
+                sx={{
+                  px: 0.5,
+                  py: 0.25,
+                  width: '100%',
+                  display: 'block',
+                  borderRadius: 0.5,
+                  bgcolor: varAlpha(theme.vars.palette[cfg.paletteKey].mainChannel, 0.1),
+                  color: `${cfg.paletteKey}.darker`,
+                  fontSize: 12,
+                  lineHeight: 1.3,
+                  textAlign: 'left',
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  pointerEvents: 'auto',
+                  '&:hover': {
+                    bgcolor: varAlpha(theme.vars.palette[cfg.paletteKey].mainChannel, 0.2),
+                  },
+                  '&.Mui-focusVisible': {
+                    outline: '2px solid',
+                    outlineColor: `${cfg.paletteKey}.main`,
+                  },
+                }}
+              >
+                {event.stockName || event.tsCode}·{cfg.label}
+              </ButtonBase>
+            );
+          })}
+          {moreCount > 0 && (
+            <Typography variant="caption" color="text.secondary" sx={{ pl: 0.5 }}>
+              +{moreCount} 更多
+            </Typography>
+          )}
+        </Stack>
+      </Box>
     </Box>
   );
 }

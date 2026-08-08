@@ -1,0 +1,193 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="2240" viewBox="0 0 1440 2240" role="img" aria-labelledby="title desc">
+  <title id="title">行业分析全景热力图 v3 桌面设计稿</title>
+  <desc id="desc">全景热力图独立长画布。展示现有散点、五组信息索引、行业涨跌统计、TreeMap 控件、个股二十一档涨跌分布、行业详情与管理员快照。均衡尺度仅为未上线候选说明。</desc>
+  <defs>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="140%"><feDropShadow dx="0" dy="4" stdDeviation="10" flood-color="#637381" flood-opacity="0.12"/></filter>
+    <style>
+      .title{font:700 28px "DM Sans","PingFang SC",sans-serif;fill:#212B36}.h5{font:700 19px "DM Sans","PingFang SC",sans-serif;fill:#212B36}.h6{font:700 16px "DM Sans","PingFang SC",sans-serif;fill:#212B36}.body{font:400 14px "DM Sans","PingFang SC",sans-serif;fill:#212B36}.small{font:400 12px "DM Sans","PingFang SC",sans-serif;fill:#637381}.strong{font:600 13px "DM Sans","PingFang SC",sans-serif;fill:#212B36}.button{font:600 13px "DM Sans","PingFang SC",sans-serif}.metric{font:700 21px "DM Sans","PingFang SC",sans-serif;fill:#212B36}.mono{font:500 12px "SFMono-Regular",Consolas,monospace;fill:#637381}.red{fill:#C7332F}.green{fill:#16875D}.blue{fill:#1877F2}.muted{fill:#637381}.white{fill:#FFFFFF}
+    </style>
+    <clipPath id="scatterClip"><rect x="0" y="0" width="820" height="390" rx="10"/></clipPath>
+  </defs>
+  <rect width="1440" height="2240" fill="#F4F6F8"/>
+
+  <!-- shared header -->
+  <g transform="translate(56 34)">
+    <text class="title" x="0" y="28">行业分析</text>
+    <text class="small" x="0" y="52">全景 · 当日行业涨跌一览　ⓘ 行业字典：申万 L1 → 东财行业板块</text>
+    <rect x="1038" y="0" width="164" height="40" rx="8" fill="#FFFFFF" stroke="#DDE3EA"/>
+    <text class="small" x="1054" y="25">交易日期　20260807</text>
+    <rect x="1216" y="0" width="112" height="40" rx="8" fill="#FFFFFF" stroke="#AAB4C0"/>
+    <text class="button" x="1272" y="25" text-anchor="middle" fill="#212B36">↻　刷新</text>
+  </g>
+
+  <!-- primary tabs -->
+  <g transform="translate(56 108)" filter="url(#shadow)">
+    <rect width="1328" height="62" rx="14" fill="#FFFFFF"/>
+    <text class="button blue" x="28" y="35">◈　全景热力图</text>
+    <text class="button muted" x="166" y="35">⇄　行业轮动</text>
+    <rect x="24" y="56" width="108" height="3" rx="1.5" fill="#1877F2"/>
+    <text class="small" x="1300" y="35" text-anchor="end">当前返回板块数按接口结果展示，不推断完整度</text>
+  </g>
+
+  <!-- real toolbar -->
+  <g transform="translate(56 194)" filter="url(#shadow)">
+    <rect width="1328" height="76" rx="14" fill="#FFFFFF"/>
+    <rect x="24" y="20" width="78" height="36" rx="8" fill="#EAF3FF" stroke="#1877F2"/>
+    <text class="button blue" x="63" y="43" text-anchor="middle">散点图</text>
+    <rect x="102" y="20" width="78" height="36" rx="8" fill="#FFFFFF" stroke="#DDE3EA"/>
+    <text class="button muted" x="141" y="43" text-anchor="middle">树形图</text>
+    <rect x="210" y="20" width="72" height="36" rx="8" fill="#EAF3FF" stroke="#1877F2"/>
+    <text class="button blue" x="246" y="43" text-anchor="middle">行业</text>
+    <rect x="282" y="20" width="72" height="36" fill="#FFFFFF" stroke="#DDE3EA"/>
+    <text class="button muted" x="318" y="43" text-anchor="middle">概念</text>
+    <rect x="354" y="20" width="72" height="36" rx="0 8 8 0" fill="#FFFFFF" stroke="#DDE3EA"/>
+    <text class="button muted" x="390" y="43" text-anchor="middle">地域</text>
+    <rect x="754" y="17" width="550" height="42" rx="9" fill="#FAFBFC" stroke="#9AA7B5" stroke-dasharray="5 4"/>
+    <text class="small" x="772" y="34">UI 显示尺度候选 · 未上线</text>
+    <text class="strong" x="772" y="51">signed-asinh 仅展开中心簇；不改原值、排序、详情与 API</text>
+  </g>
+
+  <!-- scatter card -->
+  <g transform="translate(56 294)" filter="url(#shadow)">
+    <rect width="930" height="560" rx="16" fill="#FFFFFF"/>
+    <text class="h6" x="24" y="34">行业资金－涨跌散点图</text>
+    <text class="small" x="24" y="55">X 涨跌幅（%） · Y 资金净流入（亿元） · 气泡 成交额</text>
+    <text class="small" x="900" y="34" text-anchor="end">⌕ 缩放　✥ 平移　↺ 重置</text>
+    <g transform="translate(78 86)" clip-path="url(#scatterClip)">
+      <rect width="820" height="390" fill="#FBFCFD"/>
+      <rect width="410" height="195" fill="#FFF7F6"/><rect x="410" width="410" height="195" fill="#FFF1EF"/>
+      <rect y="195" width="410" height="195" fill="#F1FAF6"/><rect x="410" y="195" width="410" height="195" fill="#F6FBF8"/>
+      <g stroke="#E7EBF0"><line x1="0" y1="65" x2="820" y2="65"/><line x1="0" y1="130" x2="820" y2="130"/><line x1="0" y1="260" x2="820" y2="260"/><line x1="0" y1="325" x2="820" y2="325"/><line x1="136" y1="0" x2="136" y2="390"/><line x1="273" y1="0" x2="273" y2="390"/><line x1="547" y1="0" x2="547" y2="390"/><line x1="684" y1="0" x2="684" y2="390"/></g>
+      <line x1="410" y1="0" x2="410" y2="390" stroke="#919EAB" stroke-width="1.5"/><line x1="0" y1="195" x2="820" y2="195" stroke="#919EAB" stroke-width="1.5"/>
+      <text class="small" x="14" y="20">流入 / 下跌</text><text class="small" x="806" y="20" text-anchor="end">流入 / 上涨</text>
+      <text class="small" x="14" y="376">流出 / 下跌</text><text class="small" x="806" y="376" text-anchor="end">流出 / 上涨</text>
+      <g opacity="0.88" stroke="#FFFFFF" stroke-width="2">
+        <circle cx="455" cy="148" r="10" fill="#D64B46"/><circle cx="484" cy="166" r="7" fill="#E46F66"/><circle cx="432" cy="178" r="8" fill="#C7332F"/><circle cx="512" cy="126" r="12" fill="#C7332F"/><circle cx="548" cy="173" r="6" fill="#E46F66"/><circle cx="580" cy="109" r="9" fill="#C7332F"/><circle cx="622" cy="143" r="13" fill="#B42318"/>
+        <circle cx="371" cy="154" r="8" fill="#D64B46"/><circle cx="337" cy="128" r="11" fill="#C7332F"/><circle cx="304" cy="180" r="7" fill="#E46F66"/><circle cx="244" cy="92" r="12" fill="#B42318"/>
+        <circle cx="462" cy="238" r="8" fill="#37A477"/><circle cx="508" cy="260" r="11" fill="#16875D"/><circle cx="552" cy="228" r="7" fill="#37A477"/><circle cx="593" cy="286" r="10" fill="#087443"/><circle cx="446" cy="282" r="6" fill="#58B78B"/><circle cx="650" cy="326" r="13" fill="#087443"/>
+        <circle cx="372" cy="248" r="8" fill="#37A477"/><circle cx="331" cy="276" r="10" fill="#16875D"/><circle cx="280" cy="235" r="6" fill="#58B78B"/><circle cx="196" cy="312" r="12" fill="#087443"/>
+        <circle cx="758" cy="52" r="15" fill="#B42318"/><circle cx="76" cy="342" r="14" fill="#087443"/><circle cx="777" cy="292" r="9" fill="#16875D"/><circle cx="92" cy="64" r="10" fill="#C7332F"/>
+      </g>
+      <circle cx="622" cy="143" r="19" fill="none" stroke="#1877F2" stroke-width="3"/>
+      <line x1="635" y1="132" x2="680" y2="95" stroke="#1877F2"/>
+      <rect x="668" y="58" width="140" height="50" rx="8" fill="#212B36"/>
+      <text class="strong white" x="682" y="79">半导体 · 已选择</text><text class="small" x="682" y="97" fill="#DDE3EA">+2.84% · +18.6亿</text>
+    </g>
+    <text class="small" x="78" y="510">-8%</text><text class="small" x="488" y="510" text-anchor="middle">0%</text><text class="small" x="898" y="510" text-anchor="end">+9%</text>
+    <text class="small" transform="translate(22 340) rotate(-90)" text-anchor="middle">资金净流入（亿元）</text>
+    <g transform="translate(26 530)"><circle cx="5" cy="0" r="5" fill="#C7332F"/><text class="small" x="16" y="4">净流入</text><circle cx="92" cy="0" r="5" fill="#16875D"/><text class="small" x="103" y="4">净流出</text><circle cx="178" cy="0" r="5" fill="#919EAB"/><text class="small" x="189" y="4">接近零</text></g>
+  </g>
+
+  <!-- insight panel -->
+  <g transform="translate(1010 294)" filter="url(#shadow)">
+    <rect width="374" height="560" rx="16" fill="#FFFFFF"/>
+    <text class="h6" x="22" y="34">信息索引</text><text class="small" x="350" y="34" text-anchor="end">当前返回 30 个板块</text>
+    <g transform="translate(18 52)">
+      <rect width="66" height="34" rx="8" fill="#EAF3FF"/><text class="button blue" x="33" y="22" text-anchor="middle">流入</text>
+      <text class="button muted" x="93" y="22">流出</text><text class="button muted" x="151" y="22">涨幅</text><text class="button muted" x="209" y="22">跌幅</text><text class="button muted" x="267" y="22">拥挤</text>
+    </g>
+    <line x1="20" y1="98" x2="354" y2="98" stroke="#E7EBF0"/>
+    <g transform="translate(22 118)">
+      <text class="small" x="0" y="17">01</text><circle cx="38" cy="12" r="6" fill="#C7332F"/><text class="body" x="54" y="17">半导体</text><text class="strong red" x="326" y="17" text-anchor="end">+18.6亿</text><rect x="54" y="27" width="272" height="6" rx="3" fill="#FDE5E3"/><rect x="54" y="27" width="242" height="6" rx="3" fill="#C7332F"/>
+      <text class="small" x="0" y="75">02</text><circle cx="38" cy="70" r="6" fill="#D64B46"/><text class="body" x="54" y="75">证券</text><text class="strong red" x="326" y="75" text-anchor="end">+15.2亿</text><rect x="54" y="85" width="272" height="6" rx="3" fill="#FDE5E3"/><rect x="54" y="85" width="206" height="6" rx="3" fill="#D64B46"/>
+      <text class="small" x="0" y="133">03</text><circle cx="38" cy="128" r="6" fill="#E46F66"/><text class="body" x="54" y="133">军工</text><text class="strong red" x="326" y="133" text-anchor="end">+11.8亿</text><rect x="54" y="143" width="272" height="6" rx="3" fill="#FDE5E3"/><rect x="54" y="143" width="168" height="6" rx="3" fill="#E46F66"/>
+      <text class="small" x="0" y="191">04</text><circle cx="38" cy="186" r="6" fill="#E46F66"/><text class="body" x="54" y="191">通信</text><text class="strong red" x="326" y="191" text-anchor="end">+9.4亿</text><rect x="54" y="201" width="272" height="6" rx="3" fill="#FDE5E3"/><rect x="54" y="201" width="130" height="6" rx="3" fill="#E46F66"/>
+    </g>
+    <rect x="20" y="350" width="334" height="134" rx="12" fill="#F7F9FB"/>
+    <text class="small" x="38" y="376">所选板块</text><text class="h5" x="38" y="402">半导体</text>
+    <text class="small" x="38" y="426">涨跌 +2.84%　净流入 +18.6亿</text><text class="small" x="38" y="448">成交额 1,248亿 · 上涨/下跌家数 52/24</text>
+    <text class="button blue" x="332" y="470" text-anchor="end">查看详情 →</text>
+    <text class="small" x="22" y="522">五组数据全部保留；Tab 仅压缩纵向空间</text>
+    <text class="small" x="22" y="542">行点击与气泡点击进入同一详情弹窗</text>
+  </g>
+
+  <!-- sector stats -->
+  <g transform="translate(56 880)" filter="url(#shadow)">
+    <rect width="1328" height="264" rx="16" fill="#FFFFFF"/>
+    <text class="h6" x="24" y="36">行业涨跌统计</text>
+    <rect x="1110" y="16" width="92" height="36" rx="8" fill="#EAF3FF" stroke="#1877F2"/><text class="button blue" x="1156" y="39" text-anchor="middle">涨跌幅</text>
+    <rect x="1202" y="16" width="102" height="36" rx="8" fill="#FFFFFF" stroke="#DDE3EA"/><text class="button muted" x="1253" y="39" text-anchor="middle">涨跌家数</text>
+    <line x1="210" y1="70" x2="210" y2="236" stroke="#E7EBF0"/><line x1="520" y1="70" x2="520" y2="236" stroke="#E7EBF0"/><line x1="830" y1="70" x2="830" y2="236" stroke="#E7EBF0"/><line x1="1140" y1="70" x2="1140" y2="236" stroke="#E7EBF0"/>
+    <line x1="676" y1="64" x2="676" y2="240" stroke="#919EAB"/>
+    <g>
+      <text class="small" x="28" y="88">证券</text><rect x="676" y="76" width="430" height="15" rx="5" fill="#C7332F"/><text class="strong red" x="1122" y="89">+4.28%</text>
+      <text class="small" x="28" y="121">半导体</text><rect x="676" y="109" width="298" height="15" rx="5" fill="#D64B46"/><text class="strong red" x="990" y="122">+2.84%</text>
+      <text class="small" x="28" y="154">通信</text><rect x="676" y="142" width="176" height="15" rx="5" fill="#E46F66"/><text class="strong red" x="868" y="155">+1.62%</text>
+      <text class="small" x="28" y="187">银行</text><rect x="558" y="175" width="118" height="15" rx="5" fill="#37A477"/><text class="strong green" x="542" y="188" text-anchor="end">-0.88%</text>
+      <text class="small" x="28" y="220">煤炭</text><rect x="300" y="208" width="376" height="15" rx="5" fill="#16875D"/><text class="strong green" x="284" y="221" text-anchor="end">-3.12%</text>
+    </g>
+    <text class="small" x="676" y="254" text-anchor="middle">0%</text><text class="small" x="1300" y="254" text-anchor="end">统计图当前不可点击详情</text>
+  </g>
+
+  <!-- TreeMap state heading -->
+  <text class="h5" x="56" y="1194">TreeMap 状态变体</text>
+  <text class="small" x="260" y="1194">切换“树形图”后出现；与上方散点状态互斥</text>
+
+  <!-- treemap card -->
+  <g transform="translate(56 1218)" filter="url(#shadow)">
+    <rect width="850" height="510" rx="16" fill="#FFFFFF"/>
+    <text class="h6" x="24" y="34">市场热力图</text>
+    <g transform="translate(152 14)">
+      <rect width="72" height="34" rx="8" fill="#EAF3FF"/><text class="button blue" x="36" y="22" text-anchor="middle">按行业</text>
+      <text class="small" x="92" y="22">沪深300</text><text class="small" x="168" y="22">中证500</text><text class="small" x="244" y="22">上证50</text><text class="small" x="308" y="22">创业板</text>
+    </g>
+    <g transform="translate(532 14)"><rect width="76" height="34" rx="8" fill="#EAF3FF"/><text class="button blue" x="38" y="22" text-anchor="middle">总市值</text><text class="small" x="92" y="22">成交额</text></g>
+    <g transform="translate(688 14)"><rect width="46" height="34" rx="8" fill="#EAF3FF"/><text class="button blue" x="23" y="22" text-anchor="middle">100</text><text class="small" x="57" y="22">200　300</text></g>
+    <g transform="translate(24 62)"><rect width="70" height="28" rx="14" fill="#FDE5E3"/><text class="small red" x="35" y="18" text-anchor="middle">涨停 24</text><rect x="82" width="72" height="28" rx="14" fill="#FDF0EF"/><text class="small red" x="118" y="18" text-anchor="middle">上涨 3120</text><rect x="166" width="70" height="28" rx="14" fill="#EEF1F4"/><text class="small" x="201" y="18" text-anchor="middle">平盘 83</text><rect x="248" width="72" height="28" rx="14" fill="#E8F6EF"/><text class="small green" x="284" y="18" text-anchor="middle">下跌 1654</text><rect x="332" width="70" height="28" rx="14" fill="#DDF1E8"/><text class="small green" x="367" y="18" text-anchor="middle">跌停 11</text></g>
+    <!-- tiles -->
+    <g transform="translate(24 106)" stroke="#FFFFFF" stroke-width="3">
+      <rect width="250" height="170" fill="#C7332F"/><rect x="250" width="180" height="170" fill="#D64B46"/><rect x="430" width="180" height="105" fill="#E46F66"/><rect x="610" width="192" height="105" fill="#16875D"/>
+      <rect y="170" width="170" height="120" fill="#087443"/><rect x="170" y="170" width="260" height="120" fill="#37A477"/><rect x="430" y="105" width="140" height="185" fill="#919EAB"/><rect x="570" y="105" width="232" height="185" fill="#E38B83"/>
+      <rect y="290" width="210" height="82" fill="#58B78B"/><rect x="210" y="290" width="188" height="82" fill="#D64B46"/><rect x="398" y="290" width="190" height="82" fill="#C7332F"/><rect x="588" y="290" width="214" height="82" fill="#16875D"/>
+      <text class="strong white" x="18" y="28">贵州茅台</text><text class="small" x="18" y="48" fill="#FFFFFF">+2.18%</text><text class="strong white" x="270" y="28">宁德时代</text><text class="small" x="270" y="48" fill="#FFFFFF">+1.46%</text><text class="strong white" x="448" y="28">中芯国际</text><text class="small" x="448" y="48" fill="#FFFFFF">+0.92%</text><text class="strong white" x="628" y="28">中国神华</text><text class="small" x="628" y="48" fill="#FFFFFF">-1.08%</text>
+      <text class="strong white" x="18" y="198">万科A</text><text class="small" x="18" y="218" fill="#FFFFFF">-2.11%</text><text class="strong white" x="190" y="198">招商银行</text><text class="small" x="190" y="218" fill="#FFFFFF">-0.73%</text><text class="strong white" x="448" y="133">中国平安</text><text class="small" x="448" y="153" fill="#FFFFFF">+0.02%</text><text class="strong white" x="590" y="133">工业富联</text><text class="small" x="590" y="153" fill="#FFFFFF">+1.25%</text>
+    </g>
+    <text class="small" x="24" y="496">Tooltip：股票、代码、分组、涨跌幅、成交额　·　节点当前不打开详情</text>
+  </g>
+
+  <!-- distribution card -->
+  <g transform="translate(930 1218)" filter="url(#shadow)">
+    <rect width="454" height="510" rx="16" fill="#FFFFFF"/>
+    <text class="h6" x="22" y="34">个股涨跌幅分布</text><text class="small" x="432" y="34" text-anchor="end">总数 = 21档合计</text>
+    <g transform="translate(22 52)"><rect width="74" height="28" rx="14" fill="#FDE5E3"/><text class="small red" x="37" y="18" text-anchor="middle">涨停 24</text><rect x="84" width="74" height="28" rx="14" fill="#FDF0EF"/><text class="small red" x="121" y="18" text-anchor="middle">上涨 3120</text><rect x="168" width="64" height="28" rx="14" fill="#EEF1F4"/><text class="small" x="200" y="18" text-anchor="middle">平83</text><rect x="242" width="78" height="28" rx="14" fill="#E8F6EF"/><text class="small green" x="281" y="18" text-anchor="middle">下跌1654</text><rect x="330" width="72" height="28" rx="14" fill="#DDF1E8"/><text class="small green" x="366" y="18" text-anchor="middle">跌停11</text></g>
+    <line x1="227" y1="116" x2="227" y2="280" stroke="#919EAB"/>
+    <g fill="#16875D"><rect x="30" y="250" width="12" height="30"/><rect x="48" y="238" width="12" height="42"/><rect x="66" y="220" width="12" height="60"/><rect x="84" y="192" width="12" height="88"/><rect x="102" y="166" width="12" height="114"/><rect x="120" y="182" width="12" height="98"/><rect x="138" y="208" width="12" height="72"/><rect x="156" y="228" width="12" height="52"/><rect x="174" y="244" width="12" height="36"/><rect x="192" y="258" width="12" height="22"/></g>
+    <rect x="219" y="248" width="16" height="32" fill="#919EAB"/>
+    <g fill="#C7332F"><rect x="252" y="258" width="12" height="22"/><rect x="270" y="246" width="12" height="34"/><rect x="288" y="228" width="12" height="52"/><rect x="306" y="206" width="12" height="74"/><rect x="324" y="174" width="12" height="106"/><rect x="342" y="158" width="12" height="122"/><rect x="360" y="188" width="12" height="92"/><rect x="378" y="214" width="12" height="66"/><rect x="396" y="238" width="12" height="42"/><rect x="414" y="256" width="12" height="24"/></g>
+    <text class="small" x="28" y="300">-10%</text><text class="small" x="227" y="300" text-anchor="middle">0</text><text class="small" x="428" y="300" text-anchor="end">+10%</text>
+    <rect x="22" y="326" width="410" height="42" rx="8" fill="#F7F9FB" stroke="#DDE3EA"/><text class="button" x="40" y="352" fill="#212B36">展开 21 档区间明细</text><text class="small" x="414" y="352" text-anchor="end">区间 / 家数 / 占比　⌄</text>
+    <line x1="22" y1="390" x2="432" y2="390" stroke="#E7EBF0"/><text class="small" x="24" y="414">示例区间</text><text class="small" x="288" y="414">家数</text><text class="small" x="406" y="414" text-anchor="end">占比</text>
+    <text class="body red" x="24" y="444">9~10%</text><text class="body" x="292" y="444">38</text><text class="body" x="406" y="444" text-anchor="end">0.78%</text>
+    <text class="body red" x="24" y="474">8~9%</text><text class="body" x="292" y="474">52</text><text class="body" x="406" y="474" text-anchor="end">1.06%</text>
+    <text class="small" x="22" y="498">涨跌停仅作 KPI/桶内标签，不参与总数二次加总</text>
+  </g>
+
+  <!-- detail specimen -->
+  <g transform="translate(56 1770)" filter="url(#shadow)">
+    <rect width="680" height="414" rx="16" fill="#FFFFFF"/>
+    <text class="h6" x="24" y="36">半导体 — 板块详情</text><text class="small" x="652" y="36" text-anchor="end">× 关闭</text>
+    <g transform="translate(24 56)"><rect width="146" height="68" rx="10" fill="#F7F9FB"/><text class="small" x="14" y="24">涨跌幅</text><text class="metric red" x="14" y="51">+2.84%</text><rect x="158" width="146" height="68" rx="10" fill="#F7F9FB"/><text class="small" x="172" y="24">净流入</text><text class="metric red" x="172" y="51">+18.60亿</text><rect x="316" width="146" height="68" rx="10" fill="#F7F9FB"/><text class="small" x="330" y="24">成交额</text><text class="metric" x="330" y="51">1,248亿</text><rect x="474" width="158" height="68" rx="10" fill="#F7F9FB"/><text class="small" x="488" y="24">涨/跌家数</text><text class="metric" x="488" y="51">52↑ / 24↓</text></g>
+    <g transform="translate(24 142)"><text class="button blue" x="0" y="22">涨跌排名</text><text class="button muted" x="88" y="22">资金排名</text><rect y="34" width="70" height="3" rx="1.5" fill="#1877F2"/><line x1="0" y1="48" x2="632" y2="48" stroke="#E7EBF0"/><text class="small" x="0" y="72">股票名称 / 代码</text><text class="small" x="420" y="72">涨跌幅</text><text class="small" x="632" y="72" text-anchor="end">成交额（亿）</text>
+      <text class="body" x="0" y="106">中芯国际　688981.SH</text><text class="strong red" x="420" y="106">+6.42%</text><text class="body" x="632" y="106" text-anchor="end">214.80</text><line x1="0" y1="120" x2="632" y2="120" stroke="#EEF1F4"/>
+      <text class="body" x="0" y="148">北方华创　002371.SZ</text><text class="strong red" x="420" y="148">+4.18%</text><text class="body" x="632" y="148" text-anchor="end">98.62</text><line x1="0" y1="162" x2="632" y2="162" stroke="#EEF1F4"/>
+      <text class="body" x="0" y="190">海光信息　688041.SH</text><text class="strong red" x="420" y="190">+3.37%</text><text class="body" x="632" y="190" text-anchor="end">72.14</text>
+    </g>
+    <rect x="24" y="362" width="150" height="36" rx="8" fill="#FFFFFF" stroke="#1877F2"/><text class="button blue" x="99" y="385" text-anchor="middle">查看 N 日轮动</text>
+    <text class="small" x="190" y="385">仅行业映射成功时显示；概念/地域无映射时说明原因</text>
+  </g>
+
+  <!-- snapshot specimen -->
+  <g transform="translate(760 1770)" filter="url(#shadow)">
+    <rect width="624" height="414" rx="16" fill="#FFFFFF"/>
+    <text class="h6" x="24" y="36">快照管理</text><rect x="116" y="18" width="96" height="28" rx="14" fill="#FDE5E3"/><text class="small red" x="164" y="36" text-anchor="middle">SUPER_ADMIN</text>
+    <text class="small" x="600" y="36" text-anchor="end">ADMIN 仅保留查询</text>
+    <rect x="24" y="66" width="188" height="42" rx="8" fill="#FFFFFF" stroke="#DDE3EA"/><text class="small" x="38" y="92">目标交易日期　20260807</text>
+    <rect x="226" y="66" width="154" height="42" rx="8" fill="#F6A700"/><text class="button white" x="303" y="92" text-anchor="middle">触发快照聚合</text>
+    <rect x="394" y="66" width="126" height="42" rx="8" fill="#FFFFFF" stroke="#1877F2"/><text class="button blue" x="457" y="92" text-anchor="middle">查询快照</text>
+    <rect x="24" y="130" width="576" height="58" rx="10" fill="#E8F6EF" stroke="#8ED0B0"/><text class="strong green" x="42" y="155">✓ 快照聚合完成</text><text class="small" x="42" y="175">共聚合 4,988 条记录（交易日：20260807）</text>
+    <line x1="24" y1="212" x2="600" y2="212" stroke="#E7EBF0"/>
+    <text class="h6" x="24" y="242">快照预览 — 20260807</text>
+    <g transform="translate(24 266)"><rect width="134" height="76" rx="10" fill="#F7F9FB"/><text class="small" x="14" y="26">交易日期</text><text class="strong" x="14" y="52">20260807</text><rect x="146" width="134" height="76" rx="10" fill="#F7F9FB"/><text class="small" x="160" y="26">分组维度</text><text class="strong" x="160" y="52">industry</text><rect x="292" width="134" height="76" rx="10" fill="#F7F9FB"/><text class="small" x="306" y="26">数据来源</text><text class="strong" x="306" y="52">快照缓存</text><rect x="438" width="138" height="76" rx="10" fill="#F7F9FB"/><text class="small" x="452" y="26">股票总数</text><text class="strong" x="452" y="52">4,988</text></g>
+    <rect x="24" y="360" width="576" height="36" rx="8" fill="#FFF8E6"/><text class="small" x="42" y="383">权限修复：ADMIN 不再出现后端必然拒绝的“触发快照聚合”按钮</text>
+  </g>
+</svg>

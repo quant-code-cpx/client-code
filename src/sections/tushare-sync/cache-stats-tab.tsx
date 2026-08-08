@@ -5,12 +5,14 @@ import { useState, useEffect, useCallback } from 'react';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Grid from '@mui/material/Grid';
+import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
 import Tooltip from '@mui/material/Tooltip';
 import Skeleton from '@mui/material/Skeleton';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
+import LinearProgress from '@mui/material/LinearProgress';
 
 import { fDateTime } from 'src/utils/format-time';
 
@@ -31,14 +33,16 @@ export function CacheStatsTab({ isReadOnly = false, refreshKey = 0 }: Props) {
   const [cacheData, setCacheData] = useState<CacheMetricsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [keyword, setKeyword] = useState('');
+  const [error, setError] = useState('');
 
   const fetchStats = useCallback(async () => {
     setLoading(true);
+    setError('');
     try {
       const data = await tushareSyncApi.getCacheStats();
       setCacheData(data);
-    } catch {
-      // ignore
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '获取缓存统计失败');
     } finally {
       setLoading(false);
     }
@@ -52,6 +56,13 @@ export function CacheStatsTab({ isReadOnly = false, refreshKey = 0 }: Props) {
   const filteredNamespaces = namespaces.filter((item) =>
     item.namespace.toLowerCase().includes(keyword.trim().toLowerCase())
   );
+  const totalKeys = namespaces.reduce((sum, item) => sum + item.keyCount, 0);
+  const totalHits = namespaces.reduce((sum, item) => sum + item.hits, 0);
+  const totalMisses = namespaces.reduce((sum, item) => sum + item.misses, 0);
+  const totalWrites = namespaces.reduce((sum, item) => sum + item.writes, 0);
+  const totalInvalidations = namespaces.reduce((sum, item) => sum + item.invalidations, 0);
+  const requestCount = totalHits + totalMisses;
+  const overallHitRate = requestCount > 0 ? (totalHits / requestCount) * 100 : null;
   const clearDisabledReason = isReadOnly ? '仅超级管理员可执行' : '等待后端缓存清理接口启用';
 
   return (
@@ -102,9 +113,26 @@ export function CacheStatsTab({ isReadOnly = false, refreshKey = 0 }: Props) {
         sx={{ mb: 3 }}
       />
 
+      {loading && cacheData && <LinearProgress aria-label="缓存统计更新中" sx={{ mb: 2 }} />}
+      {error && (
+        <Alert
+          severity="error"
+          sx={{ mb: 2 }}
+          action={
+            <Button color="inherit" size="small" onClick={fetchStats}>
+              重试
+            </Button>
+          }
+        >
+          {error}
+          {cacheData ? '，当前展示上次成功快照。' : ''}
+        </Alert>
+      )}
+
       {/* Overview cards */}
-      <Grid container spacing={2} sx={{ mb: 3 }}>
-        {loading
+      {(!error || cacheData) && (
+        <Grid container spacing={2} sx={{ mb: 3 }}>
+        {loading && !cacheData
           ? Array.from({ length: 3 }).map((_, i) => (
               <Grid key={i} size={{ xs: 12, sm: 6, md: 4 }}>
                 <Card sx={{ p: 3 }}>
@@ -112,74 +140,39 @@ export function CacheStatsTab({ isReadOnly = false, refreshKey = 0 }: Props) {
                 </Card>
               </Grid>
             ))
-          : filteredNamespaces.map((ns) => (
-              <Grid key={ns.namespace} size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
-                <Card sx={{ p: 3 }}>
-                  <Typography variant="subtitle2" sx={{ mb: 1, color: 'text.secondary' }}>
-                    {ns.namespace}
+          : [
+              { label: '缓存键总数', value: totalKeys.toLocaleString(), color: 'text.primary' },
+              {
+                label: '全局命中率',
+                value: overallHitRate === null ? '—' : `${overallHitRate.toFixed(1)}%`,
+                color:
+                  overallHitRate === null
+                    ? 'text.disabled'
+                    : overallHitRate >= 80
+                      ? 'success.main'
+                      : overallHitRate >= 50
+                        ? 'warning.main'
+                        : 'error.main',
+              },
+              {
+                label: '写入 / 失效',
+                value: `${totalWrites.toLocaleString()} / ${totalInvalidations.toLocaleString()}`,
+                color: 'text.primary',
+              },
+            ].map((item) => (
+              <Grid key={item.label} size={{ xs: 12, sm: 4 }}>
+                <Card variant="outlined" sx={{ p: 2 }}>
+                  <Typography variant="h5" sx={{ color: item.color, fontVariantNumeric: 'tabular-nums' }}>
+                    {item.value}
                   </Typography>
-                  <Typography
-                    variant="h4"
-                    sx={{
-                      fontWeight: 700,
-                      color:
-                        ns.hitRate === null
-                          ? 'text.disabled'
-                          : ns.hitRate >= 80
-                            ? 'success.main'
-                            : ns.hitRate >= 50
-                              ? 'warning.main'
-                              : 'error.main',
-                    }}
-                  >
-                    {ns.hitRate !== null ? `${ns.hitRate.toFixed(1)}%` : '—'}
+                  <Typography variant="body2" color="text.secondary">
+                    {item.label}
                   </Typography>
-                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                    命中率
-                  </Typography>
-                  <Divider sx={{ my: 1.5 }} />
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <Box>
-                      <Typography
-                        variant="caption"
-                        sx={{ color: 'text.disabled', display: 'block' }}
-                      >
-                        键数
-                      </Typography>
-                      <Typography variant="body2">{ns.keyCount.toLocaleString()}</Typography>
-                    </Box>
-                    <Box>
-                      <Typography
-                        variant="caption"
-                        sx={{ color: 'text.disabled', display: 'block' }}
-                      >
-                        命中
-                      </Typography>
-                      <Typography variant="body2">{ns.hits.toLocaleString()}</Typography>
-                    </Box>
-                    <Box>
-                      <Typography
-                        variant="caption"
-                        sx={{ color: 'text.disabled', display: 'block' }}
-                      >
-                        未命中
-                      </Typography>
-                      <Typography variant="body2">{ns.misses.toLocaleString()}</Typography>
-                    </Box>
-                    <Box>
-                      <Typography
-                        variant="caption"
-                        sx={{ color: 'text.disabled', display: 'block' }}
-                      >
-                        写入
-                      </Typography>
-                      <Typography variant="body2">{ns.writes.toLocaleString()}</Typography>
-                    </Box>
-                  </Box>
                 </Card>
               </Grid>
             ))}
-      </Grid>
+        </Grid>
+      )}
 
       {/* Detail table */}
       <Card>
@@ -189,12 +182,14 @@ export function CacheStatsTab({ isReadOnly = false, refreshKey = 0 }: Props) {
           </Typography>
         </Box>
         <Divider />
-        <CacheStatsTable
-          rows={filteredNamespaces}
-          loading={loading}
-          clearDisabled
-          clearDisabledReason={clearDisabledReason}
-        />
+        {(!error || cacheData) && (
+          <CacheStatsTable
+            rows={filteredNamespaces}
+            loading={loading && !cacheData}
+            clearDisabled
+            clearDisabledReason={clearDisabledReason}
+          />
+        )}
       </Card>
     </Box>
   );

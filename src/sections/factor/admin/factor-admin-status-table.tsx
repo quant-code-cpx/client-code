@@ -20,7 +20,6 @@ import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import TableSortLabel from '@mui/material/TableSortLabel';
 import TableContainer from '@mui/material/TableContainer';
-import LinearProgress from '@mui/material/LinearProgress';
 import TablePagination from '@mui/material/TablePagination';
 
 import { Label } from 'src/components/label';
@@ -29,15 +28,11 @@ import { Iconify } from 'src/components/iconify';
 import { applyAdminFilters } from './factor-admin-filter-bar';
 import {
   SOURCE_LABELS,
-  coverageColor,
-  staleDaysColor,
   CATEGORY_LABELS,
   ADMIN_COMPUTE_STATUS_META,
 } from '../constants';
 
 import type { AdminStatusFilters } from './factor-admin-filter-bar';
-
-// ─── Types ────────────────────────────────────────────────────
 
 type SortField = 'factorName' | 'staleDays' | 'lastComputeDate' | 'coverageRate' | 'rowCount';
 type SortOrder = 'asc' | 'desc';
@@ -49,27 +44,42 @@ type Props = {
   filters: AdminStatusFilters;
   selected: PrecomputeStatusItem[];
   onSelectedChange: (next: PrecomputeStatusItem[]) => void;
-  onToggleEnable?: (factorName: string, isEnabled: boolean) => void;
   onPrecomputeOne?: (factorName: string) => void;
   onRefetch: () => void;
 };
 
+type SortHeadProps = {
+  field: SortField;
+  label: string;
+  activeField: SortField;
+  order: SortOrder;
+  onSort: (field: SortField) => void;
+};
+
 const PAGE_SIZE_OPTIONS = [25, 50, 100];
 
-// ─── Column header tooltip ────────────────────────────────────
-
-function ColTip({ title, children }: { title: string; children: React.ReactNode }) {
+function SortHead({ field, label, activeField, order, onSort }: SortHeadProps) {
   return (
-    <Tooltip title={title} placement="top" arrow>
-      <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
-        {children}
-        <Iconify icon="solar:info-circle-bold" width={14} sx={{ opacity: 0.5 }} />
-      </Box>
-    </Tooltip>
+    <TableSortLabel
+      active={activeField === field}
+      direction={activeField === field ? order : 'asc'}
+      onClick={() => onSort(field)}
+    >
+      {label}
+    </TableSortLabel>
   );
 }
 
-// ─── Component ────────────────────────────────────────────────
+function compareNullableNumber(
+  first: number | null | undefined,
+  second: number | null | undefined,
+  order: SortOrder
+) {
+  if (first == null && second == null) return 0;
+  if (first == null) return 1;
+  if (second == null) return -1;
+  return (first - second) * (order === 'asc' ? 1 : -1);
+}
 
 export function FactorAdminStatusTable({
   items,
@@ -78,7 +88,6 @@ export function FactorAdminStatusTable({
   filters,
   selected,
   onSelectedChange,
-  onToggleEnable,
   onPrecomputeOne,
   onRefetch,
 }: Props) {
@@ -90,7 +99,7 @@ export function FactorAdminStatusTable({
   const handleSort = useCallback(
     (field: SortField) => {
       if (sortField === field) {
-        setSortOrder((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+        setSortOrder((previous) => (previous === 'asc' ? 'desc' : 'asc'));
       } else {
         setSortField(field);
         setSortOrder('desc');
@@ -101,52 +110,51 @@ export function FactorAdminStatusTable({
 
   const filtered = useMemo(() => applyAdminFilters(items, filters), [items, filters]);
 
-  const sorted = useMemo(() => {
-    const multiplier = sortOrder === 'asc' ? 1 : -1;
-    return [...filtered].sort((a, b) => {
-      switch (sortField) {
-        case 'staleDays': {
-          const ad = a.staleDays ?? 999;
-          const bd = b.staleDays ?? 999;
-          return (ad - bd) * multiplier;
+  const sorted = useMemo(
+    () =>
+      [...filtered].sort((first, second) => {
+        if (sortField === 'staleDays') {
+          return compareNullableNumber(first.staleDays, second.staleDays, sortOrder);
         }
-        case 'lastComputeDate': {
-          const av = a.lastComputeDate ?? '';
-          const bv = b.lastComputeDate ?? '';
-          return av.localeCompare(bv) * multiplier;
+        if (sortField === 'coverageRate') {
+          return compareNullableNumber(first.coverageRate, second.coverageRate, sortOrder);
         }
-        case 'coverageRate': {
-          const ac = a.coverageRate ?? -1;
-          const bc = b.coverageRate ?? -1;
-          return (ac - bc) * multiplier;
+        if (sortField === 'rowCount') {
+          return compareNullableNumber(first.rowCount, second.rowCount, sortOrder);
         }
-        case 'rowCount':
-          return (a.rowCount - b.rowCount) * multiplier;
-        case 'factorName':
-          return a.factorName.localeCompare(b.factorName) * multiplier;
-        default:
-          return 0;
-      }
-    });
-  }, [filtered, sortField, sortOrder]);
+        const multiplier = sortOrder === 'asc' ? 1 : -1;
+        if (sortField === 'lastComputeDate') {
+          if (!first.lastComputeDate && !second.lastComputeDate) return 0;
+          if (!first.lastComputeDate) return 1;
+          if (!second.lastComputeDate) return -1;
+          return first.lastComputeDate.localeCompare(second.lastComputeDate) * multiplier;
+        }
+        return first.factorName.localeCompare(second.factorName) * multiplier;
+      }),
+    [filtered, sortField, sortOrder]
+  );
 
   const paginated = useMemo(
     () => sorted.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
     [sorted, page, rowsPerPage]
   );
-
-  const selectedNames = useMemo(() => new Set(selected.map((s) => s.factorName)), [selected]);
+  const selectedNames = useMemo(
+    () => new Set(selected.map((item) => item.factorName)),
+    [selected]
+  );
 
   const handleSelectAll = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      if (e.target.checked) {
+    (event: React.ChangeEvent<HTMLInputElement>) => {
+      if (event.target.checked) {
         onSelectedChange([
           ...selected,
-          ...paginated.filter((r) => !selectedNames.has(r.factorName)),
+          ...paginated.filter((item) => !selectedNames.has(item.factorName)),
         ]);
       } else {
         onSelectedChange(
-          selected.filter((s) => !paginated.some((p) => p.factorName === s.factorName))
+          selected.filter(
+            (item) => !paginated.some((pageItem) => pageItem.factorName === item.factorName)
+          )
         );
       }
     },
@@ -155,30 +163,20 @@ export function FactorAdminStatusTable({
 
   const handleSelectRow = useCallback(
     (item: PrecomputeStatusItem, checked: boolean) => {
-      if (checked) {
-        onSelectedChange([...selected, item]);
-      } else {
-        onSelectedChange(selected.filter((s) => s.factorName !== item.factorName));
-      }
+      onSelectedChange(
+        checked
+          ? [...selected, item]
+          : selected.filter((selectedItem) => selectedItem.factorName !== item.factorName)
+      );
     },
     [selected, onSelectedChange]
   );
 
-  const SortHead = ({ field, label }: { field: SortField; label: string }) => (
-    <TableSortLabel
-      active={sortField === field}
-      direction={sortField === field ? sortOrder : 'asc'}
-      onClick={() => handleSort(field)}
-    >
-      {label}
-    </TableSortLabel>
-  );
-
-  if (loading) {
-    return <Skeleton variant="rectangular" height={300} sx={{ borderRadius: 1 }} />;
+  if (loading && items.length === 0) {
+    return <Skeleton variant="rectangular" height={360} />;
   }
 
-  if (error) {
+  if (error && items.length === 0) {
     return (
       <Alert
         severity="error"
@@ -187,6 +185,7 @@ export function FactorAdminStatusTable({
             重试
           </Button>
         }
+        sx={{ m: 2 }}
       >
         {error}
       </Alert>
@@ -208,53 +207,67 @@ export function FactorAdminStatusTable({
   }
 
   const allPageSelected =
-    paginated.length > 0 && paginated.every((r) => selectedNames.has(r.factorName));
+    paginated.length > 0 && paginated.every((item) => selectedNames.has(item.factorName));
   const somePageSelected =
-    paginated.some((r) => selectedNames.has(r.factorName)) && !allPageSelected;
+    paginated.some((item) => selectedNames.has(item.factorName)) && !allPageSelected;
+  const sortHeadProps = { activeField: sortField, order: sortOrder, onSort: handleSort };
 
   return (
     <Box>
-      <TableContainer>
-        <Table size="small">
+      {error ? (
+        <Alert severity="warning" sx={{ mx: 2, mb: 1 }}>
+          {error}，当前显示上次成功加载的数据。
+        </Alert>
+      ) : null}
+      <TableContainer sx={{ borderTop: 1, borderColor: 'divider' }}>
+        <Table stickyHeader sx={{ minWidth: 1280, tableLayout: 'fixed' }}>
           <TableHead>
-            <TableRow>
-              <TableCell padding="checkbox">
+            <TableRow sx={{ height: 44 }}>
+              <TableCell padding="checkbox" sx={{ width: 48 }}>
                 <Checkbox
                   size="small"
                   checked={allPageSelected}
                   indeterminate={somePageSelected}
                   onChange={handleSelectAll}
+                  inputProps={{ 'aria-label': '选择当前页因子' }}
                 />
               </TableCell>
-              <TableCell>
-                <SortHead field="factorName" label="因子标识" />
+              <TableCell sx={{ width: 160 }}>
+                <SortHead field="factorName" label="因子标识" {...sortHeadProps} />
               </TableCell>
-              <TableCell>中文名</TableCell>
-              <TableCell>状态</TableCell>
-              <TableCell align="right">
-                <SortHead field="staleDays" label="滞后天数" />
+              <TableCell sx={{ width: 130 }}>中文名</TableCell>
+              <TableCell sx={{ width: 88 }}>状态</TableCell>
+              <TableCell align="right" sx={{ width: 96 }}>
+                <SortHead field="staleDays" label="滞后天数" {...sortHeadProps} />
               </TableCell>
-              <TableCell>
-                <SortHead field="lastComputeDate" label="最新计算日" />
+              <TableCell sx={{ width: 120 }}>
+                <SortHead field="lastComputeDate" label="最新计算日" {...sortHeadProps} />
               </TableCell>
-              <TableCell>
-                <ColTip title="覆盖度 = 非空值数 / 全量股票池">
-                  <SortHead field="coverageRate" label="覆盖度" />
-                </ColTip>
+              <TableCell align="right" sx={{ width: 92 }}>
+                <SortHead field="coverageRate" label="覆盖度" {...sortHeadProps} />
               </TableCell>
-              <TableCell align="right">
-                <ColTip title="因子快照总行数（股票 × 时间颗粒度）">
-                  <SortHead field="rowCount" label="快照行数" />
-                </ColTip>
+              <TableCell align="right" sx={{ width: 126 }}>
+                <SortHead field="rowCount" label="覆盖交易日数" {...sortHeadProps} />
               </TableCell>
-              <TableCell>分类</TableCell>
-              <TableCell>来源</TableCell>
-              <TableCell>启用</TableCell>
-              <TableCell>操作</TableCell>
+              <TableCell sx={{ width: 90 }}>分类</TableCell>
+              <TableCell sx={{ width: 80 }}>来源</TableCell>
+              <TableCell align="center" sx={{ width: 72 }}>
+                启用
+              </TableCell>
+              <TableCell sx={{ width: 104 }}>操作</TableCell>
             </TableRow>
           </TableHead>
 
           <TableBody>
+            {paginated.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={12} align="center" sx={{ py: 6 }}>
+                  <Typography variant="body2" color="text.secondary">
+                    当前筛选条件下无结果
+                  </Typography>
+                </TableCell>
+              </TableRow>
+            ) : null}
             {paginated.map((item) => {
               const isSelected = selectedNames.has(item.factorName);
               const statusMeta = ADMIN_COMPUTE_STATUS_META[item.status] ?? {
@@ -263,137 +276,82 @@ export function FactorAdminStatusTable({
               };
 
               return (
-                <TableRow
-                  key={item.factorName}
-                  hover
-                  selected={isSelected}
-                  sx={{ '& .row-actions': { opacity: 0 }, '&:hover .row-actions': { opacity: 1 } }}
-                >
+                <TableRow key={item.factorName} hover selected={isSelected} sx={{ height: 52 }}>
                   <TableCell padding="checkbox">
                     <Checkbox
                       size="small"
                       checked={isSelected}
-                      onChange={(e) => handleSelectRow(item, e.target.checked)}
+                      onChange={(event) => handleSelectRow(item, event.target.checked)}
+                      inputProps={{ 'aria-label': `选择 ${item.factorName}` }}
                     />
                   </TableCell>
-
-                  {/* 因子标识 */}
-                  <TableCell sx={{ fontFamily: 'monospace', fontSize: 13, whiteSpace: 'nowrap' }}>
-                    {item.factorName}
+                  <TableCell>
+                    <Tooltip title={item.factorName} placement="top-start">
+                      <Typography
+                        variant="body2"
+                        noWrap
+                        sx={{ fontFamily: 'monospace', fontSize: 13 }}
+                      >
+                        {item.factorName}
+                      </Typography>
+                    </Tooltip>
                   </TableCell>
-
-                  {/* 中文名 */}
-                  <TableCell>{item.factorLabel}</TableCell>
-
-                  {/* 状态 */}
+                  <TableCell>
+                    <Typography variant="body2" noWrap>
+                      {item.factorLabel || '—'}
+                    </Typography>
+                  </TableCell>
                   <TableCell>
                     <Label color={statusMeta.color} variant="soft">
                       {statusMeta.label}
                     </Label>
                   </TableCell>
-
-                  {/* 滞后天数 */}
-                  <TableCell align="right">
-                    {item.staleDays == null ? (
-                      <Typography variant="body2" color="text.disabled">
-                        —
-                      </Typography>
-                    ) : (
-                      <Label color={staleDaysColor(item.staleDays)} variant="soft">
-                        {item.staleDays}
-                      </Label>
-                    )}
+                  <TableCell align="right" sx={{ fontVariantNumeric: 'tabular-nums' }}>
+                    {item.staleDays ?? '—'}
                   </TableCell>
-
-                  {/* 最新计算日 */}
-                  <TableCell sx={{ whiteSpace: 'nowrap' }}>
+                  <TableCell sx={{ whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
                     {item.lastComputeDate
                       ? `${item.lastComputeDate.slice(0, 4)}-${item.lastComputeDate.slice(4, 6)}-${item.lastComputeDate.slice(6, 8)}`
                       : '—'}
                   </TableCell>
-
-                  {/* 覆盖度 */}
-                  <TableCell sx={{ minWidth: 90 }}>
-                    {item.coverageRate == null ? (
-                      <Typography variant="body2" color="text.disabled">
-                        —
-                      </Typography>
-                    ) : (
-                      <Box>
-                        <Typography variant="caption" sx={{ fontVariantNumeric: 'tabular-nums' }}>
-                          {(item.coverageRate * 100).toFixed(1)}%
-                        </Typography>
-                        <LinearProgress
-                          variant="determinate"
-                          value={item.coverageRate * 100}
-                          color={
-                            coverageColor(item.coverageRate) as 'success' | 'warning' | 'error'
-                          }
-                          sx={{ height: 4, borderRadius: 2, mt: 0.25 }}
-                        />
-                      </Box>
-                    )}
+                  <TableCell align="right" sx={{ fontVariantNumeric: 'tabular-nums' }}>
+                    {item.coverageRate == null ? '—' : `${(item.coverageRate * 100).toFixed(1)}%`}
                   </TableCell>
-
-                  {/* 快照行数 */}
-                  <TableCell
-                    align="right"
-                    sx={{
-                      fontVariantNumeric: 'tabular-nums',
-                      fontFamily: 'monospace',
-                      fontSize: 13,
-                    }}
-                  >
-                    {item.rowCount.toLocaleString()}
+                  <TableCell align="right" sx={{ fontVariantNumeric: 'tabular-nums' }}>
+                    {Number.isFinite(item.rowCount) ? item.rowCount.toLocaleString() : '—'}
                   </TableCell>
-
-                  {/* 分类 */}
                   <TableCell>
                     {item.category ? (
-                      <Chip
-                        label={CATEGORY_LABELS[item.category]}
+                      <Chip label={CATEGORY_LABELS[item.category]} size="small" variant="outlined" />
+                    ) : (
+                      '—'
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {item.sourceType ? <Chip label={SOURCE_LABELS[item.sourceType]} size="small" /> : '—'}
+                  </TableCell>
+                  <TableCell align="center">
+                    <Tooltip title="服务端未开放启用/禁用">
+                      <span>
+                        <Switch
+                          size="small"
+                          checked={item.isEnabled ?? false}
+                          disabled
+                          inputProps={{ 'aria-label': `${item.factorName} 启用状态不可用` }}
+                        />
+                      </span>
+                    </Tooltip>
+                  </TableCell>
+                  <TableCell>
+                    <Tooltip title="预计算今日">
+                      <IconButton
                         size="small"
-                        variant="outlined"
-                      />
-                    ) : (
-                      '—'
-                    )}
-                  </TableCell>
-
-                  {/* 来源 */}
-                  <TableCell>
-                    {item.sourceType ? (
-                      <Chip label={SOURCE_LABELS[item.sourceType]} size="small" />
-                    ) : (
-                      '—'
-                    )}
-                  </TableCell>
-
-                  {/* 启用 */}
-                  <TableCell>
-                    {item.isEnabled != null ? (
-                      <Switch
-                        size="small"
-                        checked={item.isEnabled}
-                        onChange={(e) => onToggleEnable?.(item.factorName, e.target.checked)}
-                      />
-                    ) : (
-                      '—'
-                    )}
-                  </TableCell>
-
-                  {/* 操作（hover 显现） */}
-                  <TableCell>
-                    <Box
-                      className="row-actions"
-                      sx={{ display: 'flex', gap: 0.5, transition: 'opacity 150ms' }}
-                    >
-                      <Tooltip title="预计算今日">
-                        <IconButton size="small" onClick={() => onPrecomputeOne?.(item.factorName)} aria-label="预计算今日">
-                          <Iconify icon="solar:play-circle-bold" width={16} />
-                        </IconButton>
-                      </Tooltip>
-                    </Box>
+                        onClick={() => onPrecomputeOne?.(item.factorName)}
+                        aria-label={`预计算今日 ${item.factorName}`}
+                      >
+                        <Iconify icon="solar:play-circle-bold" width={18} />
+                      </IconButton>
+                    </Tooltip>
                   </TableCell>
                 </TableRow>
               );
@@ -409,8 +367,8 @@ export function FactorAdminStatusTable({
         rowsPerPage={rowsPerPage}
         rowsPerPageOptions={PAGE_SIZE_OPTIONS}
         onPageChange={(_, newPage) => setPage(newPage)}
-        onRowsPerPageChange={(e) => {
-          setRowsPerPage(parseInt(e.target.value, 10));
+        onRowsPerPageChange={(event) => {
+          setRowsPerPage(parseInt(event.target.value, 10));
           setPage(0);
         }}
         labelRowsPerPage="每页"

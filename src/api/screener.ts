@@ -126,7 +126,12 @@ export type ScreenerPreset = {
   id: string;
   name: string;
   description: string;
-  filters: Partial<ScreenerFilters>;
+  filters: Partial<ScreenerFilters> & {
+    sortBy?: string;
+    sortOrder?: 'asc' | 'desc';
+  };
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
 };
 
 export type IndustryItem = { name: string; count: number };

@@ -19,6 +19,7 @@ import DialogTitle from '@mui/material/DialogTitle';
 import FormControl from '@mui/material/FormControl';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
+import LinearProgress from '@mui/material/LinearProgress';
 import TablePagination from '@mui/material/TablePagination';
 import DialogContentText from '@mui/material/DialogContentText';
 
@@ -47,23 +48,26 @@ export function RetryQueueTab({ isReadOnly = false, refreshKey = 0 }: Props) {
   const [resetting, setResetting] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [resetAlert, setResetAlert] = useState('');
+  const [error, setError] = useState('');
 
   const fetchQueue = useCallback(async () => {
     setLoading(true);
+    setError('');
     try {
       const result = await tushareSyncApi.getRetryQueue(
         (filterStatus as TushareSyncRetryStatus) || undefined,
         page + 1,
-        pageSize
+        pageSize,
+        filterTask.trim() || undefined
       );
       setRetryItems(result.items);
       setTotal(result.total);
-    } catch {
-      // ignore
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '获取重试队列失败');
     } finally {
       setLoading(false);
     }
-  }, [page, filterStatus, pageSize]);
+  }, [page, filterStatus, filterTask, pageSize]);
 
   useEffect(() => {
     fetchQueue();
@@ -89,10 +93,7 @@ export function RetryQueueTab({ isReadOnly = false, refreshKey = 0 }: Props) {
     }
   };
 
-  const filteredItems = retryItems.filter((item) =>
-    item.task.toLowerCase().includes(filterTask.trim().toLowerCase())
-  );
-  const visibleIds = filteredItems.map((item) => item.id);
+  const visibleIds = retryItems.map((item) => item.id);
   const actionDisabledReason = isReadOnly ? '仅超级管理员可执行' : '等待后端单条/批量队列接口启用';
 
   const toggleRow = (id: number) => {
@@ -120,6 +121,21 @@ export function RetryQueueTab({ isReadOnly = false, refreshKey = 0 }: Props) {
       {resetAlert && (
         <Alert severity="info" sx={{ mb: 3 }} onClose={() => setResetAlert('')}>
           {resetAlert}
+        </Alert>
+      )}
+
+      {error && (
+        <Alert
+          severity="error"
+          sx={{ mb: 3 }}
+          action={
+            <Button color="inherit" size="small" onClick={fetchQueue}>
+              重试
+            </Button>
+          }
+        >
+          {error}
+          {retryItems.length > 0 ? '，当前展示上次成功快照。' : ''}
         </Alert>
       )}
 
@@ -185,6 +201,10 @@ export function RetryQueueTab({ isReadOnly = false, refreshKey = 0 }: Props) {
 
         <Divider />
 
+        {loading && retryItems.length > 0 && (
+          <LinearProgress aria-label="重试队列更新中" />
+        )}
+
         {selectedIds.size > 0 && (
           <Alert
             severity="info"
@@ -213,18 +233,19 @@ export function RetryQueueTab({ isReadOnly = false, refreshKey = 0 }: Props) {
         )}
 
         <RetryQueueTable
-          rows={filteredItems}
-          loading={loading}
+          rows={retryItems}
+          loading={loading && retryItems.length === 0}
           selectedIds={selectedIds}
           actionDisabled
           actionDisabledReason={actionDisabledReason}
           onToggleRow={toggleRow}
           onToggleAll={toggleAll}
+          emptyMessage={error ? '' : '重试队列为空，所有同步任务运行正常'}
         />
 
         <TablePagination
           component="div"
-          count={filterTask ? filteredItems.length : total}
+          count={total}
           page={page}
           rowsPerPage={pageSize}
           rowsPerPageOptions={[20]}

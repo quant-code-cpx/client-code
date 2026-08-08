@@ -8,6 +8,8 @@ import type { HeadCell } from './types';
 
 export const DEFAULT_FILTERS: ScreenerFilters = {};
 
+export const SCREENER_PAGE_SIZE_OPTIONS = [10, 20, 50] as const;
+
 // ----------------------------------------------------------------------
 // 交易所选项
 // ----------------------------------------------------------------------
@@ -49,6 +51,9 @@ export const SORT_OPTIONS = [
   { value: 'netprofitYoy', label: '净利增速' },
   { value: 'mainNetInflow5d', label: '5日主力净流入' },
   { value: 'buySignalCount', label: '偏多信号数' },
+  { value: 'grossMargin', label: '毛利率' },
+  { value: 'netMargin', label: '净利率' },
+  { value: 'debtToAssets', label: '资产负债率' },
 ] as const;
 
 // ----------------------------------------------------------------------

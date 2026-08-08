@@ -37,6 +37,12 @@ const IMPACT_LABEL: Record<'HIGH' | 'MEDIUM' | 'LOW', string> = {
   LOW: '低影响',
 };
 
+export function formatCalendarReturn(value: number | null): string {
+  if (value == null) return '—';
+  const percent = value * 100;
+  return `${percent >= 0 ? '+' : ''}${percent.toFixed(2)}%`;
+}
+
 type Props = {
   open: boolean;
   event: CalendarEvent | null;
@@ -89,7 +95,9 @@ export function EventDetailDrawer({ open, event, onClose, onSubscribe }: Props) 
       anchor="right"
       open={open}
       onClose={onClose}
-      slotProps={{ paper: { sx: { width: { xs: '100%', sm: 480 } } } }}
+      slotProps={{
+        paper: { sx: { width: { xs: '100%', sm: 480 }, overscrollBehavior: 'contain' } },
+      }}
     >
       <Stack
         direction="row"
@@ -113,7 +121,7 @@ export function EventDetailDrawer({ open, event, onClose, onSubscribe }: Props) 
         <Stack spacing={2}>
           <Stack spacing={0.5}>
             <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
-              <Typography variant="h6">{event.stockName}</Typography>
+              <Typography variant="h6">{event.stockName || event.tsCode}</Typography>
               <Typography variant="body2" color="text.secondary">
                 {event.tsCode}
               </Typography>
@@ -289,7 +297,7 @@ export function EventDetailDrawer({ open, event, onClose, onSubscribe }: Props) 
                                 : 'success.main',
                         }}
                       >
-                        {value == null ? '—' : `${value >= 0 ? '+' : ''}${value.toFixed(2)}%`}
+                        {formatCalendarReturn(value)}
                       </Typography>
                     </Stack>
                   ))}

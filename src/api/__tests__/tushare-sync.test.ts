@@ -29,3 +29,50 @@ describe('tushareSyncApi.getSyncLogs', () => {
     });
   });
 });
+
+describe('tushareSyncApi overview and retry contracts', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('[OPS-B02] regular overview read keeps an empty body', async () => {
+    mockPost().mockResolvedValueOnce({
+      generatedAt: '2026-08-08T00:00:00.000Z',
+      totalRows: 0,
+      totalMissingDays: 0,
+      categories: [],
+    });
+
+    await tushareSyncApi.getSyncStatusOverview();
+
+    expect(mockPost()).toHaveBeenCalledWith('/api/tushare/admin/sync-status-overview', {});
+  });
+
+  it('[OPS-B02] explicit overview refresh sends refresh=true in POST body', async () => {
+    mockPost().mockResolvedValueOnce({
+      generatedAt: '2026-08-08T00:00:01.000Z',
+      totalRows: 0,
+      totalMissingDays: 0,
+      categories: [],
+    });
+
+    await tushareSyncApi.getSyncStatusOverview(true);
+
+    expect(mockPost()).toHaveBeenCalledWith('/api/tushare/admin/sync-status-overview', {
+      refresh: true,
+    });
+  });
+
+  it('[OPS-B03] retry task filter is sent to backend with page coordinates', async () => {
+    mockPost().mockResolvedValueOnce({ total: 0, page: 2, pageSize: 20, items: [] });
+
+    await tushareSyncApi.getRetryQueue('PENDING', 2, 20, 'DAILY');
+
+    expect(mockPost()).toHaveBeenCalledWith('/api/tushare/admin/retry-queue', {
+      status: 'PENDING',
+      page: 2,
+      pageSize: 20,
+      task: 'DAILY',
+    });
+  });
+});

@@ -75,10 +75,10 @@ export function ScreenerResultToolbar({
               if (val) onSortChange(sortBy, val as 'asc' | 'desc');
             }}
           >
-            <ToggleButton value="desc">
+            <ToggleButton value="desc" aria-label="降序">
               <Iconify icon="eva:arrow-ios-downward-fill" width={16} />
             </ToggleButton>
-            <ToggleButton value="asc">
+            <ToggleButton value="asc" aria-label="升序">
               <Iconify icon="eva:arrow-ios-upward-fill" width={16} />
             </ToggleButton>
           </ToggleButtonGroup>

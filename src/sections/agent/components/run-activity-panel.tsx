@@ -163,7 +163,21 @@ function modelDiagnosticDetail(
   diagnostic: NonNullable<AgentRunProjection['modelDiagnostics']>[number]
 ) {
   if (diagnostic.phase === 'REQUEST_DISPATCHED') {
-    return `消息 ${diagnostic.messageCount ?? 0} 条 · 输入估算 ${diagnostic.estimatedInputTokens ?? 0} tokens · 输出上限 ${diagnostic.maxOutputTokens ?? 0} tokens`;
+    const countSource =
+      diagnostic.inputTokenCountSource === 'OPENAI_INPUT_TOKENS_API'
+        ? 'OpenAI 供应商计数'
+        : diagnostic.inputTokenCountSource === 'ANTHROPIC_COUNT_TOKENS_API'
+          ? 'Anthropic 供应商计数'
+          : '本地保守估算';
+    const guardrail =
+      diagnostic.runMaxCumulativeInputTokens == null
+        ? 'Run 累计输入护栏未启用'
+        : `Run 累计输入 ${formatTokenCount(diagnostic.runInputTokensUsedBeforeCall)} / ${formatTokenCount(diagnostic.runMaxCumulativeInputTokens)}（${diagnostic.runInputGuardrailSource ?? '来源未知'}）`;
+    return [
+      `消息 ${diagnostic.messageCount ?? 0} 条 · 单次上下文窗口 ${formatTokenCount(diagnostic.contextWindow)} · 本次最大输出 ${formatTokenCount(diagnostic.maxOutputTokens)}`,
+      `输入预检 ${formatTokenCount(diagnostic.estimatedInputTokens)}（${countSource}，安全余量 ${formatTokenCount(diagnostic.inputTokenSafetyMarginTokens)}）`,
+      `${guardrail} · 最坏路径预留 ${formatTokenCount(diagnostic.runInputReservationTokens)}`,
+    ].join('；');
   }
   if (diagnostic.phase === 'FIRST_PROVIDER_CHUNK')
     return `首段类型：${diagnostic.firstChunkType ?? '未知'}`;
@@ -172,12 +186,21 @@ function modelDiagnosticDetail(
     return `供应商结束原因：${diagnostic.finishReason ?? '未提供'}`;
   if (diagnostic.phase === 'COMPLETED') {
     const usage = diagnostic.usage;
-    return `耗时 ${diagnostic.durationMs ?? 0} ms · 输入 ${usage?.inputTokens ?? 0} · 输出 ${usage?.outputTokens ?? 0}${diagnostic.repaired ? ' · 已修复一次' : ''}`;
+    const usageSource =
+      diagnostic.usageSource === 'PREFLIGHT_ESTIMATE' ? '缺少供应商 usage，按预检估算记账' : '供应商真实 usage';
+    const warning = diagnostic.accountingWarnings?.length
+      ? ` · ${diagnostic.accountingWarnings.join('；')}`
+      : '';
+    return `耗时 ${diagnostic.durationMs ?? 0} ms · 输入 ${formatTokenCount(usage?.inputTokens)} · 输出 ${formatTokenCount(usage?.outputTokens)} · ${usageSource}${diagnostic.repaired ? ' · 已修复一次' : ''}${warning}`;
   }
   if (diagnostic.phase === 'FAILED') {
     return `${diagnostic.error?.message ?? '模型调用失败'}${diagnostic.willFallback ? ' · 将切换模型重试' : ''}`;
   }
   return `第 ${diagnostic.attempt} 次调用`;
+}
+
+function formatTokenCount(value: number | null | undefined) {
+  return (value ?? 0).toLocaleString('zh-CN');
 }
 
 export function RunActivityPanel({ run, startedAt, onContinue }: RunActivityPanelProps) {

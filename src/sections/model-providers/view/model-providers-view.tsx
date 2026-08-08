@@ -28,13 +28,12 @@ import { ConfirmDialog } from 'src/components/confirm-dialog';
 
 import { ConnectionList } from '../connections/connection-list';
 import { DeploymentTable } from '../deployments/deployment-table';
-import { RoutingHealthPanel } from '../routing/routing-health-panel';
 import { ProviderStatusStrip } from '../components/provider-status-strip';
 import { useModelProviderConsole } from '../hooks/use-model-provider-console';
 import { ConnectionWizardDrawer } from '../connections/connection-wizard-drawer';
 import { DeploymentEditorDrawer } from '../deployments/deployment-editor-drawer';
 
-type ConsoleTab = 'connections' | 'deployments' | 'routing';
+type ConsoleTab = 'connections' | 'deployments';
 type ActionFeedback = { severity: 'error' | 'success'; message: string };
 
 export function getModelProbeFeedback(
@@ -60,8 +59,7 @@ export function ModelProvidersView({ unauthorized = false }: { unauthorized?: bo
     useModelProviderConsole(!unauthorized);
   const [searchParams, setSearchParams] = useSearchParams();
   const requestedTab = searchParams.get('tab');
-  const tab: ConsoleTab =
-    requestedTab === 'deployments' || requestedTab === 'routing' ? requestedTab : 'connections';
+  const tab: ConsoleTab = requestedTab === 'deployments' ? requestedTab : 'connections';
   const [connectionEditorOpen, setConnectionEditorOpen] = useState(false);
   const [deploymentEditorOpen, setDeploymentEditorOpen] = useState(false);
   const [editingConnection, setEditingConnection] = useState<ModelConnection>();
@@ -203,7 +201,6 @@ export function ModelProvidersView({ unauthorized = false }: { unauthorized?: bo
           >
             <Tab value="connections" label={`接入点 ${connections.length}`} />
             <Tab value="deployments" label={`模型部署 ${deployments.length}`} />
-            <Tab value="routing" label="路由与健康" />
           </Tabs>
         </Box>
 
@@ -275,12 +272,6 @@ export function ModelProvidersView({ unauthorized = false }: { unauthorized?: bo
           />
         ) : null}
 
-        {tab === 'routing' ? (
-          <RoutingHealthPanel
-            deployments={deployments}
-            summary={summary}
-          />
-        ) : null}
       </Stack>
 
       <ConnectionWizardDrawer

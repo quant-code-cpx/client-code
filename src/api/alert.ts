@@ -24,7 +24,7 @@ export type EventMarket = 'A' | 'H' | 'B';
 export type CalendarEvent = {
   date: string;
   tsCode: string;
-  stockName: string;
+  stockName: string | null;
   type: EventType;
   title: string;
   detail: string | Record<string, unknown> | null;
@@ -68,7 +68,7 @@ export type CalendarListParams = {
   types?: EventType[];
   subTypes?: string[];
   scope?: CalendarScope;
-  portfolioId?: number;
+  portfolioId?: string;
   watchlistId?: number;
   sectorCodes?: string[];
   marketCapBuckets?: string[];

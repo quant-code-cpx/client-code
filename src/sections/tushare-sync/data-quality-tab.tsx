@@ -47,6 +47,7 @@ type Props = {
 };
 
 type QualityPanel = 'health' | 'tools' | 'results';
+type QualityErrorKey = 'health' | 'summary' | 'report' | 'validation' | 'repair';
 
 const READ_ONLY_TOOLTIP = '仅超级管理员可执行';
 const QUALITY_PANEL_STORAGE_KEY = 'tushare-sync:quality-panel:v2';
@@ -87,6 +88,7 @@ export function DataQualityTab({ isReadOnly = false, refreshKey = 0 }: Props) {
   const [repairStatus, setRepairStatus] = useState<RepairQueueStatus | null>(null);
   const [repairStatusLoading, setRepairStatusLoading] = useState(true);
   const [expandedPanel, setExpandedPanel] = useState<QualityPanel>(getInitialPanel);
+  const [errors, setErrors] = useState<Partial<Record<QualityErrorKey, string>>>({});
 
   // ── Toast ──
   const [snackbar, setSnackbar] = useState<{
@@ -102,6 +104,19 @@ export function DataQualityTab({ isReadOnly = false, refreshKey = 0 }: Props) {
   // ── WebSocket context ──
   const { lastQualitySummary } = useSyncNotification();
 
+  const setBlockError = useCallback((key: QualityErrorKey, message: string) => {
+    setErrors((current) => ({ ...current, [key]: message }));
+  }, []);
+
+  const clearBlockError = useCallback((key: QualityErrorKey) => {
+    setErrors((current) => {
+      if (!current[key]) return current;
+      const next = { ...current };
+      delete next[key];
+      return next;
+    });
+  }, []);
+
   const handlePanelChange = (panel: QualityPanel) => (_: SyntheticEvent, expanded: boolean) => {
     if (!expanded) return;
     setExpandedPanel(panel);
@@ -116,63 +131,68 @@ export function DataQualityTab({ isReadOnly = false, refreshKey = 0 }: Props) {
 
   const fetchHealthStatus = useCallback(async () => {
     setHealthLoading(true);
+    clearBlockError('health');
     try {
       const data = await tushareSyncApi.getQualityHealth();
       setHealthStatus(data);
-    } catch {
-      // ignore
+    } catch (err) {
+      setBlockError('health', err instanceof Error ? err.message : '获取质量健康状态失败');
     } finally {
       setHealthLoading(false);
     }
-  }, []);
+  }, [clearBlockError, setBlockError]);
 
   const fetchQualitySummary = useCallback(async () => {
     setSummaryLoading(true);
+    clearBlockError('summary');
     try {
       const data = await tushareSyncApi.getQualitySummary();
       setQualitySummary(data);
-    } catch {
-      // ignore
+    } catch (err) {
+      setBlockError('summary', err instanceof Error ? err.message : '获取质量摘要失败');
     } finally {
       setSummaryLoading(false);
     }
-  }, []);
+  }, [clearBlockError, setBlockError]);
 
   const fetchQualityReport = useCallback(async (days: number) => {
     setReportLoading(true);
+    clearBlockError('report');
     try {
       const data = await tushareSyncApi.getQualityReport(days);
       setQualityReport(data);
-    } catch {
-      // ignore
+    } catch (err) {
+      setBlockError('report', err instanceof Error ? err.message : '获取质量报告失败');
     } finally {
       setReportLoading(false);
     }
-  }, []);
+  }, [clearBlockError, setBlockError]);
 
   const fetchValidationLogs = useCallback(async () => {
     setValidationLoading(true);
+    clearBlockError('validation');
     try {
       const data = await tushareSyncApi.getValidationLogs(undefined, 100);
       setValidationLogs(data);
-    } catch {
-      // ignore
+    } catch (err) {
+      setBlockError('validation', err instanceof Error ? err.message : '获取校验异常失败');
     } finally {
       setValidationLoading(false);
     }
-  }, []);
+  }, [clearBlockError, setBlockError]);
 
   const fetchRepairStatus = useCallback(async () => {
     setRepairStatusLoading(true);
+    clearBlockError('repair');
     try {
       const data = await tushareSyncApi.getRepairQueueStatus();
       setRepairStatus(data);
-    } catch {
-      // ignore
+    } catch (err) {
+      setBlockError('repair', err instanceof Error ? err.message : '获取补数队列状态失败');
     } finally {
       setRepairStatusLoading(false);
     }
-  }, []);
+  }, [clearBlockError, setBlockError]);
 
   // ── 初始化加载 ──
   useEffect(() => {
@@ -272,8 +292,40 @@ export function DataQualityTab({ isReadOnly = false, refreshKey = 0 }: Props) {
           </Typography>
         </AccordionSummary>
         <AccordionDetails>
+          {errors.health && (
+            <Alert
+              severity="error"
+              sx={{ mb: 2 }}
+              action={
+                <Button color="inherit" size="small" onClick={fetchHealthStatus}>
+                  重试
+                </Button>
+              }
+            >
+              {errors.health}
+              {healthStatus ? '，当前展示上次成功快照。' : ''}
+            </Alert>
+          )}
+          {errors.summary && (
+            <Alert
+              severity="error"
+              sx={{ mb: 2 }}
+              action={
+                <Button color="inherit" size="small" onClick={fetchQualitySummary}>
+                  重试
+                </Button>
+              }
+            >
+              {errors.summary}
+              {qualitySummary ? '，当前展示上次成功快照。' : ''}
+            </Alert>
+          )}
           <QualityHealthBanner health={healthStatus} loading={healthLoading} />
-          <QualitySummaryCards summary={qualitySummary} loading={summaryLoading} />
+          <QualitySummaryCards
+            summary={qualitySummary}
+            loading={summaryLoading}
+            showEmptyState={!errors.summary}
+          />
         </AccordionDetails>
       </Accordion>
 
@@ -352,6 +404,20 @@ export function DataQualityTab({ isReadOnly = false, refreshKey = 0 }: Props) {
           </Card>
 
           <Card sx={{ mb: 3, px: 3, py: 2 }}>
+            {errors.repair && (
+              <Alert
+                severity="error"
+                sx={{ mb: 2 }}
+                action={
+                  <Button color="inherit" size="small" onClick={fetchRepairStatus}>
+                    重试
+                  </Button>
+                }
+              >
+                {errors.repair}
+                {repairStatus ? '，当前展示上次成功快照。' : ''}
+              </Alert>
+            )}
             <AutoRepairPanel
               summary={repairSummary}
               queueStatus={repairStatus}
@@ -395,10 +461,25 @@ export function DataQualityTab({ isReadOnly = false, refreshKey = 0 }: Props) {
                 质量检查报告
               </Typography>
             </Box>
+            {errors.report && (
+              <Alert
+                severity="error"
+                sx={{ mx: 3, mb: 2 }}
+                action={
+                  <Button color="inherit" size="small" onClick={() => fetchQualityReport(qualityDays)}>
+                    重试
+                  </Button>
+                }
+              >
+                {errors.report}
+                {qualityReport.length > 0 ? '，当前展示上次成功快照。' : ''}
+              </Alert>
+            )}
             <DataQualityReportTable
               rows={nonCrossRows}
               loading={reportLoading}
               days={qualityDays}
+              showEmptyState={!errors.report}
             />
           </Card>
 
@@ -409,7 +490,25 @@ export function DataQualityTab({ isReadOnly = false, refreshKey = 0 }: Props) {
               </Typography>
             </Box>
             <Divider />
-            <ValidationLogTable rows={validationLogs} loading={validationLoading} />
+            {errors.validation && (
+              <Alert
+                severity="error"
+                sx={{ m: 2 }}
+                action={
+                  <Button color="inherit" size="small" onClick={fetchValidationLogs}>
+                    重试
+                  </Button>
+                }
+              >
+                {errors.validation}
+                {validationLogs.length > 0 ? '，当前展示上次成功快照。' : ''}
+              </Alert>
+            )}
+            <ValidationLogTable
+              rows={validationLogs}
+              loading={validationLoading}
+              showEmptyState={!errors.validation}
+            />
           </Card>
         </AccordionDetails>
       </Accordion>

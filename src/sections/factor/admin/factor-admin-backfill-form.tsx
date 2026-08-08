@@ -1,4 +1,4 @@
-import type { PrecomputeStatusItem } from 'src/api/factor';
+import type { PrecomputeStatusItem, AdminBackfillResponse } from 'src/api/factor';
 
 import dayjs from 'dayjs';
 import { useState, useEffect } from 'react';
@@ -43,6 +43,10 @@ function diffDays(start: string, end: string): number {
   return Math.abs((b.getTime() - a.getTime()) / 86400000);
 }
 
+export function formatBackfillSuccess(response: AdminBackfillResponse): string {
+  return `回补完成：处理 ${response.datesProcessed} 个交易日，跳过 ${response.datesSkipped} 个，写入 ${response.totalRows.toLocaleString()} 行`;
+}
+
 // ─── Types ────────────────────────────────────────────────────
 
 type Props = {
@@ -50,8 +54,8 @@ type Props = {
   statusItems: PrecomputeStatusItem[];
   /** Pre-selected factor names injected from the status tab via "回补" bulk action. */
   injectedFactorNames?: string[];
-  /** Called when backfill job is successfully submitted. */
-  onSubmitted?: (jobId: string) => void;
+  /** Called after the synchronous backfill returns its processing statistics. */
+  onSubmitted?: (response: AdminBackfillResponse) => void;
 };
 
 export function FactorAdminBackfillForm({
@@ -111,8 +115,8 @@ export function FactorAdminBackfillForm({
         endDate: formatToTradeDate(endDate),
         skipExisting,
       });
-      setSuccess(`回补任务已提交，JobID: ${res.jobId}`);
-      onSubmitted?.(res.jobId);
+      setSuccess(formatBackfillSuccess(res));
+      onSubmitted?.(res);
     } catch {
       setError('提交失败，请稍后重试');
     } finally {
@@ -137,7 +141,7 @@ export function FactorAdminBackfillForm({
             </li>
           )}
           renderInput={(params) => (
-            <TextField {...params} label="选择因子" placeholder="搜索因子标识..." size="small" />
+            <TextField {...params} label="选择因子" placeholder="搜索因子标识…" size="small" />
           )}
         />
 
@@ -188,7 +192,7 @@ export function FactorAdminBackfillForm({
             onClick={handleSubmitClick}
             startIcon={<Iconify icon="solar:history-bold" />}
           >
-        {loading ? '提交中…' : '提交回补任务'}
+        {loading ? '执行中…' : '执行历史回补'}
           </Button>
         </Box>
       </Stack>

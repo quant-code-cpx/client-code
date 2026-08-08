@@ -41,7 +41,7 @@ export function RotationFlowAnalysisChart({ tradeDate, period, onSectorClick, re
     setLoading(true);
     setError('');
 
-    const periodDays = period ? Math.min(periodToDays(period), 60) : undefined;
+      const periodDays = period ? periodToDays(period) : undefined;
 
     fetchFlowAnalysis({
       trade_date: tradeDate,

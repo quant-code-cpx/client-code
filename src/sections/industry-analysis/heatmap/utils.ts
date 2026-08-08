@@ -3,16 +3,29 @@ import type { HeatmapItem, HeatmapDistribution, HeatmapSectorSummary } from 'src
 
 // ── Color mapping ──────────────────────────────────────────────
 
+export type HeatmapColorPalette = {
+  strongNegative: string;
+  negative: string;
+  weakNegative: string;
+  neutral: string;
+  weakPositive: string;
+  positive: string;
+  strongPositive: string;
+};
+
 /** 根据涨跌幅（%）返回热力图颜色。null 视为 0（平盘灰色）。 */
-export function getHeatmapColor(pctChg: number | null): string {
-  const v = pctChg ?? 0;
-  if (v <= -7) return '#00695C';
-  if (v <= -3) return '#2E7D32';
-  if (v <= -0.5) return '#66BB6A';
-  if (v < 0.5) return '#757575';
-  if (v < 3) return '#EF9A9A';
-  if (v < 7) return '#F44336';
-  return '#B71C1C';
+export function getHeatmapColor(
+  pctChg: number | null,
+  palette: HeatmapColorPalette
+): string {
+  const v = Number.isFinite(pctChg) ? (pctChg as number) : 0;
+  if (v <= -7) return palette.strongNegative;
+  if (v <= -3) return palette.negative;
+  if (v <= -0.5) return palette.weakNegative;
+  if (v < 0.5) return palette.neutral;
+  if (v < 3) return palette.weakPositive;
+  if (v < 7) return palette.positive;
+  return palette.strongPositive;
 }
 
 // ── Client-side aggregation ────────────────────────────────────
@@ -94,32 +107,26 @@ export function aggregateSectors(items: HeatmapItem[]): HeatmapSectorSummary[] {
  * @param netAmount 净流入金额（元，来自 /api/market/sector-flow 的 SectorFlowItemDto）
  * @returns 十六进制颜色值
  */
-export function getScatterColor(netAmount: number): string {
-  const yi = (netAmount ?? 0) / 100_000_000;
+export function getScatterColor(netAmount: number, palette: HeatmapColorPalette): string {
+  const yi = Number.isFinite(netAmount) ? netAmount / 100_000_000 : 0;
 
-  if (Math.abs(yi) < 0.5) return '#9E9E9E';
-
-  if (yi > 0) {
-    if (yi >= 20) return '#B71C1C';
-    if (yi >= 10) return '#D32F2F';
-    if (yi >= 5) return '#F44336';
-    if (yi >= 2) return '#EF5350';
-    return '#EF9A9A';
-  }
+  if (Math.abs(yi) < 0.5) return palette.neutral;
+  if (yi >= 20) return palette.strongPositive;
+  if (yi >= 5) return palette.positive;
+  if (yi > 0) return palette.weakPositive;
 
   const absYi = Math.abs(yi);
-  if (absYi >= 20) return '#1B5E20';
-  if (absYi >= 10) return '#2E7D32';
-  if (absYi >= 5) return '#4CAF50';
-  if (absYi >= 2) return '#66BB6A';
-  return '#A5D6A7';
+  if (absYi >= 20) return palette.strongNegative;
+  if (absYi >= 5) return palette.negative;
+  return palette.weakNegative;
 }
 
 /**
  * 万元转亿元，保留指定小数位
  */
 export function toYi(wan: number | null | undefined, decimals = 2): number {
-  return +((wan ?? 0) / 10000).toFixed(decimals);
+  const safeValue = Number.isFinite(wan) ? (wan as number) : 0;
+  return +(safeValue / 10000).toFixed(decimals);
 }
 
 /**
@@ -127,7 +134,31 @@ export function toYi(wan: number | null | undefined, decimals = 2): number {
  * 适用于 /api/market/sector-flow 的 netAmount 等字段（单位：元）
  */
 export function yuanToYi(yuan: number | null | undefined, decimals = 2): number {
-  return +((yuan ?? 0) / 100_000_000).toFixed(decimals);
+  const safeValue = Number.isFinite(yuan) ? (yuan as number) : 0;
+  return +(safeValue / 100_000_000).toFixed(decimals);
+}
+
+export type LinearAxisBounds = { min: number; max: number };
+
+/**
+ * 全量线性轴边界。只过滤非有限值，不裁剪任何真实点；边界增加固定比例 padding。
+ * 空数组、单点、全零和同值数组均返回可绘制的有限范围。
+ */
+export function computeLinearAxisBounds(
+  values: Array<number | null | undefined>,
+  fallback: LinearAxisBounds,
+  paddingRatio = 0.08
+): LinearAxisBounds {
+  const finiteValues = values.filter((value): value is number => Number.isFinite(value));
+  if (!finiteValues.length) return fallback;
+
+  const rawMin = Math.min(...finiteValues);
+  const rawMax = Math.max(...finiteValues);
+  const span = rawMax - rawMin;
+  const base = Math.max(Math.abs(rawMin), Math.abs(rawMax), 1);
+  const padding = span > 0 ? span * paddingRatio : base * paddingRatio;
+
+  return { min: rawMin - padding, max: rawMax + padding };
 }
 
 export type ScatterInsightLists = {
@@ -292,7 +323,7 @@ export function computeDistribution(items: HeatmapItem[]): HeatmapDistribution {
   const buckets = new Array<number>(21).fill(0);
 
   for (const item of items) {
-    const pct = item.pctChg ?? 0;
+    const pct = Number.isFinite(item.pctChg) ? (item.pctChg as number) : 0;
 
     if (pct >= 9.9) limitUp += 1;
     else if (pct <= -9.9) limitDown += 1;
@@ -315,4 +346,27 @@ export function computeDistribution(items: HeatmapItem[]): HeatmapDistribution {
   });
 
   return { limitUp, limitDown, upCount, downCount, flatCount, ranges };
+}
+
+export type DistributionSegment = { label: string; count: number };
+
+/** 五段展示只拆分上涨/下跌/平盘全集，不重复叠加涨跌停 KPI。 */
+export function buildDistributionSegments(dist: HeatmapDistribution): DistributionSegment[] {
+  const sumBucket = (minInclusive: number, maxExclusive: number) =>
+    dist.ranges
+      .filter((range) => {
+        const min = Number(range.range.split('~')[0]);
+        return min >= minInclusive && min < maxExclusive;
+      })
+      .reduce((total, range) => total + range.count, 0);
+  const strongUp = sumBucket(5, 100);
+  const strongDown = sumBucket(-100, -5);
+
+  return [
+    { label: '涨≥5%', count: strongUp },
+    { label: '涨0~5%', count: Math.max(dist.upCount - strongUp, 0) },
+    { label: '平盘', count: dist.flatCount },
+    { label: '跌0~5%', count: Math.max(dist.downCount - strongDown, 0) },
+    { label: '跌≥5%', count: strongDown },
+  ];
 }

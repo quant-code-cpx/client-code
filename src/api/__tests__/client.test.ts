@@ -263,22 +263,19 @@ describe('apiClient.post', () => {
     expect(tokenStorage.get()).toBeNull();
   });
 
-  it('calls logout endpoint when refresh fails, then clears state', async () => {
+  it('does not revoke the shared Refresh Cookie when only this tab refresh fails', async () => {
     setAuthCallbacks({ onUnauthorized: vi.fn() });
     tokenStorage.set('expired-token');
 
     mockFetch
       .mockResolvedValueOnce(jsonResp({}, 401))
-      .mockResolvedValueOnce(jsonResp({}, 401)) // refresh fails
-      .mockResolvedValueOnce(jsonResp({})); // logout call (fire-and-forget)
+      .mockResolvedValueOnce(jsonResp({}, 401)); // refresh fails
 
     await expect(apiClient.post('/api/protected')).rejects.toThrow();
 
-    // logout endpoint should be called (even if we can't await it from the outside)
-    await vi.waitFor(() => {
-      const calls = mockFetch.mock.calls.map(([url]) => apiPath(url));
-      expect(calls).toContain('/api/auth/logout');
-    });
+    const calls = mockFetch.mock.calls.map(([url]) => apiPath(url));
+    expect(calls).not.toContain('/api/auth/logout');
+    expect(tokenStorage.get()).toBeNull();
   });
 
   it('does not send duplicate refresh requests for concurrent 401s', async () => {
@@ -364,7 +361,7 @@ describe('apiClient.post', () => {
     expect(onUnauthorized).toHaveBeenCalledTimes(1);
     expect(
       mockFetch.mock.calls.filter(([url]) => apiPath(url) === '/api/auth/logout')
-    ).toHaveLength(1);
+    ).toHaveLength(0);
   });
 
   it('shares one refresh between JSON and raw streaming requests', async () => {

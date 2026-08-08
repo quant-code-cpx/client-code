@@ -1,11 +1,17 @@
-import type { SyncLogItem, TushareSyncStatus, SyncLogSummaryItem } from 'src/api/tushare-sync';
+import type {
+  SyncLogItem,
+  SyncLogQuery,
+  TushareSyncStatus,
+  SyncLogSummaryItem,
+} from 'src/api/tushare-sync';
 
 import dayjs from 'dayjs';
-import { useState, useEffect, useCallback } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
 import Card from '@mui/material/Card';
+import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import Table from '@mui/material/Table';
 import Drawer from '@mui/material/Drawer';
@@ -25,6 +31,7 @@ import Typography from '@mui/material/Typography';
 import InputLabel from '@mui/material/InputLabel';
 import FormControl from '@mui/material/FormControl';
 import TableContainer from '@mui/material/TableContainer';
+import LinearProgress from '@mui/material/LinearProgress';
 import TablePagination from '@mui/material/TablePagination';
 
 import { fDateTime, fmtTradeDate } from 'src/utils/format-time';
@@ -52,6 +59,7 @@ const SYNC_STATUS_LABEL: Record<string, string> = {
 
 type Props = {
   refreshKey?: number;
+  initialFilters?: Pick<SyncLogQuery, 'task' | 'status' | 'startDate' | 'endDate'>;
 };
 
 function formatPayload(payload: Record<string, unknown> | null): string {
@@ -61,23 +69,38 @@ function formatPayload(payload: Record<string, unknown> | null): string {
 
 // ----------------------------------------------------------------------
 
-export function SyncLogTab({ refreshKey = 0 }: Props) {
+export function SyncLogTab({ refreshKey = 0, initialFilters }: Props) {
   // 总览数据
   const [summary, setSummary] = useState<SyncLogSummaryItem[]>([]);
   const [summaryLoading, setSummaryLoading] = useState(true);
+  const [summaryError, setSummaryError] = useState('');
 
   // 日志列表
   const [logs, setLogs] = useState<SyncLogItem[]>([]);
   const [logsLoading, setLogsLoading] = useState(true);
+  const [logsError, setLogsError] = useState('');
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
   const pageSize = 20;
 
   // 过滤条件
-  const [filterTask, setFilterTask] = useState('');
-  const [filterStatus, setFilterStatus] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [filterTask, setFilterTask] = useState(initialFilters?.task ?? '');
+  const [filterStatus, setFilterStatus] = useState(initialFilters?.status ?? '');
+  const [startDate, setStartDate] = useState(initialFilters?.startDate ?? '');
+  const [endDate, setEndDate] = useState(initialFilters?.endDate ?? '');
+  const [appliedFilters, setAppliedFilters] = useState({
+    task: initialFilters?.task ?? '',
+    status: initialFilters?.status ?? '',
+    startDate: initialFilters?.startDate ?? '',
+    endDate: initialFilters?.endDate ?? '',
+  });
+  const initialFilterKey = [
+    initialFilters?.task ?? '',
+    initialFilters?.status ?? '',
+    initialFilters?.startDate ?? '',
+    initialFilters?.endDate ?? '',
+  ].join('|');
+  const previousInitialFilterKey = useRef(initialFilterKey);
   const [payloadDrawer, setPayloadDrawer] = useState<SyncLogItem | null>(null);
 
   // 统计卡片数据（from summary）
@@ -88,11 +111,12 @@ export function SyncLogTab({ refreshKey = 0 }: Props) {
 
   const fetchSummary = useCallback(async () => {
     setSummaryLoading(true);
+    setSummaryError('');
     try {
       const data = await tushareSyncApi.getSyncLogsSummary();
       setSummary(data);
-    } catch {
-      // ignore
+    } catch (err) {
+      setSummaryError(err instanceof Error ? err.message : '获取同步日志摘要失败');
     } finally {
       setSummaryLoading(false);
     }
@@ -100,23 +124,47 @@ export function SyncLogTab({ refreshKey = 0 }: Props) {
 
   const fetchLogs = useCallback(async () => {
     setLogsLoading(true);
+    setLogsError('');
     try {
       const result = await tushareSyncApi.getSyncLogs({
-        task: filterTask || undefined,
-        status: (filterStatus as TushareSyncStatus) || undefined,
-        startDate: startDate || undefined,
-        endDate: endDate || undefined,
+        task: appliedFilters.task || undefined,
+        status: (appliedFilters.status as TushareSyncStatus) || undefined,
+        startDate: appliedFilters.startDate || undefined,
+        endDate: appliedFilters.endDate || undefined,
         page: page + 1,
         pageSize,
       });
       setLogs(result.items);
       setTotal(result.total);
-    } catch {
-      // ignore
+    } catch (err) {
+      setLogsError(err instanceof Error ? err.message : '获取同步日志失败');
     } finally {
       setLogsLoading(false);
     }
-  }, [page, filterTask, filterStatus, startDate, endDate, pageSize]);
+  }, [page, pageSize, appliedFilters]);
+
+  useEffect(() => {
+    if (initialFilterKey === previousInitialFilterKey.current) return;
+    previousInitialFilterKey.current = initialFilterKey;
+    const nextFilters = {
+      task: initialFilters?.task ?? '',
+      status: initialFilters?.status ?? '',
+      startDate: initialFilters?.startDate ?? '',
+      endDate: initialFilters?.endDate ?? '',
+    };
+    setFilterTask(nextFilters.task);
+    setFilterStatus(nextFilters.status);
+    setStartDate(nextFilters.startDate);
+    setEndDate(nextFilters.endDate);
+    setAppliedFilters(nextFilters);
+    setPage(0);
+  }, [
+    initialFilterKey,
+    initialFilters?.task,
+    initialFilters?.status,
+    initialFilters?.startDate,
+    initialFilters?.endDate,
+  ]);
 
   useEffect(() => {
     fetchSummary();
@@ -128,19 +176,31 @@ export function SyncLogTab({ refreshKey = 0 }: Props) {
 
   const handleSearch = () => {
     setPage(0);
-    fetchLogs();
+    setAppliedFilters({
+      task: filterTask,
+      status: filterStatus,
+      startDate,
+      endDate,
+    });
   };
 
   const handleTodayFilter = () => {
     const today = dayjs().format('YYYY-MM-DD');
     setStartDate(today);
     setEndDate(today);
+    setAppliedFilters({ task: filterTask, status: filterStatus, startDate: today, endDate: today });
     setPage(0);
   };
 
   const handleRecentFilter = () => {
     setStartDate(dayjs().subtract(6, 'day').format('YYYY-MM-DD'));
     setEndDate(dayjs().format('YYYY-MM-DD'));
+    setAppliedFilters({
+      task: filterTask,
+      status: filterStatus,
+      startDate: dayjs().subtract(6, 'day').format('YYYY-MM-DD'),
+      endDate: dayjs().format('YYYY-MM-DD'),
+    });
     setPage(0);
   };
 
@@ -149,11 +209,27 @@ export function SyncLogTab({ refreshKey = 0 }: Props) {
     setFilterStatus('');
     setStartDate('');
     setEndDate('');
+    setAppliedFilters({ task: '', status: '', startDate: '', endDate: '' });
     setPage(0);
   };
 
   return (
     <Box sx={{ mt: 3 }}>
+      {summaryError && (
+        <Alert
+          severity="error"
+          sx={{ mb: 2 }}
+          action={
+            <Button color="inherit" size="small" onClick={fetchSummary}>
+              重试
+            </Button>
+          }
+        >
+          {summaryError}
+          {summary.length > 0 ? '，当前展示上次成功快照。' : ''}
+        </Alert>
+      )}
+
       {/* 统计卡片 */}
       <Stack direction="row" spacing={2} sx={{ mb: 3, flexWrap: 'wrap', gap: 2 }}>
         {[
@@ -162,13 +238,13 @@ export function SyncLogTab({ refreshKey = 0 }: Props) {
           { label: '跳过任务数', value: skippedCount, color: 'warning.main' },
           { label: '连续失败告警', value: warningCount, color: 'error.dark' },
         ].map((card) => (
-          <Card key={card.label} sx={{ p: 3, flex: '1 1 180px', minWidth: 160 }}>
-            {summaryLoading ? (
+          <Card key={card.label} sx={{ p: 2, flex: '1 1 180px', minWidth: 160 }}>
+            {summaryLoading && summary.length === 0 ? (
               <Skeleton variant="rectangular" height={56} />
             ) : (
               <Box>
-                <Typography variant="h3" sx={{ color: card.color }}>
-                  {card.value}
+                <Typography variant="h5" sx={{ color: card.color }}>
+                  {summaryError && summary.length === 0 ? '—' : card.value}
                 </Typography>
                 <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
                   {card.label}
@@ -207,6 +283,12 @@ export function SyncLogTab({ refreshKey = 0 }: Props) {
               variant="outlined"
               onClick={() => {
                 setFilterStatus('FAILED');
+                setAppliedFilters({
+                  task: filterTask,
+                  status: 'FAILED',
+                  startDate,
+                  endDate,
+                });
                 setPage(0);
               }}
             />
@@ -228,8 +310,10 @@ export function SyncLogTab({ refreshKey = 0 }: Props) {
               sx={{ minWidth: 160 }}
             />
             <FormControl size="small" sx={{ minWidth: 140 }}>
-              <InputLabel>状态</InputLabel>
+              <InputLabel id="sync-log-status-label">状态</InputLabel>
               <Select
+                id="sync-log-status"
+                labelId="sync-log-status-label"
                 label="状态"
                 value={filterStatus}
                 onChange={(e) => setFilterStatus(e.target.value)}
@@ -256,6 +340,24 @@ export function SyncLogTab({ refreshKey = 0 }: Props) {
           </Stack>
         </Box>
 
+        {logsLoading && logs.length > 0 && (
+          <LinearProgress aria-label="同步日志更新中" />
+        )}
+        {logsError && (
+          <Alert
+            severity="error"
+            sx={{ mx: 3, mb: 2 }}
+            action={
+              <Button color="inherit" size="small" onClick={fetchLogs}>
+                重试
+              </Button>
+            }
+          >
+            {logsError}
+            {logs.length > 0 ? '，当前展示上次成功快照。' : ''}
+          </Alert>
+        )}
+
         {/* 日志表格 */}
         <Scrollbar>
           <TableContainer sx={{ overflow: 'unset' }}>
@@ -272,7 +374,7 @@ export function SyncLogTab({ refreshKey = 0 }: Props) {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {logsLoading
+                {logsLoading && logs.length === 0
                   ? Array.from({ length: 8 }).map((_, i) => (
                       <TableRow key={i}>
                         <TableCell>
@@ -356,7 +458,7 @@ export function SyncLogTab({ refreshKey = 0 }: Props) {
                         </TableCell>
                       </TableRow>
                     ))}
-                {!logsLoading && logs.length === 0 && (
+                {!logsLoading && !logsError && logs.length === 0 && (
                   <TableRow>
                     <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
                       <Typography variant="body2" sx={{ color: 'text.disabled' }}>

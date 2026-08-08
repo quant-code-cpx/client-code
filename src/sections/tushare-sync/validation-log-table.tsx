@@ -25,9 +25,10 @@ const SEVERITY_COLOR: Record<string, 'error' | 'warning' | 'info' | 'default'> =
 type Props = {
   rows: ValidationLogItem[];
   loading: boolean;
+  showEmptyState?: boolean;
 };
 
-export function ValidationLogTable({ rows, loading }: Props) {
+export function ValidationLogTable({ rows, loading, showEmptyState = true }: Props) {
   return (
     <Scrollbar>
       <TableContainer sx={{ overflow: 'unset' }}>
@@ -109,7 +110,7 @@ export function ValidationLogTable({ rows, loading }: Props) {
                     </TableCell>
                   </TableRow>
                 ))}
-            {!loading && rows.length === 0 && (
+            {!loading && showEmptyState && rows.length === 0 && (
               <TableRow>
                 <TableCell colSpan={6} align="center" sx={{ py: 4 }}>
                   <Typography variant="body2" sx={{ color: 'text.disabled' }}>

@@ -1,0 +1,281 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1320" viewBox="0 0 1440 1320" role="img" aria-labelledby="title desc">
+  <title id="title">数据运维 v3 桌面端设计稿</title>
+  <desc id="desc">严格保持现有功能的数据运维控制台默认任务调度状态，包含页头、状态总览、四个主标签、全局同步模式、任务选择、四类同步入口及全量确认状态。</desc>
+  <defs>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="140%">
+      <feDropShadow dx="0" dy="5" stdDeviation="14" flood-color="#637381" flood-opacity="0.12"/>
+    </filter>
+    <style>
+      .page-title{font:700 28px "DM Sans","PingFang SC",sans-serif;fill:#172B4D}
+      .section-title{font:700 16px "DM Sans","PingFang SC",sans-serif;fill:#172B4D}
+      .body{font:400 14px "DM Sans","PingFang SC",sans-serif;fill:#172B4D}
+      .body-strong{font:600 14px "DM Sans","PingFang SC",sans-serif;fill:#172B4D}
+      .small{font:400 12px "DM Sans","PingFang SC",sans-serif;fill:#637381}
+      .small-strong{font:600 12px "DM Sans","PingFang SC",sans-serif;fill:#344563}
+      .button{font:600 13px "DM Sans","PingFang SC",sans-serif}
+      .metric{font:700 24px "DM Sans","PingFang SC",sans-serif;fill:#172B4D;font-variant-numeric:tabular-nums}
+      .mono{font:500 11px "SFMono-Regular",Consolas,monospace;fill:#637381}
+      .tabular{font-variant-numeric:tabular-nums}
+      .primary{fill:#0C66E4}.success{fill:#14804A}.warning{fill:#8A5A00}.error{fill:#B42318}.muted{fill:#97A0AF}
+    </style>
+  </defs>
+
+  <rect width="1440" height="1320" fill="#F4F6F8"/>
+  <g transform="translate(48 28)">
+    <!-- 页头：入口与源码一致 -->
+    <g>
+      <text class="page-title" x="0" y="28">数据运维</text>
+      <text class="small" x="0" y="52">Tushare 数据同步与质量治理</text>
+
+      <rect x="744" y="8" width="108" height="32" rx="16" fill="#EAF2FF"/>
+      <circle cx="762" cy="24" r="4" fill="#0C66E4"/>
+      <text class="small-strong primary" x="774" y="28">超级管理员</text>
+
+      <rect x="864" y="8" width="94" height="32" rx="16" fill="#E9F7EF"/>
+      <circle cx="882" cy="24" r="4" fill="#22A06B"/>
+      <text class="small-strong success" x="894" y="28">实时在线</text>
+
+      <rect x="970" y="4" width="112" height="40" rx="8" fill="#F7F8F9" stroke="#DFE1E6"/>
+      <text class="button muted" x="1026" y="29" text-anchor="middle">告警订阅</text>
+      <circle cx="1070" cy="13" r="5" fill="#F2F3F5" stroke="#C1C7D0"/>
+      <text class="small muted" x="1070" y="16" text-anchor="middle">×</text>
+
+      <rect x="1094" y="4" width="94" height="40" rx="8" fill="#FFFFFF" stroke="#C1C7D0"/>
+      <text class="button" x="1141" y="29" text-anchor="middle" fill="#344563">审计</text>
+
+      <rect x="1200" y="4" width="96" height="40" rx="8" fill="#FFFFFF" stroke="#0C66E4"/>
+      <path d="M1221 18a7 7 0 1 1-1 8" fill="none" stroke="#0C66E4" stroke-width="1.8" stroke-linecap="round"/>
+      <path d="M1218 18h5v5" fill="none" stroke="#0C66E4" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      <text class="button primary" x="1261" y="29" text-anchor="middle">刷新</text>
+    </g>
+
+    <!-- 状态总览 -->
+    <g transform="translate(0 84)" filter="url(#shadow)">
+      <rect width="1344" height="422" rx="16" fill="#FFFFFF"/>
+      <text class="section-title" x="24" y="34">状态总览</text>
+      <text class="small" x="104" y="34">数据口径来自当前总览与日志接口</text>
+
+      <rect x="1156" y="14" width="104" height="32" rx="8" fill="#FFFFFF" stroke="#C1C7D0"/>
+      <text class="button" x="1208" y="35" text-anchor="middle" fill="#344563">刷新总览</text>
+      <rect x="1272" y="14" width="48" height="32" rx="8" fill="#FFFFFF" stroke="#C1C7D0"/>
+      <path d="M1292 33l4-4 4 4" fill="none" stroke="#637381" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+
+      <!-- 四个现有摘要 -->
+      <g transform="translate(20 58)">
+        <rect width="1304" height="84" rx="12" fill="#F7F9FC"/>
+        <rect x="0" y="0" width="326" height="84" rx="12" fill="#F1F7FF"/>
+        <rect x="0" y="0" width="4" height="84" rx="2" fill="#0C66E4"/>
+        <text class="small" x="20" y="26">整体健康</text>
+        <circle cx="26" cy="55" r="6" fill="#22A06B"/>
+        <text class="metric success" x="42" y="64">正常</text>
+        <text class="small" x="162" y="59">基于任务最新状态</text>
+
+        <line x1="326" y1="16" x2="326" y2="68" stroke="#DFE1E6"/>
+        <text class="small" x="350" y="26">同步任务总数</text>
+        <text class="metric" x="350" y="62">42</text>
+        <text class="small" x="408" y="58">成功 <tspan class="success">38</tspan>　失败 <tspan class="error">1</tspan>　跳过 <tspan class="warning">3</tspan></text>
+
+        <line x1="652" y1="16" x2="652" y2="68" stroke="#DFE1E6"/>
+        <text class="small" x="676" y="26">最近同步</text>
+        <text class="metric" x="676" y="62">4 分钟前</text>
+        <text class="small" x="794" y="58">daily · 成功</text>
+
+        <line x1="978" y1="16" x2="978" y2="68" stroke="#DFE1E6"/>
+        <text class="small" x="1002" y="26">失败任务</text>
+        <text class="metric error" x="1002" y="62">1</text>
+        <text class="small" x="1040" y="58">fina_indicator · 连失 3</text>
+      </g>
+
+      <!-- 分类保鲜度：只展示现有估算 -->
+      <g transform="translate(20 158)">
+        <rect width="638" height="118" rx="12" fill="#FFFFFF" stroke="#DFE1E6"/>
+        <text class="body-strong" x="18" y="28">分类保鲜度</text>
+        <rect x="108" y="11" width="72" height="24" rx="12" fill="#FFF7E6"/>
+        <text class="small-strong warning" x="144" y="27" text-anchor="middle">前端估算</text>
+        <text class="button primary" x="614" y="28" text-anchor="end">查看数据缺口</text>
+
+        <g transform="translate(18 48)">
+          <rect width="138" height="50" rx="8" fill="#F7F9FC"/>
+          <text class="small-strong" x="12" y="20">行情数据</text><text class="mono" x="12" y="38">maxDate 20260807</text>
+          <rect x="150" width="138" height="50" rx="8" fill="#F7F9FC"/>
+          <text class="small-strong" x="162" y="20">财务数据</text><text class="mono" x="162" y="38">maxDate 20260806</text>
+          <rect x="300" width="138" height="50" rx="8" fill="#F7F9FC"/>
+          <text class="small-strong" x="312" y="20">资金流向</text><text class="mono" x="312" y="38">maxDate 20260807</text>
+          <rect x="450" width="170" height="50" rx="8" fill="#F7F9FC"/>
+          <text class="small-strong" x="462" y="20">因子数据等 6 类</text><text class="mono" x="462" y="38">完整分类均保留</text>
+        </g>
+      </g>
+
+      <!-- 今日同步动态：当前最大 8 条，无未来节点 -->
+      <g transform="translate(670 158)">
+        <rect width="654" height="118" rx="12" fill="#FFFFFF" stroke="#DFE1E6"/>
+        <text class="body-strong" x="18" y="28">今日同步动态</text>
+        <text class="small" x="124" y="28">最多 8 条</text>
+        <text class="button primary" x="630" y="28" text-anchor="end">查看日志</text>
+        <line x1="18" y1="42" x2="636" y2="42" stroke="#EBECF0"/>
+
+        <text class="mono" x="18" y="62">18:05:26</text><circle cx="104" cy="58" r="4" fill="#22A06B"/>
+        <text class="small-strong" x="116" y="62">daily</text><text class="small" x="234" y="62">日线行情同步完成</text><text class="small-strong success" x="624" y="62" text-anchor="end">成功</text>
+        <text class="mono" x="18" y="84">17:26:12</text><circle cx="104" cy="80" r="4" fill="#D32F2F"/>
+        <text class="small-strong" x="116" y="84">fina_indicator</text><text class="small" x="234" y="84">接口返回限流</text><text class="small-strong error" x="624" y="84" text-anchor="end">失败</text>
+        <text class="mono" x="18" y="106">16:40:03</text><circle cx="104" cy="102" r="4" fill="#FFAB00"/>
+        <text class="small-strong" x="116" y="106">moneyflow</text><text class="small" x="234" y="106">非交易日任务跳过</text><text class="small-strong warning" x="624" y="106" text-anchor="end">跳过</text>
+      </g>
+
+      <!-- 分类汇总表：字段不删 -->
+      <g transform="translate(20 292)">
+        <rect width="1304" height="106" rx="12" fill="#FFFFFF" stroke="#DFE1E6"/>
+        <text class="body-strong" x="18" y="27">分类汇总</text>
+        <text class="small" x="116" y="27">9 个固定分类</text>
+        <rect x="0" y="40" width="1304" height="28" fill="#F7F9FC"/>
+        <text class="small-strong" x="18" y="59">类别</text><text class="small-strong" x="274" y="59">任务数</text><text class="small-strong" x="430" y="59">成功</text><text class="small-strong" x="564" y="59">失败</text><text class="small-strong" x="698" y="59">跳过</text><text class="small-strong" x="844" y="59">最近同步</text><text class="small-strong" x="1174" y="59">连续失败</text>
+        <text class="small" x="18" y="89">行情数据</text><text class="small tabular" x="274" y="89">12</text><text class="small success tabular" x="430" y="89">11</text><text class="small error tabular" x="564" y="89">0</text><text class="small warning tabular" x="698" y="89">1</text><text class="small tabular" x="844" y="89">2026-08-08 18:05:26</text><text class="small tabular" x="1196" y="89">0</text>
+      </g>
+    </g>
+
+    <!-- 四个主 Tab，名称严格保持 -->
+    <g transform="translate(0 526)" filter="url(#shadow)">
+      <rect width="1344" height="54" rx="14" fill="#FFFFFF"/>
+      <text class="button primary" x="40" y="33">任务调度</text>
+      <text class="button" x="148" y="33" fill="#637381">同步日志</text>
+      <text class="button" x="256" y="33" fill="#637381">数据质量</text>
+      <text class="button" x="364" y="33" fill="#637381">运维工具</text>
+      <rect x="20" y="51" width="88" height="3" rx="1.5" fill="#0C66E4"/>
+    </g>
+
+    <!-- 默认任务调度工作台 -->
+    <g transform="translate(0 594)" filter="url(#shadow)">
+      <rect width="1344" height="640" rx="16" fill="#FFFFFF"/>
+
+      <!-- 全局模式与四类同步入口 -->
+      <text class="small-strong" x="24" y="34">同步模式</text>
+      <rect x="96" y="12" width="174" height="36" rx="8" fill="#F1F7FF" stroke="#B3D4FF"/>
+      <rect x="98" y="14" width="84" height="32" rx="7" fill="#0C66E4"/>
+      <text class="button" x="140" y="35" text-anchor="middle" fill="#FFFFFF">增量同步</text>
+      <text class="button" x="226" y="35" text-anchor="middle" fill="#637381">全量同步</text>
+
+      <rect x="286" y="12" width="126" height="36" rx="8" fill="#FFFFFF" stroke="#0C66E4"/>
+      <text class="button primary" x="349" y="35" text-anchor="middle">同步基础数据</text>
+      <rect x="424" y="12" width="126" height="36" rx="8" fill="#FFFFFF" stroke="#D32F2F"/>
+      <text class="button error" x="487" y="35" text-anchor="middle">补最近失败</text>
+
+      <text class="small" x="910" y="34">已选 <tspan class="body-strong">42 / 42</tspan> 个任务</text>
+      <rect x="1106" y="10" width="214" height="40" rx="8" fill="#0C66E4"/>
+      <text class="button" x="1213" y="35" text-anchor="middle" fill="#FFFFFF">开始同步</text>
+
+      <rect x="20" y="60" width="1304" height="30" rx="8" fill="#F7F9FC"/>
+      <circle cx="36" cy="75" r="5" fill="#0C66E4"/>
+      <text class="small" x="48" y="79">“同步基础数据”“补最近失败”会直接以增量模式提交，不改变当前勾选与上方全局模式。</text>
+      <text class="small" x="1304" y="79" text-anchor="end">仅展示 supportsManual 任务 · 初次默认全选</text>
+
+      <!-- 表头 -->
+      <g transform="translate(20 102)">
+        <rect width="1304" height="42" rx="8" fill="#F1F3F5"/>
+        <rect x="14" y="13" width="16" height="16" rx="3" fill="#0C66E4"/>
+        <path d="M18 21l3 3 6-7" fill="none" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        <text class="small-strong" x="48" y="26">任务名称 ↕</text>
+        <text class="small-strong" x="270" y="26">分类</text>
+        <text class="small-strong" x="370" y="26">定时计划 ↕</text>
+        <text class="small-strong" x="572" y="26">支持全量</text>
+        <text class="small-strong" x="656" y="26">仅交易日</text>
+        <text class="small-strong" x="740" y="26">最后状态 ↕</text>
+        <text class="small-strong" x="844" y="26">最后同步 ↕</text>
+        <text class="small-strong" x="1014" y="26">连失 ↕</text>
+        <text class="small-strong" x="1190" y="26">操作</text>
+
+        <!-- 分类组 1 -->
+        <rect x="0" y="42" width="1304" height="38" fill="#F8FAFC"/>
+        <rect x="14" y="53" width="16" height="16" rx="3" fill="#0C66E4"/>
+        <path d="M18 61l3 3 6-7" fill="none" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        <text class="small-strong" x="48" y="66">行情数据</text><text class="small" x="118" y="66">12 个任务</text>
+
+        <!-- daily -->
+        <rect x="14" y="95" width="16" height="16" rx="3" fill="#0C66E4"/>
+        <path d="M18 103l3 3 6-7" fill="none" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        <text class="body-strong" x="48" y="100">日线行情</text><text class="mono" x="48" y="117">daily</text>
+        <text class="small" x="270" y="106">行情数据</text>
+        <text class="small" x="370" y="106">交易日收盘后</text>
+        <text class="small success" x="600" y="106" text-anchor="middle">是</text>
+        <text class="small success" x="684" y="106" text-anchor="middle">是</text>
+        <rect x="740" y="91" width="58" height="24" rx="12" fill="#E9F7EF"/><text class="small-strong success" x="769" y="107" text-anchor="middle">成功</text>
+        <text class="small tabular" x="844" y="106">08-08 18:05</text>
+        <text class="small tabular" x="1032" y="106">0</text>
+        <rect x="1162" y="88" width="118" height="30" rx="7" fill="#FFFFFF" stroke="#0C66E4"/><text class="button primary" x="1221" y="108" text-anchor="middle">立即同步</text>
+        <line x1="0" y1="130" x2="1304" y2="130" stroke="#EBECF0"/>
+
+        <!-- daily_basic -->
+        <rect x="14" y="145" width="16" height="16" rx="3" fill="#0C66E4"/>
+        <path d="M18 153l3 3 6-7" fill="none" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        <text class="body-strong" x="48" y="150">每日指标</text><text class="mono" x="48" y="167">daily_basic</text>
+        <text class="small" x="270" y="156">行情数据</text>
+        <text class="small" x="370" y="156">交易日收盘后</text>
+        <text class="small success" x="600" y="156" text-anchor="middle">是</text>
+        <text class="small success" x="684" y="156" text-anchor="middle">是</text>
+        <rect x="740" y="141" width="58" height="24" rx="12" fill="#FFF7E6"/><text class="small-strong warning" x="769" y="157" text-anchor="middle">跳过</text>
+        <text class="small tabular" x="844" y="156">08-08 18:05</text>
+        <text class="small tabular" x="1032" y="156">0</text>
+        <rect x="1162" y="138" width="118" height="30" rx="7" fill="#FFFFFF" stroke="#0C66E4"/><text class="button primary" x="1221" y="158" text-anchor="middle">立即同步</text>
+
+        <!-- 分类组 2 -->
+        <rect x="0" y="180" width="1304" height="38" fill="#F8FAFC"/>
+        <rect x="14" y="191" width="16" height="16" rx="3" fill="#0C66E4"/>
+        <path d="M18 199l3 3 6-7" fill="none" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        <text class="small-strong" x="48" y="204">财务数据</text><text class="small" x="118" y="204">10 个任务</text>
+
+        <!-- income -->
+        <rect x="14" y="233" width="16" height="16" rx="3" fill="#0C66E4"/>
+        <path d="M18 241l3 3 6-7" fill="none" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        <text class="body-strong" x="48" y="238">利润表</text><text class="mono" x="48" y="255">income</text>
+        <text class="small" x="270" y="244">财务数据</text>
+        <text class="small" x="370" y="244">每日 17:20</text>
+        <text class="small success" x="600" y="244" text-anchor="middle">是</text>
+        <text class="small" x="684" y="244" text-anchor="middle">否</text>
+        <rect x="740" y="229" width="58" height="24" rx="12" fill="#E9F7EF"/><text class="small-strong success" x="769" y="245" text-anchor="middle">成功</text>
+        <text class="small tabular" x="844" y="244">08-08 17:21</text>
+        <text class="small tabular" x="1032" y="244">0</text>
+        <rect x="1162" y="226" width="118" height="30" rx="7" fill="#FFFFFF" stroke="#0C66E4"/><text class="button primary" x="1221" y="246" text-anchor="middle">立即同步</text>
+        <line x1="0" y1="268" x2="1304" y2="268" stroke="#EBECF0"/>
+
+        <!-- fina indicator -->
+        <rect x="14" y="283" width="16" height="16" rx="3" fill="#0C66E4"/>
+        <path d="M18 291l3 3 6-7" fill="none" stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        <text class="body-strong" x="48" y="288">财务指标</text><text class="mono" x="48" y="305">fina_indicator</text>
+        <text class="small" x="270" y="294">财务数据</text>
+        <text class="small" x="370" y="294">每日 17:20</text>
+        <text class="small error" x="600" y="294" text-anchor="middle">否</text>
+        <text class="small" x="684" y="294" text-anchor="middle">否</text>
+        <rect x="740" y="279" width="58" height="24" rx="12" fill="#FFF0EF"/><text class="small-strong error" x="769" y="295" text-anchor="middle">失败</text>
+        <text class="small tabular" x="844" y="294">08-08 17:26</text>
+        <text class="small-strong error tabular" x="1032" y="294">3</text>
+        <rect x="1162" y="276" width="118" height="30" rx="7" fill="#FFFFFF" stroke="#0C66E4"/><text class="button primary" x="1221" y="296" text-anchor="middle">立即同步</text>
+
+        <text class="small" x="0" y="330">其余 7 个固定分类组与完整任务继续在该局部滚动表体中展示；不分页、不新增任务搜索。</text>
+      </g>
+
+      <!-- 实现门禁与全量确认补充状态 -->
+      <g transform="translate(20 458)">
+        <rect width="608" height="156" rx="12" fill="#F7F9FC" stroke="#DFE1E6"/>
+        <text class="body-strong" x="18" y="28">状态与权限门禁</text>
+        <circle cx="24" cy="54" r="4" fill="#0C66E4"/><text class="small" x="38" y="58">ADMIN：可查看、筛选、勾选；全部写动作禁用</text>
+        <circle cx="24" cy="79" r="4" fill="#22A06B"/><text class="small" x="38" y="83">SUPER_ADMIN：四类同步入口可用</text>
+        <circle cx="24" cy="104" r="4" fill="#FFAB00"/><text class="small" x="38" y="108">全局 isSyncing=true：所有同步入口一起禁用</text>
+        <circle cx="24" cy="129" r="4" fill="#97A0AF"/><text class="small" x="38" y="133">告警订阅、清缓存、单/批重试与删除：所有角色仍禁用</text>
+
+        <rect x="632" width="672" height="156" rx="12" fill="#FFF9F0" stroke="#F5CD7A" stroke-dasharray="5 4"/>
+        <text class="small-strong warning" x="650" y="23">交互状态补充 · 选择全量并提交后</text>
+        <text class="body-strong" x="650" y="48">全量同步确认</text>
+        <text class="small" x="650" y="69">将提交 42 个已选任务；其中 1 个不支持全量，将由后端跳过。</text>
+        <rect x="650" y="83" width="290" height="44" rx="8" fill="#FFFFFF" stroke="#B76E00"/>
+        <text class="small" x="664" y="99">请输入“全量”</text><text class="body-strong" x="664" y="119">全量</text>
+        <rect x="962" y="87" width="86" height="36" rx="8" fill="#FFFFFF" stroke="#C1C7D0"/>
+        <text class="button" x="1005" y="110" text-anchor="middle" fill="#344563">取消</text>
+        <rect x="1060" y="87" width="222" height="36" rx="8" fill="#B76E00"/>
+        <text class="button" x="1171" y="110" text-anchor="middle" fill="#FFFFFF">确认全量同步</text>
+        <text class="small" x="650" y="146">未准确输入“全量”时，确认按钮保持禁用。</text>
+      </g>
+    </g>
+
+    <text class="small" x="0" y="1268">默认画面：任务调度 · 增量模式。同步日志、数据质量、运维工具的完整入口与功能口径见配套设计文档。</text>
+    <text class="small" x="1344" y="1268" text-anchor="end">1440 px 桌面参考稿 · classic-blue 视觉方向</text>
+  </g>
+</svg>

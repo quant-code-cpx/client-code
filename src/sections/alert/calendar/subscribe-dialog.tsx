@@ -119,7 +119,13 @@ export function SubscribeDialog({ open, events, onClose, onSuccess }: Props) {
   const isBatch = events.length > 1;
 
   return (
-    <Dialog open={open} onClose={submitting ? undefined : onClose} maxWidth="xs" fullWidth>
+    <Dialog
+      open={open}
+      onClose={submitting ? undefined : onClose}
+      maxWidth="xs"
+      fullWidth
+      slotProps={{ paper: { sx: { overscrollBehavior: 'contain' } } }}
+    >
       <DialogTitle>{isBatch ? '批量订阅事件提醒' : '订阅事件提醒'}</DialogTitle>
       <DialogContent>
         <Stack spacing={2} sx={{ mt: 0.5 }}>
@@ -129,7 +135,7 @@ export function SubscribeDialog({ open, events, onClose, onSuccess }: Props) {
                 目标股票
               </Typography>
               <Typography variant="body2">
-                {single.stockName} · {single.tsCode}
+                {single.stockName ? `${single.stockName} · ${single.tsCode}` : single.tsCode}
               </Typography>
             </Stack>
           )}

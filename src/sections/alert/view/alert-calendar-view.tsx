@@ -1,11 +1,12 @@
 import type { CalendarEvent } from 'src/api/alert';
 
 import dayjs from 'dayjs';
-import { useRef, useState, useEffect, useCallback, useTransition } from 'react';
+import { useState, useCallback, useTransition } from 'react';
 
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Alert from '@mui/material/Alert';
+import Skeleton from '@mui/material/Skeleton';
 import Snackbar from '@mui/material/Snackbar';
 import Typography from '@mui/material/Typography';
 import LinearProgress from '@mui/material/LinearProgress';
@@ -28,19 +29,17 @@ import {
 
 export function AlertCalendarView() {
   const { filters, update, reset } = useCalendarState();
-  const { events, totalCount, truncated, dataAsOf, loading, error, refresh } =
-    useCalendarEvents(filters);
+  const {
+    error,
+    events,
+    loading,
+    refresh,
+    hasLoaded,
+    totalCount,
+    refreshing,
+    initialLoading,
+  } = useCalendarEvents(filters);
   const [, startTransition] = useTransition();
-
-  // Track previous view to detect view transitions.
-  // When view changes (e.g. grid→timeline), pass empty events on the first render
-  // to avoid an expensive synchronous render of stale large datasets.
-  const prevViewRef = useRef(filters.view);
-  const isViewChanging = prevViewRef.current !== filters.view;
-  const displayEvents = isViewChanging ? [] : events;
-  useEffect(() => {
-    prevViewRef.current = filters.view;
-  }, [filters.view]);
 
   const [detailEvent, setDetailEvent] = useState<CalendarEvent | null>(null);
   const [subscribeEvents, setSubscribeEvents] = useState<CalendarEvent[]>([]);
@@ -62,6 +61,11 @@ export function AlertCalendarView() {
       });
     },
     [update, startTransition]
+  );
+
+  const handleNavigateMonth = useCallback(
+    (startDate: string, endDate: string) => update({ startDate, endDate }),
+    [update]
   );
 
   const handleCardClick = useCallback(
@@ -99,8 +103,6 @@ export function AlertCalendarView() {
         <Box sx={{ flexGrow: 1 }} />
         <Typography variant="caption" color="text.secondary">
           共 {totalCount} 项事件
-          {truncated && '（已截断 1000 项）'}
-          {dataAsOf && ` · 数据更新于 ${dataAsOf}`}
         </Typography>
       </Stack>
 
@@ -112,22 +114,30 @@ export function AlertCalendarView() {
 
       <CalendarFilters filters={filters} onChange={update} onReset={reset} onRefresh={refresh} />
 
-      <CalendarStatsRow events={events} loading={loading} onCardClick={handleCardClick} />
+      <CalendarStatsRow
+        events={events}
+        loading={loading || !hasLoaded}
+        onCardClick={handleCardClick}
+      />
 
-      {loading && <LinearProgress sx={{ mb: 1.5 }} />}
+      {refreshing && <LinearProgress aria-label="正在更新事件" sx={{ mb: 1.5 }} />}
 
-      {filters.view === 'grid' && (
+      {initialLoading && <CalendarViewSkeleton />}
+
+      {!initialLoading && hasLoaded && filters.view === 'grid' && (
         <CalendarGridView
           events={events}
           startDate={filters.startDate}
+          endDate={filters.endDate}
           onSelectDay={handleSelectDay}
           onSelectEvent={handleSelectEvent}
+          onNavigateMonth={handleNavigateMonth}
         />
       )}
-      {filters.view === 'timeline' && (
-        <CalendarTimelineView events={displayEvents} onSelectEvent={handleSelectEvent} />
+      {!initialLoading && hasLoaded && filters.view === 'timeline' && (
+        <CalendarTimelineView events={events} onSelectEvent={handleSelectEvent} />
       )}
-      {filters.view === 'table' && (
+      {!initialLoading && hasLoaded && filters.view === 'table' && (
         <CalendarTableView
           events={events}
           onSelectEvent={handleSelectEvent}
@@ -162,5 +172,14 @@ export function AlertCalendarView() {
         ) : undefined}
       </Snackbar>
     </DashboardContent>
+  );
+}
+
+function CalendarViewSkeleton() {
+  return (
+    <Stack spacing={1} aria-label="正在加载事件日历">
+      <Skeleton variant="rounded" height={48} />
+      <Skeleton variant="rounded" height={420} />
+    </Stack>
   );
 }

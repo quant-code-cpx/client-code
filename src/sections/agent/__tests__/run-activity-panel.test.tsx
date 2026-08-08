@@ -158,4 +158,74 @@ describe('RunActivityPanel', () => {
     expect(screen.getByText('结构化校验通过')).toBeInTheDocument();
     expect(screen.getByText('模型供应商限流', { exact: false })).toBeInTheDocument();
   });
+
+  it('明确区分模型单次窗口、本次输出和 Run 累计成本护栏', () => {
+    renderWithProviders(
+      <RunActivityPanel
+        run={run({
+          modelDiagnostics: [
+            {
+              modelCallId: 'model_call_budget',
+              provider: 'openai',
+              model: 'gpt-5.6-terra',
+              purpose: 'PLAN',
+              phase: 'REQUEST_DISPATCHED',
+              attempt: 1,
+              status: 'RUNNING',
+              messageCount: 12,
+              estimatedInputTokens: 32100,
+              contextWindow: 128000,
+              maxOutputTokens: 128000,
+              inputTokenCountSource: 'OPENAI_INPUT_TOKENS_API',
+              inputTokenCountExact: true,
+              inputTokenSafetyMarginTokens: 1529,
+              runInputReservationTokens: 96200,
+              runMaxCumulativeInputTokens: null,
+              runInputTokensUsedBeforeCall: 33000,
+              runInputGuardrailSource: 'DISABLED_BY_DEFAULT',
+            },
+          ],
+        })}
+        startedAt="2026-08-05T00:00:00.000Z"
+        onContinue={vi.fn()}
+      />
+    );
+
+    const details = screen.getByLabelText('模型调用技术明细');
+    expect(details).toHaveTextContent('单次上下文窗口 128,000');
+    expect(details).toHaveTextContent('本次最大输出 128,000');
+    expect(details).toHaveTextContent('OpenAI 供应商计数');
+    expect(details).toHaveTextContent('Run 累计输入护栏未启用');
+  });
+
+  it('成功调用真实 usage 越过护栏时展示记账警告，不渲染为调用失败', () => {
+    renderWithProviders(
+      <RunActivityPanel
+        run={run({
+          modelDiagnostics: [
+            {
+              modelCallId: 'model_call_accounted',
+              provider: 'openai',
+              model: 'gpt-5.6-terra',
+              purpose: 'SYNTHESIZE',
+              phase: 'COMPLETED',
+              attempt: 1,
+              status: 'COMPLETED',
+              durationMs: 1200,
+              repaired: false,
+              usage: { inputTokens: 34000, outputTokens: 900 },
+              usageSource: 'PROVIDER_ACTUAL',
+              accountingWarnings: ['模型调用已成功；真实累计输入超过 Run 成本护栏，后续调用前停止'],
+            },
+          ],
+        })}
+        startedAt="2026-08-05T00:00:00.000Z"
+        onContinue={vi.fn()}
+      />
+    );
+
+    expect(screen.getByText('结构化校验通过')).toBeInTheDocument();
+    expect(screen.getByText(/模型调用已成功；真实累计输入超过 Run 成本护栏/)).toBeInTheDocument();
+    expect(screen.queryByText('调用失败')).not.toBeInTheDocument();
+  });
 });

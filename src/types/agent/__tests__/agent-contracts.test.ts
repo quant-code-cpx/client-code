@@ -46,7 +46,7 @@ describe('Agent 公共契约', () => {
     expect(() => parseMessageBlock(invalidBlock)).toThrow(AgentProtocolError);
   });
 
-  it('固定 20 个 Agent Tool key', () => {
+  it('固定生成契约中的全部 Agent Tool key', () => {
     expect(AGENT_TOOL_KEYS).toEqual([
       'resolve_security',
       'get_stock_price_history',
@@ -67,6 +67,22 @@ describe('Agent 公共契约', () => {
       'get_stock_technical_indicators',
       'get_stock_technical_signals',
       'get_data_availability',
+      'get_stock_chip_profile',
+      'get_stock_margin_history',
+      'get_stock_relative_strength',
+      'get_stock_events',
+      'get_stock_shareholder_profile',
+      'get_index_market_data',
+      'get_fund_research',
+      'get_industry_rotation',
+      'get_factor_analysis',
+      'get_macro_snapshot',
+      'get_option_market',
+      'get_convertible_bond_market',
+      'run_event_study',
+      'get_backtest_analytics',
+      'get_portfolio_analytics',
+      'get_market_news',
       'save_research_report',
     ]);
   });

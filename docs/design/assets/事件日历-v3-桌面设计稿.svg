@@ -1,0 +1,255 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1490" viewBox="0 0 1440 1490" role="img" aria-labelledby="title desc">
+  <title id="title">事件日历 v3 桌面端设计稿</title>
+  <desc id="desc">严格保持现有事件日历功能的桌面设计：两日期、四周期、三视图、三范围、市值、关键词、刷新重置、七类事件、三级影响力、四统计入口与月历默认状态。</desc>
+  <defs>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="140%">
+      <feDropShadow dx="0" dy="5" stdDeviation="14" flood-color="#637381" flood-opacity="0.12"/>
+    </filter>
+    <style>
+      .page-title{font:700 28px "DM Sans","PingFang SC",sans-serif;fill:#172B4D}
+      .section-title{font:700 16px "DM Sans","PingFang SC",sans-serif;fill:#172B4D}
+      .body{font:400 14px "DM Sans","PingFang SC",sans-serif;fill:#172B4D}
+      .body-strong{font:600 14px "DM Sans","PingFang SC",sans-serif;fill:#172B4D}
+      .small{font:400 12px "DM Sans","PingFang SC",sans-serif;fill:#637381}
+      .small-strong{font:600 12px "DM Sans","PingFang SC",sans-serif;fill:#344563}
+      .button{font:600 13px "DM Sans","PingFang SC",sans-serif}
+      .metric{font:700 24px "DM Sans","PingFang SC",sans-serif;fill:#172B4D;font-variant-numeric:tabular-nums}
+      .date{font:600 13px "DM Sans","PingFang SC",sans-serif;fill:#172B4D;font-variant-numeric:tabular-nums}
+      .mono{font:500 11px "SFMono-Regular",Consolas,monospace;fill:#637381}
+      .primary{fill:#0C66E4}.success{fill:#14804A}.warning{fill:#8A5A00}.error{fill:#B42318}.muted{fill:#97A0AF}
+    </style>
+  </defs>
+
+  <rect width="1440" height="1490" fill="#F4F6F8"/>
+  <g transform="translate(48 28)">
+    <!-- 页头：当前只有标题与总数 -->
+    <text class="page-title" x="0" y="28">事件日历</text>
+    <text class="small" x="0" y="52">聚焦未来事件与关键节点</text>
+    <text class="body" x="1344" y="31" text-anchor="end">共 <tspan class="body-strong">324</tspan> 项事件</text>
+
+    <!-- 筛选工作台：只重排，不新增提交语义 -->
+    <g transform="translate(0 84)" filter="url(#shadow)">
+      <rect width="1344" height="232" rx="16" fill="#FFFFFF"/>
+
+      <!-- 第一行：两个日期 + 四周期 + 三视图 -->
+      <g transform="translate(20 16)">
+        <rect width="174" height="48" rx="8" fill="#FFFFFF" stroke="#C1C7D0"/>
+        <text class="small" x="12" y="17">开始日期</text>
+        <text class="body-strong" x="12" y="37">2026/08/08</text>
+        <path d="M150 17h12v12h-12z M150 21h12" fill="none" stroke="#637381" stroke-width="1.3"/>
+
+        <rect x="186" width="174" height="48" rx="8" fill="#FFFFFF" stroke="#C1C7D0"/>
+        <text class="small" x="198" y="17">结束日期</text>
+        <text class="body-strong" x="198" y="37">2026/08/21</text>
+        <path d="M336 17h12v12h-12z M336 21h12" fill="none" stroke="#637381" stroke-width="1.3"/>
+
+        <text class="small" x="380" y="14">快捷周期</text>
+        <rect x="380" y="20" width="60" height="28" rx="7" fill="#FFFFFF" stroke="#C1C7D0"/>
+        <text class="button" x="410" y="39" text-anchor="middle" fill="#344563">今天</text>
+        <rect x="448" y="20" width="92" height="28" rx="7" fill="#FFFFFF" stroke="#C1C7D0"/>
+        <text class="button" x="494" y="39" text-anchor="middle" fill="#344563">未来一周</text>
+        <rect x="548" y="20" width="68" height="28" rx="7" fill="#0C66E4"/>
+        <text class="button" x="582" y="39" text-anchor="middle" fill="#FFFFFF">14天</text>
+        <rect x="624" y="20" width="68" height="28" rx="7" fill="#FFFFFF" stroke="#C1C7D0"/>
+        <text class="button" x="658" y="39" text-anchor="middle" fill="#344563">30天</text>
+
+        <text class="small" x="1002" y="14">视图</text>
+        <rect x="1002" y="20" width="96" height="28" rx="7 0 0 7" fill="#EAF2FF" stroke="#0C66E4"/>
+        <text class="button primary" x="1050" y="39" text-anchor="middle">月历</text>
+        <rect x="1098" y="20" width="96" height="28" fill="#FFFFFF" stroke="#C1C7D0"/>
+        <text class="button" x="1146" y="39" text-anchor="middle" fill="#637381">时间线</text>
+        <rect x="1194" y="20" width="90" height="28" rx="0 7 7 0" fill="#FFFFFF" stroke="#C1C7D0"/>
+        <text class="button" x="1239" y="39" text-anchor="middle" fill="#637381">表格</text>
+      </g>
+
+      <line x1="20" y1="76" x2="1324" y2="76" stroke="#EBECF0"/>
+
+      <!-- 第二行：scope + 单选市值 + 关键词 + 刷新重置 -->
+      <g transform="translate(20 88)">
+        <text class="small" x="0" y="14">股票范围</text>
+        <rect x="0" y="20" width="94" height="32" rx="7 0 0 7" fill="#EAF2FF" stroke="#0C66E4"/>
+        <text class="button primary" x="47" y="41" text-anchor="middle">全市场</text>
+        <rect x="94" y="20" width="94" height="32" fill="#FFFFFF" stroke="#C1C7D0"/>
+        <text class="button" x="141" y="41" text-anchor="middle" fill="#637381">自选股</text>
+        <rect x="188" y="20" width="110" height="32" rx="0 7 7 0" fill="#FFFFFF" stroke="#C1C7D0"/>
+        <text class="button" x="243" y="41" text-anchor="middle" fill="#637381">持仓组合</text>
+
+        <text class="small" x="322" y="14">市值</text>
+        <rect x="322" y="20" width="174" height="32" rx="7" fill="#FFFFFF" stroke="#C1C7D0"/>
+        <text class="body" x="336" y="41">全部市值</text>
+        <path d="M470 32l5 5 5-5" fill="none" stroke="#637381" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+        <text class="small" x="520" y="14">关键词</text>
+        <rect x="520" y="20" width="350" height="32" rx="7" fill="#FFFFFF" stroke="#C1C7D0"/>
+        <circle cx="538" cy="36" r="6" fill="none" stroke="#637381" stroke-width="1.4"/>
+        <line x1="542" y1="40" x2="547" y2="45" stroke="#637381" stroke-width="1.4"/>
+        <text class="small" x="554" y="41">搜索股票/标题</text>
+
+        <rect x="1078" y="20" width="92" height="32" rx="7" fill="#FFFFFF" stroke="#0C66E4"/>
+        <path d="M1096 30a7 7 0 1 1-1 10" fill="none" stroke="#0C66E4" stroke-width="1.6" stroke-linecap="round"/>
+        <path d="M1093 30h5v5" fill="none" stroke="#0C66E4" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+        <text class="button primary" x="1134" y="41" text-anchor="middle">刷新</text>
+        <rect x="1182" y="20" width="102" height="32" rx="7" fill="#FFFFFF" stroke="#C1C7D0"/>
+        <text class="button" x="1233" y="41" text-anchor="middle" fill="#637381">重置</text>
+      </g>
+
+      <line x1="20" y1="156" x2="1324" y2="156" stroke="#EBECF0"/>
+
+      <!-- 第三行：7 类型 + 3 影响力，多选即时生效 -->
+      <g transform="translate(20 172)">
+        <text class="small-strong" x="0" y="23">类型</text>
+        <rect x="44" y="0" width="78" height="30" rx="15" fill="#FFFFFF" stroke="#C1C7D0"/><text class="small-strong" x="83" y="20" text-anchor="middle">财报披露</text>
+        <rect x="130" y="0" width="78" height="30" rx="15" fill="#FFFFFF" stroke="#C1C7D0"/><text class="small-strong" x="169" y="20" text-anchor="middle">业绩预告</text>
+        <rect x="216" y="0" width="78" height="30" rx="15" fill="#FFFFFF" stroke="#C1C7D0"/><text class="small-strong" x="255" y="20" text-anchor="middle">除权除息</text>
+        <rect x="302" y="0" width="78" height="30" rx="15" fill="#FFFFFF" stroke="#C1C7D0"/><text class="small-strong" x="341" y="20" text-anchor="middle">限售解禁</text>
+        <rect x="388" y="0" width="78" height="30" rx="15" fill="#FFFFFF" stroke="#C1C7D0"/><text class="small-strong" x="427" y="20" text-anchor="middle">新股发行</text>
+        <rect x="474" y="0" width="68" height="30" rx="15" fill="#FFFFFF" stroke="#C1C7D0"/><text class="small-strong" x="508" y="20" text-anchor="middle">可转债</text>
+        <rect x="550" y="0" width="94" height="30" rx="15" fill="#FFFFFF" stroke="#C1C7D0"/><text class="small-strong" x="597" y="20" text-anchor="middle">股东增减持</text>
+        <text class="small" x="656" y="20">未选择 = 全部</text>
+
+        <text class="small-strong" x="864" y="23">影响力</text>
+        <rect x="922" y="0" width="50" height="30" rx="15" fill="#FFFFFF" stroke="#D32F2F"/><text class="small-strong error" x="947" y="20" text-anchor="middle">高</text>
+        <rect x="980" y="0" width="50" height="30" rx="15" fill="#FFFFFF" stroke="#FFAB00"/><text class="small-strong warning" x="1005" y="20" text-anchor="middle">中</text>
+        <rect x="1038" y="0" width="50" height="30" rx="15" fill="#FFFFFF" stroke="#0C66E4"/><text class="small-strong primary" x="1063" y="20" text-anchor="middle">低</text>
+        <text class="small" x="1102" y="20">未选择 = 全部</text>
+      </g>
+    </g>
+
+    <!-- 四个真实统计入口 -->
+    <g transform="translate(0 340)" filter="url(#shadow)">
+      <rect width="1344" height="86" rx="16" fill="#FFFFFF"/>
+      <rect width="336" height="86" rx="16 0 0 16" fill="#F1F7FF"/>
+      <rect width="4" height="86" rx="2" fill="#0C66E4"/>
+      <text class="small" x="24" y="27">今日事件</text><text class="metric" x="24" y="59">12</text><text class="small" x="78" y="56">点击聚焦今日</text>
+      <line x1="336" y1="16" x2="336" y2="70" stroke="#DFE1E6"/>
+      <text class="small" x="360" y="27">未来一周</text><text class="metric" x="360" y="59">84</text><text class="small" x="414" y="56">今天至 +6 天</text>
+      <line x1="672" y1="16" x2="672" y2="70" stroke="#DFE1E6"/>
+      <text class="small" x="696" y="27">高影响事件</text><text class="metric error" x="696" y="59">38</text><text class="small" x="750" y="56">点击筛选高影响</text>
+      <line x1="1008" y1="16" x2="1008" y2="70" stroke="#DFE1E6"/>
+      <text class="small" x="1032" y="27">自选股事件</text><text class="metric" x="1032" y="59">15</text><text class="small" x="1086" y="56">点击切换自选股</text>
+    </g>
+
+    <!-- 月历默认视图 -->
+    <g transform="translate(0 450)" filter="url(#shadow)">
+      <rect width="1344" height="710" rx="16" fill="#FFFFFF"/>
+      <rect x="20" y="14" width="34" height="34" rx="7" fill="#FFFFFF" stroke="#C1C7D0"/>
+      <path d="M40 24l-7 7 7 7" fill="none" stroke="#344563" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      <text class="section-title" x="70" y="37">2026年 8月</text>
+      <rect x="174" y="14" width="34" height="34" rx="7" fill="#FFFFFF" stroke="#C1C7D0"/>
+      <path d="M188 24l7 7-7 7" fill="none" stroke="#344563" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      <text class="small" x="1320" y="36" text-anchor="end">点击日期查看当日事件</text>
+
+      <g transform="translate(20 62)">
+        <rect width="1304" height="36" rx="8" fill="#F7F9FC"/>
+        <text class="small-strong" x="93" y="23" text-anchor="middle">周一</text>
+        <text class="small-strong" x="279" y="23" text-anchor="middle">周二</text>
+        <text class="small-strong" x="465" y="23" text-anchor="middle">周三</text>
+        <text class="small-strong" x="651" y="23" text-anchor="middle">周四</text>
+        <text class="small-strong" x="837" y="23" text-anchor="middle">周五</text>
+        <text class="small muted" x="1023" y="23" text-anchor="middle">周六</text>
+        <text class="small muted" x="1211" y="23" text-anchor="middle">周日</text>
+
+        <!-- 6 周网格 -->
+        <rect x="930" y="36" width="374" height="576" fill="#FAFBFC"/>
+        <!-- 当前筛选范围为 8/8–8/21：范围外日期仍显示，但不渲染事件 -->
+        <rect x="0" y="132" width="930" height="96" fill="#F7F8FA"/>
+        <rect x="930" y="324" width="374" height="96" fill="#F7F8FA"/>
+        <rect x="0" y="420" width="1304" height="192" fill="#F7F8FA"/>
+        <path d="M0 36V612 M186 36V612 M372 36V612 M558 36V612 M744 36V612 M930 36V612 M1116 36V612 M1304 36V612 M0 132H1304 M0 228H1304 M0 324H1304 M0 420H1304 M0 516H1304 M0 612H1304" fill="none" stroke="#DFE1E6"/>
+
+        <!-- 第 1 周：邻月 + 8/1, 8/2 -->
+        <text class="date muted" x="12" y="56">27</text><text class="date muted" x="198" y="56">28</text><text class="date muted" x="384" y="56">29</text><text class="date muted" x="570" y="56">30</text><text class="date muted" x="756" y="56">31</text>
+        <text class="date muted" x="942" y="56">1</text><text class="date muted" x="1128" y="56">2</text>
+
+        <!-- 第 2 周 -->
+        <text class="date muted" x="12" y="152">3</text>
+        <text class="date muted" x="198" y="152">4</text>
+
+        <text class="date muted" x="384" y="152">5</text>
+        <text class="date muted" x="570" y="152">6</text>
+
+        <text class="date muted" x="756" y="152">7</text>
+
+        <!-- 今天 8 月 8 日 -->
+        <rect x="932" y="134" width="182" height="90" rx="7" fill="#F1F7FF" stroke="#0C66E4" stroke-width="1.5"/>
+        <text class="date primary" x="942" y="152">8</text><text class="small-strong primary" x="1098" y="152" text-anchor="end">今日 · 12</text>
+        <circle cx="942" cy="165" r="3" fill="#1877F2"/>
+        <rect x="940" y="172" width="164" height="20" rx="5" fill="#EAF2FF"/><text class="small-strong primary" x="948" y="186">恒瑞医药·财报披露</text>
+        <text class="small primary" x="948" y="211">+11 更多</text>
+        <text class="date" x="1128" y="152">9</text>
+
+        <!-- 第 3 周 -->
+        <text class="date" x="12" y="248">10</text><text class="small" x="168" y="248" text-anchor="end">6</text>
+        <circle cx="20" cy="261" r="3" fill="#22A06B"/><circle cx="30" cy="261" r="3" fill="#1877F2"/>
+        <rect x="10" y="268" width="164" height="20" rx="5" fill="#E9F7EF"/><text class="small-strong success" x="18" y="282">招商银行·除权除息</text>
+        <rect x="10" y="292" width="164" height="20" rx="5" fill="#EAF2FF"/><text class="small-strong primary" x="18" y="306">万华化学·业绩预告</text>
+
+        <text class="date" x="198" y="248">11</text><text class="small" x="354" y="248" text-anchor="end">2</text>
+        <circle cx="206" cy="261" r="3" fill="#6554C0"/>
+        <rect x="196" y="268" width="164" height="20" rx="5" fill="#F3F0FF"/><text class="small-strong" x="204" y="282" fill="#5E4DB2">拓普集团·可转债</text>
+        <text class="date" x="384" y="248">12</text><text class="small" x="540" y="248" text-anchor="end">4</text>
+        <circle cx="392" cy="261" r="3" fill="#6554C0"/>
+        <rect x="382" y="268" width="164" height="20" rx="5" fill="#F3F0FF"/><text class="small-strong" x="390" y="282" fill="#5E4DB2">新股 A·新股发行</text>
+        <text class="date" x="570" y="248">13</text><text class="date" x="756" y="248">14</text><text class="date" x="942" y="248">15</text><text class="date" x="1128" y="248">16</text>
+
+        <!-- 第 4 周 -->
+        <text class="date" x="12" y="344">17</text><text class="date" x="198" y="344">18</text><text class="small" x="354" y="344" text-anchor="end">7</text>
+        <circle cx="206" cy="357" r="3" fill="#22A06B"/>
+        <rect x="196" y="364" width="164" height="20" rx="5" fill="#E9F7EF"/><text class="small-strong success" x="204" y="378">美的集团·除权除息</text>
+        <text class="date" x="384" y="344">19</text><text class="date" x="570" y="344">20</text><text class="small" x="726" y="344" text-anchor="end">4</text>
+        <circle cx="578" cy="357" r="3" fill="#FFAB00"/>
+        <rect x="568" y="364" width="164" height="20" rx="5" fill="#FFF7E6"/><text class="small-strong warning" x="576" y="378">药明康德·限售解禁</text>
+        <text class="date" x="756" y="344">21</text><text class="date muted" x="942" y="344">22</text><text class="date muted" x="1128" y="344">23</text>
+
+        <!-- 第 5 周 -->
+        <text class="date muted" x="12" y="440">24</text><text class="date muted" x="198" y="440">25</text><text class="date muted" x="384" y="440">26</text><text class="date muted" x="570" y="440">27</text>
+        <text class="date muted" x="756" y="440">28</text>
+        <text class="date muted" x="942" y="440">29</text><text class="date muted" x="1128" y="440">30</text>
+
+        <!-- 第 6 周 -->
+        <text class="date muted" x="12" y="536">31</text>
+        <text class="date muted" x="198" y="536">1</text><text class="date muted" x="384" y="536">2</text><text class="date muted" x="570" y="536">3</text><text class="date muted" x="756" y="536">4</text><text class="date muted" x="942" y="536">5</text><text class="date muted" x="1128" y="536">6</text>
+      </g>
+    </g>
+
+    <!-- 非新增控件：补充其它视图与动作映射 -->
+    <g transform="translate(0 1184)" filter="url(#shadow)">
+      <rect width="1344" height="214" rx="16" fill="#FFFFFF"/>
+      <text class="section-title" x="20" y="32">交互规格补充</text>
+      <text class="small" x="142" y="32">以下为现有入口映射，不是月历页新增按钮</text>
+
+      <g transform="translate(20 52)">
+        <rect width="312" height="136" rx="12" fill="#F7F9FC" stroke="#DFE1E6"/>
+        <text class="body-strong" x="16" y="26">月历</text>
+        <text class="small" x="16" y="52">日期格 → 单日时间线</text>
+        <text class="small" x="16" y="76">具体事件 → 事件详情</text>
+        <text class="small" x="16" y="100">+N 更多 → 只读数量提示</text>
+        <text class="small" x="16" y="124">上月/下月 → 修复后更新查询日期</text>
+
+        <rect x="324" width="312" height="136" rx="12" fill="#F7F9FC" stroke="#DFE1E6"/>
+        <text class="body-strong" x="340" y="26">时间线</text>
+        <text class="small" x="340" y="52">按日期升序分组 · 日期头 sticky</text>
+        <text class="small" x="340" y="76">股票 / 代码 / 标题 / 类型 / 影响力</text>
+        <text class="small" x="340" y="100">点击事件 → 事件详情</text>
+        <text class="small" x="340" y="124">不增加行内订阅或更多操作</text>
+
+        <rect x="648" width="312" height="136" rx="12" fill="#F1F7FF" stroke="#B3D4FF"/>
+        <text class="body-strong" x="664" y="26">表格</text>
+        <text class="small" x="664" y="52">日期 / 股票 / 影响力本地排序</text>
+        <text class="small" x="664" y="76">全选 / 行选 / 取消选择</text>
+        <text class="small" x="664" y="100">已选 N 项 → 批量订阅</text>
+        <text class="small" x="664" y="124">点击非 Checkbox 区 → 事件详情</text>
+
+        <rect x="972" width="332" height="136" rx="12" fill="#FFF9F0" stroke="#F5CD7A"/>
+        <text class="body-strong" x="988" y="26">详情与订阅</text>
+        <text class="small" x="988" y="52">详情底部 → 订阅此类事件</text>
+        <text class="small" x="988" y="76">单股 / 自选股组；批量按股票去重</text>
+        <text class="small" x="988" y="100">ANY / 7 类型；当日 / 提前 1/3/7 天</text>
+        <text class="small warning" x="988" y="124">后端未联通时入口禁用，不得假成功</text>
+      </g>
+    </g>
+
+    <text class="small" x="0" y="1434">默认状态：月历 · 全市场 · 未来 14 天 · 全部类型/影响力/市值。</text>
+    <text class="small" x="1344" y="1434" text-anchor="end">1440 px 桌面参考稿 · classic-blue 视觉方向</text>
+  </g>
+</svg>

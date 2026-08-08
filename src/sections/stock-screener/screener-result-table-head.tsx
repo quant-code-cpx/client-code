@@ -1,3 +1,5 @@
+import { varAlpha } from 'minimal-shared/utils';
+
 import TableRow from '@mui/material/TableRow';
 import TableHead from '@mui/material/TableHead';
 import TableCell from '@mui/material/TableCell';
@@ -38,7 +40,8 @@ export function ScreenerResultTableHead({
                 left: 0,
                 zIndex: 3,
                 bgcolor: 'background.neutral',
-                boxShadow: '2px 0 6px -2px rgba(0,0,0,0.12)',
+                boxShadow: (theme) =>
+                  `2px 0 6px -2px ${varAlpha(theme.vars.palette.grey['500Channel'], 0.12)}`,
               }),
             }}
           >

@@ -4,6 +4,7 @@ import { useState } from 'react';
 
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
+import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
@@ -57,14 +58,16 @@ export function DataGapsPanel() {
   const [selectedOption, setSelectedOption] = useState(DATA_SET_OPTIONS[0]);
   const [result, setResult] = useState<DataGapsResult | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleQuery = async () => {
     setLoading(true);
+    setError('');
     try {
       const data = await tushareSyncApi.getDataGaps(selectedOption.value);
       setResult(data);
-    } catch {
-      // ignore
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '查询数据缺口失败');
     } finally {
       setLoading(false);
     }
@@ -85,6 +88,7 @@ export function DataGapsPanel() {
             if (!value) return;
             setSelectedOption(value);
             setResult(null);
+            setError('');
           }}
           renderInput={(params) => <TextField {...params} label="数据集" />}
           sx={{ width: { xs: 1, sm: 360 } }}
@@ -100,11 +104,18 @@ export function DataGapsPanel() {
         </Button>
       </Stack>
 
+      {error && (
+        <Alert severity="error" sx={{ mt: 2 }}>
+          {error}
+          {result ? '，当前展示上次成功快照。' : ''}
+        </Alert>
+      )}
+
       {result !== null && (
         <Box sx={{ mt: 2 }}>
           {result.gaps.length === 0 ? (
             <Typography variant="body2" sx={{ color: 'success.main' }}>
-              该数据集暂无缺失数据 ✅
+              该数据集暂无缺失数据
             </Typography>
           ) : (
             <Box>

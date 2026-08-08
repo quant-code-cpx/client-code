@@ -35,9 +35,10 @@ function StatCard({ label, value, color, subLabel }: StatCardProps) {
 type Props = {
   summary: QualityCheckSummary | null;
   loading: boolean;
+  showEmptyState?: boolean;
 };
 
-export function QualitySummaryCards({ summary, loading }: Props) {
+export function QualitySummaryCards({ summary, loading, showEmptyState = true }: Props) {
   if (loading) {
     return (
       <Grid container spacing={2} sx={{ mb: 3 }}>
@@ -51,6 +52,7 @@ export function QualitySummaryCards({ summary, loading }: Props) {
   }
 
   if (!summary) {
+    if (!showEmptyState) return null;
     return (
       <Card sx={{ mb: 3, p: 2.5 }}>
         <Typography variant="body2" sx={{ color: 'text.disabled' }}>
@@ -69,6 +71,18 @@ export function QualitySummaryCards({ summary, loading }: Props) {
 
   const crossTotal =
     summary.crossTableCounts.pass + summary.crossTableCounts.warn + summary.crossTableCounts.fail;
+  const crossStatus =
+    summary.crossTableCounts.fail > 0
+      ? {
+          label: `${summary.crossTableCounts.fail} 项失败`,
+          color: 'error.main',
+        }
+      : summary.crossTableCounts.warn > 0
+        ? {
+            label: `${summary.crossTableCounts.warn} 项警告`,
+            color: 'warning.main',
+          }
+        : { label: '全部通过', color: 'success.main' };
 
   return (
     <Grid container spacing={2} sx={{ mb: 3 }}>
@@ -90,12 +104,8 @@ export function QualitySummaryCards({ summary, loading }: Props) {
         <StatCard
           label="跨表对账"
           value={`${crossTotal} 项已检查`}
-          subLabel={
-            summary.crossTableCounts.warn > 0
-              ? `${summary.crossTableCounts.warn} 项警告`
-              : '全部通过'
-          }
-          color={summary.crossTableCounts.warn > 0 ? 'warning.main' : 'text.primary'}
+          subLabel={crossStatus.label}
+          color={crossStatus.color}
         />
       </Grid>
     </Grid>

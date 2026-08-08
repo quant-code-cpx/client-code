@@ -1,0 +1,141 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="3260" viewBox="0 0 1440 3260" role="img" aria-labelledby="title desc">
+  <title id="title">行业分析行业轮动 v3 桌面设计稿</title>
+  <desc id="desc">行业轮动独立长画布。展示现有五周期、四张总览、四维 Top10、热力图、动量、收益多选、资金、估值与详情抽屉，不增加当前不存在的点击入口。</desc>
+  <defs>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="140%"><feDropShadow dx="0" dy="4" stdDeviation="10" flood-color="#637381" flood-opacity="0.12"/></filter>
+    <style>
+      .title{font:700 28px "DM Sans","PingFang SC",sans-serif;fill:#212B36}.h5{font:700 19px "DM Sans","PingFang SC",sans-serif;fill:#212B36}.h6{font:700 16px "DM Sans","PingFang SC",sans-serif;fill:#212B36}.body{font:400 14px "DM Sans","PingFang SC",sans-serif;fill:#212B36}.small{font:400 12px "DM Sans","PingFang SC",sans-serif;fill:#637381}.strong{font:600 13px "DM Sans","PingFang SC",sans-serif;fill:#212B36}.button{font:600 13px "DM Sans","PingFang SC",sans-serif}.metric{font:700 24px "DM Sans","PingFang SC",sans-serif;fill:#212B36}.mono{font:500 12px "SFMono-Regular",Consolas,monospace;fill:#637381}.red{fill:#C7332F}.green{fill:#16875D}.blue{fill:#1877F2}.amber{fill:#A56600}.muted{fill:#637381}.white{fill:#FFFFFF}
+    </style>
+  </defs>
+  <rect width="1440" height="3260" fill="#F4F6F8"/>
+
+  <!-- shared header -->
+  <g transform="translate(56 34)">
+    <text class="title" x="0" y="28">行业分析</text>
+    <text class="small" x="0" y="52">轮动 · 周期强弱多维对比　ⓘ 行业字典：申万 L1 → 东财行业板块</text>
+    <rect x="1038" y="0" width="164" height="40" rx="8" fill="#FFFFFF" stroke="#DDE3EA"/><text class="small" x="1054" y="25">交易日期　20260807</text>
+    <rect x="1216" y="0" width="112" height="40" rx="8" fill="#FFFFFF" stroke="#AAB4C0"/><text class="button" x="1272" y="25" text-anchor="middle" fill="#212B36">↻　刷新</text>
+  </g>
+
+  <!-- primary tabs -->
+  <g transform="translate(56 108)" filter="url(#shadow)">
+    <rect width="1328" height="62" rx="14" fill="#FFFFFF"/>
+    <text class="button muted" x="28" y="35">◈　全景热力图</text><text class="button blue" x="166" y="35">⇄　行业轮动</text>
+    <rect x="162" y="56" width="94" height="3" rx="1.5" fill="#1877F2"/>
+    <text class="small" x="1300" y="35" text-anchor="end">默认进入行业轮动 · 切 Tab 保留共享日期</text>
+  </g>
+
+  <!-- period toolbar -->
+  <g transform="translate(56 194)" filter="url(#shadow)">
+    <rect width="1328" height="72" rx="14" fill="#FFFFFF"/>
+    <text class="small" x="24" y="42">研究周期</text>
+    <g transform="translate(110 18)">
+      <rect width="64" height="36" rx="8" fill="#FFFFFF" stroke="#DDE3EA"/><text class="button muted" x="32" y="23" text-anchor="middle">1W</text>
+      <rect x="64" width="64" height="36" fill="#EAF3FF" stroke="#1877F2"/><text class="button blue" x="96" y="23" text-anchor="middle">1M</text>
+      <rect x="128" width="64" height="36" fill="#FFFFFF" stroke="#DDE3EA"/><text class="button muted" x="160" y="23" text-anchor="middle">3M</text>
+      <rect x="192" width="64" height="36" fill="#FFFFFF" stroke="#DDE3EA"/><text class="button muted" x="224" y="23" text-anchor="middle">6M</text>
+      <rect x="256" width="64" height="36" rx="0 8 8 0" fill="#FFFFFF" stroke="#DDE3EA"/><text class="button muted" x="288" y="23" text-anchor="middle">1Y</text>
+    </g>
+    <rect x="760" y="16" width="544" height="40" rx="9" fill="#F7F9FB"/>
+    <text class="small" x="780" y="33">周期语义</text><text class="strong" x="780" y="50">收益/资金/热力图/详情使用周期；动量评分与估值截面不改指标定义</text>
+  </g>
+
+  <!-- overview cards -->
+  <g transform="translate(56 290)">
+    <g filter="url(#shadow)"><rect width="314" height="166" rx="16" fill="#FFFFFF"/><text class="small" x="22" y="32">行业涨跌比</text><text class="metric red" x="22" y="68">21</text><text class="h5" x="64" y="68">/</text><text class="metric green" x="82" y="68">9</text><rect x="22" y="88" width="270" height="9" rx="4.5" fill="#DDF1E8"/><rect x="22" y="88" width="189" height="9" rx="4.5" fill="#C7332F"/><text class="small" x="22" y="122">上涨 21 / 下跌 9</text><text class="small" x="22" y="144">共 30 个行业</text></g>
+    <g transform="translate(338 0)" filter="url(#shadow)"><rect width="314" height="166" rx="16" fill="#FFFFFF"/><text class="small" x="22" y="32">全行业平均涨跌幅</text><text class="metric red" x="22" y="72">+1.26%</text><text class="small" x="22" y="110">2026-08-07 · 1月区间</text><text class="small" x="22" y="142">总览卡当前不打开详情</text></g>
+    <g transform="translate(676 0)" filter="url(#shadow)"><rect width="314" height="166" rx="16" fill="#FFFFFF"/><text class="small" x="22" y="32">领涨行业 Top 3</text><text class="body" x="22" y="67">证券</text><text class="strong red" x="290" y="67" text-anchor="end">+8.42%</text><text class="body" x="22" y="99">半导体</text><text class="strong red" x="290" y="99" text-anchor="end">+6.18%</text><text class="body" x="22" y="131">通信</text><text class="strong red" x="290" y="131" text-anchor="end">+4.76%</text></g>
+    <g transform="translate(1014 0)" filter="url(#shadow)"><rect width="314" height="166" rx="16" fill="#FFFFFF"/><text class="small" x="22" y="32">领跌行业 Top 3</text><text class="body" x="22" y="67">煤炭</text><text class="strong green" x="290" y="67" text-anchor="end">-3.12%</text><text class="body" x="22" y="99">房地产</text><text class="strong green" x="290" y="99" text-anchor="end">-2.44%</text><text class="body" x="22" y="131">钢铁</text><text class="strong green" x="290" y="131" text-anchor="end">-1.89%</text></g>
+  </g>
+
+  <!-- four facets -->
+  <g transform="translate(56 482)" filter="url(#shadow)">
+    <rect width="1328" height="354" rx="16" fill="#FFFFFF"/>
+    <text class="h6" x="22" y="36">四维 Top 10</text><text class="small" x="1304" y="36" text-anchor="end">各行可点击打开同一行业详情 Drawer</text>
+    <line x1="332" y1="54" x2="332" y2="332" stroke="#E7EBF0"/><line x1="664" y1="54" x2="664" y2="332" stroke="#E7EBF0"/><line x1="996" y1="54" x2="996" y2="332" stroke="#E7EBF0"/>
+    <g transform="translate(22 64)"><text class="strong" x="0" y="18">动量 Top 10　ⓘ</text><text class="small" x="0" y="48">行业</text><text class="small" x="288" y="48" text-anchor="end">动量值</text><line x1="0" y1="58" x2="288" y2="58" stroke="#EEF1F4"/><text class="body" x="0" y="86">半导体</text><text class="strong" x="288" y="86" text-anchor="end">8.92</text><text class="body" x="0" y="118">证券</text><text class="strong" x="288" y="118" text-anchor="end">8.17</text><text class="body" x="0" y="150">通信</text><text class="strong" x="288" y="150" text-anchor="end">7.64</text><text class="body" x="0" y="182">军工</text><text class="strong" x="288" y="182" text-anchor="end">6.80</text><text class="body" x="0" y="214">汽车</text><text class="strong" x="288" y="214" text-anchor="end">5.92</text><text class="small" x="0" y="254">… 共 10 行</text></g>
+    <g transform="translate(354 64)"><text class="strong" x="0" y="18">收益 Top 10　ⓘ</text><text class="small" x="0" y="48">行业</text><text class="small" x="288" y="48" text-anchor="end">累计收益</text><line x1="0" y1="58" x2="288" y2="58" stroke="#EEF1F4"/><text class="body" x="0" y="86">证券</text><text class="strong red" x="288" y="86" text-anchor="end">+8.42%</text><text class="body" x="0" y="118">半导体</text><text class="strong red" x="288" y="118" text-anchor="end">+6.18%</text><text class="body" x="0" y="150">通信</text><text class="strong red" x="288" y="150" text-anchor="end">+4.76%</text><text class="body" x="0" y="182">煤炭</text><text class="strong green" x="288" y="182" text-anchor="end">-3.12%</text><text class="body" x="0" y="214">房地产</text><text class="strong green" x="288" y="214" text-anchor="end">-2.44%</text><text class="small" x="0" y="254">… 共 10 行</text></g>
+    <g transform="translate(686 64)"><text class="strong" x="0" y="18">资金 Top 10　ⓘ</text><text class="small" x="0" y="48">行业</text><text class="small" x="288" y="48" text-anchor="end">区间净流入</text><line x1="0" y1="58" x2="288" y2="58" stroke="#EEF1F4"/><text class="body" x="0" y="86">半导体</text><text class="strong red" x="288" y="86" text-anchor="end">+186.4亿</text><text class="body" x="0" y="118">证券</text><text class="strong red" x="288" y="118" text-anchor="end">+152.1亿</text><text class="body" x="0" y="150">通信</text><text class="strong red" x="288" y="150" text-anchor="end">+94.8亿</text><text class="body" x="0" y="182">煤炭</text><text class="strong green" x="288" y="182" text-anchor="end">-82.6亿</text><text class="body" x="0" y="214">钢铁</text><text class="strong green" x="288" y="214" text-anchor="end">-61.7亿</text><text class="small" x="0" y="254">… 共 10 行</text></g>
+    <g transform="translate(1018 64)"><text class="strong" x="0" y="18">估值低位 Top 10　ⓘ</text><text class="small" x="0" y="48">行业</text><text class="small" x="288" y="48" text-anchor="end">PE 1年分位</text><line x1="0" y1="58" x2="288" y2="58" stroke="#EEF1F4"/><text class="body" x="0" y="86">银行</text><text class="strong green" x="288" y="86" text-anchor="end">12.4%</text><text class="body" x="0" y="118">煤炭</text><text class="strong green" x="288" y="118" text-anchor="end">18.7%</text><text class="body" x="0" y="150">建筑材料</text><text class="strong green" x="288" y="150" text-anchor="end">22.1%</text><text class="body" x="0" y="182">交通运输</text><text class="strong green" x="288" y="182" text-anchor="end">26.8%</text><text class="body" x="0" y="214">公用事业</text><text class="strong green" x="288" y="214" text-anchor="end">29.3%</text><text class="small" x="0" y="254">… 共 10 行</text></g>
+  </g>
+
+  <!-- rotation heatmap -->
+  <g transform="translate(56 862)" filter="url(#shadow)">
+    <rect width="1328" height="422" rx="16" fill="#FFFFFF"/>
+    <text class="h6" x="22" y="36">行业热力图</text>
+    <rect x="1126" y="16" width="88" height="36" rx="8" fill="#EAF3FF" stroke="#1877F2"/><text class="button blue" x="1170" y="39" text-anchor="middle">涨跌幅</text><rect x="1214" y="16" width="90" height="36" rx="8" fill="#FFFFFF" stroke="#DDE3EA"/><text class="button muted" x="1259" y="39" text-anchor="middle">净流入</text>
+    <g transform="translate(22 68)" stroke="#FFFFFF" stroke-width="3">
+      <rect width="356" height="150" fill="#C7332F"/><rect x="356" width="266" height="150" fill="#D64B46"/><rect x="622" width="236" height="150" fill="#E46F66"/><rect x="858" width="200" height="150" fill="#919EAB"/><rect x="1058" width="226" height="150" fill="#16875D"/>
+      <rect y="150" width="236" height="160" fill="#087443"/><rect x="236" y="150" width="310" height="160" fill="#37A477"/><rect x="546" y="150" width="272" height="160" fill="#C7332F"/><rect x="818" y="150" width="246" height="160" fill="#D64B46"/><rect x="1064" y="150" width="220" height="160" fill="#16875D"/>
+      <text class="h6 white" x="20" y="34">证券</text><text class="body white" x="20" y="58">+8.42%</text><text class="h6 white" x="376" y="34">半导体</text><text class="body white" x="376" y="58">+6.18%</text><text class="h6 white" x="642" y="34">通信</text><text class="body white" x="642" y="58">+4.76%</text><text class="h6 white" x="878" y="34">银行</text><text class="body white" x="878" y="58">+0.18%</text><text class="h6 white" x="1078" y="34">煤炭</text><text class="body white" x="1078" y="58">-3.12%</text>
+      <text class="h6 white" x="20" y="184">房地产</text><text class="body white" x="20" y="208">-2.44%</text><text class="h6 white" x="256" y="184">钢铁</text><text class="body white" x="256" y="208">-1.89%</text><text class="h6 white" x="566" y="184">军工</text><text class="body white" x="566" y="208">+3.22%</text><text class="h6 white" x="838" y="184">汽车</text><text class="body white" x="838" y="208">+2.11%</text><text class="h6 white" x="1084" y="184">建筑材料</text><text class="body white" x="1084" y="208">-1.35%</text>
+    </g>
+    <text class="small" x="22" y="402">节点点击打开详情 · Tooltip 同时展示涨跌幅与区间净流入 · 辅助资金失败时保留涨跌模式</text>
+  </g>
+
+  <!-- momentum -->
+  <g transform="translate(56 1310)" filter="url(#shadow)">
+    <rect width="640" height="398" rx="16" fill="#FFFFFF"/>
+    <text class="h6" x="22" y="36">行业动量排名</text>
+    <rect x="512" y="16" width="104" height="36" rx="8" fill="#FFFFFF" stroke="#DDE3EA"/><text class="button" x="564" y="39" text-anchor="middle" fill="#212B36">Top 15　⌄</text>
+    <line x1="158" y1="74" x2="158" y2="360" stroke="#E7EBF0"/>
+    <g><text class="small" x="22" y="96">半导体</text><rect x="158" y="82" width="388" height="18" rx="5" fill="#C7332F"/><text class="strong" x="560" y="97">8.92%</text><text class="small" x="22" y="136">证券</text><rect x="158" y="122" width="356" height="18" rx="5" fill="#C7332F"/><text class="strong" x="528" y="137">8.17%</text><text class="small" x="22" y="176">通信</text><rect x="158" y="162" width="324" height="18" rx="5" fill="#D64B46"/><text class="strong" x="496" y="177">7.64%</text><text class="small" x="22" y="216">军工</text><rect x="158" y="202" width="276" height="18" rx="5" fill="#D64B46"/><text class="strong" x="448" y="217">6.80%</text><text class="small" x="22" y="256">煤炭</text><rect x="98" y="242" width="60" height="18" rx="5" fill="#16875D"/><text class="strong white" x="128" y="257" text-anchor="middle">-1.46%</text><text class="small" x="22" y="296">房地产</text><rect x="64" y="282" width="94" height="18" rx="5" fill="#087443"/><text class="strong white" x="111" y="297" text-anchor="middle">-2.12%</text></g>
+    <text class="small" x="22" y="376">柱点击打开详情 · 负值绿色 / 非负红色 · Tooltip 显示动量与排名</text>
+  </g>
+
+  <!-- return comparison -->
+  <g transform="translate(720 1310)" filter="url(#shadow)">
+    <rect width="664" height="398" rx="16" fill="#FFFFFF"/>
+    <text class="h6" x="22" y="36">行业收益对比</text><text class="small" x="640" y="36" text-anchor="end">最多选 8 个行业</text>
+    <rect x="22" y="58" width="620" height="42" rx="8" fill="#FFFFFF" stroke="#DDE3EA"/>
+    <rect x="34" y="67" width="84" height="24" rx="12" fill="#EAF3FF"/><text class="small blue" x="76" y="83" text-anchor="middle">半导体 ×</text><rect x="126" y="67" width="72" height="24" rx="12" fill="#EAF3FF"/><text class="small blue" x="162" y="83" text-anchor="middle">证券 ×</text><text class="small" x="214" y="83">搜索或输入行业…</text>
+    <line x1="70" y1="322" x2="628" y2="322" stroke="#919EAB"/><line x1="70" y1="130" x2="70" y2="322" stroke="#E7EBF0"/>
+    <g><rect x="126" y="164" width="42" height="158" fill="#1877F2"/><rect x="174" y="204" width="42" height="118" fill="#F6A700"/><rect x="314" y="184" width="42" height="138" fill="#1877F2"/><rect x="362" y="222" width="42" height="100" fill="#F6A700"/><rect x="502" y="272" width="42" height="50" fill="#1877F2"/><rect x="550" y="248" width="42" height="74" fill="#F6A700"/></g>
+    <text class="small" x="170" y="346" text-anchor="middle">半导体</text><text class="small" x="358" y="346" text-anchor="middle">证券</text><text class="small" x="548" y="346" text-anchor="middle">煤炭</text>
+    <circle cx="24" cy="120" r="5" fill="#1877F2"/><text class="small" x="36" y="124">1月</text><circle cx="90" cy="120" r="5" fill="#F6A700"/><text class="small" x="102" y="124">对比系列</text>
+    <text class="small" x="22" y="378">不选默认前15 · freeSolo · 当前柱不打开详情</text>
+  </g>
+
+  <!-- flow -->
+  <g transform="translate(56 1734)" filter="url(#shadow)">
+    <rect width="1328" height="356" rx="16" fill="#FFFFFF"/>
+    <text class="h6" x="22" y="36">行业资金净流入</text><text class="small" x="1304" y="36" text-anchor="end">Top 20 · 单位：亿元 · 柱点击打开详情</text>
+    <line x1="620" y1="64" x2="620" y2="320" stroke="#919EAB"/>
+    <g><text class="small" x="22" y="86">半导体</text><rect x="620" y="72" width="542" height="18" rx="5" fill="#C7332F"/><text class="strong red" x="1178" y="87">+186.4亿</text><text class="small" x="22" y="126">证券</text><rect x="620" y="112" width="442" height="18" rx="5" fill="#D64B46"/><text class="strong red" x="1078" y="127">+152.1亿</text><text class="small" x="22" y="166">通信</text><rect x="620" y="152" width="276" height="18" rx="5" fill="#E46F66"/><text class="strong red" x="912" y="167">+94.8亿</text><text class="small" x="22" y="206">银行</text><rect x="620" y="192" width="152" height="18" rx="5" fill="#E46F66"/><text class="strong red" x="788" y="207">+51.9亿</text><text class="small" x="22" y="246">钢铁</text><rect x="442" y="232" width="178" height="18" rx="5" fill="#37A477"/><text class="strong green" x="426" y="247" text-anchor="end">-61.7亿</text><text class="small" x="22" y="286">煤炭</text><rect x="382" y="272" width="238" height="18" rx="5" fill="#16875D"/><text class="strong green" x="366" y="287" text-anchor="end">-82.6亿</text></g>
+    <text class="small" x="620" y="336" text-anchor="middle">0</text>
+  </g>
+
+  <!-- valuation -->
+  <g transform="translate(56 2116)" filter="url(#shadow)">
+    <rect width="1328" height="438" rx="16" fill="#FFFFFF"/>
+    <text class="h6" x="22" y="34">行业估值分位</text><text class="small" x="22" y="54">估值数据截至 2026-08-07</text>
+    <rect x="1124" y="16" width="86" height="36" rx="8" fill="#EAF3FF"/><text class="button blue" x="1167" y="39" text-anchor="middle">PE 分位</text><rect x="1210" y="16" width="94" height="36" rx="8" fill="#FFFFFF" stroke="#DDE3EA"/><text class="button muted" x="1257" y="39" text-anchor="middle">PB 分位</text>
+    <g transform="translate(22 76)"><circle cx="6" cy="0" r="6" fill="#16875D"/><text class="small" x="18" y="4">低估 0~30%</text><circle cx="132" cy="0" r="6" fill="#F6A700"/><text class="small" x="144" y="4">中性 30~70%</text><circle cx="274" cy="0" r="6" fill="#C7332F"/><text class="small" x="286" y="4">高估 70~100%</text></g>
+    <line x1="224" y1="112" x2="224" y2="390" stroke="#E7EBF0"/><line x1="488" y1="112" x2="488" y2="390" stroke="#E7EBF0"/><line x1="752" y1="112" x2="752" y2="390" stroke="#E7EBF0"/><line x1="1016" y1="112" x2="1016" y2="390" stroke="#E7EBF0"/><line x1="1280" y1="112" x2="1280" y2="390" stroke="#E7EBF0"/>
+    <g><text class="small" x="22" y="136">银行</text><rect x="224" y="122" width="130" height="18" rx="5" fill="#16875D"/><text class="strong green" x="370" y="137">12.4%</text><text class="small" x="22" y="180">煤炭</text><rect x="224" y="166" width="197" height="18" rx="5" fill="#16875D"/><text class="strong green" x="437" y="181">18.7%</text><text class="small" x="22" y="224">建筑材料</text><rect x="224" y="210" width="232" height="18" rx="5" fill="#16875D"/><text class="strong green" x="472" y="225">22.1%</text><text class="small" x="22" y="268">半导体</text><rect x="224" y="254" width="622" height="18" rx="5" fill="#F6A700"/><text class="strong amber" x="862" y="269">58.9%</text><text class="small" x="22" y="312">食品饮料</text><rect x="224" y="298" width="826" height="18" rx="5" fill="#C7332F"/><text class="strong red" x="1066" y="313">78.2%</text><text class="small" x="22" y="356">计算机</text><rect x="224" y="342" width="930" height="18" rx="5" fill="#C7332F"/><text class="strong red" x="1170" y="357">88.1%</text></g>
+    <text class="small" x="22" y="412">滚动查看全部行业 · 柱点击打开详情 · Tooltip 展示当前值、1年/3年分位和估值层级</text>
+  </g>
+
+  <!-- detail drawer state -->
+  <text class="h5" x="56" y="2604">行业详情 Drawer 状态</text><text class="small" x="246" y="2604">从现有可点击排行或图表进入；收益对比与总览不新增点击</text>
+  <g transform="translate(56 2628)" filter="url(#shadow)">
+    <rect width="1328" height="576" rx="16" fill="#E9EDF2"/>
+    <g opacity="0.42"><rect x="24" y="24" width="632" height="86" rx="12" fill="#FFFFFF"/><rect x="24" y="130" width="632" height="392" rx="12" fill="#FFFFFF"/><text class="h6" x="46" y="58">底层行业轮动页面</text><text class="small" x="46" y="82">Drawer 打开后保持上下文；切周期时 Drawer 不关闭</text></g>
+    <g transform="translate(670 0)">
+      <rect width="658" height="576" rx="0 16 16 0" fill="#FFFFFF"/>
+      <text class="h5" x="24" y="38">半导体</text><text class="h5 red" x="126" y="38">+2.84%</text><text class="small" x="630" y="38" text-anchor="end">× 关闭</text>
+      <line x1="0" y1="58" x2="658" y2="58" stroke="#E7EBF0"/>
+      <g transform="translate(22 76)"><rect width="190" height="66" rx="10" fill="#F7F9FB"/><text class="small" x="14" y="23">涨跌幅</text><text class="strong red" x="14" y="47">+2.84%</text><rect x="202" width="190" height="66" rx="10" fill="#F7F9FB"/><text class="small" x="216" y="23">最新点位</text><text class="strong" x="216" y="47">1,482.36</text><rect x="404" width="190" height="66" rx="10" fill="#F7F9FB"/><text class="small" x="418" y="23">净流入</text><text class="strong red" x="418" y="47">18.60亿</text>
+        <rect y="78" width="190" height="66" rx="10" fill="#F7F9FB"/><text class="small" x="14" y="101">区间收益</text><text class="strong red" x="14" y="125">+6.18%</text><rect x="202" y="78" width="190" height="66" rx="10" fill="#F7F9FB"/><text class="small" x="216" y="101">PE 分位</text><text class="strong" x="216" y="125">58.9%　中性</text><rect x="404" y="78" width="190" height="66" rx="10" fill="#F7F9FB"/><text class="small" x="418" y="101">PB 分位</text><text class="strong" x="418" y="125">64.2%　中性</text></g>
+      <g transform="translate(22 240)"><text class="button muted" x="0" y="22">收益走势</text><text class="button muted" x="86" y="22">资金流向</text><text class="button blue" x="172" y="22">成分股</text><text class="button muted" x="244" y="22">板块行情</text><rect x="168" y="34" width="54" height="3" rx="1.5" fill="#1877F2"/><line x1="0" y1="46" x2="612" y2="46" stroke="#E7EBF0"/>
+        <text class="small" x="0" y="70">名称 / 代码</text><text class="small" x="266" y="70">涨跌幅</text><text class="small" x="368" y="70">PE_TTM</text><text class="small" x="454" y="70">PB</text><text class="small" x="612" y="70" text-anchor="end">总市值</text>
+        <text class="body" x="0" y="104">中芯国际　688981.SH</text><text class="strong red" x="266" y="104">+6.42%</text><text class="body" x="368" y="104">52.18</text><text class="body" x="454" y="104">3.92</text><text class="body" x="612" y="104" text-anchor="end">4,682亿　→</text><line x1="0" y1="120" x2="612" y2="120" stroke="#EEF1F4"/>
+        <text class="body" x="0" y="148">北方华创　002371.SZ</text><text class="strong red" x="266" y="148">+4.18%</text><text class="body" x="368" y="148">48.26</text><text class="body" x="454" y="148">7.18</text><text class="body" x="612" y="148" text-anchor="end">2,106亿　→</text><line x1="0" y1="164" x2="612" y2="164" stroke="#EEF1F4"/>
+        <text class="body" x="0" y="192">海光信息　688041.SH</text><text class="strong red" x="266" y="192">+3.37%</text><text class="body" x="368" y="192">61.44</text><text class="body" x="454" y="192">9.06</text><text class="body" x="612" y="192" text-anchor="end">3,254亿　→</text>
+      </g>
+      <rect x="22" y="474" width="612" height="72" rx="10" fill="#F7F9FB"/>
+      <text class="small" x="38" y="498">4 个现有子页均保留</text><text class="strong" x="38" y="522">收益走势 · 资金流向 · 成分股 · 板块行情</text><text class="small" x="38" y="540">成分股行继续进入 /stock/detail?code=…</text>
+    </g>
+  </g>
+  <text class="small" x="56" y="3240">状态规范：Skeleton / 卡内错误 / 暂无数据独立呈现；不创造 Partial、Stale 或 dataThrough。</text>
+</svg>

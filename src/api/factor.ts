@@ -769,14 +769,15 @@ export type AdminPrecomputeRequest = {
 };
 
 export type AdminPrecomputeResponse = {
-  jobId: string;
-  status: string;
-  factorCount: number;
-  /** 预计耗时 ms（BE-9） */
-  expectedDurationMs?: number;
-  /** 当前队列位置（BE-9） */
-  queuePosition?: number;
-  message: string;
+  tradeDate: string;
+  factorsProcessed: number;
+  factorsFailed: number;
+  totalRows: number;
+  elapsedMs: number;
+  /** 兼容旧面板；管理 v3 不消费异步任务字段。 */
+  jobId?: string;
+  status?: string;
+  message?: string;
 };
 
 export type AdminBackfillRequest = {
@@ -788,9 +789,16 @@ export type AdminBackfillRequest = {
 };
 
 export type AdminBackfillResponse = {
-  jobId: string;
-  status: string;
-  message: string;
+  startDate: string;
+  endDate: string;
+  datesProcessed: number;
+  datesSkipped: number;
+  totalRows: number;
+  elapsedMs: number;
+  /** 兼容旧面板；管理 v3 不消费异步任务字段。 */
+  jobId?: string;
+  status?: string;
+  message?: string;
 };
 
 /** BE-5 扩展：状态表 item 增加运维字段 */
@@ -815,43 +823,32 @@ export type PrecomputeStatusItem = {
 
 export type AdminPrecomputeStatusResponse = {
   items: PrecomputeStatusItem[];
+  targetTradeDate: string | null;
 };
 
-// ─── Admin Job 类型（BE-1/BE-2/BE-3/BE-4） ───────────────────
+// ─── Admin 日期批次类型 ─────────────────────────────────────
 
 export type AdminJobType = 'PRECOMPUTE' | 'BACKFILL';
 
 export type AdminJobStatus = 'PENDING' | 'RUNNING' | 'SUCCESS' | 'FAILED' | 'PARTIAL' | 'CANCELLED';
 
-export type AdminJobProgress = {
-  done: number;
-  total: number;
-};
+export type AdminBatchStatus = 'HEALTHY' | 'STALE' | 'OLD';
 
 export type AdminJobItem = {
   jobId: string;
-  type: AdminJobType;
-  /** 预计算目标交易日（PRECOMPUTE 时有） */
-  tradeDate?: string | null;
-  /** 回补区间起（BACKFILL 时有） */
-  startDate?: string | null;
-  endDate?: string | null;
+  tradeDate: string;
+  type: 'FACTOR_PRECOMPUTE';
   factorCount: number;
-  progress: AdminJobProgress;
-  status: AdminJobStatus;
-  /** 总耗时 ms */
-  durationMs?: number | null;
+  totalStocks: number;
+  missingStocks: number;
+  coverageRate: number;
+  status: AdminBatchStatus;
   operator: string;
-  createdAt: string;
-  completedAt?: string | null;
+  createdAt: string | null;
+  latestSyncedAt: string | null;
 };
 
 export type AdminJobListRequest = {
-  type?: AdminJobType;
-  status?: AdminJobStatus;
-  startDate?: string;
-  endDate?: string;
-  operatorId?: string;
   page: number;
   pageSize: number;
 };
@@ -863,31 +860,20 @@ export type AdminJobListResponse = {
   pageSize: number;
 };
 
-export type AdminJobSubItem = {
+export type AdminJobDetailItem = {
   factorName: string;
-  status: AdminJobStatus;
-  rowCount?: number | null;
-  errorMessage?: string | null;
-  durationMs?: number | null;
+  totalStocks: number;
+  missingStocks: number;
+  coverageRate: number;
+  syncedAt: string | null;
+  status: 'OK' | 'LOW_COVERAGE' | 'FAILED';
 };
 
-export type AdminJobDetailResponse = AdminJobItem & {
-  /** 原始请求参数 JSON */
-  params?: Record<string, unknown>;
-  subItems?: AdminJobSubItem[];
-  logs?: string | null;
+export type AdminJobDetailResponse = {
+  tradeDate: string;
+  factorCount: number;
+  items: AdminJobDetailItem[];
 };
-
-export type AdminJobCancelRequest = { jobId: string };
-export type AdminJobCancelResponse = { success: boolean; message: string };
-
-export type AdminJobRetryRequest = { jobId: string; onlyFailed?: boolean };
-export type AdminJobRetryResponse = { jobId: string };
-
-// ─── Admin Toggle 类型（BE-6） ───────────────────────────────
-
-export type AdminToggleRequest = { factorNames: string[]; isEnabled: boolean };
-export type AdminToggleResponse = { success: boolean };
 
 // ─── Admin Audit 类型（BE-7） ────────────────────────────────
 
@@ -926,14 +912,8 @@ export type AdminAuditResponse = {
 // ─── Admin Schedule 类型（BE-8） ─────────────────────────────
 
 export type AdminScheduleResponse = {
-  cron: string;
-  enabled: boolean;
-  lastTriggeredAt: string | null;
-  nextTriggerAt: string | null;
-  lastJobId: string | null;
-  healthy: boolean;
-  timezone?: string | null;
-  lastError?: string | null;
+  items: never[];
+  total: number;
 };
 
 // ─── 自定义因子 API ───────────────────────────────────────────
@@ -988,43 +968,40 @@ export function adminBackfill(dto: AdminBackfillRequest) {
   return apiClient.post<AdminBackfillResponse>('/api/factor/admin/backfill', dto);
 }
 
-/**
- * FIX-023: BE 当前返回 `{ byFactor: [{factorName, latestDate, totalDates}] }` 而非 FE 期望的
- * `{ items: PrecomputeStatusItem[] }`。此处做兼容适配：
- * - 若返回 items → 直接透传
- * - 若返回 byFactor → 按 latestDate 与今天的差值推导 status；
- *   缺少 latestDate → NEVER；≤5 日 → UP_TO_DATE；≤30 日 → STALE；否则 NEVER。
- */
 export async function adminPrecomputeStatus(): Promise<AdminPrecomputeStatusResponse> {
   const raw = await apiClient.post<unknown>('/api/factor/admin/precompute/status', {});
   const obj = (raw ?? {}) as Record<string, unknown>;
+  const targetTradeDate =
+    typeof obj.latestTradeDate === 'string' && /^\d{8}$/.test(obj.latestTradeDate)
+      ? obj.latestTradeDate
+      : null;
   if (Array.isArray(obj.items)) {
-    return { items: obj.items as PrecomputeStatusItem[] };
+    return { items: obj.items as PrecomputeStatusItem[], targetTradeDate };
   }
   const byFactor = Array.isArray(obj.byFactor)
     ? (obj.byFactor as Array<Record<string, unknown>>)
     : [];
-  const today = new Date();
-  const todayMs = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
   const items: PrecomputeStatusItem[] = byFactor.map((row) => {
     const factorName = String(row.factorName ?? '');
-    const latestDate = (row.latestDate ?? null) as string | null;
+    const latestDate =
+      typeof row.latestDate === 'string' && /^\d{8}$/.test(row.latestDate)
+        ? row.latestDate
+        : null;
     const totalDates = Number(row.totalDates ?? 0);
-    let status = 'NEVER';
-    let staleDays: number | null = null;
-    if (latestDate && /^\d{8}$/.test(latestDate)) {
-      const y = Number(latestDate.slice(0, 4));
-      const m = Number(latestDate.slice(4, 6)) - 1;
-      const d = Number(latestDate.slice(6, 8));
-      const latestMs = Date.UTC(y, m, d);
-      staleDays = Math.max(0, Math.floor((todayMs - latestMs) / 86400000));
-      if (staleDays <= 5) status = 'UP_TO_DATE';
-      else if (staleDays <= 30) status = 'STALE';
-      else status = 'NEVER';
-    }
+    const rawStaleDays = row.staleDays == null ? Number.NaN : Number(row.staleDays);
+    const staleDays = Number.isFinite(rawStaleDays) && rawStaleDays >= 0 ? rawStaleDays : null;
+    const status = !latestDate
+      ? 'NEVER'
+      : staleDays != null
+        ? staleDays <= 5
+          ? 'UP_TO_DATE'
+          : 'STALE'
+        : latestDate === targetTradeDate
+          ? 'UP_TO_DATE'
+          : 'STALE';
     return {
       factorName,
-      factorLabel: factorName,
+      factorLabel: String(row.factorLabel ?? factorName),
       lastComputeDate: latestDate,
       rowCount: totalDates,
       status,
@@ -1034,51 +1011,15 @@ export async function adminPrecomputeStatus(): Promise<AdminPrecomputeStatusResp
       failureReason: null,
     };
   });
-  return { items };
+  return { items, targetTradeDate };
 }
 
-/**
- * BE-1：任务列表
- * FIX-024: 当前 BE 返回的是覆盖度概览数据（无 jobId/operator/progress 等必需字段），
- * 与 FE AdminJobItem 契约不兼容。此处做防御性过滤，剔除缺少 jobId 的行，避免渲染崩溃；
- * 待 BE-1 正式上线后可移除该过滤。
- */
-export async function adminJobList(dto: AdminJobListRequest): Promise<AdminJobListResponse> {
-  const raw = await apiClient.post<unknown>('/api/factor/admin/jobs', dto);
-  const obj = (raw ?? {}) as Record<string, unknown>;
-  const rawItems = Array.isArray(obj.items) ? (obj.items as Array<Record<string, unknown>>) : [];
-  const items = rawItems
-    .filter((row) => typeof row.jobId === 'string' && row.jobId.length > 0)
-    .map((row) => ({
-      ...(row as unknown as AdminJobItem),
-      progress: (row.progress ?? { done: 0, total: 0 }) as AdminJobProgress,
-    }));
-  return {
-    items,
-    total: typeof obj.total === 'number' ? obj.total : items.length,
-    page: typeof obj.page === 'number' ? obj.page : dto.page,
-    pageSize: typeof obj.pageSize === 'number' ? obj.pageSize : dto.pageSize,
-  };
+export function adminJobList(dto: AdminJobListRequest) {
+  return apiClient.post<AdminJobListResponse>('/api/factor/admin/jobs', dto);
 }
 
-/** BE-2：任务详情 */
-export function adminJobDetail(dto: { jobId: string }) {
+export function adminJobDetail(dto: { tradeDate: string }) {
   return apiClient.post<AdminJobDetailResponse>('/api/factor/admin/jobs/detail', dto);
-}
-
-/** BE-3：取消任务 */
-export function adminJobCancel(dto: AdminJobCancelRequest) {
-  return apiClient.post<AdminJobCancelResponse>('/api/factor/admin/jobs/cancel', dto);
-}
-
-/** BE-4：重试任务 */
-export function adminJobRetry(dto: AdminJobRetryRequest) {
-  return apiClient.post<AdminJobRetryResponse>('/api/factor/admin/jobs/retry', dto);
-}
-
-/** BE-6：启用/禁用因子 */
-export function adminToggleFactor(dto: AdminToggleRequest) {
-  return apiClient.post<AdminToggleResponse>('/api/factor/admin/toggle', dto);
 }
 
 /** BE-7：审计日志 */

@@ -2,7 +2,7 @@ import type { Dayjs } from 'dayjs';
 import type { SectorFlowItem, MainFlowRankingItem } from 'src/api/market';
 import type { HeatmapItem, HeatmapDistribution, HeatmapSectorSummary } from 'src/api/heatmap';
 
-import { useMemo, useState, useEffect, useCallback } from 'react';
+import { useRef, useMemo, useState, useEffect, useCallback } from 'react';
 
 import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
@@ -92,6 +92,11 @@ export function MarketHeatmapView({
   // ── 行业详情弹窗 ─────────────────────────────
   const [detailSector, setDetailSector] = useState<SectorFlowItem | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
+  const [detailItems, setDetailItems] = useState<HeatmapItem[]>([]);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [detailError, setDetailError] = useState('');
+  const detailRequestRef = useRef(0);
+  const heatmapCacheRef = useRef(new Map<string, HeatmapItem[]>());
 
   // ── 衍生数据 ─────────────────────────────────
   const sectors: HeatmapSectorSummary[] = useMemo(() => aggregateSectors(items), [items]);
@@ -160,6 +165,14 @@ export function MarketHeatmapView({
     setLoading(true);
     setError('');
 
+    const cacheKey = `${tradeDateStr ?? 'latest'}:${cfg.groupBy}:${cfg.indexCode ?? ''}`;
+    const cachedItems = heatmapCacheRef.current.get(cacheKey);
+    if (cachedItems) {
+      setItems(cachedItems);
+      setLoading(false);
+      return undefined;
+    }
+
     fetchHeatmapData({
       trade_date: tradeDateStr,
       group_by: cfg.groupBy,
@@ -168,7 +181,10 @@ export function MarketHeatmapView({
       include_mapping: true,
     })
       .then((result) => {
-        if (!cancelled) setItems(result);
+        if (!cancelled) {
+          heatmapCacheRef.current.set(cacheKey, result);
+          setItems(result);
+        }
       })
       .catch(() => {
         if (!cancelled) setError('热力图数据加载失败');
@@ -247,10 +263,51 @@ export function MarketHeatmapView({
     if (v) setSizeBy(v);
   }, []);
 
-  const handleSectorClick = useCallback((sector: SectorFlowItem) => {
-    setDetailSector(sector);
-    setDetailOpen(true);
-  }, []);
+  const handleSectorClick = useCallback(
+    (sector: SectorFlowItem) => {
+      const requestId = detailRequestRef.current + 1;
+      detailRequestRef.current = requestId;
+      setDetailSector(sector);
+      setDetailOpen(true);
+      setDetailItems([]);
+      setDetailError('');
+
+      if (contentType !== 'INDUSTRY') {
+        setDetailLoading(false);
+        setDetailError('当前板块类型暂无个股明细');
+        return;
+      }
+
+      const cacheKey = `${tradeDateStr ?? 'latest'}:industry:`;
+      const cachedItems = heatmapCacheRef.current.get(cacheKey);
+      if (cachedItems) {
+        setDetailItems(cachedItems);
+        setDetailLoading(false);
+        return;
+      }
+
+      setDetailLoading(true);
+      fetchHeatmapData({
+        trade_date: tradeDateStr,
+        group_by: 'industry',
+        industry_source: 'sw_l1',
+        include_mapping: true,
+      })
+        .then((result) => {
+          heatmapCacheRef.current.set(cacheKey, result);
+          if (detailRequestRef.current === requestId) setDetailItems(result);
+        })
+        .catch((err: unknown) => {
+          if (detailRequestRef.current === requestId) {
+            setDetailError(err instanceof Error ? err.message : '行业个股明细加载失败');
+          }
+        })
+        .finally(() => {
+          if (detailRequestRef.current === requestId) setDetailLoading(false);
+        });
+    },
+    [contentType, tradeDateStr]
+  );
 
   const handleSwitchToRotation = useCallback(
     (item: HeatmapItem) => {
@@ -265,8 +322,10 @@ export function MarketHeatmapView({
   // ── 弹窗数据：按行业筛选个股 ─────────────────
   const detailStocks = useMemo(
     () =>
-      detailSector ? items.filter((s) => (s.groupName ?? s.industry) === detailSector.name) : [],
-    [items, detailSector]
+      detailSector
+        ? detailItems.filter((s) => (s.groupName ?? s.industry) === detailSector.name)
+        : [],
+    [detailItems, detailSector]
   );
 
   const detailStockFlows = useMemo(
@@ -278,9 +337,9 @@ export function MarketHeatmapView({
   const detailHeatmapItem = useMemo(
     () =>
       detailSector
-        ? (items.find((s) => (s.groupName ?? s.industry) === detailSector.name) ?? null)
+        ? (detailItems.find((s) => (s.groupName ?? s.industry) === detailSector.name) ?? null)
         : null,
-    [items, detailSector]
+    [detailItems, detailSector]
   );
 
   // ── 工具栏 ───────────────────────────────────
@@ -415,6 +474,8 @@ export function MarketHeatmapView({
       stocks={detailStocks}
       stockFlows={detailStockFlows}
       heatmapItem={detailHeatmapItem}
+      loading={detailLoading}
+      error={detailError}
       onSwitchToRotation={onSectorSelected ? handleSwitchToRotation : undefined}
     />
   );

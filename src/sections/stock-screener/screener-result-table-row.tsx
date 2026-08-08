@@ -1,5 +1,7 @@
 import type { StockScreenerItem } from 'src/api/screener';
 
+import { varAlpha } from 'minimal-shared/utils';
+
 import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
 import TableRow from '@mui/material/TableRow';
@@ -61,7 +63,7 @@ export function ScreenerResultTableRow({ row, visibleColumns }: ScreenerResultTa
     (row.pctChg ?? 0) > 0 ? 'error' : (row.pctChg ?? 0) < 0 ? 'success' : 'default';
 
   return (
-    <TableRow hover sx={{ cursor: 'pointer' }}>
+    <TableRow hover sx={{ cursor: 'default' }}>
       {/* 名称/代码 — 固定列 */}
       <TableCell
         sx={{
@@ -69,7 +71,8 @@ export function ScreenerResultTableRow({ row, visibleColumns }: ScreenerResultTa
           left: 0,
           zIndex: 1,
           bgcolor: 'background.paper',
-          boxShadow: '2px 0 6px -2px rgba(0,0,0,0.12)',
+          boxShadow: (theme) =>
+            `2px 0 6px -2px ${varAlpha(theme.vars.palette.grey['500Channel'], 0.12)}`,
         }}
       >
         <Typography

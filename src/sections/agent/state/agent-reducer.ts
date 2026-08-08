@@ -840,6 +840,13 @@ export function agentReducer(state: AgentState, action: AgentAction): AgentState
             patch.estimatedInputTokens = trace.estimatedInputTokens;
             patch.maxOutputTokens = trace.maxOutputTokens;
             patch.contextWindow = trace.contextWindow;
+            patch.inputTokenCountSource = trace.inputTokenCountSource;
+            patch.inputTokenCountExact = trace.inputTokenCountExact;
+            patch.inputTokenSafetyMarginTokens = trace.inputTokenSafetyMarginTokens;
+            patch.runInputReservationTokens = trace.runInputReservationTokens;
+            patch.runMaxCumulativeInputTokens = trace.runMaxCumulativeInputTokens;
+            patch.runInputTokensUsedBeforeCall = trace.runInputTokensUsedBeforeCall;
+            patch.runInputGuardrailSource = trace.runInputGuardrailSource;
           }
           if (trace.phase === 'FIRST_PROVIDER_CHUNK') patch.firstChunkType = trace.chunkType;
           if (trace.phase === 'PROVIDER_COMPLETED') patch.finishReason = trace.finishReason;

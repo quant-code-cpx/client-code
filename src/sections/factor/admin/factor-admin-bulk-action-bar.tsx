@@ -15,7 +15,6 @@ type Props = {
   selected: PrecomputeStatusItem[];
   onPrecompute: (names: string[]) => void;
   onBackfill: (names: string[]) => void;
-  onToggleEnable: (names: string[], enable: boolean) => void;
   onCopyNames: (names: string[]) => void;
   onClearSelection: () => void;
 };
@@ -24,7 +23,6 @@ export function FactorAdminBulkActionBar({
   selected,
   onPrecompute,
   onBackfill,
-  onToggleEnable,
   onCopyNames,
   onClearSelection,
 }: Props) {
@@ -45,8 +43,13 @@ export function FactorAdminBulkActionBar({
         gap: 1.5,
         px: 2,
         py: 1,
-        borderRadius: 1,
-        bgcolor: 'action.selected',
+        position: 'sticky',
+        top: 0,
+        zIndex: 2,
+        borderTop: 1,
+        borderBottom: 1,
+        borderColor: 'divider',
+        bgcolor: 'background.paper',
         flexWrap: 'wrap',
       }}
     >
@@ -76,27 +79,31 @@ export function FactorAdminBulkActionBar({
         </Tooltip>
 
         <Tooltip title="启用选中因子">
-          <Button
-            size="small"
-            variant="outlined"
-            color="success"
-            startIcon={<Iconify icon="solar:eye-bold" />}
-            onClick={() => onToggleEnable(names, true)}
-          >
-            启用
-          </Button>
+          <span>
+            <Button
+              size="small"
+              variant="outlined"
+              color="success"
+              startIcon={<Iconify icon="solar:eye-bold" />}
+              disabled
+            >
+              启用
+            </Button>
+          </span>
         </Tooltip>
 
         <Tooltip title="禁用选中因子">
-          <Button
-            size="small"
-            variant="outlined"
-            color="warning"
-            startIcon={<Iconify icon="solar:eye-closed-bold" />}
-            onClick={() => onToggleEnable(names, false)}
-          >
-            禁用
-          </Button>
+          <span>
+            <Button
+              size="small"
+              variant="outlined"
+              color="warning"
+              startIcon={<Iconify icon="solar:eye-closed-bold" />}
+              disabled
+            >
+              禁用
+            </Button>
+          </span>
         </Tooltip>
 
         <Tooltip title="复制因子标识到剪贴板">
@@ -113,8 +120,20 @@ export function FactorAdminBulkActionBar({
 
       <Typography
         variant="caption"
+        sx={{ color: 'text.disabled' }}
+      >
+        服务端未开放启用/禁用
+      </Typography>
+
+      <Typography
+        variant="caption"
+        role="button"
+        tabIndex={0}
         sx={{ color: 'text.secondary', cursor: 'pointer', ml: 'auto' }}
         onClick={onClearSelection}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter' || event.key === ' ') onClearSelection();
+        }}
       >
         取消选择
       </Typography>

@@ -8,6 +8,7 @@ import { RotationMomentumChart } from '../rotation-momentum-chart';
 
 type ChartMockProps = {
   options: {
+    colors?: string[];
     dataLabels?: {
       formatter?: (value: unknown) => string;
     };
@@ -46,6 +47,14 @@ const momentumResult: MomentumRankingResult = {
       momentum: 24.9,
       name: '橡胶助剂',
     },
+    {
+      rank: 2,
+      prevRank: 0,
+      amount: 0,
+      rankChange: 0,
+      momentum: -3.5,
+      name: '弱势行业',
+    },
   ],
 };
 
@@ -75,5 +84,18 @@ describe('RotationMomentumChart', () => {
       expect(tooltipHtml).not.toContain('— 0');
       expect(tooltipHtml).not.toContain('上期排名：0');
     });
+  });
+
+  it('负动量柱使用与非负动量不同的主题颜色', async () => {
+    renderWithProviders(<RotationMomentumChart />);
+
+    await screen.findByTestId('rotation-momentum-chart');
+    const props = latestChartProps();
+    expect(props.options.colors).toHaveLength(2);
+    expect(props.options.colors?.[0]).not.toBe(props.options.colors?.[1]);
+
+    const tooltipHtml = props.options.tooltip?.custom?.({ dataPointIndex: 1 });
+    expect(tooltipHtml).toContain(`color:${props.options.colors?.[1]}`);
+    expect(tooltipHtml).toContain('-3.50%');
   });
 });

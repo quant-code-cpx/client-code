@@ -39,6 +39,7 @@ type Props = {
   selectedIds?: Set<number>;
   actionDisabled?: boolean;
   actionDisabledReason?: string;
+  emptyMessage?: string;
   onToggleRow?: (id: number) => void;
   onToggleAll?: () => void;
 };
@@ -49,6 +50,7 @@ export function RetryQueueTable({
   selectedIds = new Set(),
   actionDisabled = true,
   actionDisabledReason = '等待后端单条队列接口启用',
+  emptyMessage = '重试队列为空，所有同步任务运行正常',
   onToggleRow,
   onToggleAll,
 }: Props) {
@@ -178,11 +180,11 @@ export function RetryQueueTable({
                     </TableCell>
                   </TableRow>
                 ))}
-            {!loading && rows.length === 0 && (
+            {!loading && rows.length === 0 && emptyMessage && (
               <TableRow>
                 <TableCell colSpan={9} align="center" sx={{ py: 4 }}>
                   <Typography variant="body2" sx={{ color: 'text.disabled' }}>
-                    重试队列为空，所有同步任务运行正常 ✅
+                    {emptyMessage}
                   </Typography>
                 </TableCell>
               </TableRow>

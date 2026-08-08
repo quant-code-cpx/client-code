@@ -1,6 +1,6 @@
 import type { TushareSyncPlan, TushareSyncMode, SyncLogSummaryItem } from 'src/api/tushare-sync';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useRef, useMemo, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -77,16 +77,25 @@ const CATEGORY_COLORS: Record<string, CategoryColor> = {
 };
 
 const TABLE_HEAD = [
-  { id: 'label', label: '任务名称' },
+  { id: 'label', label: '任务名称', sortable: true },
   { id: 'category', label: '分类', width: 110 },
-  { id: 'schedule', label: '定时计划' },
+  { id: 'schedule', label: '定时计划', sortable: true },
   { id: 'supportsFullSync', label: '支持全量', width: 100, align: 'center' as const },
   { id: 'requiresTradeDate', label: '仅交易日', width: 100, align: 'center' as const },
-  { id: 'lastStatus', label: '最后状态', width: 112, align: 'center' as const },
-  { id: 'lastSyncAt', label: '最后同步', width: 180 },
-  { id: 'consecutiveFailures', label: '连失', width: 84, align: 'center' as const },
+  { id: 'lastStatus', label: '最后状态', width: 112, align: 'center' as const, sortable: true },
+  { id: 'lastSyncAt', label: '最后同步', width: 180, sortable: true },
+  {
+    id: 'consecutiveFailures',
+    label: '连失',
+    width: 84,
+    align: 'center' as const,
+    sortable: true,
+  },
   { id: 'actions', label: '操作', width: 112, align: 'center' as const },
 ];
+
+type SortField = 'label' | 'schedule' | 'lastStatus' | 'lastSyncAt' | 'consecutiveFailures';
+type SortOrder = 'asc' | 'desc';
 
 const SYNC_STATUS_COLOR: Record<string, 'success' | 'error' | 'warning' | 'default'> = {
   SUCCESS: 'success',
@@ -116,18 +125,26 @@ export function SyncPlanTab({ isReadOnly = false, refreshKey = 0 }: Props) {
 
   const [summary, setSummary] = useState<SyncLogSummaryItem[]>([]);
   const [summaryLoading, setSummaryLoading] = useState(true);
+  const [summaryError, setSummaryError] = useState('');
 
   const [mode, setMode] = useState<TushareSyncMode>('incremental');
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const selectionInitializedRef = useRef(false);
+  const [sortField, setSortField] = useState<SortField | null>(null);
+  const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
 
   const [pendingSync, setPendingSync] = useState<{ mode: TushareSyncMode; tasks: string[] } | null>(
     null
   );
   const [fullConfirmText, setFullConfirmText] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const submittingRef = useRef(false);
 
   const [submitError, setSubmitError] = useState('');
+  const [submitAccepted, setSubmitAccepted] = useState('');
 
   const { isSyncing, lastSyncResult, lastSyncError, clearLastResult } = useSyncNotification();
+  const isSyncActionLocked = isSyncing || isSubmitting;
 
   const fetchPlans = useCallback(async () => {
     setPlansLoading(true);
@@ -135,8 +152,17 @@ export function SyncPlanTab({ isReadOnly = false, refreshKey = 0 }: Props) {
     try {
       const data = await tushareSyncApi.getPlans();
       const manualPlans = data.filter((p) => p.supportsManual);
+      const shouldInitializeSelection =
+        !selectionInitializedRef.current && manualPlans.length > 0;
+      if (shouldInitializeSelection) selectionInitializedRef.current = true;
       setPlans(manualPlans);
-      setSelected(new Set(manualPlans.map((p) => p.task)));
+      setSelected((previous) => {
+        if (shouldInitializeSelection) {
+          return new Set(manualPlans.map((plan) => plan.task));
+        }
+        const availableTasks = new Set(manualPlans.map((plan) => plan.task));
+        return new Set(Array.from(previous).filter((task) => availableTasks.has(task)));
+      });
     } catch (err) {
       setPlansError(err instanceof Error ? err.message : '获取同步任务失败');
     } finally {
@@ -146,11 +172,12 @@ export function SyncPlanTab({ isReadOnly = false, refreshKey = 0 }: Props) {
 
   const fetchSummary = useCallback(async () => {
     setSummaryLoading(true);
+    setSummaryError('');
     try {
       const data = await tushareSyncApi.getSyncLogsSummary();
       setSummary(data);
-    } catch {
-      setSummary([]);
+    } catch (err) {
+      setSummaryError(err instanceof Error ? err.message : '获取任务状态摘要失败');
     } finally {
       setSummaryLoading(false);
     }
@@ -161,11 +188,53 @@ export function SyncPlanTab({ isReadOnly = false, refreshKey = 0 }: Props) {
     fetchSummary();
   }, [fetchPlans, fetchSummary, refreshKey]);
 
-  // ── grouped by category ──────────────────────────────────────────────
-  const grouped = CATEGORY_ORDER.reduce<Record<string, TushareSyncPlan[]>>((acc, cat) => {
-    acc[cat] = plans.filter((p) => p.category === cat);
-    return acc;
-  }, {});
+  const summaryMap = useMemo(() => new Map(summary.map((item) => [item.task, item])), [summary]);
+
+  // ── grouped by category; sorting never changes category order ───────
+  const grouped = useMemo(
+    () =>
+      CATEGORY_ORDER.reduce<Record<string, TushareSyncPlan[]>>((acc, category) => {
+        const categoryPlans = plans.filter((plan) => plan.category === category);
+        if (!sortField) {
+          acc[category] = categoryPlans;
+          return acc;
+        }
+
+        acc[category] = categoryPlans
+          .map((plan, index) => ({ plan, index }))
+          .sort((left, right) => {
+            const leftSummary = summaryMap.get(left.plan.task);
+            const rightSummary = summaryMap.get(right.plan.task);
+            const getValue = (plan: TushareSyncPlan, item?: SyncLogSummaryItem) => {
+              switch (sortField) {
+                case 'label':
+                  return plan.label;
+                case 'schedule':
+                  return plan.schedule?.description ?? '仅手动触发';
+                case 'lastStatus':
+                  return item?.lastStatus ?? '';
+                case 'lastSyncAt':
+                  return item?.lastSyncAt ? Date.parse(item.lastSyncAt) : 0;
+                case 'consecutiveFailures':
+                  return item?.consecutiveFailures ?? 0;
+                default:
+                  return '';
+              }
+            };
+            const leftValue = getValue(left.plan, leftSummary);
+            const rightValue = getValue(right.plan, rightSummary);
+            const comparison =
+              typeof leftValue === 'number' && typeof rightValue === 'number'
+                ? leftValue - rightValue
+                : String(leftValue).localeCompare(String(rightValue), 'zh-CN');
+            if (comparison === 0) return left.index - right.index;
+            return sortOrder === 'asc' ? comparison : -comparison;
+          })
+          .map(({ plan }) => plan);
+        return acc;
+      }, {}),
+    [plans, sortField, sortOrder, summaryMap]
+  );
 
   // ── selection helpers ────────────────────────────────────────────────
   const toggleTask = (task: string) => {
@@ -195,18 +264,25 @@ export function SyncPlanTab({ isReadOnly = false, refreshKey = 0 }: Props) {
 
   // ── sync action ──────────────────────────────────────────────────────
   const submitSync = async (syncMode: TushareSyncMode, tasks: string[]) => {
-    if (tasks.length === 0 || isReadOnly) return;
+    if (tasks.length === 0 || isReadOnly || isSyncing || submittingRef.current) return;
+    submittingRef.current = true;
+    setIsSubmitting(true);
     setSubmitError('');
+    setSubmitAccepted('');
     clearLastResult();
     try {
-      await tushareSyncApi.manualSync(syncMode, tasks);
+      const response = await tushareSyncApi.manualSync(syncMode, tasks);
+      setSubmitAccepted(response.message || '同步任务已提交，终态以实时通知为准');
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : '提交同步请求失败');
+    } finally {
+      submittingRef.current = false;
+      setIsSubmitting(false);
     }
   };
 
   const requestSync = (syncMode: TushareSyncMode, tasks: string[]) => {
-    if (tasks.length === 0 || isReadOnly) return;
+    if (tasks.length === 0 || isReadOnly || isSyncActionLocked || submittingRef.current) return;
     if (syncMode === 'full') {
       setPendingSync({ mode: syncMode, tasks });
       setFullConfirmText('');
@@ -220,15 +296,23 @@ export function SyncPlanTab({ isReadOnly = false, refreshKey = 0 }: Props) {
   };
 
   const handleConfirmFullSync = async () => {
-    if (!pendingSync || fullConfirmText !== '全量') return;
+    if (!pendingSync || fullConfirmText !== '全量' || isSyncActionLocked || submittingRef.current) return;
     const current = pendingSync;
     setPendingSync(null);
     setFullConfirmText('');
     await submitSync(current.mode, current.tasks);
   };
 
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortOrder((current) => (current === 'asc' ? 'desc' : 'asc'));
+      return;
+    }
+    setSortField(field);
+    setSortOrder('asc');
+  };
+
   // ── derived state ────────────────────────────────────────────────────
-  const summaryMap = new Map(summary.map((item) => [item.task, item]));
   const basicTasks = (grouped.basic ?? []).map((plan) => plan.task);
   const failedTasks = summary
     .filter((item) => item.lastStatus === 'FAILED')
@@ -246,7 +330,7 @@ export function SyncPlanTab({ isReadOnly = false, refreshKey = 0 }: Props) {
       : 0;
 
   return (
-    <Box sx={{ mt: 3 }}>
+    <Box sx={{ mt: 2 }}>
       {/* Alerts */}
       {mode === 'full' && (
         <Alert severity="warning" sx={{ mb: 3 }}>
@@ -267,6 +351,12 @@ export function SyncPlanTab({ isReadOnly = false, refreshKey = 0 }: Props) {
         </Alert>
       )}
 
+      {submitAccepted && (
+        <Alert severity="info" sx={{ mb: 3 }} onClose={() => setSubmitAccepted('')}>
+          {submitAccepted}。任务仅完成提交，最终结果以 WebSocket 通知或同步日志为准。
+        </Alert>
+      )}
+
       {lastSyncError && (
         <Alert severity="error" sx={{ mb: 3 }} onClose={clearLastResult}>
           同步任务异常：{lastSyncError.reason}
@@ -283,11 +373,11 @@ export function SyncPlanTab({ isReadOnly = false, refreshKey = 0 }: Props) {
             同步完成，耗时 {lastSyncResult.elapsedSeconds.toFixed(1)} 秒
           </Typography>
           <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap' }}>
-            <span>✅ 成功：{lastSyncResult.executedTasks.length} 个</span>
-            <span>⏭ 跳过：{lastSyncResult.skippedTasks.length} 个</span>
+            <span>成功：{lastSyncResult.executedTasks.length} 个</span>
+            <span>跳过：{lastSyncResult.skippedTasks.length} 个</span>
             {lastSyncResult.failedTasks.length > 0 && (
               <span>
-                ❌ 失败：{lastSyncResult.failedTasks.length} 个（
+                失败：{lastSyncResult.failedTasks.length} 个（
                 {lastSyncResult.failedTasks.join('、')}）
               </span>
             )}
@@ -296,8 +386,30 @@ export function SyncPlanTab({ isReadOnly = false, refreshKey = 0 }: Props) {
       )}
 
       {plansError && (
-        <Alert severity="error" sx={{ mb: 3 }}>
+        <Alert
+          severity="error"
+          sx={{ mb: 3 }}
+          action={
+            <Button color="inherit" size="small" onClick={fetchPlans}>
+              重试
+            </Button>
+          }
+        >
           {plansError}
+        </Alert>
+      )}
+
+      {summaryError && (
+        <Alert
+          severity="error"
+          sx={{ mb: 3 }}
+          action={
+            <Button color="inherit" size="small" onClick={fetchSummary}>
+              重试
+            </Button>
+          }
+        >
+          {summaryError}
         </Alert>
       )}
 
@@ -306,25 +418,30 @@ export function SyncPlanTab({ isReadOnly = false, refreshKey = 0 }: Props) {
         {/* Toolbar */}
         <Toolbar
           sx={{
-            height: 96,
+            minHeight: { xs: 'auto', md: 56 },
+            height: 'auto',
             display: 'flex',
-            alignItems: 'flex-end',
+            alignItems: 'center',
             boxSizing: 'border-box',
-            gap: 2,
-            p: (theme) => theme.spacing(2, 1, 2, 3),
+            flexWrap: 'wrap',
+            gap: 1,
+            position: 'sticky',
+            top: 0,
+            zIndex: 3,
+            bgcolor: 'background.paper',
+            borderBottom: (theme) => `1px solid ${theme.vars.palette.divider}`,
+            p: (theme) => theme.spacing(1, 2),
           }}
         >
-          <Box>
-            <Typography
-              variant="caption"
-              sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}
-            >
+          <Stack direction="row" spacing={1} alignItems="center">
+            <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: 'nowrap' }}>
               同步模式
             </Typography>
             <ToggleButtonGroup
               value={mode}
               exclusive
               size="small"
+              disabled={isSyncActionLocked}
               onChange={(_, v) => {
                 if (v) setMode(v as TushareSyncMode);
               }}
@@ -336,20 +453,20 @@ export function SyncPlanTab({ isReadOnly = false, refreshKey = 0 }: Props) {
                 全量同步
               </ToggleButton>
             </ToggleButtonGroup>
-          </Box>
+          </Stack>
 
           <Stack
             direction="row"
             spacing={1}
             alignItems="center"
-            sx={{ display: { xs: 'none', md: 'flex' } }}
+            sx={{ flexWrap: 'wrap' }}
           >
             <Tooltip title={isReadOnly ? READ_ONLY_TOOLTIP : '按基础数据分类触发增量同步'}>
               <span>
                 <Button
                   size="small"
                   variant="outlined"
-                  disabled={isReadOnly || basicTasks.length === 0 || isSyncing || plansLoading}
+                  disabled={isReadOnly || basicTasks.length === 0 || isSyncActionLocked || plansLoading}
                   onClick={() => requestSync('incremental', basicTasks)}
                 >
                   同步基础数据
@@ -362,7 +479,7 @@ export function SyncPlanTab({ isReadOnly = false, refreshKey = 0 }: Props) {
                   size="small"
                   color="warning"
                   variant="outlined"
-                  disabled={isReadOnly || failedTasks.length === 0 || isSyncing || summaryLoading}
+                  disabled={isReadOnly || failedTasks.length === 0 || isSyncActionLocked || summaryLoading}
                   onClick={() => requestSync('incremental', failedTasks)}
                 >
                   补最近失败
@@ -373,7 +490,7 @@ export function SyncPlanTab({ isReadOnly = false, refreshKey = 0 }: Props) {
 
           <Box sx={{ flex: 1 }} />
 
-          {isSyncing && (
+          {isSyncActionLocked && (
             <Box
               sx={{
                 gap: 1,
@@ -383,7 +500,7 @@ export function SyncPlanTab({ isReadOnly = false, refreshKey = 0 }: Props) {
             >
               <CircularProgress size={14} />
               <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                同步中，请勿关闭页面...
+                {isSubmitting && !isSyncing ? '正在提交同步请求…' : '同步中，请勿关闭页面…'}
               </Typography>
             </Box>
           )}
@@ -405,35 +522,59 @@ export function SyncPlanTab({ isReadOnly = false, refreshKey = 0 }: Props) {
               <Button
                 size="small"
                 variant="contained"
-                disabled={!anySelected || isSyncing || plansLoading || isReadOnly}
+                disabled={!anySelected || isSyncActionLocked || plansLoading || isReadOnly}
                 onClick={handleSync}
-                loading={isSyncing}
+                loading={isSyncActionLocked}
                 startIcon={<Iconify icon="solar:restart-bold" />}
               >
-                {isSyncing ? '同步中…' : '开始同步'}
+                {isSubmitting && !isSyncing ? '提交中…' : isSyncing ? '同步中…' : '开始同步'}
               </Button>
             </span>
           </Tooltip>
         </Toolbar>
 
         {/* Table */}
-        <Scrollbar>
+        <Scrollbar sx={{ maxHeight: { xs: 560, md: 680 } }}>
           <TableContainer sx={{ overflow: 'unset' }}>
-            <Table sx={{ minWidth: 1180 }}>
+            <Table stickyHeader sx={{ minWidth: 1180 }}>
               <TableHead>
-                <TableRow>
-                  <TableCell padding="checkbox">
+                <TableRow sx={{ height: 52 }}>
+                  <TableCell padding="checkbox" sx={{ px: 1.25, py: 1, width: 52 }}>
                     <Checkbox
                       size="small"
                       checked={allSelected}
                       indeterminate={indeterminate}
                       onChange={toggleAll}
                       disabled={plansLoading}
+                      slotProps={{ input: { 'aria-label': '选择全部同步任务' } }}
                     />
                   </TableCell>
                   {TABLE_HEAD.map((col) => (
-                    <TableCell key={col.id} align={col.align ?? 'left'} sx={{ width: col.width }}>
-                      <TableSortLabel hideSortIcon>{col.label}</TableSortLabel>
+                    <TableCell
+                      key={col.id}
+                      align={col.align ?? 'left'}
+                      sx={{
+                        width: col.width,
+                        minWidth: col.width,
+                        px: 1.25,
+                        py: 1,
+                        fontWeight: 600,
+                        whiteSpace: 'nowrap',
+                        '& .MuiTableSortLabel-root': { whiteSpace: 'nowrap' },
+                        '& .MuiTableSortLabel-icon': { ml: 0.25 },
+                      }}
+                    >
+                      {col.sortable ? (
+                        <TableSortLabel
+                          active={sortField === col.id}
+                          direction={sortField === col.id ? sortOrder : 'asc'}
+                          onClick={() => handleSort(col.id as SortField)}
+                        >
+                          {col.label}
+                        </TableSortLabel>
+                      ) : (
+                        col.label
+                      )}
                     </TableCell>
                   ))}
                 </TableRow>
@@ -491,6 +632,11 @@ export function SyncPlanTab({ isReadOnly = false, refreshKey = 0 }: Props) {
                                 checked={catAll}
                                 indeterminate={catIndeterminate}
                                 onChange={() => toggleCategory(cat)}
+                                slotProps={{
+                                  input: {
+                                    'aria-label': `选择${CATEGORY_LABELS[cat] ?? cat}全部任务`,
+                                  },
+                                }}
                               />
                             </TableCell>
                             <TableCell colSpan={TABLE_HEAD.length}>
@@ -510,6 +656,15 @@ export function SyncPlanTab({ isReadOnly = false, refreshKey = 0 }: Props) {
                                 hover
                                 selected={isSelected}
                                 onClick={() => toggleTask(plan.task)}
+                                onKeyDown={(event) => {
+                                  if (event.key === 'Enter' || event.key === ' ') {
+                                    event.preventDefault();
+                                    toggleTask(plan.task);
+                                  }
+                                }}
+                                role="button"
+                                tabIndex={0}
+                                aria-label={`选择任务 ${plan.label}`}
                                 sx={{ cursor: 'pointer', opacity: dimmed ? 0.45 : 1 }}
                               >
                                 <TableCell padding="checkbox">
@@ -518,6 +673,9 @@ export function SyncPlanTab({ isReadOnly = false, refreshKey = 0 }: Props) {
                                     checked={isSelected}
                                     onChange={() => toggleTask(plan.task)}
                                     onClick={(e) => e.stopPropagation()}
+                                    slotProps={{
+                                      input: { 'aria-label': `选择任务 ${plan.label}` },
+                                    }}
                                   />
                                 </TableCell>
 
@@ -618,7 +776,7 @@ export function SyncPlanTab({ isReadOnly = false, refreshKey = 0 }: Props) {
                                       <Button
                                         size="small"
                                         variant="text"
-                                        disabled={isReadOnly || isSyncing || plansLoading}
+                                        disabled={isReadOnly || isSyncActionLocked || plansLoading}
                                         onClick={(event) => {
                                           event.stopPropagation();
                                           requestSync(mode, [plan.task]);
@@ -666,7 +824,8 @@ export function SyncPlanTab({ isReadOnly = false, refreshKey = 0 }: Props) {
           <Button
             color="warning"
             variant="contained"
-            disabled={fullConfirmText !== '全量'}
+            disabled={fullConfirmText !== '全量' || isSyncActionLocked}
+            loading={isSubmitting}
             onClick={handleConfirmFullSync}
           >
             确认全量同步

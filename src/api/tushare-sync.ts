@@ -453,6 +453,9 @@ export const tushareSyncApi = {
     }),
 
   /** 同步状态总览（运维监控） */
-  getSyncStatusOverview: (): Promise<SyncStatusOverview> =>
-    apiClient.post<SyncStatusOverview>('/api/tushare/admin/sync-status-overview', {}),
+  getSyncStatusOverview: (refresh = false): Promise<SyncStatusOverview> =>
+    apiClient.post<SyncStatusOverview>(
+      '/api/tushare/admin/sync-status-overview',
+      refresh ? { refresh: true } : {}
+    ),
 };

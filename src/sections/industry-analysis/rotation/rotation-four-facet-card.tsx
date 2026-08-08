@@ -44,13 +44,15 @@ export function RotationFourFacetCard({ tradeDate, period, onSectorClick, refres
   const [flows, setFlows] = useState<FlowAnalysisItem[]>([]);
   const [valuation, setValuation] = useState<SectorValuationItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [errors, setErrors] = useState({ momentum: '', returns: '', flows: '', valuation: '' });
 
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    const periodDays = period ? Math.min(periodToDays(period), 60) : undefined;
+    setErrors({ momentum: '', returns: '', flows: '', valuation: '' });
+    const periodDays = period ? periodToDays(period) : undefined;
 
-    Promise.all([
+    Promise.allSettled([
       fetchMomentumRanking({ trade_date: tradeDate, order: 'desc', limit: 10 }),
       fetchReturnComparison({
         trade_date: tradeDate,
@@ -71,22 +73,26 @@ export function RotationFourFacetCard({ tradeDate, period, onSectorClick, refres
         order: 'asc',
       }),
     ])
-      .then(([momRes, retRes, flowRes, valRes]) => {
+      .then(([momResult, returnResult, flowResult, valuationResult]) => {
         if (cancelled) return;
-        setMomentum(momRes?.rankings ?? []);
-        // Extract the first period's return for each sector
-        const sectors = retRes?.sectors ?? [];
+        setMomentum(momResult.status === 'fulfilled' ? (momResult.value?.rankings ?? []) : []);
+        const sectors = returnResult.status === 'fulfilled' ? (returnResult.value?.sectors ?? []) : [];
         setReturns(
           sectors.map((s) => ({
             name: s.name,
             cumReturn: s.data.length > 0 ? s.data[s.data.length - 1].cumReturn : null,
           }))
         );
-        setFlows(flowRes?.flows ?? []);
-        setValuation(valRes?.sectors ?? []);
-      })
-      .catch(() => {
-        // Silent fail — each column shows empty state
+        setFlows(flowResult.status === 'fulfilled' ? (flowResult.value?.flows ?? []) : []);
+        setValuation(
+          valuationResult.status === 'fulfilled' ? (valuationResult.value?.sectors ?? []) : []
+        );
+        setErrors({
+          momentum: momResult.status === 'rejected' ? '动量数据加载失败' : '',
+          returns: returnResult.status === 'rejected' ? '收益数据加载失败' : '',
+          flows: flowResult.status === 'rejected' ? '资金数据加载失败' : '',
+          valuation: valuationResult.status === 'rejected' ? '估值数据加载失败' : '',
+        });
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -133,6 +139,7 @@ export function RotationFourFacetCard({ tradeDate, period, onSectorClick, refres
         <FacetColumn
           title="动量 Top 10"
           tooltip="动量评分 = 多周期收益率加权排名，值越高代表近期趋势越强"
+          error={errors.momentum}
         >
           <MiniTable empty={topMomentum.length === 0}>
             {topMomentum.map((item) => (
@@ -148,7 +155,7 @@ export function RotationFourFacetCard({ tradeDate, period, onSectorClick, refres
         </FacetColumn>
 
         {/* Returns */}
-        <FacetColumn title="收益 Top 10" tooltip="选定周期内的累计收益率">
+        <FacetColumn title="收益 Top 10" tooltip="选定周期内的累计收益率" error={errors.returns}>
           <MiniTable empty={topReturns.length === 0}>
             {topReturns.map((item) => (
               <MiniRow
@@ -163,7 +170,11 @@ export function RotationFourFacetCard({ tradeDate, period, onSectorClick, refres
         </FacetColumn>
 
         {/* Flow */}
-        <FacetColumn title="资金 Top 10" tooltip="选定周期内的累计净流入金额（亿元）">
+        <FacetColumn
+          title="资金 Top 10"
+          tooltip="选定周期内的累计净流入金额（亿元）"
+          error={errors.flows}
+        >
           <MiniTable empty={topFlows.length === 0}>
             {topFlows.map((item) => (
               <MiniRow
@@ -178,7 +189,11 @@ export function RotationFourFacetCard({ tradeDate, period, onSectorClick, refres
         </FacetColumn>
 
         {/* Valuation */}
-        <FacetColumn title="估值低位 Top 10" tooltip="PE TTM 分位数越低代表估值越便宜（1 年窗口）">
+        <FacetColumn
+          title="估值低位 Top 10"
+          tooltip="PE TTM 分位数越低代表估值越便宜（1 年窗口）"
+          error={errors.valuation}
+        >
           <MiniTable empty={topValuation.length === 0} emptyLabel="暂无估值分位数据">
             {topValuation.map((item) => (
               <MiniRow
@@ -207,10 +222,12 @@ export function RotationFourFacetCard({ tradeDate, period, onSectorClick, refres
 function FacetColumn({
   title,
   tooltip,
+  error,
   children,
 }: {
   title: string;
   tooltip: string;
+  error?: string;
   children: React.ReactNode;
 }) {
   return (
@@ -228,7 +245,13 @@ function FacetColumn({
             </IconButton>
           </Tooltip>
         </Stack>
-        {children}
+        {error ? (
+          <Typography variant="caption" color="error" sx={{ display: 'block', px: 1, py: 2 }}>
+            {error}
+          </Typography>
+        ) : (
+          children
+        )}
       </Box>
     </Grid>
   );
@@ -288,10 +311,27 @@ function MiniRow({
   color: string;
   onClick?: () => void;
 }) {
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLTableRowElement>) => {
+    if (!onClick || (event.key !== 'Enter' && event.key !== ' ')) return;
+    event.preventDefault();
+    onClick();
+  };
+
   return (
     <TableRow
-      hover={!!onClick}
-      sx={{ cursor: onClick ? 'pointer' : 'default', height: 32 }}
+      hover={Boolean(onClick)}
+      tabIndex={onClick ? 0 : undefined}
+      aria-label={onClick ? `查看 ${name} 行业详情` : undefined}
+      onKeyDown={onClick ? handleKeyDown : undefined}
+      sx={{
+        height: 40,
+        cursor: onClick ? 'pointer' : 'default',
+        '&:focus-visible': {
+          outline: '2px solid',
+          outlineColor: 'primary.main',
+          outlineOffset: -2,
+        },
+      }}
       onClick={onClick}
     >
       <TableCell

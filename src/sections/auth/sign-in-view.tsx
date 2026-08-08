@@ -34,6 +34,7 @@ export function SignInView() {
   const [captchaLoading, setCaptchaLoading] = useState(false);
   const [captchaExpired, setCaptchaExpired] = useState(false);
   const expireTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const initialCaptchaRequestedRef = useRef(false);
 
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
@@ -63,7 +64,9 @@ export function SignInView() {
   );
 
   useEffect(() => {
-    fetchCaptcha();
+    if (initialCaptchaRequestedRef.current) return;
+    initialCaptchaRequestedRef.current = true;
+    void fetchCaptcha();
   }, [fetchCaptcha]);
 
   const handleSignIn = useCallback(async () => {

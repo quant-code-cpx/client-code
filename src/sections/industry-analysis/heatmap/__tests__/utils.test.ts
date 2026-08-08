@@ -1,9 +1,13 @@
+import type { HeatmapItem } from 'src/api/heatmap';
 import type { SectorFlowItem } from 'src/api/market';
 
 import {
+  computeDistribution,
   pickScatterLabelKeys,
+  computeLinearAxisBounds,
   buildScatterInsightLists,
   pickCrowdedScatterSectors,
+  buildDistributionSegments,
 } from '../utils';
 
 // ----------------------------------------------------------------------
@@ -62,6 +66,21 @@ describe('buildScatterInsightLists', () => {
     expect(crowded.every((item) => Math.abs(item.pctChange) <= 0.3)).toBe(true);
     expect(crowded.every((item) => Math.abs(item.netAmount) <= 0.4 * 100_000_000)).toBe(true);
   });
+
+  it('keeps every sector reachable from the five information-index groups', () => {
+    const lists = buildScatterInsightLists(sampleSectors, sampleSectors.length);
+    const indexedKeys = new Set(
+      [
+        ...lists.topInflow,
+        ...lists.topOutflow,
+        ...lists.topGainers,
+        ...lists.topLosers,
+        ...lists.crowded,
+      ].map((item) => item.tsCode)
+    );
+
+    expect(indexedKeys).toEqual(new Set(sampleSectors.map((item) => item.tsCode)));
+  });
 });
 
 describe('pickScatterLabelKeys', () => {
@@ -74,5 +93,59 @@ describe('pickScatterLabelKeys', () => {
     expect(labels.has('B')).toBe(true);
     expect(labels.has('C')).toBe(true);
     expect(labels.has('E')).toBe(false);
+  });
+});
+
+describe('computeLinearAxisBounds', () => {
+  it('uses fallback bounds for empty and non-finite inputs', () => {
+    expect(computeLinearAxisBounds([], { min: -5, max: 5 })).toEqual({ min: -5, max: 5 });
+    expect(computeLinearAxisBounds([Number.NaN, Number.POSITIVE_INFINITY], { min: -2, max: 2 })).toEqual({
+      min: -2,
+      max: 2,
+    });
+  });
+
+  it.each([
+    [[0], { min: -0.08, max: 0.08 }],
+    [[5], { min: 4.6, max: 5.4 }],
+    [[3, 3], { min: 2.76, max: 3.24 }],
+  ])('creates a finite range for single/all-zero/same values', (values, expected) => {
+    expect(computeLinearAxisBounds(values as number[], { min: -1, max: 1 })).toEqual(expected);
+  });
+
+  it('keeps extreme outliers visible with 8% full-range padding', () => {
+    expect(computeLinearAxisBounds([-1, 0, 2, 100], { min: -5, max: 5 })).toEqual({
+      min: -9.08,
+      max: 108.08,
+    });
+  });
+});
+
+describe('heatmap distribution', () => {
+  it('keeps 21 buckets and five display segments equal to the input item count', () => {
+    const changes = [-12, -10, -5.5, -0.2, 0, 0.2, 4.9, 5, 9.9, 14, Number.NaN];
+    const items = changes.map(
+      (pctChg, index) =>
+        ({
+          tsCode: String(index),
+          name: String(index),
+          groupName: '测试',
+          industry: '测试',
+          pctChg,
+          totalMv: 1,
+          amount: 1,
+        }) satisfies HeatmapItem
+    );
+
+    const distribution = computeDistribution(items);
+    const bucketTotal = distribution.ranges.reduce((total, range) => total + range.count, 0);
+    const segmentTotal = buildDistributionSegments(distribution).reduce(
+      (total, segment) => total + segment.count,
+      0
+    );
+
+    expect(distribution.ranges).toHaveLength(21);
+    expect(bucketTotal).toBe(items.length);
+    expect(segmentTotal).toBe(items.length);
   });
 });

@@ -6,6 +6,8 @@ import type {
   CalendarListParams,
 } from 'src/api/alert';
 
+import dayjs from 'dayjs';
+
 export type ViewMode = 'grid' | 'timeline' | 'table';
 
 export type FilterState = {
@@ -13,7 +15,7 @@ export type FilterState = {
   endDate: string;
   scope: CalendarScope;
   watchlistId?: number;
-  portfolioId?: number;
+  portfolioId?: string;
   types: EventType[];
   impactLevels: ImpactLevel[];
   sectorCodes: string[];
@@ -40,6 +42,25 @@ export const DEFAULT_FILTERS: FilterState = {
 
 export type FilterPatch = Partial<FilterState>;
 
+export function createCalendarDateRange(
+  inclusiveDays: 1 | 7 | 14 | 30,
+  baseDate = dayjs()
+): { startDate: string; endDate: string } {
+  return {
+    startDate: baseDate.format('YYYYMMDD'),
+    endDate: baseDate.add(inclusiveDays - 1, 'day').format('YYYYMMDD'),
+  };
+}
+
+export function mapMarketCapBuckets(buckets: string[]): string[] | undefined {
+  if (buckets.length === 0) return undefined;
+  const bucket = buckets[0];
+  if (bucket === 'SMALL') return ['SMALL', 'MID'];
+  if (bucket === 'MID') return ['LARGE'];
+  if (bucket === 'LARGE') return ['MEGA'];
+  return buckets;
+}
+
 export function filtersToQueryParams(f: FilterState): CalendarListParams {
   return {
     startDate: f.startDate,
@@ -50,7 +71,7 @@ export function filtersToQueryParams(f: FilterState): CalendarListParams {
     types: f.types.length > 0 ? f.types : undefined,
     impactLevels: f.impactLevels.length > 0 ? f.impactLevels : undefined,
     sectorCodes: f.sectorCodes.length > 0 ? f.sectorCodes : undefined,
-    marketCapBuckets: f.marketCapBuckets.length > 0 ? f.marketCapBuckets : undefined,
+    marketCapBuckets: mapMarketCapBuckets(f.marketCapBuckets),
     keyword: f.keyword.trim() || undefined,
     sortBy: f.sortBy,
     sortOrder: f.sortOrder,

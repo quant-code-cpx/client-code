@@ -1,4 +1,4 @@
-import { fDate, fToNow, fDateTime } from '../format-time';
+import { fDate, fToNow, fDateTime, periodToDays } from '../format-time';
 
 // ----------------------------------------------------------------------
 
@@ -65,6 +65,14 @@ describe('format-time', () => {
 
     it('returns "—" for null', () => {
       expect(fToNow(null)).toBe('—');
+    });
+  });
+
+  describe('periodToDays', () => {
+    it('maps 3M/6M/1Y to 60/120/250 trading days', () => {
+      expect(periodToDays('3m')).toBe(60);
+      expect(periodToDays('6m')).toBe(120);
+      expect(periodToDays('1y')).toBe(250);
     });
   });
 });

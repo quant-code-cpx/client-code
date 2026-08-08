@@ -95,7 +95,7 @@ export function RotationReturnComparisonChart({ tradeDate, period, refreshKey }:
     setLoading(true);
     setError('');
 
-    const periodDays = period ? Math.min(periodToDays(period), 60) : undefined;
+      const periodDays = period ? periodToDays(period) : undefined;
 
     fetchReturnComparison({
       trade_date: tradeDate,
