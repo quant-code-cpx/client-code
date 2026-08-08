@@ -128,6 +128,9 @@ export type DataOperationsOverview = {
     severity: 'HIGH' | 'MEDIUM';
     title: string;
     detail: string;
+    displayName?: string;
+    statusLabel?: string;
+    lagTradingDays?: number | null;
     task: string;
     dataset: string;
   }>;

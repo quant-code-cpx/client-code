@@ -63,18 +63,18 @@ const overviewFixture: DataOperationsOverview = {
     {
       type: 'LATE',
       severity: 'HIGH',
-      title: 'Daily · LATE',
+      title: 'MarginDetail · LATE',
       detail: '期望 20260808，当前 20260807',
-      task: 'DAILY',
-      dataset: 'STOCK_DAILY',
+      task: 'MARGIN_DETAIL',
+      dataset: 'MARGIN_DETAIL',
     },
   ],
   freshness: [
     {
-      dataset: 'STOCK_DAILY',
-      displayName: 'Daily',
-      sourceTask: 'DAILY',
-      sourceModels: ['Daily'],
+      dataset: 'MARGIN_DETAIL',
+      displayName: 'MarginDetail',
+      sourceTask: 'MARGIN_DETAIL',
+      sourceModels: ['MarginDetail'],
       frequency: 'DAILY',
       criticality: 'CORE',
       expectedTradeDate: '20260808',
@@ -124,7 +124,19 @@ describe('SyncStatusOverviewPanel', () => {
     expect(await screen.findByText('2026-08-07')).toBeInTheDocument();
     expect(screen.getAllByText('2026-08-08').length).toBeGreaterThan(0);
     await user.click(screen.getByRole('button', { name: '日志' }));
-    expect(onGoLogs).toHaveBeenCalledWith({ task: 'DAILY' });
+    expect(onGoLogs).toHaveBeenCalledWith({ task: 'MARGIN_DETAIL' });
+  });
+
+  it('不向用户暴露模型名和英文状态枚举，并解释异常影响', async () => {
+    const onGoLogs = vi.fn();
+    const { user } = renderWithProviders(<SyncStatusOverviewPanel onGoLogs={onGoLogs} />);
+
+    expect((await screen.findAllByText('融资融券明细')).length).toBeGreaterThan(0);
+    expect(screen.getAllByText('已延迟').length).toBeGreaterThan(0);
+    expect(screen.getByText('落后 1 个交易日 · 当前至 2026-08-07')).toBeInTheDocument();
+    expect(screen.queryByText('MarginDetail · LATE')).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: '查看融资融券明细同步日志' }));
+    expect(onGoLogs).toHaveBeenCalledWith({ task: 'MARGIN_DETAIL' });
   });
 
   it('refreshKey 变化时重新读取统一概览', async () => {

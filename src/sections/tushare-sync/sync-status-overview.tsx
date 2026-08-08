@@ -1,5 +1,9 @@
 import type { IconifyName } from 'src/components/iconify/register-icons';
-import type { SyncLogItem, DataOperationsOverview } from 'src/api/tushare-sync';
+import type {
+  SyncLogItem,
+  DataOperationsOverview,
+  OperationsFreshnessItem,
+} from 'src/api/tushare-sync';
 
 import { useState, useEffect, useCallback } from 'react';
 
@@ -57,6 +61,31 @@ const RUNTIME_META = {
   RUNNING: { label: '正在同步', color: 'info' as const, icon: 'solar:refresh-circle-bold' as const },
   STALE: { label: '运行态失联', color: 'error' as const, icon: 'solar:danger-triangle-bold' as const },
   UNKNOWN: { label: '状态未知', color: 'default' as const, icon: 'solar:question-circle-bold' as const },
+};
+
+const DATASET_LABELS: Record<string, string> = {
+  STOCK_DAILY: 'A股日线行情',
+  STOCK_DAILY_BASIC: '每日行情指标',
+  STOCK_ADJ_FACTOR: '复权因子',
+  STOCK_TECHNICAL_FACTOR: '技术因子',
+  STOCK_MONEYFLOW: '个股资金流向',
+  FINANCIAL_INDICATOR: '财务指标',
+  INCOME_STATEMENT: '利润表',
+  BALANCE_SHEET: '资产负债表',
+  CASHFLOW: '现金流量表',
+  INDEX_DAILY: '核心指数日线',
+  SECTOR_DAILY: '同花顺板块日线',
+  MARKET_MONEYFLOW: '市场资金流向',
+  HSGT: '沪深港通资金流',
+  MARGIN_DETAIL: '融资融券明细',
+  CYQ_PERF: '筹码获利比例',
+  CYQ_CHIPS: '筹码分布',
+};
+
+const SYNC_LOG_STATUS_META: Record<string, { label: string; color: 'success' | 'error' | 'default' }> = {
+  SUCCESS: { label: '同步成功', color: 'success' },
+  FAILED: { label: '同步失败', color: 'error' },
+  SKIPPED: { label: '已跳过', color: 'default' },
 };
 
 const EXACT_DATE_TIME_FORMAT = 'YYYY-MM-DD HH:mm:ss';
@@ -164,43 +193,43 @@ export function SyncStatusOverviewPanel({ refreshKey = 0, onGoLogs, onGoQuality 
         <Grid size={{ xs: 12, md: 7, lg: 4 }}>
           <DecisionCard title="当前同步任务" icon={runtimeMeta.icon} tone={runtimeMeta.color}>
             <Box aria-live="polite">
-            <Stack direction="row" alignItems="center" spacing={1}>
-              <Label color={runtimeMeta.color} variant="soft">
-                {runtimeMeta.label}
-              </Label>
-              {overview.runtime.runId && (
-                <Typography variant="caption" color="text.secondary" noWrap translate="no">
-                  #{overview.runtime.runId.slice(0, 8)}
+              <Stack direction="row" alignItems="center" spacing={1}>
+                <Label color={runtimeMeta.color} variant="soft">
+                  {runtimeMeta.label}
+                </Label>
+                {overview.runtime.runId && (
+                  <Typography variant="caption" color="text.secondary" noWrap translate="no">
+                    #{overview.runtime.runId.slice(0, 8)}
+                  </Typography>
+                )}
+              </Stack>
+              {overview.runtime.status === 'RUNNING' || overview.runtime.status === 'QUEUED' ? (
+                <Box sx={{ mt: 1.25 }}>
+                  <Stack direction="row" justifyContent="space-between" spacing={1}>
+                    <Typography variant="body2" noWrap>
+                      {activeTask?.label ?? `等待执行 ${overview.runtime.totalTasks} 个任务`}
+                    </Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
+                      {overview.runtime.percentage}%
+                    </Typography>
+                  </Stack>
+                  <LinearProgress
+                    variant="determinate"
+                    value={overview.runtime.percentage}
+                    sx={{ mt: 0.75, height: 6, borderRadius: 1 }}
+                  />
+                  <Typography variant="caption" color="text.secondary">
+                    已完成 {overview.runtime.completedTasks}/{overview.runtime.totalTasks}
+                    {overview.runtime.estimatedRemainingMs
+                      ? ` · 预计剩余 ${formatDuration(overview.runtime.estimatedRemainingMs)}`
+                      : ''}
+                  </Typography>
+                </Box>
+              ) : (
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 1.25 }}>
+                  没有同步任务占用执行队列。
                 </Typography>
               )}
-            </Stack>
-            {overview.runtime.status === 'RUNNING' || overview.runtime.status === 'QUEUED' ? (
-              <Box sx={{ mt: 1.25 }}>
-                <Stack direction="row" justifyContent="space-between" spacing={1}>
-                  <Typography variant="body2" noWrap>
-                    {activeTask?.label ?? `等待执行 ${overview.runtime.totalTasks} 个任务`}
-                  </Typography>
-                  <Typography variant="body2" sx={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
-                    {overview.runtime.percentage}%
-                  </Typography>
-                </Stack>
-                <LinearProgress
-                  variant="determinate"
-                  value={overview.runtime.percentage}
-                  sx={{ mt: 0.75, height: 6, borderRadius: 1 }}
-                />
-                <Typography variant="caption" color="text.secondary">
-                  已完成 {overview.runtime.completedTasks}/{overview.runtime.totalTasks}
-                  {overview.runtime.estimatedRemainingMs
-                    ? ` · 预计剩余 ${formatDuration(overview.runtime.estimatedRemainingMs)}`
-                    : ''}
-                </Typography>
-              </Box>
-            ) : (
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 1.25 }}>
-                没有同步任务占用执行队列。
-              </Typography>
-            )}
             </Box>
           </DecisionCard>
         </Grid>
@@ -218,30 +247,58 @@ export function SyncStatusOverviewPanel({ refreshKey = 0, onGoLogs, onGoQuality 
               </Stack>
             ) : (
               <Stack spacing={0.75}>
-                {overview.attention.map((item) => (
-                  <Button
-                    key={item.dataset}
-                    color="inherit"
-                    size="small"
-                    onClick={() => onGoLogs?.({ task: item.task })}
-                    sx={{ justifyContent: 'flex-start', px: 0, minWidth: 0 }}
-                  >
-                    <Stack direction="row" spacing={0.75} alignItems="center" sx={{ minWidth: 0 }}>
+                {overview.attention.map((item) => {
+                  const freshnessItem = overview.freshness.find((entry) => entry.dataset === item.dataset);
+                  const displayName = resolveDatasetLabel(item.dataset, item.displayName ?? freshnessItem?.displayName);
+                  const statusMeta = STATUS_META[item.type as keyof typeof STATUS_META] ?? STATUS_META.UNKNOWN;
+                  const lagTradingDays = item.lagTradingDays ?? freshnessItem?.lagTradingDays ?? null;
+                  return (
+                    <Button
+                      key={item.dataset}
+                      color="inherit"
+                      size="small"
+                      aria-label={`查看${displayName}同步日志`}
+                      onClick={() => onGoLogs?.({ task: item.task })}
+                      sx={{
+                        px: 1.25,
+                        py: 1,
+                        width: 1,
+                        minWidth: 0,
+                        textAlign: 'left',
+                        borderRadius: 1,
+                        alignItems: 'stretch',
+                        justifyContent: 'flex-start',
+                        bgcolor: 'background.neutral',
+                      }}
+                    >
                       <Box
                         sx={{
-                          width: 6,
-                          height: 6,
+                          width: 3,
+                          mr: 1,
                           flexShrink: 0,
-                          borderRadius: '50%',
+                          borderRadius: 1,
                           bgcolor: item.severity === 'HIGH' ? 'error.main' : 'warning.main',
                         }}
                       />
-                      <Typography variant="caption" noWrap>
-                        {item.title}
-                      </Typography>
-                    </Stack>
-                  </Button>
-                ))}
+                      <Stack spacing={0.25} sx={{ minWidth: 0, flex: 1 }}>
+                        <Stack direction="row" spacing={0.75} alignItems="center" justifyContent="space-between">
+                          <Typography variant="body2" noWrap sx={{ fontWeight: 600 }}>
+                            {displayName}
+                          </Typography>
+                          <Label color={statusMeta.color} variant="soft">
+                            {item.statusLabel ?? statusMeta.label}
+                          </Label>
+                        </Stack>
+                        <Typography variant="caption" color="text.secondary" sx={{ lineHeight: 1.45 }}>
+                          {formatAttentionDetail(item.detail, lagTradingDays, freshnessItem)}
+                        </Typography>
+                        <Typography variant="caption" color="primary.main" sx={{ fontWeight: 600 }}>
+                          查看同步日志
+                        </Typography>
+                      </Stack>
+                    </Button>
+                  );
+                })}
               </Stack>
             )}
           </DecisionCard>
@@ -280,12 +337,11 @@ export function SyncStatusOverviewPanel({ refreshKey = 0, onGoLogs, onGoQuality 
                 return (
                   <TableRow key={item.dataset} hover>
                     <TableCell>
-                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                        {item.displayName}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary" translate="no">
-                        {item.sourceTask}
-                      </Typography>
+                      <Tooltip title={`同步任务：${item.sourceTask}`}>
+                        <Typography variant="body2" sx={{ fontWeight: 600, width: 'fit-content' }}>
+                          {resolveDatasetLabel(item.dataset, item.displayName)}
+                        </Typography>
+                      </Tooltip>
                     </TableCell>
                     <TableCell>
                       <Label
@@ -349,14 +405,14 @@ export function SyncStatusOverviewPanel({ refreshKey = 0, onGoLogs, onGoQuality 
                 <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1} justifyContent="space-between">
                   <Box>
                     <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                      {overview.recentRun.task}
+                      {resolveRecentTaskLabel(overview.recentRun.task, overview.freshness)}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
                       {fDateTime(overview.recentRun.startedAt, EXACT_DATE_TIME_FORMAT)}
                     </Typography>
                   </Box>
-                  <Label color={overview.recentRun.status === 'SUCCESS' ? 'success' : 'error'} variant="soft">
-                    {overview.recentRun.status}
+                  <Label color={resolveSyncLogStatus(overview.recentRun.status).color} variant="soft">
+                    {resolveSyncLogStatus(overview.recentRun.status).label}
                   </Label>
                 </Stack>
               ) : (
@@ -466,4 +522,32 @@ function formatTradeDate(value: string | null): string {
 function formatDuration(milliseconds: number): string {
   const minutes = Math.ceil(milliseconds / 60000);
   return minutes < 60 ? `${minutes} 分钟` : `${Math.floor(minutes / 60)} 小时 ${minutes % 60} 分钟`;
+}
+
+function resolveDatasetLabel(dataset: string, fallback?: string): string {
+  return DATASET_LABELS[dataset] ?? fallback ?? '未命名数据接口';
+}
+
+function formatAttentionDetail(
+  fallback: string,
+  lagTradingDays: number | null,
+  freshnessItem?: OperationsFreshnessItem
+): string {
+  if (freshnessItem?.status === 'LATE') {
+    const lagText = lagTradingDays === null ? '数据未按期更新' : `落后 ${lagTradingDays} 个交易日`;
+    return `${lagText} · 当前至 ${formatTradeDate(freshnessItem.dataThrough)}`;
+  }
+  if (freshnessItem?.status === 'FAILED') return '最近一次同步失败，请查看日志定位原因';
+  if (freshnessItem?.status === 'EMPTY') return '尚无可用数据，请检查同步计划';
+  if (freshnessItem?.status === 'SYNCING') return '同步任务正在执行，可查看实时进度';
+  return fallback.replace(/\b(?:LATE|FAILED|EMPTY|SYNCING|UNKNOWN)\b/g, '').trim() || '需要检查数据状态';
+}
+
+function resolveRecentTaskLabel(task: string, freshness: OperationsFreshnessItem[]): string {
+  const item = freshness.find((entry) => entry.sourceTask === task);
+  return item ? resolveDatasetLabel(item.dataset, item.displayName) : '最近同步任务';
+}
+
+function resolveSyncLogStatus(status: string) {
+  return SYNC_LOG_STATUS_META[status] ?? { label: '状态未知', color: 'default' as const };
 }
