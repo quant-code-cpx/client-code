@@ -157,7 +157,6 @@ export function SyncStatusOverviewPanel({ refreshKey = 0, onGoLogs, onGoQuality 
   const [error, setError] = useState('');
   const [timelineError, setTimelineError] = useState('');
   const [freshnessExpanded, setFreshnessExpanded] = useState(false);
-  const [summaryExpanded, setSummaryExpanded] = useState(false);
   const previousRefreshKey = useRef(refreshKey);
 
   const fetchOverview = useCallback(async (forceRefresh = false) => {
@@ -226,11 +225,6 @@ export function SyncStatusOverviewPanel({ refreshKey = 0, onGoLogs, onGoQuality 
   ];
   const visibleFreshnessRows = freshnessExpanded ? categoryRows : collapsedFreshnessRows;
   const remainingCategoryCount = categoryRows.length - collapsedFreshnessRows.length;
-  const visibleCategoryRows = summaryExpanded
-    ? categoryRows
-    : attentionCategoryRows.length > 0
-      ? attentionCategoryRows
-      : categoryRows.slice(0, 1);
   const generatedAt = overview?.generatedAt
     ? fDateTime(overview.generatedAt, EXACT_DATE_TIME_FORMAT)
     : '—';
@@ -594,24 +588,6 @@ export function SyncStatusOverviewPanel({ refreshKey = 0, onGoLogs, onGoQuality 
               <Typography variant="caption" color="text.secondary" sx={{ flexGrow: 1 }}>
                 {categoryRows.length} 个分类
               </Typography>
-              {categoryRows.length > 1 && (
-                <Button
-                  size="small"
-                  color="inherit"
-                  onClick={() => setSummaryExpanded((value) => !value)}
-                  endIcon={
-                    <Iconify
-                      icon={
-                        summaryExpanded
-                          ? 'solar:alt-arrow-up-bold'
-                          : 'solar:alt-arrow-down-bold'
-                      }
-                    />
-                  }
-                >
-                  {summaryExpanded ? '收起' : '展开全部'}
-                </Button>
-              )}
             </Stack>
             <Divider />
             <Box sx={{ overflowX: 'auto' }}>
@@ -634,7 +610,7 @@ export function SyncStatusOverviewPanel({ refreshKey = 0, onGoLogs, onGoQuality 
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {visibleCategoryRows.length === 0 ? (
+                  {categoryRows.length === 0 ? (
                     <TableRow>
                       <TableCell colSpan={7} align="center">
                         <Typography variant="body2" color="text.secondary">
@@ -643,7 +619,7 @@ export function SyncStatusOverviewPanel({ refreshKey = 0, onGoLogs, onGoQuality 
                       </TableCell>
                     </TableRow>
                   ) : (
-                    visibleCategoryRows.map((row) => {
+                    categoryRows.map((row) => {
                       const category = row.category;
                       const success = category.items.filter(
                         (item) => item.lastStatus === 'SUCCESS'

@@ -102,7 +102,7 @@ describe('SyncStatusOverviewPanel', () => {
     expect(await screen.findByText(/最后快照：2026-08-08 12:34:56/)).toBeInTheDocument();
   });
 
-  it('新鲜度清单优先展示异常分类，并按需展开正常分类', async () => {
+  it('新鲜度清单优先展示异常分类，分类汇总始终展示全部分类', async () => {
     vi.mocked(tushareSyncApi.getSyncStatusOverview).mockResolvedValueOnce({
       generatedAt: '2026-08-08T00:00:00.000Z',
       totalRows: 0,
@@ -152,11 +152,12 @@ describe('SyncStatusOverviewPanel', () => {
     const { user } = renderWithProviders(<SyncStatusOverviewPanel />);
 
     expect(await screen.findAllByText('异常分类')).toHaveLength(2);
-    expect(screen.getByText('正常分类 4')).toBeInTheDocument();
-    expect(screen.queryByText('正常分类 5')).not.toBeInTheDocument();
+    expect(screen.getAllByText('正常分类 4')).toHaveLength(2);
+    expect(screen.getByText('正常分类 5')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: '展开全部' })).not.toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: '查看全部 6 个分类' }));
 
-    expect(screen.getByText('正常分类 5')).toBeInTheDocument();
+    expect(screen.getAllByText('正常分类 5')).toHaveLength(2);
   });
 });
