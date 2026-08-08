@@ -223,18 +223,32 @@ export type UpdatePortfolioRequest = {
   description?: string;
 };
 
-export type AddHoldingRequest = {
+export type HoldingMutationAction = 'add' | 'update' | 'remove';
+
+type HoldingMutationRequest = {
+  idempotencyKey: string;
+};
+
+export type AddHoldingInput = {
   portfolioId: string;
   tsCode: string;
   quantity: number;
   avgCost: number;
 };
 
-export type UpdateHoldingRequest = {
+export type AddHoldingRequest = AddHoldingInput & HoldingMutationRequest;
+
+export type UpdateHoldingInput = {
   holdingId: string;
   quantity: number;
   avgCost: number;
 };
+
+export type UpdateHoldingRequest = UpdateHoldingInput & HoldingMutationRequest;
+
+export type RemoveHoldingRequest = {
+  holdingId: string;
+} & HoldingMutationRequest;
 
 export type PnlHistoryRequest = {
   portfolioId: string;
@@ -256,6 +270,15 @@ export type UpdateRiskRuleRequest = {
 };
 
 // ---- API 函数 ----
+
+export function createHoldingMutationIdempotencyKey(action: HoldingMutationAction): string {
+  const randomPart =
+    typeof globalThis.crypto?.randomUUID === 'function'
+      ? globalThis.crypto.randomUUID()
+      : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
+
+  return `portfolio-holding:${action}:${randomPart}`.slice(0, 128);
+}
 
 export function createPortfolio(data: CreatePortfolioRequest) {
   return apiClient.post<PortfolioCreated>('/api/portfolio/create', data);
@@ -295,7 +318,7 @@ export function updateHolding(data: UpdateHoldingRequest) {
   >('/api/portfolio/holding/update', data);
 }
 
-export function removeHolding(query: { holdingId: string }) {
+export function removeHolding(query: RemoveHoldingRequest) {
   return apiClient.post<{ message: string }>('/api/portfolio/holding/remove', query);
 }
 

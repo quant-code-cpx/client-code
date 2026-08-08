@@ -1,4 +1,4 @@
-import type { AddHoldingRequest } from 'src/api/portfolio';
+import type { AddHoldingInput } from 'src/api/portfolio';
 
 import { useState } from 'react';
 
@@ -55,7 +55,7 @@ interface HoldingAddDialogProps {
   open: boolean;
   portfolioId: string;
   onClose: () => void;
-  onConfirm: (data: AddHoldingRequest) => Promise<void>;
+  onConfirm: (data: AddHoldingInput) => Promise<void>;
   submitting: boolean;
 }
 

@@ -1,4 +1,4 @@
-import type { HoldingDetailItem, UpdateHoldingRequest } from 'src/api/portfolio';
+import type { HoldingDetailItem, UpdateHoldingInput } from 'src/api/portfolio';
 
 import { useState, useEffect } from 'react';
 
@@ -17,7 +17,7 @@ interface HoldingEditDialogProps {
   open: boolean;
   holding: HoldingDetailItem | null;
   onClose: () => void;
-  onConfirm: (data: UpdateHoldingRequest) => Promise<void>;
+  onConfirm: (data: UpdateHoldingInput) => Promise<void>;
   submitting: boolean;
 }
 

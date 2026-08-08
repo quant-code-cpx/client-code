@@ -1,4 +1,4 @@
-import type { HoldingDetailItem, AddHoldingRequest, UpdateHoldingRequest } from 'src/api/portfolio';
+import type { AddHoldingInput, HoldingDetailItem, UpdateHoldingInput } from 'src/api/portfolio';
 
 import { useState } from 'react';
 
@@ -10,7 +10,12 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 
-import { addHolding, removeHolding, updateHolding } from 'src/api/portfolio';
+import {
+  addHolding,
+  removeHolding,
+  updateHolding,
+  createHoldingMutationIdempotencyKey,
+} from 'src/api/portfolio';
 
 import { Iconify } from 'src/components/iconify';
 
@@ -43,10 +48,10 @@ export function PortfolioHoldingTab({
   const [deleteHolding, setDeleteHolding] = useState<HoldingDetailItem | null>(null);
   const [deleteSubmitting, setDeleteSubmitting] = useState(false);
 
-  const handleAdd = async (data: AddHoldingRequest) => {
+  const handleAdd = async (data: AddHoldingInput) => {
     setAddSubmitting(true);
     try {
-      await addHolding(data);
+      await addHolding({ ...data, idempotencyKey: createHoldingMutationIdempotencyKey('add') });
       setAddOpen(false);
       onRefresh();
     } finally {
@@ -54,10 +59,10 @@ export function PortfolioHoldingTab({
     }
   };
 
-  const handleEdit = async (data: UpdateHoldingRequest) => {
+  const handleEdit = async (data: UpdateHoldingInput) => {
     setEditSubmitting(true);
     try {
-      await updateHolding(data);
+      await updateHolding({ ...data, idempotencyKey: createHoldingMutationIdempotencyKey('update') });
       setEditHolding(null);
       onRefresh();
     } finally {
@@ -69,7 +74,10 @@ export function PortfolioHoldingTab({
     if (!deleteHolding) return;
     setDeleteSubmitting(true);
     try {
-      await removeHolding({ holdingId: deleteHolding.id });
+      await removeHolding({
+        holdingId: deleteHolding.id,
+        idempotencyKey: createHoldingMutationIdempotencyKey('remove'),
+      });
       setDeleteHolding(null);
       onRefresh();
     } finally {
