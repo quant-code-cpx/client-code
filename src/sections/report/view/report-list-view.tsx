@@ -286,9 +286,11 @@ export function ReportListView() {
                 }
               />
               <Tooltip title="刷新">
-                <IconButton size="small" onClick={fetchList} disabled={loading} aria-label="刷新">
-                  <Iconify icon="solar:refresh-bold" />
-                </IconButton>
+                <span>
+                  <IconButton size="small" onClick={fetchList} disabled={loading} aria-label="刷新">
+                    <Iconify icon="solar:refresh-bold" />
+                  </IconButton>
+                </span>
               </Tooltip>
             </Stack>
           </Card>
@@ -391,14 +393,16 @@ export function ReportListView() {
                               </IconButton>
                             </Tooltip>
                             <Tooltip title="重新生成">
-                              <IconButton
-                                size="small"
-                                aria-label="重新生成"
-                                disabled={row.status === 'GENERATING' || row.status === 'PENDING'}
-                                onClick={() => handleRegenerate(row)}
-                              >
-                                <Iconify icon="solar:refresh-bold" width={18} />
-                              </IconButton>
+                              <span>
+                                <IconButton
+                                  size="small"
+                                  aria-label="重新生成"
+                                  disabled={row.status === 'GENERATING' || row.status === 'PENDING'}
+                                  onClick={() => handleRegenerate(row)}
+                                >
+                                  <Iconify icon="solar:refresh-bold" width={18} />
+                                </IconButton>
+                              </span>
                             </Tooltip>
                             <Tooltip title="删除">
                               <IconButton

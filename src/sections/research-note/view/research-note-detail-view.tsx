@@ -2,7 +2,7 @@ import type { StockSearchItem } from 'src/api/stock';
 import type { ResearchNote } from 'src/api/research-note';
 
 import { useParams, useSearchParams } from 'react-router-dom';
-import { useMemo, useState, useEffect, useCallback } from 'react';
+import { useRef, useMemo, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
@@ -24,6 +24,7 @@ import { useRouter } from 'src/routes/hooks';
 import { fDateTime } from 'src/utils/format-time';
 
 import { useAuth } from 'src/auth';
+import { ApiError } from 'src/api/client';
 import { DashboardContent } from 'src/layouts/dashboard';
 import { deleteNote, getNoteById } from 'src/api/research-note';
 
@@ -45,6 +46,7 @@ import type { AutosaveStatus, AutosavePayload } from '../use-note-autosave';
 // ----------------------------------------------------------------------
 
 type ContentMode = 'edit' | 'preview';
+type NoteLoadState = 'loading' | 'ready' | 'not-found' | 'invalid' | 'error';
 
 const STATUS_LABEL: Record<
   AutosaveStatus,
@@ -85,50 +87,70 @@ export function ResearchNoteDetailView() {
   const [isPinned, setIsPinned] = useState(false);
   const [mode, setMode] = useState<ContentMode>(isNew ? 'edit' : 'preview');
 
-  const [loading, setLoading] = useState(!isNew);
+  const [loadState, setLoadState] = useState<NoteLoadState>(isNew ? 'ready' : 'loading');
   const [error, setError] = useState('');
   const [snackbar, setSnackbar] = useState('');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [originalNote, setOriginalNote] = useState<ResearchNote | null>(null);
+  const loadAttemptRef = useRef(0);
+  const loading = loadState === 'loading';
+  const noteUnavailable = loadState === 'not-found' || loadState === 'invalid';
+  const editingDisabled = !isNew && loadState !== 'ready';
+
+  const loadExistingNote = useCallback(async () => {
+    const attempt = loadAttemptRef.current + 1;
+    loadAttemptRef.current = attempt;
+    if (isNew) return;
+
+    const id = Number(noteId);
+    if (!Number.isSafeInteger(id) || id <= 0) {
+      if (attempt !== loadAttemptRef.current) return;
+      setError('无效的笔记 ID');
+      setLoadState('invalid');
+      return;
+    }
+
+    setError('');
+    setLoadState('loading');
+    try {
+      const note = await getNoteById(id);
+      if (attempt !== loadAttemptRef.current) return;
+      setTitle(note.title);
+      setContent(note.content);
+      setSelectedStock(stockItemFromCode(note.tsCode));
+      setTags(note.tags);
+      setIsPinned(note.isPinned);
+      setOriginalNote(note);
+      setLoadState('ready');
+    } catch (err) {
+      if (attempt !== loadAttemptRef.current) return;
+      setError(err instanceof Error ? err.message : '加载笔记失败');
+      setLoadState(err instanceof ApiError && err.status === 404 ? 'not-found' : 'error');
+    }
+  }, [isNew, noteId]);
 
   // 加载详情 / 应用模板
   useEffect(() => {
     if (!isNew) {
-      const id = Number(noteId);
-      if (Number.isNaN(id)) {
-        setError('无效的笔记 ID');
-        setLoading(false);
-        return;
+      void loadExistingNote();
+    } else {
+      // 新建：根据 query 应用模板 + 预填股票
+      const tplId = searchParams.get('template');
+      if (tplId) {
+        const tpl = NOTE_TEMPLATES.find((t) => t.id === tplId);
+        if (tpl) setContent(tpl.content);
       }
-      setLoading(true);
-      getNoteById(id)
-        .then((note) => {
-          setTitle(note.title);
-          setContent(note.content);
-          setSelectedStock(stockItemFromCode(note.tsCode));
-          setTags(note.tags);
-          setIsPinned(note.isPinned);
-          setOriginalNote(note);
-        })
-        .catch((err) => {
-          setError(err instanceof Error ? err.message : '加载笔记失败');
-        })
-        .finally(() => setLoading(false));
-      return;
+      const presetCode = searchParams.get('tsCode');
+      if (presetCode) {
+        setSelectedStock(stockItemFromCode(presetCode));
+      }
     }
 
-    // 新建：根据 query 应用模板 + 预填股票
-    const tplId = searchParams.get('template');
-    if (tplId) {
-      const tpl = NOTE_TEMPLATES.find((t) => t.id === tplId);
-      if (tpl) setContent(tpl.content);
-    }
-    const presetCode = searchParams.get('tsCode');
-    if (presetCode) {
-      setSelectedStock(stockItemFromCode(presetCode));
-    }
-  }, [noteId, isNew, searchParams]);
+    return () => {
+      loadAttemptRef.current += 1;
+    };
+  }, [isNew, loadExistingNote, searchParams]);
 
   // autosave
   const initialPayload: AutosavePayload = useMemo(
@@ -168,12 +190,12 @@ export function ResearchNoteDetailView() {
     initial: initialPayload,
     onCreated: handleAutoCreated,
     onRestore: handleRestoreDraft,
-    enabled: !loading,
+    enabled: !editingDisabled,
   });
 
   // schedule 触发
   useEffect(() => {
-    if (loading) return;
+    if (editingDisabled) return;
     autosave.schedule({
       title,
       content,
@@ -182,12 +204,13 @@ export function ResearchNoteDetailView() {
       isPinned,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [title, content, selectedStock, tags, isPinned, loading]);
+  }, [title, content, selectedStock, tags, isPinned, editingDisabled]);
 
   // 快捷键：Cmd/Ctrl+S 立即保存；Cmd/Ctrl+E 切换预览
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (!(e.metaKey || e.ctrlKey)) return;
+      if (editingDisabled) return;
       const k = e.key.toLowerCase();
       if (k === 's') {
         e.preventDefault();
@@ -199,9 +222,10 @@ export function ResearchNoteDetailView() {
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [autosave]);
+  }, [autosave, editingDisabled]);
 
   const handleDelete = async () => {
+    if (editingDisabled) return;
     if (noteIdState === null) {
       setDeleteDialogOpen(false);
       router.push('/research/notes');
@@ -284,14 +308,28 @@ export function ResearchNoteDetailView() {
           sx={{ alignSelf: { xs: 'flex-start', md: 'center' } }}
         />
 
-        <Tooltip title={isPinned ? '取消置顶' : '置顶'} arrow>
-          <IconButton
-            aria-label={isPinned ? '取消置顶' : '置顶'}
-            onClick={() => setIsPinned(!isPinned)}
-            color={isPinned ? 'warning' : 'default'}
-          >
-            <Iconify icon={isPinned ? 'solar:pin-bold' : 'solar:pin-linear'} />
-          </IconButton>
+        <Tooltip
+          title={
+            noteUnavailable
+              ? '笔记不可用'
+              : editingDisabled
+                ? '笔记尚未加载'
+                : isPinned
+                  ? '取消置顶'
+                  : '置顶'
+          }
+          arrow
+        >
+          <span>
+            <IconButton
+              aria-label={isPinned ? '取消置顶' : '置顶'}
+              onClick={() => setIsPinned(!isPinned)}
+              color={isPinned ? 'warning' : 'default'}
+              disabled={editingDisabled}
+            >
+              <Iconify icon={isPinned ? 'solar:pin-bold' : 'solar:pin-linear'} />
+            </IconButton>
+          </span>
         </Tooltip>
 
         <Tooltip title="历史版本（即将上线）" arrow>
@@ -317,6 +355,7 @@ export function ResearchNoteDetailView() {
             size="small"
             startIcon={<Iconify icon="solar:trash-bin-trash-bold" />}
             onClick={() => setDeleteDialogOpen(true)}
+            disabled={editingDisabled}
           >
             删除
           </Button>
@@ -328,13 +367,25 @@ export function ResearchNoteDetailView() {
           startIcon={<Iconify icon="solar:diskette-bold" />}
           onClick={() => void autosave.flush()}
           loading={autosave.status === 'saving'}
+          disabled={editingDisabled}
         >
           保存（⌘S）
         </Button>
       </Stack>
 
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>
+        <Alert
+          severity="error"
+          sx={{ mb: 2 }}
+          action={
+            loadState === 'error' ? (
+              <Button color="inherit" size="small" onClick={() => void loadExistingNote()}>
+                重试
+              </Button>
+            ) : undefined
+          }
+          onClose={loadState === 'ready' ? () => setError('') : undefined}
+        >
           {error}
         </Alert>
       )}
@@ -352,6 +403,7 @@ export function ResearchNoteDetailView() {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="给这篇笔记一个标题"
+          disabled={editingDisabled}
         />
 
         <StockSearchAutocomplete
@@ -359,13 +411,14 @@ export function ResearchNoteDetailView() {
           value={selectedStock}
           onChange={(item) => setSelectedStock(item)}
           sx={{ maxWidth: 320 }}
+          disabled={editingDisabled}
         />
 
         <Box>
           <Typography variant="caption" color="text.secondary" sx={{ mb: 0.5, display: 'block' }}>
             标签
           </Typography>
-          <ResearchNoteTagInput tags={tags} onChange={setTags} />
+          <ResearchNoteTagInput tags={tags} onChange={setTags} disabled={editingDisabled} />
         </Box>
       </Box>
 
@@ -382,11 +435,11 @@ export function ResearchNoteDetailView() {
           value={mode}
           onChange={(_, v: ContentMode | null) => v && setMode(v)}
         >
-          <ToggleButton value="edit">
+          <ToggleButton value="edit" disabled={editingDisabled}>
             <Iconify icon="solar:pen-bold" width={16} sx={{ mr: 0.5 }} />
             编辑
           </ToggleButton>
-          <ToggleButton value="preview">
+          <ToggleButton value="preview" disabled={editingDisabled}>
             <Iconify icon="solar:eye-bold" width={16} sx={{ mr: 0.5 }} />
             预览
           </ToggleButton>
@@ -402,6 +455,7 @@ export function ResearchNoteDetailView() {
           content={content}
           onChange={setContent}
           onImagePaste={() => setSnackbar('图片上传功能待后端就绪')}
+          disabled={editingDisabled}
         />
       ) : (
         <Box

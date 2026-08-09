@@ -1,4 +1,5 @@
 import type { ViolationItem } from 'src/api/portfolio';
+import type { ScreenerSubscriptionFailedPayload } from 'src/api/screener-subscription';
 import type {
   SyncFailedPayload,
   SyncStartedPayload,
@@ -59,6 +60,19 @@ export function createRiskViolationPayload(
       } as ViolationItem,
     ],
     checkedAt: '2026-04-13T10:00:00Z',
+    ...overrides,
+  };
+}
+
+export function createScreenerSubscriptionFailedPayload(
+  overrides?: Partial<ScreenerSubscriptionFailedPayload>
+): ScreenerSubscriptionFailedPayload {
+  return {
+    subscriptionId: 7,
+    tradeDate: '20260803',
+    errorCode: 'EVALUATION_FAILED',
+    error: '订阅规则执行失败',
+    consecutiveFails: 3,
     ...overrides,
   };
 }

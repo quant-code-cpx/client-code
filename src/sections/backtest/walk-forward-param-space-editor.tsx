@@ -82,6 +82,7 @@ export function WalkForwardParamSpaceEditor({ availableParams, value, onChange }
       {availableParams.map((param) => {
         const enabled = enabledKeys.includes(param.key);
         const item = value[param.key];
+        const searchTypeLabelId = `walk-forward-param-${param.key}-search-type-label`;
 
         return (
           <Box
@@ -120,8 +121,11 @@ export function WalkForwardParamSpaceEditor({ availableParams, value, onChange }
             {enabled && item && (
               <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', ml: 4 }}>
                 <FormControl size="small" sx={{ minWidth: 120 }}>
-                  <InputLabel>搜索类型</InputLabel>
+                  <InputLabel id={searchTypeLabelId}>搜索类型</InputLabel>
                   <Select
+                    id={`walk-forward-param-${param.key}-search-type`}
+                    name={`paramSearchSpace.${param.key}.type`}
+                    labelId={searchTypeLabelId}
                     label="搜索类型"
                     value={item.type}
                     onChange={(e) =>

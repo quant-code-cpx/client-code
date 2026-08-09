@@ -175,6 +175,28 @@ export type SubscriptionRunStatus = {
   completedAt?: string | null;
 };
 
+/** WebSocket `screener_subscription_alert` payload. */
+export type ScreenerSubscriptionAlertPayload = {
+  subscriptionId: number;
+  subscriptionName?: string;
+  tradeDate?: string;
+  newEntryCodes?: string[];
+  exitCodes?: string[];
+  totalMatch?: number;
+};
+
+/**
+ * WebSocket `screener_subscription_failed` payload.
+ * The server emits this only when consecutive failures transition a subscription to ERROR.
+ */
+export type ScreenerSubscriptionFailedPayload = {
+  subscriptionId: number;
+  tradeDate: string;
+  errorCode: string;
+  error: string;
+  consecutiveFails: number;
+};
+
 export type ScreenerSubscription = {
   id: number;
   name: string;

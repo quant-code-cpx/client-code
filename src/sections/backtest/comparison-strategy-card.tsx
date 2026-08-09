@@ -30,6 +30,8 @@ type Props = {
 };
 
 export function ComparisonStrategyCard({ index, item, onChange, onRemove, canRemove }: Props) {
+  const fieldIdPrefix = `comparison-strategy-${index}`;
+
   // Adapt to BacktestStrategyConfigPanel's interface
   const fakeForm: BacktestRunForm = {
     name: '',
@@ -86,6 +88,8 @@ export function ComparisonStrategyCard({ index, item, onChange, onRemove, canRem
 
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           <TextField
+            id={`${fieldIdPrefix}-label`}
+            name={`${fieldIdPrefix}-label`}
             fullWidth
             size="small"
             label="策略标签 (可选)"
@@ -96,8 +100,11 @@ export function ComparisonStrategyCard({ index, item, onChange, onRemove, canRem
 
           <Box sx={{ display: 'flex', gap: 2 }}>
             <FormControl size="small" fullWidth>
-              <InputLabel>策略类型</InputLabel>
+              <InputLabel id={`${fieldIdPrefix}-type-label`}>策略类型</InputLabel>
               <Select
+                id={`${fieldIdPrefix}-type`}
+                name={`${fieldIdPrefix}-type`}
+                labelId={`${fieldIdPrefix}-type-label`}
                 label="策略类型"
                 value={item.strategyType}
                 onChange={(e) => onChange({ strategyType: e.target.value, strategyConfig: {} })}
@@ -111,8 +118,11 @@ export function ComparisonStrategyCard({ index, item, onChange, onRemove, canRem
             </FormControl>
 
             <FormControl size="small" sx={{ minWidth: 140 }}>
-              <InputLabel>调仓频率</InputLabel>
+              <InputLabel id={`${fieldIdPrefix}-rebalance-label`}>调仓频率</InputLabel>
               <Select
+                id={`${fieldIdPrefix}-rebalance`}
+                name={`${fieldIdPrefix}-rebalanceFrequency`}
+                labelId={`${fieldIdPrefix}-rebalance-label`}
                 label="调仓频率"
                 value={item.rebalanceFrequency}
                 onChange={(e) => onChange({ rebalanceFrequency: e.target.value })}
@@ -129,6 +139,7 @@ export function ComparisonStrategyCard({ index, item, onChange, onRemove, canRem
           <BacktestStrategyConfigPanel
             selectedTemplateId={item.strategyType}
             form={fakeForm}
+            fieldIdPrefix={fieldIdPrefix}
             onChange={handleConfigChange}
           />
         </Box>

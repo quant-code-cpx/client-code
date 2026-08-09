@@ -231,6 +231,8 @@ export function WalkForwardCreateView() {
 
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 <TextField
+                  id="walk-forward-name"
+                  name="name"
                   fullWidth
                   size="small"
                   label="任务名称（可选）"
@@ -239,8 +241,11 @@ export function WalkForwardCreateView() {
                 />
 
                 <FormControl size="small" fullWidth>
-                  <InputLabel>策略类型</InputLabel>
+                  <InputLabel id="walk-forward-strategy-type-label">策略类型</InputLabel>
                   <Select
+                    id="walk-forward-strategy-type"
+                    name="baseStrategyType"
+                    labelId="walk-forward-strategy-type-label"
                     label="策略类型"
                     value={form.baseStrategyType}
                     onChange={(e) => handleStrategyTypeChange(e.target.value)}
@@ -256,6 +261,7 @@ export function WalkForwardCreateView() {
                 <BacktestStrategyConfigPanel
                   selectedTemplateId={form.baseStrategyType}
                   form={fakeForm}
+                  fieldIdPrefix="walk-forward-strategy"
                   onChange={handleStrategyConfigChange}
                 />
               </Box>
@@ -337,8 +343,11 @@ export function WalkForwardCreateView() {
                 />
 
                 <FormControl size="small" fullWidth>
-                  <InputLabel>优化指标</InputLabel>
+                  <InputLabel id="walk-forward-optimize-metric-label">优化指标</InputLabel>
                   <Select
+                    id="walk-forward-optimize-metric"
+                    name="optimizeMetric"
+                    labelId="walk-forward-optimize-metric-label"
                     label="优化指标"
                     value={form.optimizeMetric}
                     onChange={(e) =>
@@ -402,8 +411,11 @@ export function WalkForwardCreateView() {
                 />
 
                 <FormControl size="small" fullWidth>
-                  <InputLabel>基准指数</InputLabel>
+                  <InputLabel id="walk-forward-benchmark-label">基准指数</InputLabel>
                   <Select
+                    id="walk-forward-benchmark"
+                    name="benchmarkTsCode"
+                    labelId="walk-forward-benchmark-label"
                     label="基准指数"
                     value={form.benchmarkTsCode}
                     onChange={(e) =>
@@ -419,8 +431,11 @@ export function WalkForwardCreateView() {
                 </FormControl>
 
                 <FormControl size="small" fullWidth>
-                  <InputLabel>股票池</InputLabel>
+                  <InputLabel id="walk-forward-universe-label">股票池</InputLabel>
                   <Select
+                    id="walk-forward-universe"
+                    name="universe"
+                    labelId="walk-forward-universe-label"
                     label="股票池"
                     value={form.universe}
                     onChange={(e) => setForm((prev) => ({ ...prev, universe: e.target.value }))}
@@ -434,8 +449,11 @@ export function WalkForwardCreateView() {
                 </FormControl>
 
                 <FormControl size="small" fullWidth>
-                  <InputLabel>调仓频率</InputLabel>
+                  <InputLabel id="walk-forward-rebalance-label">调仓频率</InputLabel>
                   <Select
+                    id="walk-forward-rebalance"
+                    name="rebalanceFrequency"
+                    labelId="walk-forward-rebalance-label"
                     label="调仓频率"
                     value={form.rebalanceFrequency}
                     onChange={(e) =>

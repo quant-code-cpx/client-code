@@ -12,6 +12,12 @@ export type NewsCoverageAlertProps = {
   dataThrough: string | null;
 };
 
+function formatWarningMessage(warning: NewsCoverageWarning) {
+  const source = warning.feedDisplayName?.trim() || warning.providerDisplayName?.trim();
+
+  return source ? `${source}：${warning.publicMessage}` : warning.publicMessage;
+}
+
 export function NewsCoverageAlert({ partial, warnings, dataThrough }: NewsCoverageAlertProps) {
   if (!partial) return null;
   const completenessWarnings = warnings.filter((warning) => warning.affectsCompleteness);
@@ -23,7 +29,7 @@ export function NewsCoverageAlert({ partial, warnings, dataThrough }: NewsCovera
         <Typography variant="subtitle2">当前新闻覆盖不完整</Typography>
         {completenessWarnings.map((warning) => (
           <Typography key={warning.warningId} variant="body2">
-            {warning.publicMessage}
+            {formatWarningMessage(warning)}
           </Typography>
         ))}
         <Typography variant="caption" sx={{ color: 'text.secondary' }}>

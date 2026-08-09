@@ -166,14 +166,23 @@ export function ReportDetailView() {
         </IconButton>
       </Tooltip>
       <Tooltip title="打印">
-        <IconButton size="small" aria-label="打印" onClick={handlePrint} disabled={!isCompleted}>
-          <Iconify icon="solar:file-text-bold" />
-        </IconButton>
+        <span>
+          <IconButton size="small" aria-label="打印" onClick={handlePrint} disabled={!isCompleted}>
+            <Iconify icon="solar:file-text-bold" />
+          </IconButton>
+        </span>
       </Tooltip>
       <Tooltip title="重新生成">
-        <IconButton size="small" aria-label="重新生成" onClick={handleRegenerate} disabled={retrying || isInProgress}>
-          <Iconify icon="solar:refresh-bold" />
-        </IconButton>
+        <span>
+          <IconButton
+            size="small"
+            aria-label="重新生成"
+            onClick={handleRegenerate}
+            disabled={retrying || isInProgress}
+          >
+            <Iconify icon="solar:refresh-bold" />
+          </IconButton>
+        </span>
       </Tooltip>
       <Tooltip title={notesOpen ? '隐藏笔记' : '显示笔记'}>
         <IconButton size="small" aria-label={notesOpen ? '隐藏笔记' : '显示笔记'} onClick={() => setNotesOpen((v) => !v)}>

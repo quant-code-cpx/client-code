@@ -55,6 +55,17 @@ describe('tokenStorage', () => {
     tokenStorage.set('token-2');
     expect(tokenStorage.get()).toBe('token-2');
   });
+
+  it('keeps auth session identity across token rotation and changes it on clear', () => {
+    const sessionEpoch = tokenStorage.getSessionEpoch();
+
+    tokenStorage.set('token-1');
+    tokenStorage.set('token-2');
+    expect(tokenStorage.getSessionEpoch()).toBe(sessionEpoch);
+
+    tokenStorage.clear();
+    expect(tokenStorage.getSessionEpoch()).toBe(sessionEpoch + 1);
+  });
 });
 
 // ----------------------------------------------------------------------

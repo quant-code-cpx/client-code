@@ -23,7 +23,6 @@ import { useRouter } from 'src/routes/hooks';
 
 import { fDate, fToNow, fDateTime } from 'src/utils/format-time';
 
-import { getSocket } from 'src/lib/socket';
 import { DashboardContent } from 'src/layouts/dashboard';
 import {
   pauseSubscription,
@@ -43,6 +42,7 @@ import { SubscriptionStatusLabel } from '../subscription-status-label';
 import { SubscriptionMatchPreview } from '../subscription-match-preview';
 import { SubscriptionHitEvidenceTable } from '../subscription-hit-evidence';
 import { SubscriptionFiltersSummary } from '../subscription-filters-summary';
+import { useScreenerSubscriptionRefresh } from '../hooks/use-screener-subscription-refresh';
 
 // ----------------------------------------------------------------------
 
@@ -53,10 +53,6 @@ const RULE_TYPE_LABELS = {
   SIGNAL_EVENT: '技术信号',
   COMPOSITE: '组合规则',
 } as const;
-
-type ScreenerSubscriptionAlertPayload = {
-  subscriptionId: number;
-};
 
 function RuleSnapshotSummary({ subscription }: { subscription: ScreenerSubscription }) {
   const ruleSpec = subscription.ruleSpec;
@@ -120,6 +116,8 @@ export function ScreenerSubscriptionDetailView() {
   const [hitLogId, setHitLogId] = useState<number | null>(null);
   const [runStatus, setRunStatus] = useState<SubscriptionRunStatus | null>(null);
   const runStatusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const detailRequestIdRef = useRef(0);
+  const logsRequestIdRef = useRef(0);
 
   const [actionError, setActionError] = useState('');
   const [actionInfo, setActionInfo] = useState('');
@@ -128,36 +126,48 @@ export function ScreenerSubscriptionDetailView() {
   const isValidId = Number.isFinite(numericId) && numericId > 0;
 
   // ── 拉取详情 ──
-  const fetchDetail = useCallback(async () => {
+  const fetchDetail = useCallback(async (silent = false) => {
     if (!isValidId) {
       setDetailError('订阅 ID 无效');
       return;
     }
-    setLoadingDetail(true);
+    const requestId = detailRequestIdRef.current + 1;
+    detailRequestIdRef.current = requestId;
+    if (!silent) setLoadingDetail(true);
     setDetailError('');
     try {
       const data = await getSubscriptionById(numericId);
-      setSubscription(data);
+      if (requestId === detailRequestIdRef.current) {
+        setSubscription(data);
+      }
     } catch (err) {
-      setDetailError(err instanceof Error ? err.message : '获取订阅详情失败');
+      if (requestId === detailRequestIdRef.current) {
+        setDetailError(err instanceof Error ? err.message : '获取订阅详情失败');
+      }
     } finally {
-      setLoadingDetail(false);
+      if (requestId === detailRequestIdRef.current) setLoadingDetail(false);
     }
   }, [isValidId, numericId]);
 
   const fetchLogs = useCallback(
-    async (page: number) => {
+    async (page: number, silent = false) => {
       if (!isValidId) return;
-      setLogsLoading(true);
+      const requestId = logsRequestIdRef.current + 1;
+      logsRequestIdRef.current = requestId;
+      if (!silent) setLogsLoading(true);
       setLogsError('');
       try {
         const res = await getSubscriptionLogs(numericId, page, logsPageSize);
-        setLogs(res.logs);
-        setLogsTotal(res.total);
+        if (requestId === logsRequestIdRef.current) {
+          setLogs(res.logs);
+          setLogsTotal(res.total);
+        }
       } catch (err) {
-        setLogsError(err instanceof Error ? err.message : '加载执行历史失败');
+        if (requestId === logsRequestIdRef.current) {
+          setLogsError(err instanceof Error ? err.message : '加载执行历史失败');
+        }
       } finally {
-        setLogsLoading(false);
+        if (requestId === logsRequestIdRef.current) setLogsLoading(false);
       }
     },
     [isValidId, numericId]
@@ -178,26 +188,14 @@ export function ScreenerSubscriptionDetailView() {
     []
   );
 
-  // ── WebSocket 推送：本订阅命中新股票时刷新 ──
-  const refetchAllRef = useRef<() => void>(() => {});
-  refetchAllRef.current = () => {
-    fetchDetail();
-    fetchLogs(logsPage);
-  };
-  useEffect(() => {
-    if (!isValidId) return undefined;
-    const socket = getSocket();
-    socket.connect();
-    const handler = (payload: ScreenerSubscriptionAlertPayload) => {
-      if (payload.subscriptionId === numericId) {
-        refetchAllRef.current();
-      }
-    };
-    socket.on('screener_subscription_alert', handler);
-    return () => {
-      socket.off('screener_subscription_alert', handler);
-    };
-  }, [isValidId, numericId]);
+  // 本订阅命中或连续失败转 ERROR 后，静默刷新详情与当前日志页。
+  useScreenerSubscriptionRefresh(
+    () => {
+      void fetchDetail(true);
+      void fetchLogs(logsPage, true);
+    },
+    isValidId ? numericId : null
+  );
 
   // ── 暂停 / 恢复 ──
   const handlePauseResume = async () => {
@@ -282,7 +280,7 @@ export function ScreenerSubscriptionDetailView() {
         <Alert
           severity="error"
           action={
-            <Button color="inherit" size="small" onClick={fetchDetail}>
+            <Button color="inherit" size="small" onClick={() => void fetchDetail()}>
               重试
             </Button>
           }

@@ -9,6 +9,7 @@ import {
   createSyncStartedPayload,
   createRiskViolationPayload,
   createSyncCompletedPayload,
+  createScreenerSubscriptionFailedPayload,
 } from 'src/test/factories/sync-events';
 
 // ----------------------------------------------------------------------
@@ -95,10 +96,10 @@ describe('SyncNotificationProvider', () => {
       expect(mockDestroySocket).toHaveBeenCalledTimes(1);
     });
 
-    it('mount 时注册全部 10 个事件监听器', () => {
+    it('mount 时注册全部 11 个事件监听器', () => {
       renderHook(useSyncNotification, { wrapper });
 
-      expect(mockSocket.on).toHaveBeenCalledTimes(10);
+      expect(mockSocket.on).toHaveBeenCalledTimes(11);
 
       const registeredEvents = (mockSocket.on.mock.calls as [string, ...unknown[]][]).map(
         ([event]) => event
@@ -112,6 +113,7 @@ describe('SyncNotificationProvider', () => {
       expect(registeredEvents).toContain('auto_repair_queued');
       expect(registeredEvents).toContain('risk_violation');
       expect(registeredEvents).toContain('screener_subscription_alert');
+      expect(registeredEvents).toContain('screener_subscription_failed');
       expect(registeredEvents).toContain('agent_run_updated');
     });
 
@@ -120,7 +122,7 @@ describe('SyncNotificationProvider', () => {
 
       unmount();
 
-      expect(mockSocket.off).toHaveBeenCalledTimes(10);
+      expect(mockSocket.off).toHaveBeenCalledTimes(11);
       expect(mockDestroySocket).toHaveBeenCalledTimes(1);
     });
   });
@@ -387,6 +389,25 @@ describe('SyncNotificationProvider', () => {
       });
 
       expect(result.current.isSyncing).toBe(false);
+    });
+  });
+
+  describe('条件订阅失败 — screener_subscription_failed', () => {
+    it('按后端失败 payload 生成全局未读通知，并格式化交易日', () => {
+      const { result } = renderHook(useSyncNotification, { wrapper });
+      const payload = createScreenerSubscriptionFailedPayload();
+
+      act(() => {
+        emitSocket('screener_subscription_failed', payload);
+      });
+
+      expect(result.current.notifications[0]).toMatchObject({
+        type: 'screener-subscription-failed',
+        title: '条件订阅 #7 已进入异常状态',
+        description: '2026-08-03：订阅规则执行失败（EVALUATION_FAILED），连续失败 3 次',
+        isUnRead: true,
+        payload,
+      });
     });
   });
 

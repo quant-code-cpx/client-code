@@ -15,9 +15,12 @@ const DEFAULT_REQUEST_TIMEOUT_MS = 30_000;
 let accessToken: string | null = null;
 let sessionExpired = false;
 let tokenEpoch = 0;
+let authSessionEpoch = 0;
 
 export const tokenStorage = {
   get: (): string | null => accessToken,
+  getEpoch: (): number => tokenEpoch,
+  getSessionEpoch: (): number => authSessionEpoch,
   set: (token: string): void => {
     tokenEpoch += 1;
     accessToken = token;
@@ -25,6 +28,7 @@ export const tokenStorage = {
   },
   clear: (): void => {
     tokenEpoch += 1;
+    authSessionEpoch += 1;
     accessToken = null;
   },
 };

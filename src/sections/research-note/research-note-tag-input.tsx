@@ -10,12 +10,14 @@ type Props = {
   tags: string[];
   onChange: (tags: string[]) => void;
   placeholder?: string;
+  disabled?: boolean;
 };
 
 export function ResearchNoteTagInput({
   tags,
   onChange,
   placeholder = '输入标签后按回车添加',
+  disabled = false,
 }: Props) {
   const [inputValue, setInputValue] = useState('');
 
@@ -38,7 +40,13 @@ export function ResearchNoteTagInput({
     <Box>
       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75, mb: tags.length > 0 ? 1 : 0 }}>
         {tags.map((tag) => (
-          <Chip key={tag} label={tag} size="small" onDelete={() => handleDelete(tag)} />
+          <Chip
+            key={tag}
+            label={tag}
+            size="small"
+            onDelete={disabled ? undefined : () => handleDelete(tag)}
+            disabled={disabled}
+          />
         ))}
       </Box>
 
@@ -49,6 +57,7 @@ export function ResearchNoteTagInput({
         placeholder={placeholder}
         onChange={(e) => setInputValue(e.target.value)}
         onKeyDown={handleKeyDown}
+        disabled={disabled}
       />
     </Box>
   );

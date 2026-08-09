@@ -3,6 +3,10 @@ import type { SocketStatus } from 'src/lib/socket';
 import type { ViolationItem } from 'src/api/portfolio';
 import type { AgentRunStatus } from 'src/types/agent/generated';
 import type {
+  ScreenerSubscriptionAlertPayload,
+  ScreenerSubscriptionFailedPayload,
+} from 'src/api/screener-subscription';
+import type {
   RepairSummary,
   SyncRuntimeTask,
   QualityCheckSummary,
@@ -10,6 +14,8 @@ import type {
 } from 'src/api/tushare-sync';
 
 import { useRef, useState, useEffect, useContext, useCallback, createContext } from 'react';
+
+import { fmtTradeDate } from 'src/utils/format-time';
 
 import { useAuth } from 'src/auth';
 import { getSocket, destroySocket, getSocketStatus, onSocketStatusChange } from 'src/lib/socket';
@@ -62,16 +68,6 @@ export type RiskViolationPayload = {
   checkedAt: string;
 };
 
-// 条件订阅命中推送
-export type ScreenerSubscriptionAlertPayload = {
-  subscriptionId: number;
-  subscriptionName?: string;
-  tradeDate?: string;
-  newEntryCodes?: string[];
-  exitCodes?: string[];
-  totalMatch?: number;
-};
-
 export type AgentRunUpdatedPayload = {
   runId: string;
   status: AgentRunStatus;
@@ -86,7 +82,8 @@ export type SyncNotificationItem = {
     | 'tushare-sync-completed'
     | 'tushare-sync-failed'
     | 'risk-violation'
-    | 'screener-subscription-alert';
+    | 'screener-subscription-alert'
+    | 'screener-subscription-failed';
   title: string;
   description: string;
   avatarUrl: string | null;
@@ -96,7 +93,8 @@ export type SyncNotificationItem = {
     | SyncCompletedPayload
     | SyncFailedPayload
     | RiskViolationPayload
-    | ScreenerSubscriptionAlertPayload;
+    | ScreenerSubscriptionAlertPayload
+    | ScreenerSubscriptionFailedPayload;
 };
 
 // ----------------------------------------------------------------------
@@ -333,7 +331,7 @@ export function SyncNotificationProvider({ children }: ProviderProps) {
       const exitCount = payload.exitCodes?.length ?? 0;
       const subName = payload.subscriptionName ?? `订阅 #${payload.subscriptionId}`;
       const desc =
-        `${payload.tradeDate ? `${payload.tradeDate} ` : ''}` +
+        `${payload.tradeDate ? `${fmtTradeDate(payload.tradeDate)} ` : ''}` +
         `命中 ${payload.totalMatch ?? 0} 只，` +
         `新增 ${newCount} 只` +
         (exitCount > 0 ? `，退出 ${exitCount} 只` : '');
@@ -354,6 +352,26 @@ export function SyncNotificationProvider({ children }: ProviderProps) {
 
     socket.on('screener_subscription_alert', handleScreenerSubscriptionAlert);
 
+    // 失败事件只在订阅因连续失败转为 ERROR 时发送，需进入全局通知中心。
+    const handleScreenerSubscriptionFailed = (payload: ScreenerSubscriptionFailedPayload) => {
+      const item: SyncNotificationItem = {
+        id: generateId(),
+        type: 'screener-subscription-failed',
+        title: `条件订阅 #${payload.subscriptionId} 已进入异常状态`,
+        description:
+          `${fmtTradeDate(payload.tradeDate)}：${payload.error}` +
+          `（${payload.errorCode}），连续失败 ${payload.consecutiveFails} 次`,
+        avatarUrl: null,
+        isUnRead: true,
+        postedAt: Date.now(),
+        payload,
+      };
+
+      setNotifications((prev) => [item, ...prev.slice(0, MAX_NOTIFICATIONS - 1)]);
+    };
+
+    socket.on('screener_subscription_failed', handleScreenerSubscriptionFailed);
+
     const handleAgentRunUpdated = (payload: AgentRunUpdatedPayload) => {
       setLastAgentRunUpdate(payload);
     };
@@ -370,6 +388,7 @@ export function SyncNotificationProvider({ children }: ProviderProps) {
       socket.off('auto_repair_queued', handleAutoRepairQueued);
       socket.off('risk_violation', handleRiskViolation);
       socket.off('screener_subscription_alert', handleScreenerSubscriptionAlert);
+      socket.off('screener_subscription_failed', handleScreenerSubscriptionFailed);
       socket.off('agent_run_updated', handleAgentRunUpdated);
       offStatus();
       destroySocket();

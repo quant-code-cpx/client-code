@@ -282,6 +282,8 @@ export function ComparisonCreateView() {
 
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 <TextField
+                  id="comparison-name"
+                  name="name"
                   fullWidth
                   size="small"
                   label="对比名称（可选）"
@@ -320,8 +322,11 @@ export function ComparisonCreateView() {
                 />
 
                 <FormControl size="small" fullWidth>
-                  <InputLabel>基准指数</InputLabel>
+                  <InputLabel id="comparison-benchmark-label">基准指数</InputLabel>
                   <Select
+                    id="comparison-benchmark"
+                    name="benchmarkTsCode"
+                    labelId="comparison-benchmark-label"
                     label="基准指数"
                     value={form.benchmarkTsCode}
                     onChange={(e) =>
@@ -337,8 +342,11 @@ export function ComparisonCreateView() {
                 </FormControl>
 
                 <FormControl size="small" fullWidth>
-                  <InputLabel>股票池</InputLabel>
+                  <InputLabel id="comparison-universe-label">股票池</InputLabel>
                   <Select
+                    id="comparison-universe"
+                    name="universe"
+                    labelId="comparison-universe-label"
                     label="股票池"
                     value={form.universe}
                     onChange={(e) => setForm((prev) => ({ ...prev, universe: e.target.value }))}

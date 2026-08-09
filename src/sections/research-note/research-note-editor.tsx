@@ -15,6 +15,7 @@ type Props = {
   content: string;
   onChange: (content: string) => void;
   onImagePaste?: () => void;
+  disabled?: boolean;
 };
 
 const SHORTCUT_WRAPS: Record<string, { before: string; after: string }> = {
@@ -23,13 +24,14 @@ const SHORTCUT_WRAPS: Record<string, { before: string; after: string }> = {
   k: { before: '[', after: '](url)' },
 };
 
-export function ResearchNoteEditor({ content, onChange, onImagePaste }: Props) {
+export function ResearchNoteEditor({ content, onChange, onImagePaste, disabled = false }: Props) {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [mobileTab, setMobileTab] = useState(0);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   const handleKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (disabled) return;
     if (!(event.metaKey || event.ctrlKey)) return;
     const key = event.key.toLowerCase();
     const wrap = SHORTCUT_WRAPS[key];
@@ -48,6 +50,7 @@ export function ResearchNoteEditor({ content, onChange, onImagePaste }: Props) {
   };
 
   const handlePaste = (event: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    if (disabled) return;
     // 占位：检测到图片时提示后端未就绪
     const items = event.clipboardData?.items;
     if (!items) return;
@@ -66,6 +69,7 @@ export function ResearchNoteEditor({ content, onChange, onImagePaste }: Props) {
         textareaRef={textareaRef}
         onChange={onChange}
         onImagePlaceholder={onImagePaste}
+        disabled={disabled}
       />
       <Box
         component="textarea"
@@ -74,6 +78,7 @@ export function ResearchNoteEditor({ content, onChange, onImagePaste }: Props) {
         onChange={(e) => onChange((e.target as HTMLTextAreaElement).value)}
         onKeyDown={handleKeyDown}
         onPaste={handlePaste}
+        disabled={disabled}
         placeholder="使用 Markdown 撰写笔记...  ⌘B 加粗 / ⌘I 斜体 / ⌘K 链接"
         sx={{
           width: '100%',
@@ -82,8 +87,8 @@ export function ResearchNoteEditor({ content, onChange, onImagePaste }: Props) {
           fontSize: 14,
           lineHeight: 1.7,
           fontFamily: 'ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, monospace',
-          color: 'text.primary',
-          bgcolor: 'background.paper',
+          color: disabled ? 'text.disabled' : 'text.primary',
+          bgcolor: disabled ? 'action.disabledBackground' : 'background.paper',
           border: '1px solid',
           borderColor: 'divider',
           borderRadius: 1,
@@ -124,8 +129,8 @@ export function ResearchNoteEditor({ content, onChange, onImagePaste }: Props) {
           onChange={(_, v) => setMobileTab(v)}
           sx={{ mb: 1, borderBottom: '1px solid', borderColor: 'divider' }}
         >
-          <Tab label="编辑" />
-          <Tab label="预览" />
+          <Tab label="编辑" disabled={disabled} />
+          <Tab label="预览" disabled={disabled} />
         </Tabs>
         {mobileTab === 0 ? editorPane : previewPane}
       </Box>

@@ -18,7 +18,6 @@ import Typography from '@mui/material/Typography';
 
 import { useRouter } from 'src/routes/hooks';
 
-import { getSocket } from 'src/lib/socket';
 import { DashboardContent } from 'src/layouts/dashboard';
 import {
   listSubscriptions,
@@ -33,6 +32,7 @@ import { ConfirmDialog } from 'src/components/confirm-dialog';
 import { SubscriptionListCard } from '../subscription-list-card';
 import { SubscriptionSummaryCards } from '../subscription-summary-cards';
 import { type SortKey, SubscriptionListToolbar } from '../subscription-list-toolbar';
+import { useScreenerSubscriptionRefresh } from '../hooks/use-screener-subscription-refresh';
 
 // ----------------------------------------------------------------------
 
@@ -41,15 +41,6 @@ const QUOTA_LIMIT = 10;
 type StatusFilter = SubscriptionStatus | 'ALL';
 type FrequencyFilter = SubscriptionFrequency | 'ALL';
 type RuleTypeFilter = SubscriptionRuleType | 'ALL';
-
-type ScreenerSubscriptionAlertPayload = {
-  subscriptionId: number;
-  subscriptionName?: string;
-  tradeDate?: string;
-  newEntryCodes?: string[];
-  exitCodes?: string[];
-  totalMatch?: number;
-};
 
 export function ScreenerSubscriptionListView() {
   const router = useRouter();
@@ -60,6 +51,7 @@ export function ScreenerSubscriptionListView() {
   const [error, setError] = useState('');
   const [actionError, setActionError] = useState('');
   const [actionInfo, setActionInfo] = useState('');
+  const listRequestIdRef = useRef(0);
 
   const [deleteTarget, setDeleteTarget] = useState<ScreenerSubscription | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
@@ -84,16 +76,22 @@ export function ScreenerSubscriptionListView() {
   );
 
   // ── 拉取列表 ──
-  const fetchList = useCallback(async () => {
-    setLoading(true);
+  const fetchList = useCallback(async (silent = false) => {
+    const requestId = listRequestIdRef.current + 1;
+    listRequestIdRef.current = requestId;
+    if (!silent) setLoading(true);
     setError('');
     try {
       const res = await listSubscriptions();
-      setSubscriptions(res.subscriptions);
+      if (requestId === listRequestIdRef.current) {
+        setSubscriptions(res.subscriptions);
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : '获取订阅列表失败');
+      if (requestId === listRequestIdRef.current) {
+        setError(err instanceof Error ? err.message : '获取订阅列表失败');
+      }
     } finally {
-      setLoading(false);
+      if (requestId === listRequestIdRef.current) setLoading(false);
     }
   }, []);
 
@@ -101,20 +99,10 @@ export function ScreenerSubscriptionListView() {
     fetchList();
   }, [fetchList]);
 
-  // ── WebSocket 推送：新增命中时静默刷新 ──
-  const fetchListRef = useRef(fetchList);
-  fetchListRef.current = fetchList;
-  useEffect(() => {
-    const socket = getSocket();
-    socket.connect();
-    const handler = (_payload: ScreenerSubscriptionAlertPayload) => {
-      fetchListRef.current();
-    };
-    socket.on('screener_subscription_alert', handler);
-    return () => {
-      socket.off('screener_subscription_alert', handler);
-    };
-  }, []);
+  // 命中或连续失败转 ERROR 后，以 REST 权威状态静默刷新列表。
+  useScreenerSubscriptionRefresh(() => {
+    void fetchList(true);
+  });
 
   // ── 操作处理 ──
   const handlePauseResume = async (sub: ScreenerSubscription) => {
@@ -241,7 +229,7 @@ export function ScreenerSubscriptionListView() {
           severity="error"
           sx={{ mb: 3 }}
           action={
-            <Button color="inherit" size="small" onClick={fetchList}>
+            <Button color="inherit" size="small" onClick={() => void fetchList()}>
               重试
             </Button>
           }

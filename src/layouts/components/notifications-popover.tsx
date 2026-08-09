@@ -254,6 +254,14 @@ function renderContent(notification: NotificationItemProps) {
       title,
     };
   }
+  if (notification.type === 'screener-subscription-failed') {
+    return {
+      avatarUrl: (
+        <Iconify icon="solar:danger-triangle-bold" sx={{ fontSize: 24, color: 'error.main' }} />
+      ),
+      title,
+    };
+  }
   if (notification.type === 'order-placed') {
     return {
       avatarUrl: (

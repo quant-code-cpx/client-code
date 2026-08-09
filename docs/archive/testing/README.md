@@ -4,7 +4,7 @@
 
 ## 历史执行报告
 
-- [报告索引（42 篇）](reports/README.md)
+- [报告索引（43 篇）](reports/README.md)
 
 ## 已完成测试方案
 
@@ -15,4 +15,4 @@
 
 ## 保持活跃
 
-- [新闻时事模块发布门禁](../../testing/新闻时事模块-发布门禁.md)：真实 News 成功态、负载、soak 与 Provider canary 尚未关闭。
+- [新闻时事模块发布门禁](../../testing/新闻时事模块-发布门禁.md)：负载与 soak 已关闭；真实 News 浏览器成功态与 Provider canary 尚未关闭。

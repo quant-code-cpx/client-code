@@ -30,7 +30,6 @@ export default defineConfig({
       exclude: [
         'src/**/__tests__/**',
         'src/test/**',
-        'src/_mock/**',
         'src/vite-env.d.ts',
       ],
       thresholds: {

@@ -114,18 +114,6 @@ React 19 的根挂载点。创建 `ReactDOM.createRoot()` 并渲染 `<App />`，
 
 ---
 
-### src/\_mock/ — 模拟数据
-
-> **用途**：开发阶段替代后端接口，提供假数据。
-
-| 文件       | 功能                                                                                                               |
-| ---------- | ------------------------------------------------------------------------------------------------------------------ |
-| `_mock.ts` | 数据生成器函数（`_id`、`_fullName`、`_price`、`_times`、`_boolean` 等 22 个）                                      |
-| `_data.ts` | 预生成的集合数据：`_myAccount`（当前账户）、`_users`（24 条用户）、`_posts`（23 篇文章）、`_products`（24 个产品） |
-| `index.ts` | 统一导出以上所有数据                                                                                               |
-
----
-
 ### src/routes/ — 路由系统
 
 | 文件/目录                       | 功能                                                                                                                                                              |
@@ -305,13 +293,13 @@ React 19 的根挂载点。创建 `ReactDOM.createRoot()` 并渲染 `<App />`，
 ## 数据流
 
 ```
-src/_mock/ (模拟数据)
-    ↓ import
-sections/*/view/*.tsx (视图层，持有状态 useState/useCallback)
-    ↓ props
-sections/*/*.tsx (展示组件，接收 props 渲染)
+src/api/* (业务 API 与 DTO 契约)
     ↓ 调用
-components/* (基础 UI 组件，无业务逻辑)
+sections/*/view/*.tsx (页面编排与远程状态)
+    ↓ props
+sections/*/*.tsx (功能组件与 Hook)
+    ↓ 调用
+components/* (跨功能基础 UI 与图表封装)
 ```
 
 ---

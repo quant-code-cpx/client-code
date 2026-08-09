@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 
 import Card from '@mui/material/Card';
 import Grid from '@mui/material/Grid';
@@ -22,7 +22,7 @@ import ToggleButton from '@mui/material/ToggleButton';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
-import { stockApi } from 'src/api/stock';
+import { searchStocks } from 'src/api/stock';
 
 import { RANK_BY_OPTIONS } from './constants';
 
@@ -39,6 +39,7 @@ import type {
 interface BacktestStrategyConfigPanelProps {
   selectedTemplateId: string;
   form: BacktestRunForm;
+  fieldIdPrefix?: string;
   onChange: (updates: Partial<BacktestRunForm>) => void;
 }
 
@@ -52,27 +53,35 @@ interface StockOption {
 function useStockSearch() {
   const [options, setOptions] = useState<StockOption[]>([]);
   const [loading, setLoading] = useState(false);
+  const latestRequestRef = useRef(0);
 
-  const search = async (keyword: string) => {
-    if (!keyword || keyword.length < 1) {
+  const search = useCallback(async (keyword: string) => {
+    const normalizedKeyword = keyword.trim();
+    const requestId = latestRequestRef.current + 1;
+    latestRequestRef.current = requestId;
+
+    if (!normalizedKeyword) {
       setOptions([]);
+      setLoading(false);
       return;
     }
+
     setLoading(true);
     try {
-      const res = await stockApi.list({ keyword, pageSize: 20 });
+      const res = await searchStocks({ keyword: normalizedKeyword, limit: 20 });
+      if (requestId !== latestRequestRef.current) return;
       setOptions(
-        (res.items ?? []).map((s) => ({
+        res.items.map((s) => ({
           tsCode: s.tsCode,
           label: `${s.tsCode} ${s.name ?? ''}`.trim(),
         }))
       );
     } catch {
-      setOptions([]);
+      if (requestId === latestRequestRef.current) setOptions([]);
     } finally {
-      setLoading(false);
+      if (requestId === latestRequestRef.current) setLoading(false);
     }
-  };
+  }, []);
 
   return { options, loading, search };
 }
@@ -81,12 +90,15 @@ function useStockSearch() {
 
 function MaCrossPanel({
   config,
+  fieldIdPrefix,
   onChange,
 }: {
   config: MaCrossConfig;
+  fieldIdPrefix: string;
   onChange: (c: MaCrossConfig) => void;
 }) {
   const { options, loading, search } = useStockSearch();
+  const allowFlatId = `${fieldIdPrefix}-allow-flat`;
 
   return (
     <Grid container spacing={2}>
@@ -95,8 +107,10 @@ function MaCrossPanel({
           options={options}
           loading={loading}
           getOptionLabel={(o) => o.label}
-          filterOptions={(x) => x}
-          onInputChange={(_, v) => search(v)}
+          filterOptions={(items) => items}
+          onInputChange={(_, v, reason) => {
+            if (reason === 'input' || reason === 'clear') void search(v);
+          }}
           value={options.find((o) => o.tsCode === config.tsCode) ?? null}
           onChange={(_, v) => onChange({ ...config, tsCode: v?.tsCode ?? '' })}
           renderInput={(params) => (
@@ -136,6 +150,7 @@ function MaCrossPanel({
               checked={config.allowFlat}
               onChange={(e) => onChange({ ...config, allowFlat: e.target.checked })}
               size="small"
+              slotProps={{ input: { id: allowFlatId, name: `${fieldIdPrefix}-allowFlat` } }}
             />
           }
           label="允许空仓（死叉后清空持仓）"
@@ -149,17 +164,24 @@ function MaCrossPanel({
 
 function ScreeningRotationPanel({
   config,
+  fieldIdPrefix,
   onChange,
 }: {
   config: ScreeningRotationConfig;
+  fieldIdPrefix: string;
   onChange: (c: ScreeningRotationConfig) => void;
 }) {
+  const rankByLabelId = `${fieldIdPrefix}-rank-by-label`;
+
   return (
     <Grid container spacing={2}>
       <Grid size={{ xs: 12, sm: 6 }}>
         <FormControl fullWidth size="small">
-          <InputLabel>排序字段</InputLabel>
+          <InputLabel id={rankByLabelId}>排序字段</InputLabel>
           <Select
+            id={`${fieldIdPrefix}-rank-by`}
+            name={`${fieldIdPrefix}-rankBy`}
+            labelId={rankByLabelId}
             label="排序字段"
             value={config.rankBy}
             onChange={(e) => onChange({ ...config, rankBy: e.target.value })}
@@ -463,6 +485,7 @@ function CustomPoolPanel({
 export function BacktestStrategyConfigPanel({
   selectedTemplateId,
   form,
+  fieldIdPrefix = 'backtest-strategy-config',
   onChange,
 }: BacktestStrategyConfigPanelProps) {
   const [factorOptions, setFactorOptions] = useState<string[]>([]);
@@ -504,6 +527,7 @@ export function BacktestStrategyConfigPanel({
               longWindow: (strategyConfig.longWindow as number) ?? 20,
               allowFlat: (strategyConfig.allowFlat as boolean) ?? false,
             }}
+            fieldIdPrefix={fieldIdPrefix}
             onChange={(c) => onChange({ strategyConfig: c as unknown as Record<string, unknown> })}
           />
         );
@@ -517,6 +541,7 @@ export function BacktestStrategyConfigPanel({
               topN: (strategyConfig.topN as number) ?? 20,
               minDaysListed: strategyConfig.minDaysListed as number | undefined,
             }}
+            fieldIdPrefix={fieldIdPrefix}
             onChange={(c) => onChange({ strategyConfig: c as unknown as Record<string, unknown> })}
           />
         );

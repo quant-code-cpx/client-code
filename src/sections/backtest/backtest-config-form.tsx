@@ -84,10 +84,18 @@ function InfoTooltip({ text }: { text: string }) {
   );
 }
 
-function LabelWithTooltip({ label, tooltip }: { label: string; tooltip: string }) {
+function LabelWithTooltip({
+  id,
+  label,
+  tooltip,
+}: {
+  id?: string;
+  label: string;
+  tooltip: string;
+}) {
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.5 }}>
-      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+      <Typography id={id} variant="caption" sx={{ color: 'text.secondary' }}>
         {label}
       </Typography>
       <InfoTooltip text={tooltip} />
@@ -96,18 +104,24 @@ function LabelWithTooltip({ label, tooltip }: { label: string; tooltip: string }
 }
 
 function SwitchRow({
+  id,
+  name,
   checked,
   title,
   helper,
   tooltip,
   onChange,
 }: {
+  id: string;
+  name: string;
   checked: boolean;
   title: string;
   helper: string;
   tooltip: string;
   onChange: (next: boolean) => void;
 }) {
+  const helperId = `${id}-helper-text`;
+
   return (
     <Box
       sx={{
@@ -123,16 +137,25 @@ function SwitchRow({
     >
       <Box>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-          <Typography variant="body2" sx={{ fontWeight: 600 }}>
+          <Typography component="label" htmlFor={id} variant="body2" sx={{ fontWeight: 600 }}>
             {title}
           </Typography>
           <InfoTooltip text={tooltip} />
         </Box>
-        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.25 }}>
+        <Typography
+          id={helperId}
+          variant="caption"
+          sx={{ color: 'text.secondary', display: 'block', mt: 0.25 }}
+        >
           {helper}
         </Typography>
       </Box>
-      <Switch checked={checked} size="small" onChange={(event) => onChange(event.target.checked)} />
+      <Switch
+        checked={checked}
+        size="small"
+        slotProps={{ input: { id, name, 'aria-describedby': helperId } }}
+        onChange={(event) => onChange(event.target.checked)}
+      />
     </Box>
   );
 }
@@ -283,8 +306,11 @@ export function BacktestConfigForm({
 
           <Grid size={{ xs: 12, sm: 6 }}>
             <FormControl fullWidth size="small" error={Boolean(getFieldError('benchmarkTsCode'))}>
-              <InputLabel>基准指数</InputLabel>
+              <InputLabel id="backtest-benchmark-label">基准指数</InputLabel>
               <Select
+                id="backtest-benchmark"
+                name="benchmarkTsCode"
+                labelId="backtest-benchmark-label"
                 label="基准指数"
                 value={form.benchmarkTsCode}
                 onChange={(event) => onChange({ benchmarkTsCode: event.target.value })}
@@ -327,8 +353,11 @@ export function BacktestConfigForm({
         <Grid container spacing={2}>
           <Grid size={{ xs: 12 }}>
             <FormControl fullWidth size="small" error={Boolean(getFieldError('universe'))}>
-              <InputLabel>股票池范围</InputLabel>
+              <InputLabel id="backtest-universe-label">股票池范围</InputLabel>
               <Select
+                id="backtest-universe"
+                name="universe"
+                labelId="backtest-universe-label"
                 label="股票池范围"
                 value={form.universe}
                 onChange={(event) => handleUniverseChange(event.target.value)}
@@ -419,6 +448,8 @@ export function BacktestConfigForm({
             <Grid container spacing={1.5}>
               <Grid size={{ xs: 12, sm: 4 }}>
                 <SwitchRow
+                  id="backtest-trade-constraints"
+                  name="enableTradeConstraints"
                   checked={form.enableTradeConstraints}
                   title="真实交易约束"
                   helper="依赖涨跌停 / 停牌数据"
@@ -428,6 +459,8 @@ export function BacktestConfigForm({
               </Grid>
               <Grid size={{ xs: 12, sm: 4 }}>
                 <SwitchRow
+                  id="backtest-t1-restriction"
+                  name="enableT1Restriction"
                   checked={form.enableT1Restriction}
                   title="T+1 限制"
                   helper="避免同日买入卖出"
@@ -437,6 +470,8 @@ export function BacktestConfigForm({
               </Grid>
               <Grid size={{ xs: 12, sm: 4 }}>
                 <SwitchRow
+                  id="backtest-partial-fill"
+                  name="partialFillEnabled"
                   checked={form.partialFillEnabled}
                   title="允许部分成交"
                   helper="按可成交比例执行"
@@ -541,10 +576,14 @@ export function BacktestConfigForm({
 
           <Grid size={{ xs: 12 }}>
             <LabelWithTooltip
+              id="backtest-slippage-label"
               label={`滑点（bps）：${form.slippageBps}`}
               tooltip={TOOLTIP_TEXTS.slippageBps}
             />
             <Slider
+              name="slippageBps"
+              aria-labelledby="backtest-slippage-label"
+              slotProps={{ input: { id: 'backtest-slippage' } }}
               value={form.slippageBps}
               min={0}
               max={50}
@@ -582,10 +621,14 @@ export function BacktestConfigForm({
 
           <Grid size={{ xs: 12, sm: 4 }}>
             <LabelWithTooltip
+              id="backtest-max-weight-label"
               label={`单票最大权重：${(form.maxWeightPerStock * 100).toFixed(0)}%`}
               tooltip={TOOLTIP_TEXTS.maxWeightPerStock}
             />
             <Slider
+              name="maxWeightPerStock"
+              aria-labelledby="backtest-max-weight-label"
+              slotProps={{ input: { id: 'backtest-max-weight' } }}
               value={form.maxWeightPerStock * 100}
               min={1}
               max={100}

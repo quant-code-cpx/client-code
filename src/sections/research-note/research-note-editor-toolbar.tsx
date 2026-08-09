@@ -82,6 +82,7 @@ type Props = {
   textareaRef: RefObject<HTMLTextAreaElement | null>;
   onChange: (next: string) => void;
   onImagePlaceholder?: () => void;
+  disabled?: boolean;
 };
 
 function applyAction(textarea: HTMLTextAreaElement, action: ToolAction): string {
@@ -121,8 +122,14 @@ function applyAction(textarea: HTMLTextAreaElement, action: ToolAction): string 
   return next;
 }
 
-export function ResearchNoteEditorToolbar({ textareaRef, onChange, onImagePlaceholder }: Props) {
+export function ResearchNoteEditorToolbar({
+  textareaRef,
+  onChange,
+  onImagePlaceholder,
+  disabled = false,
+}: Props) {
   const trigger = (action: ToolAction) => () => {
+    if (disabled) return;
     const ta = textareaRef.current;
     if (!ta) return;
     onChange(applyAction(ta, action));
@@ -156,27 +163,40 @@ export function ResearchNoteEditorToolbar({ textareaRef, onChange, onImagePlaceh
               title={tool.shortcut ? `${tool.tooltip} (${tool.shortcut})` : tool.tooltip}
               arrow
             >
-              <IconButton size="small" onClick={trigger(tool.action)} sx={{ minWidth: 28 }} aria-label={tool.tooltip}>
-                <Typography
-                  variant="caption"
-                  sx={{
-                    fontFamily: 'monospace',
-                    fontSize: 12,
-                    fontWeight: tool.key === 'bold' ? 700 : 500,
-                    fontStyle: tool.key === 'italic' ? 'italic' : 'normal',
-                    lineHeight: 1,
-                  }}
+              <span>
+                <IconButton
+                  size="small"
+                  onClick={trigger(tool.action)}
+                  sx={{ minWidth: 28 }}
+                  aria-label={tool.tooltip}
+                  disabled={disabled}
                 >
-                  {tool.label}
-                </Typography>
-              </IconButton>
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      fontFamily: 'monospace',
+                      fontSize: 12,
+                      fontWeight: tool.key === 'bold' ? 700 : 500,
+                      fontStyle: tool.key === 'italic' ? 'italic' : 'normal',
+                      lineHeight: 1,
+                    }}
+                  >
+                    {tool.label}
+                  </Typography>
+                </IconButton>
+              </span>
             </Tooltip>
           </Box>
         ))}
         <Divider orientation="vertical" flexItem sx={{ mx: 0.5, my: 0.5 }} />
         <Tooltip title="插入图片（即将上线）" arrow>
           <span>
-            <IconButton size="small" onClick={onImagePlaceholder} disabled aria-label="插入图片（即将上线）">
+            <IconButton
+              size="small"
+              onClick={onImagePlaceholder}
+              disabled
+              aria-label="插入图片（即将上线）"
+            >
               <Iconify icon="solar:document-bold" width={16} />
             </IconButton>
           </span>

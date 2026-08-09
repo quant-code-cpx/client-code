@@ -240,6 +240,48 @@ describe.runIf(targetsExist)('新闻 coverage 与详情用户可观察契约', (
     }
   });
 
+  it('同文案的多来源告警全部保留，并按新闻流、数据源、原文回退展示', () => {
+    const { NewsCoverageAlert } = getComponents();
+    const warnings: NewsWarning[] = [
+      {
+        ...warning,
+        warningId: 'warning-cls-unavailable',
+        feedDisplayName: '财联社电报',
+        providerDisplayName: '财联社',
+        publicMessage: '新闻源当前不可用',
+      },
+      {
+        ...warning,
+        warningId: 'warning-announcement-unavailable',
+        feedDisplayName: 'A股当日公告',
+        providerDisplayName: '巨潮资讯',
+        publicMessage: '新闻源当前不可用',
+      },
+      {
+        ...warning,
+        warningId: 'warning-provider-fallback',
+        feedDisplayName: null,
+        providerDisplayName: '备用数据源',
+        publicMessage: '新闻源数据已过期',
+      },
+      {
+        ...warning,
+        warningId: 'warning-message-fallback',
+        feedDisplayName: null,
+        providerDisplayName: null,
+        publicMessage: '覆盖状态未知',
+      },
+    ];
+
+    renderWithProviders(<NewsCoverageAlert partial warnings={warnings} dataThrough={null} />);
+
+    const alert = screen.getByRole('status');
+    expect(within(alert).getByText('财联社电报：新闻源当前不可用')).toBeInTheDocument();
+    expect(within(alert).getByText('A股当日公告：新闻源当前不可用')).toBeInTheDocument();
+    expect(within(alert).getByText('备用数据源：新闻源数据已过期')).toBeInTheDocument();
+    expect(within(alert).getByText('覆盖状态未知')).toBeInTheDocument();
+  });
+
   it('READY/DEGRADED/DISABLED 均显示文字；截断风险明确写“本窗口可能截断”', () => {
     const { NewsCoveragePanel } = getComponents();
     renderWithProviders(

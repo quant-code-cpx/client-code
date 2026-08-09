@@ -1,6 +1,11 @@
+import 'katex/dist/katex.min.css';
+
+import type { Node, Root, Parent } from 'mdast';
 import type { Theme, SxProps } from '@mui/material/styles';
 
 import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
 import ReactMarkdown from 'react-markdown';
 
 import Box from '@mui/material/Box';
@@ -12,6 +17,40 @@ import type { MarkdownProps } from './markdown.types';
 
 const DEFAULT_MAX_LENGTH = 60_000;
 const CITATION_PROTOCOL = 'citation:';
+const NUMERIC_AMOUNT_PREFIX = /^\s*[+-]?(?:\d[\d,]*(?:\.\d+)?|\.\d+)/;
+
+type InlineMathNode = Node & { type: 'inlineMath'; value: string };
+
+function isParent(node: Node): node is Parent {
+  return 'children' in node && Array.isArray(node.children);
+}
+
+function isInlineMath(node: Node): node is InlineMathNode {
+  return node.type === 'inlineMath' && 'value' in node && typeof node.value === 'string';
+}
+
+function remarkRestoreCurrencyDollarPairs() {
+  return (tree: Root) => {
+    const visitParent = (parent: Parent) => {
+      parent.children.forEach((node, index) => {
+        const next = parent.children[index + 1];
+        if (
+          isInlineMath(node) &&
+          NUMERIC_AMOUNT_PREFIX.test(node.value) &&
+          next?.type === 'text' &&
+          NUMERIC_AMOUNT_PREFIX.test(next.value)
+        ) {
+          parent.children[index] = { type: 'text', value: `$${node.value}$` };
+          return;
+        }
+
+        if (isParent(node)) visitParent(node);
+      });
+    };
+
+    visitParent(tree);
+  };
+}
 
 const markdownStyles: SxProps<Theme> = {
   minWidth: 0,
@@ -72,6 +111,12 @@ const markdownStyles: SxProps<Theme> = {
   },
   '& th': { bgcolor: 'action.hover', fontWeight: 700 },
   '& del': { color: 'text.disabled' },
+  '& .katex-display': {
+    my: 1.5,
+    maxWidth: '100%',
+    overflowX: 'auto',
+    overflowY: 'hidden',
+  },
 };
 
 export function safeMarkdownUrl(url: string): string {
@@ -109,7 +154,8 @@ export function Markdown({
     <Box sx={[markdownStyles, ...(Array.isArray(sx) ? sx : [sx])]}> 
       <ReactMarkdown
         skipHtml
-        remarkPlugins={[remarkGfm]}
+        remarkPlugins={[remarkGfm, remarkMath, remarkRestoreCurrencyDollarPairs]}
+        rehypePlugins={[rehypeKatex]}
         urlTransform={safeMarkdownUrl}
         components={{
           h1: ({ children: heading }) => (

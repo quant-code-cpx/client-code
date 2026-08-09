@@ -36,6 +36,35 @@ describe('Markdown', () => {
     expect(link).toHaveAttribute('rel', 'noopener noreferrer');
   });
 
+  it('保留单美元金额文本', () => {
+    const { container } = renderWithProviders(
+      <Markdown>目标价从 $100 上调至 $120，预期收益 20%</Markdown>
+    );
+
+    expect(screen.getByText('目标价从 $100 上调至 $120，预期收益 20%')).toBeInTheDocument();
+    expect(container.querySelector('.katex')).not.toBeInTheDocument();
+  });
+
+  it('渲染既有单美元行内公式和块公式', () => {
+    const { container } = renderWithProviders(
+      <Markdown>{'行内公式 $E=mc^2$\n\n$$\n\\sigma = \\sqrt{\\operatorname{Var}(R)}\n$$'}</Markdown>
+    );
+
+    expect(container.querySelectorAll('.katex')).toHaveLength(2);
+    expect(container.querySelector('.katex-display .katex')).toBeInTheDocument();
+    expect(container.querySelectorAll('.katex-mathml math')).toHaveLength(2);
+  });
+
+  it('不改写代码中的美元内容', () => {
+    const { container } = renderWithProviders(
+      <Markdown>{'`$100 上调至 $120`\n\n```text\n$200 上调至 $240\n```'}</Markdown>
+    );
+
+    expect(screen.getByText('$100 上调至 $120').tagName).toBe('CODE');
+    expect(screen.getByText('$200 上调至 $240').tagName).toBe('CODE');
+    expect(container.querySelector('.katex')).not.toBeInTheDocument();
+  });
+
   it('流式阶段保持低成本纯文本，不创建 Markdown 表格', () => {
     renderWithProviders(<Markdown streaming>{'| 指标 | 值 |\n| --- | --- |\n| PE | 20 |'}</Markdown>);
 
