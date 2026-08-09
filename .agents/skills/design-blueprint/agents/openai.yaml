@@ -1,0 +1,4 @@
+interface:
+  display_name: '前端设计方案'
+  short_description: '理解量化业务并设计页面契约、信息架构、原型与验收方案'
+  default_prompt: '使用 $design-blueprint 为一个量化页面产出可实施的前端设计方案。'

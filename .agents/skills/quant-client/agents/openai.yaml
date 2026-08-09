@@ -1,0 +1,4 @@
+interface:
+  display_name: '量化前端开发'
+  short_description: '实现和验证 React、MUI、API、路由、图表与测试改动'
+  default_prompt: '使用 $quant-client 实现并验证当前量化前端改动。'

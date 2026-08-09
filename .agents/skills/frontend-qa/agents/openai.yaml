@@ -1,0 +1,4 @@
+interface:
+  display_name: '前端 QA'
+  short_description: '基于业务契约执行浏览器联调、缺陷诊断与授权后的回归修复'
+  default_prompt: '使用 $frontend-qa 对指定量化页面执行一轮业务 QA。'
