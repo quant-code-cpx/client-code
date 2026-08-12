@@ -46,8 +46,23 @@ export function ResearchNoteTable({ notes }: Props) {
                 <TableRow
                   key={note.id}
                   hover
-                  sx={{ cursor: 'pointer' }}
+                  role="link"
+                  tabIndex={0}
+                  aria-label={`打开研究笔记 ${note.title || '无标题'}`}
+                  sx={{
+                    cursor: 'pointer',
+                    '&:focus-visible': {
+                      outline: '2px solid',
+                      outlineColor: 'primary.main',
+                      outlineOffset: -2,
+                    },
+                  }}
                   onClick={() => router.push(`/research/notes/${note.id}`)}
+                  onKeyDown={(event) => {
+                    if (event.key !== 'Enter' && event.key !== ' ') return;
+                    event.preventDefault();
+                    router.push(`/research/notes/${note.id}`);
+                  }}
                 >
                   <TableCell>
                     {note.isPinned && (

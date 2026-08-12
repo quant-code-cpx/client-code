@@ -73,7 +73,7 @@ export function ScreenerSaveDialog({
           }}
           error={Boolean(nameError)}
           helperText={nameError || `${name.length}/50`}
-          inputProps={{ maxLength: 50 }}
+          slotProps={{ htmlInput: { maxLength: 50 } }}
           required
         />
 
@@ -86,7 +86,7 @@ export function ScreenerSaveDialog({
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           helperText={`${description.length}/200`}
-          inputProps={{ maxLength: 200 }}
+          slotProps={{ htmlInput: { maxLength: 200 } }}
         />
       </DialogContent>
 

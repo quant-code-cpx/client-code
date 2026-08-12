@@ -15,9 +15,17 @@ import { formatPercentValue, getEnabledParamKeys } from './walk-forward-utils';
 
 // ----------------------------------------------------------------------
 
-function pctCell(val: number | null) {
+function pctCell(val: number | null, returnTone?: boolean) {
   if (val === null || val === undefined) return '—';
-  const color = val >= 0 ? 'success.main' : 'error.main';
+  const color = returnTone
+    ? val > 0
+      ? 'error.main'
+      : val < 0
+        ? 'success.main'
+        : 'text.secondary'
+    : val >= 0
+      ? 'success.main'
+      : 'error.main';
   return (
     <Typography variant="body2" sx={{ color }}>
       {formatPercentValue(val)}
@@ -69,8 +77,23 @@ export function WalkForwardWindowTable({ windows, onWindowClick }: Props) {
               <TableRow
                 key={w.windowIndex}
                 hover={Boolean(onWindowClick)}
-                sx={{ cursor: onWindowClick ? 'pointer' : 'default' }}
+                role={onWindowClick ? 'button' : undefined}
+                tabIndex={onWindowClick ? 0 : undefined}
+                aria-label={onWindowClick ? `查看窗口 ${w.windowIndex + 1} 详情` : undefined}
+                sx={{
+                  cursor: onWindowClick ? 'pointer' : 'default',
+                  '&:focus-visible': {
+                    outline: '2px solid',
+                    outlineColor: 'primary.main',
+                    outlineOffset: -2,
+                  },
+                }}
                 onClick={() => onWindowClick?.(w)}
+                onKeyDown={(event) => {
+                  if (!onWindowClick || (event.key !== 'Enter' && event.key !== ' ')) return;
+                  event.preventDefault();
+                  onWindowClick(w);
+                }}
               >
                 <TableCell>#{w.windowIndex + 1}</TableCell>
                 <TableCell>
@@ -88,11 +111,11 @@ export function WalkForwardWindowTable({ windows, onWindowClick }: Props) {
                     {w.oosStartDate} ~ {w.oosEndDate}
                   </Typography>
                 </TableCell>
-                <TableCell align="right">{pctCell(w.isReturn)}</TableCell>
+                <TableCell align="right">{pctCell(w.isReturn, true)}</TableCell>
                 <TableCell align="right">
                   {w.isSharpe !== null ? w.isSharpe.toFixed(3) : '—'}
                 </TableCell>
-                <TableCell align="right">{pctCell(w.oosReturn)}</TableCell>
+                <TableCell align="right">{pctCell(w.oosReturn, true)}</TableCell>
                 <TableCell align="right">
                   {w.oosSharpe !== null ? w.oosSharpe.toFixed(3) : '—'}
                 </TableCell>

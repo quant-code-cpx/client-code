@@ -148,8 +148,8 @@ export function FactorDetailQuantileChart({ factorName, params }: FactorDetailQu
       bar: {
         colors: {
           ranges: [
-            { from: -100, to: 0, color: theme.palette.error.main },
-            { from: 0, to: 100, color: theme.palette.success.main },
+            { from: -100, to: 0, color: theme.palette.success.main },
+            { from: 0, to: 100, color: theme.palette.error.main },
           ],
         },
       },
@@ -210,7 +210,14 @@ export function FactorDetailQuantileChart({ factorName, params }: FactorDetailQu
                     <TableCell>{g.label}</TableCell>
                     <TableCell
                       align="right"
-                      sx={{ color: g.annualizedReturn >= 0 ? 'success.main' : 'error.main' }}
+                      sx={{
+                        color:
+                          g.annualizedReturn > 0
+                            ? 'error.main'
+                            : g.annualizedReturn < 0
+                              ? 'success.main'
+                              : 'text.secondary',
+                      }}
                     >
                       {(g.annualizedReturn * 100).toFixed(2)}%
                     </TableCell>
@@ -220,7 +227,14 @@ export function FactorDetailQuantileChart({ factorName, params }: FactorDetailQu
                     <TableCell align="right">{g.sharpeRatio.toFixed(3)}</TableCell>
                     <TableCell
                       align="right"
-                      sx={{ color: g.totalReturn >= 0 ? 'success.main' : 'error.main' }}
+                      sx={{
+                        color:
+                          g.totalReturn > 0
+                            ? 'error.main'
+                            : g.totalReturn < 0
+                              ? 'success.main'
+                              : 'text.secondary',
+                      }}
                     >
                       {(g.totalReturn * 100).toFixed(2)}%
                     </TableCell>

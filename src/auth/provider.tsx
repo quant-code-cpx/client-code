@@ -3,8 +3,10 @@ import { useRef, useMemo, useEffect, useReducer, useCallback } from 'react';
 import { clearAgentDrafts } from 'src/utils/agent-draft-storage';
 import { clearResearchNoteDrafts } from 'src/utils/research-note-draft-storage';
 
+import { authApi } from 'src/api/auth';
+import { userManageApi } from 'src/api/user-manage';
+import { tokenStorage, setAuthCallbacks } from 'src/api/client';
 import { destroySocket, refreshSocketAuth } from 'src/lib/socket';
-import { authApi, tokenStorage, userManageApi, setAuthCallbacks } from 'src/api';
 
 import { AuthContext } from './context';
 import { authReducer } from './auth-reducer';

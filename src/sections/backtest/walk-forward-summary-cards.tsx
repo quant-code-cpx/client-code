@@ -33,7 +33,7 @@ function MetricCard({ label, value, color }: MetricCardProps) {
 
 function pctColor(val: number | null): string | undefined {
   if (val === null || val === undefined) return undefined;
-  return val >= 0 ? 'success.main' : 'error.main';
+  return val > 0 ? 'error.main' : val < 0 ? 'success.main' : 'text.secondary';
 }
 
 // ----------------------------------------------------------------------

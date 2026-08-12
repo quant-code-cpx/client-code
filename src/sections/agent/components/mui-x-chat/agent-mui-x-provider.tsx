@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import type { ChatAdapter, ChatMessage, ChatConversation } from '@mui/x-chat-headless';
+import type { ChatAdapter, ChatMessage, ChatConversation } from '@mui/x-chat/headless';
 
 import { useEffect } from 'react';
 

@@ -219,7 +219,7 @@ export function SignalRuleWizardDialog({ open, onClose, onSaved, editingRule, ev
               label="规则名称 *"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              inputProps={{ maxLength: 128 }}
+              slotProps={{ htmlInput: { maxLength: 128 } }}
             />
             <TextField
               fullWidth

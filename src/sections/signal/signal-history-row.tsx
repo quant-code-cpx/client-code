@@ -60,7 +60,12 @@ export function SignalHistoryRow({
         aria-label={hasReason ? `${signal.stockName} 信号触发原因` : undefined}
         onClick={handleToggleReason}
         onKeyDown={(event) => {
-          if (!hasReason || (event.key !== 'Enter' && event.key !== ' ')) return;
+          if (
+            !hasReason ||
+            event.target !== event.currentTarget ||
+            (event.key !== 'Enter' && event.key !== ' ')
+          )
+            return;
           event.preventDefault();
           handleToggleReason();
         }}
@@ -68,6 +73,11 @@ export function SignalHistoryRow({
           opacity: repeated ? 0.8 : 1,
           cursor: hasReason ? 'pointer' : 'default',
           bgcolor: repeated ? varAlpha(theme.vars.palette.text.primaryChannel, 0.03) : 'inherit',
+          '&:focus-visible': {
+            outline: '2px solid',
+            outlineColor: 'primary.main',
+            outlineOffset: -2,
+          },
         })}
       >
         <TableCell>

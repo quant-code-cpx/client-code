@@ -168,7 +168,7 @@ export function StrategyBacktestDefaultsCard({
               type="number"
               value={form.initialCapital}
               onChange={(e) => set({ initialCapital: Number(e.target.value) })}
-              slotProps={{ input: { inputProps: { min: 1 } } }}
+              slotProps={{ htmlInput: { min: 1 } }}
             />
 
             <FormControl fullWidth>

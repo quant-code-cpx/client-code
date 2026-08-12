@@ -1,7 +1,7 @@
 import type { AreaItem, IndustryItem } from 'src/api/screener';
 import type { StockListItem, StockListQuery } from 'src/api/stock';
 
-import { useMemo, useState, useEffect, useCallback } from 'react';
+import { useRef, useMemo, useState, useEffect, useCallback } from 'react';
 
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
@@ -84,6 +84,7 @@ export function StockView() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [screenerOpen, setScreenerOpen] = useState(false);
+  const listRequestRef = useRef(0);
 
   // 元数据
   const [industries, setIndustries] = useState<IndustryItem[]>([]);
@@ -179,21 +180,29 @@ export function StockView() {
   }, [page, rowsPerPage, order, orderBy, filters]);
 
   const fetchList = useCallback(async () => {
+    const requestId = listRequestRef.current + 1;
+    listRequestRef.current = requestId;
+    const query = buildQuery();
     setLoading(true);
     setError('');
     try {
-      const result = await stockApi.list(buildQuery());
+      const result = await stockApi.list(query);
+      if (listRequestRef.current !== requestId) return;
       setRows(result.items ?? []);
       setTotal(result.total ?? 0);
     } catch (err) {
+      if (listRequestRef.current !== requestId) return;
       setError(err instanceof Error ? err.message : '获取股票列表失败');
     } finally {
-      setLoading(false);
+      if (listRequestRef.current === requestId) setLoading(false);
     }
   }, [buildQuery]);
 
   useEffect(() => {
-    fetchList();
+    void fetchList();
+    return () => {
+      listRequestRef.current += 1;
+    };
   }, [fetchList]);
 
   const handleSort = useCallback(

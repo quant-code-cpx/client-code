@@ -6,6 +6,7 @@ import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Alert from '@mui/material/Alert';
 import Table from '@mui/material/Table';
+import Button from '@mui/material/Button';
 import Skeleton from '@mui/material/Skeleton';
 import TableRow from '@mui/material/TableRow';
 import TableBody from '@mui/material/TableBody';
@@ -47,8 +48,11 @@ export function RiskIndustryChart({ portfolioId }: RiskIndustryChartProps) {
   }, [fetchData]);
 
   const industries = data?.industries ?? [];
-  const chartLabels = industries.map((i) => i.industry);
-  const chartSeries = industries.map((i) => Number(((i.weight ?? 0) * 100).toFixed(2)));
+  const weightedIndustries = industries.filter(
+    (item): item is typeof item & { weight: number } => item.weight !== null
+  );
+  const chartLabels = weightedIndustries.map((item) => item.industry);
+  const chartSeries = weightedIndustries.map((item) => Number((item.weight * 100).toFixed(2)));
 
   const chartOptions = useChart({
     chart: { sparkline: { enabled: true } },
@@ -69,7 +73,18 @@ export function RiskIndustryChart({ portfolioId }: RiskIndustryChartProps) {
         </Typography>
 
         {loading && <Skeleton variant="rectangular" height={280} />}
-        {!loading && error && <Alert severity="error">{error}</Alert>}
+        {!loading && error && (
+          <Alert
+            severity="error"
+            action={
+              <Button color="inherit" size="small" onClick={() => void fetchData()}>
+                重试
+              </Button>
+            }
+          >
+            {error}
+          </Alert>
+        )}
 
         {!loading && !error && (
           <>
@@ -88,12 +103,18 @@ export function RiskIndustryChart({ portfolioId }: RiskIndustryChartProps) {
               </Box>
             ) : (
               <>
-                <Chart
-                  type="donut"
-                  series={chartSeries}
-                  options={chartOptions}
-                  sx={{ my: 4, mx: 'auto', width: { xs: 240 }, height: { xs: 240 } }}
-                />
+                {chartSeries.length > 0 ? (
+                  <Chart
+                    type="donut"
+                    series={chartSeries}
+                    options={chartOptions}
+                    sx={{ my: 4, mx: 'auto', width: { xs: 240 }, height: { xs: 240 } }}
+                  />
+                ) : (
+                  <Typography variant="body2" color="text.secondary" sx={{ my: 4 }}>
+                    暂无可用权重数据
+                  </Typography>
+                )}
                 <Table size="small" sx={{ mt: 2 }}>
                   <TableHead>
                     <TableRow>

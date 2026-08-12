@@ -16,7 +16,7 @@ type Props = {
 
 export function EventAnalysisSummaryCards({ result }: Props) {
   const caarColor =
-    result.caar > 0 ? 'success.main' : result.caar < 0 ? 'error.main' : 'text.primary';
+    result.caar > 0 ? 'error.main' : result.caar < 0 ? 'success.main' : 'text.primary';
   const pValueColor = result.pValue < 0.05 ? 'success.main' : 'warning.main';
 
   const significantRatio = result.significantSampleRatio ?? null;

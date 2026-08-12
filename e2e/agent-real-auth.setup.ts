@@ -1,5 +1,4 @@
 import { resolve } from 'node:path';
-
 import { test as setup } from '@playwright/test';
 
 import { loginAgentReal } from './fixtures/agent-real';

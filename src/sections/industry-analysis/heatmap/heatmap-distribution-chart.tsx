@@ -53,7 +53,7 @@ export function HeatmapDistributionChart({ distribution, loading, error }: Props
           <Typography variant="h6">个股涨跌幅分布</Typography>
           {distribution && (
             <Typography variant="caption" color="text.secondary" sx={{ fontVariantNumeric: 'tabular-nums' }}>
-              总数 {totalStocks}
+              有效 {totalStocks}
             </Typography>
           )}
         </Stack>
@@ -75,6 +75,11 @@ export function HeatmapDistributionChart({ distribution, loading, error }: Props
             <Label sx={{ bgcolor: 'success.dark', color: 'common.white', fontWeight: 700, fontSize: 12 }}>
               跌停 {distribution.limitDown}
             </Label>
+            {distribution.missingCount > 0 && (
+              <Label variant="outlined" color="default">
+                缺失 {distribution.missingCount}
+              </Label>
+            )}
           </Stack>
         )}
 
@@ -166,7 +171,6 @@ export function HeatmapDistributionChart({ distribution, loading, error }: Props
           <>
             <Button
               fullWidth
-              color="inherit"
               variant="outlined"
               aria-expanded={detailsExpanded}
               onClick={() => setDetailsExpanded((expanded) => !expanded)}

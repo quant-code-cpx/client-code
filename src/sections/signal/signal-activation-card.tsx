@@ -71,6 +71,15 @@ export function SignalActivationCard({ activation, selected, onClick }: Props) {
     >
       <Card
         onClick={onClick}
+        role="button"
+        tabIndex={0}
+        aria-pressed={selected}
+        aria-label={`查看策略 ${activation.strategyName} 信号`}
+        onKeyDown={(event) => {
+          if (event.key !== 'Enter' && event.key !== ' ') return;
+          event.preventDefault();
+          onClick();
+        }}
         sx={{
           p: 2.5,
           position: 'relative',
@@ -81,6 +90,11 @@ export function SignalActivationCard({ activation, selected, onClick }: Props) {
           overflow: 'hidden',
           '&:hover': {
             borderColor: disabled ? 'transparent' : theme.vars.palette.primary.light,
+          },
+          '&:focus-visible': {
+            outline: '2px solid',
+            outlineColor: 'primary.main',
+            outlineOffset: 2,
           },
           '&::before': {
             content: '""',

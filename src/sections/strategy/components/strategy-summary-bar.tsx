@@ -7,7 +7,7 @@ import Grid from '@mui/material/Grid';
 import Skeleton from '@mui/material/Skeleton';
 import Typography from '@mui/material/Typography';
 
-import { fPercent } from 'src/utils/format-number';
+import { fRatioPercent } from 'src/utils/format-number';
 
 import { getStrategySummary } from 'src/api/strategy';
 
@@ -65,7 +65,7 @@ export function StrategySummaryBar() {
       label: '近 7 日最佳',
       value:
         summary.recent7dBestReturn != null
-          ? `${summary.recent7dBestReturn >= 0 ? '+' : ''}${fPercent(summary.recent7dBestReturn)}`
+          ? `${summary.recent7dBestReturn >= 0 ? '+' : ''}${fRatioPercent(summary.recent7dBestReturn)}`
           : '—',
       color: summary.recent7dBestReturn != null ? 'best' : undefined,
     },

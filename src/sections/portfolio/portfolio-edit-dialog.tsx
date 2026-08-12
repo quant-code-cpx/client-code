@@ -65,7 +65,7 @@ export function PortfolioEditDialog({
             required
             value={name}
             onChange={(e) => setName(e.target.value)}
-            inputProps={{ maxLength: 100 }}
+            slotProps={{ htmlInput: { maxLength: 100 } }}
             helperText={`${name.length}/100`}
             disabled={submitting}
           />
@@ -75,7 +75,7 @@ export function PortfolioEditDialog({
             rows={3}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            inputProps={{ maxLength: 500 }}
+            slotProps={{ htmlInput: { maxLength: 500 } }}
             helperText={`${description.length}/500`}
             disabled={submitting}
           />

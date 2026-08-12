@@ -200,7 +200,7 @@ export function AnomalyDetailDrawer({ open, anomaly, onClose, onAddToWatchlist }
     setDetailError('');
     setDetailLoading(true);
     alertApi
-      .getAnomalyDetail({ id: anomaly.id }, controller.signal)
+      .getAnomalyDetail({ anomalyId: anomaly.id }, controller.signal)
       .then((res) => {
         if (controller.signal.aborted) return;
         setDetail(res);

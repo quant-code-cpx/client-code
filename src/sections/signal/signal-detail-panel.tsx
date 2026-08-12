@@ -158,6 +158,16 @@ function SignalGroup({
     >
       <Box
         onClick={handleToggle}
+        role="button"
+        tabIndex={0}
+        aria-expanded={open}
+        aria-label={`${open ? '折叠' : '展开'}${title}`}
+        onKeyDown={(event) => {
+          if (event.target !== event.currentTarget || (event.key !== 'Enter' && event.key !== ' '))
+            return;
+          event.preventDefault();
+          handleToggle();
+        }}
         sx={{
           px: 2,
           py: 1.5,
@@ -165,6 +175,11 @@ function SignalGroup({
           cursor: 'pointer',
           alignItems: 'center',
           justifyContent: 'space-between',
+          '&:focus-visible': {
+            outline: '2px solid',
+            outlineColor: 'primary.main',
+            outlineOffset: -2,
+          },
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -192,8 +207,8 @@ function SignalGroup({
               </Button>
             </Tooltip>
           ) : null}
-          <Tooltip title="展开面板">
-            <IconButton aria-label="展开面板" size="small">
+          <Tooltip title={open ? '折叠面板' : '展开面板'}>
+            <IconButton aria-label={open ? '折叠面板' : '展开面板'} size="small">
               <Iconify icon={open ? 'solar:alt-arrow-up-bold' : 'solar:alt-arrow-down-bold'} />
             </IconButton>
           </Tooltip>

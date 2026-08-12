@@ -14,17 +14,22 @@ import { STRATEGY_TYPE_LABEL } from './constants';
 
 // ----------------------------------------------------------------------
 
-const METRICS: Array<{ key: keyof ComparisonMetricsRow; label: string; pct?: boolean }> = [
-  { key: 'totalReturn', label: '总收益', pct: true },
-  { key: 'annualizedReturn', label: '年化收益', pct: true },
-  { key: 'benchmarkReturn', label: '基准收益', pct: true },
-  { key: 'excessReturn', label: '超额收益', pct: true },
+const METRICS: Array<{
+  key: keyof ComparisonMetricsRow;
+  label: string;
+  pct?: boolean;
+  returnTone?: boolean;
+}> = [
+  { key: 'totalReturn', label: '总收益', pct: true, returnTone: true },
+  { key: 'annualizedReturn', label: '年化收益', pct: true, returnTone: true },
+  { key: 'benchmarkReturn', label: '基准收益', pct: true, returnTone: true },
+  { key: 'excessReturn', label: '超额收益', pct: true, returnTone: true },
   { key: 'maxDrawdown', label: '最大回撤', pct: true },
   { key: 'sharpeRatio', label: '夏普比率' },
   { key: 'sortinoRatio', label: 'Sortino' },
   { key: 'calmarRatio', label: 'Calmar' },
   { key: 'volatility', label: '波动率', pct: true },
-  { key: 'alpha', label: 'Alpha', pct: true },
+  { key: 'alpha', label: 'Alpha', pct: true, returnTone: true },
   { key: 'beta', label: 'Beta' },
   { key: 'informationRatio', label: '信息比率' },
   { key: 'winRate', label: '胜率', pct: true },
@@ -32,10 +37,18 @@ const METRICS: Array<{ key: keyof ComparisonMetricsRow; label: string; pct?: boo
   { key: 'tradeCount', label: '交易次数' },
 ];
 
-function formatCell(val: number | null, pct?: boolean): React.ReactNode {
+function formatCell(val: number | null, pct?: boolean, returnTone?: boolean): React.ReactNode {
   if (val === null || val === undefined) return '—';
   if (pct) {
-    const color = val >= 0 ? 'success.main' : 'error.main';
+    const color = returnTone
+      ? val > 0
+        ? 'error.main'
+        : val < 0
+          ? 'success.main'
+          : 'text.secondary'
+      : val >= 0
+        ? 'success.main'
+        : 'error.main';
     return (
       <Typography variant="body2" sx={{ color }}>
         {val >= 0 ? '+' : ''}
@@ -100,7 +113,7 @@ export function ComparisonMetricsTable({ rows }: Props) {
             </TableRow>
           </TableHead>
           <TableBody>
-            {METRICS.map(({ key, label, pct }) => {
+            {METRICS.map(({ key, label, pct, returnTone }) => {
               const bestIdx = getBestIndex(rows, key, pct);
               return (
                 <TableRow key={key} hover>
@@ -114,7 +127,7 @@ export function ComparisonMetricsTable({ rows }: Props) {
                         borderRadius: bestIdx === i ? 1 : 0,
                       }}
                     >
-                      {formatCell(row[key] as number | null, pct)}
+                      {formatCell(row[key] as number | null, pct, returnTone)}
                     </TableCell>
                   ))}
                 </TableRow>

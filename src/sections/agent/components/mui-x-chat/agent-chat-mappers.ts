@@ -1,4 +1,4 @@
-import type { ChatMessage, ChatConversation, ChatMessageStatus } from '@mui/x-chat-headless';
+import type { ChatMessage, ChatConversation, ChatMessageStatus } from '@mui/x-chat/headless';
 
 import type { AgentMessageEntity, AgentConversationEntity } from '../../state/agent-state.types';
 

@@ -285,45 +285,6 @@ export type StockShareholdersData = {
   top10FloatHolders: Record<string, unknown>;
 };
 
-/** 分红记录条目 */
-export type StockDividendItem = {
-  annDate: string | null;
-  endDate: string | null;
-  divProc: string | null;
-  stkDiv: number | null;
-  stkBoRate: number | null;
-  stkCoRate: number | null;
-  cashDiv: number | null;
-  cashDivTax: number | null;
-  recordDate: string | null;
-  exDate: string | null;
-  payDate: string | null;
-  divListdate: string | null;
-  impAnnDate: string | null;
-  baseDate: string | null;
-  baseShare: number | null;
-};
-
-/** 配股记录条目 */
-export type StockAllotmentItem = {
-  annDate: string | null;
-  baseDate: string | null;
-  baseEnddate: string | null;
-  raiseFonds: number | null;
-  allotmentRatio: number | null;
-  allotmentPrice: number | null;
-  allotmentVol: number | null;
-  marketDate: string | null;
-  stateDesc: string | null;
-};
-
-/** 分红与配股数据 */
-export type StockDividendFinancingData = {
-  tsCode: string;
-  dividends: StockDividendItem[];
-  allotments: StockAllotmentItem[];
-};
-
 /** 融资记录条目 */
 export type StockFinancingItem = {
   eventType: string;
@@ -702,10 +663,6 @@ export const stockDetailApi = {
   /** 股票详情 - 股东与分红历史 */
   shareholders: (tsCode: string): Promise<StockShareholdersData> =>
     apiClient.post<StockShareholdersData>('/api/stock/detail/shareholders', { tsCode }),
-
-  /** 股票详情 - 分红与配股记录 */
-  dividendFinancing: (tsCode: string): Promise<StockDividendFinancingData> =>
-    apiClient.post<StockDividendFinancingData>('/api/stock/detail/dividend-financing', { tsCode }),
 
   /** 股票详情 - 融资记录（增发/配股/可转债等） */
   financing: (tsCode: string): Promise<StockFinancingData> =>

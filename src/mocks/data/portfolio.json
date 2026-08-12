@@ -3,77 +3,155 @@
     "code": 0,
     "data": [
       {
-        "id": "cmo077nh6000yq9gt4rvr4n4g",
-        "name": "are you ok?",
-        "description": null,
-        "initialCash": "1000000",
+        "id": "demo-portfolio-1",
+        "name": "核心研究组合",
+        "description": "演示模式组合",
+        "initialCash": 1000000,
         "createdAt": "2026-04-15T15:21:40.507Z",
-        "updatedAt": "2026-04-15T15:21:40.507Z",
-        "holdingCount": 1
+        "updatedAt": "2026-08-08T08:30:00.000Z",
+        "holdingCount": 2,
+        "kind": "PAPER",
+        "todayPnl": 53806.62,
+        "todayPnlPct": 0.051123,
+        "totalMarketValue": 1106206.62,
+        "cumulativeReturn": 0.106207
       }
     ],
     "message": ""
   },
   "detail": {
-    "__error": true,
-    "status": 500,
-    "url": "/api/portfolio/detail",
-    "body": "{\"code\":500,\"data\":null,\"message\":\"\\nInvalid `this.prisma.portfolio.findUnique()` invocation in\\n/app/src/apps/portfolio/portfolio.service.ts:201:51\\n\\n  198 \\n  199 /** 验证 portfolioId 归属当前用户，不属于则抛出 403/404 */\\n  200 async assertOwner(portfolioId: string, userId: number) {\\n→ 201   const portfolio = await this.prisma.portfolio.findUnique({\\n          where: {\\n            id: undefined,\\n        ?   AND?: PortfolioWhereInput | PortfolioWhereInput[],\\n        ?   OR?: PortfolioWhereInput[],\\n        ?   NOT?: PortfolioWhereInput | PortfolioWhereInput[],\\n        ?   userId?: IntFilter | Int,\\n        ?   name?: StringFilter | String,\\n        ?   description?: StringNullableFilter | String | Null,\\n        ?   initialCash?: DecimalFilter | Decimal,\\n        ?   createdAt?: DateTimeFilter | DateTime,\\n        ?   updatedAt?: DateTimeFilter | DateTime,\\n        ?   user?: UserScalarRelationFilter | UserWhereInput,\\n        ?   holdings?: PortfolioHoldingListRelationFilter,\\n        ?   riskRules?: PortfolioRiskRuleListRelationFilter,\\n        ?   violations?: RiskViolationLogListRelationFilter,\\n        ?   tradeLogs?: PortfolioTradeLogListRelationFilter,\\n        ?   alertRules?: PriceAlertRuleListRelationFilter\\n          }\\n        })\\n\\nArgument `where` of type PortfolioWhereUniqueInput needs at least one of `id` arguments. Available options are marked with ?.\"}"
+    "code": 0,
+    "data": {
+      "portfolio": {
+        "id": "demo-portfolio-1",
+        "name": "核心研究组合",
+        "description": "演示模式组合",
+        "initialCash": 1000000,
+        "createdAt": "2026-04-15T15:21:40.507Z",
+        "kind": "PAPER"
+      },
+      "holdings": [
+        {
+          "id": "holding-1",
+          "tsCode": "300308.SZ",
+          "stockName": "中际旭创",
+          "quantity": 3000,
+          "avgCost": 120,
+          "currentPrice": 142.5,
+          "marketValue": 427500,
+          "unrealizedPnl": 67500,
+          "pnlPct": 0.1875,
+          "weight": 0.38645,
+          "industry": "通信"
+        },
+        {
+          "id": "holding-2",
+          "tsCode": "600519.SH",
+          "stockName": "贵州茅台",
+          "quantity": 400,
+          "avgCost": 1550,
+          "currentPrice": 1696.77,
+          "marketValue": 678708,
+          "unrealizedPnl": 58708,
+          "pnlPct": 0.09469,
+          "weight": 0.61355,
+          "industry": "食品饮料"
+        }
+      ],
+      "summary": {
+        "totalCost": 980000,
+        "totalMarketValue": 1106208,
+        "totalUnrealizedPnl": 126208,
+        "totalPnlPct": 0.12878,
+        "cashBalance": 20000,
+        "todayPnl": 53806.62,
+        "todayPnlPct": 0.051123,
+        "lastUpdated": "2026-08-08T08:30:00.000Z",
+        "isTradingDay": true,
+        "cumulativeReturn": 0.106207
+      }
+    },
+    "message": ""
   },
   "pnlToday": {
     "code": 0,
     "data": {
-      "tradeDate": "2026-04-17T00:00:00.000Z",
-      "todayPnl": 53806.61911117919,
+      "tradeDate": "20260808",
+      "todayPnl": 53806.62,
       "todayPnlPct": 0.051123,
+      "isTradingDay": true,
+      "lastUpdated": "2026-08-08T08:30:00.000Z",
       "byHolding": [
         {
           "tsCode": "300308.SZ",
           "stockName": "中际旭创",
           "pctChg": 5.1123,
-          "todayPnl": 53806.61911117919
+          "todayPnl": 20640
+        },
+        {
+          "tsCode": "600519.SH",
+          "stockName": "贵州茅台",
+          "pctChg": 1.734,
+          "todayPnl": 33166.62
         }
       ]
     },
     "message": ""
   },
   "pnlHistory": {
-    "__error": true,
-    "status": 400,
-    "url": "/api/portfolio/pnl/history",
-    "body": "{\"code\":9001,\"data\":{\"details\":[\"日期格式错误，应为 YYYYMMDD\",\"startDate must be a string\",\"日期格式错误，应为 YYYYMMDD\",\"endDate must be a string\"]},\"message\":\"请求参数校验失败\"}"
+    "code": 0,
+    "data": [
+      { "date": "20260804", "marketValue": 1032000, "costBasis": 980000, "nav": 1.032 },
+      { "date": "20260805", "marketValue": 1048500, "costBasis": 980000, "nav": 1.0485 },
+      { "date": "20260806", "marketValue": 1029400, "costBasis": 980000, "nav": 1.0294 },
+      { "date": "20260807", "marketValue": 1052401.38, "costBasis": 980000, "nav": 1.052401 },
+      { "date": "20260808", "marketValue": 1106208, "costBasis": 980000, "nav": 1.106208 }
+    ],
+    "message": ""
   },
   "riskIndustry": {
-    "__error": true,
-    "status": 500,
-    "url": "/api/portfolio/risk/industry",
-    "body": "{\"code\":500,\"data\":null,\"message\":\"\\nInvalid `prisma.$queryRawUnsafe()` invocation:\\n\\n\\nRaw query failed. Code: `42703`. Message: `column h.ts_code does not exist`\"}"
+    "code": 0,
+    "data": {
+      "tradeDate": "20260808",
+      "industries": [
+        { "industry": "食品饮料", "stockCount": 1, "totalMarketValue": 678708, "weight": 0.61355 },
+        { "industry": "通信", "stockCount": 1, "totalMarketValue": 427500, "weight": 0.38645 }
+      ]
+    },
+    "message": ""
   },
   "riskPosition": {
-    "__error": true,
-    "status": 500,
-    "url": "/api/portfolio/risk/position",
-    "body": "{\"code\":500,\"data\":null,\"message\":\"\\nInvalid `prisma.$queryRawUnsafe()` invocation:\\n\\n\\nRaw query failed. Code: `42703`. Message: `column h.ts_code does not exist`\"}"
+    "code": 0,
+    "data": {
+      "tradeDate": "20260808",
+      "positions": [
+        { "tsCode": "600519.SH", "stockName": "贵州茅台", "marketValue": 678708, "weight": 0.61355 },
+        { "tsCode": "300308.SZ", "stockName": "中际旭创", "marketValue": 427500, "weight": 0.38645 }
+      ],
+      "concentration": { "hhi": 0.52578, "top1Weight": 0.61355, "top3Weight": 1, "top5Weight": 1 }
+    },
+    "message": ""
   },
   "riskMarketCap": {
-    "__error": true,
-    "status": 500,
-    "url": "/api/portfolio/risk/market-cap",
-    "body": "{\"code\":500,\"data\":null,\"message\":\"\\nInvalid `prisma.$queryRawUnsafe()` invocation:\\n\\n\\nRaw query failed. Code: `42703`. Message: `column h.ts_code does not exist`\"}"
+    "code": 0,
+    "data": {
+      "tradeDate": "20260808",
+      "tiers": [
+        { "tier": "大盘", "stockCount": 1, "weight": 0.61355 },
+        { "tier": "中盘", "stockCount": 1, "weight": 0.38645 }
+      ]
+    },
+    "message": ""
   },
   "riskBeta": {
     "code": 0,
     "data": {
-      "tradeDate": "20260417",
-      "benchmarkCode": "399300.SZ",
-      "portfolioBeta": null,
+      "tradeDate": "20260808",
+      "benchmarkCode": "000300.SH",
+      "portfolioBeta": 1.08,
       "holdings": [
-        {
-          "tsCode": "300308.SZ",
-          "stockName": "中际旭创",
-          "beta": null,
-          "dataPoints": 0
-        }
+        { "tsCode": "300308.SZ", "stockName": "中际旭创", "beta": 1.31, "weight": 0.38645 },
+        { "tsCode": "600519.SH", "stockName": "贵州茅台", "beta": 0.94, "weight": 0.61355 }
       ]
     },
     "message": ""
@@ -84,9 +162,31 @@
     "message": ""
   },
   "driftDetection": {
-    "__error": true,
-    "status": 400,
-    "url": "/api/portfolio/drift-detection",
-    "body": "{\"code\":400,\"data\":null,\"message\":\"组合未关联策略信号，请先激活策略并关联组合，或手动指定 strategyId\"}"
+    "code": 0,
+    "data": {
+      "portfolioId": "demo-portfolio-1",
+      "strategyId": "demo-strategy-1",
+      "tradeDate": "20260808",
+      "totalDriftScore": 0.036,
+      "isAlert": false,
+      "alertThreshold": 0.1,
+      "positionDrift": 0,
+      "weightDrift": 0.036,
+      "industryDrift": 0.018,
+      "items": [
+        {
+          "tsCode": "600519.SH",
+          "stockName": "贵州茅台",
+          "actualWeight": 0.61355,
+          "targetWeight": 0.6,
+          "weightDiff": 0.01355,
+          "driftType": "WEIGHT_DRIFT"
+        }
+      ],
+      "industryItems": [
+        { "industry": "食品饮料", "actualWeight": 0.61355, "targetWeight": 0.6, "diff": 0.01355 }
+      ]
+    },
+    "message": ""
   }
 }

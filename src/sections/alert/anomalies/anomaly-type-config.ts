@@ -21,10 +21,10 @@ export type AnomalyTypeConfig = {
 
 const VOLUME_SURGE_CFG: AnomalyTypeConfig = {
   type: 'VOLUME_SURGE',
-  label: '放量突破',
+  label: '放量异动',
   shortLabel: '放量',
   color: 'warning',
-  icon: 'solar:graph-up-bold',
+  icon: 'solar:chart-bold',
   ruleDesc: '当日成交量 / 近 20 日均量 ≥ 3.0 倍（剔除停牌、数据不足 5 日的样本）',
   unitHint: '倍数',
 };

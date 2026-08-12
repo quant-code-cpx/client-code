@@ -1,5 +1,5 @@
 import { test, expect } from './fixtures/auth.fixture';
-import { waitForPageReady, waitForTableData } from './helpers/wait-helpers';
+import { waitForPageReady } from './helpers/wait-helpers';
 
 /** Wait time after a UI action (e.g. tab switch, dialog open) for content to render */
 const UI_UPDATE_WAIT_MS = 500;

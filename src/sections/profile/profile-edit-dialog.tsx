@@ -67,7 +67,7 @@ export function ProfileEditDialog({ open, onClose }: ProfileEditDialogProps) {
             value={nickname}
             onChange={(e) => setNickname(e.target.value)}
             fullWidth
-            inputProps={{ maxLength: 64 }}
+            slotProps={{ htmlInput: { maxLength: 64 } }}
           />
 
           <TextField
@@ -76,7 +76,7 @@ export function ProfileEditDialog({ open, onClose }: ProfileEditDialogProps) {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             fullWidth
-            inputProps={{ maxLength: 128 }}
+            slotProps={{ htmlInput: { maxLength: 128 } }}
           />
 
           <TextField
@@ -84,7 +84,7 @@ export function ProfileEditDialog({ open, onClose }: ProfileEditDialogProps) {
             value={wechat}
             onChange={(e) => setWechat(e.target.value)}
             fullWidth
-            inputProps={{ maxLength: 64 }}
+            slotProps={{ htmlInput: { maxLength: 64 } }}
           />
 
           <Box sx={{ typography: 'caption', color: 'text.secondary' }}>* 所有字段均为选填</Box>

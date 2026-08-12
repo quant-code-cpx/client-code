@@ -56,8 +56,27 @@ export function EventAnalysisSamplesTable({ title, samples, color, onSampleClick
                     <TableRow
                       key={`${sample.tsCode}-${sample.eventDate}`}
                       hover
-                      sx={{ cursor: onSampleClick ? 'pointer' : 'default' }}
+                      role={onSampleClick ? 'button' : undefined}
+                      tabIndex={onSampleClick ? 0 : undefined}
+                      aria-label={
+                        onSampleClick
+                          ? `查看样本 ${sample.name ?? sample.tsCode} ${sample.eventDate}`
+                          : undefined
+                      }
+                      sx={{
+                        cursor: onSampleClick ? 'pointer' : 'default',
+                        '&:focus-visible': {
+                          outline: '2px solid',
+                          outlineColor: 'primary.main',
+                          outlineOffset: -2,
+                        },
+                      }}
                       onClick={() => onSampleClick?.(sample)}
+                      onKeyDown={(event) => {
+                        if (!onSampleClick || (event.key !== 'Enter' && event.key !== ' ')) return;
+                        event.preventDefault();
+                        onSampleClick(sample);
+                      }}
                     >
                       <TableCell>{sample.tsCode}</TableCell>
                       <TableCell>{sample.name ?? '-'}</TableCell>

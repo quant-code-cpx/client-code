@@ -1,4 +1,4 @@
-import type { SignalRule, EventTypeItem, SignalRuleStats } from 'src/api/event-study';
+import type { SignalRule, EventTypeItem } from 'src/api/event-study';
 
 import { useRef, useState, useEffect, useCallback } from 'react';
 
@@ -28,7 +28,6 @@ import {
   scanSignalsAsync,
   deleteSignalRule,
   updateSignalRule,
-  getSignalRuleStats,
 } from 'src/api/event-study';
 
 import { Label } from 'src/components/label';
@@ -40,7 +39,6 @@ import { DataState } from './_shared/data-state';
 import { ProgressSnackbar } from './_shared/progress-snackbar';
 import { EVENT_TYPE_LABELS, SIGNAL_TYPE_CONFIG } from './constants';
 import { SignalRuleWizardDialog } from './signal-rule-wizard-dialog';
-import { SignalRuleBacktestDialog } from './signal-rule-backtest-dialog';
 
 // ----------------------------------------------------------------------
 
@@ -53,7 +51,6 @@ export function SignalRulesTab({ eventTypes }: Props) {
   const isAdmin = role === 'SUPER_ADMIN';
 
   const [rules, setRules] = useState<SignalRule[]>([]);
-  const [statsMap, setStatsMap] = useState<Record<number, SignalRuleStats>>({});
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(0);
   const [pageSize, setPageSize] = useState(20);
@@ -63,7 +60,6 @@ export function SignalRulesTab({ eventTypes }: Props) {
   const [wizardOpen, setWizardOpen] = useState(false);
   const [editingRule, setEditingRule] = useState<SignalRule | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<number | null>(null);
-  const [backtestRule, setBacktestRule] = useState<SignalRule | null>(null);
 
   const [scanState, setScanState] = useState<{
     open: boolean;
@@ -83,16 +79,6 @@ export function SignalRulesTab({ eventTypes }: Props) {
       const items = data.items ?? [];
       setRules(items);
       setTotal(data.total ?? 0);
-      // 并行拉每条规则的统计
-      const statsArr = await Promise.all(
-        items.map((r) => getSignalRuleStats(r.id).catch(() => null))
-      );
-      const map: Record<number, SignalRuleStats> = {};
-      items.forEach((r, i) => {
-        const s = statsArr[i];
-        if (s) map[r.id] = s;
-      });
-      setStatsMap(map);
     } catch (err) {
       setError(err instanceof Error ? err.message : '加载规则失败');
     } finally {
@@ -240,6 +226,10 @@ export function SignalRulesTab({ eventTypes }: Props) {
 
       {error && <Alert severity="error">{error}</Alert>}
 
+      <Alert severity="info">
+        规则统计与规则回测能力尚未开放；创建、编辑、启停和信号扫描不受影响。
+      </Alert>
+
       <Card>
         <DataState
           loading={loading}
@@ -269,7 +259,6 @@ export function SignalRulesTab({ eventTypes }: Props) {
               <TableBody>
                 {rules.map((rule) => {
                   const signalCfg = SIGNAL_TYPE_CONFIG[rule.signalType];
-                  const stat = statsMap[rule.id];
                   return (
                     <TableRow key={rule.id} hover>
                       <TableCell>{rule.id}</TableCell>
@@ -297,21 +286,12 @@ export function SignalRulesTab({ eventTypes }: Props) {
                         </Label>
                       </TableCell>
                       <TableCell align="right" sx={{ fontVariantNumeric: 'tabular-nums' }}>
-                        {stat ? stat.hitCount30d : '-'}
+                        未开放
                       </TableCell>
                       <TableCell align="right" sx={{ fontVariantNumeric: 'tabular-nums' }}>
-                        {stat ? `${(stat.hitRate * 100).toFixed(1)}%` : '-'}
+                        未开放
                       </TableCell>
-                      <TableCell>
-                        {stat?.lastTriggered
-                          ? new Date(stat.lastTriggered).toLocaleString('zh-CN', {
-                              month: '2-digit',
-                              day: '2-digit',
-                              hour: '2-digit',
-                              minute: '2-digit',
-                            })
-                          : '-'}
-                      </TableCell>
+                      <TableCell>未开放</TableCell>
                       <TableCell>
                         <Stack direction="row" spacing={0.5}>
                           <Tooltip title="编辑">
@@ -326,15 +306,17 @@ export function SignalRulesTab({ eventTypes }: Props) {
                               <Iconify icon="solar:pen-bold" width={16} />
                             </IconButton>
                           </Tooltip>
-                          <Tooltip title="回测">
-                            <IconButton
-                              size="small"
-                              aria-label="回测"
-                              color="primary"
-                              onClick={() => setBacktestRule(rule)}
-                            >
-                              <Iconify icon="solar:check-square-bold" width={16} />
-                            </IconButton>
+                          <Tooltip title="规则回测尚未开放">
+                            <span>
+                              <IconButton
+                                size="small"
+                                aria-label="规则回测未开放"
+                                color="primary"
+                                disabled
+                              >
+                                <Iconify icon="solar:check-square-bold" width={16} />
+                              </IconButton>
+                            </span>
                           </Tooltip>
                           <Tooltip title={rule.status === 'ACTIVE' ? '暂停' : '启用'}>
                             <IconButton
@@ -391,16 +373,6 @@ export function SignalRulesTab({ eventTypes }: Props) {
         editingRule={editingRule}
         eventTypes={eventTypes}
       />
-
-      {/* 回测对话框 */}
-      {backtestRule && (
-        <SignalRuleBacktestDialog
-          open
-          onClose={() => setBacktestRule(null)}
-          ruleId={backtestRule.id}
-          ruleName={backtestRule.name}
-        />
-      )}
 
       {/* 删除确认 */}
       <Dialog open={deleteTarget !== null} onClose={() => setDeleteTarget(null)}>

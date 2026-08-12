@@ -304,10 +304,6 @@ export function analyzeEvent(params: EventAnalyzeParams) {
   return apiClient.post<EventAnalyzeResult>('/api/event-study/analyze', params);
 }
 
-export function analyzeBySegment(params: AnalyzeBySegmentParams) {
-  return apiClient.post<AnalyzeBySegmentResult>('/api/event-study/analyze/by-segment', params);
-}
-
 export function createSignalRule(params: CreateSignalRuleParams) {
   return apiClient.post<SignalRule>('/api/event-study/signal-rules', params);
 }
@@ -324,19 +320,8 @@ export function deleteSignalRule(id: number) {
   return apiClient.post<SignalRule>('/api/event-study/signal-rules/delete', { id });
 }
 
-export function getSignalRuleStats(id: number) {
-  return apiClient.post<SignalRuleStats>('/api/event-study/signal-rules/stats', { id });
-}
-
 export function previewSignalRule(params: SignalRulePreviewParams) {
   return apiClient.post<SignalRulePreviewResult>('/api/event-study/signal-rules/preview', params);
-}
-
-export function backtestSignalRule(id: number, params: SignalRuleBacktestParams) {
-  return apiClient.post<SignalRuleBacktestResult>('/api/event-study/signal-rules/backtest', {
-    id,
-    ...params,
-  });
 }
 
 export function scanSignals(params?: { tradeDate?: string }) {
@@ -358,16 +343,4 @@ export function getScanJob(jobId: string) {
 
 export function querySignals(params: SignalHistoryParams) {
   return apiClient.post<SignalHistoryResult>('/api/event-study/signals', params);
-}
-
-export function listAnalysisPlans() {
-  return apiClient.post<AnalysisPlanListResult>('/api/event-study/analyses/list', {});
-}
-
-export function createAnalysisPlan(params: CreateAnalysisPlanParams) {
-  return apiClient.post<AnalysisPlan>('/api/event-study/analyses/create', params);
-}
-
-export function deleteAnalysisPlan(id: number) {
-  return apiClient.post<{ success: boolean }>('/api/event-study/analyses/delete', { id });
 }

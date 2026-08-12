@@ -25,9 +25,6 @@ export type GenerateStrategyParams = {
     holdings?: boolean;
     riskAssessment?: boolean;
     tradeLog?: boolean;
-    factorExposure?: boolean;
-    parameterSensitivity?: boolean;
-    rollingStability?: boolean;
   };
 };
 

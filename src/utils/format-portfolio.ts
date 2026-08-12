@@ -13,7 +13,7 @@ function toFiniteNumber(value: number | null | undefined): number | null {
 export function getPortfolioValueTone(value: number | null | undefined): PortfolioValueTone {
   const number = toFiniteNumber(value);
   if (number == null || number === 0) return 'text.secondary';
-  return number > 0 ? 'success.main' : 'error.main';
+  return number > 0 ? 'error.main' : 'success.main';
 }
 
 export function fSignedCurrency(value: number | null | undefined, fallback = '非交易日'): string {

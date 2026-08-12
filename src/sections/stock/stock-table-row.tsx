@@ -115,7 +115,7 @@ export function StockTableRow({
           size="small"
           checked={selected}
           onChange={() => onToggleSelect(row.tsCode)}
-          inputProps={{ 'aria-label': `选择 ${row.name ?? row.tsCode}` }}
+          slotProps={{ input: { 'aria-label': `选择 ${row.name ?? row.tsCode}` } }}
         />
       </TableCell>
 

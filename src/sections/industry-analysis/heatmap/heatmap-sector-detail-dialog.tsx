@@ -63,13 +63,21 @@ export function HeatmapSectorDetailDialog({
   const netYi = yuanToYi(sector.netAmount);
   const amountYi = toYi(sector.amount);
 
-  const sortedStocks = [...stocks].sort((a, b) => (b.pctChg ?? 0) - (a.pctChg ?? 0)).slice(0, 30);
+  const sortedStocks = [...stocks]
+    .sort((a, b) => {
+      if (a.pctChg == null) return b.pctChg == null ? 0 : 1;
+      if (b.pctChg == null) return -1;
+      return b.pctChg - a.pctChg;
+    })
+    .slice(0, 30);
   const sortedFlows = [...stockFlows]
     .sort((a, b) => (b.mainNetInflow ?? 0) - (a.mainNetInflow ?? 0))
     .slice(0, 30);
 
-  const pctColor = (v: number | null) => ((v ?? 0) >= 0 ? 'error.main' : 'success.main');
-  const fmtPct = (v: number | null) => `${(v ?? 0) >= 0 ? '+' : ''}${(v ?? 0).toFixed(2)}%`;
+  const pctColor = (v: number | null) =>
+    v == null ? 'text.secondary' : v >= 0 ? 'error.main' : 'success.main';
+  const fmtPct = (v: number | null) =>
+    v == null ? '—' : `${v >= 0 ? '+' : ''}${v.toFixed(2)}%`;
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
@@ -133,7 +141,9 @@ export function HeatmapSectorDetailDialog({
                     <TableCell align="right" sx={{ color: pctColor(s.pctChg), fontWeight: 600 }}>
                       {fmtPct(s.pctChg)}
                     </TableCell>
-                    <TableCell align="right">{toYi((s.amount ?? 0) / 10)}</TableCell>
+                    <TableCell align="right">
+                      {s.amount == null ? '—' : toYi(s.amount / 10)}
+                    </TableCell>
                   </TableRow>
                 ))}
                 {sortedStocks.length === 0 && (
@@ -167,11 +177,16 @@ export function HeatmapSectorDetailDialog({
                     <TableCell
                       align="right"
                       sx={{
-                        color: (s.mainNetInflow ?? 0) >= 0 ? 'error.main' : 'success.main',
+                        color:
+                          s.mainNetInflow == null
+                            ? 'text.secondary'
+                            : s.mainNetInflow >= 0
+                              ? 'error.main'
+                              : 'success.main',
                         fontWeight: 600,
                       }}
                     >
-                      {(s.mainNetInflow ?? 0).toFixed(0)}
+                      {s.mainNetInflow == null ? '—' : s.mainNetInflow.toFixed(0)}
                     </TableCell>
                     <TableCell align="right" sx={{ color: pctColor(s.pctChg), fontWeight: 600 }}>
                       {fmtPct(s.pctChg)}

@@ -34,7 +34,6 @@ type UserManageTableRowProps = {
   onEdit: (row: UserManageItem) => void;
   onUpdateRole: (row: UserManageItem) => void;
   onToggleStatus: (row: UserManageItem) => void;
-  onUnlock: (row: UserManageItem) => void;
   onResetPassword: (row: UserManageItem) => void;
   onDelete: (row: UserManageItem) => void;
   onRestore: (row: UserManageItem) => void;
@@ -59,7 +58,6 @@ export function UserManageTableRow({
   onEdit,
   onUpdateRole,
   onToggleStatus,
-  onUnlock,
   onResetPassword,
   onDelete,
   onRestore,
@@ -222,16 +220,10 @@ export function UserManageTableRow({
             </MenuItem>
           )}
 
-          {CONFIG.userManageFeatures.unlock && locked && (
-            <MenuItem
-              onClick={() => {
-                handleClose();
-                onUnlock(row);
-              }}
-              sx={{ color: 'warning.main' }}
-            >
+          {locked && (
+            <MenuItem disabled aria-label="解锁账号（未开放）">
               <Iconify icon="solar:lock-keyhole-unlocked-bold" />
-              解锁账号
+              解锁账号（未开放）
             </MenuItem>
           )}
 

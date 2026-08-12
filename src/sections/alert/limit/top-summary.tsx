@@ -166,6 +166,9 @@ export function AlertLimitTopSummary({ items, summary, onMaxStreakClick }: Props
       {kpis.map((kpi) => (
         <Grid key={kpi.key} size={{ xs: 6, sm: 4, md: 2 }}>
           <Card
+            role={kpi.onClick ? 'button' : undefined}
+            tabIndex={kpi.onClick ? 0 : undefined}
+            aria-label={kpi.onClick ? `${kpi.label}：${kpi.value}` : undefined}
             sx={{
               p: 2,
               height: '100%',
@@ -174,8 +177,18 @@ export function AlertLimitTopSummary({ items, summary, onMaxStreakClick }: Props
               transition: 'border-color 200ms',
               borderLeft: '2px solid',
               borderLeftColor: `${kpi.accent}.main`,
+              '&:focus-visible': {
+                outline: '2px solid',
+                outlineColor: 'primary.main',
+                outlineOffset: 2,
+              },
             }}
             onClick={kpi.onClick}
+            onKeyDown={(event) => {
+              if (!kpi.onClick || (event.key !== 'Enter' && event.key !== ' ')) return;
+              event.preventDefault();
+              kpi.onClick();
+            }}
           >
             <Stack direction="row" alignItems="center" justifyContent="space-between">
               {kpi.tooltip ? (

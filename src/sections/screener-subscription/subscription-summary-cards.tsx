@@ -124,6 +124,15 @@ export function SubscriptionSummaryCards({
           <Card
             key={item.key}
             onClick={item.onClick}
+            role={item.onClick ? 'button' : undefined}
+            tabIndex={item.onClick ? 0 : undefined}
+            aria-pressed={item.onClick ? Boolean(item.active) : undefined}
+            aria-label={item.onClick ? `${item.label}：${item.value}` : undefined}
+            onKeyDown={(event) => {
+              if (!item.onClick || (event.key !== 'Enter' && event.key !== ' ')) return;
+              event.preventDefault();
+              item.onClick();
+            }}
             sx={{
               p: 2,
               cursor: item.onClick ? 'pointer' : 'default',
@@ -136,6 +145,11 @@ export function SubscriptionSummaryCards({
                 boxShadow: theme.shadows[4],
               }),
               '&:hover': item.onClick ? { bgcolor: varAlpha(channel, 0.05) } : undefined,
+              '&:focus-visible': {
+                outline: '2px solid',
+                outlineColor: 'primary.main',
+                outlineOffset: 2,
+              },
             }}
           >
             <Stack spacing={0.5}>

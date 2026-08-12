@@ -1,6 +1,6 @@
 import { execFileSync } from 'node:child_process';
-import { existsSync, readFileSync, rmSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { resolve as resolvePath } from 'node:path';
+import { rmSync, existsSync, readFileSync } from 'node:fs';
 
 type AgentRealE2eState = {
   apiProcessId: number;
@@ -8,8 +8,8 @@ type AgentRealE2eState = {
   redisContainer: string;
 };
 
-const STATE_PATH = resolve(process.cwd(), 'e2e/.agent-real-state.json');
-const AUTH_STATE_PATH = resolve(process.cwd(), 'e2e/.auth/agent-real.json');
+const STATE_PATH = resolvePath(process.cwd(), 'e2e/.agent-real-state.json');
+const AUTH_STATE_PATH = resolvePath(process.cwd(), 'e2e/.auth/agent-real.json');
 
 export default async function globalTeardown(): Promise<void> {
   if (!existsSync(STATE_PATH)) {

@@ -16,11 +16,11 @@ import Button from '@mui/material/Button';
 import Drawer from '@mui/material/Drawer';
 import Divider from '@mui/material/Divider';
 import Stepper from '@mui/material/Stepper';
+import Tooltip from '@mui/material/Tooltip';
 import StepLabel from '@mui/material/StepLabel';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
-import CircularProgress from '@mui/material/CircularProgress';
 
 import {
   testModelConnection,
@@ -207,9 +207,13 @@ export function ConnectionWizardDrawer({
             协议、凭证和模型部署分离管理
           </Typography>
         </Box>
-        <IconButton aria-label="关闭接入向导" onClick={onClose} disabled={busy}>
-          <Iconify icon="mingcute:close-line" />
-        </IconButton>
+        <Tooltip title="关闭接入向导">
+          <span>
+            <IconButton aria-label="关闭接入向导" onClick={onClose} disabled={busy}>
+              <Iconify icon="mingcute:close-line" />
+            </IconButton>
+          </span>
+        </Tooltip>
       </Box>
       <Divider />
       <Stepper activeStep={step} sx={{ px: 3, py: 2 }}>
@@ -391,7 +395,7 @@ export function ConnectionWizardDrawer({
           {step === 1 ? (
             <Button
               variant="contained"
-              startIcon={busy ? <CircularProgress size={18} aria-hidden="true" /> : undefined}
+              loading={busy}
               onClick={() => void saveDraft()}
               disabled={busy}
             >
@@ -402,7 +406,7 @@ export function ConnectionWizardDrawer({
             <>
               <Button
                 variant="outlined"
-                startIcon={busy ? <CircularProgress size={18} aria-hidden="true" /> : undefined}
+                loading={busy}
                 onClick={() => void runProbe()}
                 disabled={busy || !saved}
               >

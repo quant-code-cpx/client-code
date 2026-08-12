@@ -34,6 +34,7 @@ const agentMockConversationSummary = {
   title: '贵州茅台估值研究',
   modelPolicy: 'AUTO',
   preferredModel: null,
+  reasoningEffort: null,
   createdAt: '2026-07-20T00:00:00.000Z',
   updatedAt: '2026-07-20T00:00:05.000Z',
   messageCount: 2,
@@ -152,14 +153,22 @@ export const agentHandlers = [
       nextBeforeMessageId: null,
     } satisfies AgentResponse<'/agent/conversations/messages/list'>)
   ),
-  http.post('*/api/agent/conversations/model/update', () =>
-    ok({
+  http.post('*/api/agent/conversations/model/update', async ({ request }) => {
+    const body = await requestBody(request);
+    const modelPolicy = body.modelPolicy === 'MANUAL' ? 'MANUAL' : 'AUTO';
+    const preferredModel = modelPolicy === 'MANUAL' ? String(body.preferredModel) : null;
+    const reasoningEffort =
+      modelPolicy === 'MANUAL' && typeof body.reasoningEffort === 'string'
+        ? body.reasoningEffort
+        : null;
+    return ok({
       conversationId: 'cm_mock_1',
-      modelPolicy: 'AUTO',
-      preferredModel: null,
+      modelPolicy,
+      preferredModel,
+      reasoningEffort,
       contextPreparation: {
         status: 'COMPACTION_REQUIRED',
-        targetModel: 'research-model',
+        targetModel: preferredModel ?? 'research-model',
         contextWindow: 128000,
         estimatedRecentTokens: 92000,
         triggerTokens: 88473,
@@ -168,11 +177,71 @@ export const agentHandlers = [
         message: '下一轮发送前会自动整理历史会话，原始消息不会删除',
       },
       updatedAt: '2026-07-20T00:00:05.000Z',
-    } satisfies AgentResponse<'/agent/conversations/model/update'>)
-  ),
+    } satisfies AgentResponse<'/agent/conversations/model/update'>);
+  }),
   http.post('*/api/agent/models/list', () =>
     ok({
-      items: [],
+      items: [
+        {
+          model: 'gpt-5.6-sol',
+          displayName: 'gpt-5.6-sol',
+          provider: 'openai',
+          capabilities: [
+            'STREAMING',
+            'STRUCTURED_OUTPUT',
+            'TOOL_CALLING',
+            'PARALLEL_TOOL_CALLING',
+            'VISION',
+            'REASONING_EFFORT',
+          ],
+          reasoningEfforts: ['LOW', 'MEDIUM', 'HIGH', 'XHIGH', 'MAX'],
+          defaultReasoningEffort: 'XHIGH',
+          contextWindow: 256000,
+          maxOutputTokens: 54000,
+          costTier: 'HIGH',
+          status: 'AVAILABLE',
+          reason: null,
+        },
+        {
+          model: 'gpt-5.6-terra',
+          displayName: 'gpt-5.6-terra',
+          provider: 'openai',
+          capabilities: [
+            'STREAMING',
+            'STRUCTURED_OUTPUT',
+            'TOOL_CALLING',
+            'PARALLEL_TOOL_CALLING',
+            'VISION',
+            'REASONING_EFFORT',
+          ],
+          reasoningEfforts: ['LOW', 'MEDIUM', 'HIGH', 'XHIGH'],
+          defaultReasoningEffort: 'HIGH',
+          contextWindow: 128000,
+          maxOutputTokens: 128000,
+          costTier: 'MEDIUM',
+          status: 'AVAILABLE',
+          reason: null,
+        },
+        {
+          model: 'deepseek-v4-pro',
+          displayName: 'deepseek-v4-pro',
+          provider: 'deepseek',
+          capabilities: [
+            'STREAMING',
+            'STRUCTURED_OUTPUT',
+            'TOOL_CALLING',
+            'PARALLEL_TOOL_CALLING',
+            'REASONING_EFFORT',
+          ],
+          reasoningEfforts: ['LOW', 'MEDIUM', 'HIGH'],
+          defaultReasoningEffort: 'MEDIUM',
+          contextWindow: 1000000,
+          maxOutputTokens: 384000,
+          costTier: 'HIGH',
+          status: 'AVAILABLE',
+          reason: null,
+        },
+      ],
     } satisfies AgentResponse<'/agent/models/list'>)
   ),
   http.post('*/api/agent/messages/send', () =>
@@ -195,6 +264,17 @@ export const agentHandlers = [
       streamEndpoint: '/api/agent/runs/events',
     } satisfies AgentResponse<'/agent/runs/regenerate'>)
   ),
+  http.post('*/api/agent/runs/retry', () =>
+    ok({
+      conversationId: 'cm_mock_1',
+      sourceRunId: 'run_mock_failed',
+      assistantMessageId: 'msg_assistant_mock_retry',
+      runId: 'run_mock_retry',
+      runStatus: 'QUEUED',
+      retryMode: 'SAFE_CHECKPOINT',
+      streamEndpoint: '/api/agent/runs/events',
+    } satisfies AgentResponse<'/agent/runs/retry'>)
+  ),
   http.post('*/api/agent/runs/status', () =>
     ok({
       runId: 'run_mock_1',
@@ -205,6 +285,8 @@ export const agentHandlers = [
       finalMessageId: 'msg_assistant_mock_1',
       latestEventSequence: 5,
       canCancel: false,
+      canRetry: false,
+      retryDepth: 0,
       errorCode: null,
       errorMessage: null,
       queuedAt: '2026-07-20T00:00:00.000Z',

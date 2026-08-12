@@ -66,10 +66,7 @@ export function GenerateFormStrategy({ value, onChange, onValidChange }: Props) 
     performance: true,
     holdings: true,
     riskAssessment: true,
-    tradeLog: true,
-    factorExposure: false,
-    parameterSensitivity: false,
-    rollingStability: false,
+    tradeLog: false,
   };
 
   return (
@@ -111,7 +108,17 @@ export function GenerateFormStrategy({ value, onChange, onValidChange }: Props) 
         options={portfolios}
         value={selectedPortfolio}
         getOptionLabel={(o) => o.name}
-        onChange={(_, opt) => onChange({ ...value, portfolioId: opt?.id })}
+        onChange={(_, opt) => {
+          const portfolioId = opt?.id;
+          onChange({
+            ...value,
+            portfolioId,
+            sections:
+              !portfolioId && value.sections?.tradeLog
+                ? { ...value.sections, tradeLog: false }
+                : value.sections,
+          });
+        }}
         renderInput={(params) => <TextField {...params} label="选择参考组合（可选）" />}
       />
 
@@ -154,41 +161,12 @@ export function GenerateFormStrategy({ value, onChange, onValidChange }: Props) 
             control={
               <Switch
                 size="small"
-                checked={sections.tradeLog ?? true}
+                checked={sections.tradeLog ?? false}
                 onChange={(e) => setSection('tradeLog', e.target.checked)}
+                disabled={!value.portfolioId}
               />
             }
-            label="交易日志"
-          />
-          <FormControlLabel
-            control={
-              <Switch
-                size="small"
-                checked={sections.factorExposure ?? false}
-                onChange={(e) => setSection('factorExposure', e.target.checked)}
-              />
-            }
-            label="因子暴露"
-          />
-          <FormControlLabel
-            control={
-              <Switch
-                size="small"
-                checked={sections.parameterSensitivity ?? false}
-                onChange={(e) => setSection('parameterSensitivity', e.target.checked)}
-              />
-            }
-            label="参数敏感性"
-          />
-          <FormControlLabel
-            control={
-              <Switch
-                size="small"
-                checked={sections.rollingStability ?? false}
-                onChange={(e) => setSection('rollingStability', e.target.checked)}
-              />
-            }
-            label="滚动稳定性"
+            label={value.portfolioId ? '交易日志' : '交易日志（需先选择组合）'}
           />
         </Box>
       </Box>

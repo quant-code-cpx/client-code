@@ -1024,7 +1024,7 @@ export const AGENT_CONTRACT_JSON_SCHEMA = {
                     },
                     selectedTools: {
                       type: 'array',
-                      maxItems: 18,
+                      maxItems: 36,
                       items: {
                         enum: [
                           'resolve_security',
@@ -1068,7 +1068,7 @@ export const AGENT_CONTRACT_JSON_SCHEMA = {
                     },
                     plannedTools: {
                       type: 'array',
-                      maxItems: 20,
+                      maxItems: 36,
                       items: {
                         enum: [
                           'resolve_security',

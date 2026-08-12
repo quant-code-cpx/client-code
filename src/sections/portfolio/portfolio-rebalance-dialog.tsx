@@ -298,7 +298,7 @@ export function PortfolioRebalanceDialog({
                             updateRow(idx, { targetWeight: Number(event.target.value) })
                           }
                           disabled={loading}
-                          inputProps={{ min: 0, max: 100, step: 0.5 }}
+                          slotProps={{ htmlInput: { min: 0, max: 100, step: 0.5 } }}
                           sx={{ width: 112 }}
                         />
                       </TableCell>

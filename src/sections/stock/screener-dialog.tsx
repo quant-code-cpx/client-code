@@ -442,7 +442,7 @@ export function ScreenerDialog({ open, onClose }: ScreenerDialogProps) {
             flexWrap: 'wrap',
           }}
         >
-          <Button color="inherit" variant="outlined" onClick={handleReset} disabled={loading}>
+          <Button variant="outlined" onClick={handleReset} disabled={loading}>
             重置条件
           </Button>
           <Stack direction="row" alignItems="center" spacing={1.5}>

@@ -71,6 +71,9 @@ export function HistoryDrawer({ open, onClose, items, onRestore, onClear, onRemo
           {items.map((item) => (
             <Box
               key={item.id}
+              role="button"
+              tabIndex={0}
+              aria-label={`恢复运行历史：${item.summary}`}
               sx={{
                 p: 1.5,
                 borderRadius: 1.5,
@@ -78,8 +81,22 @@ export function HistoryDrawer({ open, onClose, items, onRestore, onClear, onRemo
                 cursor: 'pointer',
                 transition: 'background-color 0.15s',
                 '&:hover': { bgcolor: 'action.hover' },
+                '&:focus-visible': {
+                  outline: '2px solid',
+                  outlineColor: 'primary.main',
+                  outlineOffset: 2,
+                },
               }}
               onClick={() => onRestore(item)}
+              onKeyDown={(event) => {
+                if (
+                  event.target !== event.currentTarget ||
+                  (event.key !== 'Enter' && event.key !== ' ')
+                )
+                  return;
+                event.preventDefault();
+                onRestore(item);
+              }}
             >
               <Stack
                 direction="row"

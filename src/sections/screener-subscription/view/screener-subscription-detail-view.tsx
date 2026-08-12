@@ -30,7 +30,6 @@ import {
   getSubscriptionById,
   getSubscriptionHits,
   getSubscriptionLogs,
-  getSubscriptionRunStatus,
 } from 'src/api/screener-subscription';
 
 import { Label } from 'src/components/label';
@@ -42,6 +41,7 @@ import { SubscriptionStatusLabel } from '../subscription-status-label';
 import { SubscriptionMatchPreview } from '../subscription-match-preview';
 import { SubscriptionHitEvidenceTable } from '../subscription-hit-evidence';
 import { SubscriptionFiltersSummary } from '../subscription-filters-summary';
+import { useSubscriptionRunStatus } from '../hooks/use-subscription-run-status';
 import { useScreenerSubscriptionRefresh } from '../hooks/use-screener-subscription-refresh';
 
 // ----------------------------------------------------------------------
@@ -53,6 +53,14 @@ const RULE_TYPE_LABELS = {
   SIGNAL_EVENT: '技术信号',
   COMPOSITE: '组合规则',
 } as const;
+const RUN_STATUS_LABELS: Record<SubscriptionRunStatus['status'], string> = {
+  QUEUED: '排队中',
+  RUNNING: '执行中',
+  SUCCESS: '已完成',
+  FAILED: '失败',
+  SKIPPED_DATA_NOT_READY: '数据暂未就绪，已跳过',
+  NOT_FOUND: '任务不存在或已过期',
+};
 
 function RuleSnapshotSummary({ subscription }: { subscription: ScreenerSubscription }) {
   const ruleSpec = subscription.ruleSpec;
@@ -114,8 +122,6 @@ export function ScreenerSubscriptionDetailView() {
   const [hitsLoading, setHitsLoading] = useState(false);
   const [hitsError, setHitsError] = useState('');
   const [hitLogId, setHitLogId] = useState<number | null>(null);
-  const [runStatus, setRunStatus] = useState<SubscriptionRunStatus | null>(null);
-  const runStatusTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const detailRequestIdRef = useRef(0);
   const logsRequestIdRef = useRef(0);
 
@@ -173,6 +179,18 @@ export function ScreenerSubscriptionDetailView() {
     [isValidId, numericId]
   );
 
+  const handleRunTerminal = useCallback(
+    (nextStatus: SubscriptionRunStatus) => {
+      if (nextStatus.status === 'NOT_FOUND') return;
+      void fetchDetail();
+      void fetchLogs(logsPage);
+    },
+    [fetchDetail, fetchLogs, logsPage]
+  );
+  const { runStatus, trackRunStatus } = useSubscriptionRunStatus({
+    onTerminal: handleRunTerminal,
+  });
+
   useEffect(() => {
     fetchDetail();
   }, [fetchDetail]);
@@ -180,13 +198,6 @@ export function ScreenerSubscriptionDetailView() {
   useEffect(() => {
     fetchLogs(logsPage);
   }, [fetchLogs, logsPage]);
-
-  useEffect(
-    () => () => {
-      if (runStatusTimerRef.current) clearTimeout(runStatusTimerRef.current);
-    },
-    []
-  );
 
   // 本订阅命中或连续失败转 ERROR 后，静默刷新详情与当前日志页。
   useScreenerSubscriptionRefresh(
@@ -231,31 +242,6 @@ export function ScreenerSubscriptionDetailView() {
       setHitsLoading(false);
     }
   };
-
-  const trackRunStatus = useCallback(
-    async (jobId: string): Promise<void> => {
-      try {
-        const nextStatus = await getSubscriptionRunStatus(jobId);
-        setRunStatus(nextStatus);
-        if (nextStatus.status === 'SUCCESS') {
-          fetchDetail();
-          fetchLogs(logsPage);
-          return;
-        }
-        if (nextStatus.status === 'FAILED') return;
-        runStatusTimerRef.current = setTimeout(() => {
-          void trackRunStatus(jobId);
-        }, 2000);
-      } catch (err) {
-        setRunStatus({
-          jobId,
-          status: 'FAILED',
-          message: err instanceof Error ? err.message : '执行状态查询失败',
-        });
-      }
-    },
-    [fetchDetail, fetchLogs, logsPage]
-  );
 
   // ── 渲染分支 ──
   if (!isValidId) {
@@ -340,8 +326,10 @@ export function ScreenerSubscriptionDetailView() {
       {runStatus ? (
         <Alert
           severity={
-            runStatus.status === 'FAILED'
+            runStatus.status === 'FAILED' || runStatus.status === 'NOT_FOUND'
               ? 'error'
+              : runStatus.status === 'SKIPPED_DATA_NOT_READY'
+                ? 'warning'
               : runStatus.status === 'SUCCESS'
                 ? 'success'
                 : 'info'
@@ -349,14 +337,10 @@ export function ScreenerSubscriptionDetailView() {
           sx={{ mb: 3 }}
         >
           手动执行任务 {runStatus.jobId}：
-          {runStatus.status === 'QUEUED'
-            ? '排队中'
-            : runStatus.status === 'RUNNING'
-              ? '执行中'
-              : runStatus.status === 'SUCCESS'
-                ? '已完成'
-                : '失败'}
-          {runStatus.message ? ` · ${runStatus.message}` : ''}
+          {RUN_STATUS_LABELS[runStatus.status]}
+          {runStatus.errorMessage || runStatus.message
+            ? ` · ${runStatus.errorMessage ?? runStatus.message}`
+            : ''}
         </Alert>
       ) : null}
 

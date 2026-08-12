@@ -232,7 +232,7 @@ test('AR-001：运行中刷新后从权威 sequence 恢复，正文不重不漏'
   await page.reload();
 
   await expect(page.getByText(finalAnswer, { exact: true })).toBeVisible();
-  await expect(page.getByLabel('Agent 回答').getByText('已完成')).toBeVisible();
+  await expect(page.getByRole('status')).toContainText('Response complete');
   expect(streamBodies).toEqual([
     { runId: fixture.runId, afterSequence: 4 },
     { runId: fixture.runId, afterSequence: 5 },
@@ -559,7 +559,7 @@ test('AR-004：malformed SSE fail-closed，回查 FAILED 快照且不渲染脏�
   await page.getByRole('textbox', { name: '研究问题' }).fill('验证畸形协议');
   await page.getByRole('button', { name: '发送问题' }).click();
 
-  await expect(page.getByLabel('Agent 回答').getByText('失败')).toBeVisible();
+  await expect(page.getByLabel('Agent 回答').getByText('失败', { exact: true })).toBeVisible();
   expect(streamCalls).toBe(1);
   await expect(page.getByText('<script>window.__pwned=true</script>', { exact: true })).toHaveCount(0);
   expect(await page.evaluate(() => '__pwned' in window)).toBe(false);

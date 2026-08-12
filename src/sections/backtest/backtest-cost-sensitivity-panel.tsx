@@ -115,12 +115,7 @@ export function BacktestCostSensitivityPanel({ runId }: BacktestCostSensitivityP
         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
           使用服务端默认参数范围进行网格扫描
         </Typography>
-        <Button
-          variant="contained"
-          onClick={handleRun}
-          loading={loading}
-          disabled={loading}
-        >
+        <Button variant="contained" onClick={handleRun} loading={loading} disabled={loading}>
           {loading ? '分析中…' : '运行分析'}
         </Button>
       </Box>
@@ -188,7 +183,11 @@ export function BacktestCostSensitivityPanel({ runId }: BacktestCostSensitivityP
                             align="right"
                             sx={{
                               color:
-                                (row.annualizedReturn ?? 0) >= 0 ? 'success.main' : 'error.main',
+                                (row.annualizedReturn ?? 0) > 0
+                                  ? 'error.main'
+                                  : (row.annualizedReturn ?? 0) < 0
+                                    ? 'success.main'
+                                    : 'text.secondary',
                             }}
                           >
                             {fPct(row.annualizedReturn)}

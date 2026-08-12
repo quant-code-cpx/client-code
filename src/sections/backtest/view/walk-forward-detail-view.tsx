@@ -293,8 +293,11 @@ export function WalkForwardDetailView() {
         <Card>
           <CardContent>
             <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>
-              窗口详情 ({detail.windows.length} 个)
+              窗口汇总 ({detail.windows.length} 个)
             </Typography>
+            <Alert severity="info" sx={{ mb: 2 }}>
+              点击窗口可查看已返回的汇总指标；窗口级净值、成交、持仓与调仓钻取尚未开放。
+            </Alert>
             <WalkForwardWindowTable windows={detail.windows} onWindowClick={setSelectedWindow} />
           </CardContent>
         </Card>
@@ -305,7 +308,6 @@ export function WalkForwardDetailView() {
       {wfRunId && (
         <WalkForwardWindowDrawer
           open={Boolean(selectedWindow)}
-          wfRunId={wfRunId}
           windowItem={selectedWindow}
           onClose={() => setSelectedWindow(null)}
         />

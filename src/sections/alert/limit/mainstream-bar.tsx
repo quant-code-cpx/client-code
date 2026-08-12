@@ -71,11 +71,24 @@ export function AlertLimitMainstreamBar({ items, topN = 10, onIndustryClick }: P
               return (
                 <Box
                   key={row.name}
+                  role={onIndustryClick ? 'button' : undefined}
+                  tabIndex={onIndustryClick ? 0 : undefined}
+                  aria-label={onIndustryClick ? `按行业 ${row.name} 筛选` : undefined}
                   sx={{
                     cursor: onIndustryClick ? 'pointer' : 'default',
                     '&:hover .industry-name': onIndustryClick ? { color: 'primary.main' } : {},
+                    '&:focus-visible': {
+                      outline: '2px solid',
+                      outlineColor: 'primary.main',
+                      outlineOffset: 2,
+                    },
                   }}
                   onClick={() => onIndustryClick?.(row.name)}
+                  onKeyDown={(event) => {
+                    if (!onIndustryClick || (event.key !== 'Enter' && event.key !== ' ')) return;
+                    event.preventDefault();
+                    onIndustryClick(row.name);
+                  }}
                 >
                   <Stack
                     direction="row"

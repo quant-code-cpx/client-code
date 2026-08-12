@@ -15,20 +15,10 @@ import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 import TableContainer from '@mui/material/TableContainer';
 
-import { fNumber, fWanYuan } from 'src/utils/format-number';
+import { fNumber } from 'src/utils/format-number';
 
 import { Scrollbar } from 'src/components/scrollbar';
 import { Chart, useChart } from 'src/components/chart';
-
-/** Format raw yuan amount into 亿/万/元 scale */
-function fYuanAmt(value: number | null | undefined): string {
-  if (value == null) return '-';
-  const abs = Math.abs(value);
-  if (abs >= 1e8) return `${(value / 1e8).toFixed(2)}亿`;
-  if (abs >= 1e4) return `${(value / 1e4).toFixed(2)}万`;
-  if (abs === 0) return '0';
-  return value.toFixed(2);
-}
 
 // ─── Overview info cards ──────────────────────────────────────
 
@@ -51,14 +41,18 @@ function InfoRow({ label, value }: InfoRowProps) {
 type PriceChartProps = { history: StockReportData['priceHistory'] };
 function PriceChart({ history }: PriceChartProps) {
   const theme = useTheme();
-  const series = [{ name: '收盘价', data: history.map((p) => Number(p.close.toFixed(2))) }];
+  const chartRows = history.filter(
+    (row): row is (typeof history)[number] & { close: number } =>
+      row.close != null && Number.isFinite(row.close)
+  );
+  const series = [{ name: '收盘价', data: chartRows.map((p) => Number(p.close.toFixed(2))) }];
   const chartOptions = useChart({
     chart: { type: 'area', toolbar: { show: false } },
     colors: [theme.palette.primary.main],
     fill: { type: 'gradient', gradient: { opacityFrom: 0.3, opacityTo: 0 } },
     stroke: { width: 2, curve: 'smooth' },
     dataLabels: { enabled: false },
-    xaxis: { type: 'category', categories: history.map((p) => p.date), tickAmount: 8 },
+    xaxis: { type: 'category', categories: chartRows.map((p) => p.date), tickAmount: 8 },
     yaxis: { labels: { formatter: (v: number) => v.toFixed(2) } },
     tooltip: { shared: true, intersect: false, y: { formatter: (v: number) => v.toFixed(2) } },
   });
@@ -69,7 +63,7 @@ function PriceChart({ history }: PriceChartProps) {
         <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
           行情走势（收盘价）
         </Typography>
-        {history.length === 0 ? (
+        {chartRows.length === 0 ? (
           <Box
             sx={{ height: 280, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           >
@@ -97,16 +91,13 @@ function FinancialTable({ rows }: FinancialTableProps) {
         </Typography>
         <Scrollbar>
           <TableContainer>
-            <Table size="small" sx={{ minWidth: 680 }}>
+            <Table size="small" sx={{ minWidth: 560 }}>
               <TableHead>
                 <TableRow>
                   <TableCell>报告期</TableCell>
-                  <TableCell align="right">营收</TableCell>
-                  <TableCell align="right">净利润</TableCell>
                   <TableCell align="right">ROE (%)</TableCell>
-                  <TableCell align="right">EPS（元）</TableCell>
-                  <TableCell align="right">每股净资产</TableCell>
-                  <TableCell align="right">资产负债率 (%)</TableCell>
+                  <TableCell align="right">销售净利率 (%)</TableCell>
+                  <TableCell align="right">营收同比 (%)</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -116,45 +107,25 @@ function FinancialTable({ rows }: FinancialTableProps) {
                       <Typography variant="caption">{r.period}</Typography>
                     </TableCell>
                     <TableCell align="right">
-                      <Typography variant="caption">{fYuanAmt(r.revenue)}</Typography>
-                    </TableCell>
-                    <TableCell align="right">
-                      <Typography
-                        variant="caption"
-                        sx={{
-                          color:
-                            r.netProfit != null && r.netProfit >= 0 ? 'error.main' : 'success.main',
-                          fontWeight: 600,
-                        }}
-                      >
-                        {fYuanAmt(r.netProfit)}
-                      </Typography>
-                    </TableCell>
-                    <TableCell align="right">
                       <Typography variant="caption">
                         {r.roe != null ? `${r.roe.toFixed(2)}%` : '-'}
                       </Typography>
                     </TableCell>
                     <TableCell align="right">
                       <Typography variant="caption">
-                        {r.eps != null ? r.eps.toFixed(2) : '-'}
+                        {r.netProfitMargin != null ? `${r.netProfitMargin.toFixed(2)}%` : '-'}
                       </Typography>
                     </TableCell>
                     <TableCell align="right">
                       <Typography variant="caption">
-                        {r.bps != null ? r.bps.toFixed(2) : '-'}
-                      </Typography>
-                    </TableCell>
-                    <TableCell align="right">
-                      <Typography variant="caption">
-                        {r.debtRatio != null ? `${r.debtRatio.toFixed(2)}%` : '-'}
+                        {r.revenueYoyGrowth != null ? `${r.revenueYoyGrowth.toFixed(2)}%` : '-'}
                       </Typography>
                     </TableCell>
                   </TableRow>
                 ))}
                 {rows.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={7} align="center" sx={{ py: 3 }}>
+                    <TableCell colSpan={4} align="center" sx={{ py: 3 }}>
                       <Typography variant="body2" sx={{ color: 'text.secondary' }}>
                         暂无财务数据
                       </Typography>
@@ -199,14 +170,16 @@ function HoldersTable({ holders }: HoldersTableProps) {
                     </Typography>
                   </TableCell>
                   <TableCell>
-                    <Typography variant="caption">{h.holderName}</Typography>
+                    <Typography variant="caption">{h.holderName ?? '-'}</Typography>
                   </TableCell>
                   <TableCell align="right">
-                    <Typography variant="caption">{fNumber(h.holdAmount.toFixed(2))}</Typography>
+                    <Typography variant="caption">
+                      {h.holdAmount != null ? fNumber(h.holdAmount) : '-'}
+                    </Typography>
                   </TableCell>
                   <TableCell align="right">
                     <Typography variant="caption" sx={{ fontWeight: 600 }}>
-                      {h.holdRatio.toFixed(2)}%
+                      {h.holdRatio != null ? `${h.holdRatio.toFixed(2)}%` : '-'}
                     </Typography>
                   </TableCell>
                 </TableRow>
@@ -243,20 +216,24 @@ function DividendsTable({ dividends }: DividendsTableProps) {
           <Table size="small">
             <TableHead>
               <TableRow>
-                <TableCell>除权除息日</TableCell>
-                <TableCell align="right">每股派息（元）</TableCell>
-                <TableCell align="right">每股送转</TableCell>
+                <TableCell>报告期</TableCell>
+                <TableCell>实施进度</TableCell>
+                <TableCell align="right">税后现金分红</TableCell>
+                <TableCell align="right">送股比例</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {dividends.map((d, idx) => (
                 <TableRow key={idx} hover>
                   <TableCell>
-                    <Typography variant="caption">{d.exDate}</Typography>
+                    <Typography variant="caption">{d.endDate ?? '-'}</Typography>
+                  </TableCell>
+                  <TableCell>
+                    <Typography variant="caption">{d.divProc ?? '-'}</Typography>
                   </TableCell>
                   <TableCell align="right">
                     <Typography variant="caption">
-                      {d.cashDiv != null ? d.cashDiv.toFixed(4) : '-'}
+                      {d.cashDivTax != null ? d.cashDivTax.toFixed(4) : '-'}
                     </Typography>
                   </TableCell>
                   <TableCell align="right">
@@ -290,7 +267,7 @@ export function StockReportViewer({ data }: StockReportViewerProps) {
         <CardContent sx={{ p: 3 }}>
           <Stack direction="row" alignItems="baseline" spacing={1.5} sx={{ mb: 2 }}>
             <Typography variant="h6" sx={{ fontWeight: 700 }}>
-              {overview.name}
+              {overview.name ?? overview.tsCode}
             </Typography>
             <Typography variant="body2" sx={{ color: 'text.secondary' }}>
               {overview.tsCode}
@@ -315,26 +292,12 @@ export function StockReportViewer({ data }: StockReportViewerProps) {
 
           <Grid container spacing={3}>
             <Grid size={{ xs: 12, sm: 6 }}>
-              <InfoRow label="市场" value={overview.market ?? '-'} />
+              <InfoRow label="地区" value={overview.area ?? '-'} />
               <InfoRow label="上市日期" value={overview.listDate ?? '-'} />
-              <InfoRow
-                label="总股本（万股）"
-                value={overview.totalShare != null ? fNumber(overview.totalShare) : '-'}
-              />
-              <InfoRow
-                label="流通股本（万股）"
-                value={overview.floatShare != null ? fNumber(overview.floatShare) : '-'}
-              />
             </Grid>
             <Grid size={{ xs: 12, sm: 6 }}>
-              <InfoRow
-                label="总市值"
-                value={overview.totalMv != null ? fWanYuan(overview.totalMv) : '-'}
-              />
-              <InfoRow
-                label="流通市值"
-                value={overview.circMv != null ? fWanYuan(overview.circMv) : '-'}
-              />
+              <InfoRow label="行业" value={overview.industry ?? '-'} />
+              <InfoRow label="股票代码" value={overview.tsCode} />
             </Grid>
           </Grid>
         </CardContent>

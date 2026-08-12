@@ -1,6 +1,6 @@
-import type { PortfolioListItem } from 'src/api/portfolio';
+import type { PortfolioListItem, ApplyBacktestRequest } from 'src/api/portfolio';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Alert from '@mui/material/Alert';
@@ -22,7 +22,11 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import FormControlLabel from '@mui/material/FormControlLabel';
 
-import { applyBacktest, listPortfolios } from 'src/api/portfolio';
+import {
+  applyBacktest,
+  listPortfolios,
+  createApplyBacktestIdempotencyKey,
+} from 'src/api/portfolio';
 
 // ----------------------------------------------------------------------
 
@@ -32,6 +36,8 @@ interface BacktestApplyPortfolioDialogProps {
   runId: string;
   onSuccess: (portfolioId: string, portfolioName: string) => void;
 }
+
+type ApplyBacktestIntent = Omit<ApplyBacktestRequest, 'idempotencyKey'>;
 
 export function BacktestApplyPortfolioDialog({
   open,
@@ -48,6 +54,7 @@ export function BacktestApplyPortfolioDialog({
   const [loading, setLoading] = useState(false);
   const [loadingList, setLoadingList] = useState(false);
   const [error, setError] = useState('');
+  const submissionRef = useRef<{ fingerprint: string; idempotencyKey: string } | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -57,6 +64,7 @@ export function BacktestApplyPortfolioDialog({
     setNewName('');
     setNewInitialCash(1000000);
     setMode('REPLACE');
+    submissionRef.current = null;
     listPortfolios()
       .then((list) => {
         setPortfolios(list);
@@ -70,39 +78,52 @@ export function BacktestApplyPortfolioDialog({
     setLoading(true);
     setError('');
     try {
+      let intent: ApplyBacktestIntent;
       if (createNew) {
         if (!newName.trim()) {
           setError('请输入新组合名称');
           setLoading(false);
           return;
         }
-        await applyBacktest({
+        intent = {
           backtestRunId: runId,
           portfolioName: newName.trim(),
           mode,
-        });
-        onSuccess('', newName.trim());
+        };
       } else {
         if (!selectedPortfolioId) {
           setError('请选择目标组合');
           setLoading(false);
           return;
         }
-        await applyBacktest({
+        intent = {
           backtestRunId: runId,
           portfolioId: selectedPortfolioId,
           mode,
-        });
-        const portfolio = portfolios.find((p) => p.id === selectedPortfolioId);
-        onSuccess(selectedPortfolioId, portfolio?.name ?? '');
+        };
       }
+
+      const fingerprint = JSON.stringify(intent);
+      if (submissionRef.current?.fingerprint !== fingerprint) {
+        submissionRef.current = {
+          fingerprint,
+          idempotencyKey: createApplyBacktestIdempotencyKey(),
+        };
+      }
+
+      const result = await applyBacktest({
+        ...intent,
+        idempotencyKey: submissionRef.current.idempotencyKey,
+      });
+      submissionRef.current = null;
+      onSuccess(result.portfolioId, result.portfolioName);
       onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : '导入失败，请重试');
     } finally {
       setLoading(false);
     }
-  }, [runId, createNew, newName, mode, selectedPortfolioId, portfolios, onSuccess, onClose]);
+  }, [runId, createNew, newName, mode, selectedPortfolioId, onSuccess, onClose]);
 
   return (
     <Dialog open={open} onClose={!loading ? onClose : undefined} maxWidth="sm" fullWidth>
@@ -142,7 +163,7 @@ export function BacktestApplyPortfolioDialog({
                 value={newInitialCash}
                 onChange={(e) => setNewInitialCash(Number(e.target.value))}
                 disabled={loading}
-                inputProps={{ min: 10000, step: 10000 }}
+                slotProps={{ htmlInput: { min: 10000, step: 10000 } }}
               />
             </>
           ) : (

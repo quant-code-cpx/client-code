@@ -47,11 +47,13 @@ export function StockSearchAutocomplete({
 
   // Debounced fetch — use ref so the object reference is stable
   const debounceRef = useRef<{ timer: ReturnType<typeof setTimeout> | null }>({ timer: null });
+  const requestRef = useRef(0);
 
   // Clear pending timer on unmount to avoid state updates on unmounted component
   useEffect(
     () => () => {
       if (debounceRef.current.timer) clearTimeout(debounceRef.current.timer);
+      requestRef.current += 1;
     },
     []
   );
@@ -59,11 +61,14 @@ export function StockSearchAutocomplete({
   const handleInputChange = useCallback(
     (_: React.SyntheticEvent, newInput: string) => {
       setInputValue(newInput);
+      const requestId = requestRef.current + 1;
+      requestRef.current = requestId;
 
       if (debounceRef.current.timer) clearTimeout(debounceRef.current.timer);
 
       if (!newInput || newInput.length < 1) {
         setOptions([]);
+        setLoading(false);
         return;
       }
 
@@ -71,11 +76,11 @@ export function StockSearchAutocomplete({
         setLoading(true);
         try {
           const result = await searchStocks({ keyword: newInput, limit: 20 });
-          setOptions(result.items ?? []);
+          if (requestRef.current === requestId) setOptions(result.items ?? []);
         } catch {
-          setOptions([]);
+          if (requestRef.current === requestId) setOptions([]);
         } finally {
-          setLoading(false);
+          if (requestRef.current === requestId) setLoading(false);
         }
       }, 300);
     },

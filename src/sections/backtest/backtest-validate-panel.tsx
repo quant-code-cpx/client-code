@@ -163,9 +163,11 @@ export function BacktestValidatePanel({
                 />
                 <ListItemText
                   primary={label}
-                  primaryTypographyProps={{
-                    variant: 'caption',
-                    color: ready ? 'text.primary' : 'error.main',
+                  slotProps={{
+                    primary: {
+                      variant: 'caption',
+                      color: ready ? 'text.primary' : 'error.main',
+                    },
                   }}
                 />
               </ListItem>
@@ -257,8 +259,10 @@ export function BacktestValidatePanel({
                     secondary={`创建于 ${fToNow(run.createdAt)} · 收益 ${
                       run.totalReturn != null ? formatMaybeRatioPercent(run.totalReturn) : '-'
                     }`}
-                    primaryTypographyProps={{ variant: 'body2', noWrap: true }}
-                    secondaryTypographyProps={{ variant: 'caption' }}
+                    slotProps={{
+                      primary: { variant: 'body2', noWrap: true },
+                      secondary: { variant: 'caption' },
+                    }}
                   />
                 </ListItem>
               ))}

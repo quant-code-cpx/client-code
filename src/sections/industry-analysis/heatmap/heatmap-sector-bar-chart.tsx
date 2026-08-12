@@ -28,7 +28,12 @@ export function HeatmapSectorBarChart({ sectors, loading, error }: Props) {
   const [mode, setMode] = useState<Mode>('pct');
 
   // --- pct mode: sorted by avgPctChg desc ---
-  const sortedByPct = [...sectors].sort((a, b) => b.avgPctChg - a.avgPctChg);
+  const sortedByPct = sectors
+    .filter(
+      (sector): sector is HeatmapSectorSummary & { avgPctChg: number } =>
+        sector.avgPctChg != null
+    )
+    .sort((a, b) => b.avgPctChg - a.avgPctChg);
 
   const pctOptions = useChart({
     chart: { type: 'bar', toolbar: { show: false } },
@@ -118,7 +123,7 @@ export function HeatmapSectorBarChart({ sectors, loading, error }: Props) {
           </Typography>
         )}
 
-        {!loading && !error && sectors.length > 0 && mode === 'pct' && (
+        {!loading && !error && sortedByPct.length > 0 && mode === 'pct' && (
           <Chart type="bar" series={pctSeries} options={pctOptions} sx={{ height: chartHeight }} />
         )}
 
@@ -131,11 +136,13 @@ export function HeatmapSectorBarChart({ sectors, loading, error }: Props) {
           />
         )}
 
-        {!loading && !error && sectors.length === 0 && (
+        {!loading &&
+          !error &&
+          (sectors.length === 0 || (mode === 'pct' && sortedByPct.length === 0)) && (
           <Typography color="text.disabled" sx={{ py: 4, textAlign: 'center' }}>
-            暂无数据
+            {sectors.length === 0 ? '暂无数据' : '暂无有效涨跌幅数据'}
           </Typography>
-        )}
+          )}
       </CardContent>
     </Card>
   );

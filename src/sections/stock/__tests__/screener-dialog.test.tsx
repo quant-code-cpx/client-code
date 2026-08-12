@@ -1,7 +1,7 @@
 import type { ScreenerPreset, ScreenerStrategy, StockScreenerItem } from 'src/api/screener';
 
 import { useState } from 'react';
-import { screen, waitFor } from '@testing-library/react';
+import { screen, within, waitFor, fireEvent } from '@testing-library/react';
 
 import { renderWithProviders } from 'src/test/test-utils';
 
@@ -107,9 +107,7 @@ const presets: ScreenerPreset[] = presetNames.map((name, index) => ({
   name,
   description: name,
   filters:
-    name === '高股息'
-      ? { minDvTtm: 3, maxPeTtm: 20, sortBy: 'dvTtm', sortOrder: 'desc' }
-      : {},
+    name === '高股息' ? { minDvTtm: 3, maxPeTtm: 20, sortBy: 'dvTtm', sortOrder: 'desc' } : {},
 }));
 
 const historicalStrategy: ScreenerStrategy = {
@@ -253,23 +251,34 @@ describe('ScreenerDialog 请求与快照', () => {
 
 describe('ScreenerDialog 策略删除', () => {
   it('取消确认零删除请求，确认后只删除一次', async () => {
-    const { user } = renderWithProviders(
-      <ScreenerDialog open onClose={vi.fn()} />
-    );
-    await user.click(await screen.findByRole('button', { name: '管理策略 历史策略' }));
-    await user.click(screen.getByRole('menuitem', { name: '删除' }));
-    expect(screen.getByText('确定删除“历史策略”吗？此操作不可恢复。')).toBeInTheDocument();
-    expect(apiMocks.deleteStrategy).not.toHaveBeenCalled();
-    await user.click(screen.getByRole('button', { name: '取消' }));
-    expect(apiMocks.deleteStrategy).not.toHaveBeenCalled();
-    await waitFor(() =>
-      expect(screen.queryByRole('dialog', { name: '删除选股策略' })).not.toBeInTheDocument()
-    );
+    renderWithProviders(<ScreenerDialog open onClose={vi.fn()} />);
 
-    await user.click(screen.getByRole('button', { name: '管理策略 历史策略' }));
-    await user.click(screen.getByRole('menuitem', { name: '删除' }));
-    await user.click(screen.getByRole('button', { name: '删除' }));
-    await waitFor(() => expect(apiMocks.deleteStrategy).toHaveBeenCalledTimes(1));
+    const manageStrategyButton = await screen.findByRole('button', {
+      name: '管理策略 历史策略',
+    });
+    fireEvent.click(manageStrategyButton);
+    fireEvent.click(screen.getByRole('menuitem', { name: '删除' }));
+
+    const cancelDialog = screen.getByRole('dialog', { name: '删除选股策略' });
+    expect(
+      within(cancelDialog).getByText('确定删除“历史策略”吗？此操作不可恢复。')
+    ).toBeInTheDocument();
+    expect(apiMocks.deleteStrategy).not.toHaveBeenCalled();
+    fireEvent.click(within(cancelDialog).getByRole('button', { name: '取消' }));
+    expect(apiMocks.deleteStrategy).not.toHaveBeenCalled();
+    await waitFor(() => expect(cancelDialog).not.toBeInTheDocument());
+
+    fireEvent.click(manageStrategyButton);
+    fireEvent.click(screen.getByRole('menuitem', { name: '删除' }));
+
+    const confirmDialog = screen.getByRole('dialog', { name: '删除选股策略' });
+    fireEvent.click(within(confirmDialog).getByRole('button', { name: '删除' }));
+    await waitFor(() => {
+      expect(manageStrategyButton).not.toBeInTheDocument();
+      expect(confirmDialog).not.toBeInTheDocument();
+    });
+
+    expect(apiMocks.deleteStrategy).toHaveBeenCalledTimes(1);
     expect(apiMocks.deleteStrategy).toHaveBeenCalledWith(7);
   });
 });

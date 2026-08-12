@@ -17,12 +17,11 @@ import { translateReportError, defaultRetryHintByType } from '../utils/format-er
 
 type Props = {
   report: Report;
-  retrying?: boolean;
-  onRetry: () => void;
+  onRetry?: () => void;
   onJump?: (path: string) => void;
 };
 
-export function ReportErrorCard({ report, retrying = false, onRetry, onJump }: Props) {
+export function ReportErrorCard({ report, onRetry, onJump }: Props) {
   const theme = useTheme();
   const [expanded, setExpanded] = useState(false);
 
@@ -62,9 +61,9 @@ export function ReportErrorCard({ report, retrying = false, onRetry, onJump }: P
               color="error"
               startIcon={<Iconify icon="solar:refresh-bold" />}
               onClick={onRetry}
-              disabled={retrying}
+              disabled={!onRetry}
             >
-              {retrying ? '正在重试…' : '重新生成'}
+              {onRetry ? '重新生成' : '重新生成（未开放）'}
             </Button>
             {action?.href && (
               <Button size="small" variant="outlined" onClick={() => onJump?.(action.href!)}>

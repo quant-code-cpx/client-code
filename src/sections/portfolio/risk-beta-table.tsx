@@ -6,6 +6,7 @@ import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Alert from '@mui/material/Alert';
 import Table from '@mui/material/Table';
+import Button from '@mui/material/Button';
 import Skeleton from '@mui/material/Skeleton';
 import TableRow from '@mui/material/TableRow';
 import TableBody from '@mui/material/TableBody';
@@ -59,7 +60,18 @@ export function RiskBetaTable({ portfolioId }: RiskBetaTableProps) {
         </Typography>
 
         {loading && <Skeleton variant="rectangular" height={280} />}
-        {!loading && error && <Alert severity="error">{error}</Alert>}
+        {!loading && error && (
+          <Alert
+            severity="error"
+            action={
+              <Button color="inherit" size="small" onClick={() => void fetchData()}>
+                重试
+              </Button>
+            }
+          >
+            {error}
+          </Alert>
+        )}
 
         {!loading && !error && data && (
           <>

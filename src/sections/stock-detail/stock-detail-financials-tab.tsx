@@ -20,7 +20,7 @@ import CardContent from '@mui/material/CardContent';
 import TableContainer from '@mui/material/TableContainer';
 
 import { fmtTradeDate } from 'src/utils/format-time';
-import { fPctChg, fNumber, fPercent } from 'src/utils/format-number';
+import { fPctChg, fNumber, fPercent, fRatioPercent } from 'src/utils/format-number';
 
 import { stockDetailApi } from 'src/api/stock';
 
@@ -51,10 +51,11 @@ function fYuanAmt(value: number | null | undefined): string {
   return value.toFixed(2);
 }
 
-function formatValue(value: unknown, format?: 'number' | 'percent'): string {
+function formatValue(value: unknown, format?: 'number' | 'percent' | 'ratio-percent'): string {
   if (value == null) return '-';
   const num = Number(value);
   if (Number.isNaN(num)) return String(value);
+  if (format === 'ratio-percent') return fRatioPercent(num);
   if (format === 'percent') return fPercent(num);
   return fNumber(num);
 }
@@ -222,7 +223,7 @@ const CASHFLOW_FIELDS: FieldDef[] = [
 const FINANCIAL_FIELDS: Array<{
   key: string;
   label: string;
-  format?: 'number' | 'percent';
+  format?: 'number' | 'percent' | 'ratio-percent';
   riskSemantic?: boolean;
 }> = [
   { key: 'eps', label: '每股收益(EPS)' },
@@ -237,7 +238,7 @@ const FINANCIAL_FIELDS: Array<{
   { key: 'quickRatio', label: '速动比率' },
   { key: 'revenueYoy', label: '营收同比(%)', format: 'percent', riskSemantic: true },
   { key: 'netprofitYoy', label: '净利润同比(%)', format: 'percent', riskSemantic: true },
-  { key: 'ocfToNetprofit', label: 'OCF/净利润(%)', format: 'percent' },
+  { key: 'ocfToNetprofit', label: 'OCF/净利润(%)', format: 'ratio-percent' },
 ];
 
 // ----------------------------------------------------------------------

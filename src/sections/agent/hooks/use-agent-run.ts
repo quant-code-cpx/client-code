@@ -15,15 +15,18 @@ import { useAgentState, useAgentDispatch } from '../state/agent-provider';
 import { selectActiveRun, selectCurrentConversation } from '../state/agent-selectors';
 
 import type {
+  AgentRunRetried,
   AgentComposerModel,
   AgentMessageEntity,
   AgentRunProjection,
+  AgentRunRegenerated,
 } from '../state/agent-state.types';
 
 const MAX_MESSAGE_LENGTH = 10_000;
 const DEFAULT_NEW_CONVERSATION_MODEL: AgentComposerModel = {
   policy: 'AUTO',
   preferredModel: null,
+  reasoningEffort: null,
 };
 
 type ActiveStream = {
@@ -111,12 +114,7 @@ export function useAgentRun(
   );
 
   const startStream = useCallback(
-    (
-      runId: string,
-      afterSequence = 0,
-      lastEventId?: string,
-      endpoint?: string
-    ): void => {
+    (runId: string, afterSequence = 0, lastEventId?: string, endpoint?: string): void => {
       const current = activeStreamRef.current;
       if (current?.runId === runId && !current.controller.signal.aborted) return;
       current?.controller.abort();
@@ -191,7 +189,10 @@ export function useAgentRun(
           try {
             const run = stateRef.current.runs.byId[runId];
             const snapshot = await refreshRunStatus(runId, run?.assistantMessageId);
-            await refreshMessages(snapshot.conversationId, TERMINAL_RUN_STATUSES.has(snapshot.status));
+            await refreshMessages(
+              snapshot.conversationId,
+              TERMINAL_RUN_STATUSES.has(snapshot.status)
+            );
           } catch (statusError) {
             setCommandError(commandErrorMessage(statusError, '无法确认任务状态'));
           }
@@ -283,6 +284,7 @@ export function useAgentRun(
             title,
             modelPolicy,
             preferredModel,
+            reasoningEffort: modelPolicy === 'MANUAL' ? newConversationModel.reasoningEffort : null,
           });
           targetConversationId = created.conversationId;
           dispatch({
@@ -352,12 +354,14 @@ export function useAgentRun(
         sendingRef.current = false;
         setIsSending(false);
       }
-    }, [conversation, conversationId, dispatch, newConversationModel, router, startStream]
+    },
+    [conversation, conversationId, dispatch, newConversationModel, router, startStream]
   );
 
   const cancel = useCallback(async (): Promise<void> => {
     const run = selectActiveRun(stateRef.current, conversationId);
-    if (!run || run.cancelRequested || !run.canCancel || TERMINAL_RUN_STATUSES.has(run.status)) return;
+    if (!run || run.cancelRequested || !run.canCancel || TERMINAL_RUN_STATUSES.has(run.status))
+      return;
 
     dispatch({ type: 'RUN_CANCEL_REQUESTED', runId: run.runId });
     setCommandError(null);
@@ -448,11 +452,26 @@ export function useAgentRun(
       if (!conversationId || selectActiveRun(stateRef.current, conversationId)) return false;
       setCommandError(null);
       try {
-        const response = await agentApi.regenerateMessage({
-          clientRequestId: newRequestId(),
-          messageId,
-          modelPolicy: conversation?.modelPolicy ?? 'AUTO',
-        });
+        const message = stateRef.current.messages.byId[messageId];
+        const sourceRunId = message?.status === 'FAILED' ? message.run?.runId : null;
+        const clientRequestId = newRequestId();
+        let response: AgentRunRegenerated | AgentRunRetried;
+        if (sourceRunId) {
+          const snapshot = await refreshRunStatus(sourceRunId, messageId);
+          response = snapshot.canRetry
+            ? await agentApi.retryRun({ clientRequestId, runId: sourceRunId })
+            : await agentApi.regenerateMessage({
+                clientRequestId,
+                messageId,
+                modelPolicy: conversation?.modelPolicy ?? 'AUTO',
+              });
+        } else {
+          response = await agentApi.regenerateMessage({
+            clientRequestId,
+            messageId,
+            modelPolicy: conversation?.modelPolicy ?? 'AUTO',
+          });
+        }
         dispatch({
           type: 'RUN_REGENERATION_CONFIRMED',
           conversationId,
@@ -462,10 +481,11 @@ export function useAgentRun(
         startStream(response.runId, 0, undefined, response.streamEndpoint);
         return true;
       } catch (error) {
-        setCommandError(commandErrorMessage(error, '重新生成失败'));
+        setCommandError(commandErrorMessage(error, '重试或重新生成失败'));
         return false;
       }
-    }, [conversation?.modelPolicy, conversationId, dispatch, startStream]
+    },
+    [conversation?.modelPolicy, conversationId, dispatch, refreshRunStatus, startStream]
   );
 
   const continueReceiving = useCallback(() => {

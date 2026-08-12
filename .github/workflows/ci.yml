@@ -26,22 +26,29 @@ jobs:
       - name: Install dependencies
         run: yarn install --frozen-lockfile
 
-      - name: Audit production dependencies
-        run: yarn audit --groups dependencies --level moderate
+      - name: Audit all dependencies
+        run: yarn audit --level moderate
 
       - name: Lint
         run: yarn lint
 
-      - name: Check Agent API contract drift
-        env:
-          AGENT_OPENAPI_PATH: openapi/agent-openapi.json
+      - name: Check button design rules
+        run: yarn check:buttons
+
+      - name: Check Agent generated contract snapshot
         run: yarn api:agent:check
+
+      - name: Check News generated contract snapshot
+        run: yarn api:news:check
 
       - name: Type-check
         run: yarn typecheck
 
       - name: E2E type-check
         run: yarn typecheck:e2e
+
+      - name: Script type-check
+        run: yarn typecheck:scripts
 
       - name: Unit test coverage
         run: yarn test:coverage

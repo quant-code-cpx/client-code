@@ -13,9 +13,9 @@
  *   node scripts/validate-apis.mjs --fix     # 校验 + 自动修复 URL 路径错误
  */
 
-import { readFileSync, readdirSync } from 'fs';
-import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { resolve, dirname } from 'path';
+import { readdirSync, readFileSync } from 'fs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
@@ -152,7 +152,6 @@ function extractTypeFields(src) {
 /** 找到调用某 URL 的函数体，提取传入的参数类型名 */
 function findParamType(src, url) {
   // 寻找包含该 URL 的 function 定义，提取参数类型
-  const escaped = url.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   // 向上找函数签名
   const idx = src.indexOf(`'${url}'`);
   if (idx === -1) return null;
@@ -318,7 +317,7 @@ if (fieldMismatches.length) {
     if (onlyInFrontend.length) {
       console.log(`    ${D('前端多出（swagger 无定义）:')} ${onlyInFrontend.join(', ')}`);
     }
-    for (const { field, swEnums, feEnums, missing, extra } of enumMismatches) {
+    for (const { field, missing, extra } of enumMismatches) {
       console.log(`    ${Y('枚举不一致')} [${field}]:`);
       if (missing.length) console.log(`      swagger 有但前端缺: ${missing.join(', ')}`);
       if (extra.length) console.log(`      前端多出: ${extra.join(', ')}`);

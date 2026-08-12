@@ -442,17 +442,6 @@ export const tushareSyncApi = {
   getCacheStats: (): Promise<CacheMetricsData> =>
     apiClient.post<CacheMetricsData>('/api/tushare/admin/cache/stats'),
 
-  /** v2: 清理指定命名空间或全部 Tushare 缓存 */
-  clearCache: (namespace?: string): Promise<ClearCacheResponse> =>
-    apiClient.post<ClearCacheResponse>('/api/tushare/admin/cache/clear', { namespace }),
-
-  /** v2: 查询数据保鲜度 */
-  getDataFreshness: (categories?: TushareSyncCategory[]): Promise<DataFreshnessResponse> =>
-    apiClient.post<DataFreshnessResponse>('/api/tushare/admin/data-freshness', {
-      categories,
-      includeDataSets: true,
-    }),
-
   // ── 数据质量 ──
 
   /** 手动触发数据质量检查（异步，202 Accepted） */
@@ -526,29 +515,6 @@ export const tushareSyncApi = {
   resetRetryQueue: (task?: string): Promise<{ message: string; count: number }> =>
     apiClient.post<{ message: string; count: number }>('/api/tushare/admin/retry-queue/reset', {
       task,
-    }),
-
-  /** v2: 单条 / 批量手动重试 */
-  retryQueueItems: (ids: number[]): Promise<RetryQueueItemsResponse> =>
-    apiClient.post<RetryQueueItemsResponse>('/api/tushare/admin/retry-queue/items/retry', {
-      ids,
-    }),
-
-  /** v2: 单条 / 批量删除重试队列记录 */
-  deleteRetryQueueItems: (ids: number[]): Promise<RetryQueueItemsResponse> =>
-    apiClient.post<RetryQueueItemsResponse>('/api/tushare/admin/retry-queue/items/delete', {
-      ids,
-    }),
-
-  /** v2: 取消正在进行的同步任务 */
-  cancelSync: (jobId: string): Promise<CancelSyncResponse> =>
-    apiClient.post<CancelSyncResponse>('/api/tushare/admin/sync/cancel', { jobId }),
-
-  /** v2: 查询同步性能基线 */
-  getSyncPerformance: (days = 30, tasks?: string[]): Promise<SyncPerformanceResponse> =>
-    apiClient.post<SyncPerformanceResponse>('/api/tushare/admin/sync/performance', {
-      days,
-      tasks,
     }),
 
   /** 同步状态总览（运维监控） */

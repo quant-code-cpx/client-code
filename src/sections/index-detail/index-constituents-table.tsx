@@ -1,11 +1,12 @@
 import type { IndexConstituentItem, IndexConstituentResult } from 'src/api/index-detail';
 
-import { useRef, useMemo, useState, useEffect } from 'react';
+import { useRef, useMemo, useState, useEffect, useCallback } from 'react';
 
 import Card from '@mui/material/Card';
 import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import Table from '@mui/material/Table';
+import Button from '@mui/material/Button';
 import Skeleton from '@mui/material/Skeleton';
 import TableRow from '@mui/material/TableRow';
 import TextField from '@mui/material/TextField';
@@ -48,6 +49,7 @@ export function IndexConstituentsTable({ tsCode, onDataLoaded }: Props) {
   const [industries, setIndustries] = useState<string[]>([]);
 
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const requestRef = useRef(0);
   useEffect(
     () => () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -66,30 +68,34 @@ export function IndexConstituentsTable({ tsCode, onDataLoaded }: Props) {
   const [page, setPage] = useState(0);
   const rowsPerPage = 100;
 
-  useEffect(() => {
-    let cancelled = false;
+  const fetchData = useCallback(async () => {
+    const requestId = requestRef.current + 1;
+    requestRef.current = requestId;
     setLoading(true);
     setError('');
+    setResult(null);
+    onDataLoaded?.([]);
 
-    fetchIndexConstituents({ index_code: tsCode })
-      .then((res) => {
-        if (!cancelled) {
-          setResult(res ?? null);
-          onDataLoaded?.(res?.constituents ?? []);
-        }
-      })
-      .catch((err: unknown) => {
-        if (!cancelled) setError(err instanceof Error ? err.message : '加载成分股失败');
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
+    try {
+      const response = await fetchIndexConstituents({ index_code: tsCode });
+      if (requestRef.current !== requestId) return;
+      setResult(response ?? null);
+      onDataLoaded?.(response?.constituents ?? []);
+    } catch (fetchError) {
+      if (requestRef.current !== requestId) return;
+      setError(fetchError instanceof Error ? fetchError.message : '加载成分股失败');
+    } finally {
+      if (requestRef.current === requestId) setLoading(false);
+    }
+  }, [onDataLoaded, tsCode]);
+
+  useEffect(() => {
+    void fetchData();
 
     return () => {
-      cancelled = true;
+      requestRef.current += 1;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tsCode]);
+  }, [fetchData]);
 
   const allIndustries = useMemo(() => {
     if (!result?.constituents) return [];
@@ -112,8 +118,10 @@ export function IndexConstituentsTable({ tsCode, onDataLoaded }: Props) {
     }
 
     list = [...list].sort((a, b) => {
-      const av = a[sortKey] ?? 0;
-      const bv = b[sortKey] ?? 0;
+      const av = a[sortKey];
+      const bv = b[sortKey];
+      if (av == null) return bv == null ? 0 : 1;
+      if (bv == null) return -1;
       return sortDir === 'asc' ? av - bv : bv - av;
     });
 
@@ -184,7 +192,15 @@ export function IndexConstituentsTable({ tsCode, onDataLoaded }: Props) {
         </Stack>
 
         {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
+          <Alert
+            severity="error"
+            action={
+              <Button color="inherit" size="small" onClick={() => void fetchData()}>
+                重试
+              </Button>
+            }
+            sx={{ mb: 2 }}
+          >
             {error}
           </Alert>
         )}

@@ -1,4 +1,4 @@
-import type { SignalRule, SignalRuleStats, EventCalendarResult } from 'src/api/event-study';
+import type { SignalRule, EventCalendarResult } from 'src/api/event-study';
 
 import dayjs from 'dayjs';
 import { useState, useEffect } from 'react';
@@ -11,7 +11,7 @@ import Skeleton from '@mui/material/Skeleton';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 
-import { listSignalRules, getEventCalendar, getSignalRuleStats } from 'src/api/event-study';
+import { listSignalRules, getEventCalendar } from 'src/api/event-study';
 
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
@@ -27,9 +27,7 @@ export function OverviewTab() {
   const [calendar, setCalendar] = useState<EventCalendarResult | null>(null);
   const [calError, setCalError] = useState('');
 
-  const [activeRules, setActiveRules] = useState<
-    Array<{ rule: SignalRule; stats: SignalRuleStats | null }>
-  >([]);
+  const [activeRules, setActiveRules] = useState<SignalRule[]>([]);
   const [rulesLoading, setRulesLoading] = useState(true);
 
   useEffect(() => {
@@ -42,12 +40,9 @@ export function OverviewTab() {
       .finally(() => setCalLoading(false));
 
     listSignalRules({ page: 1, pageSize: 50 })
-      .then(async (d) => {
+      .then((d) => {
         const items = (d.items ?? []).filter((r) => r.status === 'ACTIVE');
-        const stats = await Promise.all(
-          items.map((r) => getSignalRuleStats(r.id).catch(() => null))
-        );
-        setActiveRules(items.map((r, i) => ({ rule: r, stats: stats[i] })));
+        setActiveRules(items);
       })
       .finally(() => setRulesLoading(false));
   }, []);
@@ -83,7 +78,7 @@ export function OverviewTab() {
                 </Typography>
               ) : (
                 <Stack spacing={1.5}>
-                  {activeRules.slice(0, 5).map(({ rule, stats }) => {
+                  {activeRules.slice(0, 5).map((rule) => {
                     const cfg = SIGNAL_TYPE_CONFIG[rule.signalType];
                     return (
                       <Box
@@ -103,20 +98,9 @@ export function OverviewTab() {
                             {cfg.label}
                           </Label>
                         </Stack>
-                        <Stack direction="row" spacing={2} sx={{ mt: 0.5 }}>
-                          <Typography
-                            variant="caption"
-                            sx={{ color: 'text.secondary', fontVariantNumeric: 'tabular-nums' }}
-                          >
-                            30 日命中 {stats?.hitCount30d ?? '-'}
-                          </Typography>
-                          <Typography
-                            variant="caption"
-                            sx={{ color: 'text.secondary', fontVariantNumeric: 'tabular-nums' }}
-                          >
-                            命中率 {stats ? `${(stats.hitRate * 100).toFixed(1)}%` : '-'}
-                          </Typography>
-                        </Stack>
+                        <Typography variant="caption" sx={{ mt: 0.5, color: 'text.disabled' }}>
+                          规则统计能力尚未开放
+                        </Typography>
                       </Box>
                     );
                   })}

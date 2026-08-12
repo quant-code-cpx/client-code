@@ -93,13 +93,15 @@ export function ScreenerStrategyBar({
                   sx={{ cursor: 'pointer' }}
                 />
               </Tooltip>
-              <IconButton
-                size="small"
-                aria-label={`管理策略 ${strategy.name}`}
-                onClick={(event) => handleOpenMenu(event, strategy)}
-              >
-                <Iconify icon="eva:more-vertical-fill" width={16} />
-              </IconButton>
+              <Tooltip title={`管理策略 ${strategy.name}`}>
+                <IconButton
+                  size="small"
+                  aria-label={`管理策略 ${strategy.name}`}
+                  onClick={(event) => handleOpenMenu(event, strategy)}
+                >
+                  <Iconify icon="eva:more-vertical-fill" width={16} />
+                </IconButton>
+              </Tooltip>
             </Stack>
           ))}
           <Button

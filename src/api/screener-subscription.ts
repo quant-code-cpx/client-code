@@ -170,7 +170,18 @@ export type SubscriptionHitsResult = {
 
 export type SubscriptionRunStatus = {
   jobId: string;
-  status: 'QUEUED' | 'RUNNING' | 'SUCCESS' | 'FAILED';
+  status:
+    | 'QUEUED'
+    | 'RUNNING'
+    | 'SUCCESS'
+    | 'FAILED'
+    | 'SKIPPED_DATA_NOT_READY'
+    | 'NOT_FOUND';
+  subscriptionId?: number | null;
+  logId?: number | null;
+  errorCode?: string | null;
+  errorMessage?: string | null;
+  /** 兼容旧响应；新后端使用 errorMessage。 */
   message?: string;
   completedAt?: string | null;
 };

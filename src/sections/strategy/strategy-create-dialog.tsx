@@ -166,7 +166,7 @@ export function StrategyCreateDialog({
               label="策略名称"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              inputProps={{ maxLength: 100 }}
+              slotProps={{ htmlInput: { maxLength: 100 } }}
               helperText={`${name.length}/100`}
               required
             />
@@ -179,7 +179,7 @@ export function StrategyCreateDialog({
               label="策略描述（可选）"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              inputProps={{ maxLength: 500 }}
+              slotProps={{ htmlInput: { maxLength: 500 } }}
               helperText={`${description.length}/500`}
             />
           </Grid>
@@ -192,10 +192,10 @@ export function StrategyCreateDialog({
               onChange={(_, newVal) => {
                 if (newVal.length <= 10) setTags(newVal as string[]);
               }}
-              renderTags={(value, getTagProps) =>
+              renderValue={(value, getItemProps) =>
                 value.map((option, index) => {
-                  const { key, ...tagProps } = getTagProps({ index });
-                  return <Chip key={key} label={option} size="small" {...tagProps} />;
+                  const { key, ...itemProps } = getItemProps({ index });
+                  return <Chip key={key} label={option} size="small" {...itemProps} />;
                 })
               }
               renderInput={(params) => (

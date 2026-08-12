@@ -18,6 +18,7 @@ import CardContent from '@mui/material/CardContent';
 
 import { fDate } from 'src/utils/format-time';
 import { fCurrency } from 'src/utils/format-number';
+import { getPortfolioValueTone } from 'src/utils/format-portfolio';
 
 import { getPnlToday } from 'src/api/portfolio';
 
@@ -51,14 +52,8 @@ export function PortfolioPnlTodayCard({ portfolioId }: PortfolioPnlTodayCardProp
     fetchData();
   }, [fetchData]);
 
-  const pnlColor =
-    data?.todayPnl == null ? 'text.secondary' : data.todayPnl >= 0 ? 'success.main' : 'error.main';
-  const pnlPctColor =
-    data?.todayPnlPct == null
-      ? 'text.secondary'
-      : data.todayPnlPct >= 0
-        ? 'success.main'
-        : 'error.main';
+  const pnlColor = getPortfolioValueTone(data?.todayPnl);
+  const pnlPctColor = getPortfolioValueTone(data?.todayPnlPct);
   const emptyHint = data?.isTradingDay === false ? '非交易日' : '--';
 
   return (
@@ -122,18 +117,8 @@ export function PortfolioPnlTodayCard({ portfolioId }: PortfolioPnlTodayCardProp
                 </TableHead>
                 <TableBody>
                   {data.byHolding.map((item) => {
-                    const itemPnlColor =
-                      item.todayPnl === null
-                        ? undefined
-                        : item.todayPnl >= 0
-                          ? 'success.main'
-                          : 'error.main';
-                    const itemPctColor =
-                      item.pctChg === null
-                        ? undefined
-                        : item.pctChg >= 0
-                          ? 'success.main'
-                          : 'error.main';
+                    const itemPnlColor = getPortfolioValueTone(item.todayPnl);
+                    const itemPctColor = getPortfolioValueTone(item.pctChg);
                     return (
                       <TableRow key={item.tsCode}>
                         <TableCell>{item.stockName}</TableCell>

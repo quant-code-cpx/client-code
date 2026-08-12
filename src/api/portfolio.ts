@@ -271,13 +271,21 @@ export type UpdateRiskRuleRequest = {
 
 // ---- API 函数 ----
 
-export function createHoldingMutationIdempotencyKey(action: HoldingMutationAction): string {
+function createIdempotencyKey(scope: string): string {
   const randomPart =
     typeof globalThis.crypto?.randomUUID === 'function'
       ? globalThis.crypto.randomUUID()
       : `${Date.now().toString(36)}-${Math.random().toString(36).slice(2)}`;
 
-  return `portfolio-holding:${action}:${randomPart}`.slice(0, 128);
+  return `${scope}:${randomPart}`.slice(0, 128);
+}
+
+export function createHoldingMutationIdempotencyKey(action: HoldingMutationAction): string {
+  return createIdempotencyKey(`portfolio-holding:${action}`);
+}
+
+export function createApplyBacktestIdempotencyKey(): string {
+  return createIdempotencyKey('portfolio-apply-backtest');
 }
 
 export function createPortfolio(data: CreatePortfolioRequest) {
@@ -376,6 +384,7 @@ export type ApplyMode = 'REPLACE' | 'MERGE';
 
 export type ApplyBacktestRequest = {
   backtestRunId: string;
+  idempotencyKey: string;
   portfolioId?: string;
   portfolioName?: string;
   mode?: ApplyMode;
@@ -538,9 +547,9 @@ export type TradeLogItem = {
   action: string;
   quantity: number;
   price: number | null;
-  amount: number | null;
-  reason: string | null;
-  tradeDate: string;
+  /** 后端未存储成交金额；保持 null，禁止由价格和数量猜算。 */
+  amount: null;
+  reason: string;
   createdAt: string;
 };
 
@@ -554,10 +563,40 @@ export type TradeLogQueryResponse = {
 export type TradeLogSummaryResponse = {
   portfolioId: string;
   totalTrades: number;
-  totalBuyAmount: number | null;
-  totalSellAmount: number | null;
-  byAction: Array<{ action: string; count: number; totalAmount: number | null }>;
+  /** 后端 groupBy 不返回金额聚合。 */
+  totalBuyAmount: null;
+  totalSellAmount: null;
+  byAction: Array<{ action: string; count: number; totalAmount: null }>;
   byStock: Array<{ tsCode: string; stockName: string | null; count: number }>;
+};
+
+type TradeLogRawItem = {
+  id: string;
+  portfolioId: string;
+  userId: number;
+  tsCode: string;
+  stockName: string | null;
+  action: string;
+  quantity: number;
+  price: number | null;
+  reason: string;
+  detail: unknown;
+  createdAt: string;
+};
+
+type TradeLogRawQueryResponse = {
+  page: number;
+  pageSize: number;
+  total: number;
+  items: TradeLogRawItem[];
+};
+
+type TradeLogRawSummaryItem = {
+  action: string;
+  reason: string;
+  tsCode: string;
+  stockName: string | null;
+  _count: { id: number };
 };
 
 // ─── 新增 API 函数 ────────────────────────────────
@@ -705,10 +744,62 @@ export async function detectDrift(dto: DriftDetectionRequest): Promise<DriftDete
   };
 }
 
-export function queryTradeLog(dto: TradeLogQueryRequest) {
-  return apiClient.post<TradeLogQueryResponse>('/api/portfolio/trade-log', dto);
+export async function queryTradeLog(dto: TradeLogQueryRequest): Promise<TradeLogQueryResponse> {
+  const raw = await apiClient.post<TradeLogRawQueryResponse>('/api/portfolio/trade-log', dto);
+
+  return {
+    page: raw.page,
+    pageSize: raw.pageSize,
+    total: raw.total,
+    items: raw.items.map((row) => ({
+      id: row.id,
+      portfolioId: row.portfolioId,
+      tsCode: row.tsCode,
+      stockName: row.stockName,
+      action: row.action,
+      quantity: row.quantity,
+      price: row.price,
+      amount: null,
+      reason: row.reason,
+      createdAt: row.createdAt,
+    })),
+  };
 }
 
-export function tradeLogSummary(dto: TradeLogSummaryRequest) {
-  return apiClient.post<TradeLogSummaryResponse>('/api/portfolio/trade-log/summary', dto);
+export async function tradeLogSummary(
+  dto: TradeLogSummaryRequest
+): Promise<TradeLogSummaryResponse> {
+  const raw = await apiClient.post<TradeLogRawSummaryItem[] | null>(
+    '/api/portfolio/trade-log/summary',
+    dto
+  );
+  const byAction = new Map<string, { action: string; count: number; totalAmount: null }>();
+  const byStock = new Map<string, { tsCode: string; stockName: string | null; count: number }>();
+  let totalTrades = 0;
+
+  (raw ?? []).forEach((row) => {
+    const count = row._count.id;
+    totalTrades += count;
+
+    const action = byAction.get(row.action);
+    if (action) action.count += count;
+    else byAction.set(row.action, { action: row.action, count, totalAmount: null });
+
+    const stock = byStock.get(row.tsCode);
+    if (stock) {
+      stock.count += count;
+      if (stock.stockName === null && row.stockName !== null) stock.stockName = row.stockName;
+    } else {
+      byStock.set(row.tsCode, { tsCode: row.tsCode, stockName: row.stockName, count });
+    }
+  });
+
+  return {
+    portfolioId: dto.portfolioId,
+    totalTrades,
+    totalBuyAmount: null,
+    totalSellAmount: null,
+    byAction: [...byAction.values()].sort((left, right) => left.action.localeCompare(right.action)),
+    byStock: [...byStock.values()].sort((left, right) => left.tsCode.localeCompare(right.tsCode)),
+  };
 }

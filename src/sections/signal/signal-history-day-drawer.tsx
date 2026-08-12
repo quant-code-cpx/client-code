@@ -40,7 +40,7 @@ export function SignalHistoryDayDrawer({ open, group, forwardWindow, onClose }: 
       anchor="right"
       open={open}
       onClose={onClose}
-      PaperProps={{ sx: { width: { xs: 1, md: 720 } } }}
+      slotProps={{ paper: { sx: { width: { xs: 1, md: 720 } } } }}
     >
       <Box sx={{ p: 2.5 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>

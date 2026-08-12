@@ -1,7 +1,8 @@
 import type { Page } from '@playwright/test';
-import type { MessageBlock } from '../src/types/agent/generated';
 
 import { test, expect } from '@playwright/test';
+
+import type { MessageBlock } from '../src/types/agent/generated';
 
 const CONVERSATION_ID = 'cm_rich_e2e_1';
 const RUN_ID = 'run_rich_e2e_1';
@@ -248,7 +249,7 @@ test('富回答同时展示 Tool、引用、表格、图表、K 线、风险与�
     }
   });
   page.on('pageerror', (error) => consoleProblems.push(`pageerror: ${error.message}`));
-  await page.setViewportSize({ width: 390, height: 844 });
+  await page.setViewportSize({ width: 1440, height: 900 });
   await page.goto(`/agent/${CONVERSATION_ID}`);
 
   await expect(page.getByRole('heading', { name: '可审计研究结论' })).toBeVisible();
@@ -256,7 +257,7 @@ test('富回答同时展示 Tool、引用、表格、图表、K 线、风险与�
   await expect(page.getByRole('img', { name: /估值趋势/ })).toBeVisible();
   await expect(page.getByRole('img', { name: /600519.SH K 线图/ })).toBeVisible();
   await page.getByRole('button', { name: '查看 Tool 执行记录' }).click();
-  await expect(page.getByText('Tool 执行记录', { exact: true })).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Tool 执行记录' })).toBeVisible();
   await expect(page.getByText('引用来源')).toBeVisible();
   await expect(page.getByText(/版本未知或结构不合法/)).toBeVisible();
   await expect(page.getByText('估值结果仅供研究，不构成投资建议。')).toBeVisible();

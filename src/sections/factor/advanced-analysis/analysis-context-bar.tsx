@@ -127,16 +127,19 @@ export function AnalysisContextBar({
               placeholder={factors.length > 0 ? '' : '输入因子名或中文名…'}
             />
           )}
-          renderTags={(value, getTagProps) =>
-            value.map((name, index) => (
-              <Chip
-                label={name}
-                {...getTagProps({ index })}
-                key={name}
-                size="small"
-                sx={{ maxWidth: 160 }}
-              />
-            ))
+          renderValue={(value, getItemProps) =>
+            value.map((name, index) => {
+              const { key, ...itemProps } = getItemProps({ index });
+              return (
+                <Chip
+                  key={key}
+                  label={name}
+                  {...itemProps}
+                  size="small"
+                  sx={{ maxWidth: 160 }}
+                />
+              );
+            })
           }
           sx={{
             width: { xs: '100%', sm: 420, md: 520 },

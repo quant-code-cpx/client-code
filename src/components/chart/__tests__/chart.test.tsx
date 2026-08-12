@@ -1,14 +1,19 @@
-import { renderHook } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { screen, waitFor, renderHook } from '@testing-library/react';
 
 import { ThemeProvider } from '@mui/material/styles';
 
 import { createTheme } from 'src/theme/create-theme';
 import { renderWithProviders } from 'src/test/test-utils';
 
+const { apexRenderMock } = vi.hoisted(() => ({
+  apexRenderMock: vi.fn().mockResolvedValue(undefined),
+}));
+
 // Mock apexcharts (dynamic import + constructor) — jsdom has no canvas/SVG engine
 vi.mock('apexcharts', () => {
   const ApexChartsMock = vi.fn().mockImplementation(() => ({
-    render: vi.fn().mockResolvedValue(undefined),
+    render: apexRenderMock,
     destroy: vi.fn(),
     updateOptions: vi.fn(),
     updateSeries: vi.fn(),
@@ -85,6 +90,10 @@ describe('useChart', () => {
 });
 
 describe('Chart 组件', () => {
+  beforeEach(() => {
+    apexRenderMock.mockReset().mockResolvedValue(undefined);
+  });
+
   it('渲染根容器并携带 chartClasses.root', () => {
     const { container } = renderWithProviders(
       <Chart type="line" series={[{ name: 'A', data: [1, 2, 3] }]} options={{}} />
@@ -113,5 +122,23 @@ describe('Chart 组件', () => {
       <Chart type="donut" series={[44, 55]} options={{}} />
     );
     expect(container.firstChild).toBeInTheDocument();
+  });
+
+  it('渲染失败时显示错误态，并允许重试', async () => {
+    const user = userEvent.setup();
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
+    apexRenderMock.mockRejectedValueOnce(new Error('render failed'));
+
+    renderWithProviders(<Chart type="line" series={[]} options={{}} />);
+
+    expect(await screen.findByText('图表加载失败')).toBeInTheDocument();
+    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: '重试' }));
+
+    await waitFor(() => expect(apexRenderMock).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(screen.queryByText('图表加载失败')).not.toBeInTheDocument());
+
+    consoleError.mockRestore();
   });
 });

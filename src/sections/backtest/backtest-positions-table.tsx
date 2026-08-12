@@ -8,7 +8,7 @@ import TableHead from '@mui/material/TableHead';
 import Typography from '@mui/material/Typography';
 import TableContainer from '@mui/material/TableContainer';
 
-import { fNumber, fPercent } from 'src/utils/format-number';
+import { fNumber, fRatioPercent } from 'src/utils/format-number';
 
 import { Scrollbar } from 'src/components/scrollbar';
 
@@ -64,7 +64,7 @@ export function BacktestPositionsTable({ items, loading }: BacktestPositionsTabl
                     </Typography>
                   </TableCell>
                   <TableCell align="right">
-                    <Typography variant="caption">{fPercent(item.weight)}</Typography>
+                    <Typography variant="caption">{fRatioPercent(item.weight)}</Typography>
                   </TableCell>
                   <TableCell align="right">
                     <Typography variant="caption" sx={{ color: pnlColor }}>

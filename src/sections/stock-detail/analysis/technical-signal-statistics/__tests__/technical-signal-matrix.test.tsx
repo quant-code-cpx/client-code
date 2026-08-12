@@ -5,7 +5,7 @@ import type {
   TechnicalSignalDefinition,
 } from 'src/api/technical-signal';
 
-import { screen } from '@testing-library/react';
+import { screen, fireEvent } from '@testing-library/react';
 
 import { ThemeProvider } from '@mui/material/styles';
 
@@ -94,14 +94,18 @@ const horizon: SignalHorizonStatistics = {
   maxSampleDate: null,
 };
 
-function renderMatrix(groups: SignalPeriodStatistics[], requestedHorizons = [1, 3]) {
+function renderMatrix(
+  groups: SignalPeriodStatistics[],
+  requestedHorizons = [1, 3],
+  onSelect = vi.fn()
+) {
   return render(
     <ThemeProvider theme={createTheme()}>
       <TechnicalSignalMatrix
         activePeriod="1Y"
         definitions={definitions}
         groups={groups}
-        onSelect={vi.fn()}
+        onSelect={onSelect}
         requestedHorizons={requestedHorizons}
         selectedHorizon={null}
         selectedSignalKey={null}
@@ -157,5 +161,42 @@ describe('TechnicalSignalMatrix', () => {
     ]);
 
     expect(screen.getByText('区间内未出现')).toBeInTheDocument();
+  });
+
+  it('activates the row and an individual horizon cell without bubbling twice', () => {
+    const onSelect = vi.fn();
+    renderMatrix(
+      [
+        {
+          period: '1Y',
+          requestedStartDate: '20250801',
+          actualStartDate: '20250801',
+          endDate: '20260731',
+          signalKey: 'macd.golden-cross',
+          semanticsVersion: 'macd.v1',
+          definitionHash: 'definition-hash',
+          direction: 'BULLISH',
+          evaluable: true,
+          notEvaluableReason: null,
+          requiredValidRows: 35,
+          actualValidRows: 251,
+          occurrenceCount: 1,
+          horizons: [horizon],
+        },
+      ],
+      [1],
+      onSelect
+    );
+
+    fireEvent.keyDown(screen.getByRole('button', { name: '查看 MACD 金叉 信号统计' }), {
+      key: 'Enter',
+    });
+    fireEvent.keyDown(screen.getByRole('button', { name: '查看 MACD 金叉 T+1 统计' }), {
+      key: ' ',
+    });
+
+    expect(onSelect).toHaveBeenNthCalledWith(1, 'macd.golden-cross', 1);
+    expect(onSelect).toHaveBeenNthCalledWith(2, 'macd.golden-cross', 1);
+    expect(onSelect).toHaveBeenCalledTimes(2);
   });
 });

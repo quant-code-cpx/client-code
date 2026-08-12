@@ -1,8 +1,7 @@
 import type { Page, Request, Response } from '@playwright/test';
 
-import { execFileSync } from 'node:child_process';
-
 import { test, expect } from '@playwright/test';
+import { execFileSync } from 'node:child_process';
 
 import { readAgentRealState } from './fixtures/agent-real';
 
@@ -52,7 +51,7 @@ test('AG-MVP-E2E-001：浏览器登录到真实 Worker/Tool/SSE/审计完整闭�
   await expect(page.getByRole('status')).toContainText(/等待开始|正在/);
   await expect(page.getByLabel('你的消息').getByText(PROMPT, { exact: true })).toBeVisible();
   await expect(page.getByLabel('Agent 回答').getByText(FINAL_ANSWER, { exact: true })).toBeVisible();
-  await expect(page.getByLabel('Agent 回答').getByText('已完成')).toBeVisible();
+  await expect(page.getByRole('status')).toContainText('Response complete');
   await expect(page.getByRole('region', { name: '引用来源' })).toBeVisible();
 
   await page.getByRole('button', { name: '查看 Tool 执行记录' }).click();
@@ -118,7 +117,7 @@ test('AG-MVP-E2E-002：运行中刷新后按权威 sequence 恢复且不重复',
   await page.reload();
 
   await expect(page.getByLabel('Agent 回答').getByText(FINAL_ANSWER, { exact: true })).toBeVisible();
-  await expect(page.getByLabel('Agent 回答').getByText('已完成')).toBeVisible();
+  await expect(page.getByRole('status')).toContainText('Response complete');
   await expect(page.getByLabel('你的消息')).toHaveCount(1);
   await expect(page.getByLabel('Agent 回答')).toHaveCount(1);
   await expect.poll(() => streamBodies.length).toBeGreaterThanOrEqual(2);
@@ -165,7 +164,7 @@ test('AG-MVP-E2E-003：真实取消后重新生成，新旧 Run 与回答版本�
   await expect(page.getByLabel('Agent 回答').getByText(FINAL_ANSWER, { exact: true })).toBeVisible();
   await expect(page.getByLabel('Agent 回答')).toHaveCount(2);
   await expect(page.getByLabel('Agent 回答').getByText('已停止')).toHaveCount(1);
-  await expect(page.getByLabel('Agent 回答').getByText('已完成')).toHaveCount(1);
+  await expect(page.getByRole('status')).toContainText('Response complete');
 
   const [cancelled, completed] = verifyRuns(first.runId, second.runId);
   expect(cancelled).toMatchObject({

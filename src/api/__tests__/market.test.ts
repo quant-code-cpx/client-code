@@ -274,6 +274,7 @@ describe('fetchRotationDetail', () => {
       close: 44610.47,
       pctChange: 4.68,
       cumReturn: 6.22,
+      benchmarkReturn: null,
     });
     expect(result.flowTrend[0]).toMatchObject({
       netInflow: 781000000,
@@ -307,10 +308,12 @@ describe('industry rotation request dedupe', () => {
       ],
     });
 
-    await Promise.all([
+    const [, comparison] = await Promise.all([
       fetchRotationOverview({ period_days: 20 }),
       fetchReturnComparison({ periods: [20], sort_period: 20, order: 'desc' }),
     ]);
+
+    expect(comparison.benchmark).toBeNull();
 
     expect(mockPost()).toHaveBeenCalledTimes(1);
     expect(mockPost()).toHaveBeenCalledWith('/api/industry-rotation/return-comparison', {

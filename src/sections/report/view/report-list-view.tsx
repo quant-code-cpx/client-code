@@ -1,11 +1,12 @@
 import type { SyntheticEvent } from 'react';
 import type { AlertColor } from '@mui/material/Alert';
-import type { ReportType, ReportStatus, ReportListItem, ReportSchedule } from 'src/api/report';
+import type { ReportType, ReportStatus, ReportListItem } from 'src/api/report';
 
 import { useMemo, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Tab from '@mui/material/Tab';
+import Link from '@mui/material/Link';
 import Card from '@mui/material/Card';
 import Tabs from '@mui/material/Tabs';
 import Chip from '@mui/material/Chip';
@@ -31,11 +32,12 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
+import { RouterLink } from 'src/routes/components';
 
 import { fDateTime } from 'src/utils/format-time';
 
 import { DashboardContent } from 'src/layouts/dashboard';
-import { listReports, deleteReport, regenerateReport as regenerateReportApi } from 'src/api/report';
+import { listReports, deleteReport } from 'src/api/report';
 
 import { Iconify } from 'src/components/iconify';
 import { ConfirmDialog } from 'src/components/confirm-dialog';
@@ -43,7 +45,6 @@ import { ConfirmDialog } from 'src/components/confirm-dialog';
 import { formatFileSize } from '../utils/format-file-size';
 import { ReportScheduleList } from '../report-schedule-list';
 import { ReportGenerateDialog } from '../report-generate-dialog';
-import { ReportScheduleDialog } from '../report-schedule-dialog';
 import { paramsHash as computeHash } from '../utils/params-hash';
 import { ReportShareDialog } from '../components/report-share-dialog';
 import { ReportTypeChip, ReportStatusChip } from '../components/report-chips';
@@ -75,9 +76,6 @@ export function ReportListView() {
   const [total, setTotal] = useState(0);
 
   const [generateDialogOpen, setGenerateDialogOpen] = useState(false);
-  const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
-  const [editingSchedule, setEditingSchedule] = useState<ReportSchedule | null>(null);
-  const [scheduleListKey, setScheduleListKey] = useState(0);
 
   const [deleteTarget, setDeleteTarget] = useState<ReportListItem | null>(null);
   const [deleteSubmitting, setDeleteSubmitting] = useState(false);
@@ -174,16 +172,6 @@ export function ReportListView() {
       showSnackbar('链接已复制');
     } catch {
       showSnackbar('复制失败，请手动复制', 'warning');
-    }
-  };
-
-  const handleRegenerate = async (row: ReportListItem) => {
-    try {
-      await regenerateReportApi({ reportId: row.id });
-      showSnackbar('已提交重新生成');
-      fetchList();
-    } catch (err) {
-      showSnackbar(err instanceof Error ? err.message : '重新生成失败', 'error');
     }
   };
 
@@ -342,13 +330,15 @@ export function ReportListView() {
                     visibleItems.map((row) => (
                       <TableRow key={row.id} hover>
                         <TableCell>
-                          <Typography
+                          <Link
+                            component={RouterLink}
+                            href={paths.research.report.detail(row.id)}
                             variant="body2"
-                            sx={{ cursor: 'pointer', '&:hover': { textDecoration: 'underline' } }}
-                            onClick={() => router.push(paths.research.report.detail(row.id))}
+                            color="inherit"
+                            underline="hover"
                           >
                             {row.title}
-                          </Typography>
+                          </Link>
                         </TableCell>
                         <TableCell>
                           <ReportTypeChip type={row.type} />
@@ -383,22 +373,29 @@ export function ReportListView() {
                               </IconButton>
                             </Tooltip>
                             <Tooltip title="复制链接">
-                              <IconButton size="small" aria-label="复制链接" onClick={() => handleCopyLink(row)}>
+                              <IconButton
+                                size="small"
+                                aria-label="复制链接"
+                                onClick={() => handleCopyLink(row)}
+                              >
                                 <Iconify icon="solar:copy-bold" width={18} />
                               </IconButton>
                             </Tooltip>
-                            <Tooltip title="分享">
-                              <IconButton size="small" aria-label="分享" onClick={() => setShareTarget(row)}>
+                            <Tooltip title="分享链接（未开放）">
+                              <IconButton
+                                size="small"
+                                aria-label="分享"
+                                onClick={() => setShareTarget(row)}
+                              >
                                 <Iconify icon="solar:share-bold" width={18} />
                               </IconButton>
                             </Tooltip>
-                            <Tooltip title="重新生成">
+                            <Tooltip title="重新生成能力未开放">
                               <span>
                                 <IconButton
                                   size="small"
-                                  aria-label="重新生成"
-                                  disabled={row.status === 'GENERATING' || row.status === 'PENDING'}
-                                  onClick={() => handleRegenerate(row)}
+                                  aria-label="重新生成（未开放）"
+                                  disabled
                                 >
                                   <Iconify icon="solar:refresh-bold" width={18} />
                                 </IconButton>
@@ -439,19 +436,7 @@ export function ReportListView() {
         </>
       )}
 
-      {currentTab === 'schedule' && (
-        <ReportScheduleList
-          key={scheduleListKey}
-          onEdit={(schedule) => {
-            setEditingSchedule(schedule);
-            setScheduleDialogOpen(true);
-          }}
-          onAdd={() => {
-            setEditingSchedule(null);
-            setScheduleDialogOpen(true);
-          }}
-        />
-      )}
+      {currentTab === 'schedule' && <ReportScheduleList />}
 
       <ReportGenerateDialog
         open={generateDialogOpen}
@@ -461,13 +446,6 @@ export function ReportListView() {
           showSnackbar('已提交生成任务');
           fetchList();
         }}
-      />
-
-      <ReportScheduleDialog
-        open={scheduleDialogOpen}
-        onClose={() => setScheduleDialogOpen(false)}
-        onSaved={() => setScheduleListKey((k) => k + 1)}
-        editingSchedule={editingSchedule}
       />
 
       <ConfirmDialog

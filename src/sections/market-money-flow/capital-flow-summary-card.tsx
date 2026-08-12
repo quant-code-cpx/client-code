@@ -105,18 +105,10 @@ function MetricCard({ label, amount, rate, icon, hero, hint }: MetricCardProps) 
                 ml: 'auto',
                 flexShrink: 0,
                 cursor: 'help',
-                width: 14,
-                height: 14,
-                borderRadius: '50%',
-                bgcolor: 'text.disabled',
-                color: 'background.paper',
-                fontSize: '9px',
-                fontWeight: 700,
-                lineHeight: '14px',
-                userSelect: 'none',
+                color: 'text.disabled',
               }}
             >
-              ?
+              <Iconify icon="solar:info-circle-bold" width={15} />
             </Box>
           </Tooltip>
         )}

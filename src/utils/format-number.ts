@@ -70,6 +70,26 @@ export function fPercent(inputValue: InputNumberValue, options?: Options) {
 
 // ----------------------------------------------------------------------
 
+/**
+ * 格式化 0–1 比例值为百分比。
+ * 例如 0.2341 表示 23.41%，与接收“百分点”的 fPercent 区分。
+ */
+export function fRatioPercent(inputValue: InputNumberValue, options?: Options) {
+  const locale = DEFAULT_LOCALE;
+
+  const number = processInput(inputValue);
+  if (number === null) return '';
+
+  return new Intl.NumberFormat(locale.code, {
+    style: 'percent',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 1,
+    ...options,
+  }).format(number);
+}
+
+// ----------------------------------------------------------------------
+
 export function fShortenNumber(inputValue: InputNumberValue, options?: Options) {
   const locale = DEFAULT_LOCALE;
 

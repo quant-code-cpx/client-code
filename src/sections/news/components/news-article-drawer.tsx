@@ -7,6 +7,7 @@ import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Drawer from '@mui/material/Drawer';
 import Divider from '@mui/material/Divider';
+import Tooltip from '@mui/material/Tooltip';
 import Skeleton from '@mui/material/Skeleton';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
@@ -77,9 +78,11 @@ export function NewsArticleDrawer({ open, articleId, revision, onClose }: NewsAr
         <Typography id="news-detail-title" variant="h6" sx={{ flex: 1 }}>
           新闻详情
         </Typography>
-        <IconButton aria-label="关闭新闻详情" onClick={onClose}>
-          <CloseIcon />
-        </IconButton>
+        <Tooltip title="关闭新闻详情">
+          <IconButton aria-label="关闭新闻详情" onClick={onClose}>
+            <CloseIcon />
+          </IconButton>
+        </Tooltip>
       </Box>
       <Divider />
 

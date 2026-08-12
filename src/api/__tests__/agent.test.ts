@@ -46,6 +46,7 @@ describe('agentApi', () => {
       title: '估值研究',
       modelPolicy: 'AUTO',
       preferredModel: null,
+      reasoningEffort: null,
     } satisfies AgentRequest<'/agent/conversations/create'>;
 
     const result = await agentApi.createConversation(input);
@@ -67,7 +68,10 @@ describe('agentApi', () => {
     mockFetch.mockResolvedValueOnce(jsonResponse({ code: 0, data: { items: [] } }));
     const controller = new AbortController();
 
-    await agentApi.listConversations({ cursor: null, limit: 30, includeArchived: false }, controller.signal);
+    await agentApi.listConversations(
+      { cursor: null, limit: 30, includeArchived: false },
+      controller.signal
+    );
 
     const [, init] = mockFetch.mock.calls[0] as [string, RequestInit];
     expect(init.signal).toBe(controller.signal);
@@ -89,15 +93,88 @@ describe('agentApi', () => {
     expect(init.body).toBeUndefined();
   });
 
+  it('posts failed Run checkpoint retries through the canonical Agent facade', async () => {
+    mockFetch.mockResolvedValueOnce(
+      jsonResponse({
+        code: 0,
+        data: {
+          conversationId: 'cm_1',
+          sourceRunId: 'run_failed',
+          assistantMessageId: 'msg_retry',
+          runId: 'run_retry',
+          runStatus: 'QUEUED',
+          retryMode: 'SAFE_CHECKPOINT',
+          streamEndpoint: '/api/agent/runs/events',
+        },
+      })
+    );
+    const input = {
+      clientRequestId: '60487f42-a4d7-4dc9-b44f-fc338cfe1c5a',
+      runId: 'run_failed',
+    } satisfies AgentRequest<'/agent/runs/retry'>;
+
+    const result = await agentApi.retryRun(input);
+
+    expect(result).toMatchObject({ runId: 'run_retry', retryMode: 'SAFE_CHECKPOINT' });
+    const [url, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    expect(requestPath(url)).toBe('/api/agent/runs/retry');
+    expect(init.method).toBe('POST');
+    expect(JSON.parse(String(init.body))).toEqual(input);
+  });
+
+  it('posts model and reasoning effort as one conversation update', async () => {
+    mockFetch.mockResolvedValueOnce(
+      jsonResponse({
+        code: 0,
+        data: {
+          conversationId: 'cm_1',
+          modelPolicy: 'MANUAL',
+          preferredModel: 'gpt-5.6-sol',
+          reasoningEffort: 'XHIGH',
+          contextPreparation: {
+            status: 'READY',
+            targetModel: 'gpt-5.6-sol',
+            contextWindow: 256000,
+            estimatedRecentTokens: 100,
+            triggerTokens: 180000,
+            targetTokens: 120000,
+            willAutoCompactOnNextRun: false,
+            message: '新模型可直接用于下一轮对话',
+          },
+          updatedAt: '2026-08-11T00:00:00.000Z',
+        },
+      })
+    );
+    const input = {
+      conversationId: 'cm_1',
+      modelPolicy: 'MANUAL',
+      preferredModel: 'gpt-5.6-sol',
+      reasoningEffort: 'XHIGH',
+    } satisfies AgentRequest<'/agent/conversations/model/update'>;
+
+    await agentApi.updateConversationModel(input);
+
+    const [url, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    expect(requestPath(url)).toBe('/api/agent/conversations/model/update');
+    expect(init.method).toBe('POST');
+    expect(JSON.parse(String(init.body))).toEqual(input);
+  });
+
   it('posts memory list requests through canonical Agent facade', async () => {
-    mockFetch.mockResolvedValueOnce(jsonResponse({ code: 0, data: { items: [], nextCursor: null } }));
+    mockFetch.mockResolvedValueOnce(
+      jsonResponse({ code: 0, data: { items: [], nextCursor: null } })
+    );
 
     await agentApi.listMemories({ cursor: null, limit: 100, includeInactive: false });
 
     const [url, init] = mockFetch.mock.calls[0] as [string, RequestInit];
     expect(requestPath(url)).toBe('/api/agent/memories/list');
     expect(init.method).toBe('POST');
-    expect(JSON.parse(String(init.body))).toEqual({ cursor: null, limit: 100, includeInactive: false });
+    expect(JSON.parse(String(init.body))).toEqual({
+      cursor: null,
+      limit: 100,
+      includeInactive: false,
+    });
   });
 
   it('maps successful HTTP responses with Agent business error codes', async () => {
@@ -177,11 +254,13 @@ describe('agentApi', () => {
       )
     );
 
-    await expect(agentApi.regenerateMessage({
-      clientRequestId: '60d92dab-4bf7-4c7b-a440-2913f5fae98d',
-      messageId: 'cmshw7ppw000yqw1hnorlhi2i',
-      modelPolicy: 'MANUAL',
-    })).rejects.toMatchObject({
+    await expect(
+      agentApi.regenerateMessage({
+        clientRequestId: '60d92dab-4bf7-4c7b-a440-2913f5fae98d',
+        messageId: 'cmshw7ppw000yqw1hnorlhi2i',
+        modelPolicy: 'MANUAL',
+      })
+    ).rejects.toMatchObject({
       message: '请求参数校验失败：preferredModel 未注册或不可用',
     });
   });

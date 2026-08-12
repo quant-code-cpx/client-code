@@ -8,10 +8,10 @@ import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
 import Skeleton from '@mui/material/Skeleton';
+import ButtonBase from '@mui/material/ButtonBase';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 
-import { useRouter } from 'src/routes/hooks';
 import { RouterLink } from 'src/routes/components';
 
 import { fToNow } from 'src/utils/format-time';
@@ -52,22 +52,26 @@ function statusLabel(s: string): string {
 
 // ----------------------------------------------------------------------
 
-type RunCardProps = { run: BacktestRunListItem; onClick: () => void };
+type RunCardProps = { run: BacktestRunListItem };
 
-function RunCard({ run, onClick }: RunCardProps) {
+function RunCard({ run }: RunCardProps) {
   const strategyLabel = STRATEGY_TYPE_LABEL[run.strategyType] ?? run.strategyType;
 
   return (
-    <Box
-      onClick={onClick}
+    <ButtonBase
+      component={RouterLink}
+      href={`/backtest/runs/${run.runId}`}
+      aria-label={`查看回测：${run.name ?? strategyLabel}`}
       sx={{
         display: 'flex',
+        width: '100%',
         flexDirection: 'column',
+        alignItems: 'stretch',
+        textAlign: 'left',
         gap: 0.5,
         px: 1.5,
         py: 1.25,
         borderRadius: 1,
-        cursor: 'pointer',
         '&:hover': { bgcolor: 'action.hover' },
       }}
     >
@@ -127,14 +131,13 @@ function RunCard({ run, onClick }: RunCardProps) {
       <Typography variant="caption" sx={{ color: 'text.disabled' }}>
         {fToNow(run.createdAt)}前
       </Typography>
-    </Box>
+    </ButtonBase>
   );
 }
 
 // ----------------------------------------------------------------------
 
 export function DashboardRecentBacktests({ refreshKey }: { refreshKey?: number }) {
-  const router = useRouter();
   const [runs, setRuns] = useState<BacktestRunListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -226,7 +229,7 @@ export function DashboardRecentBacktests({ refreshKey }: { refreshKey?: number }
             runs.map((run, idx) => (
               <Box key={run.runId}>
                 {idx > 0 && <Divider sx={{ my: 0.5 }} />}
-                <RunCard run={run} onClick={() => router.push(`/backtest/runs/${run.runId}`)} />
+                <RunCard run={run} />
               </Box>
             ))
           )}

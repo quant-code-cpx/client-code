@@ -20,7 +20,7 @@ import CardContent from '@mui/material/CardContent';
 import TableContainer from '@mui/material/TableContainer';
 import TablePagination from '@mui/material/TablePagination';
 
-import { fNumber, fPercent } from 'src/utils/format-number';
+import { fNumber, fRatioPercent } from 'src/utils/format-number';
 
 import { Label } from 'src/components/label';
 import { Scrollbar } from 'src/components/scrollbar';
@@ -49,13 +49,15 @@ function MetricCard({ label, value, color }: MetricCardProps) {
   );
 }
 
-function pctColor(v: number, invert?: boolean): string {
+function pctColor(v: number | null, invert?: boolean): string | undefined {
+  if (v == null) return undefined;
   if (invert) return v < 0 ? 'success.main' : 'error.main';
   return v >= 0 ? 'error.main' : 'success.main';
 }
 
-function pctStr(v: number): string {
-  return `${v >= 0 ? '+' : ''}${fPercent(v)}`;
+function pctStr(v: number | null): string {
+  if (v == null) return '-';
+  return `${v >= 0 ? '+' : ''}${fRatioPercent(v)}`;
 }
 
 // ─── Sub-component: NAV Curve Chart ──────────────────────────────────────────
@@ -408,15 +410,19 @@ function PositionsTable({ positions }: PositionsTableProps) {
                         <Typography variant="caption">{fNumber(pos.quantity)}</Typography>
                       </TableCell>
                       <TableCell align="right">
-                        <Typography variant="caption">{pos.avgCost.toFixed(2)}</Typography>
-                      </TableCell>
-                      <TableCell align="right">
                         <Typography variant="caption">
-                          {fNumber(Math.round(pos.marketValue))}
+                          {pos.avgCost == null ? '-' : pos.avgCost.toFixed(2)}
                         </Typography>
                       </TableCell>
                       <TableCell align="right">
-                        <Typography variant="caption">{fPercent(pos.weight)}</Typography>
+                        <Typography variant="caption">
+                          {pos.marketValue == null ? '-' : fNumber(Math.round(pos.marketValue))}
+                        </Typography>
+                      </TableCell>
+                      <TableCell align="right">
+                        <Typography variant="caption">
+                          {pos.weight == null ? '-' : fRatioPercent(pos.weight)}
+                        </Typography>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -482,7 +488,10 @@ export function BacktestReportViewer({ data }: BacktestReportViewerProps) {
           />
         </Grid>
         <Grid size={{ xs: 6, sm: 4, md: 3 }}>
-          <MetricCard label="夏普比率" value={metrics.sharpe.toFixed(2)} />
+          <MetricCard
+            label="夏普比率"
+            value={metrics.sharpe == null ? '-' : metrics.sharpe.toFixed(2)}
+          />
         </Grid>
         <Grid size={{ xs: 6, sm: 4, md: 3 }}>
           <MetricCard
@@ -492,13 +501,24 @@ export function BacktestReportViewer({ data }: BacktestReportViewerProps) {
           />
         </Grid>
         <Grid size={{ xs: 6, sm: 4, md: 3 }}>
-          <MetricCard label="胜率" value={fPercent(metrics.winRate)} />
+          <MetricCard
+            label="胜率"
+            value={metrics.winRate == null ? '-' : fRatioPercent(metrics.winRate)}
+          />
         </Grid>
         <Grid size={{ xs: 6, sm: 4, md: 3 }}>
-          <MetricCard label="盈亏比" value={metrics.profitLossRatio.toFixed(2)} />
+          <MetricCard
+            label="盈亏比"
+            value={
+              metrics.profitLossRatio == null ? '-' : metrics.profitLossRatio.toFixed(2)
+            }
+          />
         </Grid>
         <Grid size={{ xs: 6, sm: 4, md: 3 }}>
-          <MetricCard label="交易次数" value={String(metrics.tradeCount)} />
+          <MetricCard
+            label="交易次数"
+            value={metrics.tradeCount == null ? '-' : String(metrics.tradeCount)}
+          />
         </Grid>
         {metrics.calmarRatio != null && (
           <Grid size={{ xs: 6, sm: 4, md: 3 }}>

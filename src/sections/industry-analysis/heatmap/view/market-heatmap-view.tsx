@@ -107,7 +107,7 @@ export function MarketHeatmapView({
     () =>
       sectorFlows.map((s) => ({
         groupName: s.name,
-        avgPctChg: s.pctChange ?? 0,
+        avgPctChg: Number.isFinite(s.pctChange) ? s.pctChange : null,
         stockCount: (s.upCount ?? 0) + (s.downCount ?? 0),
         upCount: s.upCount ?? 0,
         downCount: s.downCount ?? 0,
@@ -122,12 +122,13 @@ export function MarketHeatmapView({
   const topGainersByGroup = useMemo(() => {
     const map: Record<string, Array<{ name: string; tsCode: string; pctChg: number }>> = {};
     for (const item of items) {
+      if (!Number.isFinite(item.pctChg)) continue;
       const group = item.groupName ?? item.industry ?? '其他';
       if (!map[group]) map[group] = [];
       map[group].push({
         name: item.name ?? item.tsCode,
         tsCode: item.tsCode,
-        pctChg: item.pctChg ?? 0,
+        pctChg: item.pctChg as number,
       });
     }
     for (const key of Object.keys(map)) {

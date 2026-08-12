@@ -5,6 +5,7 @@ import { merge } from 'es-toolkit';
 import { varAlpha } from 'minimal-shared/utils';
 
 import { useTheme } from '@mui/material/styles';
+import useMediaQuery from '@mui/material/useMediaQuery';
 
 import type { ChartOptions } from './types';
 
@@ -12,11 +13,23 @@ import type { ChartOptions } from './types';
 
 export function useChart(updatedOptions?: ChartOptions): ChartOptions {
   const theme = useTheme();
+  const prefersReducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)');
 
-  return useMemo(
-    () => merge(baseChartOptions(theme) ?? {}, updatedOptions ?? {}),
-    [theme, updatedOptions]
-  );
+  return useMemo(() => {
+    const options = merge(baseChartOptions(theme) ?? {}, updatedOptions ?? {});
+
+    if (!prefersReducedMotion) return options;
+
+    return merge(options, {
+      chart: {
+        animations: {
+          enabled: false,
+          animateGradually: { enabled: false },
+          dynamicAnimation: { enabled: false },
+        },
+      },
+    });
+  }, [prefersReducedMotion, theme, updatedOptions]);
 }
 
 // ----------------------------------------------------------------------

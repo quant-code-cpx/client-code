@@ -10,7 +10,6 @@ export type ConfigValue = {
   userManageFeatures: {
     bulk: boolean;
     stats: boolean;
-    unlock: boolean;
     restore: boolean;
     updateRole: boolean;
   };
@@ -30,7 +29,6 @@ export const CONFIG: ConfigValue = {
   userManageFeatures: {
     bulk: envFlag('VITE_USER_MANAGE_BULK', true),
     stats: envFlag('VITE_USER_MANAGE_STATS', true),
-    unlock: envFlag('VITE_USER_MANAGE_UNLOCK', true),
     restore: envFlag('VITE_USER_MANAGE_RESTORE', true),
     updateRole: envFlag('VITE_USER_MANAGE_UPDATE_ROLE', true),
   },

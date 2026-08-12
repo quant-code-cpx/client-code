@@ -78,13 +78,13 @@ export type BacktestReportData = {
     params: Record<string, unknown>;
   };
   metrics: {
-    totalReturn: number;
-    annualReturn: number;
-    sharpe: number;
-    maxDrawdown: number;
-    winRate: number;
-    profitLossRatio: number;
-    tradeCount: number;
+    totalReturn: number | null;
+    annualReturn: number | null;
+    sharpe: number | null;
+    maxDrawdown: number | null;
+    winRate: number | null;
+    profitLossRatio: number | null;
+    tradeCount: number | null;
     calmarRatio: number | null;
     sortinoRatio: number | null;
     // ── v2 optional risk / benchmark metrics (null when missing) ──
@@ -120,9 +120,9 @@ export type BacktestReportData = {
     tsCode: string;
     name: string | null;
     quantity: number;
-    avgCost: number;
-    marketValue: number;
-    weight: number;
+    avgCost: number | null;
+    marketValue: number | null;
+    weight: number | null;
   }[];
   // ── v2 optional sections ─────────────────────────────────────
   benchmarkCurve?: { date: string; nav: number }[] | null;
@@ -132,41 +132,34 @@ export type BacktestReportData = {
 export type StockReportData = {
   overview: {
     tsCode: string;
-    name: string;
+    name: string | null;
     industry: string | null;
-    market: string | null;
     listDate: string | null;
-    totalShare: number | null;
-    floatShare: number | null;
-    totalMv: number | null;
-    circMv: number | null;
+    area: string | null;
   };
   priceHistory: {
     date: string;
-    open: number;
-    high: number;
-    low: number;
-    close: number;
-    volume: number;
-    amount: number;
+    open: number | null;
+    high: number | null;
+    low: number | null;
+    close: number | null;
+    volume: number | null;
   }[];
   financialSummary: {
     period: string;
-    revenue: number | null;
-    netProfit: number | null;
     roe: number | null;
-    eps: number | null;
-    bps: number | null;
-    debtRatio: number | null;
+    netProfitMargin: number | null;
+    revenueYoyGrowth: number | null;
   }[];
   top10Holders: {
-    holderName: string;
-    holdAmount: number;
-    holdRatio: number;
+    holderName: string | null;
+    holdAmount: number | null;
+    holdRatio: number | null;
   }[];
   dividends: {
-    exDate: string;
-    cashDiv: number | null;
+    endDate: string | null;
+    divProc: string | null;
+    cashDivTax: number | null;
     stkDiv: number | null;
   }[];
   // ── v2 optional sections ─────────────────────────────────────
@@ -193,9 +186,9 @@ export type PortfolioReportData = {
   overview: {
     name: string;
     description: string | null;
-    initialCash: number;
+    initialCash: number | null;
     totalMarketValue: number | null;
-    totalCost: number;
+    totalCost: number | null;
     unrealizedPnl: number | null;
     holdingCount: number;
     createdAt: string;
@@ -239,68 +232,67 @@ export type StrategyResearchReportData = {
   sections: {
     overview: {
       strategyName: string;
+      strategyType: string;
       description: string | null;
-      backtestPeriod: string;
-      benchmark: string | null;
+      backtestRunId: string;
+      portfolioId: string | null;
+      createdAt: string;
     };
-    backtestPerformance?: {
-      totalReturn: number;
-      annualReturn: number;
-      sharpe: number;
-      maxDrawdown: number;
-      winRate: number;
-      tradeCount: number;
-      navCurve: { date: string; nav: number }[];
-      drawdownCurve: { date: string; drawdown: number }[];
-    };
-    holdingsAnalysis?: {
-      endPositions: {
+    /** 策略研究采集器返回百分点（20 表示 20%），不是 0–1 比例。 */
+    backtestPerformance: {
+      totalReturn: number | null;
+      annualReturn: number | null;
+      sharpe: number | null;
+      maxDrawdown: number | null;
+      informationRatio: number | null;
+      winRate: number | null;
+      volatility: number | null;
+      benchmarkTsCode: string | null;
+      benchmarkComparison: {
+        annualReturn: number | null;
+        volatility: number | null;
+        excessReturn: number | null;
+      } | null;
+    } | null;
+    holdingsAnalysis: {
+      topHoldings: {
         tsCode: string;
-        name: string | null;
-        quantity: number;
-        weight: number;
-        marketValue: number;
+        stockName: string | null;
+        /** 百分点。 */
+        weight: number | null;
       }[];
       industryDistribution: {
         industry: string;
+        /** 百分点。 */
         weight: number;
       }[];
-    };
-    riskAssessment?: {
-      maxDrawdown: number;
-      volatility: number;
+      snapshotDate: string;
+    } | null;
+    riskAssessment: {
+      maxDrawdown: number | null;
+      volatility: number | null;
       beta: number | null;
       var95: number | null;
-      calmarRatio: number | null;
-      sortinoRatio: number | null;
-    };
-    tradeLogs?: {
-      date: string;
-      tsCode: string;
-      name: string | null;
-      direction: 'BUY' | 'SELL';
-      price: number;
-      quantity: number;
-      amount: number;
-      pnl: number | null;
-    }[];
-    // ── v2 optional sections ─────────────────────────────────────
-    factorExposure?: {
-      factors: { name: string; exposure: number; tStat: number | null }[];
+      concentrationHHI: number | null;
+      violations: unknown[];
     } | null;
-    parameterSensitivity?: {
-      metric: 'sharpe' | 'totalReturn' | 'maxDrawdown';
-      axis: { paramName: string; values: (number | string)[] };
-      series?: { paramName: string; values: (number | string)[]; matrix: number[][] } | null;
-    } | null;
-    rollingStability?: {
-      windowDays: number;
-      series: {
-        end: string;
-        sharpe: number | null;
-        annualReturn: number | null;
-        maxDrawdown: number | null;
+    tradeLogs: {
+      recentLogs: {
+        tsCode: string;
+        stockName: string | null;
+        action: string;
+        quantity: number;
+        price: number | null;
+        reason: string;
+        createdAt: string;
       }[];
+      summary: Array<{
+        action: string;
+        reason: string;
+        tsCode: string;
+        stockName: string | null;
+        _count: { id: number };
+      }>;
     } | null;
   };
 };
@@ -336,10 +328,6 @@ export type CreateStrategyResearchReportParams = {
     holdings?: boolean;
     riskAssessment?: boolean;
     tradeLog?: boolean;
-    // v2 optional sections
-    factorExposure?: boolean;
-    parameterSensitivity?: boolean;
-    rollingStability?: boolean;
   };
 };
 
@@ -391,66 +379,274 @@ export function listReports(params: ListReportsParams) {
 
 /** 获取报告详情 */
 export function getReportDetail(params: { reportId: string }) {
-  return apiClient.post<Report>('/api/report/detail', params);
+  return apiClient
+    .post<Report>('/api/report/detail', params)
+    .then((report) => normalizeReportDetail(report));
+}
+
+type BackendBacktestReportData = {
+  strategy: {
+    name: string;
+    params: Record<string, unknown>;
+    startDate: string;
+    endDate: string;
+    benchmark: string;
+    initialCapital: number;
+  };
+  metrics: {
+    totalReturn: number | null;
+    annualizedReturn: number | null;
+    benchmarkReturn: number | null;
+    excessReturn: number | null;
+    maxDrawdown: number | null;
+    sharpeRatio: number | null;
+    sortinoRatio: number | null;
+    calmarRatio: number | null;
+    winRate: number | null;
+    tradeCount: number | null;
+    volatility: number | null;
+    alpha: number | null;
+    beta: number | null;
+  };
+  navCurve: { dates: string[]; navValues: number[]; benchmarkValues: number[] };
+  drawdownCurve: { dates: string[]; values: number[] };
+  monthlyReturns: Array<{ year: number; month: number; return: number }>;
+  trades: Array<{
+    date: string;
+    tsCode: string;
+    side: 'BUY' | 'SELL';
+    price: number;
+    quantity: number;
+    amount: number;
+  }>;
+  endPositions: Array<{
+    tsCode: string;
+    quantity: number;
+    weight: number | null;
+    unrealizedPnl: number | null;
+  }>;
+};
+
+type BackendPortfolioReportData = {
+  overview: {
+    id: string;
+    name: string;
+    description: string | null;
+    totalMarketValue: number;
+    totalCost: number;
+    totalPnl: number;
+    createdAt: string;
+  };
+  holdings: Array<{
+    tsCode: string;
+    name: string | null;
+    quantity: number;
+    costPrice: number;
+    currentPrice: number | null;
+    marketValue: number | null;
+    weight: number | null;
+    pnl: number | null;
+    pnlPct: number | null;
+  }>;
+  industryDistribution: Array<{ industry: string; weight: number; count: number }>;
+};
+
+type BackendStockReportData = {
+  overview: {
+    tsCode: string;
+    name: string | null;
+    industry: string | null;
+    listDate: string | null;
+    area: string | null;
+  };
+  priceHistory: {
+    dates: string[];
+    opens: number[];
+    highs: number[];
+    lows: number[];
+    closes: number[];
+    volumes: number[];
+  };
+  financialSummary: {
+    periods: string[];
+    roe: Array<number | null>;
+    netProfitMargin: Array<number | null>;
+    revenueYoyGrowth: Array<number | null>;
+  } | null;
+  top10Holders: Array<{
+    holderName: string | null;
+    holdAmount: number | null;
+    holdRatio: number | null;
+  }>;
+  dividends: Array<{
+    endDate: string | null;
+    divProc: string | null;
+    cashDivTax: number | null;
+    stkDiv: number | null;
+  }>;
+};
+
+function finiteNumberOrNull(value: unknown): number | null {
+  return typeof value === 'number' && Number.isFinite(value) ? value : null;
+}
+
+function normalizeReportDetail(report: Report): Report {
+  if (!report.data) return report;
+
+  if (report.type === 'BACKTEST') {
+    if (Array.isArray(report.data.navCurve)) return report;
+    const raw = report.data as unknown as BackendBacktestReportData;
+    const dates = raw.navCurve?.dates ?? [];
+    const drawdownDates = raw.drawdownCurve?.dates ?? [];
+    const normalized: BacktestReportData = {
+      strategy: {
+        name: raw.strategy?.name ?? '未命名策略',
+        description: null,
+        params: raw.strategy?.params ?? {},
+      },
+      metrics: {
+        totalReturn: raw.metrics?.totalReturn ?? null,
+        annualReturn: raw.metrics?.annualizedReturn ?? null,
+        sharpe: raw.metrics?.sharpeRatio ?? null,
+        maxDrawdown: raw.metrics?.maxDrawdown ?? null,
+        winRate: raw.metrics?.winRate ?? null,
+        profitLossRatio: null,
+        tradeCount: raw.metrics?.tradeCount ?? null,
+        calmarRatio: raw.metrics?.calmarRatio ?? null,
+        sortinoRatio: raw.metrics?.sortinoRatio ?? null,
+        volatility: raw.metrics?.volatility ?? null,
+        informationRatio: null,
+        beta: raw.metrics?.beta ?? null,
+        alpha: raw.metrics?.alpha ?? null,
+        benchmarkReturn: raw.metrics?.benchmarkReturn ?? null,
+      },
+      navCurve: dates.flatMap((date, index) => {
+        const nav = raw.navCurve?.navValues[index];
+        return Number.isFinite(nav) ? [{ date, nav }] : [];
+      }),
+      drawdownCurve: drawdownDates.flatMap((date, index) => {
+        const drawdown = raw.drawdownCurve?.values[index];
+        return Number.isFinite(drawdown) ? [{ date, drawdown }] : [];
+      }),
+      monthlyReturns: (raw.monthlyReturns ?? []).map((item) => ({
+        month: `${item.year}-${String(item.month).padStart(2, '0')}`,
+        return: item.return,
+      })),
+      trades: (raw.trades ?? []).map((item) => ({
+        date: item.date,
+        tsCode: item.tsCode,
+        name: null,
+        direction: item.side,
+        price: item.price,
+        quantity: item.quantity,
+        amount: item.amount,
+        pnl: null,
+      })),
+      endPositions: (raw.endPositions ?? []).map((item) => ({
+        tsCode: item.tsCode,
+        name: null,
+        quantity: item.quantity,
+        avgCost: null,
+        marketValue: null,
+        weight: item.weight,
+      })),
+    };
+
+    return { ...report, data: normalized as unknown as Record<string, unknown> };
+  }
+
+  if (report.type === 'PORTFOLIO') {
+    if (
+      report.data.overview &&
+      typeof report.data.overview === 'object' &&
+      'initialCash' in report.data.overview
+    ) {
+      return report;
+    }
+    const raw = report.data as unknown as BackendPortfolioReportData;
+    const normalized: PortfolioReportData = {
+      overview: {
+        name: raw.overview?.name ?? '未命名组合',
+        description: raw.overview?.description ?? null,
+        initialCash: null,
+        totalMarketValue: raw.overview?.totalMarketValue ?? null,
+        totalCost: raw.overview?.totalCost ?? null,
+        unrealizedPnl: raw.overview?.totalPnl ?? null,
+        holdingCount: raw.holdings?.length ?? 0,
+        createdAt: raw.overview?.createdAt ?? '',
+      },
+      holdings: (raw.holdings ?? []).map((item) => ({
+        tsCode: item.tsCode,
+        name: item.name ?? item.tsCode,
+        quantity: item.quantity,
+        avgCost: item.costPrice,
+        currentPrice: item.currentPrice,
+        marketValue: item.marketValue,
+        pnlPct: item.pnlPct,
+        weight: item.weight,
+        industry: null,
+      })),
+      industryDistribution: (raw.industryDistribution ?? []).map((item) => ({
+        industry: item.industry,
+        stockCount: item.count,
+        totalMarketValue: null,
+        weight: item.weight,
+      })),
+    };
+
+    return { ...report, data: normalized as unknown as Record<string, unknown> };
+  }
+
+  if (report.type === 'STOCK') {
+    if (Array.isArray(report.data.priceHistory)) return report;
+
+    const raw = report.data as unknown as BackendStockReportData;
+    const priceHistory = raw.priceHistory;
+    const financialSummary = raw.financialSummary;
+    const normalized: StockReportData = {
+      overview: {
+        tsCode: raw.overview?.tsCode ?? '',
+        name: raw.overview?.name ?? null,
+        industry: raw.overview?.industry ?? null,
+        listDate: raw.overview?.listDate ?? null,
+        area: raw.overview?.area ?? null,
+      },
+      priceHistory: (priceHistory?.dates ?? []).map((date, index) => ({
+        date,
+        open: finiteNumberOrNull(priceHistory?.opens[index]),
+        high: finiteNumberOrNull(priceHistory?.highs[index]),
+        low: finiteNumberOrNull(priceHistory?.lows[index]),
+        close: finiteNumberOrNull(priceHistory?.closes[index]),
+        volume: finiteNumberOrNull(priceHistory?.volumes[index]),
+      })),
+      financialSummary: (financialSummary?.periods ?? []).map((period, index) => ({
+        period,
+        roe: finiteNumberOrNull(financialSummary?.roe[index]),
+        netProfitMargin: finiteNumberOrNull(financialSummary?.netProfitMargin[index]),
+        revenueYoyGrowth: finiteNumberOrNull(financialSummary?.revenueYoyGrowth[index]),
+      })),
+      top10Holders: (raw.top10Holders ?? []).map((holder) => ({
+        holderName: holder.holderName ?? null,
+        holdAmount: finiteNumberOrNull(holder.holdAmount),
+        holdRatio: finiteNumberOrNull(holder.holdRatio),
+      })),
+      dividends: (raw.dividends ?? []).map((dividend) => ({
+        endDate: dividend.endDate ?? null,
+        divProc: dividend.divProc ?? null,
+        cashDivTax: finiteNumberOrNull(dividend.cashDivTax),
+        stkDiv: finiteNumberOrNull(dividend.stkDiv),
+      })),
+    };
+
+    return { ...report, data: normalized as unknown as Record<string, unknown> };
+  }
+
+  return report;
 }
 
 /** 删除报告 */
 export function deleteReport(params: { reportId: string }) {
   return apiClient.post<{ deleted: true }>('/api/report/delete', params);
-}
-
-// ── v2 endpoints ──────────────────────────────────────────────
-
-/** 保存报告批注（Markdown） */
-export function saveReportNotes(params: { reportId: string; notes: string }) {
-  return apiClient.post<{ notesUpdatedAt: string }>('/api/report/notes/save', params);
-}
-
-/** 重新生成（基于原 params 提交新版本） */
-export function regenerateReport(params: { reportId: string }) {
-  return apiClient.post<Report>('/api/report/regenerate', params);
-}
-
-export type ReportShareLink = {
-  token: string;
-  url: string;
-  reportId: string;
-  createdAt: string;
-  expiresAt: string | null;
-  revoked: boolean;
-};
-
-/** 创建只读分享链接 */
-export function createReportShareLink(params: { reportId: string; ttlHours: number | null }) {
-  return apiClient.post<ReportShareLink>('/api/report/share/create', params);
-}
-
-/** 查询本报告下的全部分享链接 */
-export function listReportShareLinks(params: { reportId: string }) {
-  return apiClient.post<ReportShareLink[]>('/api/report/share/list', params);
-}
-
-/** 吊销分享链接 */
-export function revokeReportShareLink(params: { token: string }) {
-  return apiClient.post<{ revoked: true }>('/api/report/share/revoke', params);
-}
-
-export type ReportDiffField = {
-  key: string;
-  label?: string;
-  leftValue: number | string | null;
-  rightValue: number | string | null;
-  delta: number | null;
-};
-
-export type ReportDiffResult = {
-  fields: ReportDiffField[];
-  notes?: string;
-};
-
-/** 与另一份报告的对比 */
-export function diffReports(params: { leftReportId: string; rightReportId: string }) {
-  return apiClient.post<ReportDiffResult>('/api/report/diff', params);
 }
 
 // ── Scheduled Reports ─────────────────────────────────────────
@@ -473,19 +669,6 @@ export type ReportSchedule = {
   createdAt: string;
 };
 
-export type CreateScheduleBody = {
-  type: ReportType;
-  title: string;
-  params: Record<string, unknown>;
-  format: ReportFormat;
-  frequency: ReportScheduleFrequency;
-  cronExpression?: string;
-};
-
-export type UpdateScheduleBody = Partial<CreateScheduleBody> & {
-  enabled?: boolean;
-};
-
 export type ReportScheduleListResult = {
   items: ReportSchedule[];
   total: number;
@@ -502,24 +685,4 @@ export async function listSchedules(): Promise<ReportSchedule[]> {
   if (result && Array.isArray(result.items)) return result.items;
 
   throw new Error('定时报告列表响应格式错误');
-}
-
-/** 创建定时报告 */
-export function createSchedule(body: CreateScheduleBody) {
-  return apiClient.post<ReportSchedule>('/api/report/schedules', body);
-}
-
-/** 更新定时报告 */
-export function updateSchedule(id: string, body: UpdateScheduleBody) {
-  return apiClient.post<ReportSchedule>('/api/report/schedules/update', { id, ...body });
-}
-
-/** 删除定时报告 */
-export function deleteSchedule(id: string) {
-  return apiClient.post<{ deleted: true }>('/api/report/schedules/delete', { id });
-}
-
-/** 立即运行一次 */
-export function runScheduleNow(id: string) {
-  return apiClient.post<Report>('/api/report/schedules/run-now', { id });
 }

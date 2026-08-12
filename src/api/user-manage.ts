@@ -316,27 +316,12 @@ export const userManageApi = {
   resetPassword: (dto: ResetPasswordDto): Promise<ResetPasswordResult> =>
     apiClient.post<ResetPasswordResult>('/api/user/reset-password', dto),
 
-  /** 解锁用户 */
-  unlock: (id: number): Promise<UserManageItem> =>
-    apiClient.post<UserManageItem>('/api/user/unlock', { id }),
-
   /** 删除用户（软删除） */
   delete: (id: number): Promise<void> => apiClient.post<void>('/api/user/delete', { id }),
 
   /** 恢复软删除用户 */
   restore: (id: number): Promise<UserManageItem> =>
     apiClient.post<UserManageItem>('/api/user/restore', { id }),
-
-  /** 删除前影响清单 */
-  deleteImpact: (id: number): Promise<DeleteImpactResult> =>
-    apiClient.post<DeleteImpactResult>('/api/user/delete-impact', { id }),
-
-  /** 批量修改状态 */
-  bulkUpdateStatus: (data: {
-    ids: number[];
-    status: 'ACTIVE' | 'DEACTIVATED';
-  }): Promise<UserBulkOperationResult> =>
-    apiClient.post<UserBulkOperationResult>('/api/user/bulk-update-status', data),
 
   /** 用户自助修改密码 */
   changePassword: (dto: ChangePasswordDto): Promise<void> =>

@@ -20,11 +20,11 @@ import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Drawer from '@mui/material/Drawer';
 import Divider from '@mui/material/Divider';
+import Tooltip from '@mui/material/Tooltip';
 import Accordion from '@mui/material/Accordion';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
-import CircularProgress from '@mui/material/CircularProgress';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import AccordionSummary from '@mui/material/AccordionSummary';
 
@@ -326,9 +326,13 @@ export function DeploymentEditorDrawer({
             模型 ID、能力、推理策略和路由参数
           </Typography>
         </Box>
-        <IconButton aria-label="关闭模型部署编辑器" onClick={onClose} disabled={busy}>
-          <Iconify icon="mingcute:close-line" />
-        </IconButton>
+        <Tooltip title="关闭模型部署编辑器">
+          <span>
+            <IconButton aria-label="关闭模型部署编辑器" onClick={onClose} disabled={busy}>
+              <Iconify icon="mingcute:close-line" />
+            </IconButton>
+          </span>
+        </Tooltip>
       </Box>
       <Divider />
       <Box sx={{ p: 3, flex: 1, overflowY: 'auto' }}>
@@ -615,7 +619,7 @@ export function DeploymentEditorDrawer({
         </Button>
         <Button
           variant="outlined"
-          startIcon={busy ? <CircularProgress size={18} aria-hidden="true" /> : undefined}
+          loading={busy}
           onClick={() => void saveDraft()}
           disabled={busy}
         >

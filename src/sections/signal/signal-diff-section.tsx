@@ -9,6 +9,7 @@ import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
 import Collapse from '@mui/material/Collapse';
 import { useTheme } from '@mui/material/styles';
+import ButtonBase from '@mui/material/ButtonBase';
 import Typography from '@mui/material/Typography';
 
 import { fmtTradeDate } from 'src/utils/format-time';
@@ -174,13 +175,18 @@ function DiffGroup({ title, count, colorChannel, open, onToggle, icon, children 
   }
   return (
     <Box>
-      <Box
+      <ButtonBase
+        type="button"
         onClick={onToggle}
+        aria-expanded={open}
+        aria-label={`${open ? '收起' : '展开'}${title}`}
         sx={{
           display: 'flex',
+          width: '100%',
           alignItems: 'center',
+          justifyContent: 'flex-start',
+          textAlign: 'left',
           gap: 1,
-          cursor: 'pointer',
           py: 0.5,
           px: 1,
           borderRadius: 0.5,
@@ -194,7 +200,7 @@ function DiffGroup({ title, count, colorChannel, open, onToggle, icon, children 
         </Typography>
         <Box sx={{ flex: 1 }} />
         <Iconify icon={open ? 'solar:alt-arrow-up-bold' : 'solar:alt-arrow-down-bold'} width={16} />
-      </Box>
+      </ButtonBase>
       <Collapse in={open}>
         <Box sx={{ pt: 0.5, pl: 1 }}>{children}</Box>
       </Collapse>

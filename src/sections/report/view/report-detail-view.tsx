@@ -23,8 +23,8 @@ import CircularProgress from '@mui/material/CircularProgress';
 import { paths } from 'src/routes/paths';
 import { useRouter } from 'src/routes/hooks';
 
+import { getReportDetail } from 'src/api/report';
 import { DashboardContent } from 'src/layouts/dashboard';
-import { getReportDetail, regenerateReport as regenerateReportApi } from 'src/api/report';
 
 import { Iconify } from 'src/components/iconify';
 
@@ -48,11 +48,11 @@ export function ReportDetailView() {
 
   const [report, setReport] = useState<Report | null>(null);
   const [loading, setLoading] = useState(true);
-  const [retrying, setRetrying] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
   const [notesOpen, setNotesOpen] = useState(true);
   const [snackbar, setSnackbar] = useState<SnackbarState>(initialSnackbar);
-  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const activeReportIdRef = useRef(id);
+  activeReportIdRef.current = id;
 
   const showSnackbar = useCallback((message: string, severity: AlertColor = 'success') => {
     setSnackbar({ open: true, message, severity });
@@ -67,9 +67,11 @@ export function ReportDetailView() {
     async (reportId: string) => {
       try {
         const data = await getReportDetail({ reportId });
+        if (activeReportIdRef.current !== reportId) return null;
         setReport(data);
         return data;
       } catch (err) {
+        if (activeReportIdRef.current !== reportId) return null;
         showSnackbar(err instanceof Error ? err.message : '加载失败', 'error');
         return null;
       }
@@ -79,9 +81,16 @@ export function ReportDetailView() {
 
   // Initial load
   useEffect(() => {
-    if (!id) return;
+    if (!id) return undefined;
+    let cancelled = false;
     setLoading(true);
-    fetchDetail(id).finally(() => setLoading(false));
+    fetchDetail(id).finally(() => {
+      if (!cancelled && activeReportIdRef.current === id) setLoading(false);
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [id, fetchDetail]);
 
   // Polling for PENDING / GENERATING
@@ -89,15 +98,30 @@ export function ReportDetailView() {
     if (!report?.id || !id) return undefined;
     if (report.status !== 'PENDING' && report.status !== 'GENERATING') return undefined;
 
-    pollingRef.current = setInterval(async () => {
-      const updated = await fetchDetail(id);
-      if (updated && updated.status !== 'PENDING' && updated.status !== 'GENERATING') {
-        if (pollingRef.current) clearInterval(pollingRef.current);
-      }
-    }, 3000);
+    let cancelled = false;
+    let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+    const pollAfterDelay = () => {
+      timeoutId = setTimeout(async () => {
+        timeoutId = undefined;
+        if (cancelled) return;
+
+        // Schedule only after the current request completes, so slow responses never overlap.
+        const updated = await fetchDetail(id);
+        if (
+          !cancelled &&
+          (!updated || updated.status === 'PENDING' || updated.status === 'GENERATING')
+        ) {
+          pollAfterDelay();
+        }
+      }, 3000);
+    };
+
+    pollAfterDelay();
 
     return () => {
-      if (pollingRef.current) clearInterval(pollingRef.current);
+      cancelled = true;
+      if (timeoutId) clearTimeout(timeoutId);
     };
   }, [report?.id, report?.status, id, fetchDetail]);
 
@@ -114,21 +138,6 @@ export function ReportDetailView() {
 
   const handlePrint = () => {
     window.print();
-  };
-
-  const handleRegenerate = async () => {
-    if (!report) return;
-    setRetrying(true);
-    try {
-      await regenerateReportApi({ reportId: report.id });
-      showSnackbar('已提交重新生成');
-      // Refresh after a short delay so the new status reflects
-      if (id) await fetchDetail(id);
-    } catch (err) {
-      showSnackbar(err instanceof Error ? err.message : '重新生成失败', 'error');
-    } finally {
-      setRetrying(false);
-    }
   };
 
   if (loading) {
@@ -172,13 +181,12 @@ export function ReportDetailView() {
           </IconButton>
         </span>
       </Tooltip>
-      <Tooltip title="重新生成">
+      <Tooltip title="重新生成能力未开放">
         <span>
           <IconButton
             size="small"
-            aria-label="重新生成"
-            onClick={handleRegenerate}
-            disabled={retrying || isInProgress}
+            aria-label="重新生成（未开放）"
+            disabled
           >
             <Iconify icon="solar:refresh-bold" />
           </IconButton>
@@ -223,8 +231,6 @@ export function ReportDetailView() {
         <Box sx={{ mb: 3 }}>
           <ReportErrorCard
             report={report}
-            retrying={retrying}
-            onRetry={handleRegenerate}
             onJump={(path) => router.push(path)}
           />
         </Box>
@@ -249,12 +255,7 @@ export function ReportDetailView() {
 
           {notesOpen && (
             <Box className="report-notes-panel">
-              <ReportNotesPanel
-                report={report}
-                onSaved={(notes, updatedAt) =>
-                  setReport((prev) => (prev ? { ...prev, notes, notesUpdatedAt: updatedAt } : prev))
-                }
-              />
+              <ReportNotesPanel report={report} />
             </Box>
           )}
         </Box>

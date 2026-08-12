@@ -5,6 +5,7 @@ import { useMemo } from 'react';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Divider from '@mui/material/Divider';
+import Tooltip from '@mui/material/Tooltip';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import { ChatMessageSources } from '@mui/x-chat/ChatMessageSources';
@@ -83,9 +84,11 @@ export function EvidenceRail({ message, drawer = false, onClose }: EvidenceRailP
           </Box>
         </Stack>
         {onClose ? (
-          <IconButton aria-label="关闭证据面板" onClick={onClose} sx={{ width: 44, height: 44 }}>
-            <Iconify icon="solar:close-circle-bold" width={19} />
-          </IconButton>
+          <Tooltip title="关闭证据面板">
+            <IconButton aria-label="关闭证据面板" onClick={onClose}>
+              <Iconify icon="solar:close-circle-bold" width={19} />
+            </IconButton>
+          </Tooltip>
         ) : null}
       </Stack>
 

@@ -1,7 +1,8 @@
+import type { KeyboardEvent } from 'react';
 import type { WalkForwardRunSummary } from 'src/api/backtest';
 
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
@@ -29,10 +30,18 @@ import { robustnessColor, robustnessLabel, formatPercentValue } from './walk-for
 
 // ----------------------------------------------------------------------
 
-function pctCell(val: number | null) {
+function pctCell(val: number | null, returnTone?: boolean) {
   if (val === null || val === undefined) return '—';
   const pct = (val * 100).toFixed(2);
-  const color = val >= 0 ? 'success.main' : 'error.main';
+  const color = returnTone
+    ? val > 0
+      ? 'error.main'
+      : val < 0
+        ? 'success.main'
+        : 'text.secondary'
+    : val >= 0
+      ? 'success.main'
+      : 'error.main';
   return (
     <Typography variant="body2" sx={{ color }}>
       {val >= 0 ? '+' : ''}
@@ -71,6 +80,21 @@ export function WalkForwardListTable({ rows, loading, onDelete }: Props) {
     closeMenu();
   };
 
+  const openRun = (row: WalkForwardRunSummary) => {
+    navigate(`/backtest/walk-forward/${row.wfRunId}`);
+  };
+
+  const handleRowKeyDown = (
+    event: KeyboardEvent<HTMLTableRowElement>,
+    row: WalkForwardRunSummary
+  ) => {
+    if (event.target !== event.currentTarget) return;
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+
+    event.preventDefault();
+    openRun(row);
+  };
+
   return (
     <Scrollbar>
       <TableContainer>
@@ -105,8 +129,19 @@ export function WalkForwardListTable({ rows, loading, onDelete }: Props) {
                   <TableRow
                     key={row.wfRunId}
                     hover
-                    sx={{ cursor: 'pointer' }}
-                    onClick={() => navigate(`/backtest/walk-forward/${row.wfRunId}`)}
+                    role="link"
+                    tabIndex={0}
+                    aria-label={`查看 Walk-Forward 任务：${row.name || row.wfRunId}`}
+                    onClick={() => openRun(row)}
+                    onKeyDown={(event) => handleRowKeyDown(event, row)}
+                    sx={{
+                      cursor: 'pointer',
+                      '&:focus-visible': {
+                        outline: '2px solid',
+                        outlineColor: 'primary.main',
+                        outlineOffset: -2,
+                      },
+                    }}
                   >
                     <TableCell>
                       <Typography variant="body2" fontWeight={600} noWrap sx={{ maxWidth: 200 }}>
@@ -163,7 +198,7 @@ export function WalkForwardListTable({ rows, loading, onDelete }: Props) {
                     </TableCell>
 
                     <TableCell align="right">{formatPercentValue(row.wfe, 1)}</TableCell>
-                    <TableCell align="right">{pctCell(row.oosAnnualizedReturn)}</TableCell>
+                    <TableCell align="right">{pctCell(row.oosAnnualizedReturn, true)}</TableCell>
                     <TableCell align="right">
                       {row.oosSharpeRatio !== null ? row.oosSharpeRatio.toFixed(3) : '—'}
                     </TableCell>
@@ -172,7 +207,7 @@ export function WalkForwardListTable({ rows, loading, onDelete }: Props) {
                       <Tooltip title="更多操作">
                         <IconButton
                           size="small"
-                          aria-label="更多操作"
+                          aria-label={`更多操作：${row.name || row.wfRunId}`}
                           onClick={(event) => {
                             event.stopPropagation();
                             setAnchorEl(event.currentTarget);

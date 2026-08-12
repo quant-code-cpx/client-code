@@ -19,6 +19,7 @@ import Stack from '@mui/material/Stack';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Switch from '@mui/material/Switch';
+import Tooltip from '@mui/material/Tooltip';
 import Skeleton from '@mui/material/Skeleton';
 import MenuItem from '@mui/material/MenuItem';
 import TextField from '@mui/material/TextField';
@@ -1060,9 +1061,11 @@ function ConditionFrame({ children, onRemove }: ConditionFrameProps) {
     >
       {children}
       <Box sx={{ flexGrow: 1 }} />
-      <IconButton aria-label="删除条件" color="error" onClick={onRemove}>
-        <Iconify icon="solar:trash-bin-trash-bold" />
-      </IconButton>
+      <Tooltip title="删除条件">
+        <IconButton aria-label="删除条件" color="error" onClick={onRemove}>
+          <Iconify icon="solar:trash-bin-trash-bold" />
+        </IconButton>
+      </Tooltip>
     </Box>
   );
 }

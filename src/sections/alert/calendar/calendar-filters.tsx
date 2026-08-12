@@ -260,7 +260,6 @@ export function CalendarFilters({ filters, onChange, onReset, onRefresh }: Props
           <Button
             size="small"
             variant="outlined"
-            color="inherit"
             startIcon={<Iconify icon="solar:refresh-bold" width={16} />}
             onClick={onRefresh}
           >

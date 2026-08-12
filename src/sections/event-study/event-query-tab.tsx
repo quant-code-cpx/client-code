@@ -239,8 +239,23 @@ export function EventQueryTab({ eventTypes }: Props) {
                       <TableRow
                         key={idx}
                         hover
-                        sx={{ cursor: 'pointer' }}
+                        role="button"
+                        tabIndex={0}
+                        aria-label={`查看第 ${idx + 1} 条事件详情`}
+                        sx={{
+                          cursor: 'pointer',
+                          '&:focus-visible': {
+                            outline: '2px solid',
+                            outlineColor: 'primary.main',
+                            outlineOffset: -2,
+                          },
+                        }}
                         onClick={() => handleRowClick(row)}
+                        onKeyDown={(event) => {
+                          if (event.key !== 'Enter' && event.key !== ' ') return;
+                          event.preventDefault();
+                          handleRowClick(row);
+                        }}
                       >
                         {columns.map((col) => (
                           <TableCell key={col.field}>

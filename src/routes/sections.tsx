@@ -2,7 +2,7 @@ import type { RouteObject } from 'react-router';
 
 import { lazy, Suspense } from 'react';
 import { varAlpha } from 'minimal-shared/utils';
-import { Outlet, Navigate } from 'react-router-dom';
+import { Outlet, Navigate, useParams } from 'react-router-dom';
 
 import Box from '@mui/material/Box';
 import LinearProgress, { linearProgressClasses } from '@mui/material/LinearProgress';
@@ -11,6 +11,7 @@ import { CONFIG } from 'src/config-global';
 import { AuthLayout } from 'src/layouts/auth';
 import { DashboardLayout } from 'src/layouts/dashboard';
 
+import { paths } from './paths';
 import { AuthGuard } from './components';
 
 import type { RouteMetadata } from './components';
@@ -78,15 +79,6 @@ export const FactorAdminPage = lazy(() => import('src/pages/factor-admin'));
 export const AgentPage = lazy(() => import('src/pages/agent'));
 export const ModelProvidersPage = lazy(() => import('src/pages/model-providers'));
 
-export function createAgentRoutes(enabled = CONFIG.agentEnabled): RouteObject[] {
-  return enabled
-    ? [
-        { path: 'agent', element: <AgentPage /> },
-        { path: 'agent/:conversationId', element: <AgentPage /> },
-      ]
-    : [];
-}
-
 const renderFallback = () => (
   <Box
     sx={{
@@ -119,6 +111,9 @@ const pageMetadata = {
   news: { title: `新闻时事 - ${CONFIG.appName}` },
   marketMoneyFlow: { title: `资金动态 - ${CONFIG.appName}` },
   industryRotation: { title: `行业轮动分析 - ${CONFIG.appName}` },
+  industryAnalysis: { title: `行业分析 - ${CONFIG.appName}` },
+  indexDetail: { title: `指数详情 - ${CONFIG.appName}` },
+  tushareSync: { title: `数据同步 - ${CONFIG.appName}` },
   factorLibrary: { title: `因子库 - ${CONFIG.appName}` },
   factorDetail: { title: `因子详情 - ${CONFIG.appName}` },
   factorCorrelation: { title: `因子相关性 - ${CONFIG.appName}` },
@@ -156,10 +151,35 @@ const pageMetadata = {
   report: { title: `量化报告 - ${CONFIG.appName}` },
   reportDetail: { title: `报告详情 - ${CONFIG.appName}` },
   pattern: { title: `形态匹配 - ${CONFIG.appName}` },
+  agent: { title: `智能研究 - ${CONFIG.appName}` },
+  profile: { title: `个人资料 - ${CONFIG.appName}` },
+  userManage: { title: `用户管理 - ${CONFIG.appName}` },
   modelProviders: { title: `模型供应商 - ${CONFIG.appName}` },
   signIn: { title: `Sign in - ${CONFIG.appName}` },
   notFound: { title: `404 page not found! | Error - ${CONFIG.appName}` },
 } satisfies Record<string, RouteMetadata>;
+
+export function createAgentRoutes(enabled = CONFIG.agentEnabled): RouteObject[] {
+  return enabled
+    ? [
+        { path: 'agent', element: <AgentPage />, handle: pageMetadata.agent },
+        {
+          path: 'agent/:conversationId',
+          element: <AgentPage />,
+          handle: pageMetadata.agent,
+        },
+      ]
+    : [];
+}
+
+export function legacyReportDetailPath(id: string | undefined): string {
+  return id ? paths.research.report.detail(id) : paths.research.report.list;
+}
+
+export function LegacyReportDetailRedirect() {
+  const { id } = useParams<{ id: string }>();
+  return <Navigate to={legacyReportDetailPath(id)} replace />;
+}
 
 export const routesSection: RouteObject[] = [
   {
@@ -185,8 +205,12 @@ export const routesSection: RouteObject[] = [
         element: <MarketMoneyFlowPage />,
         handle: pageMetadata.marketMoneyFlow,
       },
-      { path: 'market/industry', element: <IndustryAnalysisPage /> },
-      { path: 'market/index', element: <IndexDetailPage /> },
+      {
+        path: 'market/industry',
+        element: <IndustryAnalysisPage />,
+        handle: pageMetadata.industryAnalysis,
+      },
+      { path: 'market/index', element: <IndexDetailPage />, handle: pageMetadata.indexDetail },
       // ─── backward-compat: old market routes redirect to new combined page ───
       {
         path: 'market/industry-rotation',
@@ -194,7 +218,7 @@ export const routesSection: RouteObject[] = [
         handle: pageMetadata.industryRotation,
       },
       { path: 'market/heatmap', element: <Navigate to="/market/industry?tab=0" replace /> },
-      { path: 'tushare-sync', element: <TushareSyncPage /> },
+      { path: 'tushare-sync', element: <TushareSyncPage />, handle: pageMetadata.tushareSync },
       { path: 'factor/library', element: <FactorLibraryPage />, handle: pageMetadata.factorLibrary },
       { path: 'factor/detail/:name', element: <FactorDetailPage />, handle: pageMetadata.factorDetail },
       {
@@ -271,7 +295,7 @@ export const routesSection: RouteObject[] = [
         element: <ScreenerSubscriptionDetailPage />,
         handle: pageMetadata.screenerSubscriptionDetail,
       },
-      { path: 'profile', element: <ProfilePage /> },
+      { path: 'profile', element: <ProfilePage />, handle: pageMetadata.profile },
       { path: 'portfolio', element: <PortfolioPage />, handle: pageMetadata.portfolio },
       { path: 'portfolio/:id', element: <PortfolioDetailPage />, handle: pageMetadata.portfolioDetail },
       { path: 'alert', element: <AlertCalendarPage />, handle: pageMetadata.alertCalendar },
@@ -297,7 +321,7 @@ export const routesSection: RouteObject[] = [
       { path: 'research/report', element: <ReportListPage />, handle: pageMetadata.report },
       { path: 'research/report/:id', element: <ReportDetailPage />, handle: pageMetadata.reportDetail },
       { path: 'stock/pattern', element: <PatternPage />, handle: pageMetadata.pattern },
-      { path: 'admin/user-manage', element: <UserManagePage /> },
+      { path: 'admin/user-manage', element: <UserManagePage />, handle: pageMetadata.userManage },
       {
         path: 'admin/model-providers',
         element: <ModelProvidersPage />,
@@ -313,7 +337,8 @@ export const routesSection: RouteObject[] = [
       },
       { path: 'event-study', element: <Navigate to="/research/event-study" replace /> },
       { path: 'report', element: <Navigate to="/research/report" replace /> },
-      { path: 'report/:id', element: <Navigate to="/research/report/:id" replace /> },
+      { path: 'report/:id', element: <LegacyReportDetailRedirect /> },
+      { path: 'reports/:id', element: <LegacyReportDetailRedirect /> },
       { path: 'pattern', element: <Navigate to="/stock/pattern" replace /> },
       { path: 'user-manage', element: <Navigate to="/admin/user-manage" replace /> },
     ],

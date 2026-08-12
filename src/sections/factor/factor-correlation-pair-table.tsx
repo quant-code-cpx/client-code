@@ -87,8 +87,27 @@ export function FactorCorrelationPairTable({
                 <TableRow
                   key={`${pair.i}-${pair.j}`}
                   hover
-                  sx={{ cursor: 'pointer' }}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`查看因子对 ${pair.labelA} 与 ${pair.labelB}`}
+                  sx={{
+                    cursor: 'pointer',
+                    '&:focus-visible': {
+                      outline: '2px solid',
+                      outlineColor: 'primary.main',
+                      outlineOffset: -2,
+                    },
+                  }}
                   onClick={() => onSelect(pair)}
+                  onKeyDown={(event) => {
+                    if (
+                      event.target !== event.currentTarget ||
+                      (event.key !== 'Enter' && event.key !== ' ')
+                    )
+                      return;
+                    event.preventDefault();
+                    onSelect(pair);
+                  }}
                 >
                   <TableCell>
                     <Stack direction="column" spacing={0.25}>
@@ -134,7 +153,11 @@ export function FactorCorrelationPairTable({
                       </IconButton>
                     </Tooltip>
                     <Tooltip title={`移除因子 ${pair.labelA}`}>
-                      <IconButton size="small" onClick={() => onRemoveFactor(pair.factorA)} aria-label="移除因子">
+                      <IconButton
+                        size="small"
+                        onClick={() => onRemoveFactor(pair.factorA)}
+                        aria-label="移除因子"
+                      >
                         <Iconify icon="solar:trash-bin-trash-bold" width={16} />
                       </IconButton>
                     </Tooltip>

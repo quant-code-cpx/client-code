@@ -339,7 +339,7 @@ const routeMap: Record<string, unknown> = {
     metrics: {},
   }),
   '/api/portfolio/trade-log': ok({ items: [], total: 0, page: 1, pageSize: 20 }),
-  '/api/portfolio/trade-log/summary': ok(null),
+  '/api/portfolio/trade-log/summary': ok([]),
   '/api/portfolio/drift-detection': r(portfolioData, 'driftDetection'),
   '/api/portfolio/apply-backtest': ok({ success: true }),
 
@@ -462,7 +462,6 @@ const routeMap: Record<string, unknown> = {
   '/api/user/delete': ok({ success: true }),
   '/api/user/restore': r(userManageData, 'updated'),
   '/api/user/unlock': r(userManageData, 'updated'),
-  '/api/user/delete-impact': r(userManageData, 'deleteImpact'),
   '/api/user/bulk-update-status': ok({ success: [2], failed: [] }),
   '/api/user/update-status': ok({ success: true }),
   '/api/user/reset-password': ok({ newPassword: 'MockPass2026!' }),

@@ -155,9 +155,14 @@ function generateId(): string {
 
 type ProviderProps = {
   children: React.ReactNode;
+  realtimeEnabled?: boolean;
 };
 
-export function SyncNotificationProvider({ children }: ProviderProps) {
+export function SyncNotificationProvider({
+  children,
+  realtimeEnabled =
+    import.meta.env.VITE_DEMO_MODE !== 'true' && import.meta.env.VITE_REALTIME_ENABLED !== 'false',
+}: ProviderProps) {
   const { isAuthenticated } = useAuth();
   const [socketStatus, setSocketStatus] = useState<SocketStatus>(getSocketStatus());
   const [isSyncing, setIsSyncing] = useState(false);
@@ -172,7 +177,7 @@ export function SyncNotificationProvider({ children }: ProviderProps) {
   const socketRef = useRef<Socket | null>(null);
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!isAuthenticated || !realtimeEnabled) {
       destroySocket();
       socketRef.current = null;
       return undefined;
@@ -393,14 +398,14 @@ export function SyncNotificationProvider({ children }: ProviderProps) {
       offStatus();
       destroySocket();
     };
-  }, [isAuthenticated]);
+  }, [isAuthenticated, realtimeEnabled]);
 
   const reconnect = useCallback(() => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || !realtimeEnabled) return;
     const socket = socketRef.current ?? getSocket();
     socketRef.current = socket;
     if (!socket.connected) socket.connect();
-  }, [isAuthenticated]);
+  }, [isAuthenticated, realtimeEnabled]);
 
   const markNotificationRead = useCallback((id: string) => {
     setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, isUnRead: false } : n)));

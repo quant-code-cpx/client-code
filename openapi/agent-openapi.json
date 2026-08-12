@@ -711,6 +711,54 @@
         ]
       }
     },
+    "/agent/runs/retry": {
+      "post": {
+        "operationId": "AgentController_retryRun",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RetryAgentRunDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/AgentRunRetriedResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "从失败 Run 的安全检查点创建子 Run 重试",
+        "tags": [
+          "Agent - 会话与运行"
+        ]
+      }
+    },
     "/agent/runs/status": {
       "post": {
         "operationId": "AgentController_runStatus",
@@ -3135,6 +3183,7 @@
           },
           "condition": {
             "nullable": true,
+            "type": "object",
             "allOf": [
               {
                 "$ref": "#/components/schemas/StructuredConditionDto"
@@ -3855,10 +3904,12 @@
         "properties": {
           "cursor": {
             "type": "string",
-            "nullable": true
+            "nullable": true,
+            "maxLength": 256,
+            "description": "服务端返回的不透明复合游标"
           },
           "limit": {
-            "type": "number",
+            "type": "integer",
             "minimum": 1,
             "maximum": 100,
             "default": 30
@@ -5008,7 +5059,7 @@
             ]
           },
           "confirmation": {
-            "type": "number",
+            "type": "boolean",
             "enum": [
               true
             ],
@@ -5099,7 +5150,7 @@
             ]
           },
           "confirmation": {
-            "type": "number",
+            "type": "boolean",
             "enum": [
               true
             ],
@@ -5159,6 +5210,11 @@
             "items": {
               "$ref": "#/components/schemas/AgentToolCallResponseDto"
             }
+          },
+          "nextCursor": {
+            "type": "string",
+            "nullable": true,
+            "description": "下一页游标；null 表示已到末页"
           },
           "payloadIncluded": {
             "type": "boolean",
@@ -5255,6 +5311,17 @@
           "runId": {
             "type": "string"
           },
+          "cursor": {
+            "type": "string",
+            "nullable": true,
+            "description": "上一页返回的 Tool Call 游标"
+          },
+          "limit": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 50
+          },
           "includePayload": {
             "type": "boolean",
             "default": false,
@@ -5337,6 +5404,7 @@
           },
           "currentStep": {
             "nullable": true,
+            "type": "object",
             "allOf": [
               {
                 "$ref": "#/components/schemas/AgentRunCurrentStepDto"
@@ -5352,6 +5420,23 @@
           },
           "canCancel": {
             "type": "boolean"
+          },
+          "canRetry": {
+            "type": "boolean"
+          },
+          "retryOfRunId": {
+            "type": "string",
+            "nullable": true
+          },
+          "retryMode": {
+            "type": "string",
+            "enum": [
+              "SAFE_CHECKPOINT"
+            ],
+            "nullable": true
+          },
+          "retryDepth": {
+            "type": "number"
           },
           "errorCode": {
             "type": "number",
@@ -5383,6 +5468,8 @@
           "statusVersion",
           "latestEventSequence",
           "canCancel",
+          "canRetry",
+          "retryDepth",
           "queuedAt"
         ]
       },
@@ -5437,6 +5524,71 @@
           }
         },
         "required": [
+          "runId"
+        ]
+      },
+      "AgentRunRetriedResponseDto": {
+        "type": "object",
+        "properties": {
+          "conversationId": {
+            "type": "string"
+          },
+          "sourceRunId": {
+            "type": "string"
+          },
+          "assistantMessageId": {
+            "type": "string"
+          },
+          "runId": {
+            "type": "string"
+          },
+          "runStatus": {
+            "type": "string",
+            "enum": [
+              "QUEUED",
+              "RUNNING",
+              "CANCEL_REQUESTED",
+              "COMPLETED",
+              "FAILED",
+              "CANCELLED"
+            ]
+          },
+          "retryMode": {
+            "type": "string",
+            "enum": [
+              "SAFE_CHECKPOINT"
+            ]
+          },
+          "streamEndpoint": {
+            "type": "string",
+            "enum": [
+              "/api/agent/runs/events"
+            ]
+          }
+        },
+        "required": [
+          "conversationId",
+          "sourceRunId",
+          "assistantMessageId",
+          "runId",
+          "runStatus",
+          "retryMode",
+          "streamEndpoint"
+        ]
+      },
+      "RetryAgentRunDto": {
+        "type": "object",
+        "properties": {
+          "clientRequestId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "runId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "clientRequestId",
           "runId"
         ]
       },
@@ -5674,6 +5826,16 @@
               "type": "string"
             }
           },
+          "reasoningEfforts": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "defaultReasoningEffort": {
+            "type": "string",
+            "nullable": true
+          },
           "contextWindow": {
             "type": "number"
           },
@@ -5705,6 +5867,7 @@
           "displayName",
           "provider",
           "capabilities",
+          "reasoningEfforts",
           "contextWindow",
           "maxOutputTokens",
           "costTier",
@@ -5725,6 +5888,10 @@
             ]
           },
           "preferredModel": {
+            "type": "string",
+            "nullable": true
+          },
+          "reasoningEffort": {
             "type": "string",
             "nullable": true
           },
@@ -5804,6 +5971,12 @@
             "type": "string",
             "nullable": true,
             "maxLength": 128
+          },
+          "reasoningEffort": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 64,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$"
           }
         },
         "required": [
@@ -5878,6 +6051,7 @@
           },
           "run": {
             "nullable": true,
+            "type": "object",
             "allOf": [
               {
                 "$ref": "#/components/schemas/AgentMessageRunSummaryDto"
@@ -6039,6 +6213,10 @@
             "type": "string",
             "nullable": true
           },
+          "reasoningEffort": {
+            "type": "string",
+            "nullable": true
+          },
           "messageCount": {
             "type": "number"
           },
@@ -6059,6 +6237,7 @@
           },
           "currentSummary": {
             "nullable": true,
+            "type": "object",
             "allOf": [
               {
                 "$ref": "#/components/schemas/AgentConversationCurrentSummaryDto"
@@ -6178,6 +6357,10 @@
             "type": "string",
             "nullable": true
           },
+          "reasoningEffort": {
+            "type": "string",
+            "nullable": true
+          },
           "messageCount": {
             "type": "number"
           },
@@ -6272,6 +6455,12 @@
             "nullable": true,
             "maxLength": 128,
             "example": null
+          },
+          "reasoningEffort": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 64,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$"
           }
         },
         "required": [

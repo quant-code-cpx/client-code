@@ -131,7 +131,7 @@ export function StrategyQuickRunPanel({ strategy }: StrategyQuickRunPanelProps) 
             label="任务名称（可选）"
             value={form.name}
             onChange={(e) => set({ name: e.target.value })}
-            inputProps={{ maxLength: 100 }}
+            slotProps={{ htmlInput: { maxLength: 100 } }}
             placeholder={`${strategy.name} 回测`}
           />
 
@@ -157,7 +157,7 @@ export function StrategyQuickRunPanel({ strategy }: StrategyQuickRunPanelProps) 
             type="number"
             value={form.initialCapital}
             onChange={(e) => set({ initialCapital: Number(e.target.value) })}
-            slotProps={{ input: { inputProps: { min: 1 } } }}
+            slotProps={{ htmlInput: { min: 1 } }}
             helperText={`¥ ${fNumber(form.initialCapital)}`}
           />
 

@@ -96,7 +96,7 @@ export function DashboardSectorWind({ refreshKey }: { refreshKey?: number }) {
     <Card sx={{ height: '100%' }}>
       <CardHeader
         title="板块风向标"
-        titleTypographyProps={{ variant: 'subtitle1', fontWeight: 700 }}
+        slotProps={{ title: { variant: 'subtitle1', fontWeight: 700 } }}
         avatar={<Iconify icon="solar:chart-bold" width={22} sx={{ color: 'primary.main' }} />}
         sx={{ pb: 1 }}
       />

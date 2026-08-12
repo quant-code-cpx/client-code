@@ -10,24 +10,28 @@ import { useAuth } from 'src/auth';
 import { AuthProvider } from '../provider';
 
 // Mock the API layer so the provider can be tested in isolation.
-vi.mock('src/api', () => {
+vi.mock('src/api/client', () => {
   const mockTokenStorage = {
     get: vi.fn(() => null as string | null),
     set: vi.fn(),
     clear: vi.fn(),
   };
   return {
-    authApi: {
-      refresh: vi.fn(),
-      logout: vi.fn(),
-    },
-    userManageApi: {
-      getProfile: vi.fn(),
-    },
     tokenStorage: mockTokenStorage,
     setAuthCallbacks: vi.fn(),
   };
 });
+vi.mock('src/api/auth', () => ({
+  authApi: {
+    refresh: vi.fn(),
+    logout: vi.fn(),
+  },
+}));
+vi.mock('src/api/user-manage', () => ({
+  userManageApi: {
+    getProfile: vi.fn(),
+  },
+}));
 
 const { mockDestroySocket, mockRefreshSocketAuth } = vi.hoisted(() => ({
   mockDestroySocket: vi.fn(),
@@ -42,7 +46,9 @@ vi.mock('src/lib/socket', () => ({
 import type { UserProfile } from 'src/api/user-manage';
 
 // Lazy imports AFTER vi.mock so Vitest can apply hoisting.
-import { authApi, tokenStorage, userManageApi, setAuthCallbacks } from 'src/api';
+import { authApi } from 'src/api/auth';
+import { userManageApi } from 'src/api/user-manage';
+import { tokenStorage, setAuthCallbacks } from 'src/api/client';
 
 // ----------------------------------------------------------------------
 

@@ -27,9 +27,6 @@ import { STATUS_COLOR, STATUS_LABEL, normalizeDisplayDate } from './constants';
 type Props = {
   item: ComparisonListItem;
   onView: (groupId: string) => void;
-  onCopy: (item: ComparisonListItem) => void;
-  onCancel: (item: ComparisonListItem) => void;
-  onDelete: (item: ComparisonListItem) => void;
 };
 
 function formatRangeDate(value: string) {
@@ -42,7 +39,7 @@ function canCancel(status: string) {
   return status === 'QUEUED' || status === 'RUNNING';
 }
 
-export function ComparisonListCard({ item, onView, onCopy, onCancel, onDelete }: Props) {
+export function ComparisonListCard({ item, onView }: Props) {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const statusColor = STATUS_COLOR[item.status] ?? 'default';
   const title = item.name || '未命名策略对比';
@@ -56,11 +53,6 @@ export function ComparisonListCard({ item, onView, onCopy, onCancel, onDelete }:
 
   const handleMenuClose = () => {
     setAnchorEl(null);
-  };
-
-  const handleAction = (action: (target: ComparisonListItem) => void) => {
-    handleMenuClose();
-    action(item);
   };
 
   return (
@@ -133,19 +125,19 @@ export function ComparisonListCard({ item, onView, onCopy, onCancel, onDelete }:
       </Tooltip>
 
       <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose}>
-        <MenuItem onClick={() => handleAction(onCopy)}>
+        <MenuItem disabled>
           <Iconify icon="solar:copy-bold" width={16} sx={{ mr: 1 }} />
-          复制配置重跑
+          复制配置（未开放）
         </MenuItem>
         {canCancel(item.status) ? (
-          <MenuItem onClick={() => handleAction(onCancel)}>
+          <MenuItem disabled>
             <Iconify icon="solar:close-circle-bold" width={16} sx={{ mr: 1 }} />
-            取消任务
+            取消任务（未开放）
           </MenuItem>
         ) : null}
-        <MenuItem onClick={() => handleAction(onDelete)} sx={{ color: 'error.main' }}>
+        <MenuItem disabled>
           <Iconify icon="solar:trash-bin-trash-bold" width={16} sx={{ mr: 1 }} />
-          删除任务
+          删除任务（未开放）
         </MenuItem>
       </Menu>
 

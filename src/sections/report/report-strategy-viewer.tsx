@@ -3,6 +3,7 @@ import type { StrategyResearchReportData } from 'src/api/report';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Grid from '@mui/material/Grid';
+import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import Table from '@mui/material/Table';
 import Divider from '@mui/material/Divider';
@@ -10,7 +11,6 @@ import TableRow from '@mui/material/TableRow';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
-import { useTheme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 import TableContainer from '@mui/material/TableContainer';
@@ -19,11 +19,9 @@ import { fNumber, fPercent } from 'src/utils/format-number';
 
 import { Label } from 'src/components/label';
 import { Scrollbar } from 'src/components/scrollbar';
-import { Chart, useChart } from 'src/components/chart';
-
-// ─── Metric card ──────────────────────────────────────────────
 
 type MetricCardProps = { label: string; value: string; color?: string };
+
 function MetricCard({ label, value, color }: MetricCardProps) {
   return (
     <Card>
@@ -39,173 +37,81 @@ function MetricCard({ label, value, color }: MetricCardProps) {
   );
 }
 
-function pctStr(v: number): string {
-  return `${v >= 0 ? '+' : ''}${fPercent(v)}`;
-}
-function pctColor(v: number, invert?: boolean): string {
-  if (invert) return v < 0 ? 'success.main' : 'error.main';
-  return v >= 0 ? 'error.main' : 'success.main';
+function pctStr(value: number | null, signed = false): string {
+  if (value == null) return '—';
+  return `${signed && value > 0 ? '+' : ''}${fPercent(value)}`;
 }
 
-// ─── NAV curve chart ─────────────────────────────────────────
-
-type NavCurveProps = { points: { date: string; nav: number }[] };
-function NavCurveChart({ points }: NavCurveProps) {
-  const series = [{ name: '策略净值', data: points.map((p) => Number(p.nav.toFixed(4))) }];
-  const chartOptions = useChart({
-    chart: { type: 'area', toolbar: { show: false } },
-    fill: { type: 'gradient', gradient: { opacityFrom: 0.3, opacityTo: 0 } },
-    stroke: { width: 2, curve: 'smooth' },
-    dataLabels: { enabled: false },
-    xaxis: { type: 'category', categories: points.map((p) => p.date), tickAmount: 8 },
-    yaxis: { labels: { formatter: (v: number) => v.toFixed(2) } },
-    tooltip: { shared: true, intersect: false, y: { formatter: (v: number) => v.toFixed(4) } },
-  });
-
-  return (
-    <Card>
-      <CardContent sx={{ p: 3 }}>
-        <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
-          净值曲线
-        </Typography>
-        {points.length === 0 ? (
-          <Box
-            sx={{ height: 260, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-          >
-            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-              暂无数据
-            </Typography>
-          </Box>
-        ) : (
-          <Chart type="area" series={series} options={chartOptions} sx={{ height: 260 }} />
-        )}
-      </CardContent>
-    </Card>
-  );
+function pctColor(value: number | null): string | undefined {
+  if (value == null || value === 0) return undefined;
+  return value > 0 ? 'error.main' : 'success.main';
 }
 
-// ─── Drawdown chart ──────────────────────────────────────────
-
-type DrawdownChartProps = { points: { date: string; drawdown: number }[] };
-function DrawdownChart({ points }: DrawdownChartProps) {
-  const theme = useTheme();
-  const series = [{ name: '回撤', data: points.map((p) => Number((p.drawdown * 100).toFixed(2))) }];
-  const chartOptions = useChart({
-    chart: { type: 'area', toolbar: { show: false } },
-    colors: [theme.palette.error.main],
-    fill: { type: 'gradient', gradient: { opacityFrom: 0.4, opacityTo: 0 } },
-    stroke: { width: 2, curve: 'smooth' },
-    dataLabels: { enabled: false },
-    xaxis: { type: 'category', categories: points.map((p) => p.date), tickAmount: 8 },
-    yaxis: { labels: { formatter: (v: number) => `${v.toFixed(1)}%` } },
-    tooltip: {
-      shared: true,
-      intersect: false,
-      y: { formatter: (v: number) => `${v.toFixed(2)}%` },
-    },
-  });
-
-  return (
-    <Card>
-      <CardContent sx={{ p: 3 }}>
-        <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
-          回撤曲线
-        </Typography>
-        {points.length === 0 ? (
-          <Box
-            sx={{ height: 180, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-          >
-            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-              暂无数据
-            </Typography>
-          </Box>
-        ) : (
-          <Chart type="area" series={series} options={chartOptions} sx={{ height: 180 }} />
-        )}
-      </CardContent>
-    </Card>
-  );
+function actionLabel(action: string): string {
+  const labels: Record<string, string> = {
+    ADD: '新增',
+    REMOVE: '移除',
+    ADJUST: '调整',
+    BUY: '买入',
+    SELL: '卖出',
+  };
+  return labels[action] ?? action;
 }
 
-// ─── Trade logs table ─────────────────────────────────────────
+function actionColor(action: string): 'default' | 'error' | 'success' | 'warning' {
+  if (action === 'BUY' || action === 'ADD') return 'error';
+  if (action === 'SELL' || action === 'REMOVE') return 'success';
+  if (action === 'ADJUST') return 'warning';
+  return 'default';
+}
 
 type TradeLogsProps = {
-  trades: NonNullable<StrategyResearchReportData['sections']['tradeLogs']>;
+  logs: NonNullable<StrategyResearchReportData['sections']['tradeLogs']>['recentLogs'];
 };
-function TradeLogsTable({ trades }: TradeLogsProps) {
+
+function TradeLogsTable({ logs }: TradeLogsProps) {
   return (
     <Card>
       <CardContent sx={{ p: 3 }}>
         <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
-          交易日志
+          组合操作日志
         </Typography>
         <Scrollbar>
           <TableContainer>
-            <Table size="small" sx={{ minWidth: 740 }}>
+            <Table size="small" sx={{ minWidth: 760 }}>
               <TableHead>
                 <TableRow>
-                  <TableCell>日期</TableCell>
+                  <TableCell>发生时间</TableCell>
+                  <TableCell>操作</TableCell>
                   <TableCell>代码</TableCell>
                   <TableCell>名称</TableCell>
-                  <TableCell>方向</TableCell>
-                  <TableCell align="right">成交价</TableCell>
                   <TableCell align="right">数量</TableCell>
-                  <TableCell align="right">成交额</TableCell>
-                  <TableCell align="right">盈亏</TableCell>
+                  <TableCell align="right">价格</TableCell>
+                  <TableCell>原因</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {trades.map((t, idx) => (
-                  <TableRow key={idx} hover>
+                {logs.map((log, index) => (
+                  <TableRow key={`${log.createdAt}-${log.tsCode}-${index}`} hover>
+                    <TableCell>{log.createdAt}</TableCell>
                     <TableCell>
-                      <Typography variant="caption">{t.date}</Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="caption">{t.tsCode}</Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="caption">{t.name ?? '-'}</Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Label color={t.direction === 'BUY' ? 'error' : 'success'} variant="soft">
-                        {t.direction === 'BUY' ? '买入' : '卖出'}
+                      <Label color={actionColor(log.action)} variant="soft">
+                        {actionLabel(log.action)}
                       </Label>
                     </TableCell>
+                    <TableCell>{log.tsCode}</TableCell>
+                    <TableCell>{log.stockName ?? '—'}</TableCell>
+                    <TableCell align="right">{fNumber(log.quantity)}</TableCell>
                     <TableCell align="right">
-                      <Typography variant="caption">{t.price.toFixed(2)}</Typography>
+                      {log.price == null ? '—' : log.price.toFixed(2)}
                     </TableCell>
-                    <TableCell align="right">
-                      <Typography variant="caption">{fNumber(t.quantity)}</Typography>
-                    </TableCell>
-                    <TableCell align="right">
-                      <Typography variant="caption">{fNumber(Math.round(t.amount))}</Typography>
-                    </TableCell>
-                    <TableCell align="right">
-                      {t.pnl != null ? (
-                        <Typography
-                          variant="caption"
-                          sx={{
-                            color: t.pnl >= 0 ? 'error.main' : 'success.main',
-                            fontWeight: 600,
-                          }}
-                        >
-                          {t.pnl >= 0 ? '+' : ''}
-                          {fNumber(Math.round(t.pnl))}
-                        </Typography>
-                      ) : (
-                        <Typography variant="caption" sx={{ color: 'text.disabled' }}>
-                          -
-                        </Typography>
-                      )}
-                    </TableCell>
+                    <TableCell>{log.reason}</TableCell>
                   </TableRow>
                 ))}
-                {trades.length === 0 && (
+                {logs.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={8} align="center" sx={{ py: 3 }}>
-                      <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                        暂无交易记录
-                      </Typography>
+                    <TableCell colSpan={7} align="center" sx={{ py: 3, color: 'text.secondary' }}>
+                      暂无操作日志
                     </TableCell>
                   </TableRow>
                 )}
@@ -218,8 +124,6 @@ function TradeLogsTable({ trades }: TradeLogsProps) {
   );
 }
 
-// ─── Main component ───────────────────────────────────────────
-
 type StrategyReportViewerProps = {
   data: StrategyResearchReportData;
 };
@@ -230,103 +134,104 @@ export function StrategyReportViewer({ data }: StrategyReportViewerProps) {
 
   return (
     <Stack spacing={3}>
-      {/* Header */}
       <Card>
         <CardContent sx={{ p: 3 }}>
           <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>
             {title}
           </Typography>
-          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+          <Typography variant="caption" color="text.secondary">
             生成于 {generatedAt}
           </Typography>
-
           <Divider sx={{ my: 2 }} />
-
           <Grid container spacing={2}>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <Stack direction="row" justifyContent="space-between" sx={{ py: 0.75 }}>
-                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                  策略名称
-                </Typography>
-                <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                  {overview.strategyName}
-                </Typography>
-              </Stack>
-              <Stack direction="row" justifyContent="space-between" sx={{ py: 0.75 }}>
-                <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                  回测周期
-                </Typography>
-                <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                  {overview.backtestPeriod}
-                </Typography>
-              </Stack>
+            <Grid size={{ xs: 12, md: 4 }}>
+              <Typography variant="caption" color="text.secondary">
+                策略名称
+              </Typography>
+              <Typography variant="body2" fontWeight={600}>
+                {overview.strategyName}
+              </Typography>
             </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              {overview.benchmark && (
-                <Stack direction="row" justifyContent="space-between" sx={{ py: 0.75 }}>
-                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                    基准
-                  </Typography>
-                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                    {overview.benchmark}
-                  </Typography>
-                </Stack>
-              )}
+            <Grid size={{ xs: 12, md: 4 }}>
+              <Typography variant="caption" color="text.secondary">
+                策略类型
+              </Typography>
+              <Typography variant="body2" fontWeight={600}>
+                {overview.strategyType}
+              </Typography>
+            </Grid>
+            <Grid size={{ xs: 12, md: 4 }}>
+              <Typography variant="caption" color="text.secondary">
+                回测记录
+              </Typography>
+              <Typography variant="body2" fontWeight={600}>
+                {overview.backtestRunId}
+              </Typography>
             </Grid>
           </Grid>
-
           {overview.description && (
-            <>
-              <Divider sx={{ my: 1.5 }} />
-              <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                {overview.description}
-              </Typography>
-            </>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+              {overview.description}
+            </Typography>
           )}
         </CardContent>
       </Card>
 
-      {/* Backtest performance */}
-      {backtestPerformance && (
+      {backtestPerformance ? (
         <>
           <Grid container spacing={2}>
             <Grid size={{ xs: 6, sm: 4, md: 3 }}>
               <MetricCard
                 label="总收益率"
-                value={pctStr(backtestPerformance.totalReturn)}
+                value={pctStr(backtestPerformance.totalReturn, true)}
                 color={pctColor(backtestPerformance.totalReturn)}
               />
             </Grid>
             <Grid size={{ xs: 6, sm: 4, md: 3 }}>
               <MetricCard
                 label="年化收益率"
-                value={pctStr(backtestPerformance.annualReturn)}
+                value={pctStr(backtestPerformance.annualReturn, true)}
                 color={pctColor(backtestPerformance.annualReturn)}
               />
             </Grid>
             <Grid size={{ xs: 6, sm: 4, md: 3 }}>
-              <MetricCard label="夏普比率" value={backtestPerformance.sharpe.toFixed(2)} />
+              <MetricCard
+                label="夏普比率"
+                value={
+                  backtestPerformance.sharpe == null
+                    ? '—'
+                    : backtestPerformance.sharpe.toFixed(2)
+                }
+              />
             </Grid>
             <Grid size={{ xs: 6, sm: 4, md: 3 }}>
               <MetricCard
                 label="最大回撤"
                 value={pctStr(backtestPerformance.maxDrawdown)}
-                color={pctColor(backtestPerformance.maxDrawdown, true)}
+                color="warning.main"
               />
             </Grid>
             <Grid size={{ xs: 6, sm: 4, md: 3 }}>
-              <MetricCard label="胜率" value={fPercent(backtestPerformance.winRate)} />
+              <MetricCard label="胜率" value={pctStr(backtestPerformance.winRate)} />
             </Grid>
             <Grid size={{ xs: 6, sm: 4, md: 3 }}>
-              <MetricCard label="交易次数" value={String(backtestPerformance.tradeCount)} />
+              <MetricCard label="年化波动率" value={pctStr(backtestPerformance.volatility)} />
             </Grid>
+            {backtestPerformance.benchmarkComparison && (
+              <Grid size={{ xs: 6, sm: 4, md: 3 }}>
+                <MetricCard
+                  label={`基准收益${backtestPerformance.benchmarkTsCode ? ` · ${backtestPerformance.benchmarkTsCode}` : ''}`}
+                  value={pctStr(backtestPerformance.benchmarkComparison.annualReturn, true)}
+                />
+              </Grid>
+            )}
           </Grid>
-          <NavCurveChart points={backtestPerformance.navCurve} />
-          <DrawdownChart points={backtestPerformance.drawdownCurve} />
+          <Alert severity="info">后端策略研究报告暂未提供净值和回撤曲线。</Alert>
         </>
+      ) : (
+        <Alert severity="info">本报告未包含回测表现。</Alert>
       )}
 
-      {/* Risk assessment */}
       {riskAssessment && (
         <Card>
           <CardContent sx={{ p: 3 }}>
@@ -338,94 +243,61 @@ export function StrategyReportViewer({ data }: StrategyReportViewerProps) {
                 <MetricCard
                   label="最大回撤"
                   value={pctStr(riskAssessment.maxDrawdown)}
-                  color={pctColor(riskAssessment.maxDrawdown, true)}
+                  color="warning.main"
                 />
               </Grid>
               <Grid size={{ xs: 6, sm: 4, md: 3 }}>
-                <MetricCard label="年化波动率" value={fPercent(riskAssessment.volatility)} />
+                <MetricCard label="年化波动率" value={pctStr(riskAssessment.volatility)} />
               </Grid>
-              {riskAssessment.beta != null && (
-                <Grid size={{ xs: 6, sm: 4, md: 3 }}>
-                  <MetricCard label="Beta" value={riskAssessment.beta.toFixed(2)} />
-                </Grid>
-              )}
-              {riskAssessment.var95 != null && (
-                <Grid size={{ xs: 6, sm: 4, md: 3 }}>
-                  <MetricCard label="VaR 95%" value={fPercent(riskAssessment.var95)} />
-                </Grid>
-              )}
-              {riskAssessment.calmarRatio != null && (
-                <Grid size={{ xs: 6, sm: 4, md: 3 }}>
-                  <MetricCard label="卡尔玛比率" value={riskAssessment.calmarRatio.toFixed(2)} />
-                </Grid>
-              )}
-              {riskAssessment.sortinoRatio != null && (
-                <Grid size={{ xs: 6, sm: 4, md: 3 }}>
-                  <MetricCard label="索提诺比率" value={riskAssessment.sortinoRatio.toFixed(2)} />
-                </Grid>
-              )}
+              <Grid size={{ xs: 6, sm: 4, md: 3 }}>
+                <MetricCard
+                  label="Beta"
+                  value={riskAssessment.beta == null ? '—' : riskAssessment.beta.toFixed(2)}
+                />
+              </Grid>
+              <Grid size={{ xs: 6, sm: 4, md: 3 }}>
+                <MetricCard label="VaR 95%" value={pctStr(riskAssessment.var95)} />
+              </Grid>
             </Grid>
           </CardContent>
         </Card>
       )}
 
-      {/* Holdings analysis */}
       {holdingsAnalysis && (
         <Card>
           <CardContent sx={{ p: 3 }}>
-            <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
-              持仓分析
-            </Typography>
+            <Stack direction="row" justifyContent="space-between" sx={{ mb: 2 }}>
+              <Typography variant="subtitle1" fontWeight={600}>
+                持仓分析
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                快照日期 {holdingsAnalysis.snapshotDate}
+              </Typography>
+            </Stack>
             <Grid container spacing={3}>
-              {/* End positions */}
               <Grid size={{ xs: 12, md: 7 }}>
-                <Typography variant="body2" sx={{ mb: 1.5, color: 'text.secondary' }}>
-                  期末持仓
-                </Typography>
                 <TableContainer>
                   <Table size="small">
                     <TableHead>
                       <TableRow>
                         <TableCell>代码</TableCell>
                         <TableCell>名称</TableCell>
-                        <TableCell align="right">数量（股）</TableCell>
-                        <TableCell align="right">市值</TableCell>
                         <TableCell align="right">权重</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {holdingsAnalysis.endPositions.map((pos, idx) => (
-                        <TableRow key={idx} hover>
-                          <TableCell>
-                            <Typography variant="caption">{pos.tsCode}</Typography>
-                          </TableCell>
-                          <TableCell>
-                            <Typography variant="caption">{pos.name ?? '-'}</Typography>
-                          </TableCell>
-                          <TableCell align="right">
-                            <Typography variant="caption">{fNumber(pos.quantity)}</Typography>
-                          </TableCell>
-                          <TableCell align="right">
-                            <Typography variant="caption">
-                              {fNumber(Math.round(pos.marketValue))}
-                            </Typography>
-                          </TableCell>
-                          <TableCell align="right">
-                            <Typography variant="caption" sx={{ fontWeight: 600 }}>
-                              {fPercent(pos.weight)}
-                            </Typography>
-                          </TableCell>
+                      {holdingsAnalysis.topHoldings.map((position) => (
+                        <TableRow key={position.tsCode} hover>
+                          <TableCell>{position.tsCode}</TableCell>
+                          <TableCell>{position.stockName ?? '—'}</TableCell>
+                          <TableCell align="right">{pctStr(position.weight)}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
                   </Table>
                 </TableContainer>
               </Grid>
-              {/* Industry distribution */}
               <Grid size={{ xs: 12, md: 5 }}>
-                <Typography variant="body2" sx={{ mb: 1.5, color: 'text.secondary' }}>
-                  行业分布
-                </Typography>
                 <TableContainer>
                   <Table size="small">
                     <TableHead>
@@ -435,16 +307,10 @@ export function StrategyReportViewer({ data }: StrategyReportViewerProps) {
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {holdingsAnalysis.industryDistribution.map((ind, idx) => (
-                        <TableRow key={idx} hover>
-                          <TableCell>
-                            <Typography variant="caption">{ind.industry}</Typography>
-                          </TableCell>
-                          <TableCell align="right">
-                            <Typography variant="caption" sx={{ fontWeight: 600 }}>
-                              {fPercent(ind.weight)}
-                            </Typography>
-                          </TableCell>
+                      {holdingsAnalysis.industryDistribution.map((industry) => (
+                        <TableRow key={industry.industry} hover>
+                          <TableCell>{industry.industry}</TableCell>
+                          <TableCell align="right">{pctStr(industry.weight)}</TableCell>
                         </TableRow>
                       ))}
                     </TableBody>
@@ -456,8 +322,11 @@ export function StrategyReportViewer({ data }: StrategyReportViewerProps) {
         </Card>
       )}
 
-      {/* Trade logs */}
-      {tradeLogs && tradeLogs.length > 0 && <TradeLogsTable trades={tradeLogs} />}
+      {tradeLogs && <TradeLogsTable logs={tradeLogs.recentLogs} />}
+
+      {!holdingsAnalysis && !riskAssessment && !tradeLogs && !backtestPerformance && (
+        <Box sx={{ color: 'text.secondary' }}>本报告未选择其他分析章节。</Box>
+      )}
     </Stack>
   );
 }

@@ -107,15 +107,18 @@ export function FactorCorrelationParams({
               error={tooFew}
             />
           )}
-          renderTags={(value, getTagProps) =>
-            value.map((name, index) => (
-              <Chip
-                label={factorLabelMap[name] ?? name}
-                {...getTagProps({ index })}
-                key={name}
-                size="small"
-              />
-            ))
+          renderValue={(value, getItemProps) =>
+            value.map((name, index) => {
+              const { key, ...itemProps } = getItemProps({ index });
+              return (
+                <Chip
+                  key={key}
+                  label={factorLabelMap[name] ?? name}
+                  {...itemProps}
+                  size="small"
+                />
+              );
+            })
           }
           isOptionEqualToValue={(a, b) => a === b}
           getOptionDisabled={(option) =>

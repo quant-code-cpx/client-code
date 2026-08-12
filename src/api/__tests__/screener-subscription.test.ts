@@ -5,6 +5,7 @@ import {
   getSubscriptionHits,
   getSubscriptionMetrics,
   previewSubscriptionRule,
+  getSubscriptionRunStatus,
 } from '../screener-subscription';
 
 vi.mock('../client', () => ({ apiClient: { post: vi.fn() } }));
@@ -58,6 +59,14 @@ describe('screener subscription v3 API contract', () => {
       page: 2,
       pageSize: 50,
       kind: 'EVENT',
+    });
+  });
+
+  it('loads manual-run status through POST body', () => {
+    getSubscriptionRunStatus('job-123');
+
+    expect(apiClient.post).toHaveBeenCalledWith('/api/screener-subscription/run/status', {
+      jobId: 'job-123',
     });
   });
 });

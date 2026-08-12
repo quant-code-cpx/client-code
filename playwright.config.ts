@@ -1,4 +1,4 @@
-import { defineConfig, devices } from '@playwright/test';
+import { devices, defineConfig } from '@playwright/test';
 
 export default defineConfig({
   testDir: './e2e',
@@ -31,28 +31,37 @@ export default defineConfig({
     },
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 900 } },
       dependencies: ['setup'],
-      testIgnore: '**/agent-*.e2e.ts',
+      testIgnore: ['**/agent-*.e2e.ts', '**/global-*.e2e.ts'],
     },
     {
       name: 'agent-chromium',
       testMatch: '**/agent-*.e2e.ts',
       testIgnore: '**/agent-real-backend.e2e.ts',
-      use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:3040' },
+      use: {
+        ...devices['Desktop Chrome'],
+        baseURL: 'http://localhost:3040',
+        viewport: { width: 1440, height: 900 },
+      },
     },
   ],
 
   webServer: [
     {
       command: 'yarn dev',
+      env: { VITE_REALTIME_ENABLED: 'false' },
       url: 'http://localhost:3039',
       reuseExistingServer: !process.env.CI,
       timeout: 60_000,
     },
     {
       command: 'yarn dev --port 3040',
-      env: { VITE_AGENT_ENABLED: 'true', VITE_AGENT_RICH_BLOCKS_ENABLED: 'true' },
+      env: {
+        VITE_AGENT_ENABLED: 'true',
+        VITE_AGENT_RICH_BLOCKS_ENABLED: 'true',
+        VITE_REALTIME_ENABLED: 'false',
+      },
       url: 'http://localhost:3040',
       reuseExistingServer: false,
       timeout: 60_000,

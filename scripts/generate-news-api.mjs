@@ -1,17 +1,17 @@
+import { tmpdir } from 'node:os';
+import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
+import { dirname, resolve, relative } from 'node:path';
 import {
-  copyFileSync,
-  existsSync,
-  mkdtempSync,
-  mkdirSync,
-  readFileSync,
-  renameSync,
   rmSync,
+  mkdirSync,
+  existsSync,
+  renameSync,
+  mkdtempSync,
+  copyFileSync,
+  readFileSync,
   writeFileSync,
 } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { dirname, relative, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
 
 const scriptDir = dirname(fileURLToPath(import.meta.url));
 const projectRoot = resolve(scriptDir, '..');
@@ -21,11 +21,10 @@ const configuredInput = process.env.NEWS_OPENAPI_PATH;
 const checkOnly = process.argv.includes('--check');
 const inputPath = configuredInput
   ? resolve(projectRoot, configuredInput)
-  : checkOnly
-    ? artifactPath
-    : existsSync(defaultInputPath)
-      ? defaultInputPath
-      : artifactPath;
+  : existsSync(defaultInputPath)
+    ? defaultInputPath
+    : artifactPath;
+const checkingSnapshotOnly = inputPath === artifactPath;
 const outputPath = resolve(projectRoot, 'src/api/generated/news-api.ts');
 
 if (!existsSync(inputPath)) {
@@ -50,7 +49,11 @@ const generatedPath = resolve(tempDir, 'news-api.ts');
 
 function newsDocument(source) {
   const paths = Object.fromEntries(
-    Object.entries(source.paths).filter(([path]) => /^\/(api\/)?news\//.test(path))
+    Object.entries(source.paths)
+      .filter(([path]) => /^\/(api\/)?news\//.test(path))
+      // The API client applies `/api`; generated path keys describe the
+      // business route consumed by the frontend.
+      .map(([path, operation]) => [path.replace(/^\/api(?=\/news\/)/, ''), operation])
   );
   const selectedComponents = {};
   const visitedRefs = new Set();
@@ -140,7 +143,11 @@ try {
 
   if (checkOnly) {
     if (current === generated && !artifactDrift) {
-      process.stdout.write('News API contract is up to date.\n');
+      process.stdout.write(
+        checkingSnapshotOnly
+          ? 'News API generated code matches the committed snapshot (upstream not checked).\n'
+          : 'News API contract is up to date with the backend Swagger.\n'
+      );
     } else {
       process.stderr.write('News API contract drift detected. Run yarn api:news:generate.\n');
       if (artifactDrift) process.stderr.write('OpenAPI artifact snapshot is stale.\n');

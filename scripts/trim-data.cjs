@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+
 const DIR = 'src/mocks/data';
 
 function trimArrays(obj, maxItems = 50) {

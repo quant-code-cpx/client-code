@@ -95,7 +95,7 @@ export function RotationReturnComparisonChart({ tradeDate, period, refreshKey }:
     setLoading(true);
     setError('');
 
-      const periodDays = period ? periodToDays(period) : undefined;
+    const periodDays = period ? periodToDays(period) : undefined;
 
     fetchReturnComparison({
       trade_date: tradeDate,
@@ -129,8 +129,8 @@ export function RotationReturnComparisonChart({ tradeDate, period, refreshKey }:
       ? allSectors.filter((s) => selectedSectors.includes(s.name))
       : allSectors.slice(0, 15);
 
-  // period keys come from benchmark.data[].tradeDate which are like '5d', '20d', '60d'
-  const periodKeys = data?.benchmark?.data?.map((d) => d.tradeDate) ?? [];
+  // 后端当前不提供基准序列；周期键取自行业数据，避免伪造 0 收益基准。
+  const periodKeys = data?.sectors[0]?.data.map((d) => d.tradeDate) ?? [];
 
   // Build grouped bar series: one series per period
   const barSeries = periodKeys.map((pk) => ({
@@ -199,10 +199,10 @@ export function RotationReturnComparisonChart({ tradeDate, period, refreshKey }:
           value={selectedSectors}
           onChange={handleSectorChange}
           freeSolo
-          renderTags={(value, getTagProps) =>
+          renderValue={(value, getItemProps) =>
             value.map((option, index) => {
-              const { key, ...tagProps } = getTagProps({ index });
-              return <Chip key={key} label={option} size="small" {...tagProps} />;
+              const { key, ...itemProps } = getItemProps({ index });
+              return <Chip key={key} label={option} size="small" {...itemProps} />;
             })
           }
           renderInput={(params) => (
@@ -220,6 +220,12 @@ export function RotationReturnComparisonChart({ tradeDate, period, refreshKey }:
         {error && (
           <Alert severity="error" sx={{ mb: 2 }}>
             {error}
+          </Alert>
+        )}
+
+        {!loading && data?.benchmark === null && (
+          <Alert severity="info" sx={{ mb: 2 }}>
+            后端暂未提供沪深300基准收益，当前仅展示行业收益。
           </Alert>
         )}
 

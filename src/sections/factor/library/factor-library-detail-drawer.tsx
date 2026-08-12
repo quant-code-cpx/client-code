@@ -41,7 +41,12 @@ export function FactorLibraryDetailDrawer({ factor, onClose, onAddToScreening }:
   const navigate = useNavigate();
 
   return (
-    <Drawer anchor="right" open={!!factor} onClose={onClose} PaperProps={{ sx: { width: 480 } }}>
+    <Drawer
+      anchor="right"
+      open={!!factor}
+      onClose={onClose}
+      slotProps={{ paper: { sx: { width: 480 } } }}
+    >
       {factor && (
         <Box sx={{ p: 3, display: 'flex', flexDirection: 'column', height: '100%' }}>
           <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>

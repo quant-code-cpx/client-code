@@ -8,15 +8,14 @@ import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Alert from '@mui/material/Alert';
 import Table from '@mui/material/Table';
-import Tooltip from '@mui/material/Tooltip';
 import Skeleton from '@mui/material/Skeleton';
 import Collapse from '@mui/material/Collapse';
 import TableRow from '@mui/material/TableRow';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
+import ButtonBase from '@mui/material/ButtonBase';
 import Typography from '@mui/material/Typography';
-import IconButton from '@mui/material/IconButton';
 import CardContent from '@mui/material/CardContent';
 import TableContainer from '@mui/material/TableContainer';
 
@@ -209,24 +208,29 @@ export function StockDetailShareCapitalTab({ tsCode }: Props) {
       {history.length > 0 && (
         <Card>
           <CardContent>
-            <Stack
-              direction="row"
-              alignItems="center"
-              justifyContent="space-between"
-              sx={{ mb: historyExpanded ? 2 : 0, cursor: 'pointer' }}
+            <ButtonBase
+              type="button"
               onClick={() => setHistoryExpanded((p) => !p)}
+              aria-controls="share-capital-history"
+              aria-expanded={historyExpanded}
+              aria-label={`${historyExpanded ? '收起' : '展开'}历史股本明细`}
+              sx={{
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                textAlign: 'left',
+                borderRadius: 0.5,
+                mb: historyExpanded ? 2 : 0,
+              }}
             >
               <Typography variant="subtitle1">历史股本明细</Typography>
-              <Tooltip title="展开历史">
-                <IconButton aria-label="展开历史" size="small">
-                  <Iconify
-                    icon={historyExpanded ? 'solar:alt-arrow-up-bold' : 'solar:alt-arrow-down-bold'}
-                    width={18}
-                  />
-                </IconButton>
-              </Tooltip>
-            </Stack>
-            <Collapse in={historyExpanded}>
+              <Iconify
+                icon={historyExpanded ? 'solar:alt-arrow-up-bold' : 'solar:alt-arrow-down-bold'}
+                width={18}
+              />
+            </ButtonBase>
+            <Collapse id="share-capital-history" in={historyExpanded}>
               <TableContainer>
                 <Table size="small">
                   <TableHead>

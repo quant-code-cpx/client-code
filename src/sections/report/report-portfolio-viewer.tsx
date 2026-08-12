@@ -15,10 +15,12 @@ import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 import TableContainer from '@mui/material/TableContainer';
 
-import { fNumber, fPercent, fWanYuan } from 'src/utils/format-number';
+import { fNumber, fRatioPercent } from 'src/utils/format-number';
 
 import { Scrollbar } from 'src/components/scrollbar';
 import { Chart, useChart } from 'src/components/chart';
+
+import { formatYuanAmount } from './utils/format-yuan-amount';
 
 // ─── Overview cards ───────────────────────────────────────────
 
@@ -43,8 +45,12 @@ function MetricCard({ label, value, color }: MetricCardProps) {
 type IndustryPieProps = { rows: PortfolioReportData['industryDistribution'] };
 function IndustryPie({ rows }: IndustryPieProps) {
   const theme = useTheme();
-  const labels = rows.map((r) => r.industry);
-  const values = rows.map((r) => +(r.weight != null ? (r.weight * 100).toFixed(2) : 0));
+  const weightedRows = rows.filter(
+    (row): row is (typeof rows)[number] & { weight: number } =>
+      row.weight != null && Number.isFinite(row.weight)
+  );
+  const labels = weightedRows.map((row) => row.industry);
+  const values = weightedRows.map((row) => +(row.weight * 100).toFixed(2));
 
   const chartOptions = useChart({
     chart: { type: 'pie', toolbar: { show: false } },
@@ -64,7 +70,7 @@ function IndustryPie({ rows }: IndustryPieProps) {
     dataLabels: { enabled: true, formatter: (v: unknown) => `${Number(v).toFixed(1)}%` },
   });
 
-  if (rows.length === 0) {
+  if (weightedRows.length === 0) {
     return (
       <Box sx={{ height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
@@ -130,7 +136,7 @@ function HoldingsTable({ holdings }: HoldingsTableProps) {
                     </TableCell>
                     <TableCell align="right">
                       <Typography variant="caption">
-                        {h.marketValue != null ? fWanYuan(h.marketValue) : '-'}
+                        {formatYuanAmount(h.marketValue)}
                       </Typography>
                     </TableCell>
                     <TableCell align="right">
@@ -143,7 +149,7 @@ function HoldingsTable({ holdings }: HoldingsTableProps) {
                           }}
                         >
                           {h.pnlPct >= 0 ? '+' : ''}
-                          {fPercent(h.pnlPct)}
+                          {fRatioPercent(h.pnlPct)}
                         </Typography>
                       ) : (
                         <Typography variant="caption" sx={{ color: 'text.disabled' }}>
@@ -153,7 +159,7 @@ function HoldingsTable({ holdings }: HoldingsTableProps) {
                     </TableCell>
                     <TableCell align="right">
                       <Typography variant="caption">
-                        {h.weight != null ? fPercent(h.weight) : '-'}
+                        {h.weight != null ? fRatioPercent(h.weight) : '-'}
                       </Typography>
                     </TableCell>
                   </TableRow>
@@ -214,23 +220,29 @@ export function PortfolioReportViewer({ data }: PortfolioReportViewerProps) {
       {/* Metrics */}
       <Grid container spacing={2}>
         <Grid size={{ xs: 6, sm: 4, md: 3 }}>
-          <MetricCard label="初始资金" value={fWanYuan(overview.initialCash)} />
+          <MetricCard
+            label="初始资金"
+            value={formatYuanAmount(overview.initialCash)}
+          />
         </Grid>
         <Grid size={{ xs: 6, sm: 4, md: 3 }}>
           <MetricCard
             label="总市值"
-            value={overview.totalMarketValue != null ? fWanYuan(overview.totalMarketValue) : '-'}
+            value={formatYuanAmount(overview.totalMarketValue)}
           />
         </Grid>
         <Grid size={{ xs: 6, sm: 4, md: 3 }}>
-          <MetricCard label="总成本" value={fWanYuan(overview.totalCost)} />
+          <MetricCard
+            label="总成本"
+            value={formatYuanAmount(overview.totalCost)}
+          />
         </Grid>
         <Grid size={{ xs: 6, sm: 4, md: 3 }}>
           <MetricCard
             label="浮盈亏"
             value={
               overview.unrealizedPnl != null
-                ? `${overview.unrealizedPnl >= 0 ? '+' : ''}${fWanYuan(overview.unrealizedPnl)}`
+                ? `${overview.unrealizedPnl >= 0 ? '+' : ''}${formatYuanAmount(overview.unrealizedPnl)}`
                 : '-'
             }
             color={pnlColor}
@@ -273,12 +285,12 @@ export function PortfolioReportViewer({ data }: PortfolioReportViewerProps) {
                         </TableCell>
                         <TableCell align="right">
                           <Typography variant="caption">
-                            {r.totalMarketValue != null ? fWanYuan(r.totalMarketValue) : '-'}
+                            {formatYuanAmount(r.totalMarketValue)}
                           </Typography>
                         </TableCell>
                         <TableCell align="right">
                           <Typography variant="caption" sx={{ fontWeight: 600 }}>
-                            {r.weight != null ? fPercent(r.weight) : '-'}
+                            {r.weight != null ? fRatioPercent(r.weight) : '-'}
                           </Typography>
                         </TableCell>
                       </TableRow>

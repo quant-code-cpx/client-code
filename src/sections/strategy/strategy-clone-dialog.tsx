@@ -44,7 +44,7 @@ export function StrategyCloneDialog({
       onClose={!submitting ? onClose : undefined}
       maxWidth="xs"
       fullWidth
-      TransitionProps={{ onEnter: handleOpen }}
+      slotProps={{ transition: { onEnter: handleOpen } }}
     >
       <DialogTitle>克隆策略</DialogTitle>
       <DialogContent>
@@ -57,7 +57,7 @@ export function StrategyCloneDialog({
           label="新策略名称"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          inputProps={{ maxLength: 100 }}
+          slotProps={{ htmlInput: { maxLength: 100 } }}
           helperText={`${name.length}/100`}
         />
       </DialogContent>

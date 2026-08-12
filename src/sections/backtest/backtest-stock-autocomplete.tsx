@@ -95,10 +95,10 @@ export function BacktestStockAutocomplete({
           setLimitWarning('');
           onChange(nextCodes);
         }}
-        renderTags={(tagValue, getTagProps) =>
+        renderValue={(tagValue, getItemProps) =>
           tagValue.map((option, index) => {
-            const { key, ...tagProps } = getTagProps({ index });
-            return <Chip key={key} {...tagProps} size="small" label={option.tsCode} />;
+            const { key, ...itemProps } = getItemProps({ index });
+            return <Chip key={key} {...itemProps} size="small" label={option.tsCode} />;
           })
         }
         renderInput={(params) => (

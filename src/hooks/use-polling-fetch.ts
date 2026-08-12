@@ -2,18 +2,8 @@ import { useRef, useEffect, useCallback } from 'react';
 
 // ─── usePollingFetch ──────────────────────────────────────────────────────────
 //
-// Usage:
-//   usePollingFetch(fetchFn, {
-//     interval: 30_000,           // default poll interval (ms)
-//     fastInterval: 5_000,        // optional fast interval when fastWhen() is true
-//     fastWhen: () => hasRunning, // condition to switch to fast interval
-//     pauseWhenHidden: true,      // pause when document not visible (default true)
-//     enabled: true,              // master switch (default true)
-//   })
-//
-// The hook fires fetchFn immediately on mount (and whenever deps change),
-// then re-fires on the chosen interval. Interval switches dynamically.
-// On unmount the timer is cleared.
+// The hook keeps one request in flight at a time. Visibility/enabled changes that
+// happen during a request are coalesced into at most one immediate follow-up.
 // ─────────────────────────────────────────────────────────────────────────────
 
 export type UsePollingFetchOptions = {
@@ -41,92 +31,136 @@ export function usePollingFetch(
     enabled = true,
   } = options;
 
-  // Keep latest fetchFn and options refs so the interval callback always calls
-  // the most-current version without restarting the timer.
   const fetchRef = useRef(fetchFn);
   const fastWhenRef = useRef(fastWhen);
-  useEffect(() => {
-    fetchRef.current = fetchFn;
-  });
-  useEffect(() => {
-    fastWhenRef.current = fastWhen;
-  });
-
-  const scheduleRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const intervalRef = useRef(interval);
+  const fastIntervalRef = useRef(fastInterval);
+  const pauseWhenHiddenRef = useRef(pauseWhenHidden);
+  const enabledRef = useRef(enabled);
+  const mountedRef = useRef(false);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const inFlightRef = useRef<Promise<void> | null>(null);
+  const rerunRequestedRef = useRef(false);
   const failCountRef = useRef(0);
+  const runRef = useRef<(() => Promise<void>) | null>(null);
+
+  fetchRef.current = fetchFn;
+  fastWhenRef.current = fastWhen;
+  intervalRef.current = interval;
+  fastIntervalRef.current = fastInterval;
+  pauseWhenHiddenRef.current = pauseWhenHidden;
+  enabledRef.current = enabled;
 
   const clearScheduled = useCallback(() => {
-    if (scheduleRef.current !== null) {
-      clearTimeout(scheduleRef.current);
-      scheduleRef.current = null;
+    if (timerRef.current !== null) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
     }
   }, []);
 
+  const canRun = useCallback(
+    () =>
+      mountedRef.current &&
+      enabledRef.current &&
+      (!pauseWhenHiddenRef.current || document.visibilityState === 'visible'),
+    []
+  );
+
   const schedule = useCallback(() => {
     clearScheduled();
-    if (!enabled) return;
-    if (pauseWhenHidden && document.visibilityState === 'hidden') return;
+    if (!canRun() || inFlightRef.current) return;
 
-    // Backoff: after 3 consecutive failures drop to 60 s
     const effectiveInterval =
-      failCountRef.current >= 3 ? 60_000 : fastWhenRef.current?.() ? fastInterval : interval;
+      failCountRef.current >= 3
+        ? 60_000
+        : fastWhenRef.current?.()
+          ? fastIntervalRef.current
+          : intervalRef.current;
 
-    scheduleRef.current = setTimeout(async () => {
-      try {
-        await fetchRef.current();
-        failCountRef.current = 0;
-      } catch {
-        failCountRef.current += 1;
-      }
-      schedule();
+    timerRef.current = setTimeout(() => {
+      timerRef.current = null;
+      void runRef.current?.();
     }, effectiveInterval);
-  }, [clearScheduled, enabled, fastInterval, interval, pauseWhenHidden]);
+  }, [canRun, clearScheduled]);
 
-  useEffect(() => {
-    if (!enabled) return undefined;
+  const run = useCallback(async (): Promise<void> => {
+    if (!canRun()) return;
+    clearScheduled();
 
-    // Fire immediately on mount
-    (async () => {
-      try {
-        await fetchRef.current();
-        failCountRef.current = 0;
-      } catch {
-        failCountRef.current += 1;
-      }
-      schedule();
-    })();
-
-    const handleVisibility = () => {
-      if (document.visibilityState === 'visible') {
-        // Resume: fire immediately and reschedule
-        clearScheduled();
-        (async () => {
-          try {
-            await fetchRef.current();
-            failCountRef.current = 0;
-          } catch {
-            failCountRef.current += 1;
-          }
-          schedule();
-        })();
-      } else {
-        // Pause
-        clearScheduled();
-      }
-    };
-
-    if (pauseWhenHidden) {
-      document.addEventListener('visibilitychange', handleVisibility);
+    if (inFlightRef.current) {
+      rerunRequestedRef.current = true;
+      await inFlightRef.current;
+      return;
     }
 
-    return () => {
-      clearScheduled();
-      if (pauseWhenHidden) {
-        document.removeEventListener('visibilitychange', handleVisibility);
+    const task = (async () => {
+      try {
+        await fetchRef.current();
+        failCountRef.current = 0;
+      } catch {
+        failCountRef.current += 1;
       }
+    })();
+    inFlightRef.current = task;
+
+    try {
+      await task;
+    } finally {
+      if (inFlightRef.current === task) inFlightRef.current = null;
+    }
+
+    if (!canRun()) {
+      rerunRequestedRef.current = false;
+      return;
+    }
+    if (rerunRequestedRef.current) {
+      rerunRequestedRef.current = false;
+      void runRef.current?.();
+    } else {
+      schedule();
+    }
+  }, [canRun, clearScheduled, schedule]);
+
+  runRef.current = run;
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      rerunRequestedRef.current = false;
+      clearScheduled();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled]);
+  }, [clearScheduled]);
+
+  useEffect(() => {
+    clearScheduled();
+    if (!enabled) {
+      rerunRequestedRef.current = false;
+      return;
+    }
+    if (pauseWhenHidden && document.visibilityState !== 'visible') return;
+    void runRef.current?.();
+  }, [clearScheduled, enabled, pauseWhenHidden]);
+
+  useEffect(() => {
+    if (!pauseWhenHidden) return undefined;
+
+    const handleVisibility = () => {
+      if (document.visibilityState !== 'visible') {
+        clearScheduled();
+        return;
+      }
+      if (enabledRef.current) void runRef.current?.();
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, [clearScheduled, pauseWhenHidden]);
+
+  // Apply a changed interval to the next idle wait without starting another request.
+  useEffect(() => {
+    if (inFlightRef.current) return;
+    schedule();
+  }, [fastInterval, interval, schedule]);
 
   return { reschedule: schedule };
 }

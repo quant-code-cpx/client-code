@@ -31,7 +31,7 @@ export function useAgentToolCalls(
     setState((current) => ({ ...current, loading: true, error: null }));
 
     void agentApi
-      .listToolCalls({ runId, includePayload: false }, controller.signal)
+      .listToolCalls({ runId, limit: 50, includePayload: false }, controller.signal)
       .then((response) => {
         setState({ items: response.items, loading: false, error: null });
       })

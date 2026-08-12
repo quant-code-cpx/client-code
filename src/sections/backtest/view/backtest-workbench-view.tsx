@@ -2,7 +2,7 @@ import type { StrategyTemplate } from 'src/api/backtest';
 import type { Theme, SxProps } from '@mui/material/styles';
 import type { StrategyDraft } from 'src/api/strategy-draft';
 
-import { useMemo, useState, useEffect, useCallback } from 'react';
+import { useRef, useMemo, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
@@ -22,7 +22,6 @@ import { useRouter } from 'src/routes/hooks';
 import { useAuth } from 'src/auth';
 import { DashboardContent } from 'src/layouts/dashboard';
 import { createRun, getStrategyTemplates } from 'src/api/backtest';
-import { autoSaveDraft, getAutoSavedDraft } from 'src/api/strategy-draft';
 
 import { Iconify } from 'src/components/iconify';
 
@@ -37,10 +36,14 @@ import { BacktestStrategyConfigPanel } from '../backtest-strategy-config-panel';
 import {
   toApiDate,
   buildDefaultForm,
-  BACKTEST_AUTOSAVE_ID,
   buildDefaultStrategyConfig,
   BACKTEST_AUTOSAVE_KEY_PREFIX,
 } from '../constants';
+import {
+  toLocalAutoSavedDraft,
+  readLocalAutoSavedDraft,
+  writeLocalAutoSavedDraft,
+} from '../utils/local-auto-saved-draft';
 
 import type { BacktestRunForm, StrategyTemplateId } from '../types';
 
@@ -56,45 +59,6 @@ function buildInitialForm() {
     ...buildDefaultForm(),
     strategyConfig: buildDefaultStrategyConfig('SCREENING_ROTATION'),
   };
-}
-
-function toAutoSavedDraft(config: Record<string, unknown>, updatedAt: string): StrategyDraft {
-  return {
-    id: BACKTEST_AUTOSAVE_ID,
-    name: '上次编辑（自动保存）',
-    config,
-    createdAt: updatedAt,
-    updatedAt,
-    isAutoSave: true,
-  };
-}
-
-function readLocalAutoSavedDraft(storageKey: string) {
-  if (typeof window === 'undefined') return null;
-
-  try {
-    const raw = window.localStorage.getItem(storageKey);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw) as { config?: Record<string, unknown>; updatedAt?: string };
-    if (!parsed.config || !parsed.updatedAt) return null;
-    return toAutoSavedDraft(parsed.config, parsed.updatedAt);
-  } catch {
-    return null;
-  }
-}
-
-function writeLocalAutoSavedDraft(
-  storageKey: string,
-  config: Record<string, unknown>,
-  updatedAt: string
-) {
-  if (typeof window === 'undefined') return;
-
-  try {
-    window.localStorage.setItem(storageKey, JSON.stringify({ config, updatedAt }));
-  } catch {
-    // localStorage may be unavailable in private mode; backend auto-save is still attempted.
-  }
 }
 
 function normalizeTemplateId(templateId: string | undefined): StrategyTemplateId {
@@ -141,10 +105,12 @@ export function BacktestWorkbenchView() {
   const [draftDrawerOpen, setDraftDrawerOpen] = useState(false);
   const [advancedAnchor, setAdvancedAnchor] = useState<HTMLElement | null>(null);
   const [autoSavedDraft, setAutoSavedDraft] = useState<StrategyDraft | null>(null);
+  const [autoSaveEnabled, setAutoSaveEnabled] = useState(false);
   const [restoreSnackbarOpen, setRestoreSnackbarOpen] = useState(false);
   const [submitSnackbarOpen, setSubmitSnackbarOpen] = useState(false);
   const [submittedRunId, setSubmittedRunId] = useState('');
   const [runningRefreshToken, setRunningRefreshToken] = useState(0);
+  const loadedAutoSaveKeyRef = useRef<string | null>(null);
 
   const autoSaveStorageKey = `${BACKTEST_AUTOSAVE_KEY_PREFIX}:${userProfile?.id ?? 'anonymous'}`;
 
@@ -234,6 +200,7 @@ export function BacktestWorkbenchView() {
       resetValidation();
       setDraftDrawerOpen(false);
       setRestoreSnackbarOpen(false);
+      setAutoSaveEnabled(true);
     },
     [resetValidation]
   );
@@ -247,48 +214,26 @@ export function BacktestWorkbenchView() {
   }, [loadDraftConfig]);
 
   useEffect(() => {
-    let cancelled = false;
-
-    getAutoSavedDraft()
-      .then((remoteDraft) => {
-        if (cancelled || !remoteDraft?.config) return;
-        const draft = toAutoSavedDraft(remoteDraft.config, remoteDraft.updatedAt);
-        setAutoSavedDraft(draft);
-        setRestoreSnackbarOpen(true);
-      })
-      .catch(() => {
-        if (cancelled) return;
-        const localDraft = readLocalAutoSavedDraft(autoSaveStorageKey);
-        if (localDraft) {
-          setAutoSavedDraft(localDraft);
-          setRestoreSnackbarOpen(true);
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
+    const localDraft = readLocalAutoSavedDraft(autoSaveStorageKey);
+    loadedAutoSaveKeyRef.current = autoSaveStorageKey;
+    setAutoSavedDraft(localDraft);
+    setRestoreSnackbarOpen(Boolean(localDraft));
+    setAutoSaveEnabled(!localDraft);
   }, [autoSaveStorageKey]);
 
   useEffect(() => {
+    if (!autoSaveEnabled || loadedAutoSaveKeyRef.current !== autoSaveStorageKey) return undefined;
+
     const timer = window.setTimeout(() => {
       const updatedAt = new Date().toISOString();
-      const draft = toAutoSavedDraft(currentConfig, updatedAt);
-      autoSaveDraft({ config: currentConfig })
-        .then((response) => {
-          const nextUpdatedAt = response.updatedAt ?? updatedAt;
-          setAutoSavedDraft(toAutoSavedDraft(currentConfig, nextUpdatedAt));
-        })
-        .catch(() => {
-          writeLocalAutoSavedDraft(autoSaveStorageKey, currentConfig, updatedAt);
-          setAutoSavedDraft(draft);
-        });
+      writeLocalAutoSavedDraft(autoSaveStorageKey, currentConfig, updatedAt);
+      setAutoSavedDraft(toLocalAutoSavedDraft(currentConfig, updatedAt));
     }, 2000);
 
     return () => {
       window.clearTimeout(timer);
     };
-  }, [autoSaveStorageKey, currentConfig]);
+  }, [autoSaveEnabled, autoSaveStorageKey, currentConfig]);
 
   const fieldErrors = useMemo(
     () =>
@@ -555,7 +500,6 @@ export function BacktestWorkbenchView() {
       <BacktestDraftDrawer
         open={draftDrawerOpen}
         onClose={() => setDraftDrawerOpen(false)}
-        currentConfig={currentConfig}
         autoSavedDraft={autoSavedDraft}
         onLoadDraft={loadDraftConfig}
       />
@@ -563,12 +507,18 @@ export function BacktestWorkbenchView() {
       <Snackbar
         open={restoreSnackbarOpen}
         autoHideDuration={6000}
-        onClose={() => setRestoreSnackbarOpen(false)}
+        onClose={() => {
+          setRestoreSnackbarOpen(false);
+          setAutoSaveEnabled(true);
+        }}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
       >
         <Alert
           severity="info"
-          onClose={() => setRestoreSnackbarOpen(false)}
+          onClose={() => {
+            setRestoreSnackbarOpen(false);
+            setAutoSaveEnabled(true);
+          }}
           action={
             <Button
               color="inherit"

@@ -2,7 +2,7 @@ import type { Theme, SxProps } from '@mui/material/styles';
 
 import Typography from '@mui/material/Typography';
 
-import { fPercent } from 'src/utils/format-number';
+import { fRatioPercent } from 'src/utils/format-number';
 
 // ----------------------------------------------------------------------
 // 行情数字组件：A 股惯例红涨绿跌，右对齐，等宽数字字体
@@ -29,7 +29,8 @@ export function getQuoteColor(value: number | null | undefined, theme: Theme): s
 }
 
 export function QuoteText({ value, format = 'percent', variant = 'body2', sx }: QuoteTextProps) {
-  const formatted = value == null ? '—' : format === 'percent' ? fPercent(value) : String(value);
+  const formatted =
+    value == null ? '—' : format === 'percent' ? fRatioPercent(value) : String(value);
   const prefix = value != null && value > 0 ? '+' : '';
 
   return (

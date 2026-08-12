@@ -148,7 +148,7 @@ export function WatchlistHealthBar({
 function StatCard({ stat }: { stat: StatItem }) {
   const interactive = !!stat.onClick;
   const toneSx = TONE_STYLES[stat.tone];
-  const sx: SxProps<Theme> = {
+  const sx = {
     flex: '1 1 180px',
     minWidth: 168,
     px: 2,
@@ -165,11 +165,31 @@ function StatCard({ stat }: { stat: StatItem }) {
     cursor: interactive ? 'pointer' : 'default',
     '&:hover': interactive ? { borderColor: 'primary.main' } : undefined,
     ...toneSx,
-  };
+  } satisfies SxProps<Theme>;
 
   return (
     <Tooltip title={stat.hint ?? ''} placement="top">
-      <Card sx={sx} onClick={stat.onClick}>
+      <Card
+        sx={[
+          sx,
+          {
+            '&:focus-visible': {
+              outline: '2px solid',
+              outlineColor: 'primary.main',
+              outlineOffset: 2,
+            },
+          },
+        ]}
+        onClick={stat.onClick}
+        role={interactive ? 'button' : undefined}
+        tabIndex={interactive ? 0 : undefined}
+        aria-label={interactive ? `${stat.label}：${stat.value}` : undefined}
+        onKeyDown={(event) => {
+          if (!stat.onClick || (event.key !== 'Enter' && event.key !== ' ')) return;
+          event.preventDefault();
+          stat.onClick();
+        }}
+      >
         <Box
           sx={{
             width: 36,

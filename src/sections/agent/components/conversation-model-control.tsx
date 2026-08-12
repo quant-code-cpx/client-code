@@ -1,25 +1,22 @@
+import type { MouseEvent } from 'react';
 import type { AgentResponse } from 'src/api/agent';
 import type { ModelPolicy } from 'src/types/agent/generated';
 
 import { useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
-import Chip from '@mui/material/Chip';
-import List from '@mui/material/List';
+import Stack from '@mui/material/Stack';
 import Alert from '@mui/material/Alert';
-import Radio from '@mui/material/Radio';
 import Button from '@mui/material/Button';
-import Dialog from '@mui/material/Dialog';
+import Select from '@mui/material/Select';
+import Popover from '@mui/material/Popover';
 import MenuItem from '@mui/material/MenuItem';
 import Skeleton from '@mui/material/Skeleton';
+import InputLabel from '@mui/material/InputLabel';
+import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
-import DialogTitle from '@mui/material/DialogTitle';
+import FormControl from '@mui/material/FormControl';
 import ListItemText from '@mui/material/ListItemText';
-import ToggleButton from '@mui/material/ToggleButton';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import ListItemButton from '@mui/material/ListItemButton';
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
 import { agentApi } from 'src/api/agent';
 
@@ -30,38 +27,57 @@ type AgentModel = AgentResponse<'/agent/models/list'>['items'][number];
 type ConversationModelControlProps = {
   policy: ModelPolicy;
   preferredModel: string | null;
+  reasoningEffort: string | null;
   saving: boolean;
   trigger?: 'button' | 'menu-item';
   onTrigger?: () => void;
-  onSave: (policy: ModelPolicy, preferredModel: string | null) => Promise<boolean>;
+  onSave: (
+    policy: ModelPolicy,
+    preferredModel: string | null,
+    reasoningEffort: string | null
+  ) => Promise<boolean>;
 };
 
-const COST_TIER_LABEL: Record<AgentModel['costTier'], string> = {
-  LOW: '低费用',
-  MEDIUM: '中费用',
-  HIGH: '高费用',
+const AUTO_MODEL_VALUE = '__AUTO_MODEL__';
+const FOLLOW_MODEL_VALUE = '__FOLLOW_MODEL__';
+
+const REASONING_EFFORT_LABELS: Record<string, string> = {
+  NONE: '关闭',
+  MINIMAL: '最低',
+  LOW: '较低',
+  MEDIUM: '标准',
+  HIGH: '高',
+  XHIGH: '极高',
+  MAX: '最大',
 };
 
-function formatTokenCapacity(tokens: number): string {
-  if (tokens >= 1_000_000) return `${Number((tokens / 1_000_000).toFixed(1))}M`;
-  if (tokens >= 1_000) return `${Number((tokens / 1_000).toFixed(1))}K`;
-  return String(tokens);
+export function formatReasoningEffort(effort: string): string {
+  return REASONING_EFFORT_LABELS[effort.trim().toUpperCase()] ?? effort;
+}
+
+function findSupportedEffort(model: AgentModel | undefined, effort: string | null): string | null {
+  if (!model?.capabilities.includes('REASONING_EFFORT') || !effort) return null;
+  const normalized = effort.trim().toLowerCase();
+  return model.reasoningEfforts.find((item) => item.trim().toLowerCase() === normalized) ?? null;
 }
 
 export function ConversationModelControl({
   policy,
   preferredModel,
+  reasoningEffort,
   saving,
   trigger = 'button',
   onTrigger,
   onSave,
 }: ConversationModelControlProps) {
   const [open, setOpen] = useState(false);
+  const [anchorPosition, setAnchorPosition] = useState<{ top: number; left: number } | null>(null);
   const [models, setModels] = useState<AgentModel[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [draftPolicy, setDraftPolicy] = useState<ModelPolicy>(policy);
   const [draftModel, setDraftModel] = useState(preferredModel ?? '');
+  const [draftReasoningEffort, setDraftReasoningEffort] = useState<string | null>(reasoningEffort);
 
   const loadModels = useCallback(async (signal: AbortSignal) => {
     setLoading(true);
@@ -82,20 +98,35 @@ export function ConversationModelControl({
     if (!open) {
       setDraftPolicy(policy);
       setDraftModel(preferredModel ?? '');
+      setDraftReasoningEffort(reasoningEffort);
       return undefined;
     }
     const controller = new AbortController();
     void loadModels(controller.signal);
     return () => controller.abort();
-  }, [loadModels, open, policy, preferredModel]);
+  }, [loadModels, open, policy, preferredModel, reasoningEffort]);
 
   const selectedModel = models.find((model) => model.model === draftModel);
+  const selectableReasoningEfforts = selectedModel?.capabilities.includes('REASONING_EFFORT')
+    ? selectedModel.reasoningEfforts
+    : [];
+  const selectedEffort = findSupportedEffort(selectedModel, draftReasoningEffort);
   const manualValid = selectedModel?.status === 'AVAILABLE';
-  const valid = draftPolicy === 'AUTO' || manualValid;
+  const valid = draftPolicy === 'AUTO' ? draftReasoningEffort === null : manualValid;
   const buttonLabel = policy === 'AUTO' ? '自动模型' : preferredModel ?? '指定模型';
-  const handleOpen = () => {
-    onTrigger?.();
+  const triggerLabel = reasoningEffort
+    ? `${buttonLabel} · ${formatReasoningEffort(reasoningEffort)}`
+    : buttonLabel;
+
+  const handleOpen = (event: MouseEvent<HTMLElement>) => {
+    const rect = event.currentTarget.getBoundingClientRect();
+    setAnchorPosition({ top: rect.bottom + 8, left: rect.right });
     setOpen(true);
+    onTrigger?.();
+  };
+
+  const handleClose = () => {
+    if (!saving) setOpen(false);
   };
 
   return (
@@ -103,7 +134,7 @@ export function ConversationModelControl({
       {trigger === 'menu-item' ? (
         <MenuItem onClick={handleOpen} sx={{ minWidth: 196, gap: 1 }}>
           <Iconify icon="solar:settings-bold-duotone" width={18} />
-          模型偏好 · {buttonLabel}
+          模型 · {triggerLabel}
         </MenuItem>
       ) : (
         <Button
@@ -111,20 +142,23 @@ export function ConversationModelControl({
           variant="outlined"
           startIcon={<Iconify icon="solar:settings-bold-duotone" width={17} />}
           onClick={handleOpen}
-          sx={{ minHeight: 36, borderRadius: 1, bgcolor: 'action.hover' }}
+          sx={{ borderRadius: 1, bgcolor: 'action.hover' }}
         >
-          {buttonLabel}
+          {triggerLabel}
         </Button>
       )}
-      <Dialog
-        open={open}
-        onClose={saving ? undefined : () => setOpen(false)}
-        fullWidth
-        maxWidth="sm"
+
+      <Popover
+        open={open && anchorPosition !== null}
+        onClose={handleClose}
+        anchorReference="anchorPosition"
+        anchorPosition={anchorPosition ?? undefined}
+        transformOrigin={{ vertical: 'top', horizontal: 'right' }}
         slotProps={{
           paper: {
             sx: {
-              maxWidth: 520,
+              width: 360,
+              maxWidth: 'calc(100vw - 32px)',
               color: 'text.primary',
               bgcolor: 'background.paper',
               backgroundImage: 'none',
@@ -133,117 +167,150 @@ export function ConversationModelControl({
           },
         }}
       >
-        <DialogTitle component="div" sx={{ pb: 1 }}>
-          <Typography variant="h6">选择研究模型</Typography>
-          <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary' }}>
-            模型只影响后续消息，当前运行不会被中断。
-          </Typography>
-        </DialogTitle>
-        <DialogContent>
-          <ToggleButtonGroup
-            exclusive
-            fullWidth
-            value={draftPolicy}
-            onChange={(_event, value: ModelPolicy | null) => {
-              if (value) setDraftPolicy(value);
-            }}
-            sx={{ mt: 1, bgcolor: 'background.default' }}
-          >
-            <ToggleButton value="AUTO">自动选择</ToggleButton>
-            <ToggleButton value="MANUAL">指定模型</ToggleButton>
-          </ToggleButtonGroup>
+        <Box sx={{ p: 2 }}>
+          <Stack direction="row" alignItems="flex-start" justifyContent="space-between" spacing={1}>
+            <Box>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                模型与思考强度
+              </Typography>
+              <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary' }}>
+                只影响后续消息，当前运行不会中断。
+              </Typography>
+            </Box>
+            <IconButton size="small" aria-label="关闭模型设置" disabled={saving} onClick={handleClose}>
+              <Iconify icon="mingcute:close-line" width={18} />
+            </IconButton>
+          </Stack>
 
-          {draftPolicy === 'MANUAL' ? (
-            <Box sx={{ mt: 2 }}>
-              {loading ? (
-                <Box sx={{ display: 'grid', gap: 1.25 }}>
-                  <Skeleton variant="rounded" height={68} />
-                  <Skeleton variant="rounded" height={68} />
-                </Box>
-              ) : null}
-              {!loading && loadError ? (
-                <Alert
-                  severity="error"
-                  action={
-                    <Button size="small" onClick={() => void loadModels(new AbortController().signal)}>
-                      重试
-                    </Button>
+          {loading ? (
+            <Stack spacing={1.5} sx={{ mt: 2 }}>
+              <Skeleton variant="rounded" height={40} />
+              <Skeleton variant="rounded" height={40} />
+            </Stack>
+          ) : null}
+
+          {!loading && loadError ? (
+            <Alert
+              severity="error"
+              sx={{ mt: 2 }}
+              action={
+                <Button size="small" onClick={() => void loadModels(new AbortController().signal)}>
+                  重试
+                </Button>
+              }
+            >
+              {loadError}
+            </Alert>
+          ) : null}
+
+          {!loading && !loadError ? (
+            <Stack spacing={1.5} sx={{ mt: 2 }}>
+              <FormControl fullWidth size="small">
+                <InputLabel id="conversation-model-label">模型</InputLabel>
+                <Select
+                  labelId="conversation-model-label"
+                  label="模型"
+                  value={draftPolicy === 'AUTO' ? AUTO_MODEL_VALUE : draftModel}
+                  onChange={(event) => {
+                    const value = event.target.value;
+                    if (value === AUTO_MODEL_VALUE) {
+                      setDraftPolicy('AUTO');
+                      setDraftModel('');
+                      setDraftReasoningEffort(null);
+                      return;
+                    }
+                    const nextModel = models.find((model) => model.model === value);
+                    setDraftPolicy('MANUAL');
+                    setDraftModel(value);
+                    setDraftReasoningEffort((current) => findSupportedEffort(nextModel, current));
+                  }}
+                  renderValue={(value) =>
+                    value === AUTO_MODEL_VALUE
+                      ? '自动选择'
+                      : (models.find((model) => model.model === value)?.displayName ?? value)
                   }
                 >
-                  {loadError}
-                </Alert>
-              ) : null}
-              {!loading && !loadError ? (
-                <List disablePadding aria-label="可选模型">
+                  <MenuItem value={AUTO_MODEL_VALUE}>自动选择</MenuItem>
                   {models.map((model) => (
-                    <ListItemButton
+                    <MenuItem
                       key={model.model}
-                      selected={draftModel === model.model}
+                      value={model.model}
                       disabled={model.status !== 'AVAILABLE'}
-                      onClick={() => setDraftModel(model.model)}
-                      sx={{
-                        alignItems: 'flex-start',
-                        mb: 1,
-                        border: 1,
-                        borderColor: 'divider',
-                        borderRadius: 1.25,
-                        px: 1.25,
-                        py: 1.5,
-                        bgcolor: 'background.default',
-                        '&.Mui-selected': {
-                          borderColor: 'primary.main',
-                          bgcolor: 'action.selected',
-                        },
-                      }}
                     >
-                      <Radio
-                        checked={draftModel === model.model}
-                        disabled={model.status !== 'AVAILABLE'}
-                        inputProps={{ 'aria-label': `选择 ${model.displayName}` }}
-                        sx={{ mt: -0.5, ml: -0.75, mr: 0.25 }}
-                      />
                       <ListItemText
                         primary={model.displayName}
-                        secondary={`${model.provider} · 上下文 ${formatTokenCapacity(model.contextWindow)} · 最大输出 ${formatTokenCapacity(model.maxOutputTokens)} · ${model.capabilities.join(' · ')}`}
-                        slotProps={{
-                          primary: { noWrap: true, sx: { fontWeight: 700 } },
-                          secondary: { sx: { mt: 0.25, fontSize: 12, lineHeight: 1.45 } },
-                        }}
+                        secondary={model.status === 'AVAILABLE' ? model.provider : model.reason ?? '不可用'}
+                        slotProps={{ secondary: { sx: { fontSize: 12 } } }}
                       />
-                      <Box sx={{ display: 'grid', justifyItems: 'end', gap: 0.5, pl: 1 }}>
-                        <Chip label={COST_TIER_LABEL[model.costTier]} size="small" variant="outlined" />
-                        <Typography
-                          variant="caption"
-                          color={model.status === 'AVAILABLE' ? 'success.main' : 'text.disabled'}
-                          sx={{ textAlign: 'right' }}
-                        >
-                          {model.status === 'AVAILABLE' ? '可用' : model.reason ?? '不可用'}
-                        </Typography>
-                      </Box>
-                    </ListItemButton>
+                    </MenuItem>
                   ))}
-                </List>
-              ) : null}
-            </Box>
+                </Select>
+              </FormControl>
+
+              <FormControl
+                fullWidth
+                size="small"
+                disabled={draftPolicy === 'AUTO' || selectableReasoningEfforts.length === 0}
+              >
+                <InputLabel id="conversation-reasoning-effort-label">思考强度</InputLabel>
+                <Select
+                  labelId="conversation-reasoning-effort-label"
+                  label="思考强度"
+                  value={selectedEffort ?? FOLLOW_MODEL_VALUE}
+                  onChange={(event) => {
+                    setDraftReasoningEffort(
+                      event.target.value === FOLLOW_MODEL_VALUE ? null : event.target.value
+                    );
+                  }}
+                >
+                  <MenuItem value={FOLLOW_MODEL_VALUE}>
+                    {selectedModel?.defaultReasoningEffort
+                      ? `跟随模型（默认：${formatReasoningEffort(selectedModel.defaultReasoningEffort)}）`
+                      : '跟随模型'}
+                  </MenuItem>
+                  {selectableReasoningEfforts.map((effort) => (
+                    <MenuItem key={effort} value={effort}>
+                      {formatReasoningEffort(effort)}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                {draftPolicy === 'AUTO'
+                  ? '自动选择时使用各模型默认强度。'
+                  : selectableReasoningEfforts.length
+                    ? '强度越高通常耗时与用量越多；“跟随模型”使用部署默认值。'
+                    : '该模型不支持调整思考强度，将使用模型默认设置。'}
+              </Typography>
+            </Stack>
           ) : null}
-        </DialogContent>
-        <DialogActions>
-          <Button disabled={saving} onClick={() => setOpen(false)}>
-            取消
-          </Button>
-          <Button
-            variant="contained"
-            disabled={!valid || loading || Boolean(loadError)}
-            loading={saving}
-            onClick={async () => {
-              const saved = await onSave(draftPolicy, draftPolicy === 'MANUAL' ? draftModel : null);
-              if (saved) setOpen(false);
-            }}
+
+          <Stack
+            direction="row"
+            justifyContent="flex-end"
+            spacing={1}
+            sx={{ mt: 2, pt: 1.5, borderTop: 1, borderColor: 'divider' }}
           >
-            保存
-          </Button>
-        </DialogActions>
-      </Dialog>
+            <Button color="inherit" disabled={saving} onClick={handleClose}>
+              取消
+            </Button>
+            <Button
+              variant="contained"
+              disabled={!valid || loading || Boolean(loadError)}
+              loading={saving}
+              onClick={async () => {
+                const nextPreferredModel = draftPolicy === 'MANUAL' ? draftModel : null;
+                const nextReasoningEffort = draftPolicy === 'MANUAL' ? selectedEffort : null;
+                const saved = await onSave(draftPolicy, nextPreferredModel, nextReasoningEffort);
+                if (saved) setOpen(false);
+              }}
+            >
+              保存
+            </Button>
+          </Stack>
+        </Box>
+      </Popover>
     </>
   );
 }

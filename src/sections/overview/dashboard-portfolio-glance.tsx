@@ -11,9 +11,9 @@ import { useTheme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import CardHeader from '@mui/material/CardHeader';
 
-import { useRouter } from 'src/routes/hooks';
+import { RouterLink } from 'src/routes/components';
 
-import { fPercent, fCurrency } from 'src/utils/format-number';
+import { fCurrency, fRatioPercent } from 'src/utils/format-number';
 
 import { getPnlToday, listPortfolios } from 'src/api/portfolio';
 
@@ -27,7 +27,6 @@ type PortfolioSnapshot = PortfolioListItem & {
 
 export function DashboardPortfolioGlance({ refreshKey }: { refreshKey?: number }) {
   const theme = useTheme();
-  const router = useRouter();
 
   const [portfolios, setPortfolios] = useState<PortfolioSnapshot[]>([]);
   const [loading, setLoading] = useState(true);
@@ -75,20 +74,34 @@ export function DashboardPortfolioGlance({ refreshKey }: { refreshKey?: number }
 
   return (
     <Card
+      component={RouterLink}
+      href="/portfolio"
+      aria-label="查看我的组合"
       sx={{
         height: '100%',
+        width: '100%',
+        display: 'block',
+        color: 'inherit',
+        textAlign: 'left',
+        textDecoration: 'none',
         cursor: 'pointer',
         transition: 'box-shadow 0.2s',
         '&:hover': { boxShadow: theme.customShadows.z8 },
+        '&:focus-visible': {
+          outline: '2px solid',
+          outlineColor: 'primary.main',
+          outlineOffset: 2,
+        },
       }}
-      onClick={() => router.push('/portfolio')}
     >
       <CardHeader
         title="我的组合"
-        titleTypographyProps={{ variant: 'subtitle1', fontWeight: 700 }}
+        slotProps={{
+          title: { variant: 'subtitle1', fontWeight: 700 },
+          subheader: { variant: 'caption' },
+        }}
         avatar={<Iconify icon="solar:wallet-bold" width={22} sx={{ color: 'warning.main' }} />}
         subheader={`${portfolios.length} 个组合`}
-        subheaderTypographyProps={{ variant: 'caption' }}
         sx={{ pb: 1 }}
       />
 
@@ -132,7 +145,10 @@ export function DashboardPortfolioGlance({ refreshKey }: { refreshKey?: number }
                   sx={{ color: isUp ? 'error.main' : 'success.main', fontWeight: 600 }}
                 >
                   {isUp ? '+' : ''}
-                  {fPercent(totalPnlPct, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  {fRatioPercent(totalPnlPct, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}
                 </Typography>
               </Stack>
             </Box>
@@ -179,7 +195,10 @@ export function DashboardPortfolioGlance({ refreshKey }: { refreshKey?: number }
                       }}
                     >
                       {pos ? '+' : ''}
-                      {fPercent(pnlPct, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      {fRatioPercent(pnlPct, {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}
                     </Typography>
                   </Stack>
                 );

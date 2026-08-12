@@ -118,10 +118,7 @@ export function FactorAdminBulkActionBar({
         </Tooltip>
       </Stack>
 
-      <Typography
-        variant="caption"
-        sx={{ color: 'text.disabled' }}
-      >
+      <Typography variant="caption" sx={{ color: 'text.disabled' }}>
         服务端未开放启用/禁用
       </Typography>
 
@@ -129,10 +126,22 @@ export function FactorAdminBulkActionBar({
         variant="caption"
         role="button"
         tabIndex={0}
-        sx={{ color: 'text.secondary', cursor: 'pointer', ml: 'auto' }}
+        sx={{
+          color: 'text.secondary',
+          cursor: 'pointer',
+          ml: 'auto',
+          '&:focus-visible': {
+            outline: '2px solid',
+            outlineColor: 'primary.main',
+            outlineOffset: 2,
+          },
+        }}
         onClick={onClearSelection}
         onKeyDown={(event) => {
-          if (event.key === 'Enter' || event.key === ' ') onClearSelection();
+          if (event.key === 'Enter' || event.key === ' ') {
+            event.preventDefault();
+            onClearSelection();
+          }
         }}
       >
         取消选择

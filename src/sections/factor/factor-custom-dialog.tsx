@@ -4,7 +4,6 @@ import type {
   CustomFactorCreateRequest,
 } from 'src/api/factor';
 
-import dayjs from 'dayjs';
 import { useState } from 'react';
 
 import Box from '@mui/material/Box';
@@ -55,6 +54,7 @@ interface FactorCustomDialogProps {
   open: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  tradeDate: string | null;
   editFactor?: {
     id: string;
     name: string;
@@ -69,6 +69,7 @@ export function FactorCustomDialog({
   open,
   onClose,
   onSuccess,
+  tradeDate,
   editFactor,
 }: FactorCustomDialogProps) {
   const isEdit = !!editFactor;
@@ -87,11 +88,15 @@ export function FactorCustomDialog({
 
   const handleTest = async () => {
     if (!expression.trim()) return;
+    if (!tradeDate) {
+      setTestError('无法确定最近有效交易日，未发送试算请求');
+      return;
+    }
     setTesting(true);
     setTestError('');
     setTestResult(null);
     try {
-      const res = await testCustomExpression({ expression, tradeDate: dayjs().format('YYYYMMDD') });
+      const res = await testCustomExpression({ expression, tradeDate });
       setTestResult(res);
     } catch {
       setTestError('试算失败，请检查表达式语法');
@@ -208,11 +213,13 @@ export function FactorCustomDialog({
             variant="outlined"
             size="small"
             onClick={handleTest}
-            disabled={testing || !expression.trim()}
+            disabled={testing || !expression.trim() || !tradeDate}
           >
             {testing ? '试算中...' : '试算表达式'}
           </Button>
         </Box>
+
+        {!tradeDate && <Alert severity="warning">暂无可用的因子快照交易日，表达式试算已停用。</Alert>}
 
         {testing && <Skeleton variant="rectangular" height={120} sx={{ borderRadius: 1 }} />}
         {testError && <Alert severity="error">{testError}</Alert>}

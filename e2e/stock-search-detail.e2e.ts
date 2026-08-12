@@ -1,5 +1,5 @@
-import { test, expect } from './fixtures/auth.fixture';
 import { KNOWN_STOCK } from './fixtures/test-data';
+import { test, expect } from './fixtures/auth.fixture';
 import { waitForPageReady, waitForTableData } from './helpers/wait-helpers';
 
 /** Debounce wait time for search autocomplete */

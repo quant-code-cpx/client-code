@@ -54,6 +54,14 @@ function KpiCell({ label, value, caption, accent = 'neutral', onClick }: KpiCell
   return (
     <Box
       onClick={onClick}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      aria-label={onClick ? `${label}：${value}` : undefined}
+      onKeyDown={(event) => {
+        if (!onClick || (event.key !== 'Enter' && event.key !== ' ')) return;
+        event.preventDefault();
+        onClick();
+      }}
       sx={{
         flex: 1,
         minWidth: 160,
@@ -64,6 +72,11 @@ function KpiCell({ label, value, caption, accent = 'neutral', onClick }: KpiCell
         cursor: onClick ? 'pointer' : 'default',
         transition: theme.transitions.create('background-color'),
         '&:hover': onClick ? { bgcolor: 'action.hover' } : undefined,
+        '&:focus-visible': {
+          outline: '2px solid',
+          outlineColor: 'primary.main',
+          outlineOffset: -2,
+        },
       }}
     >
       <Typography variant="caption" color="text.secondary">
@@ -134,7 +147,11 @@ export function FactorCorrelationSummary({
         </Typography>
         <Box sx={{ flexGrow: 1 }} />
         <Tooltip title="计算口径与缓存策略">
-          <IconButton size="small" onClick={(e) => onShowMethod(e.currentTarget)} aria-label="计算口径与缓存策略">
+          <IconButton
+            size="small"
+            onClick={(e) => onShowMethod(e.currentTarget)}
+            aria-label="计算口径与缓存策略"
+          >
             <Iconify icon="solar:info-circle-bold" width={18} />
           </IconButton>
         </Tooltip>

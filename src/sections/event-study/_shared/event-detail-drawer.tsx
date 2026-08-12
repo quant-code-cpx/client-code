@@ -93,7 +93,7 @@ export function EventDetailDrawer({ open, onClose, eventType, detail, title }: P
       anchor="right"
       open={open}
       onClose={onClose}
-      PaperProps={{ sx: { width: { xs: '100%', sm: 480 } } }}
+      slotProps={{ paper: { sx: { width: { xs: '100%', sm: 480 } } } }}
     >
       <Stack
         direction="row"

@@ -55,6 +55,21 @@ describe('alertApi.getPriceRules', () => {
   });
 });
 
+describe('alertApi.getAnomalyDetail', () => {
+  it('uses the backend anomalyId field and forwards AbortSignal', async () => {
+    const controller = new AbortController();
+    vi.mocked(apiClient.post).mockResolvedValueOnce({});
+
+    await alertApi.getAnomalyDetail({ anomalyId: 42 }, controller.signal);
+
+    expect(apiClient.post).toHaveBeenCalledWith(
+      '/api/alert/anomalies/detail',
+      { anomalyId: 42 },
+      controller.signal
+    );
+  });
+});
+
 describe('limit alert APIs', () => {
   it('maps limit-list filter payload to backend camelCase DTO', async () => {
     vi.mocked(apiClient.post).mockResolvedValueOnce({ items: [] });

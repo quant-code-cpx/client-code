@@ -214,7 +214,7 @@ function ChannelEditorDialog({ channel, open, onClose, onSaved }: ChannelEditorP
         ) : null}
       </DialogContent>
       <DialogActions>
-        <Button disabled={saving} onClick={onClose}>
+        <Button color="inherit" disabled={saving} onClick={onClose}>
           取消
         </Button>
         <Button variant="contained" loading={saving} disabled={!valid} onClick={handleSave}>

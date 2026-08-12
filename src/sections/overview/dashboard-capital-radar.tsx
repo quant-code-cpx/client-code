@@ -1,10 +1,11 @@
 import type { HsgtTrendItem, MarketMoneyFlowDetail } from 'src/api/market';
 
-import { useState, useEffect } from 'react';
 import { varAlpha } from 'minimal-shared/utils';
+import { useRef, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
+import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Tooltip from '@mui/material/Tooltip';
@@ -22,8 +23,13 @@ import { Iconify } from 'src/components/iconify';
 
 // ----------------------------------------------------------------------
 
-function flowColor(v: number): 'error.main' | 'success.main' {
+function flowColor(v: number | null): 'error.main' | 'success.main' | 'text.secondary' {
+  if (v == null) return 'text.secondary';
   return v >= 0 ? 'error.main' : 'success.main';
+}
+
+function errorMessage(error: unknown, fallback: string): string {
+  return error instanceof Error && error.message ? error.message : fallback;
 }
 
 // ----------------------------------------------------------------------
@@ -37,36 +43,59 @@ export function DashboardCapitalRadar({ refreshKey }: DashboardCapitalRadarProps
   const [hsgt, setHsgt] = useState<HsgtTrendItem | null>(null);
   const [moneyFlow, setMoneyFlow] = useState<MarketMoneyFlowDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [errors, setErrors] = useState({ hsgt: '', moneyFlow: '' });
+  const requestRef = useRef(0);
+
+  const fetchData = useCallback(async () => {
+    const requestId = requestRef.current + 1;
+    requestRef.current = requestId;
+    setLoading(true);
+    setErrors({ hsgt: '', moneyFlow: '' });
+
+    const [hsgtResult, moneyFlowResult] = await Promise.allSettled([
+      fetchHsgtFlow({ days: 5 }),
+      fetchMoneyFlow(),
+    ]);
+    if (requestRef.current !== requestId) return;
+
+    const nextErrors = { hsgt: '', moneyFlow: '' };
+    if (hsgtResult.status === 'fulfilled') {
+      const history = hsgtResult.value.history ?? [];
+      setHsgt(history.length > 0 ? history[history.length - 1] : null);
+    } else {
+      nextErrors.hsgt = errorMessage(hsgtResult.reason, '北向成交数据加载失败');
+    }
+
+    if (moneyFlowResult.status === 'fulfilled') {
+      setMoneyFlow(moneyFlowResult.value);
+    } else {
+      nextErrors.moneyFlow = errorMessage(moneyFlowResult.reason, '市场资金流数据加载失败');
+    }
+
+    setErrors(nextErrors);
+    setLoading(false);
+  }, []);
 
   useEffect(() => {
-    setLoading(true);
-    const loadHsgt = fetchHsgtFlow({ days: 5 })
-      .then((h) => {
-        const hsgtData = h.history ?? [];
-        setHsgt(hsgtData.length > 0 ? hsgtData[hsgtData.length - 1] : null);
-      })
-      .catch(() => {});
+    void fetchData();
+    return () => {
+      requestRef.current += 1;
+    };
+  }, [fetchData, refreshKey]);
 
-    const loadMoneyFlow = fetchMoneyFlow()
-      .then((m) => setMoneyFlow(m))
-      .catch(() => {});
-
-    Promise.all([loadHsgt, loadMoneyFlow]).finally(() => setLoading(false));
-  }, [refreshKey]);
-
-  if (loading) {
+  if (loading && !hsgt && !moneyFlow) {
     return <Skeleton variant="rounded" height={260} />;
   }
 
   // ── Derived metrics ──────────────────────────────────────────────
 
   // 逐笔资金净流入（独立算法，元 → 亿元）
-  const mfNet = moneyFlow?.netMfAmount ?? 0;
-  const mfNetYi = mfNet / 1e8;
-  const mfIsPos = mfNetYi >= 0;
+  const mfNet = moneyFlow?.netMfAmount ?? null;
+  const mfNetYi = mfNet == null ? null : mfNet / 1e8;
+  const mfIsPos = mfNetYi != null && mfNetYi >= 0;
 
   // 主力汇总口径（超大+大单，元）
-  const mainNet = moneyFlow?.main?.netAmount ?? 0;
+  const mainNet = moneyFlow?.main?.netAmount ?? null;
 
   // 四层明细（元）
   const tiers = [
@@ -83,12 +112,35 @@ export function DashboardCapitalRadar({ refreshKey }: DashboardCapitalRadarProps
     <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <CardHeader
         title="资金雷达"
-        titleTypographyProps={{ variant: 'subtitle1', fontWeight: 700 }}
+        slotProps={{ title: { variant: 'subtitle1', fontWeight: 700 } }}
         avatar={<Iconify icon="solar:target-bold" width={22} sx={{ color: 'info.main' }} />}
         sx={{ pb: 0.5 }}
       />
 
       <Box sx={{ px: 3, pb: 2.5, flex: 1, display: 'flex', flexDirection: 'column' }}>
+        {(errors.moneyFlow || errors.hsgt) && (
+          <Alert
+            severity="warning"
+            action={
+              <Button color="inherit" size="small" onClick={() => void fetchData()}>
+                重试
+              </Button>
+            }
+            sx={{ mb: 1.5 }}
+          >
+            {[
+              errors.moneyFlow
+                ? `${moneyFlow ? '资金流刷新失败，当前展示上次数据：' : ''}${errors.moneyFlow}`
+                : '',
+              errors.hsgt
+                ? `${hsgt ? '北向成交刷新失败，当前展示上次数据：' : ''}${errors.hsgt}`
+                : '',
+            ]
+              .filter(Boolean)
+              .join('；')}
+          </Alert>
+        )}
+
         {/* ── Hero: 全市场净流入 ── */}
         <Box sx={{ textAlign: 'center', mb: 2 }}>
           <Stack direction="row" alignItems="center" justifyContent="center" spacing={0.5}>
@@ -106,19 +158,11 @@ export function DashboardCapitalRadar({ refreshKey }: DashboardCapitalRadarProps
                   alignItems: 'center',
                   justifyContent: 'center',
                   cursor: 'help',
-                  width: 14,
-                  height: 14,
-                  borderRadius: '50%',
-                  bgcolor: 'text.disabled',
-                  color: 'background.paper',
-                  fontSize: '9px',
-                  fontWeight: 700,
-                  lineHeight: '14px',
-                  userSelect: 'none',
+                  color: 'text.disabled',
                   flexShrink: 0,
                 }}
               >
-                ?
+                <Iconify icon="solar:info-circle-bold" width={15} />
               </Box>
             </Tooltip>
           </Stack>
@@ -130,34 +174,36 @@ export function DashboardCapitalRadar({ refreshKey }: DashboardCapitalRadarProps
               lineHeight: 1.3,
             }}
           >
-            {mfIsPos ? '+' : ''}
-            {mfNetYi.toFixed(2)}
+            {mfNetYi == null ? '—' : `${mfIsPos ? '+' : ''}${mfNetYi.toFixed(2)}`}
             <Typography
               component="span"
               variant="body2"
               sx={{ color: 'text.disabled', fontWeight: 500, ml: 0.5 }}
             >
-              亿
+              {mfNetYi == null ? '' : '亿'}
             </Typography>
           </Typography>
         </Box>
 
         {/* ── 主力净流入（超大+大单；散户方向必然相反，不重复展示） ── */}
         {(() => {
-          const yi = mainNet / 1e8;
-          const isPos = yi >= 0;
+          const yi = mainNet == null ? null : mainNet / 1e8;
+          const isPos = yi != null && yi >= 0;
           return (
             <Box
               sx={{
                 p: 1.25,
                 mb: 2,
                 borderRadius: 1.5,
-                bgcolor: varAlpha(
-                  isPos
-                    ? theme.vars.palette.error.mainChannel
-                    : theme.vars.palette.success.mainChannel,
-                  0.06
-                ),
+                bgcolor:
+                  yi == null
+                    ? 'background.neutral'
+                    : varAlpha(
+                        isPos
+                          ? theme.vars.palette.error.mainChannel
+                          : theme.vars.palette.success.mainChannel,
+                        0.06
+                      ),
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
@@ -175,8 +221,7 @@ export function DashboardCapitalRadar({ refreshKey }: DashboardCapitalRadarProps
                 </Typography>
               </Tooltip>
               <Typography variant="subtitle2" sx={{ fontWeight: 700, color: flowColor(yi) }}>
-                {isPos ? '+' : ''}
-                {yi.toFixed(2)}亿
+                {yi == null ? '—' : `${isPos ? '+' : ''}${yi.toFixed(2)}亿`}
               </Typography>
             </Box>
           );
@@ -197,33 +242,26 @@ export function DashboardCapitalRadar({ refreshKey }: DashboardCapitalRadarProps
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: 'help',
-                width: 13,
-                height: 13,
-                borderRadius: '50%',
-                bgcolor: 'text.disabled',
-                color: 'background.paper',
-                fontSize: '9px',
-                fontWeight: 700,
-                lineHeight: '13px',
-                userSelect: 'none',
+                color: 'text.disabled',
                 flexShrink: 0,
               }}
             >
-              ?
+              <Iconify icon="solar:info-circle-bold" width={14} />
             </Box>
           </Tooltip>
         </Stack>
 
         <Stack sx={{ flex: 1, justifyContent: 'space-evenly' }}>
           {tiers.map((t) => {
-            const buy = t.tier?.buyAmount ?? 0;
-            const sell = t.tier?.sellAmount ?? 0;
-            const net = t.tier?.netAmount ?? 0;
-            const sideTotal = buy + sell;
-            const buyPct = sideTotal > 0 ? (buy / sideTotal) * 100 : 50;
-            const buyYi = buy / 1e8;
-            const sellYi = sell / 1e8;
-            const netYi = net / 1e8;
+            const buy = t.tier?.buyAmount ?? null;
+            const sell = t.tier?.sellAmount ?? null;
+            const net = t.tier?.netAmount ?? null;
+            const sideTotal = buy != null && sell != null ? buy + sell : null;
+            const buyPct =
+              buy != null && sideTotal != null && sideTotal > 0 ? (buy / sideTotal) * 100 : null;
+            const buyYi = buy == null ? null : buy / 1e8;
+            const sellYi = sell == null ? null : sell / 1e8;
+            const netYi = net == null ? null : net / 1e8;
 
             return (
               <Box key={t.key}>
@@ -257,18 +295,20 @@ export function DashboardCapitalRadar({ refreshKey }: DashboardCapitalRadarProps
                   >
                     <Box
                       sx={{
-                        width: `${buyPct}%`,
-                        bgcolor: 'error.main',
+                        width: buyPct == null ? '100%' : `${buyPct}%`,
+                        bgcolor: buyPct == null ? 'action.disabledBackground' : 'error.main',
                         transition: 'width 0.4s ease',
                       }}
                     />
-                    <Box
-                      sx={{
-                        flex: 1,
-                        bgcolor: 'success.main',
-                        transition: 'width 0.4s ease',
-                      }}
-                    />
+                    {buyPct != null && (
+                      <Box
+                        sx={{
+                          flex: 1,
+                          bgcolor: 'success.main',
+                          transition: 'width 0.4s ease',
+                        }}
+                      />
+                    )}
                   </Box>
 
                   {/* Net value */}
@@ -283,8 +323,7 @@ export function DashboardCapitalRadar({ refreshKey }: DashboardCapitalRadarProps
                       textAlign: 'right',
                     }}
                   >
-                    {netYi >= 0 ? '+' : ''}
-                    {netYi.toFixed(1)}亿
+                    {netYi == null ? '—' : `${netYi >= 0 ? '+' : ''}${netYi.toFixed(1)}亿`}
                   </Typography>
                 </Stack>
 
@@ -298,13 +337,13 @@ export function DashboardCapitalRadar({ refreshKey }: DashboardCapitalRadarProps
                     variant="caption"
                     sx={{ color: 'error.main', fontSize: 12, opacity: 0.65 }}
                   >
-                    买{buyYi.toFixed(1)}亿
+                    买{buyYi == null ? '—' : `${buyYi.toFixed(1)}亿`}
                   </Typography>
                   <Typography
                     variant="caption"
                     sx={{ color: 'success.main', fontSize: 12, opacity: 0.65 }}
                   >
-                    卖{sellYi.toFixed(1)}亿
+                    卖{sellYi == null ? '—' : `${sellYi.toFixed(1)}亿`}
                   </Typography>
                 </Stack>
               </Box>

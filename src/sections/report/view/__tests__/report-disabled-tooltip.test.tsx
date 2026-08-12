@@ -11,7 +11,6 @@ import { ReportDetailView } from '../report-detail-view';
 const mocks = vi.hoisted(() => ({
   listReports: vi.fn(),
   getReportDetail: vi.fn(),
-  regenerateReport: vi.fn(),
 }));
 
 vi.mock('react-router-dom', async (importOriginal) => {
@@ -25,7 +24,6 @@ vi.mock('src/api/report', async (importOriginal) => {
     ...actual,
     listReports: mocks.listReports,
     getReportDetail: mocks.getReportDetail,
-    regenerateReport: mocks.regenerateReport,
   };
 });
 
@@ -83,7 +81,7 @@ describe('量化报告 disabled Tooltip', () => {
 
     expect(await screen.findByRole('heading', { name: '生成中的报告' })).toBeInTheDocument();
     const printButton = screen.getByRole('button', { name: '打印' });
-    const regenerateButton = screen.getByRole('button', { name: '重新生成' });
+    const regenerateButton = screen.getByRole('button', { name: '重新生成（未开放）' });
     expect(printButton).toBeDisabled();
     expect(regenerateButton).toBeDisabled();
     expect(printButton.parentElement?.tagName).toBe('SPAN');
@@ -98,7 +96,7 @@ describe('量化报告 disabled Tooltip', () => {
 
     renderWithProviders(<ReportListView />);
 
-    const regenerateButton = await screen.findByRole('button', { name: '重新生成' });
+    const regenerateButton = await screen.findByRole('button', { name: '重新生成（未开放）' });
     expect(regenerateButton).toBeDisabled();
     expect(regenerateButton.parentElement?.tagName).toBe('SPAN');
   });

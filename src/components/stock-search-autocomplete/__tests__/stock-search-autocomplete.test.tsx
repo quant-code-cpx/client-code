@@ -147,6 +147,36 @@ describe('StockSearchAutocomplete', () => {
       // No error alert in DOM
       expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     });
+
+    it('较早请求晚返回时不会覆盖最新关键词结果', async () => {
+      const first = deferred<Awaited<ReturnType<typeof searchStocks>>>();
+      const second = deferred<Awaited<ReturnType<typeof searchStocks>>>();
+      mockSearchStocks.mockReturnValueOnce(first.promise).mockReturnValueOnce(second.promise);
+      const { user } = renderWithProviders(<StockSearchAutocomplete onChange={vi.fn()} />);
+      const input = screen.getByPlaceholderText('输入股票代码或名称...');
+
+      await user.type(input, '平');
+      await advanceDebounce();
+      await user.clear(input);
+      await user.type(input, '茅');
+      await advanceDebounce();
+
+      second.resolve({
+        items: [createMockStockSearchItem({ tsCode: '600519.SH', name: '贵州茅台' })],
+        total: 1,
+      });
+      await act(async () => second.promise);
+      expect(await screen.findByText('贵州茅台')).toBeInTheDocument();
+
+      first.resolve({
+        items: [createMockStockSearchItem({ tsCode: '000001.SZ', name: '平安银行' })],
+        total: 1,
+      });
+      await act(async () => first.promise);
+
+      expect(screen.getByText('贵州茅台')).toBeInTheDocument();
+      expect(screen.queryByText('平安银行')).not.toBeInTheDocument();
+    });
   });
 
   describe('选项渲染', () => {
@@ -221,3 +251,11 @@ describe('StockSearchAutocomplete', () => {
     });
   });
 });
+
+function deferred<T>() {
+  let resolve!: (value: T) => void;
+  const promise = new Promise<T>((resolvePromise) => {
+    resolve = resolvePromise;
+  });
+  return { promise, resolve };
+}

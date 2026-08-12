@@ -33,6 +33,7 @@ import { FactorCustomDialog } from '../factor-custom-dialog';
 import { FactorLibraryCardV2 } from '../library/factor-library-card';
 import { FactorLibraryTable } from '../library/factor-library-table';
 import { FactorLibraryBulkBar } from '../library/factor-library-bulk-bar';
+import { resolveLatestFactorTradeDate } from '../latest-factor-trade-date';
 import { FactorLibraryCategoryTabs } from '../factor-library-category-tabs';
 import { FactorLibraryFilterBar } from '../library/factor-library-filter-bar';
 import { FactorLibraryDetailDrawer } from '../library/factor-library-detail-drawer';
@@ -86,6 +87,10 @@ export function FactorLibraryView() {
   const allFactors = useMemo<FactorDef[]>(
     () => library?.categories.flatMap((c) => c.factors) ?? [],
     [library]
+  );
+  const latestTradeDate = useMemo(
+    () => resolveLatestFactorTradeDate(allFactors),
+    [allFactors]
   );
 
   /** 头部摘要计数 */
@@ -202,21 +207,31 @@ export function FactorLibraryView() {
     }
   }, [deleteTarget, fetchLibrary]);
 
-  const handlePrecompute = useCallback(async (factor: FactorDef) => {
-    setPrecomputingNames((prev) => new Set(prev).add(factor.name));
-    try {
-      await precomputeCustomFactor({ name: factor.name ?? factor.id });
-      setSnackMsg(`「${factor.label}」预计算任务已提交`);
-    } catch {
-      setSnackMsg('触发预计算失败');
-    } finally {
-      setPrecomputingNames((prev) => {
-        const next = new Set(prev);
-        next.delete(factor.name);
-        return next;
-      });
-    }
-  }, []);
+  const handlePrecompute = useCallback(
+    async (factor: FactorDef) => {
+      if (!latestTradeDate) {
+        setSnackMsg('无法确定最近有效交易日，未发送预计算请求');
+        return;
+      }
+      setPrecomputingNames((prev) => new Set(prev).add(factor.name));
+      try {
+        await precomputeCustomFactor({
+          name: factor.name ?? factor.id,
+          tradeDate: latestTradeDate,
+        });
+        setSnackMsg(`「${factor.label}」预计算任务已提交`);
+      } catch {
+        setSnackMsg('触发预计算失败');
+      } finally {
+        setPrecomputingNames((prev) => {
+          const next = new Set(prev);
+          next.delete(factor.name);
+          return next;
+        });
+      }
+    },
+    [latestTradeDate]
+  );
 
   const handleToggleEnabled = useCallback(
     async (factor: FactorDef, isEnabled: boolean) => {
@@ -253,6 +268,10 @@ export function FactorLibraryView() {
   const handleBatchPrecompute = useCallback(async () => {
     const customNames = selectedFactors.filter((f) => !f.isBuiltin).map((f) => f.name);
     if (customNames.length === 0) return;
+    if (!latestTradeDate) {
+      setSnackMsg('无法确定最近有效交易日，未发送批量预计算请求');
+      return;
+    }
     setBatchPrecomputing(true);
     setPrecomputingNames((prev) => {
       const next = new Set(prev);
@@ -261,14 +280,14 @@ export function FactorLibraryView() {
     });
     try {
       // 优先调用批量端点（BE-3）
-      await batchPrecomputeFactors({ factorNames: customNames });
+      await batchPrecomputeFactors({ factorNames: customNames, tradeDate: latestTradeDate });
       setSnackMsg(`已提交 ${customNames.length} 个因子的预计算任务`);
     } catch {
       // 退化为串行调用
       let success = 0;
       for (const name of customNames) {
         try {
-          await precomputeCustomFactor({ name });
+          await precomputeCustomFactor({ name, tradeDate: latestTradeDate });
           success += 1;
         } catch {
           // ignore single failure
@@ -283,7 +302,7 @@ export function FactorLibraryView() {
         return next;
       });
     }
-  }, [selectedFactors]);
+  }, [latestTradeDate, selectedFactors]);
 
   const handleCopyNames = useCallback(() => {
     const text = selectedFactors.map((f) => f.name).join(',');
@@ -324,9 +343,21 @@ export function FactorLibraryView() {
             </Typography>
             {headerCounts.staleCount > 0 && (
               <Typography
+                component="button"
+                type="button"
                 variant="caption"
                 color="warning.main"
-                sx={{ cursor: 'pointer' }}
+                sx={{
+                  p: 0,
+                  border: 0,
+                  bgcolor: 'transparent',
+                  cursor: 'pointer',
+                  '&:focus-visible': {
+                    outline: '2px solid',
+                    outlineColor: 'primary.main',
+                    outlineOffset: 2,
+                  },
+                }}
                 onClick={() => setFilters({ statuses: ['STALE'] })}
               >
                 · ⚠ 数据滞后 {headerCounts.staleCount}
@@ -337,6 +368,7 @@ export function FactorLibraryView() {
 
         <Stack direction="row" spacing={1.5} alignItems="center">
           <ToggleButtonGroup
+            aria-label="因子库视图"
             size="small"
             value={filters.view}
             exclusive
@@ -344,10 +376,10 @@ export function FactorLibraryView() {
               if (v) setFilters({ view: v });
             }}
           >
-            <ToggleButton value="card">
+            <ToggleButton value="card" aria-label="卡片视图">
               <Iconify icon="solar:widget-bold" width={16} />
             </ToggleButton>
-            <ToggleButton value="table">
+            <ToggleButton value="table" aria-label="表格视图">
               <Iconify icon="solar:layers-bold" width={16} />
             </ToggleButton>
           </ToggleButtonGroup>
@@ -461,6 +493,7 @@ export function FactorLibraryView() {
         onClose={handleCustomDialogClose}
         onSuccess={fetchLibrary}
         editFactor={editFactor}
+        tradeDate={latestTradeDate}
       />
 
       <ConfirmDialog

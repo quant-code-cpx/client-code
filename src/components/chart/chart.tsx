@@ -4,6 +4,8 @@ import { useIsClient } from 'minimal-shared/hooks';
 import { mergeClasses } from 'minimal-shared/utils';
 import { useRef, useMemo, useState, useEffect } from 'react';
 
+import Alert from '@mui/material/Alert';
+import Button from '@mui/material/Button';
 import { styled } from '@mui/material/styles';
 
 import { chartClasses } from './classes';
@@ -225,6 +227,8 @@ export function Chart({ type, series, options, slotProps, className, sx, ...othe
   const chartRef = useRef<ApexCharts | null>(null);
   const frameRef = useRef<number | null>(null);
   const [isReady, setIsReady] = useState(false);
+  const [renderError, setRenderError] = useState(false);
+  const [renderAttempt, setRenderAttempt] = useState(0);
 
   const renderFallback = () => <ChartLoading type={type} sx={slotProps?.loading} />;
 
@@ -253,6 +257,15 @@ export function Chart({ type, series, options, slotProps, className, sx, ...othe
     };
 
     setIsReady(false);
+    setRenderError(false);
+
+    const reportRenderError = (error: unknown) => {
+      console.error('Apex chart render failed:', error);
+      if (!isDisposed) {
+        setIsReady(false);
+        setRenderError(true);
+      }
+    };
 
     const mountChart = async () => {
       const { default: ApexChartsCtor } = await import('apexcharts');
@@ -314,15 +327,6 @@ export function Chart({ type, series, options, slotProps, className, sx, ...othe
         instance = chart;
         chartRef.current = chart;
 
-        // Schedule skeleton dismissal BEFORE calling render().
-        // render() may throw synchronously; if we defer rAF to after render(),
-        // a synchronous throw skips the rAF entirely and the skeleton hangs forever.
-        frameRef.current = window.requestAnimationFrame(() => {
-          if (!isDisposed) {
-            setIsReady(true);
-          }
-        });
-
         try {
           // Await render() so the queue releases only after the chart fully
           // initialises — prevents the next chart from racing against this
@@ -335,14 +339,21 @@ export function Chart({ type, series, options, slotProps, className, sx, ...othe
             } catch {
               // ignore cleanup race during disposal
             }
+            return;
           }
+
+          frameRef.current = window.requestAnimationFrame(() => {
+            if (!isDisposed) {
+              setIsReady(true);
+            }
+          });
         } catch (error) {
-          console.error('Apex chart render failed:', error);
+          reportRenderError(error);
         }
       });
     };
 
-    mountChart();
+    mountChart().catch(reportRenderError);
 
     return () => {
       isDisposed = true;
@@ -369,7 +380,7 @@ export function Chart({ type, series, options, slotProps, className, sx, ...othe
     // renderSignature covers type/options/series while avoiding remounts for
     // referentially-new but semantically-identical configuration objects.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isClient, renderSignature]);
+  }, [isClient, renderAttempt, renderSignature]);
 
   return (
     <ChartRoot
@@ -380,7 +391,22 @@ export function Chart({ type, series, options, slotProps, className, sx, ...othe
     >
       <ChartCanvas ref={containerRef} />
 
-      {(!isClient || !isReady) && renderFallback()}
+      {renderError ? (
+        <ChartErrorRoot>
+          <Alert
+            severity="error"
+            action={
+              <Button color="inherit" size="small" onClick={() => setRenderAttempt((n) => n + 1)}>
+                重试
+              </Button>
+            }
+          >
+            图表加载失败
+          </Alert>
+        </ChartErrorRoot>
+      ) : (
+        (!isClient || !isReady) && renderFallback()
+      )}
     </ChartRoot>
   );
 }
@@ -401,3 +427,12 @@ const ChartCanvas = styled('div')({
   height: '100%',
   minHeight: 0,
 });
+
+const ChartErrorRoot = styled('div')(({ theme }) => ({
+  inset: 0,
+  zIndex: 9,
+  display: 'grid',
+  padding: theme.spacing(2),
+  position: 'absolute',
+  placeItems: 'center',
+}));

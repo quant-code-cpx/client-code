@@ -76,7 +76,8 @@ export function RotationFourFacetCard({ tradeDate, period, onSectorClick, refres
       .then(([momResult, returnResult, flowResult, valuationResult]) => {
         if (cancelled) return;
         setMomentum(momResult.status === 'fulfilled' ? (momResult.value?.rankings ?? []) : []);
-        const sectors = returnResult.status === 'fulfilled' ? (returnResult.value?.sectors ?? []) : [];
+        const sectors =
+          returnResult.status === 'fulfilled' ? (returnResult.value?.sectors ?? []) : [];
         setReturns(
           sectors.map((s) => ({
             name: s.name,
@@ -320,6 +321,7 @@ function MiniRow({
   return (
     <TableRow
       hover={Boolean(onClick)}
+      role={onClick ? 'button' : undefined}
       tabIndex={onClick ? 0 : undefined}
       aria-label={onClick ? `查看 ${name} 行业详情` : undefined}
       onKeyDown={onClick ? handleKeyDown : undefined}

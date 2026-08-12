@@ -15,16 +15,16 @@ type StrategyDetailContextValue = {
   isAnyCardDirty: boolean;
 };
 
-export const StrategyDetailContext = createContext<StrategyDetailContextValue>({
-  strategy: null,
-  refresh: () => {},
-  registerDirty: () => {},
-  clearDirty: () => {},
-  isAnyCardDirty: false,
-});
+export const StrategyDetailContext = createContext<StrategyDetailContextValue | null>(null);
 
 export function useStrategyDetail() {
-  return useContext(StrategyDetailContext);
+  const context = useContext(StrategyDetailContext);
+
+  if (!context) {
+    throw new Error('useStrategyDetail must be used within StrategyDetailProvider');
+  }
+
+  return context;
 }
 
 // ----------------------------------------------------------------------

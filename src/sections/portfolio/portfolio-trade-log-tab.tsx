@@ -23,6 +23,8 @@ import CardContent from '@mui/material/CardContent';
 import FormControl from '@mui/material/FormControl';
 import TableContainer from '@mui/material/TableContainer';
 
+import { fDateTime } from 'src/utils/format-time';
+
 import { queryTradeLog, tradeLogSummary } from 'src/api/portfolio';
 
 import { DatePicker } from 'src/components/date-picker';
@@ -36,17 +38,15 @@ function toApiDate(yyyymmdd: string) {
 }
 
 function defaultStartDate() {
-  const d = new Date();
-  d.setMonth(d.getMonth() - 3);
-  return d.toISOString().slice(0, 10);
+  return dayjs().subtract(3, 'month').format('YYYY-MM-DD');
 }
 
 function defaultEndDate() {
-  return new Date().toISOString().slice(0, 10);
+  return dayjs().format('YYYY-MM-DD');
 }
 
 function fAmount(v: number | null) {
-  if (v == null) return '--';
+  if (v == null) return '—';
   return `¥${v.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}`;
 }
 
@@ -133,7 +133,7 @@ export function PortfolioTradeLogTab({ portfolioId }: PortfolioTradeLogTabProps)
               <Typography variant="caption" color="text.secondary">
                 总买入金额
               </Typography>
-              <Typography variant="h6" fontWeight={700} color="error.main">
+              <Typography variant="h6" fontWeight={700} color="text.secondary">
                 {fAmount(summary.totalBuyAmount)}
               </Typography>
             </CardContent>
@@ -143,7 +143,7 @@ export function PortfolioTradeLogTab({ portfolioId }: PortfolioTradeLogTabProps)
               <Typography variant="caption" color="text.secondary">
                 总卖出金额
               </Typography>
-              <Typography variant="h6" fontWeight={700} color="success.main">
+              <Typography variant="h6" fontWeight={700} color="text.secondary">
                 {fAmount(summary.totalSellAmount)}
               </Typography>
             </CardContent>
@@ -192,7 +192,7 @@ export function PortfolioTradeLogTab({ portfolioId }: PortfolioTradeLogTabProps)
             <Table size="small">
               <TableHead>
                 <TableRow>
-                  <TableCell>交易日期</TableCell>
+                  <TableCell>发生时间</TableCell>
                   <TableCell>操作</TableCell>
                   <TableCell>股票代码</TableCell>
                   <TableCell>股票名称</TableCell>
@@ -214,7 +214,7 @@ export function PortfolioTradeLogTab({ portfolioId }: PortfolioTradeLogTabProps)
                 ) : (
                   items.map((row) => (
                     <TableRow key={row.id} hover>
-                      <TableCell>{row.tradeDate}</TableCell>
+                      <TableCell>{fDateTime(row.createdAt)}</TableCell>
                       <TableCell>
                         <Chip
                           label={
@@ -235,14 +235,12 @@ export function PortfolioTradeLogTab({ portfolioId }: PortfolioTradeLogTabProps)
                         />
                       </TableCell>
                       <TableCell>{row.tsCode}</TableCell>
-                      <TableCell>{row.stockName ?? '--'}</TableCell>
+                      <TableCell>{row.stockName ?? '—'}</TableCell>
                       <TableCell align="right">{row.quantity.toLocaleString()}</TableCell>
                       <TableCell align="right">
-                        {row.price != null ? row.price.toFixed(2) : '--'}
+                        {row.price != null ? row.price.toFixed(2) : '—'}
                       </TableCell>
-                      <TableCell align="right">
-                        {row.amount != null ? fAmount(row.amount) : '--'}
-                      </TableCell>
+                      <TableCell align="right">{fAmount(row.amount)}</TableCell>
                       <TableCell
                         sx={{
                           maxWidth: 160,

@@ -174,7 +174,8 @@ export const customConfig = {
     'import/resolver': {
       ...importPlugin.configs.typescript.settings['import/resolver'],
       typescript: {
-        project: './tsconfig.json',
+        noWarnOnMultipleProjects: true,
+        project: ['./tsconfig.json', './tsconfig.e2e.json', './tsconfig.node.json'],
       },
     },
   },
@@ -190,7 +191,18 @@ export const customConfig = {
 
 export default [
   { files: ['**/*.{js,mjs,cjs,ts,jsx,tsx}'] },
-  { ignores: ['*', '!src/', '!eslint.config.*'] },
+  {
+    ignores: [
+      '*',
+      '!src/',
+      '!e2e/',
+      '!scripts/',
+      '!eslint.config.mjs',
+      '!vite.config.ts',
+      '!vitest.config.ts',
+      '!playwright*.config.ts',
+    ],
+  },
   {
     languageOptions: {
       globals: { ...globals.browser, ...globals.node },
@@ -201,6 +213,27 @@ export default [
   ...eslintTs.configs.recommended,
   reactPlugin.configs.flat.recommended,
   customConfig,
+  {
+    files: [
+      'e2e/**/*.ts',
+      'scripts/**/*.{mjs,cjs}',
+      'eslint.config.mjs',
+      'vite.config.ts',
+      'vitest.config.ts',
+      'playwright*.config.ts',
+    ],
+    rules: {
+      // Playwright fixtures expose a callback parameter named `use`; it is not a React Hook.
+      'react-hooks/rules-of-hooks': 0,
+    },
+  },
+  {
+    files: ['scripts/**/*.cjs'],
+    rules: {
+      // CommonJS scripts must use require() because the package is otherwise ESM.
+      '@typescript-eslint/no-require-imports': 0,
+    },
+  },
   {
     files: ['src/components/date-picker/date-picker.tsx'],
     rules: {

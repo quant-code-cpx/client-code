@@ -13,9 +13,9 @@
  *   node scripts/capture-mock-data.mjs
  */
 
-import { writeFileSync, mkdirSync } from 'fs';
-import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { resolve, dirname } from 'path';
+import { mkdirSync, writeFileSync } from 'fs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');

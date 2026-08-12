@@ -28,7 +28,15 @@ describe('RotationDetailDrawer', () => {
       momentum: null,
       pePercentile: null,
       pbPercentile: null,
-      returnTrend: [],
+      returnTrend: [
+        {
+          tradeDate: '20260808',
+          close: 1234.56,
+          pctChange: 1.2,
+          cumReturn: 3.4,
+          benchmarkReturn: null,
+        },
+      ],
       flowTrend: [],
       topStocks: [
         {
@@ -55,5 +63,15 @@ describe('RotationDetailDrawer', () => {
     await user.keyboard(' ');
 
     expect(routerMock.push).toHaveBeenCalledWith('/stock/detail?code=000001.SZ');
+  });
+
+  it('基准序列缺失时明确降级，不展示伪造的沪深300曲线', async () => {
+    renderWithProviders(
+      <RotationDetailDrawer open onClose={vi.fn()} sectorName="银行" period="1m" />
+    );
+
+    expect(
+      await screen.findByText('后端暂未提供沪深300基准收益，当前仅展示行业收益。')
+    ).toBeInTheDocument();
   });
 });

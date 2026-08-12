@@ -9,11 +9,11 @@ import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
 import Skeleton from '@mui/material/Skeleton';
+import ButtonBase from '@mui/material/ButtonBase';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 
 import { paths } from 'src/routes/paths';
-import { useRouter } from 'src/routes/hooks';
 import { RouterLink } from 'src/routes/components';
 
 import { fToNow } from 'src/utils/format-time';
@@ -24,18 +24,22 @@ import { ReportTypeChip, ReportStatusChip } from '../report/components/report-ch
 
 type Props = { refreshKey?: number };
 
-function ReportRow({ item, onClick }: { item: ReportListItem; onClick: () => void }) {
+function ReportRow({ item }: { item: ReportListItem }) {
   return (
-    <Box
-      onClick={onClick}
+    <ButtonBase
+      component={RouterLink}
+      href={paths.research.report.detail(item.id)}
+      aria-label={`查看报告：${item.title}`}
       sx={{
         display: 'flex',
+        width: '100%',
         flexDirection: 'column',
+        alignItems: 'stretch',
+        textAlign: 'left',
         gap: 0.5,
         px: 1.5,
         py: 1.25,
         borderRadius: 1,
-        cursor: 'pointer',
         '&:hover': { bgcolor: 'action.hover' },
       }}
     >
@@ -59,12 +63,11 @@ function ReportRow({ item, onClick }: { item: ReportListItem; onClick: () => voi
           · {fToNow(item.createdAt)}前
         </Typography>
       </Stack>
-    </Box>
+    </ButtonBase>
   );
 }
 
 export function DashboardRecentReports({ refreshKey }: Props) {
-  const router = useRouter();
   const [items, setItems] = useState<ReportListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -145,10 +148,7 @@ export function DashboardRecentReports({ refreshKey }: Props) {
           items.map((it, idx) => (
             <Box key={it.id}>
               {idx > 0 && <Divider sx={{ my: 0.5 }} />}
-              <ReportRow
-                item={it}
-                onClick={() => router.push(paths.research.report.detail(it.id))}
-              />
+              <ReportRow item={it} />
             </Box>
           ))
         )}

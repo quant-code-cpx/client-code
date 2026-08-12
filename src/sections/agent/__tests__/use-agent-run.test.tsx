@@ -11,6 +11,8 @@ const mocks = vi.hoisted(() => ({
   sendMessage: vi.fn(),
   createConversation: vi.fn(),
   cancelRun: vi.fn(),
+  regenerateMessage: vi.fn(),
+  retryRun: vi.fn(),
   streamAgentRun: vi.fn(),
   getRunStatus: vi.fn(),
   listMessages: vi.fn(),
@@ -21,6 +23,8 @@ vi.mock('src/api/agent', () => ({
     sendMessage: mocks.sendMessage,
     createConversation: mocks.createConversation,
     cancelRun: mocks.cancelRun,
+    regenerateMessage: mocks.regenerateMessage,
+    retryRun: mocks.retryRun,
     getRunStatus: mocks.getRunStatus,
     listMessages: mocks.listMessages,
   },
@@ -50,6 +54,7 @@ function conversation() {
     status: 'ACTIVE' as const,
     modelPolicy: 'AUTO' as const,
     preferredModel: null,
+    reasoningEffort: null,
     messageCount: 0,
     lastMessageAt: '2026-07-20T01:00:00.000Z',
     createdAt: '2026-07-20T01:00:00.000Z',
@@ -104,6 +109,68 @@ function runningSnapshot(statusVersion = 2) {
     startedAt: '2026-07-20T01:00:02.000Z',
     endedAt: null,
   };
+}
+
+function failedSnapshot(canRetry: boolean) {
+  return {
+    runId: 'run_failed',
+    conversationId: 'cm_1',
+    status: 'FAILED' as const,
+    statusVersion: 3,
+    currentStep: null,
+    finalMessageId: 'msg_failed',
+    latestEventSequence: 9,
+    canCancel: false,
+    canRetry,
+    retryOfRunId: null,
+    retryMode: null,
+    retryDepth: 0,
+    errorCode: canRetry ? 6007 : 6019,
+    errorMessage: canRetry ? '模型调用超时' : 'Tool 调用额度已用尽',
+    queuedAt: '2026-08-10T23:00:00.000Z',
+    startedAt: '2026-08-10T23:00:01.000Z',
+    endedAt: '2026-08-10T23:02:01.000Z',
+  };
+}
+
+function assistantMessage(status: 'COMPLETED' | 'FAILED') {
+  return {
+    messageId: 'msg_failed',
+    role: 'ASSISTANT' as const,
+    status,
+    contentText: status === 'FAILED' ? null : '研究结论',
+    contentBlocks: [],
+    version: 1,
+    parentMessageId: 'msg_user_1',
+    modelName: 'gpt-5.6-sol',
+    run: {
+      runId: 'run_failed',
+      status,
+      statusVersion: 3,
+      endedAt: '2026-08-10T23:02:01.000Z',
+      errorCode: status === 'FAILED' ? '6007' : null,
+      errorMessage: status === 'FAILED' ? '模型调用超时' : null,
+    },
+    citations: [],
+    createdAt: '2026-08-10T23:00:00.000Z',
+    completedAt: '2026-08-10T23:02:01.000Z',
+  };
+}
+
+function loadAssistantMessage(
+  dispatch: ReturnType<typeof useAgentDispatch>,
+  status: 'COMPLETED' | 'FAILED'
+) {
+  dispatch({ type: 'MESSAGES_REQUESTED', conversationId: 'cm_1', generation: 1 });
+  dispatch({
+    type: 'MESSAGES_SUCCEEDED',
+    conversationId: 'cm_1',
+    generation: 1,
+    items: [assistantMessage(status)],
+    nextBeforeMessageId: null,
+    mode: 'replace',
+    authoritative: true,
+  });
 }
 
 beforeEach(() => {
@@ -222,6 +289,118 @@ describe('useAgentRun', () => {
     expect(mocks.sendMessage).not.toHaveBeenCalled();
   });
 
+  it('失败 Run 可安全重试时续跑检查点，不重新执行完整研究', async () => {
+    mocks.getRunStatus.mockResolvedValue(failedSnapshot(true));
+    mocks.retryRun.mockResolvedValue({
+      conversationId: 'cm_1',
+      sourceRunId: 'run_failed',
+      assistantMessageId: 'msg_retry',
+      runId: 'run_retry',
+      runStatus: 'QUEUED',
+      retryMode: 'SAFE_CHECKPOINT',
+      streamEndpoint: '/api/agent/runs/events',
+    });
+    const hook = renderHook(
+      () => ({
+        runner: useAgentRun('cm_1'),
+        dispatch: useAgentDispatch(),
+      }),
+      { wrapper }
+    );
+    act(() => {
+      hook.result.current.dispatch({ type: 'CONVERSATION_CREATED', conversation: conversation() });
+      loadAssistantMessage(hook.result.current.dispatch, 'FAILED');
+    });
+
+    let accepted = false;
+    await act(async () => {
+      accepted = await hook.result.current.runner.regenerate('msg_failed');
+    });
+
+    expect(accepted).toBe(true);
+    expect(mocks.getRunStatus).toHaveBeenCalledWith({ runId: 'run_failed' });
+    expect(mocks.retryRun).toHaveBeenCalledWith({
+      clientRequestId: expect.any(String),
+      runId: 'run_failed',
+    });
+    expect(mocks.regenerateMessage).not.toHaveBeenCalled();
+    expect(mocks.streamAgentRun).toHaveBeenCalledWith(
+      expect.objectContaining({ runId: 'run_retry' })
+    );
+    hook.unmount();
+  });
+
+  it('失败 Run 不可安全重试时才回退到完整重新生成', async () => {
+    mocks.getRunStatus.mockResolvedValue(failedSnapshot(false));
+    mocks.regenerateMessage.mockResolvedValue({
+      conversationId: 'cm_1',
+      sourceMessageId: 'msg_failed',
+      assistantMessageId: 'msg_regenerated',
+      runId: 'run_regenerated',
+      runStatus: 'QUEUED',
+      streamEndpoint: '/api/agent/runs/events',
+    });
+    const hook = renderHook(
+      () => ({
+        runner: useAgentRun('cm_1'),
+        dispatch: useAgentDispatch(),
+      }),
+      { wrapper }
+    );
+    act(() => {
+      hook.result.current.dispatch({ type: 'CONVERSATION_CREATED', conversation: conversation() });
+      loadAssistantMessage(hook.result.current.dispatch, 'FAILED');
+    });
+
+    await act(async () => {
+      await hook.result.current.runner.regenerate('msg_failed');
+    });
+
+    expect(mocks.getRunStatus).toHaveBeenCalledWith({ runId: 'run_failed' });
+    expect(mocks.regenerateMessage).toHaveBeenCalledWith({
+      clientRequestId: expect.any(String),
+      messageId: 'msg_failed',
+      modelPolicy: 'AUTO',
+    });
+    expect(mocks.retryRun).not.toHaveBeenCalled();
+    hook.unmount();
+  });
+
+  it('已完成回答仍执行完整重新生成，不查询失败 Run 状态', async () => {
+    mocks.regenerateMessage.mockResolvedValue({
+      conversationId: 'cm_1',
+      sourceMessageId: 'msg_failed',
+      assistantMessageId: 'msg_regenerated',
+      runId: 'run_regenerated',
+      runStatus: 'QUEUED',
+      streamEndpoint: '/api/agent/runs/events',
+    });
+    const hook = renderHook(
+      () => ({
+        runner: useAgentRun('cm_1'),
+        dispatch: useAgentDispatch(),
+      }),
+      { wrapper }
+    );
+    act(() => {
+      hook.result.current.dispatch({ type: 'CONVERSATION_CREATED', conversation: conversation() });
+      loadAssistantMessage(hook.result.current.dispatch, 'COMPLETED');
+    });
+
+    await act(async () => {
+      await hook.result.current.runner.regenerate('msg_failed');
+    });
+
+    expect(mocks.regenerateMessage).toHaveBeenCalledWith({
+      clientRequestId: expect.any(String),
+      messageId: 'msg_failed',
+      modelPolicy: 'AUTO',
+    });
+    expect(mocks.getRunStatus).not.toHaveBeenCalled();
+    expect(mocks.retryRun).not.toHaveBeenCalled();
+    hook.unmount();
+  });
+
   it('新建会话将手动模型偏好同时传给创建和首条消息', async () => {
     mocks.createConversation.mockResolvedValue({
       conversationId: 'cm_new',
@@ -241,6 +420,7 @@ describe('useAgentRun', () => {
         useAgentRun(null, {
           policy: 'MANUAL',
           preferredModel: 'research-fast-v1',
+          reasoningEffort: 'HIGH',
         }),
       { wrapper: newConversationWrapper }
     );
@@ -256,6 +436,7 @@ describe('useAgentRun', () => {
       title: '分析贵州茅台',
       modelPolicy: 'MANUAL',
       preferredModel: 'research-fast-v1',
+      reasoningEffort: 'HIGH',
     });
     expect(mocks.sendMessage).toHaveBeenCalledWith(
       expect.objectContaining({

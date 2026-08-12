@@ -95,7 +95,7 @@ function SidebarContent({
           variant="contained"
           startIcon={<Iconify icon="solar:add-circle-bold" width={18} />}
           onClick={onNew}
-          sx={{ minHeight: 40, boxShadow: 'none' }}
+          sx={{ boxShadow: 'none' }}
         >
           新建研究
         </Button>

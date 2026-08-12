@@ -40,6 +40,15 @@ export function PatternTemplateCard({ template, selected, onSelect }: Props) {
     <Tooltip title={template.description} placement="top" arrow>
       <Card
         onClick={onSelect}
+        role="button"
+        tabIndex={0}
+        aria-pressed={selected}
+        aria-label={`选择形态模板 ${template.name}`}
+        onKeyDown={(event) => {
+          if (event.key !== 'Enter' && event.key !== ' ') return;
+          event.preventDefault();
+          onSelect();
+        }}
         sx={{
           cursor: 'pointer',
           border: selected ? `2px solid ${theme.palette.primary.main}` : '2px solid transparent',
@@ -48,6 +57,11 @@ export function PatternTemplateCard({ template, selected, onSelect }: Props) {
             : 'background.paper',
           transition: 'border-color 0.15s, background-color 0.15s',
           '&:hover': { border: `2px solid ${theme.palette.primary.light}` },
+          '&:focus-visible': {
+            outline: '2px solid',
+            outlineColor: 'primary.main',
+            outlineOffset: 2,
+          },
         }}
       >
         <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>

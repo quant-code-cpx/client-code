@@ -66,9 +66,9 @@ export function TechnicalSignalMatrix({
   );
   const responseHorizons = useMemo(
     () =>
-      [...new Set(periodGroups.flatMap((group) => group.horizons.map((item) => item.horizon)))].sort(
-        (a, b) => a - b
-      ),
+      [
+        ...new Set(periodGroups.flatMap((group) => group.horizons.map((item) => item.horizon))),
+      ].sort((a, b) => a - b),
     [periodGroups]
   );
   const horizons = responseHorizons.length > 0 ? responseHorizons : requestedHorizons;
@@ -139,9 +139,28 @@ export function TechnicalSignalMatrix({
                   <TableRow
                     hover
                     key={`${group.period}-${group.signalKey}`}
+                    role="button"
+                    tabIndex={0}
+                    aria-label={`查看 ${definition?.displayName ?? group.signalKey} 信号统计`}
                     onClick={() => onSelect(group.signalKey, group.horizons[0]?.horizon ?? 1)}
+                    onKeyDown={(event) => {
+                      if (
+                        event.target !== event.currentTarget ||
+                        (event.key !== 'Enter' && event.key !== ' ')
+                      )
+                        return;
+                      event.preventDefault();
+                      onSelect(group.signalKey, group.horizons[0]?.horizon ?? 1);
+                    }}
                     selected={isSelected}
-                    sx={{ cursor: 'pointer' }}
+                    sx={{
+                      cursor: 'pointer',
+                      '&:focus-visible': {
+                        outline: '2px solid',
+                        outlineColor: 'primary.main',
+                        outlineOffset: -2,
+                      },
+                    }}
                   >
                     <TableCell>
                       <Typography variant="body2">
@@ -151,7 +170,11 @@ export function TechnicalSignalMatrix({
                         {group.semanticsVersion}
                       </Typography>
                       {group.occurrenceCount === 0 ? (
-                        <Typography color="text.secondary" variant="caption" sx={{ display: 'block' }}>
+                        <Typography
+                          color="text.secondary"
+                          variant="caption"
+                          sx={{ display: 'block' }}
+                        >
                           区间内未出现
                         </Typography>
                       ) : null}
@@ -166,24 +189,49 @@ export function TechnicalSignalMatrix({
                       const statistics = group.horizons.find((item) => item.horizon === horizon);
                       const selectedCell = isSelected && selectedHorizon === horizon;
 
-                      if (!statistics) return <TableCell key={horizon} align="right">—</TableCell>;
+                      if (!statistics)
+                        return (
+                          <TableCell key={horizon} align="right">
+                            —
+                          </TableCell>
+                        );
 
                       const metric = primaryMetric(group.direction, statistics);
                       return (
                         <TableCell
                           key={horizon}
                           align="right"
+                          role="button"
+                          tabIndex={0}
+                          aria-label={`查看 ${definition?.displayName ?? group.signalKey} T+${horizon} 统计`}
                           onClick={(event) => {
                             event.stopPropagation();
                             onSelect(group.signalKey, horizon);
                           }}
-                          sx={{ bgcolor: selectedCell ? 'action.selected' : 'transparent' }}
+                          onKeyDown={(event) => {
+                            event.stopPropagation();
+                            if (event.key !== 'Enter' && event.key !== ' ') return;
+                            event.preventDefault();
+                            onSelect(group.signalKey, horizon);
+                          }}
+                          sx={{
+                            cursor: 'pointer',
+                            bgcolor: selectedCell ? 'action.selected' : 'transparent',
+                            '&:focus-visible': {
+                              outline: '2px solid',
+                              outlineColor: 'primary.main',
+                              outlineOffset: -2,
+                            },
+                          }}
                         >
                           <Tooltip
                             title={`${metric.ratioLabel}以有效样本为分母；有效样本 ${statistics.validOutcomeCount} 个`}
                           >
                             <span>
-                              <Typography variant="body2" sx={{ fontVariantNumeric: 'tabular-nums' }}>
+                              <Typography
+                                variant="body2"
+                                sx={{ fontVariantNumeric: 'tabular-nums' }}
+                              >
                                 {metric.ratioLabel} {formatRatio(metric.ratio)}
                               </Typography>
                               <Typography

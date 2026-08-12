@@ -12,6 +12,7 @@ const distribution: HeatmapDistribution = {
   upCount: 12,
   downCount: 8,
   flatCount: 2,
+  missingCount: 3,
   ranges: Array.from({ length: 21 }, (_, index) => ({
     range: `${index - 10}~${index - 9}`,
     count: index === 10 ? 2 : 1,
@@ -25,7 +26,8 @@ describe('HeatmapDistributionChart', () => {
     );
 
     expect(screen.getByRole('region', { name: '21档涨跌幅分布' })).toBeInTheDocument();
-    expect(screen.getByText('总数 22')).toBeInTheDocument();
+    expect(screen.getByText('有效 22')).toBeInTheDocument();
+    expect(screen.getByText('缺失 3')).toBeInTheDocument();
     expect(screen.getByText('区间明细')).not.toBeVisible();
 
     const detailButton = screen.getByRole('button', { name: '展开 21 档区间明细' });

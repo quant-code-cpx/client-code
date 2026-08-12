@@ -13,7 +13,7 @@ import Typography from '@mui/material/Typography';
 import CardHeader from '@mui/material/CardHeader';
 import CardContent from '@mui/material/CardContent';
 
-import { fPercent } from 'src/utils/format-number';
+import { fRatioPercent } from 'src/utils/format-number';
 
 import { getStrategyPerformance } from 'src/api/strategy';
 
@@ -68,8 +68,10 @@ export function StrategyPerformanceCard({ strategy }: StrategyPerformanceCardPro
             ? `${perf.navSeries[0]?.date ?? ''} ~ ${perf.navSeries[perf.navSeries.length - 1]?.date ?? ''}`
             : undefined
         }
-        titleTypographyProps={{ variant: 'subtitle1' }}
-        subheaderTypographyProps={{ variant: 'caption' }}
+        slotProps={{
+          title: { variant: 'subtitle1' },
+          subheader: { variant: 'caption' },
+        }}
         sx={{ pb: 0 }}
       />
       <CardContent>
@@ -160,7 +162,7 @@ function KpiItem({ label, value, format, isDrawdown }: KpiItemProps) {
     value === null
       ? '--'
       : format === 'percent'
-        ? (value > 0 ? '+' : '') + fPercent(value)
+        ? (value > 0 ? '+' : '') + fRatioPercent(value)
         : value.toFixed(2);
 
   return (

@@ -236,7 +236,11 @@ export function AgentReportLibraryDialog({ open, onClose }: AgentReportLibraryDi
             </Box>
           </Box>
         </DialogContent>
-        <DialogActions><Button onClick={onClose}>关闭</Button></DialogActions>
+        <DialogActions>
+          <Button color="inherit" onClick={onClose}>
+            关闭
+          </Button>
+        </DialogActions>
       </Dialog>
 
       <ConfirmDialog

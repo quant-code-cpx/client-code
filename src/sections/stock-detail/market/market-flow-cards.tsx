@@ -43,11 +43,11 @@ function FlowBar({
   buyAmount: number | null;
   sellAmount: number | null;
 }) {
-  const buy = buyAmount ?? 0;
-  const sell = sellAmount ?? 0;
-  const total = buy + sell;
-  const buyRatio = total > 0 ? (buy / total) * 100 : 50;
-  const isPositive = buy >= sell;
+  const total = buyAmount != null && sellAmount != null ? buyAmount + sellAmount : null;
+  const buyRatio =
+    buyAmount != null && total != null && total > 0 ? (buyAmount / total) * 100 : null;
+  const isPositive =
+    buyAmount != null && sellAmount != null ? buyAmount >= sellAmount : false;
 
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, minWidth: 130 }}>
@@ -56,7 +56,7 @@ function FlowBar({
           flex: 1,
           height: 6,
           borderRadius: 1,
-          bgcolor: 'success.lighter',
+          bgcolor: buyRatio == null ? 'action.disabledBackground' : 'success.lighter',
           overflow: 'hidden',
         }}
       >
@@ -64,7 +64,7 @@ function FlowBar({
           sx={{
             width: 1,
             height: 1,
-            transform: `scaleX(${buyRatio / 100})`,
+            transform: `scaleX(${buyRatio == null ? 0 : buyRatio / 100})`,
             transformOrigin: 'left center',
             bgcolor: isPositive ? 'error.main' : 'error.light',
             borderRadius: 1,
@@ -75,9 +75,13 @@ function FlowBar({
       </Box>
       <Typography
         variant="caption"
-        sx={{ color: isPositive ? 'error.main' : 'success.main', minWidth: 38, textAlign: 'right' }}
+        sx={{
+          color: buyRatio == null ? 'text.disabled' : isPositive ? 'error.main' : 'success.main',
+          minWidth: 38,
+          textAlign: 'right',
+        }}
       >
-        {buyRatio.toFixed(1)}%
+        {buyRatio == null ? '—' : `${buyRatio.toFixed(1)}%`}
       </Typography>
     </Box>
   );
@@ -176,8 +180,15 @@ function TodayFlowTable({ data }: { data: StockTodayFlowData | null }) {
   );
 }
 
-function SummaryCard({ label, value }: { label: string; value: number }) {
-  const color = value > 0 ? 'error.main' : value < 0 ? 'success.main' : 'text.primary';
+function SummaryCard({ label, value }: { label: string; value: number | null }) {
+  const color =
+    value == null
+      ? 'text.disabled'
+      : value > 0
+        ? 'error.main'
+        : value < 0
+          ? 'success.main'
+          : 'text.primary';
 
   return (
     <Box
@@ -194,7 +205,7 @@ function SummaryCard({ label, value }: { label: string; value: number }) {
         {label}
       </Typography>
       <Typography variant="subtitle1" fontWeight="fontWeightBold" sx={{ color }}>
-        {fWanYuan(value)}
+        {value == null ? '—' : fWanYuan(value)}
       </Typography>
     </Box>
   );
@@ -248,20 +259,31 @@ export function MoneyFlowCard({
 }) {
   const theme = useTheme();
   const items = data?.items ?? [];
-  const summary = data?.summary;
-  const net5d = summary?.netMfAmount5d ?? 0;
-  const net20d = summary?.netMfAmount20d ?? 0;
-  const net60d = summary?.netMfAmount60d ?? 0;
+  const summarizeNet = (days: number): number | null => {
+    const values = items
+      .slice(-days)
+      .map((item) => item.netMfAmount)
+      .filter((value): value is number => value != null && Number.isFinite(value));
+    return values.length > 0 ? values.reduce((total, value) => total + value, 0) : null;
+  };
+  const net5d = summarizeNet(5);
+  const net20d = summarizeNet(20);
+  const net60d = summarizeNet(60);
   const series = [
     {
       name: '净流入',
       type: 'bar',
       data: items.map((item) => {
-        const value = item.netMfAmount ?? 0;
+        const value = item.netMfAmount;
         return {
           x: fmtTradeDate(item.tradeDate),
           y: value,
-          fillColor: value >= 0 ? theme.palette.error.main : theme.palette.success.main,
+          fillColor:
+            value == null
+              ? theme.palette.text.disabled
+              : value >= 0
+                ? theme.palette.error.main
+                : theme.palette.success.main,
         };
       }),
     },
@@ -269,7 +291,7 @@ export function MoneyFlowCard({
       name: '涨跌幅',
       type: 'line',
       color: theme.palette.primary.main,
-      data: items.map((item) => ({ x: fmtTradeDate(item.tradeDate), y: item.pctChg ?? 0 })),
+      data: items.map((item) => ({ x: fmtTradeDate(item.tradeDate), y: item.pctChg })),
     },
   ];
   const options = useChart({

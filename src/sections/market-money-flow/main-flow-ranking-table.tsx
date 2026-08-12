@@ -152,8 +152,23 @@ function FlowTable({
                       key={row.tsCode}
                       hover
                       selected={isSelected}
+                      role="button"
+                      tabIndex={0}
+                      aria-label={`查看 ${row.name} 资金流详情`}
                       onClick={() => onRowClick(row)}
-                      sx={{ cursor: 'pointer' }}
+                      onKeyDown={(event) => {
+                        if (event.key !== 'Enter' && event.key !== ' ') return;
+                        event.preventDefault();
+                        onRowClick(row);
+                      }}
+                      sx={{
+                        cursor: 'pointer',
+                        '&:focus-visible': {
+                          outline: '2px solid',
+                          outlineColor: 'primary.main',
+                          outlineOffset: -2,
+                        },
+                      }}
                     >
                       <TableCell>
                         <Typography variant="caption" sx={{ color: 'text.secondary' }}>

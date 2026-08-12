@@ -44,10 +44,22 @@ describe('StockDetailShareCapitalTab', () => {
       ],
     } as never);
 
-    renderWithProviders(<StockDetailShareCapitalTab tsCode="688525.SH" />);
+    const { user } = renderWithProviders(<StockDetailShareCapitalTab tsCode="688525.SH" />);
 
     expect(await screen.findByText('股本结构')).toBeInTheDocument();
     expect(screen.getByText('历史股本明细')).toBeInTheDocument();
     expect(screen.queryByText(/Unexpected Application Error/i)).not.toBeInTheDocument();
+
+    const toggle = screen.getByRole('button', { name: '展开历史股本明细' });
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+
+    await user.tab();
+    expect(toggle).toHaveFocus();
+    await user.keyboard(' ');
+
+    expect(screen.getByRole('button', { name: '收起历史股本明细' })).toHaveAttribute(
+      'aria-expanded',
+      'true'
+    );
   });
 });

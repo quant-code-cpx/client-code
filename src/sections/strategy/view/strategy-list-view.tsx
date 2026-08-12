@@ -1,6 +1,6 @@
 import type { Strategy } from 'src/api/strategy';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useRef, useMemo, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
@@ -41,6 +41,8 @@ export function StrategyListView() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+  const [refreshVersion, setRefreshVersion] = useState(0);
+  const listRequestIdRef = useRef(0);
 
   // Dialog states
   const [createOpen, setCreateOpen] = useState(false);
@@ -55,48 +57,85 @@ export function StrategyListView() {
   // Collect all used tags across loaded strategies for the tag filter autocomplete
   const allTags = Array.from(new Set(strategies.flatMap((s) => s.tags)));
 
-  const fetchStrategies = useCallback(
-    async (overridePage?: number) => {
-      setLoading(true);
-      setError('');
-      try {
-        const minReturn = filter.minTotalReturn
-          ? parseFloat(filter.minTotalReturn) / 100
-          : undefined;
-        const minSharpe = filter.minSharpeRatio ? parseFloat(filter.minSharpeRatio) : undefined;
-        const res = await listStrategies({
-          strategyType: filter.strategyType || undefined,
-          tags: filter.tags.length > 0 ? filter.tags : undefined,
-          keyword: filter.keyword || undefined,
-          minTotalReturn: minReturn,
-          minSharpeRatio: minSharpe,
-          hasActiveSignal: filter.hasActiveSignal || undefined,
-          page: overridePage ?? page,
-          pageSize: PAGE_SIZE,
-        });
-        setStrategies(res.strategies);
-        setTotal(res.total);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : '获取策略列表失败');
-      } finally {
-        setLoading(false);
-      }
+  const tagsKey = JSON.stringify(filter.tags);
+  const requestFilter = useMemo(() => {
+    const tags = JSON.parse(tagsKey) as string[];
+    return {
+      strategyType: filter.strategyType || undefined,
+      tags: tags.length > 0 ? tags : undefined,
+      keyword: filter.keyword || undefined,
+      minTotalReturn: filter.minTotalReturn ? parseFloat(filter.minTotalReturn) / 100 : undefined,
+      minSharpeRatio: filter.minSharpeRatio ? parseFloat(filter.minSharpeRatio) : undefined,
+      hasActiveSignal: filter.hasActiveSignal || undefined,
+    };
+  }, [
+    filter.hasActiveSignal,
+    filter.keyword,
+    filter.minSharpeRatio,
+    filter.minTotalReturn,
+    filter.strategyType,
+    tagsKey,
+  ]);
+  const requestFilterKey = JSON.stringify(requestFilter);
+  const previousRequestFilterKeyRef = useRef(requestFilterKey);
+
+  const beginListTransition = useCallback(() => {
+    listRequestIdRef.current += 1;
+    setLoading(true);
+    setError('');
+  }, []);
+
+  const handleFilterChange = useCallback(
+    (patch: Parameters<typeof setFilter>[0]) => {
+      if (Object.keys(patch).some((key) => key !== 'view')) beginListTransition();
+      setFilter(patch);
     },
-    [filter, page]
+    [beginListTransition, setFilter]
   );
 
-  // Re-fetch when filter changes (reset to page 1)
-  useEffect(() => {
-    setPage(1);
-    fetchStrategies(1);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [filter]);
+  const handleResetFilter = useCallback(() => {
+    beginListTransition();
+    resetFilter();
+  }, [beginListTransition, resetFilter]);
 
-  // Re-fetch when page changes (filter already applied)
+  // 筛选和分页由同一个 effect 发请求，避免首次加载及“筛选 + page=1”重复请求。
   useEffect(() => {
-    fetchStrategies();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page]);
+    const filterChanged = previousRequestFilterKeyRef.current !== requestFilterKey;
+    previousRequestFilterKeyRef.current = requestFilterKey;
+    if (filterChanged && page !== 1) {
+      setPage(1);
+      return undefined;
+    }
+
+    const requestId = listRequestIdRef.current + 1;
+    listRequestIdRef.current = requestId;
+    setLoading(true);
+    setError('');
+
+    void listStrategies({ ...requestFilter, page, pageSize: PAGE_SIZE })
+      .then((res) => {
+        if (listRequestIdRef.current !== requestId) return;
+        setStrategies(res.strategies);
+        setTotal(res.total);
+      })
+      .catch((err: unknown) => {
+        if (listRequestIdRef.current !== requestId) return;
+        setError(err instanceof Error ? err.message : '获取策略列表失败');
+      })
+      .finally(() => {
+        if (listRequestIdRef.current === requestId) setLoading(false);
+      });
+
+    return () => {
+      if (listRequestIdRef.current === requestId) listRequestIdRef.current += 1;
+    };
+  }, [page, refreshVersion, requestFilter, requestFilterKey]);
+
+  const refreshFirstPage = useCallback(() => {
+    beginListTransition();
+    if (page === 1) setRefreshVersion((version) => version + 1);
+    else setPage(1);
+  }, [beginListTransition, page]);
 
   // ── Handlers ───────────────────────────────────────────────────────
 
@@ -128,8 +167,7 @@ export function StrategyListView() {
       await createStrategy(data);
       setCreateOpen(false);
       setSuccessMsg('策略创建成功');
-      fetchStrategies(1);
-      setPage(1);
+      refreshFirstPage();
     } catch (err) {
       setError(err instanceof Error ? err.message : '创建失败');
     } finally {
@@ -160,8 +198,7 @@ export function StrategyListView() {
       await deleteStrategy({ id: deleteTarget.id });
       setDeleteTarget(null);
       setSuccessMsg('策略已删除');
-      fetchStrategies(1);
-      setPage(1);
+      refreshFirstPage();
     } catch (err) {
       setError(err instanceof Error ? err.message : '删除失败');
       setDeleteTarget(null);
@@ -204,8 +241,8 @@ export function StrategyListView() {
         filter={filter}
         allTags={allTags}
         isFiltered={isFiltered}
-        onFilterChange={setFilter}
-        onReset={resetFilter}
+        onFilterChange={handleFilterChange}
+        onReset={handleResetFilter}
       />
 
       {/* Strategy content — card or table */}
@@ -214,7 +251,7 @@ export function StrategyListView() {
         loading ? (
           <Skeleton variant="rounded" height={300} sx={{ mt: 1 }} />
         ) : strategies.length === 0 ? (
-          <EmptyState isFiltered={isFiltered} onReset={resetFilter} />
+          <EmptyState isFiltered={isFiltered} onReset={handleResetFilter} />
         ) : (
           <StrategyTable
             strategies={strategies}
@@ -233,7 +270,7 @@ export function StrategyListView() {
           ))}
         </Grid>
       ) : strategies.length === 0 ? (
-        <EmptyState isFiltered={isFiltered} onReset={resetFilter} />
+        <EmptyState isFiltered={isFiltered} onReset={handleResetFilter} />
       ) : (
         <Grid container spacing={2.5} sx={{ mt: 0.5 }}>
           {strategies.map((strategy) => (
@@ -261,7 +298,11 @@ export function StrategyListView() {
           <Pagination
             count={totalPages}
             page={page}
-            onChange={(_, p) => setPage(p)}
+            onChange={(_, nextPage) => {
+              if (nextPage === page) return;
+              beginListTransition();
+              setPage(nextPage);
+            }}
             color="primary"
           />
         </Box>

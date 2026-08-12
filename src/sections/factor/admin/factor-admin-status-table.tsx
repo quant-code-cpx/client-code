@@ -229,7 +229,7 @@ export function FactorAdminStatusTable({
                   checked={allPageSelected}
                   indeterminate={somePageSelected}
                   onChange={handleSelectAll}
-                  inputProps={{ 'aria-label': '选择当前页因子' }}
+                  slotProps={{ input: { 'aria-label': '选择当前页因子' } }}
                 />
               </TableCell>
               <TableCell sx={{ width: 160 }}>
@@ -282,7 +282,7 @@ export function FactorAdminStatusTable({
                       size="small"
                       checked={isSelected}
                       onChange={(event) => handleSelectRow(item, event.target.checked)}
-                      inputProps={{ 'aria-label': `选择 ${item.factorName}` }}
+                      slotProps={{ input: { 'aria-label': `选择 ${item.factorName}` } }}
                     />
                   </TableCell>
                   <TableCell>
@@ -337,7 +337,9 @@ export function FactorAdminStatusTable({
                           size="small"
                           checked={item.isEnabled ?? false}
                           disabled
-                          inputProps={{ 'aria-label': `${item.factorName} 启用状态不可用` }}
+                          slotProps={{
+                            input: { 'aria-label': `${item.factorName} 启用状态不可用` },
+                          }}
                         />
                       </span>
                     </Tooltip>

@@ -1,10 +1,9 @@
 import type { Page, Response } from '@playwright/test';
 
-import { execFileSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-
+import { readFileSync } from 'node:fs';
 import { expect } from '@playwright/test';
+import { execFileSync } from 'node:child_process';
 
 const STATE_PATH = resolve(process.cwd(), 'e2e/.agent-real-state.json');
 

@@ -225,7 +225,7 @@ export function ScreeningQueryBar({
                 handleConstraintChange('minListDays', Number.isFinite(n) && n >= 0 ? n : 0);
               }}
               sx={{ width: 140 }}
-              inputProps={{ min: 0, step: 10 }}
+              slotProps={{ htmlInput: { min: 0, step: 10 } }}
             />
           </Stack>
         </Stack>

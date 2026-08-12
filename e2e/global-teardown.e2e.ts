@@ -1,4 +1,4 @@
-import { test as teardown, request } from '@playwright/test';
+import { request, test as teardown } from '@playwright/test';
 
 import { apiPost } from './fixtures/api-helper';
 

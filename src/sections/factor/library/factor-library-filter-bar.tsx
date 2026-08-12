@@ -70,7 +70,15 @@ export function FactorLibraryFilterBar({ filters, onChange, onReset }: Props) {
         borderColor: 'divider',
       }}
     >
-      <Stack direction={{ xs: 'column', md: 'row' }} spacing={2} alignItems={{ md: 'center' }}>
+      <Stack
+        role="group"
+        aria-label="因子库筛选条件"
+        direction={{ xs: 'column', md: 'row' }}
+        spacing={2}
+        useFlexGap
+        flexWrap="wrap"
+        alignItems={{ md: 'center' }}
+      >
         {/* 来源 */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <Typography variant="caption" color="text.secondary" sx={{ fontSize: 12 }}>

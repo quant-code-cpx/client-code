@@ -10,9 +10,9 @@
  *   node scripts/generate-mocks.mjs --fetch           # fetches from localhost:3000/docs-json first
  */
 
-import { readFileSync, writeFileSync, mkdirSync } from 'fs';
-import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { resolve, dirname } from 'path';
+import { mkdirSync, readFileSync, writeFileSync } from 'fs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
@@ -312,9 +312,6 @@ function generateAllMocks() {
       count++;
       continue;
     }
-
-    // Reset counter per endpoint for more consistent IDs
-    const savedCounter = idCounter;
 
     const resolved = resolveSchema(schema);
     if (resolved.properties) {

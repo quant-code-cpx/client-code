@@ -162,9 +162,11 @@ export function TechnicalSignalFilterCard({
                   <TextField
                     {...params}
                     helperText="留空时使用全部稳定定义"
-                    inputProps={{
-                      ...params.inputProps,
-                      'aria-labelledby': 'technical-signal-definitions-label',
+                    slotProps={{
+                      htmlInput: {
+                        ...params.inputProps,
+                        'aria-labelledby': 'technical-signal-definitions-label',
+                      },
                     }}
                     placeholder="全部稳定定义"
                     size="small"

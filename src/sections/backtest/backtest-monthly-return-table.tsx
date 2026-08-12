@@ -1,6 +1,7 @@
 import type { BacktestEquityPoint } from 'src/api/backtest';
 
 import { useMemo } from 'react';
+import { varAlpha } from 'minimal-shared/utils';
 
 import Card from '@mui/material/Card';
 import Table from '@mui/material/Table';
@@ -8,6 +9,7 @@ import TableRow from '@mui/material/TableRow';
 import TableBody from '@mui/material/TableBody';
 import TableCell from '@mui/material/TableCell';
 import TableHead from '@mui/material/TableHead';
+import { useTheme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 import TableContainer from '@mui/material/TableContainer';
@@ -63,6 +65,7 @@ function buildMonthlyReturns(points: BacktestEquityPoint[]): MonthlyData {
 }
 
 export function BacktestMonthlyReturnTable({ points }: BacktestMonthlyReturnTableProps) {
+  const theme = useTheme();
   const monthlyData = useMemo(() => buildMonthlyReturns(points), [points]);
   const years = Object.keys(monthlyData).sort();
 
@@ -72,10 +75,10 @@ export function BacktestMonthlyReturnTable({ points }: BacktestMonthlyReturnTabl
     const abs = Math.min(Math.abs(value), 0.15) / 0.15;
     if (value > 0) {
       const alpha = 0.1 + abs * 0.5;
-      return `rgba(255, 72, 66, ${alpha})`;
+      return varAlpha(theme.vars.palette.error.mainChannel, alpha);
     }
     const alpha = 0.1 + abs * 0.5;
-    return `rgba(54, 179, 126, ${alpha})`;
+    return varAlpha(theme.vars.palette.success.mainChannel, alpha);
   };
 
   if (points.length === 0) {

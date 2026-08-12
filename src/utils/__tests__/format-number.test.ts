@@ -7,6 +7,7 @@ import {
   fCurrency,
   fQianYuan,
   fRatePercent,
+  fRatioPercent,
   fShortenNumber,
 } from '../format-number';
 
@@ -65,6 +66,24 @@ describe('format-number', () => {
 
     it('returns empty string for null', () => {
       expect(fPercent(null)).toBe('');
+    });
+  });
+
+  // ---------- fRatioPercent ----------
+  describe('fRatioPercent', () => {
+    it('formats decimal ratios as percentages', () => {
+      expect(fRatioPercent(0.2341, { maximumFractionDigits: 2 })).toBe('23.41%');
+      expect(fRatioPercent(-0.1523, { maximumFractionDigits: 2 })).toBe('-15.23%');
+    });
+
+    it('supports ratios greater than one', () => {
+      expect(fRatioPercent(1.1)).toBe('110%');
+    });
+
+    it('returns empty string for nullish and NaN values', () => {
+      expect(fRatioPercent(null)).toBe('');
+      expect(fRatioPercent(undefined)).toBe('');
+      expect(fRatioPercent(NaN)).toBe('');
     });
   });
 

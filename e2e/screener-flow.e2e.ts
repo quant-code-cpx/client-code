@@ -24,9 +24,6 @@ test.describe('选股筛选 → 结果', () => {
       await waitForPageReady(authedPage);
       await waitForTableData(authedPage);
 
-      // 获取筛选前的第一行文本
-      const firstRowBefore = await authedPage.locator('tbody tr').first().textContent();
-
       // 找到 PE 相关输入框并填写
       const peTtmInput = authedPage
         .getByLabel(/PE|市盈率/)
@@ -151,9 +148,6 @@ test.describe('选股筛选 → 结果', () => {
         .first();
 
       if (await pctChangeHeader.isVisible({ timeout: 5_000 }).catch(() => false)) {
-        // 获取排序前第一行数据
-        const rowsBefore = await authedPage.locator('tbody tr').first().textContent();
-
         await pctChangeHeader.click();
         await authedPage.waitForTimeout(SORT_ACTION_WAIT_MS);
 

@@ -406,24 +406,6 @@ export function retryRun(query: { runId: string }) {
   );
 }
 
-export function listRunTags(query: { keyword?: string; includeCount?: boolean } = {}) {
-  return apiClient.post<{ items: BacktestRunTag[] }>('/api/backtests/runs/tags/list', query);
-}
-
-export function setRunTags(query: { runId: string; tagIds: string[] }) {
-  return apiClient.post<{ runId: string; tags: BacktestRunTag[] }>(
-    '/api/backtests/runs/tags/set-for-run',
-    query
-  );
-}
-
-export function batchAttachRunTags(query: { runIds: string[]; tagIds: string[] }) {
-  return apiClient.post<{
-    successCount: number;
-    failed: Array<{ runId: string; message: string }>;
-  }>('/api/backtests/runs/tags/batch-attach', query);
-}
-
 // ─── Walk-Forward 类型 ────────────────────────────
 
 export type StrategyTypeValue =
@@ -640,44 +622,6 @@ export function deleteWalkForwardRun(wfRunId: string) {
     {
       wfRunId,
     }
-  );
-}
-
-export function cloneWalkForwardRun(wfRunId: string, name?: string) {
-  return apiClient.post<
-    CreateWalkForwardRunQuery | { wfRunId: string; jobId?: string; status?: string }
-  >('/api/backtests/walk-forward/runs/clone', name ? { wfRunId, name } : { wfRunId });
-}
-
-export function getWalkForwardWindowDetail(wfRunId: string, windowIndex: number) {
-  return apiClient.post<WalkForwardWindowDetailResponse>(
-    '/api/backtests/walk-forward/runs/window-detail',
-    { wfRunId, windowIndex }
-  );
-}
-
-export function getWalkForwardWindowTrades(wfRunId: string, windowIndex: number) {
-  return apiClient.post<{ items: WalkForwardWindowTrade[] }>(
-    '/api/backtests/walk-forward/runs/window-trades',
-    { wfRunId, windowIndex }
-  );
-}
-
-export function getWalkForwardWindowPositions(
-  wfRunId: string,
-  windowIndex: number,
-  tradeDate?: string
-) {
-  return apiClient.post<{ items: WalkForwardWindowPosition[] }>(
-    '/api/backtests/walk-forward/runs/window-positions',
-    tradeDate ? { wfRunId, windowIndex, tradeDate } : { wfRunId, windowIndex }
-  );
-}
-
-export function getWalkForwardWindowRebalanceLogs(wfRunId: string, windowIndex: number) {
-  return apiClient.post<{ items: WalkForwardWindowRebalanceLog[] }>(
-    '/api/backtests/walk-forward/runs/window-rebalance-logs',
-    { wfRunId, windowIndex }
   );
 }
 
@@ -928,62 +872,6 @@ export function getComparisonEquity(groupId: string, query: ComparisonEquityQuer
     groupId,
     ...query,
   });
-}
-
-export function getComparisonConfig(groupId: string) {
-  return apiClient.post<ComparisonConfigResponse>('/api/backtests/comparisons/config', { groupId });
-}
-
-export function getComparisonRolling(query: ComparisonRollingQuery) {
-  return apiClient.post<ComparisonRollingResponse>('/api/backtests/comparisons/rolling', query);
-}
-
-export function getComparisonMonthly(groupId: string) {
-  return apiClient.post<ComparisonMonthlyResponse>('/api/backtests/comparisons/monthly', {
-    groupId,
-  });
-}
-
-export function getComparisonCorrelation(query: {
-  groupId: string;
-  method?: 'pearson';
-  minSamples?: number;
-}) {
-  return apiClient.post<ComparisonCorrelationResponse>(
-    '/api/backtests/comparisons/correlation',
-    query
-  );
-}
-
-export function getComparisonEnvelope(query: {
-  groupId: string;
-  mode?: 'EQUAL_WEIGHT_DAILY_REBALANCE';
-}) {
-  return apiClient.post<ComparisonEnvelopeResponse>('/api/backtests/comparisons/envelope', query);
-}
-
-export function appendComparisonStrategies(query: {
-  groupId: string;
-  strategies: ComparisonStrategyItem[];
-}) {
-  return apiClient.post<{ jobId: string; status: string; addedRunIds?: string[] }>(
-    '/api/backtests/comparisons/append',
-    query
-  );
-}
-
-export function cancelComparison(groupId: string) {
-  return apiClient.post<{ groupId: string; status: string; cancelledCount?: number }>(
-    '/api/backtests/comparisons/cancel',
-    { groupId }
-  );
-}
-
-export function deleteComparison(groupId: string) {
-  return apiClient.post<{ groupId: string; success?: boolean; deletedAt?: string }>(
-    '/api/backtests/comparisons/delete',
-    { groupId }
-  );
 }
 
 // ─── 滚动窗口回测类型 ──────────────────────────────

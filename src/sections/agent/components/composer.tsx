@@ -154,7 +154,6 @@ export function Composer({
                   aria-label="停止研究"
                   disabled={stopping}
                   onClick={onStop}
-                  sx={{ width: 44, height: 44 }}
                 >
                   <Iconify icon="solar:stop-circle-bold" width={22} />
                 </IconButton>

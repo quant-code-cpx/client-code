@@ -114,6 +114,7 @@ describe('AgentView', () => {
       conversationId: 'cm_mock_1',
       modelPolicy: 'AUTO',
       preferredModel: null,
+      reasoningEffort: null,
       contextPreparation: {
         status: 'COMPACTION_REQUIRED',
         targetModel: 'research-model',

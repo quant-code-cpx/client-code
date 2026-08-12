@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
@@ -44,21 +44,46 @@ export function StrategyListToolbar({
 }: StrategyListToolbarProps) {
   const [keywordInput, setKeywordInput] = useState(filter.keyword);
   const [perfAnchorEl, setPerfAnchorEl] = useState<HTMLElement | null>(null);
+  const keywordTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const onFilterChangeRef = useRef(onFilterChange);
+
+  useEffect(() => {
+    onFilterChangeRef.current = onFilterChange;
+  }, [onFilterChange]);
+
+  useEffect(() => {
+    if (keywordTimerRef.current) {
+      clearTimeout(keywordTimerRef.current);
+      keywordTimerRef.current = null;
+    }
+    setKeywordInput(filter.keyword);
+  }, [filter.keyword]);
+
+  useEffect(
+    () => () => {
+      if (keywordTimerRef.current) clearTimeout(keywordTimerRef.current);
+    },
+    []
+  );
 
   // Debounce keyword changes
-  const handleKeywordChange = useCallback(
-    (value: string) => {
-      setKeywordInput(value);
-      clearTimeout((handleKeywordChange as unknown as { _t: ReturnType<typeof setTimeout> })._t);
-      (handleKeywordChange as unknown as { _t: ReturnType<typeof setTimeout> })._t = setTimeout(
-        () => {
-          onFilterChange({ keyword: value });
-        },
-        300
-      );
-    },
-    [onFilterChange]
-  );
+  const handleKeywordChange = useCallback((value: string) => {
+    setKeywordInput(value);
+    if (keywordTimerRef.current) clearTimeout(keywordTimerRef.current);
+    keywordTimerRef.current = setTimeout(() => {
+      keywordTimerRef.current = null;
+      onFilterChangeRef.current({ keyword: value });
+    }, 300);
+  }, []);
+
+  const handleReset = useCallback(() => {
+    if (keywordTimerRef.current) {
+      clearTimeout(keywordTimerRef.current);
+      keywordTimerRef.current = null;
+    }
+    setKeywordInput('');
+    onReset();
+  }, [onReset]);
 
   const hasPerfFilter =
     Boolean(filter.minTotalReturn) || Boolean(filter.minSharpeRatio) || filter.hasActiveSignal;
@@ -67,6 +92,7 @@ export function StrategyListToolbar({
     <Box sx={{ p: 2.5, display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'center' }}>
       {/* View toggle: card / table */}
       <ToggleButtonGroup
+        aria-label="策略列表视图"
         size="small"
         exclusive
         value={filter.view}
@@ -74,10 +100,10 @@ export function StrategyListToolbar({
           if (v) onFilterChange({ view: v as 'card' | 'table' });
         }}
       >
-        <ToggleButton value="card">
+        <ToggleButton value="card" aria-label="卡片视图">
           <Iconify icon="solar:widget-bold" width={18} />
         </ToggleButton>
-        <ToggleButton value="table">
+        <ToggleButton value="table" aria-label="表格视图">
           <Iconify icon="solar:list-bold" width={18} />
         </ToggleButton>
       </ToggleButtonGroup>
@@ -123,10 +149,10 @@ export function StrategyListToolbar({
         options={allTags}
         value={filter.tags}
         onChange={(_, newVal) => onFilterChange({ tags: newVal })}
-        renderTags={(value, getTagProps) =>
+        renderValue={(value, getItemProps) =>
           value.map((option, index) => {
-            const { key, ...tagProps } = getTagProps({ index });
-            return <Chip key={key} label={option} size="small" {...tagProps} />;
+            const { key, ...itemProps } = getItemProps({ index });
+            return <Chip key={key} label={option} size="small" {...itemProps} />;
           })
         }
         renderInput={(params) => (
@@ -205,7 +231,7 @@ export function StrategyListToolbar({
         <Button
           size="small"
           color="error"
-          onClick={onReset}
+          onClick={handleReset}
           startIcon={<Iconify icon="solar:close-circle-bold" width={16} />}
         >
           重置

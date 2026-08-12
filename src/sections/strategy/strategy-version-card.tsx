@@ -150,7 +150,7 @@ export function StrategyVersionCard({ strategyId }: StrategyVersionCardProps) {
       <Card>
         <CardHeader
           title="版本历史"
-          titleTypographyProps={{ variant: 'subtitle1' }}
+          slotProps={{ title: { variant: 'subtitle1' } }}
           action={
             <Tooltip title="刷新版本列表">
               <IconButton size="small" onClick={fetchVersions} aria-label="刷新版本列表">

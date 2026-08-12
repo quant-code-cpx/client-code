@@ -97,10 +97,10 @@ export function NewsSecurityMultiSelect({ value, error, onChange }: NewsSecurity
           [...new Set(nextOptions.map((option) => option.tsCode))].slice(0, MAX_SECURITY_CODES)
         )
       }
-      renderTags={(tagValue, getTagProps) =>
+      renderValue={(tagValue, getItemProps) =>
         tagValue.map((option, index) => {
-          const { key, ...tagProps } = getTagProps({ index });
-          return <Chip key={key} label={option.name || option.tsCode} size="small" {...tagProps} />;
+          const { key, ...itemProps } = getItemProps({ index });
+          return <Chip key={key} label={option.name || option.tsCode} size="small" {...itemProps} />;
         })
       }
       renderInput={(params) => (

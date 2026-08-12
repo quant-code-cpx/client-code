@@ -318,11 +318,6 @@ export const alertApi = {
   getCalendar: (params: CalendarListParams, signal?: AbortSignal) =>
     apiClient.post<CalendarResponse>('/api/alert/calendar/list', params, signal),
 
-  getCalendarDetail: (
-    params: { id?: string; tsCode: string; date: string; type: EventType },
-    signal?: AbortSignal
-  ) => apiClient.post<CalendarEventDetail>('/api/alert/calendar/detail', params, signal),
-
   getCalendarHistoryTrend: (
     params: { tsCode: string; type: EventType; subType?: string },
     signal?: AbortSignal
@@ -350,7 +345,7 @@ export const alertApi = {
   getAnomalies: (params: AnomalyListQuery, signal?: AbortSignal) =>
     apiClient.post<AnomalyListResponse>('/api/alert/anomalies/list', params, signal),
 
-  getAnomalyDetail: (params: { id: number }, signal?: AbortSignal) =>
+  getAnomalyDetail: (params: { anomalyId: number }, signal?: AbortSignal) =>
     apiClient.post<AnomalyDetailResponse>('/api/alert/anomalies/detail', params, signal),
 
   scanAnomalies: (body: AnomalyScanBody = {}) =>

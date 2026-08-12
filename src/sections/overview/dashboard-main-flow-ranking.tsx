@@ -83,12 +83,8 @@ export function DashboardMainFlowRanking({ refreshKey }: { refreshKey?: number }
             value={order}
             onChange={(_e, v) => v != null && setOrder(v)}
           >
-            <ToggleButton value="desc">
-              净流入
-            </ToggleButton>
-            <ToggleButton value="asc">
-              净流出
-            </ToggleButton>
+            <ToggleButton value="desc">净流入</ToggleButton>
+            <ToggleButton value="asc">净流出</ToggleButton>
           </ToggleButtonGroup>
         </Box>
 
@@ -127,10 +123,25 @@ export function DashboardMainFlowRanking({ refreshKey }: { refreshKey?: number }
                   <TableRow
                     key={row.tsCode}
                     hover
-                    sx={{ cursor: 'pointer' }}
+                    role="link"
+                    tabIndex={0}
+                    aria-label={`打开 ${row.name} 个股详情`}
+                    sx={{
+                      cursor: 'pointer',
+                      '&:focus-visible': {
+                        outline: '2px solid',
+                        outlineColor: 'primary.main',
+                        outlineOffset: -2,
+                      },
+                    }}
                     onClick={() =>
                       router.push(`/stock/detail?code=${encodeURIComponent(row.tsCode)}`)
                     }
+                    onKeyDown={(event) => {
+                      if (event.key !== 'Enter' && event.key !== ' ') return;
+                      event.preventDefault();
+                      router.push(`/stock/detail?code=${encodeURIComponent(row.tsCode)}`);
+                    }}
                   >
                     <TableCell>
                       <Typography variant="caption" sx={{ color: 'text.secondary' }}>

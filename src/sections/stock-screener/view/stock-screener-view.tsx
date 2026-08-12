@@ -7,11 +7,12 @@ import type {
   ScreenerConceptItem,
 } from 'src/api/screener';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Alert from '@mui/material/Alert';
+import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 
 import { DashboardContent } from 'src/layouts/dashboard';
@@ -60,6 +61,7 @@ function computeVisibleColumns(filters: ScreenerFilters, sortBy: string): string
 
 export function StockScreenerView() {
   const [filters, setFilters] = useState<ScreenerFilters>(DEFAULT_FILTERS);
+  const [appliedFilters, setAppliedFilters] = useState<ScreenerFilters>(DEFAULT_FILTERS);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(20);
   const [sortBy, setSortBy] = useState('totalMv');
@@ -74,87 +76,65 @@ export function StockScreenerView() {
   const [industries, setIndustries] = useState<IndustryItem[]>([]);
   const [areas, setAreas] = useState<AreaItem[]>([]);
   const [concepts, setConcepts] = useState<ScreenerConceptItem[]>([]);
+  const [queryVersion, setQueryVersion] = useState(0);
+  const requestGenerationRef = useRef(0);
 
   // 计算动态列
   const visibleColumns = computeVisibleColumns(filters, sortBy);
 
-  // 执行查询
-  const doSearch = useCallback(
-    async (overridePage?: number) => {
-      setLoading(true);
-      setError('');
-      try {
-        const data = await fetchScreener({
-          ...filters,
-          page: (overridePage ?? page) + 1,
-          pageSize: rowsPerPage,
-          sortBy,
-          sortOrder,
-        });
-        setResult(data);
-      } catch (e) {
-        setError(e instanceof Error ? e.message : '选股查询失败');
-      } finally {
-        setLoading(false);
-      }
-    },
-    [filters, page, rowsPerPage, sortBy, sortOrder]
-  );
-
-  // 初始化：并行加载辅助数据，然后执行默认查询
+  // 初始化：辅助数据与主查询各自独立，辅助数据失败不阻塞选股。
   useEffect(() => {
     const init = async () => {
-      try {
-        const [presetsRes, industriesRes, areasRes, conceptsRes] = await Promise.allSettled([
-          fetchScreenerPresets(),
-          fetchIndustries(),
-          fetchAreas(),
-          fetchScreenerConcepts(),
-        ]);
-        if (presetsRes.status === 'fulfilled') setPresets(presetsRes.value.presets ?? []);
-        if (industriesRes.status === 'fulfilled')
-          setIndustries(industriesRes.value.industries ?? []);
-        if (areasRes.status === 'fulfilled') setAreas(areasRes.value.areas ?? []);
-        if (conceptsRes.status === 'fulfilled') setConcepts(conceptsRes.value.concepts ?? []);
-        if (areasRes.status === 'fulfilled') setAreas(areasRes.value.areas ?? []);
-      } catch {
-        // 辅助数据失败不阻塞主流程
-      }
-      // 执行默认查询
-      setLoading(true);
-      setError('');
-      try {
-        const data = await fetchScreener({
-          page: 1,
-          pageSize: 20,
-          sortBy: 'totalMv',
-          sortOrder: 'desc',
-        });
-        setResult(data);
-      } catch (e) {
-        setError(e instanceof Error ? e.message : '选股查询失败');
-      } finally {
-        setLoading(false);
-      }
+      const [presetsRes, industriesRes, areasRes, conceptsRes] = await Promise.allSettled([
+        fetchScreenerPresets(),
+        fetchIndustries(),
+        fetchAreas(),
+        fetchScreenerConcepts(),
+      ]);
+      if (presetsRes.status === 'fulfilled') setPresets(presetsRes.value.presets ?? []);
+      if (industriesRes.status === 'fulfilled')
+        setIndustries(industriesRes.value.industries ?? []);
+      if (areasRes.status === 'fulfilled') setAreas(areasRes.value.areas ?? []);
+      if (conceptsRes.status === 'fulfilled') setConcepts(conceptsRes.value.concepts ?? []);
     };
     init();
   }, []);
 
-  // 翻页 / 每页条数变化自动查询
+  // 所有查询参数收敛到一个 Effect；只允许最新请求提交结果。
   useEffect(() => {
-    if (result !== null) {
-      doSearch();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, rowsPerPage]);
+    const requestGeneration = ++requestGenerationRef.current;
+    let active = true;
 
-  // 排序变化自动查询
-  useEffect(() => {
-    if (result !== null) {
-      doSearch(0);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sortBy, sortOrder]);
+    setLoading(true);
+    setError('');
+
+    fetchScreener({
+      ...appliedFilters,
+      page: page + 1,
+      pageSize: rowsPerPage,
+      sortBy,
+      sortOrder,
+    })
+      .then((data) => {
+        if (active && requestGeneration === requestGenerationRef.current) {
+          setResult(data);
+        }
+      })
+      .catch((e) => {
+        if (active && requestGeneration === requestGenerationRef.current) {
+          setError(e instanceof Error ? e.message : '选股查询失败');
+        }
+      })
+      .finally(() => {
+        if (active && requestGeneration === requestGenerationRef.current) {
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [appliedFilters, page, queryVersion, rowsPerPage, sortBy, sortOrder]);
 
   // 处理用户手动修改筛选条件
   const handleFilterChange = useCallback((newFilters: ScreenerFilters) => {
@@ -165,46 +145,29 @@ export function StockScreenerView() {
   // 点击"开始选股"
   const handleSearch = useCallback(() => {
     setPage(0);
-    doSearch(0);
-  }, [doSearch]);
+    setAppliedFilters({ ...filters });
+  }, [filters]);
 
   // 重置条件
   const handleReset = useCallback(() => {
     setFilters(DEFAULT_FILTERS);
+    setAppliedFilters({ ...DEFAULT_FILTERS });
     setActivePreset(null);
     setPage(0);
     setSortBy('totalMv');
     setSortOrder('desc');
-    // 立即发起默认查询
-    setLoading(true);
-    setError('');
-    fetchScreener({ page: 1, pageSize: rowsPerPage, sortBy: 'totalMv', sortOrder: 'desc' })
-      .then((data) => setResult(data))
-      .catch((e) => setError(e instanceof Error ? e.message : '选股查询失败'))
-      .finally(() => setLoading(false));
-  }, [rowsPerPage]);
+  }, []);
 
   // 点击预设
   const handlePresetSelect = useCallback(
     (preset: ScreenerPreset) => {
       const newFilters = { ...DEFAULT_FILTERS, ...preset.filters };
       setFilters(newFilters);
+      setAppliedFilters(newFilters);
       setActivePreset(preset.id);
       setPage(0);
-      setLoading(true);
-      setError('');
-      fetchScreener({
-        ...newFilters,
-        page: 1,
-        pageSize: rowsPerPage,
-        sortBy,
-        sortOrder,
-      })
-        .then((data) => setResult(data))
-        .catch((e) => setError(e instanceof Error ? e.message : '选股查询失败'))
-        .finally(() => setLoading(false));
     },
-    [rowsPerPage, sortBy, sortOrder]
+    []
   );
 
   // 表头排序
@@ -257,7 +220,15 @@ export function StockScreenerView() {
 
       {/* 错误提示 */}
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
+        <Alert
+          severity="error"
+          sx={{ mb: 2 }}
+          action={
+            <Button color="inherit" size="small" onClick={() => setQueryVersion((v) => v + 1)}>
+              重试
+            </Button>
+          }
+        >
           {error}
         </Alert>
       )}

@@ -6,11 +6,23 @@ import { renderWithProviders } from 'src/test/test-utils';
 
 import { StockKline, normalizeKlineSeries } from '../stock-kline';
 
-const chartCapture = vi.hoisted(() => ({ options: {} as Record<string, Record<string, unknown>> }));
+const chartCapture = vi.hoisted(() => ({
+  options: {} as Record<string, Record<string, unknown>>,
+  series: {} as Record<string, Array<{ data: Array<{ y: number | null }> }>>,
+}));
 
 vi.mock('src/components/chart/chart', () => ({
-  Chart: ({ type, options }: { type: string; options: Record<string, unknown> }) => {
+  Chart: ({
+    type,
+    options,
+    series,
+  }: {
+    type: string;
+    options: Record<string, unknown>;
+    series: Array<{ data: Array<{ y: number | null }> }>;
+  }) => {
     chartCapture.options[type] = options;
+    chartCapture.series[type] = series;
     return <div data-testid={`chart-${type}`} />;
   },
 }));
@@ -26,15 +38,23 @@ const block: KlineBlock = {
   volumeUnit: '手',
   amountUnit: '千元',
   bars: [
-    { tradeDate: '2026-07-18', open: 10, high: 12, low: 9, close: 11, volume: 2, amount: 22 },
-    { tradeDate: '2026-07-17', open: 9, high: 11, low: 8, close: 10, volume: 1, amount: 10 },
-    { tradeDate: '2026-07-18', open: 10, high: 13, low: 9, close: 12, volume: 3, amount: 36 },
-    { tradeDate: '2026-07-19', open: null, high: null, low: null, close: null, volume: null, amount: null },
+    { tradeDate: '20260718', open: 10, high: 12, low: 9, close: 11, volume: 2, amount: 22 },
+    { tradeDate: '20260717', open: 9, high: 11, low: 8, close: 10, volume: null, amount: 10 },
+    { tradeDate: '20260718', open: 10, high: 13, low: 9, close: 12, volume: 3, amount: 36 },
+    {
+      tradeDate: '20260719',
+      open: null,
+      high: null,
+      low: null,
+      close: null,
+      volume: null,
+      amount: null,
+    },
   ],
   provenance: {
     sourceType: 'DATABASE',
     citationIds: [],
-    asOf: { tradeDate: '2026-07-19', retrievedAt: '2026-07-20T00:00:00.000Z' },
+    asOf: { tradeDate: '20260719', retrievedAt: '2026-07-20T00:00:00.000Z' },
     timezone: 'Asia/Shanghai',
     currency: 'CNY',
     unit: '元',
@@ -46,11 +66,7 @@ describe('StockKline', () => {
   it('按交易日升序、去重，并保留缺失值 warning', () => {
     const series = normalizeKlineSeries(block);
 
-    expect(series.bars.map((bar) => bar.tradeDate)).toEqual([
-      '2026-07-17',
-      '2026-07-18',
-      '2026-07-19',
-    ]);
+    expect(series.bars.map((bar) => bar.tradeDate)).toEqual(['20260717', '20260718', '20260719']);
     expect(series.bars[1].close).toBe(12);
     expect(series.warnings).toContain('重复交易日已去重');
     expect(series.warnings).toContain('1 条 OHLC 缺失或关系异常，未绘入主图');
@@ -62,11 +78,19 @@ describe('StockKline', () => {
     expect(screen.getByRole('img', { name: /600519.SH K 线图/ })).toBeInTheDocument();
     expect(screen.getByTestId('chart-candlestick')).toBeInTheDocument();
     expect(screen.getByRole('table', { name: '600519.SH K 线数据' })).toBeInTheDocument();
+    expect(screen.getByText('2026-07-17')).toBeInTheDocument();
     expect(screen.getAllByText('—').length).toBeGreaterThan(0);
     expect(screen.getByText(/跨除权除息日比较需谨慎/)).toBeInTheDocument();
 
     const candleOptions = chartCapture.options.candlestick;
     const xaxis = candleOptions.xaxis as { labels: { formatter: (value: unknown) => string } };
     expect(xaxis.labels.formatter(undefined)).toBe('');
+
+    expect(chartCapture.series.bar[0].data[0].y).toBeNull();
+    const volumeOptions = chartCapture.options.bar;
+    const tooltip = volumeOptions.tooltip as {
+      y: { formatter: (value: number | null) => string };
+    };
+    expect(tooltip.y.formatter(null)).toBe('—');
   });
 });

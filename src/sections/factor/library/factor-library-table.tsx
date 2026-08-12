@@ -124,8 +124,28 @@ export function FactorLibraryTable({
                   key={factor.id}
                   hover
                   selected={selected}
-                  sx={{ cursor: 'pointer', height: 40 }}
+                  role="link"
+                  tabIndex={0}
+                  aria-label={`打开因子 ${factor.label} 详情`}
+                  sx={{
+                    cursor: 'pointer',
+                    height: 40,
+                    '&:focus-visible': {
+                      outline: '2px solid',
+                      outlineColor: 'primary.main',
+                      outlineOffset: -2,
+                    },
+                  }}
                   onClick={() => navigate(`/factor/detail/${factor.name}`)}
+                  onKeyDown={(event) => {
+                    if (
+                      event.target !== event.currentTarget ||
+                      (event.key !== 'Enter' && event.key !== ' ')
+                    )
+                      return;
+                    event.preventDefault();
+                    navigate(`/factor/detail/${factor.name}`);
+                  }}
                 >
                   <TableCell padding="checkbox" onClick={(e) => e.stopPropagation()}>
                     <Checkbox
@@ -186,7 +206,11 @@ export function FactorLibraryTable({
                     <Box sx={{ display: 'inline-flex', gap: 0.25, alignItems: 'center' }}>
                       {precomputing && <CircularProgress size={14} />}
                       <Tooltip title="详情">
-                        <IconButton size="small" aria-label="详情" onClick={() => onOpenDetail(factor)}>
+                        <IconButton
+                          size="small"
+                          aria-label="详情"
+                          onClick={() => onOpenDetail(factor)}
+                        >
                           <Iconify icon="solar:info-circle-bold" width={16} />
                         </IconButton>
                       </Tooltip>
@@ -203,12 +227,21 @@ export function FactorLibraryTable({
                             </IconButton>
                           </Tooltip>
                           <Tooltip title="编辑">
-                            <IconButton size="small" aria-label="编辑" onClick={() => onEdit(factor)}>
+                            <IconButton
+                              size="small"
+                              aria-label="编辑"
+                              onClick={() => onEdit(factor)}
+                            >
                               <Iconify icon="solar:pen-bold" width={16} />
                             </IconButton>
                           </Tooltip>
                           <Tooltip title="删除">
-                            <IconButton size="small" aria-label="删除" color="error" onClick={() => onDelete(factor)}>
+                            <IconButton
+                              size="small"
+                              aria-label="删除"
+                              color="error"
+                              onClick={() => onDelete(factor)}
+                            >
                               <Iconify icon="solar:trash-bin-trash-bold" width={16} />
                             </IconButton>
                           </Tooltip>

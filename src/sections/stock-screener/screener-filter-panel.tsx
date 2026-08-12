@@ -206,7 +206,7 @@ function SelectFilter({ label, value, options, onChange }: SelectFilterProps) {
         fullWidth
         size="small"
         value={value ?? ''}
-        inputProps={{ 'aria-label': label }}
+        slotProps={{ input: { 'aria-label': label } }}
         onChange={(event) => onChange(event.target.value || undefined)}
       >
         {options.map((option) => (
@@ -232,7 +232,7 @@ type ScreenerFilterPanelProps = {
   searchDisabled?: boolean;
 };
 
-export const ScreenerFilterPanel = memo(function ScreenerFilterPanel({
+export const ScreenerFilterPanel = memo(function ScreenerFilterPanelComponent({
   filters,
   industries,
   areas,
@@ -284,16 +284,19 @@ export const ScreenerFilterPanel = memo(function ScreenerFilterPanel({
               value={filters.industries ?? []}
               onChange={(_, value) => set('industries', value.length > 0 ? value : undefined)}
               renderInput={(params) => <TextField {...params} label="行业（多选）" placeholder="全部" />}
-              renderTags={(value, getTagProps) =>
-                value.map((option, index) => (
-                  <Chip
-                    {...getTagProps({ index })}
-                    key={option}
-                    label={option}
-                    size="small"
-                    variant="outlined"
-                  />
-                ))
+              renderValue={(value, getItemProps) =>
+                value.map((option, index) => {
+                  const { key, ...itemProps } = getItemProps({ index });
+                  return (
+                    <Chip
+                      key={key}
+                      {...itemProps}
+                      label={option}
+                      size="small"
+                      variant="outlined"
+                    />
+                  );
+                })
               }
             />
           </Grid>
@@ -305,16 +308,19 @@ export const ScreenerFilterPanel = memo(function ScreenerFilterPanel({
               value={filters.areas ?? []}
               onChange={(_, value) => set('areas', value.length > 0 ? value : undefined)}
               renderInput={(params) => <TextField {...params} label="地域（多选）" placeholder="全部" />}
-              renderTags={(value, getTagProps) =>
-                value.map((option, index) => (
-                  <Chip
-                    {...getTagProps({ index })}
-                    key={option}
-                    label={option}
-                    size="small"
-                    variant="outlined"
-                  />
-                ))
+              renderValue={(value, getItemProps) =>
+                value.map((option, index) => {
+                  const { key, ...itemProps } = getItemProps({ index });
+                  return (
+                    <Chip
+                      key={key}
+                      {...itemProps}
+                      label={option}
+                      size="small"
+                      variant="outlined"
+                    />
+                  );
+                })
               }
             />
           </Grid>
@@ -337,17 +343,20 @@ export const ScreenerFilterPanel = memo(function ScreenerFilterPanel({
           }}
           isOptionEqualToValue={(option, value) => option.tsCode === value.tsCode}
           renderInput={(params) => <TextField {...params} label="概念多选" placeholder="选择概念板块" />}
-          renderTags={(value, getTagProps) =>
-            value.map((option, index) => (
-              <Chip
-                {...getTagProps({ index })}
-                key={option.tsCode}
-                label={option.label}
-                size="small"
-                color="primary"
-                variant="outlined"
-              />
-            ))
+          renderValue={(value, getItemProps) =>
+            value.map((option, index) => {
+              const { key, ...itemProps } = getItemProps({ index });
+              return (
+                <Chip
+                  key={key}
+                  {...itemProps}
+                  label={option.label}
+                  size="small"
+                  color="primary"
+                  variant="outlined"
+                />
+              );
+            })
           }
         />
       );
@@ -689,7 +698,7 @@ export const ScreenerFilterPanel = memo(function ScreenerFilterPanel({
               >
                 <ListItemText
                   primary={group.label}
-                  primaryTypographyProps={{ variant: 'body2', whiteSpace: 'nowrap' }}
+                  slotProps={{ primary: { variant: 'body2', whiteSpace: 'nowrap' } }}
                 />
                 <Typography variant="caption" sx={{ color: count > 0 ? 'primary.main' : 'text.disabled', ml: 1 }}>
                   {count}

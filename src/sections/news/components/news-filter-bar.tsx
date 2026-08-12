@@ -9,6 +9,7 @@ import Button from '@mui/material/Button';
 import Drawer from '@mui/material/Drawer';
 import Switch from '@mui/material/Switch';
 import Divider from '@mui/material/Divider';
+import Tooltip from '@mui/material/Tooltip';
 import TextField from '@mui/material/TextField';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
@@ -115,9 +116,11 @@ export function NewsFilterBar({ value, errors, onApply, onClear }: NewsFilterBar
             <Typography id="news-filter-drawer-title" variant="h6" sx={{ flex: 1 }}>
               新闻筛选
             </Typography>
-            <IconButton aria-label="关闭新闻筛选" onClick={() => setDrawerOpen(false)}>
-              <CloseIcon />
-            </IconButton>
+            <Tooltip title="关闭新闻筛选">
+              <IconButton aria-label="关闭新闻筛选" onClick={() => setDrawerOpen(false)}>
+                <CloseIcon />
+              </IconButton>
+            </Tooltip>
           </Box>
           <Divider />
           <Box sx={{ p: 2, overflowY: 'auto' }}>

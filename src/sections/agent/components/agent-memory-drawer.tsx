@@ -265,7 +265,7 @@ function MemoryEditorDialog({ memory, open, onClose, onSaved }: MemoryEditorDial
         />
       </DialogContent>
       <DialogActions>
-        <Button disabled={saving} onClick={onClose}>
+        <Button color="inherit" disabled={saving} onClick={onClose}>
           取消
         </Button>
         <Button variant="contained" disabled={!valid} loading={saving} onClick={handleSave}>

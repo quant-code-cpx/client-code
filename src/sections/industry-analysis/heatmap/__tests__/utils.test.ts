@@ -2,6 +2,7 @@ import type { HeatmapItem } from 'src/api/heatmap';
 import type { SectorFlowItem } from 'src/api/market';
 
 import {
+  aggregateSectors,
   computeDistribution,
   pickScatterLabelKeys,
   computeLinearAxisBounds,
@@ -122,7 +123,7 @@ describe('computeLinearAxisBounds', () => {
 });
 
 describe('heatmap distribution', () => {
-  it('keeps 21 buckets and five display segments equal to the input item count', () => {
+  it('keeps missing changes out of flat counts and distribution buckets', () => {
     const changes = [-12, -10, -5.5, -0.2, 0, 0.2, 4.9, 5, 9.9, 14, Number.NaN];
     const items = changes.map(
       (pctChg, index) =>
@@ -145,7 +146,41 @@ describe('heatmap distribution', () => {
     );
 
     expect(distribution.ranges).toHaveLength(21);
-    expect(bucketTotal).toBe(items.length);
-    expect(segmentTotal).toBe(items.length);
+    expect(distribution.missingCount).toBe(1);
+    expect(bucketTotal).toBe(items.length - 1);
+    expect(segmentTotal).toBe(items.length - 1);
+  });
+
+  it('excludes missing changes from sector averages and direction counts', () => {
+    const sectors = aggregateSectors([
+      {
+        tsCode: 'A',
+        name: 'A',
+        groupName: '测试',
+        industry: '测试',
+        pctChg: 2,
+        totalMv: 1,
+        amount: 1,
+      },
+      {
+        tsCode: 'B',
+        name: 'B',
+        groupName: '测试',
+        industry: '测试',
+        pctChg: null,
+        totalMv: 1,
+        amount: 1,
+      },
+    ]);
+
+    expect(sectors).toEqual([
+      expect.objectContaining({
+        avgPctChg: 2,
+        stockCount: 2,
+        upCount: 1,
+        downCount: 0,
+        flatCount: 0,
+      }),
+    ]);
   });
 });

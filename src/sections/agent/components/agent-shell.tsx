@@ -34,18 +34,22 @@ import { useComposerDraft } from '../hooks/use-composer-draft';
 import { TERMINAL_RUN_STATUSES } from '../state/agent-state.types';
 import { useConversationList } from '../hooks/use-conversation-list';
 import { AgentMuiXProvider } from './mui-x-chat/agent-mui-x-provider';
-import { ConversationModelControl } from './conversation-model-control';
 import { AgentReportPreviewDialog } from './agent-report-preview-dialog';
 import { AgentReportLibraryDialog } from './agent-report-library-dialog';
 import { useAgentState, useAgentDispatch } from '../state/agent-provider';
 import { NotificationChannelSettings } from './notification-channel-settings';
 import { toChatMessages, toChatConversations } from './mui-x-chat/agent-chat-mappers';
+import {
+  formatReasoningEffort,
+  ConversationModelControl,
+} from './conversation-model-control';
 
 import type { AgentComposerModel } from '../state/agent-state.types';
 
 const DEFAULT_NEW_CONVERSATION_MODEL: AgentComposerModel = {
   policy: 'AUTO',
   preferredModel: null,
+  reasoningEffort: null,
 };
 
 export function AgentShell() {
@@ -209,16 +213,25 @@ export function AgentShell() {
   }, [dispatch, router]);
 
   const handleModelSave = useCallback(
-    async (policy: ModelPolicy, preferredModel: string | null) => {
+    async (
+      policy: ModelPolicy,
+      preferredModel: string | null,
+      reasoningEffort: string | null
+    ) => {
       if (!conversationId) {
         const nextPreferredModel = policy === 'MANUAL' ? preferredModel : null;
-        setNewConversationModel({ policy, preferredModel: nextPreferredModel });
+        const nextReasoningEffort = policy === 'MANUAL' ? reasoningEffort : null;
+        setNewConversationModel({
+          policy,
+          preferredModel: nextPreferredModel,
+          reasoningEffort: nextReasoningEffort,
+        });
         setModelError(null);
         setModelNotice({
           severity: 'success',
           message:
             policy === 'MANUAL'
-              ? `已选择 ${nextPreferredModel ?? '指定模型'}；首条消息将使用此模型。`
+              ? `已选择 ${nextPreferredModel ?? '指定模型'}${nextReasoningEffort ? ` · ${formatReasoningEffort(nextReasoningEffort)}` : ''}；首条消息将使用此配置。`
               : '已选择自动模型；首条消息将由系统自动选择模型。',
         });
         return true;
@@ -231,6 +244,7 @@ export function AgentShell() {
           conversationId,
           modelPolicy: policy,
           preferredModel,
+          reasoningEffort,
         });
         const preparation = response.contextPreparation;
         setModelNotice({
@@ -261,6 +275,8 @@ export function AgentShell() {
     conversationState.conversation?.modelPolicy ?? newConversationModel.policy;
   const selectedPreferredModel =
     conversationState.conversation?.preferredModel ?? newConversationModel.preferredModel;
+  const selectedReasoningEffort =
+    conversationState.conversation?.reasoningEffort ?? newConversationModel.reasoningEffort;
   const canConfigureModel = Boolean(conversationState.conversation) || !conversationId;
 
   const evidenceVisible = Boolean(evidenceMessage) && !evidenceDismissed;
@@ -431,6 +447,7 @@ export function AgentShell() {
                 <ConversationModelControl
                   policy={selectedModelPolicy}
                   preferredModel={selectedPreferredModel}
+                  reasoningEffort={selectedReasoningEffort}
                   saving={modelSaving}
                   onSave={handleModelSave}
                 />
@@ -550,6 +567,7 @@ export function AgentShell() {
               trigger="menu-item"
               policy={selectedModelPolicy}
               preferredModel={selectedPreferredModel}
+              reasoningEffort={selectedReasoningEffort}
               saving={modelSaving}
               onTrigger={() => setMoreActionsAnchor(null)}
               onSave={handleModelSave}

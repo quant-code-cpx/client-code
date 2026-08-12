@@ -13,7 +13,7 @@ export type HeatmapColorPalette = {
   strongPositive: string;
 };
 
-/** 根据涨跌幅（%）返回热力图颜色。null 视为 0（平盘灰色）。 */
+/** 根据涨跌幅（%）返回热力图颜色。缺失值使用中性色，但不代表平盘。 */
 export function getHeatmapColor(
   pctChg: number | null,
   palette: HeatmapColorPalette
@@ -41,6 +41,7 @@ export function aggregateSectors(items: HeatmapItem[]): HeatmapSectorSummary[] {
     string,
     {
       pctChgSum: number;
+      pctChgCount: number;
       stockCount: number;
       upCount: number;
       downCount: number;
@@ -53,26 +54,31 @@ export function aggregateSectors(items: HeatmapItem[]): HeatmapSectorSummary[] {
   for (const item of items) {
     const key = item.groupName ?? item.industry ?? '其他';
     const existing = map.get(key);
-    const pct = item.pctChg ?? 0;
-    const isUp = pct > 0.1;
-    const isDown = pct < -0.1;
+    const hasPct = Number.isFinite(item.pctChg);
+    const pct = hasPct ? (item.pctChg as number) : null;
+    const isUp = pct != null && pct > 0.1;
+    const isDown = pct != null && pct < -0.1;
 
     if (!existing) {
       map.set(key, {
-        pctChgSum: pct,
+        pctChgSum: pct ?? 0,
+        pctChgCount: pct == null ? 0 : 1,
         stockCount: 1,
         upCount: isUp ? 1 : 0,
         downCount: isDown ? 1 : 0,
-        flatCount: !isUp && !isDown ? 1 : 0,
+        flatCount: pct != null && !isUp && !isDown ? 1 : 0,
         totalAmount: item.amount ?? 0,
         totalMv: item.totalMv ?? 0,
       });
     } else {
-      existing.pctChgSum += pct;
+      if (pct != null) {
+        existing.pctChgSum += pct;
+        existing.pctChgCount += 1;
+      }
       existing.stockCount += 1;
       if (isUp) existing.upCount += 1;
       else if (isDown) existing.downCount += 1;
-      else existing.flatCount += 1;
+      else if (pct != null) existing.flatCount += 1;
       existing.totalAmount += item.amount ?? 0;
       existing.totalMv += item.totalMv ?? 0;
     }
@@ -82,7 +88,7 @@ export function aggregateSectors(items: HeatmapItem[]): HeatmapSectorSummary[] {
   map.forEach((v, groupName) => {
     result.push({
       groupName,
-      avgPctChg: v.stockCount > 0 ? v.pctChgSum / v.stockCount : 0,
+      avgPctChg: v.pctChgCount > 0 ? v.pctChgSum / v.pctChgCount : null,
       stockCount: v.stockCount,
       upCount: v.upCount,
       downCount: v.downCount,
@@ -92,7 +98,7 @@ export function aggregateSectors(items: HeatmapItem[]): HeatmapSectorSummary[] {
     });
   });
 
-  result.sort((a, b) => b.avgPctChg - a.avgPctChg);
+  result.sort((a, b) => (b.avgPctChg ?? Number.NEGATIVE_INFINITY) - (a.avgPctChg ?? Number.NEGATIVE_INFINITY));
   return result;
 }
 
@@ -318,12 +324,17 @@ export function computeDistribution(items: HeatmapItem[]): HeatmapDistribution {
   let upCount = 0;
   let downCount = 0;
   let flatCount = 0;
+  let missingCount = 0;
 
   // 21 buckets: index 0 = [-10, -9), index 10 = [0, 1), index 20 = [9, 10+]
   const buckets = new Array<number>(21).fill(0);
 
   for (const item of items) {
-    const pct = Number.isFinite(item.pctChg) ? (item.pctChg as number) : 0;
+    if (!Number.isFinite(item.pctChg)) {
+      missingCount += 1;
+      continue;
+    }
+    const pct = item.pctChg as number;
 
     if (pct >= 9.9) limitUp += 1;
     else if (pct <= -9.9) limitDown += 1;
@@ -345,7 +356,7 @@ export function computeDistribution(items: HeatmapItem[]): HeatmapDistribution {
     return { range, count };
   });
 
-  return { limitUp, limitDown, upCount, downCount, flatCount, ranges };
+  return { limitUp, limitDown, upCount, downCount, flatCount, missingCount, ranges };
 }
 
 export type DistributionSegment = { label: string; count: number };

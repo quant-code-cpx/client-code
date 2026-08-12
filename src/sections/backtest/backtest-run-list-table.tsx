@@ -26,7 +26,7 @@ import TableSortLabel from '@mui/material/TableSortLabel';
 import TablePagination from '@mui/material/TablePagination';
 
 import { fDateTime } from 'src/utils/format-time';
-import { fPercent } from 'src/utils/format-number';
+import { fRatioPercent } from 'src/utils/format-number';
 
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
@@ -98,7 +98,7 @@ function pctCell(value: number | null, isNegativeGood?: boolean) {
   return (
     <Typography variant="body2" sx={{ color, fontFeatureSettings: '"tnum"' }}>
       {value >= 0 ? '+' : ''}
-      {fPercent(value)}
+      {fRatioPercent(value)}
     </Typography>
   );
 }
@@ -292,7 +292,7 @@ export function BacktestRunListTable({
                     checked={allVisibleSelected}
                     indeterminate={someVisibleSelected}
                     onChange={(event) => onToggleSelectAll(visibleRunIds, event.target.checked)}
-                    inputProps={{ 'aria-label': '选择当前页回测任务' }}
+                    slotProps={{ input: { 'aria-label': '选择当前页回测任务' } }}
                   />
                 </TableCell>
                 <TableCell>任务名称 / runId</TableCell>
@@ -359,7 +359,9 @@ export function BacktestRunListTable({
                             size="small"
                             checked={selected}
                             onChange={() => onToggleSelect(item.runId)}
-                            inputProps={{ 'aria-label': `选择 ${item.name ?? item.runId}` }}
+                            slotProps={{
+                              input: { 'aria-label': `选择 ${item.name ?? item.runId}` },
+                            }}
                           />
                         </TableCell>
 

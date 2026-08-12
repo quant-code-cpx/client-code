@@ -393,6 +393,7 @@ describe('Agent reducer', () => {
       status: 'ACTIVE',
       modelPolicy: 'AUTO',
       preferredModel: null,
+      reasoningEffort: null,
       messageCount: 0,
       lastMessageAt: '2026-07-20T01:00:00.000Z',
       createdAt: '2026-07-20T01:00:00.000Z',

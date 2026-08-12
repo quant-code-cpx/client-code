@@ -160,15 +160,33 @@ export function AlertLimitListTableV2({ items, onSelect, onCreateAlert }: Props)
                   <TableRow
                     key={`${row.tsCode}-${row.limitType}`}
                     hover
+                    role={onSelect ? 'button' : undefined}
+                    tabIndex={onSelect ? 0 : undefined}
+                    aria-label={onSelect ? `查看 ${row.stockName} 封板详情` : undefined}
                     sx={{
-                      cursor: 'pointer',
+                      cursor: onSelect ? 'pointer' : 'default',
                       height: ROW_HEIGHT,
                       '&:hover': {
                         bgcolor: varAlpha(theme.vars.palette.primary.mainChannel, 0.04),
                       },
                       '&:hover .row-actions': { opacity: 1 },
+                      '&:focus-visible': {
+                        outline: '2px solid',
+                        outlineColor: 'primary.main',
+                        outlineOffset: -2,
+                      },
                     }}
                     onClick={() => onSelect?.(row)}
+                    onKeyDown={(event) => {
+                      if (
+                        !onSelect ||
+                        event.target !== event.currentTarget ||
+                        (event.key !== 'Enter' && event.key !== ' ')
+                      )
+                        return;
+                      event.preventDefault();
+                      onSelect(row);
+                    }}
                   >
                     <TableCell>
                       <Typography variant="subtitle2">{row.stockName}</Typography>
@@ -273,7 +291,11 @@ export function AlertLimitListTableV2({ items, onSelect, onCreateAlert }: Props)
                         }}
                       >
                         <Tooltip title="创建预警" arrow>
-                          <IconButton size="small" aria-label="创建预警" onClick={() => onCreateAlert?.(row)}>
+                          <IconButton
+                            size="small"
+                            aria-label="创建预警"
+                            onClick={() => onCreateAlert?.(row)}
+                          >
                             <Iconify icon="solar:bell-bold" width={16} />
                           </IconButton>
                         </Tooltip>

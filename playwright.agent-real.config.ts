@@ -1,4 +1,4 @@
-import { defineConfig, devices } from '@playwright/test';
+import { devices, defineConfig } from '@playwright/test';
 
 export default defineConfig({
   testDir: './e2e',
@@ -28,7 +28,11 @@ export default defineConfig({
       name: 'agent-real-chromium',
       testMatch: '**/agent-real-backend.e2e.ts',
       dependencies: ['agent-real-setup'],
-      use: { ...devices['Desktop Chrome'], storageState: 'e2e/.auth/agent-real.json' },
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: 'e2e/.auth/agent-real.json',
+        viewport: { width: 1440, height: 900 },
+      },
     },
   ],
 

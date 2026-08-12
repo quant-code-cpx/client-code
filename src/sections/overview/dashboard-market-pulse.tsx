@@ -1,9 +1,10 @@
 import type { IndexQuoteWithSparklineItem } from 'src/api/market';
 
-import { useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
+import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
@@ -82,9 +83,9 @@ function saveSelected(codes: string[]) {
 
 function PulseCard({ item }: { item: IndexQuoteWithSparklineItem }) {
   const theme = useTheme();
-  const pct = item.pctChg ?? 0;
-  const isUp = pct > 0;
-  const isFlat = pct === 0;
+  const pct = item.pctChg;
+  const isUp = pct != null && pct > 0;
+  const isFlat = pct == null || pct === 0;
   const color = isFlat
     ? theme.palette.text.secondary
     : isUp
@@ -124,8 +125,12 @@ function PulseCard({ item }: { item: IndexQuoteWithSparklineItem }) {
               {item.close?.toFixed(2) ?? '—'}
             </Typography>
             <Typography variant="caption" sx={{ color, fontWeight: 700, fontSize: 12 }}>
-              {isUp ? '+' : ''}
-              {fPercent(pct, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              {pct == null
+                ? '—'
+                : `${isUp ? '+' : ''}${fPercent(pct, {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}`}
             </Typography>
           </Stack>
 
@@ -133,7 +138,7 @@ function PulseCard({ item }: { item: IndexQuoteWithSparklineItem }) {
             variant="caption"
             sx={{ color: 'text.disabled', fontSize: 12, mt: 0.25, display: 'block' }}
           >
-            成交量&nbsp;{fShortenNumber((item.amount ?? 0) * 1000 || 0)}
+            成交额&nbsp;{item.amount == null ? '—' : fShortenNumber(item.amount * 1000)}
           </Typography>
         </Box>
 
@@ -223,16 +228,34 @@ function PulseSelectionDialog({ open, selected, onClose, onConfirm }: SelectionD
 export function DashboardMarketPulse({ refreshKey }: { refreshKey?: number }) {
   const [allIndices, setAllIndices] = useState<IndexQuoteWithSparklineItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [selectedCodes, setSelectedCodes] = useState<string[]>(loadSelected);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const requestRef = useRef(0);
+
+  const fetchData = useCallback(async () => {
+    const requestId = requestRef.current + 1;
+    requestRef.current = requestId;
+    setLoading(true);
+    setError('');
+    try {
+      const result = await fetchIndexQuoteWithSparkline({ sparkline_period: '1m' });
+      if (requestRef.current !== requestId) return;
+      setAllIndices(result.indices ?? []);
+    } catch (fetchError) {
+      if (requestRef.current !== requestId) return;
+      setError(fetchError instanceof Error ? fetchError.message : '指数行情加载失败');
+    } finally {
+      if (requestRef.current === requestId) setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    setLoading(true);
-    fetchIndexQuoteWithSparkline({ sparkline_period: '1m' })
-      .then((res) => setAllIndices(res.indices ?? []))
-      .catch(() => setAllIndices([]))
-      .finally(() => setLoading(false));
-  }, [refreshKey]);
+    void fetchData();
+    return () => {
+      requestRef.current += 1;
+    };
+  }, [fetchData, refreshKey]);
 
   const handleConfirm = (codes: string[]) => {
     saveSelected(codes);
@@ -241,11 +264,7 @@ export function DashboardMarketPulse({ refreshKey }: { refreshKey?: number }) {
   };
 
   // Filter to selected codes, preserve user's ordering
-  const displayIndices = selectedCodes
-    .map((code) => allIndices.find((item) => item.tsCode === code))
-    .filter((item): item is IndexQuoteWithSparklineItem => item != null);
-
-  if (loading) {
+  if (loading && allIndices.length === 0) {
     return (
       <Stack direction="row" spacing={2}>
         {selectedCodes.map((code) => (
@@ -268,6 +287,20 @@ export function DashboardMarketPulse({ refreshKey }: { refreshKey?: number }) {
         </Tooltip>
       </Box>
 
+      {error && (
+        <Alert
+          severity="warning"
+          action={
+            <Button color="inherit" size="small" onClick={() => void fetchData()}>
+              重试
+            </Button>
+          }
+          sx={{ mb: 1.5 }}
+        >
+          {allIndices.length > 0 ? `刷新失败，当前展示上次数据：${error}` : error}
+        </Alert>
+      )}
+
       <Stack
         direction="row"
         spacing={1.5}
@@ -278,9 +311,11 @@ export function DashboardMarketPulse({ refreshKey }: { refreshKey?: number }) {
           '::-webkit-scrollbar-thumb': { bgcolor: 'divider', borderRadius: 2 },
         }}
       >
-        {displayIndices.length > 0
-          ? displayIndices.map((item) => <PulseCard key={item.tsCode} item={item} />)
-          : selectedCodes.map((code) => (
+        {selectedCodes.map((code) => {
+          const item = allIndices.find((candidate) => candidate.tsCode === code);
+          return item ? (
+            <PulseCard key={item.tsCode} item={item} />
+          ) : (
               <Card key={code} sx={{ px: 2, py: 1.5, minWidth: 170, flex: '1 1 0' }}>
                 <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                   {CODE_TO_NAME[code] ?? code}
@@ -289,7 +324,8 @@ export function DashboardMarketPulse({ refreshKey }: { refreshKey?: number }) {
                   暂无数据
                 </Typography>
               </Card>
-            ))}
+          );
+        })}
       </Stack>
 
       <PulseSelectionDialog

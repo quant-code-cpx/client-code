@@ -41,10 +41,11 @@ function fPct(v: number | null | undefined) {
 
 function colorSx(v: number | null | undefined) {
   if (v == null) return {};
-  return { color: v >= 0 ? 'success.main' : 'error.main' };
+  if (v === 0) return { color: 'text.secondary' };
+  return { color: v > 0 ? 'error.main' : 'success.main' };
 }
 
-const PeriodRow = memo(function PeriodRow({ row }: { row: BrinsonPeriodItem }) {
+const PeriodRow = memo(function PeriodRowComponent({ row }: { row: BrinsonPeriodItem }) {
   const [open, setOpen] = useState(false);
 
   return (
@@ -209,7 +210,12 @@ export function BacktestAttributionPanel({ runId }: BacktestAttributionPanelProp
                       variant="h5"
                       sx={{
                         mt: 0.5,
-                        color: item.value >= 0 ? 'success.main' : 'error.main',
+                        color:
+                          item.value > 0
+                            ? 'error.main'
+                            : item.value < 0
+                              ? 'success.main'
+                              : 'text.secondary',
                       }}
                     >
                       {fPct(item.value)}

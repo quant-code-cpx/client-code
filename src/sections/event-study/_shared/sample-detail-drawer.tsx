@@ -58,7 +58,7 @@ export function SampleDetailDrawer({ open, onClose, sample, preDays }: Props) {
       anchor="right"
       open={open}
       onClose={onClose}
-      PaperProps={{ sx: { width: { xs: '100%', sm: 480 } } }}
+      slotProps={{ paper: { sx: { width: { xs: '100%', sm: 480 } } } }}
     >
       <Stack
         direction="row"
@@ -99,7 +99,12 @@ export function SampleDetailDrawer({ open, onClose, sample, preDays }: Props) {
               sx={{
                 fontFamily: 'inherit',
                 fontVariantNumeric: 'tabular-nums',
-                color: (sample?.car ?? 0) > 0 ? 'success.main' : 'error.main',
+                color:
+                  (sample?.car ?? 0) > 0
+                    ? 'error.main'
+                    : (sample?.car ?? 0) < 0
+                      ? 'success.main'
+                      : 'text.secondary',
               }}
             >
               {sample?.car != null

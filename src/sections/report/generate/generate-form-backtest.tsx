@@ -110,8 +110,22 @@ export function GenerateFormBacktest({ value, onChange, onValidChange, compact =
       )}
       {!compact && (
         <Typography
+          component="button"
+          type="button"
           variant="caption"
-          sx={{ color: 'text.secondary', cursor: 'pointer', alignSelf: 'flex-start' }}
+          sx={{
+            p: 0,
+            border: 0,
+            bgcolor: 'transparent',
+            color: 'text.secondary',
+            cursor: 'pointer',
+            alignSelf: 'flex-start',
+            '&:focus-visible': {
+              outline: '2px solid',
+              outlineColor: 'primary.main',
+              outlineOffset: 2,
+            },
+          }}
           onClick={() => setManualMode((v) => !v)}
         >
           {manualMode ? '← 改用下拉选择' : '高级：手动输入 runId →'}

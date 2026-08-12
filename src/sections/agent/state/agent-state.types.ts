@@ -14,6 +14,7 @@ export type AgentMessageSnapshot =
 export type AgentRunStatusSnapshot = AgentResponse<'/agent/runs/status'>;
 export type AgentRunCreated = AgentResponse<'/agent/messages/send'>;
 export type AgentRunRegenerated = AgentResponse<'/agent/runs/regenerate'>;
+export type AgentRunRetried = AgentResponse<'/agent/runs/retry'>;
 
 export type AgentConversationEntity = AgentConversationSummary & {
   statusVersion?: number;
@@ -252,7 +253,7 @@ export type AgentAction =
   | {
       type: 'RUN_REGENERATION_CONFIRMED';
       conversationId: string;
-      response: AgentRunRegenerated;
+      response: AgentRunRegenerated | AgentRunRetried;
       createdAt: string;
     }
   | {
@@ -301,6 +302,7 @@ export type ComposerDraft = {
 export type AgentComposerModel = {
   policy: ModelPolicy;
   preferredModel: string | null;
+  reasoningEffort: string | null;
 };
 
 export const TERMINAL_RUN_STATUSES = new Set<AgentRunStatus>(['COMPLETED', 'FAILED', 'CANCELLED']);

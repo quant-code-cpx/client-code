@@ -15,6 +15,8 @@ import { useTheme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import TableContainer from '@mui/material/TableContainer';
 
+import { fmtTradeDate } from 'src/utils/format-time';
+
 import { Chart } from 'src/components/chart/chart';
 import { useChart } from 'src/components/chart/use-chart';
 
@@ -96,14 +98,14 @@ export function StockKline({
   const chartBars = useMemo(() => series.bars.filter(validOhlc), [series.bars]);
   const tableBars = series.bars.slice(-200);
   const priceHeight = Math.max(240, height - 130);
-  const categories = chartBars.map((bar) => bar.tradeDate);
+  const categories = chartBars.map((bar) => fmtTradeDate(bar.tradeDate));
 
   const candleSeries = useMemo(
     () => [
       {
         name: '价格',
         data: chartBars.map((bar) => ({
-          x: bar.tradeDate,
+          x: fmtTradeDate(bar.tradeDate),
           y: [bar.open, bar.high, bar.low, bar.close],
         })),
       },
@@ -116,7 +118,7 @@ export function StockKline({
         name: `成交量（${series.volumeUnit}）`,
         data: chartBars.map((bar, index) => ({
           x: index + 1,
-          y: bar.volume ?? 0,
+          y: finite(bar.volume) ? bar.volume : null,
           fillColor:
             finite(bar.open) && finite(bar.close) && bar.close >= bar.open
               ? theme.palette.error.main
@@ -190,7 +192,10 @@ export function StockKline({
       labels: { formatter: (value: number) => formatNumber(value, 0) },
     },
     tooltip: {
-      y: { formatter: (value: number) => `${formatNumber(value, 0)} ${series.volumeUnit}` },
+      y: {
+        formatter: (value: number | null) =>
+          value == null ? '—' : `${formatNumber(value, 0)} ${series.volumeUnit}`,
+      },
     },
     legend: { show: false },
   });
@@ -253,7 +258,7 @@ export function StockKline({
             <TableBody>
               {tableBars.map((bar) => (
                 <TableRow key={bar.tradeDate}>
-                  <TableCell>{bar.tradeDate}</TableCell>
+                  <TableCell>{fmtTradeDate(bar.tradeDate)}</TableCell>
                   {[bar.open, bar.high, bar.low, bar.close, bar.volume].map((value, index) => (
                     <TableCell key={index} align="right">
                       {formatNumber(value, index === 4 ? 0 : 2)}

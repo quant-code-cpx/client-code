@@ -24,7 +24,12 @@ vi.mock('react-router', async (importOriginal) => {
   return { ...actual, useNavigate: () => mockNavigate };
 });
 
-import { routesSection, createAgentRoutes } from 'src/routes/sections';
+import {
+  routesSection,
+  createAgentRoutes,
+  legacyReportDetailPath,
+  LegacyReportDetailRedirect,
+} from 'src/routes/sections';
 
 import { createNavData } from 'src/layouts/nav-config-dashboard';
 
@@ -50,10 +55,12 @@ describe('路由结构 — 静态配置断言', () => {
     });
 
     it('开启时注册新建态、深链与导航', () => {
-      expect(createAgentRoutes(true).map((route) => route.path)).toEqual([
-        'agent',
-        'agent/:conversationId',
-      ]);
+      const agentRoutes = createAgentRoutes(true);
+
+      expect(agentRoutes.map((route) => route.path)).toEqual(['agent', 'agent/:conversationId']);
+      agentRoutes.forEach((route) => {
+        expect(route.handle).toMatchObject({ title: `智能研究 - ${CONFIG.appName}` });
+      });
       expect(createNavData(true).some((item) => item.path === '/agent')).toBe(true);
     });
   });
@@ -104,7 +111,10 @@ describe('路由结构 — 静态配置断言', () => {
       'market/overview': { title: `市场概览 - ${CONFIG.appName}` },
       'market/news': { title: `新闻时事 - ${CONFIG.appName}` },
       'market/money-flow': { title: `资金动态 - ${CONFIG.appName}` },
+      'market/industry': { title: `行业分析 - ${CONFIG.appName}` },
+      'market/index': { title: `指数详情 - ${CONFIG.appName}` },
       'market/industry-rotation': { title: `行业轮动分析 - ${CONFIG.appName}` },
+      'tushare-sync': { title: `数据同步 - ${CONFIG.appName}` },
       'factor/library': { title: `因子库 - ${CONFIG.appName}` },
       'factor/detail/:name': { title: `因子详情 - ${CONFIG.appName}` },
       'factor/correlation': { title: `因子相关性 - ${CONFIG.appName}` },
@@ -129,6 +139,7 @@ describe('路由结构 — 静态配置断言', () => {
       'stock/subscription/new': { title: `新建条件订阅 - ${CONFIG.appName}` },
       'stock/subscription/:id/edit': { title: `编辑条件订阅 - ${CONFIG.appName}` },
       'stock/subscription/:id': { title: `订阅详情 - ${CONFIG.appName}` },
+      profile: { title: `个人资料 - ${CONFIG.appName}` },
       portfolio: { title: `我的组合 - ${CONFIG.appName}` },
       'portfolio/:id': { title: `组合详情 - ${CONFIG.appName}` },
       alert: { title: `事件日历 - ${CONFIG.appName}` },
@@ -142,6 +153,7 @@ describe('路由结构 — 静态配置断言', () => {
       'research/report': { title: `量化报告 - ${CONFIG.appName}` },
       'research/report/:id': { title: `报告详情 - ${CONFIG.appName}` },
       'stock/pattern': { title: `形态匹配 - ${CONFIG.appName}` },
+      'admin/user-manage': { title: `用户管理 - ${CONFIG.appName}` },
       'admin/model-providers': { title: `模型供应商 - ${CONFIG.appName}` },
     };
 
@@ -192,6 +204,18 @@ describe('路由结构 — 静态配置断言', () => {
       ['stock/screener', '/stock'],
     ])('path "%s" 重定向到 "%s"', (fromPath, toPath) => {
       expect(findRedirect(fromPath, toPath)).toBe(true);
+    });
+
+    it.each(['report/:id', 'reports/:id'])('path "%s" 使用保留动态 id 的重定向', (path) => {
+      const route = children.find((candidate) => candidate.path === path);
+      const element = route?.element as ReactElement | undefined;
+
+      expect(element?.type).toBe(LegacyReportDetailRedirect);
+    });
+
+    it('旧报告详情 id 映射到新详情路径', () => {
+      expect(legacyReportDetailPath('report-123')).toBe('/research/report/report-123');
+      expect(legacyReportDetailPath(undefined)).toBe('/research/report');
     });
   });
 });

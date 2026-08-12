@@ -282,8 +282,8 @@ export function AlertPriceRuleDialog({
                     <InputAdornment position="end">{thresholdUnit(ruleType)}</InputAdornment>
                   ),
                 },
+                htmlInput: { min: 0 },
               }}
-              inputProps={{ min: 0 }}
             />
           )}
 
@@ -294,7 +294,7 @@ export function AlertPriceRuleDialog({
             value={memo}
             onChange={(e) => setMemo(e.target.value)}
             disabled={submitting}
-            inputProps={{ maxLength: 200 }}
+            slotProps={{ htmlInput: { maxLength: 200 } }}
             helperText={`${memo.length}/200`}
           />
         </Box>

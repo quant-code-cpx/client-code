@@ -1,4 +1,4 @@
-import type { ComparisonListItem, ComparisonListResponse } from 'src/api/backtest';
+import type { ComparisonListResponse } from 'src/api/backtest';
 
 import { useMemo, useState, useEffect, useCallback } from 'react';
 
@@ -9,7 +9,6 @@ import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import Select from '@mui/material/Select';
 import Button from '@mui/material/Button';
-import Snackbar from '@mui/material/Snackbar';
 import MenuItem from '@mui/material/MenuItem';
 import Skeleton from '@mui/material/Skeleton';
 import TextField from '@mui/material/TextField';
@@ -22,36 +21,22 @@ import TablePagination from '@mui/material/TablePagination';
 import { useRouter } from 'src/routes/hooks';
 import { RouterLink } from 'src/routes/components';
 
+import { listComparisons } from 'src/api/backtest';
 import { DashboardContent } from 'src/layouts/dashboard';
-import {
-  listComparisons,
-  deleteComparison,
-  cancelComparison,
-  getComparisonConfig,
-} from 'src/api/backtest';
 
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
-import { ConfirmDialog } from 'src/components/confirm-dialog';
 
 import { STATUS_LABEL, STATUS_OPTIONS } from '../constants';
 import { ComparisonListCard } from '../comparison-list-card';
 
 // ----------------------------------------------------------------------
 
-const COMPARISON_PREFILL_KEY = 'compare:create-prefill:v1';
-
 const EMPTY_RESULT: ComparisonListResponse = {
   page: 1,
   pageSize: 12,
   total: 0,
   items: [],
-};
-
-type SnackbarState = {
-  open: boolean;
-  message: string;
-  severity: 'success' | 'info' | 'warning' | 'error';
 };
 
 function formatRate(value: number) {
@@ -72,13 +57,6 @@ export function ComparisonListView() {
   const [result, setResult] = useState<ComparisonListResponse>(EMPTY_RESULT);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [deleteTarget, setDeleteTarget] = useState<ComparisonListItem | null>(null);
-  const [deleteSubmitting, setDeleteSubmitting] = useState(false);
-  const [snackbar, setSnackbar] = useState<SnackbarState>({
-    open: false,
-    message: '',
-    severity: 'info',
-  });
 
   const query = useMemo(
     () => ({
@@ -117,13 +95,6 @@ export function ComparisonListView() {
     ];
   }, [result.items, result.total]);
 
-  const showSnackbar = useCallback(
-    (message: string, severity: SnackbarState['severity'] = 'info') => {
-      setSnackbar({ open: true, message, severity });
-    },
-    []
-  );
-
   const fetchComparisons = useCallback(async () => {
     setLoading(true);
     setError('');
@@ -144,43 +115,6 @@ export function ComparisonListView() {
 
   const handleView = (groupId: string) => {
     router.push(`/backtest/comparison/${groupId}`);
-  };
-
-  const handleCopy = async (item: ComparisonListItem) => {
-    try {
-      const config = await getComparisonConfig(item.groupId);
-      window.sessionStorage.setItem(COMPARISON_PREFILL_KEY, JSON.stringify(config));
-      router.push('/backtest/comparison/create', { state: { comparisonConfig: config } });
-      showSnackbar('已带入对比配置，可微调后重新提交', 'success');
-    } catch (err) {
-      showSnackbar(err instanceof Error ? err.message : '复制配置失败', 'error');
-    }
-  };
-
-  const handleCancel = async (item: ComparisonListItem) => {
-    try {
-      await cancelComparison(item.groupId);
-      showSnackbar(`已取消「${item.name || item.groupId}」`, 'success');
-      fetchComparisons();
-    } catch (err) {
-      showSnackbar(err instanceof Error ? err.message : '取消任务失败', 'error');
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!deleteTarget) return;
-
-    setDeleteSubmitting(true);
-    try {
-      await deleteComparison(deleteTarget.groupId);
-      setDeleteTarget(null);
-      showSnackbar('对比任务已删除', 'success');
-      fetchComparisons();
-    } catch (err) {
-      showSnackbar(err instanceof Error ? err.message : '删除任务失败', 'error');
-    } finally {
-      setDeleteSubmitting(false);
-    }
   };
 
   return (
@@ -226,6 +160,10 @@ export function ComparisonListView() {
           {error}
         </Alert>
       ) : null}
+
+      <Alert severity="info" sx={{ mb: 3 }}>
+        对比列表与已产出详情可正常查看；复制配置、取消和删除能力尚未开放。
+      </Alert>
 
       <Grid container spacing={2} sx={{ mb: 3 }}>
         {kpis.map((item) => (
@@ -310,13 +248,7 @@ export function ComparisonListView() {
           <Grid container spacing={2.5}>
             {result.items.map((item) => (
               <Grid key={item.groupId} size={{ xs: 12, sm: 6, lg: 3 }}>
-                <ComparisonListCard
-                  item={item}
-                  onView={handleView}
-                  onCopy={handleCopy}
-                  onCancel={handleCancel}
-                  onDelete={setDeleteTarget}
-                />
+                <ComparisonListCard item={item} onView={handleView} />
               </Grid>
             ))}
           </Grid>
@@ -357,39 +289,6 @@ export function ComparisonListView() {
           </CardContent>
         </Card>
       )}
-
-      <ConfirmDialog
-        open={!!deleteTarget}
-        title="确认删除"
-        content={
-          <Typography variant="body2" color="text.secondary">
-            删除后默认不在历史列表展示，确定要删除
-            <Box component="span" sx={{ color: 'text.primary', mx: 0.5 }}>
-              {deleteTarget?.name || deleteTarget?.groupId}
-            </Box>
-            吗？
-          </Typography>
-        }
-        onClose={() => !deleteSubmitting && setDeleteTarget(null)}
-        onConfirm={handleDelete}
-        submitting={deleteSubmitting}
-        confirmLabel="删除"
-        confirmColor="error"
-      />
-
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={3000}
-        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
-      >
-        <Alert
-          severity={snackbar.severity}
-          variant="filled"
-          onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
     </DashboardContent>
   );
 }

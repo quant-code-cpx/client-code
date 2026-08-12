@@ -103,8 +103,23 @@ function SectorTable({ title, rows, selectedCode, onRowClick }: SectorTableProps
                   key={row.tsCode}
                   hover
                   selected={isSelected}
+                  role="button"
+                  tabIndex={0}
+                  aria-label={`${isSelected ? '取消选择' : '选择'}板块 ${row.name}`}
                   onClick={() => onRowClick(row)}
-                  sx={{ cursor: 'pointer' }}
+                  onKeyDown={(event) => {
+                    if (event.key !== 'Enter' && event.key !== ' ') return;
+                    event.preventDefault();
+                    onRowClick(row);
+                  }}
+                  sx={{
+                    cursor: 'pointer',
+                    '&:focus-visible': {
+                      outline: '2px solid',
+                      outlineColor: 'primary.main',
+                      outlineOffset: -2,
+                    },
+                  }}
                 >
                   <TableCell>
                     <Typography variant="caption" sx={{ color: 'text.secondary' }}>

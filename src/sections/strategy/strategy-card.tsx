@@ -8,6 +8,7 @@ import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
 import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
+import ButtonBase from '@mui/material/ButtonBase';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
@@ -93,21 +94,31 @@ export function StrategyCard({
 
         {/* Strategy name */}
         <Tooltip title={strategy.name.length > 30 ? strategy.name : ''} placement="top">
-          <Typography
-            variant="subtitle1"
+          <ButtonBase
+            type="button"
+            aria-label={`查看策略：${strategy.name}`}
+            onClick={() => onView(strategy.id)}
             sx={{
+              width: '100%',
               mb: 0.5,
-              overflow: 'hidden',
-              display: '-webkit-box',
-              WebkitLineClamp: 1,
-              WebkitBoxOrient: 'vertical',
-              cursor: 'pointer',
+              display: 'block',
+              textAlign: 'left',
+              borderRadius: 0.5,
               '&:hover': { color: 'primary.main' },
             }}
-            onClick={() => onView(strategy.id)}
           >
-            {strategy.name}
-          </Typography>
+            <Typography
+              variant="subtitle1"
+              sx={{
+                overflow: 'hidden',
+                display: '-webkit-box',
+                WebkitLineClamp: 1,
+                WebkitBoxOrient: 'vertical',
+              }}
+            >
+              {strategy.name}
+            </Typography>
+          </ButtonBase>
         </Tooltip>
 
         {/* Description */}
@@ -197,7 +208,7 @@ export function StrategyCard({
           <IconButton
             size="small"
             onClick={(e) => onMenuOpen(e, strategy.id)}
-            aria-label="更多操作"
+            aria-label={`更多操作：${strategy.name}`}
           >
             <Iconify icon="eva:more-vertical-fill" width={18} />
           </IconButton>

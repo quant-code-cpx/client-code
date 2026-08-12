@@ -196,7 +196,10 @@ export function ToolCallList({
         '&.Mui-expanded': { mt: 2 },
       }}
     >
-      <AccordionSummary expandIcon={<Iconify icon="solar:alt-arrow-down-bold" width={16} />}>
+      <AccordionSummary
+        aria-label="查看 Tool 执行记录"
+        expandIcon={<Iconify icon="solar:alt-arrow-down-bold" width={16} />}
+      >
         <Stack direction="row" spacing={0.75} alignItems="center">
           <Iconify icon="solar:settings-bold-duotone" width={18} sx={{ color: 'primary.main' }} />
           <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
@@ -209,7 +212,7 @@ export function ToolCallList({
           ) : null}
         </Stack>
       </AccordionSummary>
-      <AccordionDetails sx={{ pt: 0, px: 0 }}>
+      <AccordionDetails role="region" aria-label="Tool 执行记录" sx={{ pt: 0, px: 0 }}>
         {loading && items.length === 0 ? (
           <Stack direction="row" spacing={1} alignItems="center" sx={{ py: 1 }}>
             <CircularProgress size={16} />

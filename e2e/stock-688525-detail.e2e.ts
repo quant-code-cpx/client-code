@@ -1,7 +1,8 @@
-import { test, expect } from './fixtures/auth.fixture';
-import { waitForPageReady, waitForSkeletonGone } from './helpers/wait-helpers';
 import path from 'path';
 import { fileURLToPath } from 'url';
+
+import { test, expect } from './fixtures/auth.fixture';
+import { waitForPageReady, waitForSkeletonGone } from './helpers/wait-helpers';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -147,7 +148,6 @@ test.describe('Stock Detail Page E2E (688525.SH 科兴制药)', () => {
     await authedPage.waitForTimeout(1000);
     await authedPage.screenshot({ path: path.join(screenshotDir, '13_notes_drawer.png') });
     // 关闭抽屉
-    const closeDrawerBtn = authedPage.locator('button').filter({ hasText: '' }).first(); // Close icon is usually first iconbutton or can press escape
     await authedPage.keyboard.press('Escape');
     await authedPage.waitForTimeout(500);
 

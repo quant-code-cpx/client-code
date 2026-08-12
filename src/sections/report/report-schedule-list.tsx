@@ -21,7 +21,7 @@ import TableContainer from '@mui/material/TableContainer';
 
 import { fDateTime } from 'src/utils/format-time';
 
-import { listSchedules, updateSchedule, deleteSchedule, runScheduleNow } from 'src/api/report';
+import { listSchedules } from 'src/api/report';
 
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
@@ -36,12 +36,7 @@ const FREQ_LABELS: Record<string, string> = {
   MONTHLY: '每月',
 };
 
-type Props = {
-  onEdit: (schedule: ReportSchedule) => void;
-  onAdd: () => void;
-};
-
-export function ReportScheduleList({ onEdit, onAdd }: Props) {
+export function ReportScheduleList() {
   const [items, setItems] = useState<ReportSchedule[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -62,34 +57,6 @@ export function ReportScheduleList({ onEdit, onAdd }: Props) {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
-
-  const handleToggle = async (schedule: ReportSchedule) => {
-    try {
-      await updateSchedule(schedule.id, { enabled: !schedule.enabled });
-      setItems((prev) =>
-        prev.map((s) => (s.id === schedule.id ? { ...s, enabled: !s.enabled } : s))
-      );
-    } catch (err) {
-      console.error('切换启用状态失败', err);
-    }
-  };
-
-  const handleDelete = async (id: string) => {
-    try {
-      await deleteSchedule(id);
-      setItems((prev) => prev.filter((s) => s.id !== id));
-    } catch (err) {
-      console.error('删除定时报告失败', err);
-    }
-  };
-
-  const handleRunNow = async (id: string) => {
-    try {
-      await runScheduleNow(id);
-    } catch (err) {
-      console.error('立即运行失败', err);
-    }
-  };
 
   if (loading) {
     return (
@@ -117,11 +84,15 @@ export function ReportScheduleList({ onEdit, onAdd }: Props) {
           variant="contained"
           size="small"
           startIcon={<Iconify icon="solar:add-circle-bold" width={18} />}
-          onClick={onAdd}
+          disabled
         >
-          新建定时报告
+          新建定时报告（未开放）
         </Button>
       </Box>
+
+      <Alert severity="info" sx={{ mx: 2, mb: 2 }}>
+        后端当前仅保留待实现的定时任务列表；新建、编辑、启停、删除和立即运行均未开放。
+      </Alert>
 
       <TableContainer>
         <Table size="small">
@@ -141,7 +112,7 @@ export function ReportScheduleList({ onEdit, onAdd }: Props) {
             {items.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={8} align="center" sx={{ py: 6 }}>
-                  <Typography color="text.secondary">暂无定时报告</Typography>
+                  <Typography color="text.secondary">定时任务列表待后端实现</Typography>
                 </TableCell>
               </TableRow>
             ) : (
@@ -158,33 +129,40 @@ export function ReportScheduleList({ onEdit, onAdd }: Props) {
                   <TableCell>{row.lastRunAt ? fDateTime(row.lastRunAt) : '—'}</TableCell>
                   <TableCell>{row.nextRunAt ? fDateTime(row.nextRunAt) : '—'}</TableCell>
                   <TableCell>
-                    <Switch size="small" checked={row.enabled} onChange={() => handleToggle(row)} />
+                    <Switch
+                      size="small"
+                      checked={row.enabled}
+                      disabled
+                      slotProps={{ input: { 'aria-label': `${row.title} 启用状态（未开放）` } }}
+                    />
                   </TableCell>
                   <TableCell>
                     <Stack direction="row" spacing={0.5}>
-                      <Tooltip title="编辑">
-                        <IconButton size="small" aria-label="编辑" onClick={() => onEdit(row)}>
-                          <Iconify icon="solar:pen-bold" width={18} />
-                        </IconButton>
+                      <Tooltip title="编辑能力未开放">
+                        <span>
+                          <IconButton size="small" aria-label="编辑定时报告未开放" disabled>
+                            <Iconify icon="solar:pen-bold" width={18} />
+                          </IconButton>
+                        </span>
                       </Tooltip>
-                      <Tooltip title="立即运行">
-                        <IconButton
-                          size="small"
-                          aria-label="立即运行"
-                          onClick={() => handleRunNow(row.id)}
-                        >
-                          <Iconify icon="solar:play-bold" width={18} />
-                        </IconButton>
+                      <Tooltip title="立即运行能力未开放">
+                        <span>
+                          <IconButton size="small" aria-label="立即运行定时报告未开放" disabled>
+                            <Iconify icon="solar:play-bold" width={18} />
+                          </IconButton>
+                        </span>
                       </Tooltip>
-                      <Tooltip title="删除">
-                        <IconButton
-                          size="small"
-                          aria-label="删除"
-                          color="error"
-                          onClick={() => handleDelete(row.id)}
-                        >
-                          <Iconify icon="solar:trash-bin-trash-bold" width={18} />
-                        </IconButton>
+                      <Tooltip title="删除能力未开放">
+                        <span>
+                          <IconButton
+                            size="small"
+                            aria-label="删除定时报告未开放"
+                            color="error"
+                            disabled
+                          >
+                            <Iconify icon="solar:trash-bin-trash-bold" width={18} />
+                          </IconButton>
+                        </span>
                       </Tooltip>
                     </Stack>
                   </TableCell>

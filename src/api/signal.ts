@@ -230,10 +230,6 @@ export function getSignalHistory(params: SignalHistoryQuery) {
   return apiClient.post<SignalHistoryResponse>('/api/signal/history', params);
 }
 
-export function getSignalHistoryDetail(params: SignalHistoryDetailQuery) {
-  return apiClient.post<SignalHistoryDetailResponse>('/api/signal/history/detail', params);
-}
-
 export function compareSignalHistory(params: SignalHistoryCompareQuery) {
   return apiClient
     .post<SignalHistoryCompareRawResponse>('/api/signal/history/compare', params)

@@ -81,27 +81,44 @@ export function SignalLatestSummary({ data, onJumpToAction }: Props) {
           <Box
             key={item.label}
             onClick={item.action && onJumpToAction ? () => onJumpToAction(item.action!) : undefined}
+            role={item.action && onJumpToAction ? 'button' : undefined}
+            tabIndex={item.action && onJumpToAction ? 0 : undefined}
+            aria-label={
+              item.action && onJumpToAction ? `查看${item.label}信号：${item.value}` : undefined
+            }
+            onKeyDown={(event) => {
+              if (!item.action || !onJumpToAction || (event.key !== 'Enter' && event.key !== ' '))
+                return;
+              event.preventDefault();
+              onJumpToAction(item.action);
+            }}
             sx={{
               flex: 1,
               minWidth: 0,
               pl: 1.5,
               borderLeft: 3,
               borderColor: 'transparent',
-              cursor: item.action ? 'pointer' : 'default',
+              cursor: item.action && onJumpToAction ? 'pointer' : 'default',
               backgroundImage: `linear-gradient(${varAlpha(
                 colorChannel(item.color),
                 0.06
               )}, ${varAlpha(colorChannel(item.color), 0.0)})`,
               borderRadius: 1,
               transition: 'background 0.2s',
-              '&:hover': item.action
-                ? {
-                    backgroundImage: `linear-gradient(${varAlpha(
-                      colorChannel(item.color),
-                      0.12
-                    )}, ${varAlpha(colorChannel(item.color), 0.0)})`,
-                  }
-                : undefined,
+              '&:hover':
+                item.action && onJumpToAction
+                  ? {
+                      backgroundImage: `linear-gradient(${varAlpha(
+                        colorChannel(item.color),
+                        0.12
+                      )}, ${varAlpha(colorChannel(item.color), 0.0)})`,
+                    }
+                  : undefined,
+              '&:focus-visible': {
+                outline: '2px solid',
+                outlineColor: 'primary.main',
+                outlineOffset: 2,
+              },
               position: 'relative',
               '&::before': {
                 content: '""',

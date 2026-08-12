@@ -138,7 +138,7 @@ export function ScreeningConditionRow({
           value={condition.operator}
           onChange={(e) => handleOperatorChange(e.target.value as FactorConditionOperator)}
           sx={{ minWidth: 150 }}
-          SelectProps={{ native: true }}
+          slotProps={{ select: { native: true } }}
         >
           {OPERATOR_OPTIONS.map((opt) => (
             <option key={opt.value} value={opt.value}>
@@ -179,7 +179,7 @@ export function ScreeningConditionRow({
             size="small"
             value={condition.percent ?? ''}
             onChange={(e) => handleNumChange('percent', e.target.value)}
-            inputProps={{ min: 1, max: 100, step: 1 }}
+            slotProps={{ htmlInput: { min: 1, max: 100, step: 1 } }}
             sx={{ width: 130 }}
             error={Boolean(errFor('percent'))}
             helperText={errFor('percent') ?? `按选定股票池横截面排名（%）`}

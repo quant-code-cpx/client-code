@@ -1,4 +1,4 @@
-import type { CaptchaResponse } from 'src/api';
+import type { CaptchaResponse } from 'src/api/auth';
 
 import { useRef, useState, useEffect, useCallback } from 'react';
 
@@ -15,8 +15,8 @@ import InputAdornment from '@mui/material/InputAdornment';
 
 import { useRouter } from 'src/routes/hooks';
 
-import { authApi } from 'src/api';
 import { useAuth } from 'src/auth';
+import { authApi } from 'src/api/auth';
 
 import { Iconify } from 'src/components/iconify';
 

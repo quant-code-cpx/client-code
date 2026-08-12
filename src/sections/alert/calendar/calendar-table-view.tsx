@@ -114,7 +114,8 @@ export function CalendarTableView({ events, onSelectEvent, onBatchSubscribe }: P
   };
 
   const handleRowKeyDown = (event: React.KeyboardEvent<HTMLTableRowElement>, row: CalendarRow) => {
-    if (event.target !== event.currentTarget || (event.key !== 'Enter' && event.key !== ' ')) return;
+    if (event.target !== event.currentTarget || (event.key !== 'Enter' && event.key !== ' '))
+      return;
     event.preventDefault();
     onSelectEvent(row.event);
   };
@@ -177,7 +178,7 @@ export function CalendarTableView({ events, onSelectEvent, onBatchSubscribe }: P
                   indeterminate={selectedEvents.length > 0 && selectedEvents.length < sorted.length}
                   checked={selectedEvents.length > 0 && selectedEvents.length === sorted.length}
                   onChange={toggleAll}
-                  inputProps={{ 'aria-label': '选择全部事件' }}
+                  slotProps={{ input: { 'aria-label': '选择全部事件' } }}
                 />
               </TableCell>
               <TableCell>
@@ -223,6 +224,7 @@ export function CalendarTableView({ events, onSelectEvent, onBatchSubscribe }: P
                   key={key}
                   hover
                   selected={isSelected}
+                  role="button"
                   onClick={() => onSelectEvent(event)}
                   onKeyDown={(keyboardEvent) => handleRowKeyDown(keyboardEvent, row)}
                   tabIndex={0}
@@ -246,8 +248,10 @@ export function CalendarTableView({ events, onSelectEvent, onBatchSubscribe }: P
                       size="small"
                       checked={isSelected}
                       onChange={() => toggleRow(key)}
-                      inputProps={{
-                        'aria-label': `选择事件 ${event.stockName || event.tsCode} ${event.title}`,
+                      slotProps={{
+                        input: {
+                          'aria-label': `选择事件 ${event.stockName || event.tsCode} ${event.title}`,
+                        },
                       }}
                     />
                   </TableCell>

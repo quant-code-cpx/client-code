@@ -23,13 +23,11 @@ function toApiDate(yyyymmdd: string) {
 }
 
 function defaultStartDate() {
-  const d = new Date();
-  d.setMonth(d.getMonth() - 3);
-  return d.toISOString().slice(0, 10);
+  return dayjs().subtract(3, 'month').format('YYYY-MM-DD');
 }
 
 function defaultEndDate() {
-  return new Date().toISOString().slice(0, 10);
+  return dayjs().format('YYYY-MM-DD');
 }
 
 interface PortfolioPnlHistoryChartProps {

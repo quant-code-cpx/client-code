@@ -28,9 +28,14 @@ async function enableMocking() {
   if (import.meta.env.VITE_DEMO_MODE !== 'true') return;
 
   const { worker } = await import('./mocks/browser');
-  // `onUnhandledRequest: 'bypass'` lets non-API requests (assets, etc.) pass through
   await worker.start({
-    onUnhandledRequest: 'bypass',
+    onUnhandledRequest(request, print) {
+      const { pathname } = new URL(request.url);
+      if (!pathname.startsWith('/api/')) return;
+
+      print.error();
+      throw new Error(`演示模式缺少 API mock：${request.method} ${pathname}`);
+    },
     serviceWorker: { url: `${import.meta.env.BASE_URL}mockServiceWorker.js` },
   });
 }

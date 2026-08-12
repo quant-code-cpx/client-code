@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Alert from '@mui/material/Alert';
+import Button from '@mui/material/Button';
 import Skeleton from '@mui/material/Skeleton';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
@@ -43,7 +44,9 @@ export function RiskMarketCapChart({ portfolioId }: RiskMarketCapChartProps) {
 
   const buckets: MarketCapTier[] = data?.tiers ?? [];
   const categories = buckets.map((b) => b.tier);
-  const seriesData = buckets.map((b) => Number(((b.weight ?? 0) * 100).toFixed(2)));
+  const seriesData = buckets.map((bucket) =>
+    bucket.weight === null ? null : Number((bucket.weight * 100).toFixed(2))
+  );
 
   const chartOptions = useChart({
     chart: { type: 'bar', toolbar: { show: false } },
@@ -65,7 +68,18 @@ export function RiskMarketCapChart({ portfolioId }: RiskMarketCapChartProps) {
         </Typography>
 
         {loading && <Skeleton variant="rectangular" height={280} />}
-        {!loading && error && <Alert severity="error">{error}</Alert>}
+        {!loading && error && (
+          <Alert
+            severity="error"
+            action={
+              <Button color="inherit" size="small" onClick={() => void fetchData()}>
+                重试
+              </Button>
+            }
+          >
+            {error}
+          </Alert>
+        )}
 
         {!loading && !error && (
           <>

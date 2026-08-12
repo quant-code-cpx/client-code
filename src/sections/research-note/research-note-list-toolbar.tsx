@@ -123,17 +123,18 @@ export function ResearchNoteListToolbar({
         </Tooltip>
 
         <ToggleButtonGroup
+          aria-label="研究笔记列表视图"
           size="small"
           exclusive
           value={viewMode}
           onChange={(_, v: ViewMode | null) => v && onViewModeChange(v)}
         >
-          <ToggleButton value="card">
+          <ToggleButton value="card" aria-label="卡片视图">
             <Tooltip title="卡片视图" arrow>
               <Iconify icon="solar:widget-bold" width={16} />
             </Tooltip>
           </ToggleButton>
-          <ToggleButton value="table">
+          <ToggleButton value="table" aria-label="表格视图">
             <Tooltip title="表格视图" arrow>
               <Iconify icon="solar:menu-dots-bold" width={16} />
             </Tooltip>

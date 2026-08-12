@@ -70,7 +70,7 @@ type Props = {
 };
 
 // Sub-component: return trend mini chart
-const ReturnTrendChart = memo(function ReturnTrendChart({
+const ReturnTrendChart = memo(function ReturnTrendChartComponent({
   data,
 }: {
   data: RotationDetailResult['returnTrend'];
@@ -78,6 +78,7 @@ const ReturnTrendChart = memo(function ReturnTrendChart({
   const categories = data.map((d) => fmtDate(d.tradeDate));
   const sectorSeries = data.map((d) => d.cumReturn);
   const benchmarkSeries = data.map((d) => d.benchmarkReturn);
+  const hasBenchmark = benchmarkSeries.some((value) => value != null);
 
   const chartOptions = useChart({
     chart: { type: 'line', toolbar: { show: false }, zoom: { enabled: false } },
@@ -94,7 +95,7 @@ const ReturnTrendChart = memo(function ReturnTrendChart({
 
   const series = [
     { name: '行业', data: sectorSeries },
-    { name: '沪深300', data: benchmarkSeries },
+    ...(hasBenchmark ? [{ name: '沪深300', data: benchmarkSeries }] : []),
   ];
 
   if (data.length === 0) {
@@ -105,11 +106,20 @@ const ReturnTrendChart = memo(function ReturnTrendChart({
     );
   }
 
-  return <Chart type="line" series={series} options={chartOptions} sx={{ height: 240 }} />;
+  return (
+    <>
+      {!hasBenchmark && (
+        <Alert severity="info" sx={{ mb: 1.5 }}>
+          后端暂未提供沪深300基准收益，当前仅展示行业收益。
+        </Alert>
+      )}
+      <Chart type="line" series={series} options={chartOptions} sx={{ height: 240 }} />
+    </>
+  );
 });
 
 // Sub-component: flow trend chart
-const FlowTrendChart = memo(function FlowTrendChart({
+const FlowTrendChart = memo(function FlowTrendChartComponent({
   data,
 }: {
   data: RotationDetailResult['flowTrend'];
@@ -173,7 +183,7 @@ const FlowTrendChart = memo(function FlowTrendChart({
 // ----------------------------------------------------------------------
 
 // Sub-component: sector price trend from the existing detail endpoint.
-const SectorKlineChart = memo(function SectorKlineChart({
+const SectorKlineChart = memo(function SectorKlineChartComponent({
   sectorName: name,
   data,
 }: {
@@ -261,7 +271,7 @@ export function RotationDetailDrawer({ open, onClose, sectorName, tsCode, period
     fetchRotationDetail({
       tsCode: tsCode ?? undefined,
       industry: sectorName ?? undefined,
-        days: period ? periodToDays(period) : undefined,
+      days: period ? periodToDays(period) : undefined,
     })
       .then((res) => {
         if (!cancelled) setDetail(res ?? null);
@@ -347,7 +357,7 @@ export function RotationDetailDrawer({ open, onClose, sectorName, tsCode, period
       anchor="right"
       open={open}
       onClose={onClose}
-      PaperProps={{ sx: { width: { xs: '100%', sm: 480, md: 640 } } }}
+      slotProps={{ paper: { sx: { width: { xs: '100%', sm: 480, md: 640 } } } }}
     >
       {/* Header */}
       <Box
@@ -474,6 +484,7 @@ export function RotationDetailDrawer({ open, onClose, sectorName, tsCode, period
                           <TableRow
                             key={s.tsCode}
                             hover
+                            role="link"
                             tabIndex={0}
                             aria-label={`查看 ${s.name} 股票详情`}
                             sx={{

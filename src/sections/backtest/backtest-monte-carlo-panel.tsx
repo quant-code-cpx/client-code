@@ -167,7 +167,7 @@ export function BacktestMonteCarloPanel({ runId }: BacktestMonteCarloPanelProps)
           size="small"
           value={simulations}
           onChange={(e) => setSimulations(Number(e.target.value))}
-          inputProps={{ min: 100, max: 10000, step: 100 }}
+          slotProps={{ htmlInput: { min: 100, max: 10000, step: 100 } }}
           sx={{ width: 140 }}
           disabled={loading}
         />

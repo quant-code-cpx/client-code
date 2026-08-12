@@ -71,6 +71,12 @@ export type FactorDef = {
   summary?: FactorSummary;
   /** 状态徽标（BE-2） */
   status?: FactorStatus;
+  /** 后端已落库的最近因子快照交易日 YYYYMMDD */
+  latestDate?: string | null;
+  /** 后端快照覆盖率（0~1） */
+  coverageRate?: number | null;
+  /** 最近快照距今滞后天数 */
+  staleDays?: number | null;
   /** LaTeX 公式（BE-6） */
   formula?: string;
   /** 文档链接（BE-6） */
@@ -655,6 +661,12 @@ export type CustomFactorPrecomputeResponse = {
   message: string;
 };
 
+export type CustomFactorPrecomputeRequest = {
+  name: string;
+  /** 目标交易日 YYYYMMDD（后端必填） */
+  tradeDate: string;
+};
+
 // ─── 因子回测类型 ─────────────────────────────────────────────
 
 export type FactorBacktestSubmitRequest = {
@@ -682,7 +694,8 @@ export type FactorBacktestSubmitResponse = {
 };
 
 export type FactorAttributionRequest = {
-  backtestId: string;
+  /** Controller DTO 字段名；服务层再映射为 backtestId。 */
+  id: string;
   factorNames?: string[];
 };
 
@@ -935,8 +948,8 @@ export function deleteCustomFactor(query: { name: string }) {
   return apiClient.post<{ message: string }>('/api/factor/custom/delete', query);
 }
 
-export function precomputeCustomFactor(query: { name: string }) {
-  return apiClient.post<CustomFactorPrecomputeResponse>('/api/factor/custom/precompute', query);
+export function precomputeCustomFactor(dto: CustomFactorPrecomputeRequest) {
+  return apiClient.post<CustomFactorPrecomputeResponse>('/api/factor/custom/precompute', dto);
 }
 
 // ─── 因子回测 API ─────────────────────────────────────────────

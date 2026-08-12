@@ -56,7 +56,7 @@ export function StockTableHead({
             indeterminate={numSelected > 0 && numSelected < rowCount}
             checked={rowCount > 0 && numSelected === rowCount}
             onChange={(e) => onSelectAll(e.target.checked)}
-            inputProps={{ 'aria-label': '全选当前页股票' }}
+            slotProps={{ input: { 'aria-label': '全选当前页股票' } }}
           />
         </TableCell>
 

@@ -641,7 +641,8 @@ export type ReturnComparisonSeries = {
 
 export type ReturnComparisonResult = {
   period: string;
-  benchmark: ReturnComparisonSeries;
+  /** 后端当前不返回基准收益序列；上线前保持 null，禁止用 0 伪造。 */
+  benchmark: ReturnComparisonSeries | null;
   sectors: ReturnComparisonSeries[];
 };
 
@@ -699,7 +700,8 @@ export type RotationDetailResult = {
     close: number | null;
     pctChange: number | null;
     cumReturn: number;
-    benchmarkReturn: number;
+    /** 后端当前不返回基准收益；上线前保持 null。 */
+    benchmarkReturn: number | null;
   }>;
   flowTrend: Array<{ tradeDate: string; netInflow: number; cumulativeInflow: number }>;
   topStocks: RotationDetailTopStock[];
@@ -727,10 +729,7 @@ export async function fetchReturnComparison(query?: {
 
   return {
     period: periodKeys.join(','),
-    benchmark: {
-      name: '沪深300',
-      data: periodKeys.map((pk) => ({ tradeDate: `${pk}d`, cumReturn: 0 })),
-    },
+    benchmark: null,
     sectors: industries.map((ind) => ({
       name: ind.name,
       data: periodKeys.map((pk) => ({
@@ -882,7 +881,7 @@ export async function fetchRotationDetail(query: {
       close: p.close,
       pctChange: p.pctChange,
       cumReturn: p.cumulativeReturn,
-      benchmarkReturn: 0,
+      benchmarkReturn: null,
     })),
     flowTrend: (res?.flowTrend ?? []).map((p) => ({
       tradeDate: p.tradeDate,
@@ -1078,10 +1077,6 @@ export type DailyInfoResult = {
   /** 平盘家数 */
   flatCount: number;
 };
-
-export function fetchDailyInfo(query?: MarketQueryBase) {
-  return apiClient.post<DailyInfoResult>('/api/market/daily-info', query ?? {});
-}
 
 // ── 市场宽度 (market-breadth) ─────────────────────────────
 

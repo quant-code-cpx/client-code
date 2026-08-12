@@ -349,23 +349,6 @@ export function UserManageView() {
     [fetchList]
   );
 
-  const handleUnlock = useCallback(
-    (row: UserManageItem) => {
-      setConfirmError('');
-      setConfirm({
-        title: '解锁账号',
-        content: `确定要解锁账号「${row.account}」吗？`,
-        confirmLabel: '解锁',
-        confirmColor: 'warning',
-        onConfirm: async () => {
-          await userManageApi.unlock(row.id);
-          await fetchList();
-        },
-      });
-    },
-    [fetchList]
-  );
-
   const handleResetPassword = useCallback((row: UserManageItem) => {
     setResetPwdRow(row);
     setResetPwdOpen(true);
@@ -684,7 +667,6 @@ export function UserManageView() {
                           setRoleOpen(true);
                         }}
                         onToggleStatus={handleToggleStatus}
-                        onUnlock={handleUnlock}
                         onResetPassword={handleResetPassword}
                         onDelete={handleDelete}
                         onRestore={handleRestore}

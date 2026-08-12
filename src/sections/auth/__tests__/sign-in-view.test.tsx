@@ -6,7 +6,7 @@ import { createMockCaptchaResponse } from 'src/test/factories/captcha';
 
 // --- Mocks (hoisted before imports) ---
 
-vi.mock('src/api', () => ({
+vi.mock('src/api/auth', () => ({
   authApi: {
     getCaptcha: vi.fn(),
     login: vi.fn(),
@@ -36,7 +36,7 @@ vi.mock('src/components/iconify', () => ({
 }));
 
 // --- Import after mocks ---
-import { authApi } from 'src/api';
+import { authApi } from 'src/api/auth';
 
 import { SignInView } from '../sign-in-view';
 

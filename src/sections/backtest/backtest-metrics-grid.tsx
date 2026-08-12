@@ -5,7 +5,7 @@ import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 
-import { fNumber, fPercent } from 'src/utils/format-number';
+import { fNumber, fRatioPercent } from 'src/utils/format-number';
 
 // ----------------------------------------------------------------------
 
@@ -32,7 +32,7 @@ function MetricCard({ label, value, color }: MetricCardProps) {
 
 function pctVal(v: number | null): string | null {
   if (v == null) return null;
-  return `${v >= 0 ? '+' : ''}${fPercent(v)}`;
+  return `${v >= 0 ? '+' : ''}${fRatioPercent(v)}`;
 }
 
 function pctColor(v: number | null, invert?: boolean): string | undefined {

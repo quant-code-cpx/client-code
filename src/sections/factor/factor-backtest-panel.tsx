@@ -93,7 +93,7 @@ export function FactorBacktestPanel({ factorName, params }: FactorBacktestPanelP
     if (!runId) return;
     setAttrLoading(true);
     try {
-      const attr = await getFactorAttribution({ backtestId: runId });
+      const attr = await getFactorAttribution({ id: runId });
       setAttribution(attr);
     } catch {
       setAttrError('归因数据加载失败');

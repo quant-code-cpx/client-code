@@ -259,6 +259,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/agent/runs/retry": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** 从失败 Run 的安全检查点创建子 Run 重试 */
+    post: operations["AgentController_retryRun"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/agent/runs/status": {
     parameters: {
       query?: never;
@@ -1328,6 +1345,7 @@ export interface components {
       nextCursor?: string | null;
     };
     ListResearchReportsDto: {
+      /** @description 服务端返回的不透明复合游标 */
       cursor?: string | null;
       /** @default 30 */
       limit: number;
@@ -1706,7 +1724,7 @@ export interface components {
         | "POLITICAL_INFERENCE";
       /**
        * @description 记忆纠错必须由用户明确确认
-       * @enum {number}
+       * @enum {boolean}
        */
       confirmation: true;
     };
@@ -1737,7 +1755,7 @@ export interface components {
         | "POLITICAL_INFERENCE";
       /**
        * @description 长期记忆写入必须由用户明确确认
-       * @enum {number}
+       * @enum {boolean}
        */
       confirmation: true;
     };
@@ -1754,6 +1772,8 @@ export interface components {
     };
     AgentToolCallListResponseDto: {
       items: components["schemas"]["AgentToolCallResponseDto"][];
+      /** @description 下一页游标；null 表示已到末页 */
+      nextCursor?: string | null;
       /** @default false */
       payloadIncluded: boolean;
     };
@@ -1792,6 +1812,10 @@ export interface components {
     };
     ListAgentToolCallsDto: {
       runId: string;
+      /** @description 上一页返回的 Tool Call 游标 */
+      cursor?: string | null;
+      /** @default 50 */
+      limit: number;
       /**
        * @description 普通用户端点始终只返回脱敏摘要
        * @default false
@@ -1831,6 +1855,11 @@ export interface components {
       finalMessageId?: string | null;
       latestEventSequence: number;
       canCancel: boolean;
+      canRetry: boolean;
+      retryOfRunId?: string | null;
+      /** @enum {string|null} */
+      retryMode?: "SAFE_CHECKPOINT" | null;
+      retryDepth: number;
       errorCode?: number | null;
       errorMessage?: string | null;
       /** Format: date-time */
@@ -1856,6 +1885,29 @@ export interface components {
       ordinal: number;
     };
     AgentRunStatusDto: {
+      runId: string;
+    };
+    AgentRunRetriedResponseDto: {
+      conversationId: string;
+      sourceRunId: string;
+      assistantMessageId: string;
+      runId: string;
+      /** @enum {string} */
+      runStatus:
+        | "QUEUED"
+        | "RUNNING"
+        | "CANCEL_REQUESTED"
+        | "COMPLETED"
+        | "FAILED"
+        | "CANCELLED";
+      /** @enum {string} */
+      retryMode: "SAFE_CHECKPOINT";
+      /** @enum {string} */
+      streamEndpoint: "/api/agent/runs/events";
+    };
+    RetryAgentRunDto: {
+      /** Format: uuid */
+      clientRequestId: string;
       runId: string;
     };
     AgentRunRegeneratedResponseDto: {
@@ -1932,6 +1984,8 @@ export interface components {
       displayName: string;
       provider: string;
       capabilities: string[];
+      reasoningEfforts: string[];
+      defaultReasoningEffort?: string | null;
       contextWindow: number;
       maxOutputTokens: number;
       /** @enum {string} */
@@ -1945,6 +1999,7 @@ export interface components {
       /** @enum {string} */
       modelPolicy: "AUTO" | "MANUAL";
       preferredModel?: string | null;
+      reasoningEffort?: string | null;
       contextPreparation: components["schemas"]["ConversationContextPreparationResponseDto"];
       /** Format: date-time */
       updatedAt: string;
@@ -1965,6 +2020,7 @@ export interface components {
       /** @enum {string} */
       modelPolicy: "AUTO" | "MANUAL";
       preferredModel?: string | null;
+      reasoningEffort?: string | null;
     };
     AgentMessageListResponseDto: {
       items: components["schemas"]["AgentMessageResponseDto"][];
@@ -2028,6 +2084,7 @@ export interface components {
       /** @enum {string} */
       modelPolicy: "AUTO" | "MANUAL";
       preferredModel?: string | null;
+      reasoningEffort?: string | null;
       messageCount: number;
       /** Format: date-time */
       lastMessageAt: string;
@@ -2067,6 +2124,7 @@ export interface components {
       /** @enum {string} */
       modelPolicy: "AUTO" | "MANUAL";
       preferredModel?: string | null;
+      reasoningEffort?: string | null;
       messageCount: number;
       /** Format: date-time */
       lastMessageAt: string;
@@ -2098,6 +2156,7 @@ export interface components {
       modelPolicy: "AUTO" | "MANUAL";
       /** @example null */
       preferredModel?: string | null;
+      reasoningEffort?: string | null;
     };
     NotificationDeliveryResponseDto: {
       deliveryId: string;
@@ -2587,6 +2646,31 @@ export interface operations {
         content: {
           "application/json": components["schemas"]["ResponseModel"] & {
             data?: components["schemas"]["AgentRunRegeneratedResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  AgentController_retryRun: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["RetryAgentRunDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ResponseModel"] & {
+            data?: components["schemas"]["AgentRunRetriedResponseDto"];
           };
         };
       };

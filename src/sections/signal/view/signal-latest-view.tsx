@@ -133,6 +133,39 @@ export function SignalLatestView() {
     open: false,
     message: '',
   });
+  const activationsRequestIdRef = useRef(0);
+  const signalsRequestIdRef = useRef(0);
+  const selectedStrategyIdRef = useRef(selectedStrategyId);
+  const signalsInFlightRef = useRef<{ key: string; promise: Promise<void> } | null>(null);
+
+  selectedStrategyIdRef.current = selectedStrategyId;
+
+  const beginSignalsTransition = useCallback((hasSelection: boolean) => {
+    signalsRequestIdRef.current += 1;
+    signalsInFlightRef.current = null;
+    setLatestSignals(null);
+    setFallbackDiff(null);
+    setSignalsError('');
+    setLoadingSignals(hasSelection);
+  }, []);
+
+  const selectStrategy = useCallback(
+    (strategyId: string) => {
+      if (strategyId === selectedStrategyId) return;
+      beginSignalsTransition(Boolean(strategyId));
+      setSelectedStrategyId(strategyId);
+    },
+    [beginSignalsTransition, selectedStrategyId]
+  );
+
+  const selectTradeDate = useCallback(
+    (nextTradeDate: Dayjs | null) => {
+      if (dayjsToTradeDate(nextTradeDate) === dayjsToTradeDate(tradeDate)) return;
+      beginSignalsTransition(Boolean(selectedStrategyId));
+      setTradeDate(nextTradeDate);
+    },
+    [beginSignalsTransition, selectedStrategyId, tradeDate]
+  );
 
   // 滚动锚点
   const anchorRefs = useRef<Record<'BUY' | 'SELL' | 'HOLD', HTMLElement | null>>({
@@ -166,25 +199,30 @@ export function SignalLatestView() {
 
   // ── 拉取激活列表 ──────────────────────────────────────
   const fetchActivations = useCallback(async () => {
+    const requestId = activationsRequestIdRef.current + 1;
+    activationsRequestIdRef.current = requestId;
     setLoadingActivations(true);
     setActivationsError('');
     try {
       const data = await listSignalActivations();
+      if (activationsRequestIdRef.current !== requestId) return;
       setActivations(data);
-      if (data.length > 0 && !selectedStrategyId) {
+      if (data.length > 0 && !selectedStrategyIdRef.current) {
         const fromQuery = queryStrategyId
           ? data.find((a) => a.strategyId === queryStrategyId)
           : null;
         const firstActive = data.find((a) => a.isActive);
         const selected = fromQuery ?? firstActive ?? data[0];
+        beginSignalsTransition(true);
         setSelectedStrategyId(selected.strategyId);
       }
     } catch (err: unknown) {
+      if (activationsRequestIdRef.current !== requestId) return;
       setActivationsError(err instanceof Error ? err.message : '获取激活策略列表失败');
     } finally {
-      setLoadingActivations(false);
+      if (activationsRequestIdRef.current === requestId) setLoadingActivations(false);
     }
-  }, [queryStrategyId, selectedStrategyId]);
+  }, [beginSignalsTransition, queryStrategyId]);
 
   useEffect(() => {
     fetchActivations();
@@ -193,47 +231,89 @@ export function SignalLatestView() {
 
   // ── 拉取最新信号（含兜底 diff） ───────────────────────
   const fetchLatestSignals = useCallback(async () => {
-    if (!selectedStrategyId) return;
+    const strategyId = selectedStrategyId;
+    const td = dayjsToTradeDate(tradeDate);
+    if (!strategyId) {
+      signalsRequestIdRef.current += 1;
+      signalsInFlightRef.current = null;
+      setLatestSignals(null);
+      setFallbackDiff(null);
+      setSignalsError('');
+      setLoadingSignals(false);
+      return;
+    }
+
+    const requestKey = `${strategyId}:${td || 'latest'}`;
+    const existing = signalsInFlightRef.current;
+    if (existing?.key === requestKey) {
+      await existing.promise;
+      return;
+    }
+
+    const requestId = signalsRequestIdRef.current + 1;
+    signalsRequestIdRef.current = requestId;
     setLoadingSignals(true);
     setSignalsError('');
+    setLatestSignals(null);
     setFallbackDiff(null);
-    try {
-      const td = dayjsToTradeDate(tradeDate);
-      const data = await getLatestSignals({
-        strategyId: selectedStrategyId,
-        ...(td ? { tradeDate: td } : {}),
-      });
-      const head = data.length > 0 ? data[0] : null;
-      setLatestSignals(head);
 
-      // 后端无 diff 时前端兜底
-      if (head && !head.diffFromPrev) {
-        const prevDate = lastTradingDayjs(
-          (tradeDate ?? dayjs(head.tradeDate, DATE_FMT)).subtract(1, 'day')
-        );
-        try {
-          const prevResp = await getLatestSignals({
-            strategyId: selectedStrategyId,
-            tradeDate: prevDate.format(DATE_FMT),
-          });
-          const prev = prevResp.length > 0 ? prevResp[0] : null;
-          if (prev) {
-            setFallbackDiff(computeFrontendDiff(head.signals, prev.signals, prev.tradeDate));
+    const request = (async () => {
+      try {
+        const data = await getLatestSignals({
+          strategyId,
+          ...(td ? { tradeDate: td } : {}),
+        });
+        if (signalsRequestIdRef.current !== requestId) return;
+        const head = data.length > 0 ? data[0] : null;
+        setLatestSignals(head);
+
+        // 后端无 diff 时前端兜底；主请求和兜底请求共享同一 generation。
+        if (head && !head.diffFromPrev) {
+          const prevDate = lastTradingDayjs(
+            (tradeDate ?? dayjs(head.tradeDate, DATE_FMT)).subtract(1, 'day')
+          );
+          try {
+            const prevResp = await getLatestSignals({
+              strategyId,
+              tradeDate: prevDate.format(DATE_FMT),
+            });
+            if (signalsRequestIdRef.current !== requestId) return;
+            const prev = prevResp.length > 0 ? prevResp[0] : null;
+            if (prev) {
+              setFallbackDiff(computeFrontendDiff(head.signals, prev.signals, prev.tradeDate));
+            }
+          } catch {
+            /* 兜底失败不阻塞主流程 */
           }
-        } catch {
-          /* 兜底失败不阻塞主流程 */
         }
+      } catch (err: unknown) {
+        if (signalsRequestIdRef.current !== requestId) return;
+        setSignalsError(err instanceof Error ? err.message : '获取最新信号失败');
+      } finally {
+        if (signalsRequestIdRef.current === requestId) setLoadingSignals(false);
       }
-    } catch (err: unknown) {
-      setSignalsError(err instanceof Error ? err.message : '获取最新信号失败');
+    })();
+
+    signalsInFlightRef.current = { key: requestKey, promise: request };
+    try {
+      await request;
     } finally {
-      setLoadingSignals(false);
+      if (signalsInFlightRef.current?.promise === request) signalsInFlightRef.current = null;
     }
   }, [selectedStrategyId, tradeDate]);
 
   useEffect(() => {
     fetchLatestSignals();
   }, [fetchLatestSignals]);
+
+  useEffect(
+    () => () => {
+      activationsRequestIdRef.current += 1;
+      signalsRequestIdRef.current += 1;
+      signalsInFlightRef.current = null;
+    },
+    []
+  );
 
   // ── 复制委托清单 ──────────────────────────────────────
   const handleCopyOrders = useCallback(async () => {
@@ -301,7 +381,7 @@ export function SignalLatestView() {
             size="small"
             label="策略"
             value={selectedStrategyId}
-            onChange={(e) => setSelectedStrategyId(e.target.value)}
+            onChange={(event) => selectStrategy(event.target.value)}
             sx={{ minWidth: 180 }}
             disabled={loadingActivations}
           >
@@ -316,16 +396,16 @@ export function SignalLatestView() {
           <DatePicker
             label="交易日"
             value={tradeDate}
-            onChange={(d) => setTradeDate(d)}
+            onChange={selectTradeDate}
             shouldDisableDate={shouldDisableWeekend}
           />
 
           <ButtonGroup size="medium" variant="outlined">
-            <Button onClick={() => setTradeDate(lastTradingDayjs())}>今日</Button>
-            <Button onClick={() => setTradeDate(lastTradingDayjs(dayjs().subtract(1, 'day')))}>
+            <Button onClick={() => selectTradeDate(lastTradingDayjs())}>今日</Button>
+            <Button onClick={() => selectTradeDate(lastTradingDayjs(dayjs().subtract(1, 'day')))}>
               昨日
             </Button>
-            <Button onClick={() => setTradeDate(null)}>最近</Button>
+            <Button onClick={() => selectTradeDate(null)}>最近</Button>
           </ButtonGroup>
 
           <Tooltip title="刷新">
@@ -415,7 +495,7 @@ export function SignalLatestView() {
                     activation={a}
                     selected={a.strategyId === selectedStrategyId}
                     onClick={() => {
-                      if (a.isActive) setSelectedStrategyId(a.strategyId);
+                      if (a.isActive) selectStrategy(a.strategyId);
                       else router.push(`/strategy/${a.strategyId}`);
                     }}
                   />
@@ -440,7 +520,7 @@ export function SignalLatestView() {
                   activation={a}
                   selected={a.strategyId === selectedStrategyId}
                   onClick={() => {
-                    if (a.isActive) setSelectedStrategyId(a.strategyId);
+                    if (a.isActive) selectStrategy(a.strategyId);
                     else router.push(`/strategy/${a.strategyId}`);
                   }}
                 />

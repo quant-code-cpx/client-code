@@ -219,10 +219,3 @@ export function getStrategyPerformance(strategyId: string) {
 export function deleteStrategyWithCheck(id: string, force = false) {
   return apiClient.post<DeleteStrategyResponse>('/api/strategies/delete', { id, force });
 }
-
-export function checkStrategyName(name: string, excludeId?: string) {
-  return apiClient.post<{ available: boolean }>('/api/strategies/check-name', {
-    name,
-    ...(excludeId ? { excludeId } : {}),
-  });
-}

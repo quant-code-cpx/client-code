@@ -152,8 +152,7 @@ export function SyncPlanTab({ isReadOnly = false, refreshKey = 0 }: Props) {
     try {
       const data = await tushareSyncApi.getPlans();
       const manualPlans = data.filter((p) => p.supportsManual);
-      const shouldInitializeSelection =
-        !selectionInitializedRef.current && manualPlans.length > 0;
+      const shouldInitializeSelection = !selectionInitializedRef.current && manualPlans.length > 0;
       if (shouldInitializeSelection) selectionInitializedRef.current = true;
       setPlans(manualPlans);
       setSelected((previous) => {
@@ -296,7 +295,8 @@ export function SyncPlanTab({ isReadOnly = false, refreshKey = 0 }: Props) {
   };
 
   const handleConfirmFullSync = async () => {
-    if (!pendingSync || fullConfirmText !== '全量' || isSyncActionLocked || submittingRef.current) return;
+    if (!pendingSync || fullConfirmText !== '全量' || isSyncActionLocked || submittingRef.current)
+      return;
     const current = pendingSync;
     setPendingSync(null);
     setFullConfirmText('');
@@ -446,27 +446,20 @@ export function SyncPlanTab({ isReadOnly = false, refreshKey = 0 }: Props) {
                 if (v) setMode(v as TushareSyncMode);
               }}
             >
-              <ToggleButton value="incremental">
-                增量同步
-              </ToggleButton>
-              <ToggleButton value="full">
-                全量同步
-              </ToggleButton>
+              <ToggleButton value="incremental">增量同步</ToggleButton>
+              <ToggleButton value="full">全量同步</ToggleButton>
             </ToggleButtonGroup>
           </Stack>
 
-          <Stack
-            direction="row"
-            spacing={1}
-            alignItems="center"
-            sx={{ flexWrap: 'wrap' }}
-          >
+          <Stack direction="row" spacing={1} alignItems="center" sx={{ flexWrap: 'wrap' }}>
             <Tooltip title={isReadOnly ? READ_ONLY_TOOLTIP : '按基础数据分类触发增量同步'}>
               <span>
                 <Button
                   size="small"
                   variant="outlined"
-                  disabled={isReadOnly || basicTasks.length === 0 || isSyncActionLocked || plansLoading}
+                  disabled={
+                    isReadOnly || basicTasks.length === 0 || isSyncActionLocked || plansLoading
+                  }
                   onClick={() => requestSync('incremental', basicTasks)}
                 >
                   同步基础数据
@@ -479,7 +472,9 @@ export function SyncPlanTab({ isReadOnly = false, refreshKey = 0 }: Props) {
                   size="small"
                   color="warning"
                   variant="outlined"
-                  disabled={isReadOnly || failedTasks.length === 0 || isSyncActionLocked || summaryLoading}
+                  disabled={
+                    isReadOnly || failedTasks.length === 0 || isSyncActionLocked || summaryLoading
+                  }
                   onClick={() => requestSync('incremental', failedTasks)}
                 >
                   补最近失败
@@ -657,6 +652,7 @@ export function SyncPlanTab({ isReadOnly = false, refreshKey = 0 }: Props) {
                                 selected={isSelected}
                                 onClick={() => toggleTask(plan.task)}
                                 onKeyDown={(event) => {
+                                  if (event.target !== event.currentTarget) return;
                                   if (event.key === 'Enter' || event.key === ' ') {
                                     event.preventDefault();
                                     toggleTask(plan.task);
@@ -665,7 +661,15 @@ export function SyncPlanTab({ isReadOnly = false, refreshKey = 0 }: Props) {
                                 role="button"
                                 tabIndex={0}
                                 aria-label={`选择任务 ${plan.label}`}
-                                sx={{ cursor: 'pointer', opacity: dimmed ? 0.45 : 1 }}
+                                sx={{
+                                  cursor: 'pointer',
+                                  opacity: dimmed ? 0.45 : 1,
+                                  '&:focus-visible': {
+                                    outline: '2px solid',
+                                    outlineColor: 'primary.main',
+                                    outlineOffset: -2,
+                                  },
+                                }}
                               >
                                 <TableCell padding="checkbox">
                                   <Checkbox

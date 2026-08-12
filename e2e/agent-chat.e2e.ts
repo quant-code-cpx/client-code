@@ -1,9 +1,10 @@
 import type { Page } from '@playwright/test';
-import type { AgentSseEvent } from '../src/types/agent/generated';
 
 import { test, expect } from '@playwright/test';
 
 import { AGENT_EVENT_FIXTURES } from '../src/types/agent/generated';
+
+import type { AgentSseEvent } from '../src/types/agent/generated';
 
 const CONVERSATION_ID = 'cm_e2e_1';
 const RUN_ID = 'run_e2e_1';

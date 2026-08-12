@@ -70,7 +70,10 @@ export function EventAnalysisChart({ result }: Props) {
       opacity: 0.35,
       label: {
         text: `显著(${seg.direction === 'pos' ? '正' : '负'})`,
-        style: { color: theme.palette.warning.darker, fontSize: '11px' },
+        style: {
+          color: theme.palette.warning.darker,
+          fontSize: String(theme.typography.caption.fontSize),
+        },
       },
     })) ?? [];
 

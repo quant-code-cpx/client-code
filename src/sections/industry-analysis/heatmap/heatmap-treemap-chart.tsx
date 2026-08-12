@@ -42,8 +42,8 @@ function getStockDisplayName(item: HeatmapItem): string {
 }
 
 function formatLabel(pctChg: number | null): string {
-  const v = pctChg ?? 0;
-  return `${v >= 0 ? '+' : ''}${v.toFixed(1)}%`;
+  if (pctChg == null || !Number.isFinite(pctChg)) return '—';
+  return `${pctChg >= 0 ? '+' : ''}${pctChg.toFixed(1)}%`;
 }
 
 export function HeatmapTreemapChart({
@@ -146,10 +146,12 @@ export function HeatmapTreemapChart({
         const item = itemsRef.current.find((s) => getStockDisplayName(s) === point.x);
         if (!item) return `<div style="padding:8px"><b>${point.x}</b></div>`;
         const pnlColor =
-          (item.pctChg ?? 0) >= 0
-            ? theme.vars.palette.error.main
-            : theme.vars.palette.success.main;
-        const amtBillion = ((item.amount ?? 0) / 100000).toFixed(2);
+          item.pctChg == null
+            ? theme.vars.palette.text.secondary
+            : item.pctChg >= 0
+              ? theme.vars.palette.error.main
+              : theme.vars.palette.success.main;
+        const amtBillion = item.amount == null ? '—' : `${(item.amount / 100000).toFixed(2)} 亿`;
         const group = item.groupName ?? item.industry ?? '-';
         return `
           <div style="padding:10px 14px;font-size:13px;line-height:1.8">
@@ -157,7 +159,7 @@ export function HeatmapTreemapChart({
             <span style="color:${theme.vars.palette.text.secondary};font-size:12px"> ${item.tsCode}</span><br/>
             <span style="color:${theme.vars.palette.text.secondary}">分组：</span>${group}<br/>
             <span style="color:${pnlColor};font-weight:600">${formatLabel(item.pctChg)}</span><br/>
-            <span style="color:${theme.vars.palette.text.secondary}">成交额：</span>${amtBillion} 亿
+            <span style="color:${theme.vars.palette.text.secondary}">成交额：</span>${amtBillion}
           </div>`;
       },
     },
@@ -212,6 +214,9 @@ export function HeatmapTreemapChart({
                 label={`跌停 ${distribution.limitDown}`}
                 sx={{ bgcolor: 'success.dark', color: 'common.white', fontWeight: 700, fontSize: 12 }}
               />
+              {distribution.missingCount > 0 && (
+                <Chip size="small" label={`缺失 ${distribution.missingCount}`} variant="outlined" />
+              )}
             </Stack>
           )}
         </Stack>

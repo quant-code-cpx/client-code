@@ -1,5 +1,6 @@
 import type { IndexDailyItem } from 'src/api/index-detail';
 
+import dayjs from 'dayjs';
 import { useState, useEffect } from 'react';
 import { varAlpha } from 'minimal-shared/utils';
 
@@ -31,9 +32,7 @@ const PERIOD_OPTIONS = [
 
 /** Convert calendar days back to YYYYMMDD start_date */
 function daysAgoStr(days: number): string {
-  const d = new Date();
-  d.setDate(d.getDate() - days);
-  return d.toISOString().slice(0, 10).replace(/-/g, '');
+  return dayjs().subtract(days, 'day').format('YYYYMMDD');
 }
 
 // ----------------------------------------------------------------------

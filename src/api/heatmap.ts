@@ -42,7 +42,8 @@ export type HeatmapSnapshotTriggerResult = {
 /** 行业聚合摘要（由 aggregateSectors 从 HeatmapItem[] 计算） */
 export type HeatmapSectorSummary = {
   groupName: string;
-  avgPctChg: number;
+  /** 仅按具有有效涨跌幅的股票计算；整组缺失时为 null */
+  avgPctChg: number | null;
   stockCount: number;
   upCount: number;
   downCount: number;
@@ -58,6 +59,8 @@ export type HeatmapDistribution = {
   upCount: number;
   downCount: number;
   flatCount: number;
+  /** 涨跌幅为 null 或非有限值，未计入平盘与区间桶 */
+  missingCount: number;
   ranges: Array<{ range: string; count: number }>;
 };
 

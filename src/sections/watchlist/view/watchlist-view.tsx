@@ -7,7 +7,7 @@ import type {
   WatchlistOverviewResponse,
 } from 'src/api/watchlist';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Alert from '@mui/material/Alert';
@@ -68,6 +68,7 @@ export function WatchlistView() {
   const [watchlists, setWatchlists] = useState<WatchlistOverviewItem[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [stocks, setStocks] = useState<WatchlistStock[]>([]);
+  const [stocksWatchlistId, setStocksWatchlistId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [stocksLoading, setStocksLoading] = useState(false);
   const [summaryLoading, setSummaryLoading] = useState(false);
@@ -81,6 +82,9 @@ export function WatchlistView() {
   const [deleteSubmitting, setDeleteSubmitting] = useState(false);
 
   const [feedback, setFeedback] = useState<FeedbackState>(INITIAL_FEEDBACK);
+  const overviewRequestIdRef = useRef(0);
+  const summaryRequestIdRef = useRef(0);
+  const stocksRequestIdRef = useRef(0);
 
   const notify = useCallback((severity: AlertColor, message: string) => {
     setFeedback({ open: true, severity, message });
@@ -91,8 +95,13 @@ export function WatchlistView() {
   }, []);
 
   const enrichSummariesIfNeeded = useCallback(async (items: WatchlistOverviewItem[]) => {
+    const requestId = summaryRequestIdRef.current + 1;
+    summaryRequestIdRef.current = requestId;
     const missing = items.filter((w) => !w.summary);
-    if (missing.length === 0) return;
+    if (missing.length === 0) {
+      setSummaryLoading(false);
+      return;
+    }
     setSummaryLoading(true);
     try {
       const results = await Promise.allSettled(
@@ -102,21 +111,24 @@ export function WatchlistView() {
       results.forEach((r) => {
         if (r.status === 'fulfilled') map.set(r.value.id, r.value.summary);
       });
-      if (map.size > 0) {
+      if (summaryRequestIdRef.current === requestId && map.size > 0) {
         setWatchlists((prev) =>
           prev.map((w) => (map.has(w.id) ? { ...w, summary: map.get(w.id)! } : w))
         );
       }
     } finally {
-      setSummaryLoading(false);
+      if (summaryRequestIdRef.current === requestId) setSummaryLoading(false);
     }
   }, []);
 
   const loadOverview = useCallback(async () => {
+    const requestId = overviewRequestIdRef.current + 1;
+    overviewRequestIdRef.current = requestId;
     setLoading(true);
     setError('');
     try {
       const raw = await getWatchlistOverview();
+      if (overviewRequestIdRef.current !== requestId) return;
       const data = normalizeOverview(raw);
       setWatchlists(data);
       setSelectedId((prev) => {
@@ -128,23 +140,30 @@ export function WatchlistView() {
       // 若 overview 未返回 summary，前端并发 summary 接口降级填充
       void enrichSummariesIfNeeded(data);
     } catch (err) {
+      if (overviewRequestIdRef.current !== requestId) return;
       setError(err instanceof Error ? err.message : '获取自选组失败');
     } finally {
-      setLoading(false);
+      if (overviewRequestIdRef.current === requestId) setLoading(false);
     }
   }, [enrichSummariesIfNeeded]);
 
   const loadStocks = useCallback(
     async (watchlistId: number) => {
+      const requestId = stocksRequestIdRef.current + 1;
+      stocksRequestIdRef.current = requestId;
       setStocksLoading(true);
       try {
         const data = await getWatchlistStocks(watchlistId);
+        if (stocksRequestIdRef.current !== requestId) return;
         setStocks(data.stocks);
+        setStocksWatchlistId(watchlistId);
       } catch (err) {
+        if (stocksRequestIdRef.current !== requestId) return;
         setStocks([]);
+        setStocksWatchlistId(watchlistId);
         notify('error', err instanceof Error ? err.message : '加载股票失败');
       } finally {
-        setStocksLoading(false);
+        if (stocksRequestIdRef.current === requestId) setStocksLoading(false);
       }
     },
     [notify]
@@ -157,20 +176,46 @@ export function WatchlistView() {
 
   useEffect(() => {
     if (selectedId !== null) {
+      setStocks([]);
       void loadStocks(selectedId);
     } else {
+      stocksRequestIdRef.current += 1;
       setStocks([]);
+      setStocksWatchlistId(null);
+      setStocksLoading(false);
     }
     // 切组重置 status filter
     setStatusFilter('all');
   }, [selectedId, loadStocks]);
 
+  useEffect(
+    () => () => {
+      overviewRequestIdRef.current += 1;
+      summaryRequestIdRef.current += 1;
+      stocksRequestIdRef.current += 1;
+    },
+    []
+  );
+
+  const selectWatchlist = useCallback(
+    (watchlistId: number) => {
+      if (watchlistId === selectedId) return;
+      stocksRequestIdRef.current += 1;
+      setStocksLoading(true);
+      setSelectedId(watchlistId);
+    },
+    [selectedId]
+  );
+
   const selectedWatchlist = watchlists.find((w) => w.id === selectedId) ?? null;
+  const selectedStocks = stocksWatchlistId === selectedId ? stocks : [];
+  const selectedStocksLoading =
+    selectedId !== null && (stocksWatchlistId !== selectedId || stocksLoading);
 
   const handleCreateSuccess = (watchlist: Watchlist) => {
     const newItem: WatchlistOverviewItem = { ...watchlist, summary: null };
     setWatchlists((prev) => [...prev, newItem]);
-    setSelectedId(watchlist.id);
+    selectWatchlist(watchlist.id);
     notify('success', `已创建自选组「${watchlist.name}」`);
   };
 
@@ -191,6 +236,7 @@ export function WatchlistView() {
       const removedId = deleteTarget.id;
       setWatchlists((prev) => prev.filter((w) => w.id !== removedId));
       if (selectedId === removedId) {
+        stocksRequestIdRef.current += 1;
         setSelectedId(null);
       }
       notify('success', `已删除自选组「${deleteTarget.name}」`);
@@ -248,15 +294,22 @@ export function WatchlistView() {
     if (selectedId !== null) {
       void loadStocks(selectedId);
       // 同步刷新当前组 summary
+      const summaryRequestId = summaryRequestIdRef.current + 1;
+      summaryRequestIdRef.current = summaryRequestId;
+      setSummaryLoading(true);
       void getWatchlistSummary(selectedId)
         .then((summary) => {
+          if (summaryRequestIdRef.current !== summaryRequestId) return;
           setWatchlists((prev) =>
             prev.map((w) =>
               w.id === selectedId ? { ...w, summary, _count: { stocks: summary.stockCount } } : w
             )
           );
         })
-        .catch(() => undefined);
+        .catch(() => undefined)
+        .finally(() => {
+          if (summaryRequestIdRef.current === summaryRequestId) setSummaryLoading(false);
+        });
     }
     notify('success', '股票已加入自选组');
   };
@@ -290,7 +343,7 @@ export function WatchlistView() {
         <WatchlistHealthBar
           watchlists={watchlists}
           selectedWatchlist={selectedWatchlist}
-          stocks={stocks}
+          stocks={selectedStocks}
           groupLimit={watchlistLimit}
           onClickTargetHit={() => setStatusFilter('hit')}
           onClickQuoteMissing={() => setStatusFilter('missing')}
@@ -316,7 +369,7 @@ export function WatchlistView() {
               watchlists={watchlists}
               selectedId={selectedId}
               summaryLoading={summaryLoading}
-              onSelect={setSelectedId}
+              onSelect={selectWatchlist}
               onEdit={(wl) => setEditDialogWatchlist(wl)}
               onDelete={handleRequestDelete}
               onCreate={() => setCreateDialogOpen(true)}
@@ -347,8 +400,8 @@ export function WatchlistView() {
       {selectedWatchlist && (
         <WatchlistDetailPanel
           watchlist={selectedWatchlist}
-          stocks={stocks}
-          stocksLoading={stocksLoading}
+          stocks={selectedStocks}
+          stocksLoading={selectedStocksLoading}
           statusFilter={statusFilter}
           onStatusFilterChange={setStatusFilter}
           onAddStock={() => setAddStockDialogOpen(true)}
