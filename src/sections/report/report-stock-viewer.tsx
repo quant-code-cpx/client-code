@@ -16,6 +16,7 @@ import CardContent from '@mui/material/CardContent';
 import TableContainer from '@mui/material/TableContainer';
 
 import { fNumber } from 'src/utils/format-number';
+import { fmtTradeDate } from 'src/utils/format-time';
 
 import { Scrollbar } from 'src/components/scrollbar';
 import { Chart, useChart } from 'src/components/chart';
@@ -226,7 +227,9 @@ function DividendsTable({ dividends }: DividendsTableProps) {
               {dividends.map((d, idx) => (
                 <TableRow key={idx} hover>
                   <TableCell>
-                    <Typography variant="caption">{d.endDate ?? '-'}</Typography>
+                    <Typography variant="caption">
+                      {d.endDate ? fmtTradeDate(d.endDate) : '-'}
+                    </Typography>
                   </TableCell>
                   <TableCell>
                     <Typography variant="caption">{d.divProc ?? '-'}</Typography>

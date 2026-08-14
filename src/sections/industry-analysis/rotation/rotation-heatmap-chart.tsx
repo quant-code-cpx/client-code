@@ -10,6 +10,7 @@ import CardContent from '@mui/material/CardContent';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
+import { yuanToYi } from 'src/utils/format-number';
 import { periodToDays } from 'src/utils/format-time';
 
 import {
@@ -28,7 +29,7 @@ type HeatmapChartPoint = {
   sector: RotationHeatmapSector;
   x: string;
   y: number;
-  netYuan: number;
+  netInflowYuan: number | null;
 };
 
 type Props = {
@@ -42,7 +43,7 @@ export function RotationHeatmapChart({ tradeDate, period, onSectorClick, refresh
   const theme = useTheme();
   const [colorMode, setColorMode] = useState<ColorMode>('pctChange');
   const [sectors, setSectors] = useState<RotationHeatmapSector[]>([]);
-  // Map<sectorName, netAmount in yuan (元)> — populated from flow-analysis endpoint
+  // Map<sectorName, net inflow in 元> — populated from flow-analysis endpoint.
   const [flowMap, setFlowMap] = useState<Map<string, number>>(new Map());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -90,7 +91,7 @@ export function RotationHeatmapChart({ tradeDate, period, onSectorClick, refresh
         if (!cancelled) {
           const map = new Map<string, number>();
           for (const f of res?.flows ?? []) {
-            map.set(f.name, f.netInflow); // netInflow is in yuan (元)
+            map.set(f.name, f.netInflowYuan);
           }
           setFlowMap(map);
         }
@@ -114,28 +115,23 @@ export function RotationHeatmapChart({ tradeDate, period, onSectorClick, refresh
   );
 
   const chartData: HeatmapChartPoint[] = sectors
-    .map((sector): HeatmapChartPoint => {
-      const netYuan = flowMap.get(sector.name) ?? sector.netAmount ?? 0;
+    .flatMap((sector): HeatmapChartPoint[] => {
+      const netInflowYuan = flowMap.get(sector.name) ?? null;
+      const rawValue = colorMode === 'pctChange' ? sector.pctChange : netInflowYuan;
+      if (!Number.isFinite(rawValue)) return [];
 
-      if (colorMode === 'pctChange') {
-        return {
-          sector,
-          x: sector.name,
-          y: Math.round(sector.pctChange * 100) / 100,
-          netYuan,
-        };
-      }
+      const y =
+        colorMode === 'pctChange'
+          ? Math.round((rawValue as number) * 100) / 100
+          : Math.round(yuanToYi(rawValue as number) * 100) / 100;
 
-      return {
-        sector,
-        x: sector.name,
-        y: Math.round((netYuan / 1e8) * 100) / 100,
-        netYuan,
-      };
+      return [{ sector, x: sector.name, y, netInflowYuan }];
     })
     .sort((a, b) => b.y - a.y);
 
-  const series = [{ data: chartData.map(({ x, y, netYuan }) => ({ x, y, netYuan })) }];
+  const series = [
+    { data: chartData.map(({ x, y, netInflowYuan }) => ({ x, y, netInflowYuan })) },
+  ];
 
   // A-share convention: 红涨绿跌 (red = gain/inflow, green = drop/outflow)
   const pctRanges = [
@@ -204,15 +200,32 @@ export function RotationHeatmapChart({ tradeDate, period, onSectorClick, refresh
         const item = chartData[dataPointIndex];
         const sector = item?.sector;
         if (!sector) return '';
-        const netYuan = item.netYuan;
-        const netYi = (netYuan / 1e8).toFixed(2);
-        const pctSign = sector.pctChange > 0 ? '+' : '';
-        const flowSign = netYuan > 0 ? '+' : '';
+        const netInflowYuan = item.netInflowYuan;
+        const pctText =
+          sector.pctChange == null
+            ? '—'
+            : `${sector.pctChange > 0 ? '+' : ''}${sector.pctChange.toFixed(2)}%`;
+        const netText =
+          netInflowYuan == null
+            ? '—'
+            : `${netInflowYuan > 0 ? '+' : ''}${yuanToYi(netInflowYuan).toFixed(2)} 亿`;
+        const pctColor =
+          sector.pctChange == null
+            ? theme.palette.text.secondary
+            : sector.pctChange >= 0
+              ? theme.palette.error.main
+              : theme.palette.success.dark;
+        const flowColor =
+          netInflowYuan == null
+            ? theme.palette.text.secondary
+            : netInflowYuan >= 0
+              ? theme.palette.error.main
+              : theme.palette.success.dark;
         return [
           '<div style="padding:8px 12px;font-size:13px;">',
           `<b>${sector.name}</b><br/>`,
-          `涨跌幅：<span style="color:${sector.pctChange >= 0 ? theme.palette.error.main : theme.palette.success.dark}">${pctSign}${sector.pctChange.toFixed(2)}%</span><br/>`,
-          `区间净流入：<span style="color:${netYuan >= 0 ? theme.palette.error.main : theme.palette.success.dark}">${flowSign}${netYi} 亿</span>`,
+          `涨跌幅：<span style="color:${pctColor}">${pctText}</span><br/>`,
+          `区间净流入：<span style="color:${flowColor}">${netText}</span>`,
           '</div>',
         ].join('');
       },
@@ -250,11 +263,11 @@ export function RotationHeatmapChart({ tradeDate, period, onSectorClick, refresh
 
         {loading ? (
           <Skeleton variant="rectangular" height={480} />
-        ) : sectors.length === 0 ? (
+        ) : chartData.length === 0 ? (
           <Box
             sx={{ height: 480, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
           >
-            <Typography color="text.disabled">暂无数据</Typography>
+            <Typography color="text.disabled">暂无有效数据</Typography>
           </Box>
         ) : (
           <Chart type="treemap" series={series} options={chartOptions} sx={{ height: 480 }} />

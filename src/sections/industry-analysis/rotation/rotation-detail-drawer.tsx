@@ -30,6 +30,11 @@ import { Iconify } from 'src/components/iconify';
 import { Scrollbar } from 'src/components/scrollbar';
 import { Chart, useChart } from 'src/components/chart';
 
+import {
+  RotationFlowTrendChart,
+  RotationReturnTrendChart,
+} from './rotation-detail-trend-charts';
+
 // ----------------------------------------------------------------------
 
 function yuanToYi(value: number | null | undefined): number | null {
@@ -41,11 +46,11 @@ function wanToYi(value: number | null | undefined): number | null {
 }
 
 function formatYi(value: number | null): string {
-  return value == null ? '--' : `${value} 亿`;
+  return value == null ? '—' : `${value} 亿`;
 }
 
 function formatNumber(value: number | null): string {
-  return value == null ? '--' : value.toFixed(2);
+  return value == null ? '—' : value.toFixed(2);
 }
 
 function percentileLabel(
@@ -68,119 +73,6 @@ type Props = {
   tsCode?: string;
   period?: string;
 };
-
-// Sub-component: return trend mini chart
-const ReturnTrendChart = memo(function ReturnTrendChartComponent({
-  data,
-}: {
-  data: RotationDetailResult['returnTrend'];
-}) {
-  const categories = data.map((d) => fmtDate(d.tradeDate));
-  const sectorSeries = data.map((d) => d.cumReturn);
-  const benchmarkSeries = data.map((d) => d.benchmarkReturn);
-  const hasBenchmark = benchmarkSeries.some((value) => value != null);
-
-  const chartOptions = useChart({
-    chart: { type: 'line', toolbar: { show: false }, zoom: { enabled: false } },
-    stroke: { curve: 'smooth', width: [2, 2], dashArray: [0, 4] },
-    xaxis: { categories, labels: { rotate: -30, style: { fontSize: '12px' } } },
-    yaxis: { labels: { formatter: (v: number) => `${v.toFixed(2)}%` } },
-    tooltip: {
-      shared: true,
-      intersect: false,
-      y: { formatter: (v: number) => `${v.toFixed(2)}%` },
-    },
-    legend: { position: 'top', fontSize: '12px' },
-  });
-
-  const series = [
-    { name: '行业', data: sectorSeries },
-    ...(hasBenchmark ? [{ name: '沪深300', data: benchmarkSeries }] : []),
-  ];
-
-  if (data.length === 0) {
-    return (
-      <Box sx={{ height: 240, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <Typography color="text.disabled">暂无数据</Typography>
-      </Box>
-    );
-  }
-
-  return (
-    <>
-      {!hasBenchmark && (
-        <Alert severity="info" sx={{ mb: 1.5 }}>
-          后端暂未提供沪深300基准收益，当前仅展示行业收益。
-        </Alert>
-      )}
-      <Chart type="line" series={series} options={chartOptions} sx={{ height: 240 }} />
-    </>
-  );
-});
-
-// Sub-component: flow trend chart
-const FlowTrendChart = memo(function FlowTrendChartComponent({
-  data,
-}: {
-  data: RotationDetailResult['flowTrend'];
-}) {
-  const theme = useTheme();
-  const categories = data.map((d) => fmtDate(d.tradeDate));
-  const dailyNet = data.map((d) => yuanToYi(d.netInflow) ?? 0);
-  const cumulative = data.map((d) => yuanToYi(d.cumulativeInflow) ?? 0);
-
-  const chartOptions = useChart({
-    chart: { type: 'line', stacked: false, toolbar: { show: false } },
-    stroke: { width: [0, 2], curve: 'smooth' },
-    plotOptions: {
-      bar: {
-        columnWidth: '70%',
-        borderRadius: 2,
-        colors: {
-          ranges: [
-            { from: -1e9, to: 0, color: theme.palette.success.main },
-            { from: 0, to: 1e9, color: theme.palette.error.main },
-          ],
-        },
-      },
-    },
-    xaxis: { categories, labels: { rotate: -30, style: { fontSize: '12px' } } },
-    yaxis: [
-      {
-        title: { text: '每日净流入(亿)' },
-        labels: { formatter: (v: number) => `${v.toFixed(1)}亿` },
-      },
-      {
-        opposite: true,
-        title: { text: '累计净流入(亿)' },
-        labels: { formatter: (v: number) => `${v.toFixed(1)}亿` },
-      },
-    ],
-    tooltip: {
-      shared: true,
-      intersect: false,
-      y: { formatter: (v: number) => `${v.toFixed(2)}亿` },
-    },
-    legend: { position: 'top', fontSize: '12px' },
-  });
-
-  const series = [
-    { name: '每日净流入', type: 'column', data: dailyNet },
-    { name: '累计净流入', type: 'line', data: cumulative },
-  ];
-
-  if (data.length === 0) {
-    return (
-      <Box sx={{ height: 240, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <Typography color="text.disabled">暂无数据</Typography>
-      </Box>
-    );
-  }
-
-  return <Chart type="line" series={series} options={chartOptions} sx={{ height: 240 }} />;
-});
-
-// ----------------------------------------------------------------------
 
 // Sub-component: sector price trend from the existing detail endpoint.
 const SectorKlineChart = memo(function SectorKlineChartComponent({
@@ -301,14 +193,16 @@ export function RotationDetailDrawer({ open, onClose, sectorName, tsCode, period
     [router]
   );
 
-  const pctSign = detail && detail.pctChange > 0 ? '+' : '';
-  const pctColor = detail
-    ? detail.pctChange > 0
+  const pctChange = detail?.pctChange ?? null;
+  const pctSign = pctChange != null && pctChange > 0 ? '+' : '';
+  const pctColor =
+    pctChange == null
+      ? theme.palette.text.secondary
+      : pctChange > 0
       ? theme.palette.error.main
-      : detail.pctChange < 0
+      : pctChange < 0
         ? theme.palette.success.main
-        : theme.palette.text.secondary
-    : undefined;
+        : theme.palette.text.secondary;
 
   const peInfo = detail ? percentileLabel(detail.pePercentile) : null;
   const pbInfo = detail ? percentileLabel(detail.pbPercentile) : null;
@@ -317,18 +211,27 @@ export function RotationDetailDrawer({ open, onClose, sectorName, tsCode, period
 
   const metrics = detail
     ? [
-        { label: '涨跌幅', value: `${pctSign}${detail.pctChange.toFixed(2)}%`, color: pctColor },
+        {
+          label: '涨跌幅',
+          value: pctChange == null ? '—' : `${pctSign}${pctChange.toFixed(2)}%`,
+          color: pctColor,
+        },
         { label: '最新点位', value: formatNumber(latestReturnPoint?.close ?? null) },
         {
           label: '净流入',
           value: formatYi(yuanToYi(detail.netAmount)),
-          color: detail.netAmount >= 0 ? theme.palette.error.main : theme.palette.success.main,
+          color:
+            detail.netAmount == null
+              ? theme.palette.text.secondary
+              : detail.netAmount >= 0
+                ? theme.palette.error.main
+                : theme.palette.success.main,
         },
         {
           label: '区间收益',
           value:
             periodReturn == null
-              ? '--'
+              ? '—'
               : `${periodReturn > 0 ? '+' : ''}${periodReturn.toFixed(2)}%`,
           color:
             periodReturn == null
@@ -341,12 +244,12 @@ export function RotationDetailDrawer({ open, onClose, sectorName, tsCode, period
         },
         {
           label: 'PE分位',
-          value: detail.pePercentile == null ? '--' : `${detail.pePercentile.toFixed(1)}%`,
+          value: detail.pePercentile == null ? '—' : `${detail.pePercentile.toFixed(1)}%`,
           chip: peInfo,
         },
         {
           label: 'PB分位',
-          value: detail.pbPercentile == null ? '--' : `${detail.pbPercentile.toFixed(1)}%`,
+          value: detail.pbPercentile == null ? '—' : `${detail.pbPercentile.toFixed(1)}%`,
           chip: pbInfo,
         },
       ]
@@ -375,7 +278,7 @@ export function RotationDetailDrawer({ open, onClose, sectorName, tsCode, period
           {detail && (
             <Typography variant="h6" sx={{ color: pctColor, fontWeight: 600 }}>
               {pctSign}
-              {detail.pctChange.toFixed(2)}%
+              {pctChange == null ? '—' : `${pctChange.toFixed(2)}%`}
             </Typography>
           )}
         </Box>
@@ -443,8 +346,12 @@ export function RotationDetailDrawer({ open, onClose, sectorName, tsCode, period
             <Skeleton variant="rectangular" height={240} />
           ) : (
             <>
-              {activeTab === 'return' && detail && <ReturnTrendChart data={detail.returnTrend} />}
-              {activeTab === 'flow' && detail && <FlowTrendChart data={detail.flowTrend} />}
+              {activeTab === 'return' && detail && (
+                <RotationReturnTrendChart data={detail.returnTrend} />
+              )}
+              {activeTab === 'flow' && detail && (
+                <RotationFlowTrendChart data={detail.flowTrend} />
+              )}
               {activeTab === 'kline' && detail && (
                 <SectorKlineChart
                   sectorName={detail.sectorName || sectorName || '行业'}
@@ -512,7 +419,7 @@ export function RotationDetailDrawer({ open, onClose, sectorName, tsCode, period
                             <TableCell align="right">
                               <Typography variant="body2" sx={{ color: pctColor2 }}>
                                 {(s.pctChg ?? 0) > 0 ? '+' : ''}
-                                {s.pctChg == null ? '--' : `${s.pctChg.toFixed(2)}%`}
+                                {s.pctChg == null ? '—' : `${s.pctChg.toFixed(2)}%`}
                               </Typography>
                             </TableCell>
                             <TableCell align="right">

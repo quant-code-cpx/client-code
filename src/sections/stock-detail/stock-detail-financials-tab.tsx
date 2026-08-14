@@ -10,6 +10,7 @@ import Chip from '@mui/material/Chip';
 import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import Table from '@mui/material/Table';
+import Button from '@mui/material/Button';
 import Skeleton from '@mui/material/Skeleton';
 import TableRow from '@mui/material/TableRow';
 import TableBody from '@mui/material/TableBody';
@@ -287,7 +288,15 @@ export function StockDetailFinancialsTab({ tsCode }: Props) {
 
   if (error) {
     return (
-      <Alert severity="error" sx={{ mt: 2 }}>
+      <Alert
+        severity="error"
+        action={
+          <Button color="inherit" size="small" onClick={() => void fetchAll()}>
+            重试
+          </Button>
+        }
+        sx={{ mt: 2 }}
+      >
         {error}
       </Alert>
     );

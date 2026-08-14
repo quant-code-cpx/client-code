@@ -5,6 +5,8 @@ import { useMemo } from 'react';
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 
+import { fmtTradeDate } from 'src/utils/format-time';
+
 import { Chart, useChart } from 'src/components/chart';
 
 // ----------------------------------------------------------------------
@@ -16,7 +18,7 @@ type Props = {
 export function WalkForwardEquityChart({ points }: Props) {
   const { categories, navData, hasBenchmark, benchmarkData } = useMemo(
     () => ({
-      categories: points.map((point) => point.tradeDate),
+      categories: points.map((point) => fmtTradeDate(point.tradeDate)),
       navData: points.map((point) => Number(point.nav.toFixed(4))),
       hasBenchmark: points.some(
         (point) => point.benchmarkNav !== null && point.benchmarkNav !== undefined

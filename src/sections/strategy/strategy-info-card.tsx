@@ -5,7 +5,6 @@ import { useState } from 'react';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Chip from '@mui/material/Chip';
-import Switch from '@mui/material/Switch';
 import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
 import Skeleton from '@mui/material/Skeleton';
@@ -13,7 +12,6 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 import Autocomplete from '@mui/material/Autocomplete';
-import FormControlLabel from '@mui/material/FormControlLabel';
 
 import { fDateTime } from 'src/utils/format-time';
 
@@ -37,13 +35,11 @@ export function StrategyInfoCard({ strategy, onUpdate }: StrategyInfoCardProps) 
   const [name, setName] = useState(strategy.name);
   const [description, setDescription] = useState(strategy.description ?? '');
   const [tags, setTags] = useState<string[]>(strategy.tags);
-  const [isPublic, setIsPublic] = useState(strategy.isPublic);
 
   const handleEdit = () => {
     setName(strategy.name);
     setDescription(strategy.description ?? '');
     setTags(strategy.tags);
-    setIsPublic(strategy.isPublic);
     setError('');
     setEditing(true);
   };
@@ -66,7 +62,7 @@ export function StrategyInfoCard({ strategy, onUpdate }: StrategyInfoCardProps) 
         description: description.trim() || undefined,
         tags,
       });
-      onUpdate({ ...updated, isPublic });
+      onUpdate(updated);
       setEditing(false);
       setError('');
     } catch (err: unknown) {
@@ -134,13 +130,6 @@ export function StrategyInfoCard({ strategy, onUpdate }: StrategyInfoCardProps) 
                 />
               )}
             />
-            <FormControlLabel
-              control={
-                <Switch checked={isPublic} onChange={(e) => setIsPublic(e.target.checked)} />
-              }
-              label="公开策略"
-            />
-
             <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
               <Button variant="text" color="inherit" onClick={handleCancel} disabled={saving}>
                 取消

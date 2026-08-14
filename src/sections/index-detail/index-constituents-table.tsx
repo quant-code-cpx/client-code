@@ -22,6 +22,7 @@ import TablePagination from '@mui/material/TablePagination';
 
 import { RouterLink } from 'src/routes/components';
 
+import { fmtTradeDate } from 'src/utils/format-time';
 import { fPctChg, fWanYuan } from 'src/utils/format-number';
 
 import { fetchIndexConstituents } from 'src/api/index-detail';
@@ -165,7 +166,7 @@ export function IndexConstituentsTable({ tsCode, onDataLoaded }: Props) {
                 variant="caption"
                 sx={{ color: 'text.secondary', ml: 1 }}
               >
-                共 {result.totalCount} 只 · {result.tradeDate}
+                共 {result.totalCount} 只 · {fmtTradeDate(result.tradeDate)}
               </Typography>
             )}
           </Typography>

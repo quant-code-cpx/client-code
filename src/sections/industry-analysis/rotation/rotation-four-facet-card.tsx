@@ -16,6 +16,7 @@ import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import TableContainer from '@mui/material/TableContainer';
 
+import { yuanToYi } from 'src/utils/format-number';
 import { periodToDays } from 'src/utils/format-time';
 
 import {
@@ -106,14 +107,16 @@ export function RotationFourFacetCard({ tradeDate, period, onSectorClick, refres
 
   const pctColor = (v: number) => (v >= 0 ? 'error.main' : 'success.main');
   const fmtPct = (v: number) => `${v >= 0 ? '+' : ''}${v.toFixed(2)}%`;
-  const fmtYi = (v: number) => `${v >= 0 ? '+' : ''}${(v / 100000000).toFixed(2)}亿`;
+  const fmtYi = (v: number) => `${v >= 0 ? '+' : ''}${yuanToYi(v).toFixed(2)}亿`;
 
   const topMomentum = [...momentum].sort((a, b) => b.momentum - a.momentum).slice(0, 10);
   const topReturns = returns
     .filter((item): item is { name: string; cumReturn: number } => item.cumReturn != null)
     .sort((a, b) => b.cumReturn - a.cumReturn)
     .slice(0, 10);
-  const topFlows = [...flows].sort((a, b) => b.netInflow - a.netInflow).slice(0, 10);
+  const topFlows = [...flows]
+    .sort((a, b) => b.netInflowYuan - a.netInflowYuan)
+    .slice(0, 10);
   const topValuation = valuation
     .filter(
       (item): item is SectorValuationItem & { pePercentile: number } => item.pePercentile != null
@@ -181,8 +184,8 @@ export function RotationFourFacetCard({ tradeDate, period, onSectorClick, refres
               <MiniRow
                 key={item.name}
                 name={item.name}
-                value={fmtYi(item.netInflow)}
-                color={item.netInflow >= 0 ? 'error.main' : 'success.main'}
+                value={fmtYi(item.netInflowYuan)}
+                color={item.netInflowYuan >= 0 ? 'error.main' : 'success.main'}
                 onClick={onSectorClick ? () => onSectorClick(item.name) : undefined}
               />
             ))}

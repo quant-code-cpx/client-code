@@ -34,6 +34,7 @@
     "test:agent-contracts": "vitest run src/types/agent/__tests__/agent-contracts.test.ts",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
+    "test:coverage:changed": "node scripts/check-changed-coverage.mjs",
     "test:ui": "vitest --ui",
     "check:buttons": "node scripts/check-button-rules.mjs",
     "e2e": "playwright test",

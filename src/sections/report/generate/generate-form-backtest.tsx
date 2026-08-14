@@ -3,12 +3,14 @@ import type { BacktestRunListItem } from 'src/api/backtest';
 import { useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
+import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
+import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import Autocomplete from '@mui/material/Autocomplete';
 
-import { fDate } from 'src/utils/format-time';
+import { fDate, fmtTradeDate } from 'src/utils/format-time';
 
 import { listRuns } from 'src/api/backtest';
 
@@ -22,17 +24,20 @@ type Props = GenerateFormProps<GenerateBacktestParams> & {
 export function GenerateFormBacktest({ value, onChange, onValidChange, compact = false }: Props) {
   const [items, setItems] = useState<BacktestRunListItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const [keyword, setKeyword] = useState('');
   const [selected, setSelected] = useState<BacktestRunListItem | null>(null);
   const [manualMode, setManualMode] = useState(false);
 
   const fetchList = useCallback(async (kw: string) => {
     setLoading(true);
+    setError('');
     try {
       const res = await listRuns({ pageSize: 30, keyword: kw || undefined });
       setItems(res.items ?? []);
-    } catch {
+    } catch (err) {
       setItems([]);
+      setError(err instanceof Error ? err.message : '加载回测运行失败');
     } finally {
       setLoading(false);
     }
@@ -58,6 +63,18 @@ export function GenerateFormBacktest({ value, onChange, onValidChange, compact =
 
   return (
     <Stack spacing={1.5}>
+      {error && (
+        <Alert
+          severity="error"
+          action={
+            <Button size="small" onClick={() => fetchList(keyword)} disabled={loading}>
+              重试
+            </Button>
+          }
+        >
+          {error}
+        </Alert>
+      )}
       {!manualMode ? (
         <Autocomplete
           size="small"
@@ -65,7 +82,7 @@ export function GenerateFormBacktest({ value, onChange, onValidChange, compact =
           options={items}
           value={selected}
           getOptionLabel={(o) =>
-            `${o.name ?? o.strategyType} · ${o.startDate}~${o.endDate} · ${o.runId.slice(-6)}`
+            `${o.name ?? o.strategyType} · ${fmtTradeDate(o.startDate)}~${fmtTradeDate(o.endDate)} · ${o.runId.slice(-6)}`
           }
           onChange={(_, opt) => {
             setSelected(opt);
@@ -82,7 +99,8 @@ export function GenerateFormBacktest({ value, onChange, onValidChange, compact =
                   {option.name ?? option.strategyType}
                 </Typography>
                 <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                  {option.startDate} ~ {option.endDate} · {fDate(option.createdAt)} ·{' '}
+                  {fmtTradeDate(option.startDate)} ~ {fmtTradeDate(option.endDate)} ·{' '}
+                  {fDate(option.createdAt)} ·{' '}
                   {option.runId.slice(-6)}
                 </Typography>
               </Box>
@@ -96,7 +114,7 @@ export function GenerateFormBacktest({ value, onChange, onValidChange, compact =
               required
             />
           )}
-          noOptionsText={keyword ? '无匹配回测' : '尚无回测记录'}
+          noOptionsText={error ? '回测运行加载失败' : keyword ? '无匹配回测' : '尚无回测记录'}
         />
       ) : (
         <TextField

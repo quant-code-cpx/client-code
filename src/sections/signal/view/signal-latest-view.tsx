@@ -1,6 +1,5 @@
 import type { Dayjs } from 'dayjs';
 import type {
-  TradingSignalItem,
   SignalDiffFromPrev,
   LatestSignalResponse,
   SignalActivationItem,
@@ -36,79 +35,17 @@ import { SignalEmptyState } from '../signal-empty-state';
 import { SignalDetailPanel } from '../signal-detail-panel';
 import { SignalDiffSection } from '../signal-diff-section';
 import { SignalStatusBanner } from '../signal-status-banner';
+import { SignalLatestActions } from '../signal-latest-actions';
 import { SignalLatestSummary } from '../signal-latest-summary';
 import { SignalActivationCard } from '../signal-activation-card';
-
-// ----------------------------------------------------------------------
-
-const DATE_FMT = 'YYYYMMDD';
-
-function dayjsToTradeDate(d: Dayjs | null): string {
-  return d ? d.format(DATE_FMT) : '';
-}
-
-function tradeDateToDayjs(s: string): Dayjs | null {
-  if (!s) return null;
-  const d = dayjs(s, DATE_FMT);
-  return d.isValid() ? d : null;
-}
-
-function lastTradingDayjs(from: Dayjs = dayjs()): Dayjs {
-  let d = from;
-  // 周日=0，周六=6
-  while (d.day() === 0 || d.day() === 6) d = d.subtract(1, 'day');
-  return d;
-}
-
-function shouldDisableWeekend(d: Dayjs): boolean {
-  return d.day() === 0 || d.day() === 6;
-}
-
-// ----------------------------------------------------------------------
-
-function computeFrontendDiff(
-  current: TradingSignalItem[],
-  previous: TradingSignalItem[],
-  prevTradeDate: string
-): SignalDiffFromPrev {
-  const prevMap = new Map(previous.map((s) => [s.tsCode, s]));
-  const curMap = new Map(current.map((s) => [s.tsCode, s]));
-
-  const added: TradingSignalItem[] = [];
-  const removed: TradingSignalItem[] = [];
-  const rebalanced: SignalDiffFromPrev['rebalanced'] = [];
-
-  current.forEach((c) => {
-    if (c.action === 'HOLD') return;
-    const prev = prevMap.get(c.tsCode);
-    if (!prev) added.push(c);
-  });
-
-  previous.forEach((p) => {
-    if (p.action === 'HOLD') return;
-    if (!curMap.get(p.tsCode)) removed.push(p);
-  });
-
-  current.forEach((c) => {
-    const p = prevMap.get(c.tsCode);
-    if (!p) return;
-    const cw = c.targetWeight ?? 0;
-    const pw = p.targetWeight ?? 0;
-    if (Math.abs(cw - pw) > 0.0001) {
-      rebalanced.push({
-        tsCode: c.tsCode,
-        stockName: c.stockName,
-        prevWeight: pw,
-        newWeight: cw,
-        delta: cw - pw,
-      });
-    }
-  });
-
-  return { prevTradeDate, added, removed, rebalanced };
-}
-
-// ----------------------------------------------------------------------
+import {
+  lastTradingDayjs,
+  dayjsToTradeDate,
+  tradeDateToDayjs,
+  SIGNAL_DATE_FORMAT,
+  shouldDisableWeekend,
+  computeFrontendSignalDiff,
+} from '../signal-latest-utils';
 
 export function SignalLatestView() {
   const router = useRouter();
@@ -167,7 +104,6 @@ export function SignalLatestView() {
     [beginSignalsTransition, selectedStrategyId, tradeDate]
   );
 
-  // 滚动锚点
   const anchorRefs = useRef<Record<'BUY' | 'SELL' | 'HOLD', HTMLElement | null>>({
     BUY: null,
     SELL: null,
@@ -183,7 +119,6 @@ export function SignalLatestView() {
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, []);
 
-  // ── URL 持久化 ────────────────────────────────────────
   useEffect(() => {
     const next = new URLSearchParams(searchParams);
     if (selectedStrategyId) next.set('strategyId', selectedStrategyId);
@@ -197,7 +132,6 @@ export function SignalLatestView() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedStrategyId, tradeDate]);
 
-  // ── 拉取激活列表 ──────────────────────────────────────
   const fetchActivations = useCallback(async () => {
     const requestId = activationsRequestIdRef.current + 1;
     activationsRequestIdRef.current = requestId;
@@ -229,7 +163,6 @@ export function SignalLatestView() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ── 拉取最新信号（含兜底 diff） ───────────────────────
   const fetchLatestSignals = useCallback(async () => {
     const strategyId = selectedStrategyId;
     const td = dayjsToTradeDate(tradeDate);
@@ -270,17 +203,17 @@ export function SignalLatestView() {
         // 后端无 diff 时前端兜底；主请求和兜底请求共享同一 generation。
         if (head && !head.diffFromPrev) {
           const prevDate = lastTradingDayjs(
-            (tradeDate ?? dayjs(head.tradeDate, DATE_FMT)).subtract(1, 'day')
+            (tradeDate ?? dayjs(head.tradeDate, SIGNAL_DATE_FORMAT)).subtract(1, 'day')
           );
           try {
             const prevResp = await getLatestSignals({
               strategyId,
-              tradeDate: prevDate.format(DATE_FMT),
+              tradeDate: prevDate.format(SIGNAL_DATE_FORMAT),
             });
             if (signalsRequestIdRef.current !== requestId) return;
             const prev = prevResp.length > 0 ? prevResp[0] : null;
             if (prev) {
-              setFallbackDiff(computeFrontendDiff(head.signals, prev.signals, prev.tradeDate));
+              setFallbackDiff(computeFrontendSignalDiff(head.signals, prev.signals, prev.tradeDate));
             }
           } catch {
             /* 兜底失败不阻塞主流程 */
@@ -416,40 +349,15 @@ export function SignalLatestView() {
         </Stack>
       </Box>
 
-      {/* 操作按钮组 */}
-      <Stack direction="row" spacing={1} sx={{ mb: 2 }} alignItems="center" flexWrap="wrap">
-        <Button
-          variant="outlined"
-          startIcon={<Iconify icon="solar:copy-bold" width={16} />}
-          onClick={handleCopyOrders}
-          disabled={!latestSignals || latestSignals.signals.length === 0}
-        >
-          复制委托清单
-        </Button>
-        <Tooltip title="后端 portfolio/sync-from-signal 接口待上线">
-          <span>
-            <Button
-              variant="outlined"
-              startIcon={<Iconify icon="solar:share-bold" width={16} />}
-              disabled
-            >
-              推送至关联组合
-            </Button>
-          </span>
-        </Tooltip>
-        <Box sx={{ flex: 1 }} />
-        <Button
-          variant="text"
-          endIcon={<Iconify icon="solar:arrow-right-bold" width={16} />}
-          onClick={() => {
-            const params = new URLSearchParams();
-            if (selectedStrategyId) params.set('strategyId', selectedStrategyId);
-            router.push(`/strategy/signal/history?${params.toString()}`);
-          }}
-        >
-          查看信号历史
-        </Button>
-      </Stack>
+      <SignalLatestActions
+        data={latestSignals}
+        onCopyOrders={handleCopyOrders}
+        onViewHistory={() => {
+          const params = new URLSearchParams();
+          if (selectedStrategyId) params.set('strategyId', selectedStrategyId);
+          router.push(`/strategy/signal/history?${params.toString()}`);
+        }}
+      />
 
       {/* 状态 banner */}
       {latestSignals ? (

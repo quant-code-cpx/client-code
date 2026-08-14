@@ -22,7 +22,7 @@ vi.mock('src/components/chart', () => ({
 type ChartCall = {
   type: string;
   series: Array<{ name: string; data: Array<number | null> }>;
-  options: unknown;
+  options: { xaxis?: { categories?: string[] } };
   sx: { height: number };
 };
 
@@ -60,6 +60,7 @@ describe('backtest equity charts', () => {
     const props = chartSpy.mock.calls[0][0] as ChartCall;
     expect(props.type).toBe('line');
     expect(props.series).toEqual([{ name: '策略一', data: [1.1235] }]);
+    expect(props.options.xaxis?.categories).toEqual(['2026-01-02']);
     expect(props.sx).toEqual({ height: 320 });
   });
 
@@ -76,6 +77,7 @@ describe('backtest equity charts', () => {
     const props = chartSpy.mock.calls[0][0] as ChartCall;
     expect(props.type).toBe('area');
     expect(props.series.map((item) => item.name)).toEqual(['OOS 净值', '基准净值']);
+    expect(props.options.xaxis?.categories).toEqual(['2026-01-02', '2026-01-03']);
     expect(props.sx).toEqual({ height: 280 });
   });
 

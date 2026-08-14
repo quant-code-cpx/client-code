@@ -17,6 +17,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
@@ -52,6 +54,9 @@ jobs:
 
       - name: Unit test coverage
         run: yarn test:coverage
+
+      - name: Check changed-line coverage
+        run: yarn test:coverage:changed
 
       - name: Build
         run: yarn build

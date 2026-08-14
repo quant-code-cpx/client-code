@@ -6,6 +6,8 @@ import Typography from '@mui/material/Typography';
 
 import { RouterLink } from 'src/routes/components';
 
+import { fmtTradeDate } from 'src/utils/format-time';
+
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
 
@@ -44,7 +46,7 @@ export function BacktestDetailHeader({
         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
           {STRATEGY_TYPE_LABEL[detail.strategyType] ?? detail.strategyType}
           {' · '}
-          {detail.startDate} ~ {detail.endDate}
+          {fmtTradeDate(detail.startDate)} ~ {fmtTradeDate(detail.endDate)}
           {' · '}
           基准：{detail.benchmarkTsCode}
         </Typography>

@@ -43,7 +43,7 @@ import { Iconify } from 'src/components/iconify';
 import { Scrollbar } from 'src/components/scrollbar';
 import { DatePicker } from 'src/components/date-picker';
 
-// ----------------------------------------------------------------------
+import { SyncLogSummaryCards } from './sync-log-summary-cards';
 
 const SYNC_STATUS_COLOR: Record<string, 'success' | 'error' | 'warning' | 'default'> = {
   SUCCESS: 'success',
@@ -57,25 +57,16 @@ const SYNC_STATUS_LABEL: Record<string, string> = {
   SKIPPED: '跳过',
 };
 
-type Props = {
-  refreshKey?: number;
-  initialFilters?: Pick<SyncLogQuery, 'task' | 'status' | 'startDate' | 'endDate'>;
-};
-
+type Props = { refreshKey?: number; initialFilters?: Pick<SyncLogQuery, 'task' | 'status' | 'startDate' | 'endDate'> };
 function formatPayload(payload: Record<string, unknown> | null): string {
   if (!payload) return '';
   return JSON.stringify(payload, null, 2);
 }
-
-// ----------------------------------------------------------------------
-
 export function SyncLogTab({ refreshKey = 0, initialFilters }: Props) {
-  // 总览数据
   const [summary, setSummary] = useState<SyncLogSummaryItem[]>([]);
   const [summaryLoading, setSummaryLoading] = useState(true);
   const [summaryError, setSummaryError] = useState('');
 
-  // 日志列表
   const [logs, setLogs] = useState<SyncLogItem[]>([]);
   const [logsLoading, setLogsLoading] = useState(true);
   const [logsError, setLogsError] = useState('');
@@ -83,7 +74,6 @@ export function SyncLogTab({ refreshKey = 0, initialFilters }: Props) {
   const [page, setPage] = useState(0);
   const pageSize = 20;
 
-  // 过滤条件
   const [filterTask, setFilterTask] = useState(initialFilters?.task ?? '');
   const [filterStatus, setFilterStatus] = useState(initialFilters?.status ?? '');
   const [startDate, setStartDate] = useState(initialFilters?.startDate ?? '');
@@ -103,7 +93,6 @@ export function SyncLogTab({ refreshKey = 0, initialFilters }: Props) {
   const previousInitialFilterKey = useRef(initialFilterKey);
   const [payloadDrawer, setPayloadDrawer] = useState<SyncLogItem | null>(null);
 
-  // 统计卡片数据（from summary）
   const successCount = summary.filter((s) => s.lastStatus === 'SUCCESS').length;
   const failedCount = summary.filter((s) => s.lastStatus === 'FAILED').length;
   const skippedCount = summary.filter((s) => s.lastStatus === 'SKIPPED').length;
@@ -230,32 +219,16 @@ export function SyncLogTab({ refreshKey = 0, initialFilters }: Props) {
         </Alert>
       )}
 
-      {/* 统计卡片 */}
-      <Stack direction="row" spacing={2} sx={{ mb: 3, flexWrap: 'wrap', gap: 2 }}>
-        {[
-          { label: '成功任务数', value: successCount, color: 'success.main' },
-          { label: '失败任务数', value: failedCount, color: 'error.main' },
-          { label: '跳过任务数', value: skippedCount, color: 'warning.main' },
-          { label: '连续失败告警', value: warningCount, color: 'error.dark' },
-        ].map((card) => (
-          <Card key={card.label} sx={{ p: 2, flex: '1 1 180px', minWidth: 160 }}>
-            {summaryLoading && summary.length === 0 ? (
-              <Skeleton variant="rectangular" height={56} />
-            ) : (
-              <Box>
-                <Typography variant="h5" sx={{ color: card.color }}>
-                  {summaryError && summary.length === 0 ? '—' : card.value}
-                </Typography>
-                <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
-                  {card.label}
-                </Typography>
-              </Box>
-            )}
-          </Card>
-        ))}
-      </Stack>
+      <SyncLogSummaryCards
+        loading={summaryLoading}
+        hasError={Boolean(summaryError)}
+        hasSnapshot={summary.length > 0}
+        successCount={successCount}
+        failedCount={failedCount}
+        skippedCount={skippedCount}
+        warningCount={warningCount}
+      />
 
-      {/* 日志过滤 */}
       <Card>
         <Box sx={{ px: 3, py: 2 }}>
           <Stack

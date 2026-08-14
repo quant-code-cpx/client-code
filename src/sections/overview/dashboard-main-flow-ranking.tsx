@@ -41,6 +41,7 @@ export function DashboardMainFlowRanking({ refreshKey }: { refreshKey?: number }
   const [data, setData] = useState<MainFlowRankingItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [retryKey, setRetryKey] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -61,7 +62,7 @@ export function DashboardMainFlowRanking({ refreshKey }: { refreshKey?: number }
     return () => {
       cancelled = true;
     };
-  }, [order, refreshKey]);
+  }, [order, refreshKey, retryKey]);
 
   return (
     <Card>
@@ -89,7 +90,15 @@ export function DashboardMainFlowRanking({ refreshKey }: { refreshKey?: number }
         </Box>
 
         {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
+          <Alert
+            severity="error"
+            sx={{ mb: 2 }}
+            action={
+              <Button color="inherit" size="small" onClick={() => setRetryKey((key) => key + 1)}>
+                重试
+              </Button>
+            }
+          >
             {error}
           </Alert>
         )}

@@ -8,6 +8,7 @@ import { useTheme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 
+import { yuanToYi } from 'src/utils/format-number';
 import { periodToDays } from 'src/utils/format-time';
 
 import { fetchFlowAnalysis, type FlowAnalysisItem } from 'src/api/market';
@@ -15,11 +16,6 @@ import { fetchFlowAnalysis, type FlowAnalysisItem } from 'src/api/market';
 import { Chart, useChart } from 'src/components/chart';
 
 // ----------------------------------------------------------------------
-
-// Backend returns values in yuan (元); convert to 亿
-function toYi(yuan: number): number {
-  return +(yuan / 1e8).toFixed(2);
-}
 
 const MAX_SECTORS = 20;
 
@@ -41,7 +37,7 @@ export function RotationFlowAnalysisChart({ tradeDate, period, onSectorClick, re
     setLoading(true);
     setError('');
 
-      const periodDays = period ? periodToDays(period) : undefined;
+    const periodDays = period ? periodToDays(period) : undefined;
 
     fetchFlowAnalysis({
       trade_date: tradeDate,
@@ -65,9 +61,11 @@ export function RotationFlowAnalysisChart({ tradeDate, period, onSectorClick, re
   }, [tradeDate, period, refreshKey]);
 
   // Sort by net inflow descending, take top MAX_SECTORS.
-  const displayed = [...flows].sort((a, b) => b.netInflow - a.netInflow).slice(0, MAX_SECTORS);
+  const displayed = [...flows]
+    .sort((a, b) => b.netInflowYuan - a.netInflowYuan)
+    .slice(0, MAX_SECTORS);
   const categories = displayed.map((r) => r.name);
-  const netValues = displayed.map((r) => toYi(r.netInflow));
+  const netValues = displayed.map((r) => yuanToYi(r.netInflowYuan));
   // Distributed colors: red = inflow (A-share convention), green = outflow
   const colors = netValues.map((v) =>
     v >= 0 ? theme.palette.error.main : theme.palette.success.main
@@ -116,7 +114,7 @@ export function RotationFlowAnalysisChart({ tradeDate, period, onSectorClick, re
       custom: ({ dataPointIndex }: any) => {
         const item = displayed[dataPointIndex];
         if (!item) return '';
-        const net = toYi(item.netInflow);
+        const net = yuanToYi(item.netInflowYuan);
         const sign = net > 0 ? '+' : '';
         const color = net >= 0 ? theme.palette.error.main : theme.palette.success.main;
         const label = net >= 0 ? '净流入' : '净流出';

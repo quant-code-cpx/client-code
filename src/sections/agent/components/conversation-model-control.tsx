@@ -10,6 +10,7 @@ import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Select from '@mui/material/Select';
 import Popover from '@mui/material/Popover';
+import Tooltip from '@mui/material/Tooltip';
 import MenuItem from '@mui/material/MenuItem';
 import Skeleton from '@mui/material/Skeleton';
 import InputLabel from '@mui/material/InputLabel';
@@ -177,9 +178,18 @@ export function ConversationModelControl({
                 只影响后续消息，当前运行不会中断。
               </Typography>
             </Box>
-            <IconButton size="small" aria-label="关闭模型设置" disabled={saving} onClick={handleClose}>
-              <Iconify icon="mingcute:close-line" width={18} />
-            </IconButton>
+            <Tooltip title="关闭模型设置">
+              <span>
+                <IconButton
+                  size="small"
+                  aria-label="关闭模型设置"
+                  disabled={saving}
+                  onClick={handleClose}
+                >
+                  <Iconify icon="mingcute:close-line" width={18} />
+                </IconButton>
+              </span>
+            </Tooltip>
           </Stack>
 
           {loading ? (

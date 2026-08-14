@@ -7,6 +7,7 @@ import Card from '@mui/material/Card';
 import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import Table from '@mui/material/Table';
+import Button from '@mui/material/Button';
 import Select from '@mui/material/Select';
 import MenuItem from '@mui/material/MenuItem';
 import Skeleton from '@mui/material/Skeleton';
@@ -109,6 +110,7 @@ export function DashboardSystemStatus() {
   const [plans, setPlans] = useState<TushareSyncPlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [retryKey, setRetryKey] = useState(0);
 
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
@@ -133,7 +135,7 @@ export function DashboardSystemStatus() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [retryKey]);
 
   const filteredPlans = useMemo(() => {
     let result = plans;
@@ -198,7 +200,15 @@ export function DashboardSystemStatus() {
         </Stack>
 
         {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
+          <Alert
+            severity="error"
+            sx={{ mb: 2 }}
+            action={
+              <Button color="inherit" size="small" onClick={() => setRetryKey((key) => key + 1)}>
+                重试
+              </Button>
+            }
+          >
             {error}
           </Alert>
         )}

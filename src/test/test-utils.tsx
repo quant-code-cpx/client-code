@@ -1,4 +1,5 @@
 import type { ReactElement } from 'react';
+import type { InitialEntry } from 'react-router';
 import type { AuthContextValue } from 'src/auth/context';
 
 import { MemoryRouter } from 'react-router';
@@ -16,7 +17,7 @@ import { AuthContext } from 'src/auth/context';
 const defaultTheme = createTheme();
 
 type RenderOptions = {
-  initialEntries?: string[];
+  initialEntries?: InitialEntry[];
   /** 注入 AuthContext 值，用于路由守卫等需要认证状态的测试 */
   authContext?: AuthContextValue;
 };

@@ -8,6 +8,7 @@ import Grid from '@mui/material/Grid';
 import Stack from '@mui/material/Stack';
 import Alert from '@mui/material/Alert';
 import Table from '@mui/material/Table';
+import Button from '@mui/material/Button';
 import Skeleton from '@mui/material/Skeleton';
 import TableRow from '@mui/material/TableRow';
 import TableBody from '@mui/material/TableBody';
@@ -18,7 +19,9 @@ import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 import TableContainer from '@mui/material/TableContainer';
 
+import { fmtTradeDate } from 'src/utils/format-time';
 import { fPctChg, fWanYuan } from 'src/utils/format-number';
+import { getAShareReturnTextColor } from 'src/utils/market-color';
 
 import { stockDetailApiExtra } from 'src/api/stock';
 
@@ -75,7 +78,7 @@ export function AnalysisMainMoneyFlowTab({ tsCode }: Props) {
 
   const chartOptions = useChart({
     xaxis: {
-      categories: data?.history?.map((d) => d.tradeDate) ?? [],
+      categories: data?.history?.map((d) => fmtTradeDate(d.tradeDate)) ?? [],
       labels: { rotate: -30, style: { fontSize: '12px' } },
     },
     yaxis: [
@@ -142,7 +145,18 @@ export function AnalysisMainMoneyFlowTab({ tsCode }: Props) {
   }
 
   if (error) {
-    return <Alert severity="error">{error}</Alert>;
+    return (
+      <Alert
+        severity="error"
+        action={
+          <Button color="inherit" size="small" onClick={() => void fetchData()}>
+            重试
+          </Button>
+        }
+      >
+        {error}
+      </Alert>
+    );
   }
 
   return (
@@ -214,7 +228,7 @@ export function AnalysisMainMoneyFlowTab({ tsCode }: Props) {
                   {[...data.history].reverse().map((row) => (
                     <TableRow key={row.tradeDate} hover>
                       <TableCell sx={{ fontFamily: 'monospace', fontSize: 12 }}>
-                        {row.tradeDate}
+                        {fmtTradeDate(row.tradeDate)}
                       </TableCell>
                       <TableCell align="right">
                         {row.close != null ? row.close.toFixed(2) : '-'}
@@ -242,7 +256,9 @@ export function AnalysisMainMoneyFlowTab({ tsCode }: Props) {
                         {row.mainNetInflow != null ? (
                           <Box
                             component="span"
-                            sx={{ color: row.mainNetInflow > 0 ? 'error.main' : 'success.main' }}
+                            sx={{
+                              color: getAShareReturnTextColor(row.mainNetInflow),
+                            }}
                           >
                             {fWanYuan(row.mainNetInflow)}
                           </Box>

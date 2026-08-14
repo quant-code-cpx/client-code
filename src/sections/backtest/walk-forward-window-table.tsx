@@ -8,6 +8,8 @@ import TableHead from '@mui/material/TableHead';
 import Typography from '@mui/material/Typography';
 import TableContainer from '@mui/material/TableContainer';
 
+import { fmtTradeDate } from 'src/utils/format-time';
+
 import { Label } from 'src/components/label';
 import { Scrollbar as ScrollbarEl } from 'src/components/scrollbar';
 
@@ -103,12 +105,12 @@ export function WalkForwardWindowTable({ windows, onWindowClick }: Props) {
                 </TableCell>
                 <TableCell>
                   <Typography variant="caption" noWrap>
-                    {w.isStartDate} ~ {w.isEndDate}
+                    {fmtTradeDate(w.isStartDate)} ~ {fmtTradeDate(w.isEndDate)}
                   </Typography>
                 </TableCell>
                 <TableCell>
                   <Typography variant="caption" noWrap>
-                    {w.oosStartDate} ~ {w.oosEndDate}
+                    {fmtTradeDate(w.oosStartDate)} ~ {fmtTradeDate(w.oosEndDate)}
                   </Typography>
                 </TableCell>
                 <TableCell align="right">{pctCell(w.isReturn, true)}</TableCell>

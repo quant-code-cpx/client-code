@@ -23,7 +23,7 @@ import TableContainer from '@mui/material/TableContainer';
 
 import { Iconify } from 'src/components/iconify';
 
-import { toYi, yuanToYi } from './utils';
+import { toYi, yuanToYi, summarizeSectorStocks } from './utils';
 
 // ----------------------------------------------------------------------
 
@@ -60,8 +60,8 @@ export function HeatmapSectorDetailDialog({
 
   if (!sector) return null;
 
-  const netYi = yuanToYi(sector.netAmount);
-  const amountYi = toYi(sector.amount);
+  const netYi = Number.isFinite(sector.netAmount) ? yuanToYi(sector.netAmount) : null;
+  const stockSummary = loading || error ? summarizeSectorStocks([]) : summarizeSectorStocks(stocks);
 
   const sortedStocks = [...stocks]
     .sort((a, b) => {
@@ -71,17 +71,16 @@ export function HeatmapSectorDetailDialog({
     })
     .slice(0, 30);
   const sortedFlows = [...stockFlows]
-    .sort((a, b) => (b.mainNetInflow ?? 0) - (a.mainNetInflow ?? 0))
+    .sort((a, b) => b.mainNetInflow - a.mainNetInflow)
     .slice(0, 30);
 
   const pctColor = (v: number | null) =>
     v == null ? 'text.secondary' : v >= 0 ? 'error.main' : 'success.main';
-  const fmtPct = (v: number | null) =>
-    v == null ? '—' : `${v >= 0 ? '+' : ''}${v.toFixed(2)}%`;
+  const fmtPct = (v: number | null) => (v == null ? '—' : `${v >= 0 ? '+' : ''}${v.toFixed(2)}%`);
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
-      <DialogTitle>{sector.name} — 行业详情</DialogTitle>
+      <DialogTitle>{sector.name ?? sector.tsCode} — 行业详情</DialogTitle>
 
       <DialogContent dividers>
         {/* 摘要卡片 */}
@@ -100,13 +99,25 @@ export function HeatmapSectorDetailDialog({
           />
           <StatCard
             label="净流入"
-            value={`${netYi >= 0 ? '+' : ''}${netYi.toFixed(2)}亿`}
-            color={netYi >= 0 ? 'error.main' : 'success.main'}
+            value={netYi == null ? '—' : `${netYi >= 0 ? '+' : ''}${netYi.toFixed(2)}亿`}
+            color={netYi == null ? 'text.secondary' : netYi >= 0 ? 'error.main' : 'success.main'}
           />
-          <StatCard label="成交额" value={`${amountYi.toFixed(1)}亿`} color="text.primary" />
+          <StatCard
+            label="成交额"
+            value={
+              stockSummary.totalAmountYi == null
+                ? '—'
+                : `${stockSummary.totalAmountYi.toFixed(1)}亿`
+            }
+            color="text.primary"
+          />
           <StatCard
             label="涨/跌家数"
-            value={`${sector.upCount ?? 0}↑ / ${sector.downCount ?? 0}↓`}
+            value={
+              stockSummary.upCount == null || stockSummary.downCount == null
+                ? '—'
+                : `${stockSummary.upCount}↑ / ${stockSummary.downCount}↓`
+            }
             color="text.primary"
           />
         </Box>

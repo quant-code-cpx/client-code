@@ -53,4 +53,25 @@ describe('RotationFourFacetCard', () => {
 
     expect(onSectorClick).toHaveBeenCalledWith('银行');
   });
+
+  it('资金维度将 API 的元口径统一展示为亿元', async () => {
+    apiMock.fetchMomentumRanking.mockResolvedValue({ rankings: [] });
+    apiMock.fetchReturnComparison.mockResolvedValue({ sectors: [] });
+    apiMock.fetchFlowAnalysis.mockResolvedValue({
+      flows: [
+        {
+          name: '电子',
+          netInflowYuan: 100_000_000,
+          inflowAmountYuan: 100_000_000,
+          outflowAmountYuan: 0,
+          inflowRatio: 12.5,
+        },
+      ],
+    });
+    apiMock.fetchSectorValuation.mockResolvedValue({ sectors: [] });
+
+    renderWithProviders(<RotationFourFacetCard period="1m" />);
+
+    expect(await screen.findByText('+1.00亿')).toBeInTheDocument();
+  });
 });

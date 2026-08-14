@@ -1,0 +1,953 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>知识库小专题桌面设计稿</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --primary: #1877f2;
+        --primary-soft: #eaf3ff;
+        --primary-hover: #dcecff;
+        --text: #1c252e;
+        --text-secondary: #637381;
+        --text-muted: #919eab;
+        --bg: #f9fafb;
+        --paper: #ffffff;
+        --neutral: #f4f6f8;
+        --border: rgba(145, 158, 171, 0.2);
+        --border-soft: rgba(145, 158, 171, 0.12);
+        --shadow: 0 8px 24px rgba(20, 26, 33, 0.05);
+      }
+
+      @media (prefers-color-scheme: dark) {
+        :root {
+          color-scheme: dark;
+          --primary: #73bafb;
+          --primary-soft: rgba(24, 119, 242, 0.18);
+          --primary-hover: rgba(24, 119, 242, 0.28);
+          --text: #ffffff;
+          --text-secondary: #c4cdd5;
+          --text-muted: #919eab;
+          --bg: #141a21;
+          --paper: #1c252e;
+          --neutral: #28323d;
+          --border: rgba(145, 158, 171, 0.24);
+          --border-soft: rgba(145, 158, 171, 0.16);
+          --shadow: none;
+        }
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        width: 100%;
+        min-width: 1200px;
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+        background: var(--bg);
+        color: var(--text);
+        font-family: 'DM Sans', Inter, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+      }
+
+      button,
+      a {
+        font: inherit;
+      }
+
+      button:focus-visible,
+      a:focus-visible {
+        outline: 2px solid var(--primary);
+        outline-offset: 2px;
+      }
+
+      .app {
+        display: grid;
+        grid-template-columns: 300px minmax(0, 1fr);
+        width: 100%;
+        height: 100%;
+        min-height: 0;
+        overflow: hidden;
+      }
+
+      .global-nav {
+        position: relative;
+        z-index: 2;
+        height: 100%;
+        padding: 20px;
+        overflow: hidden;
+        background: var(--paper);
+        border-right: 1px solid var(--border-soft);
+      }
+
+      .nav-list,
+      .nav-children,
+      .topic-list,
+      .point-list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .nav-list {
+        display: grid;
+        gap: 4px;
+      }
+
+      .nav-item,
+      .nav-parent {
+        display: flex;
+        min-height: 44px;
+        align-items: center;
+        gap: 16px;
+        width: 100%;
+        padding: 8px 12px 8px 16px;
+        border: 0;
+        border-radius: 6px;
+        background: transparent;
+        color: var(--text-secondary);
+        font-size: 14px;
+        font-weight: 500;
+        text-decoration: none;
+      }
+
+      .nav-icon {
+        display: grid;
+        width: 24px;
+        height: 24px;
+        flex: 0 0 24px;
+        place-items: center;
+        color: currentColor;
+      }
+
+      .nav-icon svg,
+      .icon-button svg,
+      .inline-icon svg {
+        width: 20px;
+        height: 20px;
+        fill: none;
+        stroke: currentColor;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-width: 1.8;
+      }
+
+      .nav-label {
+        flex: 1;
+        text-align: left;
+      }
+
+      .nav-parent.active {
+        background: var(--primary-soft);
+        color: var(--primary);
+        font-weight: 600;
+      }
+
+      .chevron {
+        width: 16px;
+        height: 16px;
+      }
+
+      .nav-parent.active .chevron {
+        transform: rotate(90deg);
+      }
+
+      .nav-children {
+        display: grid;
+        gap: 2px;
+        padding: 4px 0 4px 56px;
+      }
+
+      .nav-child {
+        position: relative;
+        display: flex;
+        min-height: 36px;
+        align-items: center;
+        gap: 12px;
+        padding: 7px 12px;
+        border-radius: 6px;
+        color: var(--text-secondary);
+        font-size: 14px;
+        font-weight: 500;
+        text-decoration: none;
+      }
+
+      .nav-child::before {
+        width: 4px;
+        height: 4px;
+        flex: 0 0 4px;
+        border-radius: 50%;
+        background: currentColor;
+        content: '';
+      }
+
+      .nav-child.selected {
+        background: var(--primary-soft);
+        color: var(--primary);
+        font-weight: 600;
+      }
+
+      .nav-child.selected::before {
+        transform: scale(2);
+      }
+
+      .nav-divider {
+        height: 1px;
+        margin: 8px 12px;
+        background: var(--border-soft);
+      }
+
+      .shell {
+        display: grid;
+        min-width: 0;
+        height: 100%;
+        min-height: 0;
+        overflow: hidden;
+        grid-template-rows: 72px minmax(0, 1fr);
+      }
+
+      .app-header {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 8px;
+        padding: 0 40px;
+        background: rgba(249, 250, 251, 0.88);
+        border-bottom: 1px solid transparent;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        .app-header {
+          background: rgba(20, 26, 33, 0.9);
+        }
+      }
+
+      .connection {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        margin-right: 4px;
+        color: var(--text-secondary);
+        font-size: 12px;
+      }
+
+      .connection::before {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #22c55e;
+        box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.12);
+        content: '';
+      }
+
+      .icon-button {
+        display: grid;
+        width: 40px;
+        height: 40px;
+        padding: 0;
+        place-items: center;
+        border: 0;
+        border-radius: 50%;
+        background: transparent;
+        color: var(--text-secondary);
+      }
+
+      .icon-button:hover {
+        background: var(--neutral);
+      }
+
+      .avatar {
+        display: grid;
+        width: 36px;
+        height: 36px;
+        margin-left: 4px;
+        place-items: center;
+        border: 2px solid var(--paper);
+        border-radius: 50%;
+        background: var(--primary-soft);
+        color: var(--primary);
+        box-shadow: 0 0 0 1px var(--border);
+        font-size: 13px;
+        font-weight: 700;
+      }
+
+      .page-scroll {
+        min-width: 0;
+        min-height: 0;
+        overflow: auto;
+        scrollbar-width: thin;
+      }
+
+      .page {
+        width: 100%;
+        max-width: 1140px;
+        min-height: 100%;
+        margin: 0 auto;
+        padding: 18px 40px 56px;
+      }
+
+      .breadcrumbs {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        margin-bottom: 10px;
+        color: var(--text-muted);
+        font-size: 12px;
+      }
+
+      .breadcrumbs a {
+        color: var(--text-secondary);
+        text-decoration: none;
+      }
+
+      .page-heading {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 24px;
+        margin-bottom: 20px;
+      }
+
+      .title-line {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 26px;
+        line-height: 1.35;
+        letter-spacing: -0.25px;
+      }
+
+      .tag {
+        display: inline-flex;
+        min-height: 24px;
+        align-items: center;
+        padding: 3px 9px;
+        border-radius: 999px;
+        background: var(--primary-soft);
+        color: var(--primary);
+        font-size: 12px;
+        font-weight: 600;
+      }
+
+      .page-description {
+        max-width: 680px;
+        margin: 5px 0 0;
+        color: var(--text-secondary);
+        font-size: 14px;
+        line-height: 1.6;
+      }
+
+      .copy-button {
+        display: inline-flex;
+        min-height: 36px;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 12px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--paper);
+        color: var(--text-secondary);
+        font-size: 13px;
+        font-weight: 600;
+      }
+
+      .inline-icon {
+        display: grid;
+        width: 18px;
+        height: 18px;
+        place-items: center;
+      }
+
+      .reading-grid {
+        display: grid;
+        min-width: 0;
+        align-items: start;
+        grid-template-columns: 196px minmax(0, 1fr) 160px;
+        gap: 20px;
+      }
+
+      .side-card,
+      .article {
+        background: var(--paper);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+      }
+
+      .side-card {
+        position: sticky;
+        top: 20px;
+        overflow: hidden;
+      }
+
+      .side-title {
+        margin: 0;
+        padding: 16px 16px 12px;
+        color: var(--text-secondary);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.6px;
+      }
+
+      .major-summary {
+        padding: 0 16px 14px;
+        border-bottom: 1px solid var(--border-soft);
+      }
+
+      .major-name {
+        margin: 0 0 3px;
+        color: var(--text);
+        font-size: 15px;
+        font-weight: 700;
+      }
+
+      .major-meta {
+        margin: 0;
+        color: var(--text-muted);
+        font-size: 12px;
+      }
+
+      .topic-list {
+        display: grid;
+        gap: 3px;
+        padding: 8px;
+      }
+
+      .topic-link {
+        position: relative;
+        display: block;
+        padding: 10px 10px 10px 14px;
+        border-radius: 7px;
+        color: var(--text-secondary);
+        font-size: 13px;
+        line-height: 1.4;
+        text-decoration: none;
+      }
+
+      .topic-link.active {
+        background: var(--primary-soft);
+        color: var(--primary);
+        font-weight: 650;
+      }
+
+      .topic-link.active::before {
+        position: absolute;
+        top: 9px;
+        bottom: 9px;
+        left: 0;
+        width: 3px;
+        border-radius: 3px;
+        background: var(--primary);
+        content: '';
+      }
+
+      .all-topics {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin: 2px 8px 8px;
+        padding: 9px 10px;
+        border-top: 1px solid var(--border-soft);
+        color: var(--text-secondary);
+        font-size: 12px;
+        font-weight: 600;
+        text-decoration: none;
+      }
+
+      .article {
+        min-width: 0;
+        padding: 30px 32px 42px;
+        box-shadow: var(--shadow);
+      }
+
+      .article-kicker {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        margin-bottom: 10px;
+        color: var(--primary);
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .article h2 {
+        scroll-margin-top: 96px;
+        margin: 0 0 12px;
+        color: var(--text);
+        font-size: 21px;
+        line-height: 1.45;
+      }
+
+      .article h3 {
+        scroll-margin-top: 96px;
+        margin: 28px 0 10px;
+        color: var(--text);
+        font-size: 17px;
+        line-height: 1.5;
+      }
+
+      .article p {
+        margin: 0 0 14px;
+        color: var(--text-secondary);
+        font-size: 15px;
+        line-height: 1.82;
+      }
+
+      .lead {
+        padding-bottom: 20px;
+        border-bottom: 1px solid var(--border-soft);
+      }
+
+      .knowledge-callout {
+        position: relative;
+        margin: 20px 0 26px;
+        padding: 15px 16px 15px 18px;
+        overflow: hidden;
+        border: 1px solid rgba(24, 119, 242, 0.16);
+        border-radius: 9px;
+        background: var(--primary-soft);
+      }
+
+      .knowledge-callout::before {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        width: 3px;
+        background: var(--primary);
+        content: '';
+      }
+
+      .callout-label {
+        display: block;
+        margin-bottom: 4px;
+        color: var(--primary);
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .knowledge-callout p {
+        margin: 0;
+        color: var(--text);
+        font-size: 14px;
+        line-height: 1.7;
+      }
+
+      .definition-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin: 14px 0 18px;
+      }
+
+      .definition {
+        min-width: 0;
+        padding: 14px;
+        border: 1px solid var(--border-soft);
+        border-radius: 9px;
+        background: var(--neutral);
+      }
+
+      .definition strong {
+        display: block;
+        margin-bottom: 5px;
+        color: var(--text);
+        font-size: 14px;
+      }
+
+      .definition span {
+        color: var(--text-secondary);
+        font-size: 12px;
+        line-height: 1.55;
+      }
+
+      .formula {
+        display: flex;
+        min-height: 56px;
+        align-items: center;
+        justify-content: center;
+        margin: 14px 0 22px;
+        padding: 12px 18px;
+        overflow-x: auto;
+        border: 1px solid var(--border-soft);
+        border-radius: 8px;
+        background: var(--neutral);
+        color: var(--text);
+        font-family: Georgia, 'Times New Roman', serif;
+        font-size: 17px;
+        letter-spacing: 0.2px;
+      }
+
+      .point-card {
+        position: sticky;
+        top: 20px;
+        padding: 14px 10px 12px;
+      }
+
+      .point-list {
+        display: grid;
+        gap: 2px;
+      }
+
+      .point-link {
+        position: relative;
+        display: block;
+        padding: 8px 8px 8px 14px;
+        color: var(--text-secondary);
+        font-size: 12px;
+        line-height: 1.55;
+        text-decoration: none;
+      }
+
+      .point-link::before {
+        position: absolute;
+        top: 12px;
+        left: 2px;
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background: var(--border);
+        content: '';
+      }
+
+      .point-link.active {
+        color: var(--primary);
+        font-weight: 650;
+      }
+
+      .point-link.active::before {
+        background: var(--primary);
+        box-shadow: 0 0 0 4px var(--primary-soft);
+      }
+
+      .toc-rule {
+        height: 1px;
+        margin: 10px 8px;
+        background: var(--border-soft);
+      }
+
+      .read-time {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 0 8px 3px;
+        color: var(--text-muted);
+        font-size: 11px;
+      }
+
+      .prototype-note {
+        position: fixed;
+        right: 14px;
+        bottom: 10px;
+        color: var(--text-muted);
+        font-size: 10px;
+        opacity: 0.72;
+        pointer-events: none;
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          scroll-behavior: auto !important;
+          transition-duration: 0.01ms !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <aside class="global-nav" aria-label="全局导航">
+        <ul class="nav-list">
+          <li>
+            <a class="nav-item" href="#">
+              <span class="nav-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M3.5 10.5 12 3l8.5 7.5" />
+                  <path d="M5.5 9.5V21h13V9.5" />
+                  <path d="M9.5 21v-6h5v6" />
+                </svg>
+              </span>
+              <span class="nav-label">首页</span>
+            </a>
+          </li>
+          <li>
+            <button class="nav-parent" type="button">
+              <span class="nav-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M4 19V9" />
+                  <path d="M10 19V5" />
+                  <path d="M16 19v-7" />
+                  <path d="M22 19H2" />
+                </svg>
+              </span>
+              <span class="nav-label">行情</span>
+              <svg class="chevron" viewBox="0 0 16 16" aria-hidden="true">
+                <path d="m6 3 5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.5" />
+              </svg>
+            </button>
+          </li>
+          <li>
+            <button class="nav-parent" type="button">
+              <span class="nav-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M4 6.5h16v12H4z" />
+                  <path d="M8 10h3" />
+                  <path d="M8 14h8" />
+                </svg>
+              </span>
+              <span class="nav-label">股票</span>
+              <svg class="chevron" viewBox="0 0 16 16" aria-hidden="true">
+                <path d="m6 3 5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.5" />
+              </svg>
+            </button>
+          </li>
+          <li>
+            <button class="nav-parent" type="button">
+              <span class="nav-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M5 4.5h12a2 2 0 0 1 2 2V20H7a2 2 0 0 1-2-2z" />
+                  <path d="M8 8h8" />
+                  <path d="M8 12h6" />
+                </svg>
+              </span>
+              <span class="nav-label">研究工作台</span>
+              <svg class="chevron" viewBox="0 0 16 16" aria-hidden="true">
+                <path d="m6 3 5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.5" />
+              </svg>
+            </button>
+          </li>
+          <li>
+            <a class="nav-item" href="#">
+              <span class="nav-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M6 18.5 4.5 20v-5A7.5 7.5 0 1 1 12 22a8 8 0 0 1-3.2-.7" />
+                  <path d="M9 12h.01M12 12h.01M15 12h.01" />
+                </svg>
+              </span>
+              <span class="nav-label">AI 研究</span>
+            </a>
+          </li>
+          <li>
+            <button class="nav-parent active" type="button" aria-expanded="true">
+              <span class="nav-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H11v16H6.5A2.5 2.5 0 0 0 4 21.5z" />
+                  <path d="M20 5.5A2.5 2.5 0 0 0 17.5 3H13v16h4.5a2.5 2.5 0 0 1 2.5 2.5z" />
+                </svg>
+              </span>
+              <span class="nav-label">知识库</span>
+              <svg class="chevron" viewBox="0 0 16 16" aria-hidden="true">
+                <path d="m6 3 5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.5" />
+              </svg>
+            </button>
+            <ul class="nav-children">
+              <li><a class="nav-child selected" href="#" aria-current="page">量化基础</a></li>
+              <li><a class="nav-child" href="#">因子研究</a></li>
+              <li><a class="nav-child" href="#">策略与回测</a></li>
+            </ul>
+          </li>
+          <li class="nav-divider" aria-hidden="true"></li>
+          <li>
+            <button class="nav-parent" type="button">
+              <span class="nav-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M18 8A6 6 0 1 0 6 8c0 7-3 7-3 9h18c0-2-3-2-3-9" />
+                  <path d="M10 21h4" />
+                </svg>
+              </span>
+              <span class="nav-label">预警监控</span>
+              <svg class="chevron" viewBox="0 0 16 16" aria-hidden="true">
+                <path d="m6 3 5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.5" />
+              </svg>
+            </button>
+          </li>
+          <li>
+            <button class="nav-parent" type="button">
+              <span class="nav-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24">
+                  <path d="M4 19h16" />
+                  <path d="m5 16 4-4 3 2 6-7" />
+                  <path d="M15 7h3v3" />
+                </svg>
+              </span>
+              <span class="nav-label">因子市场</span>
+              <svg class="chevron" viewBox="0 0 16 16" aria-hidden="true">
+                <path d="m6 3 5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.5" />
+              </svg>
+            </button>
+          </li>
+          <li>
+            <button class="nav-parent" type="button">
+              <span class="nav-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><path d="M5 4h14v4H5zM5 10h14v4H5zM5 16h14v4H5z" /></svg>
+              </span>
+              <span class="nav-label">策略管理</span>
+              <svg class="chevron" viewBox="0 0 16 16" aria-hidden="true">
+                <path d="m6 3 5 5-5 5" fill="none" stroke="currentColor" stroke-width="1.5" />
+              </svg>
+            </button>
+          </li>
+        </ul>
+      </aside>
+
+      <div class="shell">
+        <header class="app-header">
+          <span class="connection">已连接</span>
+          <button class="icon-button" type="button" aria-label="搜索">
+            <svg viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="6.5" />
+              <path d="m16 16 4 4" />
+            </svg>
+          </button>
+          <button class="icon-button" type="button" aria-label="切换主题">
+            <svg viewBox="0 0 24 24">
+              <path d="M20 15.5A8.5 8.5 0 0 1 8.5 4 8.5 8.5 0 1 0 20 15.5Z" />
+            </svg>
+          </button>
+          <button class="icon-button" type="button" aria-label="通知">
+            <svg viewBox="0 0 24 24">
+              <path d="M18 8A6 6 0 1 0 6 8c0 7-3 7-3 9h18c0-2-3-2-3-9" />
+              <path d="M10 21h4" />
+            </svg>
+          </button>
+          <div class="avatar" aria-label="当前用户">CP</div>
+        </header>
+
+        <main class="page-scroll">
+          <div class="page">
+            <nav class="breadcrumbs" aria-label="面包屑">
+              <a href="#">知识库</a><span>/</span><a href="#">量化基础</a><span>/</span
+              ><span>收益率与风险</span>
+            </nav>
+
+            <div class="page-heading">
+              <div>
+                <div class="title-line">
+                  <h1>收益率与风险</h1>
+                  <span class="tag">静态知识页</span>
+                </div>
+                <p class="page-description">
+                  理解收益、波动与回撤之间的关系，为后续策略评估建立统一口径。
+                </p>
+              </div>
+              <button class="copy-button" type="button">
+                <span class="inline-icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24">
+                    <rect x="8" y="8" width="11" height="11" rx="2" />
+                    <path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" />
+                  </svg>
+                </span>
+                复制链接
+              </button>
+            </div>
+
+            <div class="reading-grid">
+              <nav class="side-card" aria-label="小专题目录">
+                <p class="side-title">小专题目录</p>
+                <div class="major-summary">
+                  <p class="major-name">量化基础</p>
+                  <p class="major-meta">4 个小专题 · 示例结构</p>
+                </div>
+                <ul class="topic-list">
+                  <li>
+                    <a class="topic-link active" href="#" aria-current="page">收益率与风险</a>
+                  </li>
+                  <li><a class="topic-link" href="#">数据与样本</a></li>
+                  <li><a class="topic-link" href="#">统计基础</a></li>
+                  <li><a class="topic-link" href="#">交易成本</a></li>
+                </ul>
+                <a class="all-topics" href="#"
+                  ><span>返回大专题</span><span aria-hidden="true">→</span></a
+                >
+              </nav>
+
+              <article class="article">
+                <div class="article-kicker">
+                  <span class="inline-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24">
+                      <path d="M5 4.5h14v15H5z" />
+                      <path d="M8 8h8M8 12h8M8 16h5" />
+                    </svg>
+                  </span>
+                  知识点 01
+                </div>
+                <h2 id="single-return-is-not-enough">收益率为什么不能只看一个数字</h2>
+                <p class="lead">
+                  同样的累计收益，可能来自完全不同的波动路径。评估策略时，需要把收益率、波动率和最大回撤放在同一套口径下观察。
+                </p>
+
+                <div class="knowledge-callout">
+                  <span class="callout-label">核心结论</span>
+                  <p>
+                    先确认收益口径和时间区间，再比较风险；脱离区间与波动谈“高收益”，结论通常不完整。
+                  </p>
+                </div>
+
+                <h3 id="return-conventions">常见收益率口径</h3>
+                <p>
+                  小专题页面由一个个独立知识点组成。每个知识点先给结论，再补定义、公式和使用边界。
+                </p>
+
+                <div class="definition-grid">
+                  <div class="definition">
+                    <strong>简单收益率</strong>
+                    <span>直观、便于解释，适合表达单期价格变化。</span>
+                  </div>
+                  <div class="definition">
+                    <strong>对数收益率</strong>
+                    <span>时间上可加，常用于统计建模与连续复利分析。</span>
+                  </div>
+                </div>
+
+                <div class="formula" aria-label="简单收益率公式">
+                  r<sub>t</sub> = ( P<sub>t</sub> − P<sub>t−1</sub> ) / P<sub>t−1</sub>
+                </div>
+
+                <h3 id="volatility-and-drawdown">波动率与最大回撤</h3>
+                <p>
+                  波动率描述收益分布的离散程度；最大回撤描述从阶段高点到后续低点的最深跌幅。二者回答的问题不同，不能互相替代。
+                </p>
+
+                <h3 id="checklist">一个实用检查清单</h3>
+                <p>
+                  比较策略前，依次确认时间区间、收益口径、交易成本、波动率与最大回撤，避免只凭单个收益数字下结论。
+                </p>
+              </article>
+
+              <aside class="side-card point-card" aria-label="本页知识点">
+                <p class="side-title" style="padding: 2px 8px 10px">本页知识点</p>
+                <ul class="point-list">
+                  <li>
+                    <a
+                      class="point-link active"
+                      href="#single-return-is-not-enough"
+                      aria-current="location"
+                      >为什么不能只看一个收益率</a
+                    >
+                  </li>
+                  <li><a class="point-link" href="#return-conventions">常见收益率口径</a></li>
+                  <li>
+                    <a class="point-link" href="#volatility-and-drawdown">波动率与最大回撤</a>
+                  </li>
+                  <li><a class="point-link" href="#checklist">实用检查清单</a></li>
+                </ul>
+                <div class="toc-rule"></div>
+                <div class="read-time"><span aria-hidden="true">◷</span><span>约 6 分钟</span></div>
+              </aside>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+    <div class="prototype-note">1440 × 900 · 结构与内容均为设计示例</div>
+  </body>
+</html>

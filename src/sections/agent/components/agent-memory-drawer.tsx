@@ -1,24 +1,15 @@
-import type { AgentRequest, AgentResponse } from 'src/api/agent';
-
 import { useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Chip from '@mui/material/Chip';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
-import Dialog from '@mui/material/Dialog';
 import Drawer from '@mui/material/Drawer';
 import Divider from '@mui/material/Divider';
 import Tooltip from '@mui/material/Tooltip';
 import Skeleton from '@mui/material/Skeleton';
-import Checkbox from '@mui/material/Checkbox';
-import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
-import DialogTitle from '@mui/material/DialogTitle';
-import DialogActions from '@mui/material/DialogActions';
-import DialogContent from '@mui/material/DialogContent';
-import FormControlLabel from '@mui/material/FormControlLabel';
 
 import { fDateTime } from 'src/utils/format-time';
 
@@ -28,253 +19,20 @@ import { Iconify } from 'src/components/iconify';
 import { Scrollbar } from 'src/components/scrollbar';
 import { ConfirmDialog } from 'src/components/confirm-dialog';
 
-type AgentMemory = AgentResponse<'/agent/memories/list'>['items'][number];
-type MemoryCategory = AgentMemory['category'];
-type MemorySensitivity = AgentMemory['sensitivity'];
-
-const CATEGORY_LABELS: Record<MemoryCategory, string> = {
-  PREFERENCE: '回答偏好',
-  PROFILE: '用户画像',
-  CONSTRAINT: '研究约束',
-  DOMAIN_FACT: '领域事实',
-};
-
-const SENSITIVITY_LABELS: Record<MemorySensitivity, string> = {
-  NORMAL: '普通',
-  PERSONAL: '个人',
-  FINANCIAL: '金融敏感',
-};
-
-const STATUS_LABELS: Record<AgentMemory['status'], string> = {
-  CANDIDATE: '待确认',
-  CONFIRMED: '生效中',
-  REVOKED: '已撤销',
-  EXPIRED: '已过期',
-};
-
-const CATEGORY_OPTIONS = Object.entries(CATEGORY_LABELS) as [MemoryCategory, string][];
-const SENSITIVITY_OPTIONS = Object.entries(SENSITIVITY_LABELS) as [MemorySensitivity, string][];
+import { AgentMemoryEditorDialog } from './agent-memory-editor-dialog';
+import {
+  STATUS_LABELS,
+  CATEGORY_LABELS,
+  type AgentMemory,
+  formatMemoryJson,
+  SENSITIVITY_LABELS,
+  getMemorySourceLabel,
+} from './agent-memory-model';
 
 type AgentMemoryDrawerProps = {
   open: boolean;
   onClose: () => void;
 };
-
-type MemoryEditorDialogProps = {
-  memory: AgentMemory | null;
-  open: boolean;
-  onClose: () => void;
-  onSaved: (memory: AgentMemory) => void;
-};
-
-function formatJson(value: unknown): string {
-  return JSON.stringify(value, null, 2);
-}
-
-function sourceLabel(memory: AgentMemory): string {
-  if (memory.sourceMessageId) return '来自会话消息';
-  if (memory.sourceConversationId) return '来自研究会话';
-  return '由你手动保存';
-}
-
-function selectableSensitivities(category: MemoryCategory): [MemorySensitivity, string][] {
-  if (category === 'PREFERENCE' || category === 'CONSTRAINT') return SENSITIVITY_OPTIONS;
-  return SENSITIVITY_OPTIONS.filter(([value]) => value !== 'FINANCIAL');
-}
-
-function MemoryEditorDialog({ memory, open, onClose, onSaved }: MemoryEditorDialogProps) {
-  const [category, setCategory] = useState<MemoryCategory>('PREFERENCE');
-  const [key, setKey] = useState('');
-  const [valueJson, setValueJson] = useState('{\n  "style": "concise"\n}');
-  const [sensitivity, setSensitivity] = useState<MemorySensitivity>('NORMAL');
-  const [confirmed, setConfirmed] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [valueError, setValueError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    setCategory(memory?.category ?? 'PREFERENCE');
-    setKey(memory?.key ?? '');
-    setValueJson(memory ? formatJson(memory.value) : '{\n  "style": "concise"\n}');
-    setSensitivity(memory?.sensitivity ?? 'NORMAL');
-    setConfirmed(false);
-    setError(null);
-    setValueError(null);
-  }, [memory, open]);
-
-  const handleSave = useCallback(async () => {
-    if (!confirmed) return;
-
-    let value: unknown;
-    try {
-      value = JSON.parse(valueJson);
-    } catch {
-      setValueError('请输入合法 JSON，例如 { "style": "concise" }。');
-      return;
-    }
-    if (value === null) {
-      setValueError('记忆内容不能为 null。');
-      return;
-    }
-
-    setSaving(true);
-    setError(null);
-    setValueError(null);
-    try {
-      const shared = {
-        value: value as AgentRequest<'/agent/memories/create'>['value'],
-        sensitivity,
-        topic: 'GENERAL' as const,
-        confirmation: true as const,
-      };
-      const saved = memory
-        ? await agentApi.updateMemory({ ...shared, memoryId: memory.memoryId })
-        : await agentApi.createMemory({
-            ...shared,
-            category,
-            key: key.trim(),
-            sourceConversationId: null,
-            sourceMessageId: null,
-            confidence: 1,
-            expiresAt: null,
-          });
-      onSaved(saved);
-      onClose();
-    } catch (caught) {
-      setError(caught instanceof Error ? caught.message : '保存长期记忆失败');
-    } finally {
-      setSaving(false);
-    }
-  }, [category, confirmed, key, memory, onClose, onSaved, sensitivity, valueJson]);
-
-  const allowedSensitivities = selectableSensitivities(category);
-  const valid = confirmed && key.trim().length >= 2 && valueJson.trim().length > 0;
-
-  return (
-    <Dialog
-      open={open}
-      onClose={!saving ? onClose : undefined}
-      fullWidth
-      maxWidth="sm"
-      slotProps={{
-        paper: {
-          sx: {
-            color: 'text.primary',
-            bgcolor: 'background.paper',
-            backgroundImage: 'none',
-            overscrollBehavior: 'contain',
-          },
-        },
-      }}
-    >
-      <DialogTitle>{memory ? '纠正长期记忆' : '保存长期记忆'}</DialogTitle>
-      <DialogContent>
-        <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
-          仅保存你明确确认、且希望 Agent 在后续研究中使用的信息。
-        </Typography>
-
-        {error ? (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {error}
-          </Alert>
-        ) : null}
-
-        <TextField
-          select
-          fullWidth
-          name="agent-memory-category"
-          label="用途"
-          value={category}
-          disabled={Boolean(memory) || saving}
-          onChange={(event) => {
-            const nextCategory = event.target.value as MemoryCategory;
-            setCategory(nextCategory);
-            if (!selectableSensitivities(nextCategory).some(([value]) => value === sensitivity)) {
-              setSensitivity('NORMAL');
-            }
-          }}
-          slotProps={{ select: { native: true } }}
-          sx={{ '& select': { bgcolor: 'background.paper', color: 'text.primary' } }}
-        >
-          {CATEGORY_OPTIONS.map(([value, label]) => (
-            <option key={value} value={value}>
-              {label}
-            </option>
-          ))}
-        </TextField>
-
-        <TextField
-          fullWidth
-          name="agent-memory-key"
-          label="记忆键"
-          value={key}
-          disabled={Boolean(memory) || saving}
-          helperText={memory ? '纠正会保留同一记忆键，并创建新版本。' : '如 response.style、research.focus'}
-          onChange={(event) => setKey(event.target.value)}
-          slotProps={{ htmlInput: { autoComplete: 'off', maxLength: 128, spellCheck: false } }}
-          sx={{ mt: 2 }}
-        />
-
-        <TextField
-          select
-          fullWidth
-          name="agent-memory-sensitivity"
-          label="敏感级别"
-          value={sensitivity}
-          disabled={saving}
-          onChange={(event) => setSensitivity(event.target.value as MemorySensitivity)}
-          slotProps={{ select: { native: true } }}
-          sx={{ mt: 2, '& select': { bgcolor: 'background.paper', color: 'text.primary' } }}
-        >
-          {allowedSensitivities.map(([value, label]) => (
-            <option key={value} value={value}>
-              {label}
-            </option>
-          ))}
-        </TextField>
-
-        <TextField
-          multiline
-          fullWidth
-          minRows={8}
-          name="agent-memory-value"
-          label="记忆内容（JSON）"
-          value={valueJson}
-          disabled={saving}
-          error={Boolean(valueError)}
-          helperText={valueError ?? '支持对象、数组、字符串、数字或布尔值；不保存 null。'}
-          onChange={(event) => {
-            setValueJson(event.target.value);
-            if (valueError) setValueError(null);
-          }}
-          slotProps={{ htmlInput: { autoComplete: 'off', spellCheck: false } }}
-          sx={{ mt: 2, '& textarea': { fontFamily: 'monospace', fontSize: 13 } }}
-        />
-
-        <FormControlLabel
-          control={
-            <Checkbox
-              checked={confirmed}
-              disabled={saving}
-              onChange={(event) => setConfirmed(event.target.checked)}
-            />
-          }
-          label={memory ? '我确认以此内容纠正长期记忆' : '我确认将此内容保存为长期记忆'}
-          sx={{ alignItems: 'flex-start', mt: 1.5 }}
-        />
-      </DialogContent>
-      <DialogActions>
-        <Button color="inherit" disabled={saving} onClick={onClose}>
-          取消
-        </Button>
-        <Button variant="contained" disabled={!valid} loading={saving} onClick={handleSave}>
-          确认保存
-        </Button>
-      </DialogActions>
-    </Dialog>
-  );
-}
 
 export function AgentMemoryDrawer({ open, onClose }: AgentMemoryDrawerProps) {
   const [items, setItems] = useState<AgentMemory[]>([]);
@@ -472,11 +230,11 @@ export function AgentMemoryDrawer({ open, onClose }: AgentMemoryDrawerProps) {
                       fontSize: 12,
                     }}
                   >
-                    {formatJson(memory.value)}
+                    {formatMemoryJson(memory.value)}
                   </Box>
 
                   <Typography variant="caption" component="div" sx={{ color: 'text.secondary', mt: 1 }}>
-                    {sourceLabel(memory)} · 更新于 {fDateTime(memory.updatedAt)}
+                    {getMemorySourceLabel(memory)} · 更新于 {fDateTime(memory.updatedAt)}
                   </Typography>
                   <Typography variant="caption" component="div" sx={{ color: 'text.secondary' }}>
                     {memory.expiresAt ? `到期：${fDateTime(memory.expiresAt)}` : '按默认保留策略'}
@@ -497,7 +255,7 @@ export function AgentMemoryDrawer({ open, onClose }: AgentMemoryDrawerProps) {
         </Scrollbar>
       </Drawer>
 
-      <MemoryEditorDialog
+      <AgentMemoryEditorDialog
         open={editorOpen}
         memory={editorMemory ?? null}
         onClose={() => setEditorMemory(undefined)}

@@ -3,6 +3,7 @@ import {
   fetchValuation,
   fetchIndexQuote,
   fetchIndexTrend,
+  fetchFlowAnalysis,
   fetchMarketBreadth,
   fetchSectorRanking,
   fetchRotationDetail,
@@ -321,5 +322,73 @@ describe('industry rotation request dedupe', () => {
       periods: [20],
       sort_period: 20,
     });
+  });
+});
+
+// ----------------------------------------------------------------------
+
+describe('fetchFlowAnalysis', () => {
+  it('keeps moneyflow_ind_dc 元 values explicit at the frontend boundary', async () => {
+    mockPost().mockResolvedValueOnce({
+      tradeDate: '20260515',
+      days: 20,
+      industries: [
+        {
+          tsCode: '801080.SI',
+          name: '电子',
+          cumulativeNetAmount: 100_000_000,
+          avgDailyNetAmount: 5_000_000,
+          cumulativeReturn: 3.2,
+          flowMomentum: 20_000_000,
+          flowAcceleration: 20,
+          cumulativeBuyElg: 60_000_000,
+          cumulativeBuyLg: 40_000_000,
+          mainForceRatio: 12.5,
+          latestDayRank: 1,
+        },
+        {
+          tsCode: '801780.SI',
+          name: '银行',
+          cumulativeNetAmount: -250_000_000,
+          avgDailyNetAmount: -12_500_000,
+          cumulativeReturn: -1.1,
+          flowMomentum: -30_000_000,
+          flowAcceleration: null,
+          cumulativeBuyElg: -120_000_000,
+          cumulativeBuyLg: -80_000_000,
+          mainForceRatio: null,
+          latestDayRank: 2,
+        },
+      ],
+      summary: {
+        inflowCount: 1,
+        outflowCount: 1,
+        topInflowNames: ['电子'],
+        topOutflowNames: ['银行'],
+      },
+    });
+
+    const result = await fetchFlowAnalysis({ trade_date: '20260515', days: 20 });
+
+    expect(mockPost()).toHaveBeenCalledWith('/api/industry-rotation/flow-analysis', {
+      days: 20,
+      trade_date: '20260515',
+    });
+    expect(result.flows).toEqual([
+      {
+        name: '电子',
+        netInflowYuan: 100_000_000,
+        inflowAmountYuan: 100_000_000,
+        outflowAmountYuan: 0,
+        inflowRatio: 12.5,
+      },
+      {
+        name: '银行',
+        netInflowYuan: -250_000_000,
+        inflowAmountYuan: 0,
+        outflowAmountYuan: 250_000_000,
+          inflowRatio: null,
+      },
+    ]);
   });
 });

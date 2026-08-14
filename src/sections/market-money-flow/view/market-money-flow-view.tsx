@@ -164,7 +164,7 @@ export function MarketMoneyFlowView() {
             <HsgtSummaryCard tradeDate={apiFetchDate} />
           </Grid>
           <Grid size={{ xs: 12, md: 8 }}>
-            <HsgtTrendChart tradeDate={apiFetchDate} />
+            <HsgtTrendChart />
           </Grid>
         </Grid>
       )}

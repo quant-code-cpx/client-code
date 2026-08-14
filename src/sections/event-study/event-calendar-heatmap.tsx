@@ -5,6 +5,8 @@ import { useTheme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 
+import { fmtTradeDate } from 'src/utils/format-time';
+
 import { Chart, useChart } from 'src/components/chart';
 
 import { EVENT_TYPE_LABELS } from './constants';
@@ -37,7 +39,7 @@ export function EventCalendarHeatmap({
 
   const series = Array.from(typeMap.entries()).map(([eventType, dateCount]) => ({
     name: EVENT_TYPE_LABELS[eventType as EventType] ?? eventType,
-    data: dates.map((d) => ({ x: d, y: dateCount.get(d) ?? 0 })),
+    data: dates.map((d) => ({ x: fmtTradeDate(d), y: dateCount.get(d) ?? 0 })),
   }));
 
   const options = useChart({

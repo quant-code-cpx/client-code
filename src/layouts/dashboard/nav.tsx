@@ -152,6 +152,7 @@ function NavItemWithChildren({ item, pathname }: NavItemWithChildrenProps) {
         <ListItemButton
           disableGutters
           onClick={() => setOpen((prev) => !prev)}
+          aria-expanded={open}
           sx={[
             (theme) => ({
               pl: 2,
@@ -200,6 +201,7 @@ function NavItemWithChildren({ item, pathname }: NavItemWithChildrenProps) {
                   disableGutters
                   component={RouterLink}
                   href={child.path}
+                  aria-current={isActived ? 'page' : undefined}
                   sx={[
                     (theme) => ({
                       pl: 1.5,
@@ -289,6 +291,7 @@ export function NavContent({ data, slots, sx }: NavContentProps) {
                     disableGutters
                     component={RouterLink}
                     href={item.path}
+                    aria-current={isActived ? 'page' : undefined}
                     sx={[
                       (theme) => ({
                         pl: 2,

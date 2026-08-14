@@ -34,12 +34,9 @@ import { Iconify } from 'src/components/iconify';
 import { DataGapsPanel } from './data-gaps-panel';
 import { AutoRepairPanel } from './auto-repair-panel';
 import { ValidationLogTable } from './validation-log-table';
-import { QualityHealthBanner } from './quality-health-banner';
-import { QualitySummaryCards } from './quality-summary-cards';
 import { CrossTableCheckPanel } from './cross-table-check-panel';
+import { QualityHealthAccordion } from './quality-health-accordion';
 import { DataQualityReportTable } from './data-quality-report-table';
-
-// ----------------------------------------------------------------------
 
 type QualityPanel = 'health' | 'tools' | 'results';
 type QualityErrorKey = 'health' | 'summary' | 'report' | 'validation' | 'repair';
@@ -70,7 +67,6 @@ export function DataQualityTab({
   focusPanel,
   focusRequest = 0,
 }: Props) {
-  // ── 原有状态 ──
   const [qualityDays, setQualityDays] = useState(7);
   const [qualityReport, setQualityReport] = useState<DataQualityCheckItem[]>([]);
   const [reportLoading, setReportLoading] = useState(true);
@@ -79,17 +75,14 @@ export function DataQualityTab({
   const [validationLogs, setValidationLogs] = useState<ValidationLogItem[]>([]);
   const [validationLoading, setValidationLoading] = useState(true);
 
-  // ── Phase 4 状态 ──
   const [healthStatus, setHealthStatus] = useState<QualityHealthStatus | null>(null);
   const [healthLoading, setHealthLoading] = useState(true);
   const [qualitySummary, setQualitySummary] = useState<QualityCheckSummary | null>(null);
   const [summaryLoading, setSummaryLoading] = useState(true);
 
-  // ── Phase 3 状态 ──
   const [crossCheckMode, setCrossCheckMode] = useState<'recent' | 'full'>('recent');
   const [crossCheckTriggering, setCrossCheckTriggering] = useState(false);
 
-  // ── Phase 4 补数状态 ──
   const [repairSummary, setRepairSummary] = useState<RepairSummary | null>(null);
   const [repairLoading, setRepairLoading] = useState(false);
   const [repairStatus, setRepairStatus] = useState<RepairQueueStatus | null>(null);
@@ -97,7 +90,6 @@ export function DataQualityTab({
   const [expandedPanel, setExpandedPanel] = useState<QualityPanel>(getInitialPanel);
   const [errors, setErrors] = useState<Partial<Record<QualityErrorKey, string>>>({});
 
-  // ── Toast ──
   const [snackbar, setSnackbar] = useState<{
     open: boolean;
     message: string;
@@ -108,7 +100,6 @@ export function DataQualityTab({
     severity: 'success' | 'info' | 'warning' | 'error' = 'info'
   ) => setSnackbar({ open: true, message, severity });
 
-  // ── WebSocket context ──
   const { lastQualitySummary } = useSyncNotification();
 
   const setBlockError = useCallback((key: QualityErrorKey, message: string) => {
@@ -133,8 +124,6 @@ export function DataQualityTab({
       // ignore storage unavailable
     }
   };
-
-  // ── Data fetchers ──
 
   const fetchHealthStatus = useCallback(async () => {
     setHealthLoading(true);
@@ -201,7 +190,6 @@ export function DataQualityTab({
     }
   }, [clearBlockError, setBlockError]);
 
-  // ── 初始化加载 ──
   useEffect(() => {
     fetchHealthStatus();
     fetchQualitySummary();
@@ -228,7 +216,6 @@ export function DataQualityTab({
     }
   }, [focusPanel, focusRequest]);
 
-  // ── WebSocket 推送的摘要实时更新 ──
   useEffect(() => {
     if (!lastQualitySummary) return;
     setQualitySummary(lastQualitySummary);
@@ -237,8 +224,6 @@ export function DataQualityTab({
     fetchRepairStatus();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastQualitySummary]);
-
-  // ── 操作处理器 ──
 
   const handleTriggerCheck = async () => {
     if (isReadOnly) return;
@@ -294,57 +279,18 @@ export function DataQualityTab({
 
   return (
     <Box sx={{ mt: 3 }}>
-      <Accordion
+      <QualityHealthAccordion
         expanded={expandedPanel === 'health'}
+        health={healthStatus}
+        summary={qualitySummary}
+        healthLoading={healthLoading}
+        summaryLoading={summaryLoading}
+        healthError={errors.health ?? ''}
+        summaryError={errors.summary ?? ''}
         onChange={handlePanelChange('health')}
-        slotProps={{ transition: { unmountOnExit: true } }}
-      >
-        <AccordionSummary
-          expandIcon={<Iconify icon="solar:alt-arrow-down-bold" />}
-          aria-controls="quality-health-content"
-          id="quality-health-header"
-        >
-          <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
-            健康总览
-          </Typography>
-        </AccordionSummary>
-        <AccordionDetails>
-          {errors.health && (
-            <Alert
-              severity="error"
-              sx={{ mb: 2 }}
-              action={
-                <Button color="inherit" size="small" onClick={fetchHealthStatus}>
-                  重试
-                </Button>
-              }
-            >
-              {errors.health}
-              {healthStatus ? '，当前展示上次成功快照。' : ''}
-            </Alert>
-          )}
-          {errors.summary && (
-            <Alert
-              severity="error"
-              sx={{ mb: 2 }}
-              action={
-                <Button color="inherit" size="small" onClick={fetchQualitySummary}>
-                  重试
-                </Button>
-              }
-            >
-              {errors.summary}
-              {qualitySummary ? '，当前展示上次成功快照。' : ''}
-            </Alert>
-          )}
-          <QualityHealthBanner health={healthStatus} loading={healthLoading} />
-          <QualitySummaryCards
-            summary={qualitySummary}
-            loading={summaryLoading}
-            showEmptyState={!errors.summary}
-          />
-        </AccordionDetails>
-      </Accordion>
+        onRetryHealth={fetchHealthStatus}
+        onRetrySummary={fetchQualitySummary}
+      />
 
       <Accordion
         expanded={expandedPanel === 'tools'}

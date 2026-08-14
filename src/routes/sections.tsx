@@ -78,6 +78,7 @@ export const FactorAdvancedAnalysisPage = lazy(() => import('src/pages/factor-ad
 export const FactorAdminPage = lazy(() => import('src/pages/factor-admin'));
 export const AgentPage = lazy(() => import('src/pages/agent'));
 export const ModelProvidersPage = lazy(() => import('src/pages/model-providers'));
+export const KnowledgeBasePage = lazy(() => import('src/pages/knowledge-base'));
 
 const renderFallback = () => (
   <Box
@@ -152,6 +153,10 @@ const pageMetadata = {
   reportDetail: { title: `报告详情 - ${CONFIG.appName}` },
   pattern: { title: `形态匹配 - ${CONFIG.appName}` },
   agent: { title: `智能研究 - ${CONFIG.appName}` },
+  knowledge: {
+    title: `知识库 - ${CONFIG.appName}`,
+    description: '从个人财务、经济金融到公司研究、量化交易与实盘治理的系统知识路线',
+  },
   profile: { title: `个人资料 - ${CONFIG.appName}` },
   userManage: { title: `用户管理 - ${CONFIG.appName}` },
   modelProviders: { title: `模型供应商 - ${CONFIG.appName}` },
@@ -195,6 +200,17 @@ export const routesSection: RouteObject[] = [
     children: [
       { index: true, element: <DashboardPage />, handle: pageMetadata.dashboard },
       ...createAgentRoutes(),
+      { path: 'knowledge', element: <KnowledgeBasePage />, handle: pageMetadata.knowledge },
+      {
+        path: 'knowledge/:majorSlug',
+        element: <KnowledgeBasePage />,
+        handle: pageMetadata.knowledge,
+      },
+      {
+        path: 'knowledge/:majorSlug/:topicSlug',
+        element: <KnowledgeBasePage />,
+        handle: pageMetadata.knowledge,
+      },
       { path: 'stock', element: <StockPage />, handle: pageMetadata.stock },
       { path: 'stock/detail', element: <StockDetailPage />, handle: pageMetadata.stockDetail },
       { path: 'stock/screener', element: <Navigate to="/stock" replace /> },

@@ -246,6 +246,12 @@ export function MarketSectorPanel({ tradeDate, refreshKey }: Props) {
           <Typography variant="body2" sx={{ color: 'text.secondary' }}>
             {error}
           </Typography>
+        ) : gainers.length === 0 && losers.length === 0 ? (
+          <Box sx={{ py: 6, textAlign: 'center' }}>
+            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+              暂无行业数据
+            </Typography>
+          </Box>
         ) : (
           <Stack direction={{ xs: 'column', md: 'row' }} spacing={0} sx={{ mx: -1 }}>
             {/* ── Gainers ── */}

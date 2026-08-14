@@ -161,7 +161,7 @@ export function FactorAdminJobsTable() {
                         <Tooltip title="查看批次详情">
                           <IconButton
                             size="small"
-                            aria-label={`查看 ${job.tradeDate} 批次详情`}
+                            aria-label={`查看 ${fmtTradeDate(job.tradeDate)} 批次详情`}
                             onClick={() => {
                               setDetailJob(job);
                               setDetailOpen(true);

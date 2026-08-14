@@ -1,6 +1,6 @@
 import type { ResearchNote } from 'src/api/research-note';
 
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router';
 import { useMemo, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
@@ -205,7 +205,16 @@ export function ResearchNoteListView() {
       />
 
       {error && (
-        <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError('')}>
+        <Alert
+          severity="error"
+          sx={{ mb: 3 }}
+          onClose={() => setError('')}
+          action={
+            <Button color="inherit" size="small" onClick={fetchNotes}>
+              重试
+            </Button>
+          }
+        >
           {error}
         </Alert>
       )}

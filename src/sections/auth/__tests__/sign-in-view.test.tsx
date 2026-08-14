@@ -1,4 +1,5 @@
 import { StrictMode } from 'react';
+import { useLocation } from 'react-router';
 import { act, screen, waitFor } from '@testing-library/react';
 
 import { renderWithProviders } from 'src/test/test-utils';
@@ -266,17 +267,57 @@ describe('SignInView', () => {
       });
     });
 
-    it('登录成功后依次调用 signIn → loadProfile → router.push("/")', async () => {
+    it('登录成功后依次调用 signIn → loadProfile，并在无来源时回到首页', async () => {
       mockLogin.mockResolvedValue({ accessToken: 'token-abc' });
       mockLoadProfile.mockResolvedValue(undefined);
 
-      const { user } = renderWithProviders(<SignInView />);
+      const { user } = renderWithProviders(
+        <>
+          <SignInView />
+          <LocationProbe />
+        </>,
+        { initialEntries: ['/sign-in'] }
+      );
       await fillAndSubmit(user);
 
       await waitFor(() => {
         expect(mockSignIn).toHaveBeenCalledWith('token-abc');
         expect(mockLoadProfile).toHaveBeenCalled();
+        expect(screen.getByTestId('location')).toHaveTextContent('/');
       });
+    });
+
+    it('登录成功后返回 AuthGuard 保存的深链，并保留 query 与 hash', async () => {
+      mockLogin.mockResolvedValue({ accessToken: 'token-abc' });
+      mockLoadProfile.mockResolvedValue(undefined);
+
+      const { user } = renderWithProviders(
+        <>
+          <SignInView />
+          <LocationProbe />
+        </>,
+        {
+          initialEntries: [
+            {
+              pathname: '/sign-in',
+              state: {
+                from: {
+                  pathname: '/admin/user-manage',
+                  search: '?tab=audit',
+                  hash: '#latest',
+                },
+              },
+            },
+          ],
+        }
+      );
+      await fillAndSubmit(user);
+
+      await waitFor(() =>
+        expect(screen.getByTestId('location')).toHaveTextContent(
+          '/admin/user-manage?tab=audit#latest'
+        )
+      );
     });
 
   it('提交中按钮显示"登录中…"并禁用', async () => {
@@ -365,3 +406,10 @@ describe('SignInView', () => {
     });
   });
 });
+
+function LocationProbe() {
+  const location = useLocation();
+  return (
+    <output data-testid="location">{location.pathname + location.search + location.hash}</output>
+  );
+}

@@ -8,6 +8,7 @@ import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
+import Button from '@mui/material/Button';
 import Skeleton from '@mui/material/Skeleton';
 import { useTheme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
@@ -47,6 +48,7 @@ export function IndexDailyChart({ tsCode }: Props) {
   const [data, setData] = useState<IndexDailyItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [retryKey, setRetryKey] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -67,7 +69,7 @@ export function IndexDailyChart({ tsCode }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [tsCode, days]);
+  }, [tsCode, days, retryKey]);
 
   const categories = data.map((d) => fmtDate(d.tradeDate));
 
@@ -133,7 +135,15 @@ export function IndexDailyChart({ tsCode }: Props) {
         </Stack>
 
         {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
+          <Alert
+            severity="error"
+            sx={{ mb: 2 }}
+            action={
+              <Button color="inherit" size="small" onClick={() => setRetryKey((key) => key + 1)}>
+                重试
+              </Button>
+            }
+          >
             {error}
           </Alert>
         )}

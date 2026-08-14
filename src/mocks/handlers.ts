@@ -37,6 +37,11 @@ import strategyDraftData from './data/strategy-draft.json';
 import screenerSubData from './data/screener-subscription.json';
 import industryRotationData from './data/industry-rotation.json';
 import {
+  newsHighlightsMock,
+  backtestValidationMock,
+  industryDictMappingMock,
+} from './data/contract-mocks';
+import {
   getMockEvents,
   getMockAnalyze,
   getMockSegment,
@@ -225,6 +230,12 @@ const routeMap: Record<string, unknown> = {
   '/api/market/concept/members': r(marketData, 'conceptMembers'),
   '/api/market/daily-info': ok(null),
 
+  // ── News ──
+  '/api/news/articles/highlights': ok(newsHighlightsMock),
+
+  // ── Industry Dictionary ──
+  '/api/industry/dict-mapping': ok(industryDictMappingMock),
+
   // ── Industry Rotation ──
   '/api/industry-rotation/overview': r(industryRotationData, 'overview'),
   '/api/industry-rotation/heatmap': r(industryRotationData, 'heatmap'),
@@ -288,7 +299,7 @@ const routeMap: Record<string, unknown> = {
   '/api/backtests/runs/cost-sensitivity': r(backtestData, 'runCostSensitivity'),
   '/api/backtests/runs/param-sensitivity': r(backtestData, 'runParamSensitivity'),
   '/api/backtests/runs/param-sensitivity/result': r(backtestData, 'runParamSensitivityResult'),
-  '/api/backtests/runs/validate': ok({ valid: true }),
+  '/api/backtests/runs/validate': ok(backtestValidationMock),
   '/api/backtests/runs': ok({ runId: 'mock-run-1' }),
   '/api/backtests/runs/cancel': ok({ success: true }),
   '/api/backtests/walk-forward/runs/list': r(backtestData, 'walkForwardList'),

@@ -1,34 +1,30 @@
 import type { SectorFlowItem } from 'src/api/market';
 
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { varAlpha } from 'minimal-shared/utils';
 
 import Box from '@mui/material/Box';
-import Tab from '@mui/material/Tab';
-import Tabs from '@mui/material/Tabs';
 import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
 import Alert from '@mui/material/Alert';
 import Skeleton from '@mui/material/Skeleton';
 import { useTheme } from '@mui/material/styles';
-import ButtonBase from '@mui/material/ButtonBase';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 
 import { Chart, useChart } from 'src/components/chart';
 
+import { HeatmapScatterInsightPanel } from './heatmap-scatter-insight-panel';
+import { signedScatterYi, signedScatterPercent } from './heatmap-scatter-formatters';
 import {
-  toYi,
   yuanToYi,
   getScatterColor,
   getScatterSectorKey,
   pickScatterLabelKeys,
+  hasScatterCoordinates,
   computeLinearAxisBounds,
   buildScatterInsightLists,
-  type ScatterInsightLists,
 } from './utils';
-
-// ----------------------------------------------------------------------
 
 type Props = {
   sectors: SectorFlowItem[];
@@ -46,14 +42,6 @@ type TooltipPalette = {
   negative: string;
 };
 
-type InsightValueMode = 'flow' | 'pct' | 'crowded';
-
-type InsightSection = {
-  title: string;
-  rows: SectorFlowItem[];
-  valueMode: InsightValueMode;
-};
-
 function escapeHtml(value: string): string {
   return value
     .replace(/&/g, '&amp;')
@@ -63,29 +51,8 @@ function escapeHtml(value: string): string {
     .replace(/'/g, '&#39;');
 }
 
-function signedPercent(value: number | null | undefined): string {
-  const safeValue = value ?? 0;
-  return `${safeValue >= 0 ? '+' : ''}${safeValue.toFixed(2)}%`;
-}
-
-function signedYiFromYuan(value: number | null | undefined): string {
-  const yiValue = yuanToYi(value);
-  return `${yiValue >= 0 ? '+' : ''}${yiValue.toFixed(2)}亿`;
-}
-
-function flowColor(value: number): 'error.main' | 'success.main' | 'text.secondary' {
-  if (value > 0) return 'error.main';
-  if (value < 0) return 'success.main';
-  return 'text.secondary';
-}
-
-function pctColor(value: number): 'error.main' | 'success.main' | 'text.secondary' {
-  if (value > 0) return 'error.main';
-  if (value < 0) return 'success.main';
-  return 'text.secondary';
-}
-
-function tooltipColor(value: number, palette: TooltipPalette): string {
+function tooltipColor(value: number | null, palette: TooltipPalette): string {
+  if (value == null || !Number.isFinite(value)) return palette.muted;
   if (value > 0) return palette.positive;
   if (value < 0) return palette.negative;
   return palette.muted;
@@ -98,11 +65,8 @@ function buildTooltipHtml(
   topInflows: Array<{ name: string; mainNetInflow: number }>,
   palette: TooltipPalette
 ): string {
-  // netAmount 单位是元，转亿元需除以 1亿（1e8）
-  const netYi = yuanToYi(sector.netAmount);
-  // amount 单位是万元，转亿元除以 1万（1e4）
-  const amountYi = toYi(sector.amount);
-  const chgValue = sector.pctChange ?? 0;
+  const netYi = Number.isFinite(sector.netAmount) ? yuanToYi(sector.netAmount) : null;
+  const chgValue = Number.isFinite(sector.pctChange) ? sector.pctChange : null;
   const chgColor = tooltipColor(chgValue, palette);
   const flowTextColor = tooltipColor(netYi, palette);
 
@@ -113,8 +77,8 @@ function buildTooltipHtml(
           ${topGainers
             .slice(0, 5)
             .map((stock, index) => {
-              const stockPct = stock.pctChg ?? 0;
-              return `<div>${index + 1}. ${escapeHtml(stock.name)} <span style="color:${tooltipColor(stockPct, palette)}">${signedPercent(stockPct)}</span></div>`;
+              const stockPct = stock.pctChg;
+              return `<div>${index + 1}. ${escapeHtml(stock.name)} <span style="color:${tooltipColor(stockPct, palette)}">${signedScatterPercent(stockPct)}</span></div>`;
             })
             .join('')}
         </div>`
@@ -128,7 +92,7 @@ function buildTooltipHtml(
             .slice(0, 5)
             .map((stock, index) => {
               // mainNetInflow 单位是万元，与 toYi 匹配
-              const inflowYi = toYi(stock.mainNetInflow ?? 0);
+              const inflowYi = stock.mainNetInflow / 10_000;
               return `<div>${index + 1}. ${escapeHtml(stock.name)} <span style="color:${tooltipColor(inflowYi, palette)}">${inflowYi >= 0 ? '+' : ''}${inflowYi.toFixed(2)}亿</span></div>`;
             })
             .join('')}
@@ -137,20 +101,12 @@ function buildTooltipHtml(
 
   return `
     <div style="padding:12px;min-width:260px;font-size:13px;line-height:1.7;max-height:400px;overflow:auto">
-      <div style="font-weight:700;font-size:15px;margin-bottom:6px">${escapeHtml(sector.name)}</div>
+      <div style="font-weight:700;font-size:15px;margin-bottom:6px">${escapeHtml(sector.name ?? sector.tsCode)}</div>
       <div>
-        涨跌幅: <span style="color:${chgColor};font-weight:600">${signedPercent(chgValue)}</span>
+        涨跌幅: <span style="color:${chgColor};font-weight:600">${signedScatterPercent(chgValue)}</span>
         &nbsp;&nbsp;
-        净流入: <span style="color:${flowTextColor};font-weight:600">${signedYiFromYuan(sector.netAmount)}</span>
+        净流入: <span style="color:${flowTextColor};font-weight:600">${signedScatterYi(sector.netAmount)}</span>
       </div>
-      <div>成交额: ${amountYi.toFixed(1)}亿 &nbsp; 上涨 ${sector.upCount ?? 0} 家 / 下跌 ${sector.downCount ?? 0} 家</div>
-      ${
-        sector.leadStock
-          ? `<div>领涨: ${escapeHtml(sector.leadStock)} ${
-              sector.leadPctChg != null ? signedPercent(sector.leadPctChg) : ''
-            }</div>`
-          : ''
-      }
       ${gainersHtml}
       ${inflowsHtml}
     </div>
@@ -192,204 +148,6 @@ function LegendItem({ color, label }: { color: 'error' | 'success' | 'text'; lab
   );
 }
 
-function InsightRow({
-  sector,
-  index,
-  valueMode,
-  onSectorClick,
-}: {
-  sector: SectorFlowItem;
-  index: number;
-  valueMode: InsightValueMode;
-  onSectorClick?: (sector: SectorFlowItem) => void;
-}) {
-  const netAmount = sector.netAmount ?? 0;
-  const pctChange = sector.pctChange ?? 0;
-
-  return (
-    <ButtonBase
-      type="button"
-      disabled={onSectorClick == null}
-      onClick={() => onSectorClick?.(sector)}
-      sx={(theme) => ({
-        px: 1,
-        py: 0.75,
-        gap: 1,
-        width: '100%',
-        minHeight: 46,
-        borderRadius: 1,
-        display: 'flex',
-        textAlign: 'left',
-        alignItems: 'center',
-        color: 'text.primary',
-        justifyContent: 'space-between',
-        border: `1px solid ${varAlpha(theme.vars.palette.grey['500Channel'], 0.12)}`,
-        '&:hover': {
-          bgcolor: varAlpha(theme.vars.palette.grey['500Channel'], 0.08),
-        },
-        '&.Mui-disabled': {
-          opacity: 1,
-          color: 'text.primary',
-        },
-      })}
-    >
-      <Stack direction="row" spacing={1} alignItems="center" sx={{ minWidth: 0 }}>
-        <Typography
-          variant="caption"
-          sx={{
-            width: 18,
-            flexShrink: 0,
-            color: 'text.disabled',
-            fontWeight: 700,
-            fontSize: 12,
-            textAlign: 'center',
-          }}
-        >
-          {index + 1}
-        </Typography>
-
-        <Box sx={{ minWidth: 0 }}>
-          <Typography variant="body2" noWrap fontWeight="fontWeightMedium">
-            {sector.name}
-          </Typography>
-          <Typography variant="caption" noWrap sx={{ display: 'block', color: 'text.disabled' }}>
-            {sector.tsCode}
-          </Typography>
-        </Box>
-      </Stack>
-
-      {valueMode === 'flow' && (
-        <Typography
-          variant="body2"
-          sx={{ flexShrink: 0, color: flowColor(netAmount), fontWeight: 700 }}
-        >
-          {signedYiFromYuan(netAmount)}
-        </Typography>
-      )}
-
-      {valueMode === 'pct' && (
-        <Typography
-          variant="body2"
-          sx={{ flexShrink: 0, color: pctColor(pctChange), fontWeight: 700 }}
-        >
-          {signedPercent(pctChange)}
-        </Typography>
-      )}
-
-      {valueMode === 'crowded' && (
-        <Stack alignItems="flex-end" sx={{ flexShrink: 0 }}>
-          <Typography variant="caption" sx={{ color: pctColor(pctChange), fontWeight: 700 }}>
-            {signedPercent(pctChange)}
-          </Typography>
-          <Typography variant="caption" sx={{ color: flowColor(netAmount), fontWeight: 700 }}>
-            {signedYiFromYuan(netAmount)}
-          </Typography>
-        </Stack>
-      )}
-    </ButtonBase>
-  );
-}
-
-function InsightList({
-  title,
-  rows,
-  valueMode,
-  onSectorClick,
-}: InsightSection & { onSectorClick?: (sector: SectorFlowItem) => void }) {
-  return (
-    <Stack spacing={0.75}>
-      <Typography variant="subtitle2" sx={{ color: 'text.secondary' }}>
-        {title}
-      </Typography>
-
-      {rows.length === 0 && (
-        <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: 12 }}>
-          暂无
-        </Typography>
-      )}
-
-      {rows.map((sector, index) => (
-        <InsightRow
-          index={index}
-          sector={sector}
-          key={getScatterSectorKey(sector)}
-          valueMode={valueMode}
-          onSectorClick={onSectorClick}
-        />
-      ))}
-    </Stack>
-  );
-}
-
-function ScatterInsightPanel({
-  sectors,
-  insights,
-  onSectorClick,
-}: {
-  sectors: SectorFlowItem[];
-  insights: ScatterInsightLists;
-  onSectorClick?: (sector: SectorFlowItem) => void;
-}) {
-  const [activeIndex, setActiveIndex] = useState(0);
-  const sections: InsightSection[] = [
-    { title: '净流入', rows: insights.topInflow, valueMode: 'flow' },
-    { title: '净流出', rows: insights.topOutflow, valueMode: 'flow' },
-    { title: '涨幅', rows: insights.topGainers, valueMode: 'pct' },
-    { title: '跌幅', rows: insights.topLosers, valueMode: 'pct' },
-    { title: '中心拥挤区', rows: insights.crowded, valueMode: 'crowded' },
-  ];
-
-  return (
-    <Box
-      component="aside"
-      sx={(theme) => ({
-        minWidth: 0,
-        pl: { lg: 2.5 },
-        pt: { xs: 2, lg: 0 },
-        borderTop: {
-          xs: `1px solid ${varAlpha(theme.vars.palette.grey['500Channel'], 0.16)}`,
-          lg: 0,
-        },
-        borderLeft: {
-          xs: 0,
-          lg: `1px solid ${varAlpha(theme.vars.palette.grey['500Channel'], 0.16)}`,
-        },
-      })}
-    >
-      <Stack spacing={1.75}>
-        <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2}>
-          <Typography variant="subtitle1" fontWeight="fontWeightBold">
-            信息索引
-          </Typography>
-          <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: 12 }}>
-            {sectors.length} 个板块
-          </Typography>
-        </Stack>
-
-        <Tabs
-          value={activeIndex}
-          onChange={(_event, value: number) => setActiveIndex(value)}
-          variant="scrollable"
-          scrollButtons="auto"
-          aria-label="散点图信息索引"
-        >
-          {sections.map((section) => (
-            <Tab key={section.title} label={section.title} sx={{ minWidth: 76 }} />
-          ))}
-        </Tabs>
-
-        <Box
-          role="region"
-          aria-label={`${sections[activeIndex].title}板块列表`}
-          sx={{ maxHeight: { xs: 360, lg: 560 }, overflowY: 'auto', pr: 0.5 }}
-        >
-          <InsightList {...sections[activeIndex]} onSectorClick={onSectorClick} />
-        </Box>
-      </Stack>
-    </Box>
-  );
-}
-
 function QuadrantLabel({
   sx,
   tone,
@@ -420,8 +178,6 @@ function QuadrantLabel({
   );
 }
 
-// ----------------------------------------------------------------------
-
 export function HeatmapScatterChart({
   sectors,
   topGainersByGroup,
@@ -431,10 +187,14 @@ export function HeatmapScatterChart({
   onSectorClick,
 }: Props) {
   const theme = useTheme();
+  const scatterSectors = useMemo(() => sectors.filter(hasScatterCoordinates), [sectors]);
 
-  const labelKeys = useMemo(() => pickScatterLabelKeys(sectors, 8), [sectors]);
+  const labelKeys = useMemo(() => pickScatterLabelKeys(scatterSectors, 8), [scatterSectors]);
   // 五组索引完整保留当前散点集合；每个板块至少能经方向列表或中心簇列表访问。
-  const insights = useMemo(() => buildScatterInsightLists(sectors, sectors.length), [sectors]);
+  const insights = useMemo(
+    () => buildScatterInsightLists(scatterSectors, scatterSectors.length),
+    [scatterSectors]
+  );
 
   const tooltipPalette = useMemo<TooltipPalette>(
     () => ({
@@ -464,8 +224,8 @@ export function HeatmapScatterChart({
   const { series, pointToSector } = useMemo(() => {
     // 按颜色分组
     const colorGroupMap = new Map<string, SectorFlowItem[]>();
-    for (const sector of sectors) {
-      const color = getScatterColor(sector.netAmount ?? 0, colorPalette);
+    for (const sector of scatterSectors) {
+      const color = getScatterColor(sector.netAmount, colorPalette);
       if (!colorGroupMap.has(color)) colorGroupMap.set(color, []);
       colorGroupMap.get(color)!.push(sector);
     }
@@ -477,33 +237,29 @@ export function HeatmapScatterChart({
       seriesList.push({
         name: color,
         color,
-        data: items.map((sector) => {
-          const amount = Number.isFinite(sector.amount) ? (sector.amount as number) : 0;
-          const netAmount = Number.isFinite(sector.netAmount) ? (sector.netAmount as number) : 0;
-          return [
-            Number.isFinite(sector.pctChange) ? (sector.pctChange as number) : 0,
-            netAmount / 100_000_000, // Y：仅做元→亿元单位换算，不预先舍入
-            Math.max(amount / 10000, 0), // Z：仅做万元→亿元单位换算
-          ] as [number, number, number];
-        }),
+        data: items.map(
+          (sector) =>
+            [
+              sector.pctChange as number,
+              (sector.netAmount as number) / 100_000_000, // Y：仅做元→亿元单位换算，不预先舍入
+              1, // 接口没有可信的规模字段，所有气泡使用固定尺寸。
+            ] as [number, number, number]
+        ),
       });
       sectorMatrix.push(items);
     });
 
     return { series: seriesList, pointToSector: sectorMatrix };
-  }, [sectors, colorPalette]);
+  }, [scatterSectors, colorPalette]);
 
   // 全量线性轴：真实最小/最大值 + 8% padding，不裁点、不改变 X/Y 原值。
   const { xMin, xMax, yMin, yMax } = useMemo(() => {
     const xBounds = computeLinearAxisBounds(
-      sectors.map((sector) => sector.pctChange),
+      scatterSectors.map((sector) => sector.pctChange),
       { min: -5, max: 5 }
     );
     const yBounds = computeLinearAxisBounds(
-      sectors.map((sector) => {
-        const value = Number.isFinite(sector.netAmount) ? (sector.netAmount as number) : 0;
-        return value / 100_000_000;
-      }),
+      scatterSectors.map((sector) => sector.netAmount / 100_000_000),
       { min: -20, max: 20 }
     );
 
@@ -513,7 +269,7 @@ export function HeatmapScatterChart({
       yMin: yBounds.min,
       yMax: yBounds.max,
     };
-  }, [sectors]);
+  }, [scatterSectors]);
 
   const chartOptions = useChart({
     chart: {
@@ -592,7 +348,7 @@ export function HeatmapScatterChart({
           ? pointToSector[chartPoint.seriesIndex]?.[chartPoint.dataPointIndex]
           : undefined;
         if (!sector || !labelKeys.has(getScatterSectorKey(sector))) return '';
-        return sector.name;
+        return sector.name ?? sector.tsCode;
       },
       offsetY: -12,
       style: { fontSize: '12px', fontWeight: '700', colors: [theme.vars.palette.text.primary] },
@@ -620,8 +376,8 @@ export function HeatmapScatterChart({
         if (!sector) return '';
         return buildTooltipHtml(
           sector,
-          topGainersByGroup[sector.name] ?? [],
-          topInflowByGroup[sector.name] ?? [],
+          topGainersByGroup[sector.name ?? sector.tsCode] ?? [],
+          topInflowByGroup[sector.name ?? sector.tsCode] ?? [],
           tooltipPalette
         );
       },
@@ -673,7 +429,7 @@ export function HeatmapScatterChart({
 
         {!loading && !error && series.length === 0 && (
           <Typography color="text.disabled" sx={{ py: 4, textAlign: 'center' }}>
-            暂无数据
+            {sectors.length === 0 ? '暂无数据' : '暂无同时具备涨跌幅与净流入的数据'}
           </Typography>
         )}
 
@@ -729,8 +485,8 @@ export function HeatmapScatterChart({
               />
             </Box>
 
-            <ScatterInsightPanel
-              sectors={sectors}
+        <HeatmapScatterInsightPanel
+              sectors={scatterSectors}
               insights={insights}
               onSectorClick={onSectorClick}
             />

@@ -41,17 +41,11 @@ const momentumResult: MomentumRankingResult = {
   rankings: [
     {
       rank: 1,
-      prevRank: 0,
-      amount: 0,
-      rankChange: 0,
       momentum: 24.9,
       name: '橡胶助剂',
     },
     {
       rank: 2,
-      prevRank: 0,
-      amount: 0,
-      rankChange: 0,
       momentum: -3.5,
       name: '弱势行业',
     },

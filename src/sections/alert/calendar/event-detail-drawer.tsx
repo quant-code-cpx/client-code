@@ -16,6 +16,8 @@ import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import CircularProgress from '@mui/material/CircularProgress';
 
+import { getAShareReturnTextColor } from 'src/utils/market-color';
+
 import { alertApi } from 'src/api/alert';
 
 import { Iconify } from 'src/components/iconify';
@@ -40,7 +42,7 @@ const IMPACT_LABEL: Record<'HIGH' | 'MEDIUM' | 'LOW', string> = {
 export function formatCalendarReturn(value: number | null): string {
   if (value == null) return '—';
   const percent = value * 100;
-  return `${percent >= 0 ? '+' : ''}${percent.toFixed(2)}%`;
+  return `${percent > 0 ? '+' : ''}${percent.toFixed(2)}%`;
 }
 
 type Props = {
@@ -292,9 +294,7 @@ export function EventDetailDrawer({ open, event, onClose, onSubscribe }: Props) 
                           color:
                             value == null
                               ? 'text.disabled'
-                              : value >= 0
-                                ? 'error.main'
-                                : 'success.main',
+                              : getAShareReturnTextColor(value),
                         }}
                       >
                         {formatCalendarReturn(value)}

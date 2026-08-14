@@ -7,6 +7,7 @@ import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
 import Alert from '@mui/material/Alert';
 import Table from '@mui/material/Table';
+import Button from '@mui/material/Button';
 import Snackbar from '@mui/material/Snackbar';
 import TableBody from '@mui/material/TableBody';
 import Typography from '@mui/material/Typography';
@@ -318,7 +319,15 @@ export function StockView() {
         />
 
         {error && (
-          <Alert severity="error" sx={{ mx: 2.5, mb: 2 }}>
+          <Alert
+            severity="error"
+            action={
+              <Button color="inherit" size="small" onClick={() => void fetchList()}>
+                重试
+              </Button>
+            }
+            sx={{ mx: 2.5, mb: 2 }}
+          >
             {error}
           </Alert>
         )}

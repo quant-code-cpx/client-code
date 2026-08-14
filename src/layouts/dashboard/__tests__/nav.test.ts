@@ -41,3 +41,20 @@ describe('因子管理导航权限', () => {
     expect(getFactorAdminItem('SUPER_ADMIN')).toBeDefined();
   });
 });
+
+describe('管理入口导航权限', () => {
+  const hasPath = (role: 'USER' | 'ADMIN' | 'SUPER_ADMIN' | undefined, path: string) =>
+    createNavData(false, role).some((item) => item.path === path);
+
+  it('仅向管理员及以上角色展示数据运维与用户管理', () => {
+    for (const role of [undefined, 'USER'] as const) {
+      expect(hasPath(role, '/tushare-sync')).toBe(false);
+      expect(hasPath(role, '/admin/user-manage')).toBe(false);
+    }
+
+    for (const role of ['ADMIN', 'SUPER_ADMIN'] as const) {
+      expect(hasPath(role, '/tushare-sync')).toBe(true);
+      expect(hasPath(role, '/admin/user-manage')).toBe(true);
+    }
+  });
+});

@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react';
 import Card from '@mui/material/Card';
 import Grid from '@mui/material/Grid';
 import Alert from '@mui/material/Alert';
+import Button from '@mui/material/Button';
 import Skeleton from '@mui/material/Skeleton';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
@@ -58,6 +59,7 @@ export function IndexOverviewCard({ tsCode }: Props) {
   const [quote, setQuote] = useState<IndexQuoteItem | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [retryKey, setRetryKey] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -78,9 +80,21 @@ export function IndexOverviewCard({ tsCode }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [tsCode]);
+  }, [tsCode, retryKey]);
 
-  if (error) return <Alert severity="error">{error}</Alert>;
+  if (error)
+    return (
+      <Alert
+        severity="error"
+        action={
+          <Button color="inherit" size="small" onClick={() => setRetryKey((key) => key + 1)}>
+            重试
+          </Button>
+        }
+      >
+        {error}
+      </Alert>
+    );
 
   const pct = quote?.pctChg ?? 0;
   const chg = quote?.change ?? 0;

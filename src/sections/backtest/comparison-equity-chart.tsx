@@ -6,6 +6,8 @@ import Box from '@mui/material/Box';
 import { useTheme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 
+import { fmtTradeDate } from 'src/utils/format-time';
+
 import { Chart, useChart } from 'src/components/chart';
 
 // ----------------------------------------------------------------------
@@ -19,7 +21,7 @@ export function ComparisonEquityChart({ series }: Props) {
   const { categories, chartSeries } = useMemo(() => {
     const firstSeries = series[0];
     return {
-      categories: firstSeries ? firstSeries.points.map((point) => point.tradeDate) : [],
+      categories: firstSeries ? firstSeries.points.map((point) => fmtTradeDate(point.tradeDate)) : [],
       chartSeries: series.map((item, index) => ({
         name: item.label ?? `策略 ${index + 1}`,
         data: item.points.map((point) => {

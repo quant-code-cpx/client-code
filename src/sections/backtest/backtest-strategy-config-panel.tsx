@@ -1,38 +1,19 @@
-import { useRef, useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 
 import Card from '@mui/material/Card';
-import Grid from '@mui/material/Grid';
 import Alert from '@mui/material/Alert';
-import Table from '@mui/material/Table';
 import Button from '@mui/material/Button';
-import Select from '@mui/material/Select';
-import Switch from '@mui/material/Switch';
-import MenuItem from '@mui/material/MenuItem';
-import TableRow from '@mui/material/TableRow';
-import TextField from '@mui/material/TextField';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableHead from '@mui/material/TableHead';
 import Typography from '@mui/material/Typography';
-import InputLabel from '@mui/material/InputLabel';
-import FormControl from '@mui/material/FormControl';
 import CardContent from '@mui/material/CardContent';
-import Autocomplete from '@mui/material/Autocomplete';
-import ToggleButton from '@mui/material/ToggleButton';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
-import { searchStocks } from 'src/api/stock';
+import {
+  MaCrossPanel,
+  CustomPoolPanel,
+  FactorRankingPanel,
+  ScreeningRotationPanel,
+} from './backtest-strategy-template-panels';
 
-import { RANK_BY_OPTIONS } from './constants';
-
-import type {
-  MaCrossConfig,
-  BacktestRunForm,
-  CustomPoolConfig,
-  FactorRankingConfig,
-  ScreeningRotationConfig,
-} from './types';
+import type { BacktestRunForm, FactorRankingConfig } from './types';
 
 // ----------------------------------------------------------------------
 
@@ -42,445 +23,6 @@ interface BacktestStrategyConfigPanelProps {
   fieldIdPrefix?: string;
   onChange: (updates: Partial<BacktestRunForm>) => void;
 }
-
-// ── Stock search option ─────────────────────────────────────────────────
-
-interface StockOption {
-  tsCode: string;
-  label: string;
-}
-
-function useStockSearch() {
-  const [options, setOptions] = useState<StockOption[]>([]);
-  const [loading, setLoading] = useState(false);
-  const latestRequestRef = useRef(0);
-
-  const search = useCallback(async (keyword: string) => {
-    const normalizedKeyword = keyword.trim();
-    const requestId = latestRequestRef.current + 1;
-    latestRequestRef.current = requestId;
-
-    if (!normalizedKeyword) {
-      setOptions([]);
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const res = await searchStocks({ keyword: normalizedKeyword, limit: 20 });
-      if (requestId !== latestRequestRef.current) return;
-      setOptions(
-        res.items.map((s) => ({
-          tsCode: s.tsCode,
-          label: `${s.tsCode} ${s.name ?? ''}`.trim(),
-        }))
-      );
-    } catch {
-      if (requestId === latestRequestRef.current) setOptions([]);
-    } finally {
-      if (requestId === latestRequestRef.current) setLoading(false);
-    }
-  }, []);
-
-  return { options, loading, search };
-}
-
-// ── MA Cross Panel ─────────────────────────────────────────────────────
-
-function MaCrossPanel({
-  config,
-  fieldIdPrefix,
-  onChange,
-}: {
-  config: MaCrossConfig;
-  fieldIdPrefix: string;
-  onChange: (c: MaCrossConfig) => void;
-}) {
-  const { options, loading, search } = useStockSearch();
-  const allowFlatId = `${fieldIdPrefix}-allow-flat`;
-
-  return (
-    <Grid container spacing={2}>
-      <Grid size={{ xs: 12 }}>
-        <Autocomplete
-          options={options}
-          loading={loading}
-          getOptionLabel={(o) => o.label}
-          filterOptions={(items) => items}
-          onInputChange={(_, v, reason) => {
-            if (reason === 'input' || reason === 'clear') void search(v);
-          }}
-          value={options.find((o) => o.tsCode === config.tsCode) ?? null}
-          onChange={(_, v) => onChange({ ...config, tsCode: v?.tsCode ?? '' })}
-          renderInput={(params) => (
-            <TextField {...params} label="股票代码" size="small" helperText="输入代码或名称搜索" />
-          )}
-        />
-      </Grid>
-
-      <Grid size={{ xs: 12, sm: 6 }}>
-        <TextField
-          label="短均线周期"
-          type="number"
-          fullWidth
-          size="small"
-          value={config.shortWindow}
-          onChange={(e) => onChange({ ...config, shortWindow: Number(e.target.value) })}
-          helperText="例：5 日均线"
-        />
-      </Grid>
-
-      <Grid size={{ xs: 12, sm: 6 }}>
-        <TextField
-          label="长均线周期"
-          type="number"
-          fullWidth
-          size="small"
-          value={config.longWindow}
-          onChange={(e) => onChange({ ...config, longWindow: Number(e.target.value) })}
-          helperText="例：20 日均线"
-        />
-      </Grid>
-
-      <Grid size={{ xs: 12 }}>
-        <FormControlLabel
-          control={
-            <Switch
-              checked={config.allowFlat}
-              onChange={(e) => onChange({ ...config, allowFlat: e.target.checked })}
-              size="small"
-              slotProps={{ input: { id: allowFlatId, name: `${fieldIdPrefix}-allowFlat` } }}
-            />
-          }
-          label="允许空仓（死叉后清空持仓）"
-        />
-      </Grid>
-    </Grid>
-  );
-}
-
-// ── Screening Rotation Panel ───────────────────────────────────────────
-
-function ScreeningRotationPanel({
-  config,
-  fieldIdPrefix,
-  onChange,
-}: {
-  config: ScreeningRotationConfig;
-  fieldIdPrefix: string;
-  onChange: (c: ScreeningRotationConfig) => void;
-}) {
-  const rankByLabelId = `${fieldIdPrefix}-rank-by-label`;
-
-  return (
-    <Grid container spacing={2}>
-      <Grid size={{ xs: 12, sm: 6 }}>
-        <FormControl fullWidth size="small">
-          <InputLabel id={rankByLabelId}>排序字段</InputLabel>
-          <Select
-            id={`${fieldIdPrefix}-rank-by`}
-            name={`${fieldIdPrefix}-rankBy`}
-            labelId={rankByLabelId}
-            label="排序字段"
-            value={config.rankBy}
-            onChange={(e) => onChange({ ...config, rankBy: e.target.value })}
-          >
-            {RANK_BY_OPTIONS.map((opt) => (
-              <MenuItem key={opt.value} value={opt.value}>
-                {opt.label}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-      </Grid>
-
-      <Grid size={{ xs: 12, sm: 6 }}>
-        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}>
-          排序方向
-        </Typography>
-        <ToggleButtonGroup
-          value={config.rankOrder}
-          exclusive
-          size="small"
-          onChange={(_, v) => {
-            if (v) onChange({ ...config, rankOrder: v as 'asc' | 'desc' });
-          }}
-        >
-          <ToggleButton value="desc">
-            高→低
-          </ToggleButton>
-          <ToggleButton value="asc">
-            低→高
-          </ToggleButton>
-        </ToggleButtonGroup>
-      </Grid>
-
-      <Grid size={{ xs: 12, sm: 6 }}>
-        <TextField
-          label="Top N"
-          type="number"
-          fullWidth
-          size="small"
-          value={config.topN}
-          onChange={(e) => onChange({ ...config, topN: Number(e.target.value) })}
-          helperText="每期持有排名前 N 只股票"
-        />
-      </Grid>
-
-      <Grid size={{ xs: 12, sm: 6 }}>
-        <TextField
-          label="最小上市天数"
-          type="number"
-          fullWidth
-          size="small"
-          value={config.minDaysListed ?? ''}
-          onChange={(e) =>
-            onChange({
-              ...config,
-              minDaysListed: e.target.value ? Number(e.target.value) : undefined,
-            })
-          }
-          helperText="过滤上市不足 N 天的新股"
-        />
-      </Grid>
-    </Grid>
-  );
-}
-
-// ── Factor Ranking Panel ───────────────────────────────────────────────
-
-function FactorRankingPanel({
-  config,
-  onChange,
-  factorOptions,
-}: {
-  config: FactorRankingConfig;
-  onChange: (c: FactorRankingConfig) => void;
-  factorOptions: string[];
-}) {
-  return (
-    <Grid container spacing={2}>
-      <Grid size={{ xs: 12 }}>
-        <Autocomplete
-          options={factorOptions}
-          value={config.factorName || null}
-          onChange={(_, v) => onChange({ ...config, factorName: v ?? '' })}
-          renderInput={(params) => (
-            <TextField {...params} label="因子名称" size="small" helperText="选择已计算的因子" />
-          )}
-        />
-      </Grid>
-
-      <Grid size={{ xs: 12, sm: 6 }}>
-        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}>
-          排序方向
-        </Typography>
-        <ToggleButtonGroup
-          value={config.rankOrder}
-          exclusive
-          size="small"
-          onChange={(_, v) => {
-            if (v) onChange({ ...config, rankOrder: v as 'asc' | 'desc' });
-          }}
-        >
-          <ToggleButton value="desc">
-            高因子优先
-          </ToggleButton>
-          <ToggleButton value="asc">
-            低因子优先
-          </ToggleButton>
-        </ToggleButtonGroup>
-      </Grid>
-
-      <Grid size={{ xs: 12, sm: 6 }}>
-        <TextField
-          label="Top N"
-          type="number"
-          fullWidth
-          size="small"
-          value={config.topN}
-          onChange={(e) => onChange({ ...config, topN: Number(e.target.value) })}
-          helperText="每期持有排名前 N 只"
-        />
-      </Grid>
-
-      <Grid size={{ xs: 12, sm: 6 }}>
-        <TextField
-          label="最小上市天数"
-          type="number"
-          fullWidth
-          size="small"
-          value={config.minDaysListed ?? ''}
-          onChange={(e) =>
-            onChange({
-              ...config,
-              minDaysListed: e.target.value ? Number(e.target.value) : undefined,
-            })
-          }
-          helperText="过滤上市不足 N 天的新股"
-        />
-      </Grid>
-
-      <Grid size={{ xs: 12 }}>
-        <Typography variant="caption" sx={{ color: 'text.secondary', mb: 1, display: 'block' }}>
-          过滤条件（可选）
-        </Typography>
-      </Grid>
-
-      <Grid size={{ xs: 12, sm: 4 }}>
-        <TextField
-          label="最小市值（亿元）"
-          type="number"
-          fullWidth
-          size="small"
-          value={config.optionalFilters?.minTotalMv ?? ''}
-          onChange={(e) =>
-            onChange({
-              ...config,
-              optionalFilters: {
-                ...config.optionalFilters,
-                minTotalMv: e.target.value ? Number(e.target.value) : undefined,
-              },
-            })
-          }
-        />
-      </Grid>
-
-      <Grid size={{ xs: 12, sm: 4 }}>
-        <TextField
-          label="最小换手率 (%)"
-          type="number"
-          fullWidth
-          size="small"
-          value={config.optionalFilters?.minTurnoverRate ?? ''}
-          onChange={(e) =>
-            onChange({
-              ...config,
-              optionalFilters: {
-                ...config.optionalFilters,
-                minTurnoverRate: e.target.value ? Number(e.target.value) : undefined,
-              },
-            })
-          }
-        />
-      </Grid>
-
-      <Grid size={{ xs: 12, sm: 4 }}>
-        <TextField
-          label="最大 PE(TTM)"
-          type="number"
-          fullWidth
-          size="small"
-          value={config.optionalFilters?.maxPeTtm ?? ''}
-          onChange={(e) =>
-            onChange({
-              ...config,
-              optionalFilters: {
-                ...config.optionalFilters,
-                maxPeTtm: e.target.value ? Number(e.target.value) : undefined,
-              },
-            })
-          }
-        />
-      </Grid>
-    </Grid>
-  );
-}
-
-// ── Custom Pool Panel ──────────────────────────────────────────────────
-
-function CustomPoolPanel({
-  config,
-  availableTsCodes,
-  onChange,
-}: {
-  config: CustomPoolConfig;
-  availableTsCodes: string[];
-  onChange: (c: CustomPoolConfig) => void;
-}) {
-  const tsCodes = availableTsCodes.length > 0 ? availableTsCodes : config.tsCodes;
-
-  return (
-    <Grid container spacing={2}>
-      <Grid size={{ xs: 12 }}>
-        <Alert severity={tsCodes.length > 0 ? 'info' : 'warning'}>
-          {tsCodes.length > 0
-            ? `已从「基础配置 → 股票池」读取 ${tsCodes.length} 只股票。股票代码请在基础配置卡片中维护。`
-            : '请先在「基础配置 → 股票池」中选择「自定义股票池」并添加股票代码。'}
-        </Alert>
-      </Grid>
-
-      <Grid size={{ xs: 12 }}>
-        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}>
-          权重模式
-        </Typography>
-        <ToggleButtonGroup
-          value={config.weightMode}
-          exclusive
-          size="small"
-          onChange={(_, v) => {
-            if (v) onChange({ ...config, tsCodes, weightMode: v as 'EQUAL' | 'CUSTOM' });
-          }}
-        >
-          <ToggleButton value="EQUAL">
-            等权
-          </ToggleButton>
-          <ToggleButton value="CUSTOM">
-            自定义权重
-          </ToggleButton>
-        </ToggleButtonGroup>
-      </Grid>
-
-      {config.weightMode === 'CUSTOM' && tsCodes.length > 0 && (
-        <Grid size={{ xs: 12 }}>
-          <Typography variant="caption" sx={{ color: 'text.secondary', mb: 1, display: 'block' }}>
-            自定义权重（总和应为 100%）
-          </Typography>
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <TableCell>股票代码</TableCell>
-                <TableCell>权重 (%)</TableCell>
-                <TableCell padding="checkbox" />
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {tsCodes.map((code) => (
-                <TableRow key={code}>
-                  <TableCell>{code}</TableCell>
-                  <TableCell>
-                    <TextField
-                      type="number"
-                      size="small"
-                      sx={{ width: 100 }}
-                      value={
-                        (config.customWeights.find((w) => w.tsCode === code)?.weight ?? 0) * 100
-                      }
-                      onChange={(e) => {
-                        const newWeight = Number(e.target.value) / 100;
-                        const updated = config.customWeights.filter((w) => w.tsCode !== code);
-                        onChange({
-                          ...config,
-                          tsCodes,
-                          customWeights: [...updated, { tsCode: code, weight: newWeight }],
-                        });
-                      }}
-                      slotProps={{ htmlInput: { min: 0, max: 100, step: 1 } }}
-                    />
-                  </TableCell>
-                  <TableCell padding="checkbox" />
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </Grid>
-      )}
-    </Grid>
-  );
-}
-
-// ── Main component ─────────────────────────────────────────────────────
 
 export function BacktestStrategyConfigPanel({
   selectedTemplateId,
@@ -497,7 +39,9 @@ export function BacktestStrategyConfigPanel({
       import('src/api/factor')
         .then(({ factorApi }) =>
           factorApi.library().then((res) => {
-            const names = (res.categories ?? []).flatMap((g) => g.factors.map((f) => f.name));
+            const names = (res.categories ?? []).flatMap((group) =>
+              group.factors.map((factor) => factor.name)
+            );
             setFactorOptions(names);
           })
         )
@@ -528,7 +72,9 @@ export function BacktestStrategyConfigPanel({
               allowFlat: (strategyConfig.allowFlat as boolean) ?? false,
             }}
             fieldIdPrefix={fieldIdPrefix}
-            onChange={(c) => onChange({ strategyConfig: c as unknown as Record<string, unknown> })}
+            onChange={(config) =>
+              onChange({ strategyConfig: config as unknown as Record<string, unknown> })
+            }
           />
         );
 
@@ -542,7 +88,9 @@ export function BacktestStrategyConfigPanel({
               minDaysListed: strategyConfig.minDaysListed as number | undefined,
             }}
             fieldIdPrefix={fieldIdPrefix}
-            onChange={(c) => onChange({ strategyConfig: c as unknown as Record<string, unknown> })}
+            onChange={(config) =>
+              onChange({ strategyConfig: config as unknown as Record<string, unknown> })
+            }
           />
         );
 
@@ -557,7 +105,9 @@ export function BacktestStrategyConfigPanel({
               optionalFilters:
                 strategyConfig.optionalFilters as FactorRankingConfig['optionalFilters'],
             }}
-            onChange={(c) => onChange({ strategyConfig: c as unknown as Record<string, unknown> })}
+            onChange={(config) =>
+              onChange({ strategyConfig: config as unknown as Record<string, unknown> })
+            }
             factorOptions={factorOptions}
           />
         );
@@ -571,7 +121,9 @@ export function BacktestStrategyConfigPanel({
               customWeights:
                 (strategyConfig.customWeights as Array<{ tsCode: string; weight: number }>) ?? [],
             }}
-            onChange={(c) => onChange({ strategyConfig: c as unknown as Record<string, unknown> })}
+            onChange={(config) =>
+              onChange({ strategyConfig: config as unknown as Record<string, unknown> })
+            }
             availableTsCodes={form.customUniverseTsCodes}
           />
         );

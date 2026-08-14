@@ -3,7 +3,6 @@ import type { BacktestReportData } from 'src/api/report';
 import { useMemo, useState } from 'react';
 import { varAlpha } from 'minimal-shared/utils';
 
-import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Chip from '@mui/material/Chip';
 import Grid from '@mui/material/Grid';
@@ -24,7 +23,8 @@ import { fNumber, fRatioPercent } from 'src/utils/format-number';
 
 import { Label } from 'src/components/label';
 import { Scrollbar } from 'src/components/scrollbar';
-import { Chart, useChart } from 'src/components/chart';
+
+import { ReportNavCurveChart, ReportDrawdownCurveChart } from './report-backtest-charts';
 
 // ─── Sub-component: Metric Card ───────────────────────────────────────────────
 
@@ -58,94 +58,6 @@ function pctColor(v: number | null, invert?: boolean): string | undefined {
 function pctStr(v: number | null): string {
   if (v == null) return '-';
   return `${v >= 0 ? '+' : ''}${fRatioPercent(v)}`;
-}
-
-// ─── Sub-component: NAV Curve Chart ──────────────────────────────────────────
-
-type NavCurveChartProps = {
-  points: { date: string; nav: number }[];
-};
-
-function NavCurveChart({ points }: NavCurveChartProps) {
-  const chartOptions = useChart({
-    chart: { type: 'area', toolbar: { show: false } },
-    fill: { type: 'gradient', gradient: { opacityFrom: 0.3, opacityTo: 0 } },
-    stroke: { width: 2, curve: 'smooth' },
-    dataLabels: { enabled: false },
-    xaxis: { type: 'category', categories: points.map((p) => p.date), tickAmount: 8 },
-    yaxis: { labels: { formatter: (v: number) => v.toFixed(2) } },
-    tooltip: { shared: true, intersect: false, y: { formatter: (v: number) => v.toFixed(4) } },
-  });
-
-  const series = [{ name: '策略净值', data: points.map((p) => Number(p.nav.toFixed(4))) }];
-
-  return (
-    <Card>
-      <CardContent sx={{ p: 3 }}>
-        <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
-          净值曲线
-        </Typography>
-        {points.length === 0 ? (
-          <Box
-            sx={{ height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-          >
-            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-              暂无数据
-            </Typography>
-          </Box>
-        ) : (
-          <Chart type="area" series={series} options={chartOptions} sx={{ height: 300 }} />
-        )}
-      </CardContent>
-    </Card>
-  );
-}
-
-// ─── Sub-component: Drawdown Curve Chart ─────────────────────────────────────
-
-type DrawdownCurveChartProps = {
-  points: { date: string; drawdown: number }[];
-};
-
-function DrawdownCurveChart({ points }: DrawdownCurveChartProps) {
-  const theme = useTheme();
-  const series = [{ name: '回撤', data: points.map((p) => Number((p.drawdown * 100).toFixed(2))) }];
-
-  const chartOptions = useChart({
-    chart: { type: 'area', toolbar: { show: false } },
-    colors: [theme.palette.error.main],
-    fill: { type: 'gradient', gradient: { opacityFrom: 0.4, opacityTo: 0 } },
-    stroke: { width: 2, curve: 'smooth' },
-    dataLabels: { enabled: false },
-    xaxis: { type: 'category', categories: points.map((p) => p.date), tickAmount: 8 },
-    yaxis: { labels: { formatter: (v: number) => `${v.toFixed(1)}%` } },
-    tooltip: {
-      shared: true,
-      intersect: false,
-      y: { formatter: (v: number) => `${v.toFixed(2)}%` },
-    },
-  });
-
-  return (
-    <Card>
-      <CardContent sx={{ p: 3 }}>
-        <Typography variant="subtitle1" sx={{ mb: 2, fontWeight: 600 }}>
-          回撤曲线
-        </Typography>
-        {points.length === 0 ? (
-          <Box
-            sx={{ height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-          >
-            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-              暂无数据
-            </Typography>
-          </Box>
-        ) : (
-          <Chart type="area" series={series} options={chartOptions} sx={{ height: 200 }} />
-        )}
-      </CardContent>
-    </Card>
-  );
 }
 
 // ─── Sub-component: Monthly Returns Heatmap ──────────────────────────────────
@@ -533,8 +445,8 @@ export function BacktestReportViewer({ data }: BacktestReportViewerProps) {
       </Grid>
 
       {/* Charts */}
-      <NavCurveChart points={navCurve} />
-      <DrawdownCurveChart points={drawdownCurve} />
+      <ReportNavCurveChart points={navCurve} />
+      <ReportDrawdownCurveChart points={drawdownCurve} />
       <MonthlyHeatmap rows={monthlyReturns} />
 
       {/* Tables */}

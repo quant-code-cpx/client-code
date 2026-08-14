@@ -16,8 +16,12 @@ setup('全局登录并缓存认证状态', async ({ page }) => {
   await page.waitForSelector('[title="点击刷新验证码"] svg, img[alt*="验证码"]', { timeout: 10_000 });
 
   await page.getByLabel('账号').fill(process.env.E2E_ACCOUNT ?? 'e2e-test');
-  await page.getByLabel('密码').fill(process.env.E2E_PASSWORD ?? 'e2e-test-pass');
-  await page.getByLabel('验证码').fill(process.env.E2E_CAPTCHA_CODE ?? '1234');
+  await page
+    .getByLabel('密码', { exact: true })
+    .fill(process.env.E2E_PASSWORD ?? 'e2e-test-pass');
+  await page
+    .getByLabel('验证码', { exact: true })
+    .fill(process.env.E2E_CAPTCHA_CODE ?? '1234');
 
   await page.getByRole('button', { name: /登\s*录/ }).click();
 

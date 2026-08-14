@@ -9,7 +9,6 @@ import Grid from '@mui/material/Grid';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
-import Switch from '@mui/material/Switch';
 import Divider from '@mui/material/Divider';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
@@ -18,7 +17,6 @@ import Autocomplete from '@mui/material/Autocomplete';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import CardActionArea from '@mui/material/CardActionArea';
-import FormControlLabel from '@mui/material/FormControlLabel';
 
 import { BacktestStrategyConfigPanel } from 'src/sections/backtest/backtest-strategy-config-panel';
 
@@ -90,7 +88,6 @@ export function StrategyCreateDialog({
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [tags, setTags] = useState<string[]>([]);
-  const [isPublic, setIsPublic] = useState(false);
   const [strategyType, setStrategyType] = useState('');
   const [backtestForm, setBacktestForm] = useState<BacktestRunForm>({ ...DEFAULT_BACKTEST_FORM });
   const [error, setError] = useState('');
@@ -101,7 +98,6 @@ export function StrategyCreateDialog({
       setName('');
       setDescription('');
       setTags([]);
-      setIsPublic(false);
       setStrategyType('');
       setBacktestForm({ ...DEFAULT_BACKTEST_FORM });
       setError('');
@@ -183,7 +179,7 @@ export function StrategyCreateDialog({
               helperText={`${description.length}/500`}
             />
           </Grid>
-          <Grid size={{ xs: 12, sm: 8 }}>
+          <Grid size={{ xs: 12 }}>
             <Autocomplete
               multiple
               freeSolo
@@ -205,14 +201,6 @@ export function StrategyCreateDialog({
                   placeholder={tags.length === 0 ? '输入标签后回车' : ''}
                 />
               )}
-            />
-          </Grid>
-          <Grid size={{ xs: 12, sm: 4 }} sx={{ display: 'flex', alignItems: 'center' }}>
-            <FormControlLabel
-              control={
-                <Switch checked={isPublic} onChange={(e) => setIsPublic(e.target.checked)} />
-              }
-              label="公开策略"
             />
           </Grid>
         </Grid>

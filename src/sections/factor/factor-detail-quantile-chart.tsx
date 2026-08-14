@@ -17,6 +17,8 @@ import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 import TableContainer from '@mui/material/TableContainer';
 
+import { fmtTradeDate } from 'src/utils/format-time';
+
 import { factorApi } from 'src/api/factor';
 
 import { Chart, useChart } from 'src/components/chart';
@@ -78,21 +80,21 @@ export function FactorDetailQuantileChart({ factorName, params }: FactorDetailQu
         ...result.groups.map((g) => ({
           name: g.label,
           data: g.series.map((d) => ({
-            x: d.tradeDate,
+            x: fmtTradeDate(d.tradeDate),
             y: Number((d.cumReturn * 100).toFixed(2)),
           })),
         })),
         {
           name: '多空组合',
           data: result.longShort.series.map((d) => ({
-            x: d.tradeDate,
+            x: fmtTradeDate(d.tradeDate),
             y: Number((d.cumReturn * 100).toFixed(2)),
           })),
         },
         {
           name: '基准',
           data: result.benchmark.series.map((d) => ({
-            x: d.tradeDate,
+            x: fmtTradeDate(d.tradeDate),
             y: Number((d.cumReturn * 100).toFixed(2)),
           })),
         },

@@ -5,15 +5,12 @@ import { useParams, useSearchParams } from 'react-router-dom';
 import { useRef, useMemo, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
-import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Divider from '@mui/material/Divider';
-import Tooltip from '@mui/material/Tooltip';
 import Snackbar from '@mui/material/Snackbar';
 import TextField from '@mui/material/TextField';
-import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import ToggleButton from '@mui/material/ToggleButton';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -40,25 +37,14 @@ import { useNoteAutosave } from '../use-note-autosave';
 import { ResearchNoteEditor } from '../research-note-editor';
 import { ResearchNotePreview } from '../research-note-preview';
 import { ResearchNoteTagInput } from '../research-note-tag-input';
+import { ResearchNoteDetailHeader } from '../research-note-detail-header';
 
-import type { AutosaveStatus, AutosavePayload } from '../use-note-autosave';
+import type { AutosavePayload } from '../use-note-autosave';
 
 // ----------------------------------------------------------------------
 
 type ContentMode = 'edit' | 'preview';
 type NoteLoadState = 'loading' | 'ready' | 'not-found' | 'invalid' | 'error';
-
-const STATUS_LABEL: Record<
-  AutosaveStatus,
-  { text: string; color: 'default' | 'primary' | 'success' | 'warning' | 'error' | 'info' }
-> = {
-  idle: { text: '已同步', color: 'default' },
-  dirty: { text: '未保存', color: 'warning' },
-  saving: { text: '保存中…', color: 'info' },
-  saved: { text: '已保存', color: 'success' },
-  error: { text: '保存失败', color: 'error' },
-  offline: { text: '离线', color: 'error' },
-};
 
 function countWords(content: string): number {
   if (!content) return 0;
@@ -245,7 +231,6 @@ export function ResearchNoteDetailView() {
 
   const wordCount = useMemo(() => countWords(content), [content]);
   const readingMinutes = useMemo(() => estimateReadingMinutes(wordCount), [wordCount]);
-  const statusInfo = STATUS_LABEL[autosave.status];
 
   if (loading) {
     return (
@@ -278,100 +263,20 @@ export function ResearchNoteDetailView() {
         </Alert>
       )}
 
-      {/* Header */}
-      <Stack
-        direction={{ xs: 'column', md: 'row' }}
-        spacing={1}
-        alignItems={{ xs: 'stretch', md: 'center' }}
-        sx={{ mb: 2 }}
-      >
-        <Tooltip title="返回" arrow>
-          <IconButton aria-label="返回" onClick={() => router.back()}>
-            <Iconify icon="solar:arrow-left-bold" />
-          </IconButton>
-        </Tooltip>
-
-        <Typography variant="h5" sx={{ flexGrow: 1, minWidth: 0 }} noWrap>
-          {isNew && noteIdState === null ? '新建笔记' : title || '（未命名笔记）'}
-        </Typography>
-
-        <Chip
-          size="small"
-          label={
-            statusInfo.text +
-            (autosave.lastSavedAt && autosave.status === 'saved'
-              ? ` · ${fDateTime(autosave.lastSavedAt)}`
-              : '')
-          }
-          color={statusInfo.color}
-          variant={autosave.status === 'idle' ? 'outlined' : 'filled'}
-          sx={{ alignSelf: { xs: 'flex-start', md: 'center' } }}
-        />
-
-        <Tooltip
-          title={
-            noteUnavailable
-              ? '笔记不可用'
-              : editingDisabled
-                ? '笔记尚未加载'
-                : isPinned
-                  ? '取消置顶'
-                  : '置顶'
-          }
-          arrow
-        >
-          <span>
-            <IconButton
-              aria-label={isPinned ? '取消置顶' : '置顶'}
-              onClick={() => setIsPinned(!isPinned)}
-              color={isPinned ? 'warning' : 'default'}
-              disabled={editingDisabled}
-            >
-              <Iconify icon={isPinned ? 'solar:pin-bold' : 'solar:pin-linear'} />
-            </IconButton>
-          </span>
-        </Tooltip>
-
-        <Tooltip title="历史版本（即将上线）" arrow>
-          <span>
-            <IconButton aria-label="历史版本（即将上线）" disabled>
-              <Iconify icon="solar:history-bold" />
-            </IconButton>
-          </span>
-        </Tooltip>
-
-        <Tooltip title="AI 摘要（即将上线）" arrow>
-          <span>
-            <IconButton aria-label="AI 摘要（即将上线）" disabled>
-              <Iconify icon="solar:pulse-2-bold-duotone" />
-            </IconButton>
-          </span>
-        </Tooltip>
-
-        {!isNew && (
-          <Button
-            variant="outlined"
-            color="error"
-            size="small"
-            startIcon={<Iconify icon="solar:trash-bin-trash-bold" />}
-            onClick={() => setDeleteDialogOpen(true)}
-            disabled={editingDisabled}
-          >
-            删除
-          </Button>
-        )}
-
-        <Button
-          variant="contained"
-          size="small"
-          startIcon={<Iconify icon="solar:diskette-bold" />}
-          onClick={() => void autosave.flush()}
-          loading={autosave.status === 'saving'}
-          disabled={editingDisabled}
-        >
-          保存（⌘S）
-        </Button>
-      </Stack>
+      <ResearchNoteDetailHeader
+        title={title}
+        isNew={isNew}
+        isUnsavedNewNote={isNew && noteIdState === null}
+        isPinned={isPinned}
+        noteUnavailable={noteUnavailable}
+        editingDisabled={editingDisabled}
+        autosaveStatus={autosave.status}
+        lastSavedAt={autosave.lastSavedAt}
+        onBack={() => router.back()}
+        onTogglePinned={() => setIsPinned(!isPinned)}
+        onDelete={() => setDeleteDialogOpen(true)}
+        onSave={() => void autosave.flush()}
+      />
 
       {error && (
         <Alert

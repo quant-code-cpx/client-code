@@ -1,4 +1,4 @@
-import type { HsgtTrendItem } from 'src/api/market';
+import type { HsgtFlowHistoryItem } from 'src/api/market';
 
 import { varAlpha } from 'minimal-shared/utils';
 
@@ -20,8 +20,8 @@ import { Iconify } from 'src/components/iconify';
 const SPARKLINE_DAYS = 10;
 
 /** 百万元 → 亿元 */
-function toYi(v: number | null | undefined): number {
-  return v != null ? v / 100 : 0;
+function toYi(v: number | null | undefined): number | null {
+  return v != null ? v / 100 : null;
 }
 
 function flowColor(v: number | null | undefined): 'error.main' | 'success.main' | 'text.secondary' {
@@ -32,36 +32,56 @@ function flowColor(v: number | null | undefined): 'error.main' | 'success.main' 
 }
 
 function formatYi(v: number | null | undefined): string {
-  if (v == null) return '-';
+  if (v == null) return '—';
   const yi = toYi(v);
+  if (yi == null) return '—';
   return `${yi > 0 ? '+' : ''}${yi.toFixed(2)}亿`;
 }
 
 // ── Mini Sparkline (SVG) ─────────────────────────────────────────
 
-function MiniSparkline({ values, positive }: { values: number[]; positive: boolean }) {
+function MiniSparkline({
+  values,
+  positive,
+}: {
+  values: Array<number | null>;
+  positive: boolean;
+}) {
   const theme = useTheme();
   const color = positive ? theme.palette.error.main : theme.palette.success.main;
   const w = 80;
   const h = 28;
 
-  if (values.length < 2) return null;
+  const validValues = values.filter((value): value is number => value != null);
+  if (validValues.length < 2) return null;
 
-  const min = Math.min(...values);
-  const max = Math.max(...values);
+  const min = Math.min(...validValues);
+  const max = Math.max(...validValues);
   const range = max - min || 1;
 
-  const pts = values
-    .map((v, i) => {
-      const x = (i / (values.length - 1)) * w;
-      const y = h - ((v - min) / range) * h;
-      return `${x},${y}`;
-    })
-    .join(' ');
+  const segments: string[] = [];
+  let currentSegment: string[] = [];
+
+  values.forEach((value, index) => {
+    if (value == null) {
+      if (currentSegment.length >= 2) segments.push(currentSegment.join(' '));
+      currentSegment = [];
+      return;
+    }
+
+    const x = (index / (values.length - 1)) * w;
+    const y = h - ((value - min) / range) * h;
+    currentSegment.push(`${x},${y}`);
+  });
+
+  if (currentSegment.length >= 2) segments.push(currentSegment.join(' '));
+  if (segments.length === 0) return null;
 
   return (
     <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none">
-      <polyline points={pts} fill="none" stroke={color} strokeWidth={1.5} />
+      {segments.map((points) => (
+        <polyline key={points} points={points} fill="none" stroke={color} strokeWidth={1.5} />
+      ))}
     </svg>
   );
 }
@@ -71,12 +91,12 @@ function MiniSparkline({ values, positive }: { values: number[]; positive: boole
 type ChannelProps = {
   label: string;
   value: number | null | undefined;
-  history: number[];
+  history: Array<number | null>;
 };
 
 function FlowChannel({ label, value, history }: ChannelProps) {
   const theme = useTheme();
-  const isPositive = (value ?? 0) > 0;
+  const isPositive = value != null && value > 0;
   const colorKey = flowColor(value);
 
   const resolveColor = () => {
@@ -111,7 +131,7 @@ function FlowChannel({ label, value, history }: ChannelProps) {
 // ── Main Component ────────────────────────────────────────────────
 
 type Props = {
-  history: HsgtTrendItem[];
+  history: HsgtFlowHistoryItem[];
   loading: boolean;
   error: string;
 };
@@ -205,7 +225,10 @@ export function MarketHsgtMiniCard({ history, loading, error }: Props) {
                 >
                   {formatYi(today.northMoney)}
                 </Typography>
-                <MiniSparkline values={northHistory} positive={(today.northMoney ?? 0) > 0} />
+                <MiniSparkline
+                  values={northHistory}
+                  positive={today.northMoney != null && today.northMoney > 0}
+                />
               </Stack>
             </Box>
 

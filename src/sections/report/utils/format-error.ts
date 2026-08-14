@@ -89,13 +89,13 @@ export function translateReportError(
 export function defaultRetryHintByType(type: ReportType): ReportErrorAction | undefined {
   switch (type) {
     case 'BACKTEST':
-      return { label: '检查回测任务', href: '/strategies/runs' };
+      return { label: '检查回测任务', href: '/backtest/runs' };
     case 'STOCK':
       return { label: '检查股票数据', hint: '可在数据同步管理中触发补数' };
     case 'PORTFOLIO':
       return { label: '检查组合', href: '/portfolio' };
     case 'STRATEGY_RESEARCH':
-      return { label: '检查策略与回测', href: '/strategies' };
+      return { label: '检查策略与回测', href: '/strategy' };
     default:
       return undefined;
   }

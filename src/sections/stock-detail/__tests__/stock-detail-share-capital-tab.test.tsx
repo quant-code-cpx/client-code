@@ -23,7 +23,7 @@ describe('StockDetailShareCapitalTab', () => {
     vi.clearAllMocks();
   });
 
-  it('兼容后端仅返回 latest/history、缺少 changes 的股本结构数据', async () => {
+it('兼容 latest/history 并格式化股本变动公告日', async () => {
     mockShareCapital.mockResolvedValueOnce({
       tsCode: '688525.SH',
       latest: {
@@ -42,12 +42,23 @@ describe('StockDetailShareCapitalTab', () => {
           changeReason: '定期披露',
         },
       ],
+      changes: [
+        {
+          annDate: '20260520',
+          changeReason: '定期披露',
+          totalShareBefore: 460000,
+          totalShareAfter: 470837.73,
+          changeAmount: 10837.73,
+        },
+      ],
     } as never);
 
     const { user } = renderWithProviders(<StockDetailShareCapitalTab tsCode="688525.SH" />);
 
     expect(await screen.findByText('股本结构')).toBeInTheDocument();
     expect(screen.getByText('历史股本明细')).toBeInTheDocument();
+    expect(screen.getAllByText('2026-05-20')).toHaveLength(2);
+    expect(screen.queryByText('20260520')).not.toBeInTheDocument();
     expect(screen.queryByText(/Unexpected Application Error/i)).not.toBeInTheDocument();
 
     const toggle = screen.getByRole('button', { name: '展开历史股本明细' });

@@ -2,6 +2,8 @@ import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
+import { fmtTradeDate } from 'src/utils/format-time';
+
 import type { MarketPeriod, MarketKLineData } from './market-kline.types';
 
 function formatNumber(value: number | undefined, digits = 2): string {
@@ -30,8 +32,8 @@ export function MarketKlineLegend({
 }) {
   const dateLabel = bar
     ? period === 'T'
-      ? `${bar.tradeDate} ${bar.time ?? ''}`
-      : bar.tradeDate
+      ? `${fmtTradeDate(bar.tradeDate)} ${bar.time ?? ''}`
+      : fmtTradeDate(bar.tradeDate)
     : '—';
 
   return (

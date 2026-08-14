@@ -17,6 +17,8 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 
+import { fmtTradeDate } from 'src/utils/format-time';
+
 import { useAuth } from 'src/auth';
 import { triggerHeatmapSnapshot, fetchHeatmapSnapshotHistory } from 'src/api/heatmap';
 
@@ -59,7 +61,7 @@ function SnapshotPanelInner({ canTrigger }: { canTrigger: boolean }) {
       );
       setTriggerResult({
         success: res.totalRecords > 0,
-        message: `快照聚合完成，共聚合 ${res.totalRecords} 条记录（交易日：${res.tradeDate}）`,
+        message: `快照聚合完成，共聚合 ${res.totalRecords} 条记录（交易日：${fmtTradeDate(res.tradeDate)}）`,
       });
     } catch (err) {
       setTriggerResult({
@@ -154,11 +156,11 @@ function SnapshotPanelInner({ canTrigger }: { canTrigger: boolean }) {
             <>
               <Divider sx={{ my: 2 }} />
               <Typography variant="subtitle2" sx={{ mb: 1.5 }}>
-                快照预览 — {snapshotData.tradeDate}
+                快照预览 — {fmtTradeDate(snapshotData.tradeDate)}
               </Typography>
 
               <Stack direction="row" flexWrap="wrap" spacing={2} useFlexGap>
-                <InfoItem label="交易日期" value={snapshotData.tradeDate} />
+                <InfoItem label="交易日期" value={fmtTradeDate(snapshotData.tradeDate)} />
                 <InfoItem label="分组维度" value={snapshotData.groupBy} />
                 <InfoItem
                   label="数据来源"

@@ -3,7 +3,9 @@ import type { PortfolioListItem } from 'src/api/portfolio';
 import { useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
+import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
+import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import Autocomplete from '@mui/material/Autocomplete';
@@ -21,16 +23,19 @@ type Props = GenerateFormProps<GeneratePortfolioParams> & {
 export function GenerateFormPortfolio({ value, onChange, onValidChange, compact = false }: Props) {
   const [items, setItems] = useState<PortfolioListItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const [selected, setSelected] = useState<PortfolioListItem | null>(null);
   const [manualMode, setManualMode] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
+    setError('');
     try {
       const list = await listPortfolios();
       setItems(list);
-    } catch {
+    } catch (err) {
       setItems([]);
+      setError(err instanceof Error ? err.message : '加载组合失败');
     } finally {
       setLoading(false);
     }
@@ -55,6 +60,18 @@ export function GenerateFormPortfolio({ value, onChange, onValidChange, compact 
 
   return (
     <Stack spacing={1.5}>
+      {error && (
+        <Alert
+          severity="error"
+          action={
+            <Button size="small" onClick={load} disabled={loading}>
+              重试
+            </Button>
+          }
+        >
+          {error}
+        </Alert>
+      )}
       {!manualMode ? (
         <Autocomplete
           size="small"
@@ -79,7 +96,7 @@ export function GenerateFormPortfolio({ value, onChange, onValidChange, compact 
             </Box>
           )}
           renderInput={(params) => <TextField {...params} label="选择组合" required />}
-          noOptionsText="尚无组合"
+          noOptionsText={error ? '组合加载失败' : '尚无组合'}
         />
       ) : (
         <TextField

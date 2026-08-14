@@ -48,8 +48,8 @@ export type IndexQuoteItem = {
   vol: number | null;
   /** 成交额（千元） */
   amount: number | null;
-  baseDate: string | null;
-  basePoint: number | null;
+  baseDate: string;
+  basePoint: number;
 };
 
 export type IndexTrendQuery = {
@@ -59,12 +59,12 @@ export type IndexTrendQuery = {
 
 export type IndexTrendItem = {
   tradeDate: string;
-  close: number;
-  pctChg: number;
+  close: number | null;
+  pctChg: number | null;
   /** 成交量（手） */
-  vol: number;
+  vol: number | null;
   /** 成交额（千元） */
-  amount: number;
+  amount: number | null;
 };
 
 export type IndexTrendResult = {
@@ -102,8 +102,8 @@ export type SentimentTrendItem = {
 
 export type SectorRankingItem = {
   tsCode: string;
-  name: string;
-  pctChange: number;
+  name: string | null;
+  pctChange: number | null;
   netAmount: number;
   netAmountRate: number;
 };
@@ -128,8 +128,8 @@ export type ValuationResult = {
 
 export type ValuationTrendItem = {
   tradeDate: string;
-  peTtmMedian: number;
-  pbMedian: number;
+  peTtmMedian: number | null;
+  pbMedian: number | null;
 };
 
 // ----------------------------------------------------------------------
@@ -145,19 +145,21 @@ export function fetchIndexTrend(query?: IndexTrendQuery) {
 }
 
 export function fetchSentiment(query?: MarketQueryBase) {
-  return postOnce<SentimentResult>('/api/market/sentiment', query ?? {});
+  return postOnce<SentimentResult | null>('/api/market/sentiment', query ?? {});
 }
 
 export function fetchChangeDistribution(query?: MarketQueryBase) {
-  return postOnce<ChangeDistributionResult>('/api/market/change-distribution', query ?? {});
+  return postOnce<ChangeDistributionResult | null>('/api/market/change-distribution', query ?? {});
 }
 
 export function fetchSentimentTrend(query?: MarketQueryBase & { days?: number }) {
   return postOnce<{ data: SentimentTrendItem[] }>('/api/market/sentiment-trend', query ?? {});
 }
 
-export function fetchSectorRanking(query?: MarketQueryBase & { sort_by?: string; limit?: number }) {
-  return postOnce<{ tradeDate: string; sectors: SectorRankingItem[] }>(
+export function fetchSectorRanking(
+  query?: MarketQueryBase & { sort_by?: 'pct_change' | 'net_amount'; limit?: number }
+) {
+  return postOnce<{ tradeDate: string | null; sectors: SectorRankingItem[] }>(
     '/api/market/sector-ranking',
     query ?? {}
   );
@@ -175,7 +177,7 @@ export type SectorTopBottomItem = {
 };
 
 export type SectorTopBottomResult = {
-  tradeDate: string;
+  tradeDate: string | null;
   /** 涨幅 Top N（genuine positive pct_change） */
   pctGainers: SectorTopBottomItem[];
   /** 跌幅 Top N（genuine negative pct_change，最负在前） */
@@ -202,7 +204,7 @@ export function fetchValuation(query?: MarketQueryBase) {
   return postOnce<ValuationResult>('/api/market/valuation', query ?? {});
 }
 
-export function fetchValuationTrend(query?: { period?: string }) {
+export function fetchValuationTrend(query?: { period?: '3m' | '6m' | '1y' | '3y' | '5y' }) {
   return postOnce<{ period: string; data: ValuationTrendItem[] }>(
     '/api/market/valuation-trend',
     query ?? {}
@@ -263,47 +265,47 @@ export type MoneyFlowTrendItem = {
   /** 累计净流入（元） */
   cumulativeNet: number;
   /** 超大单净流入（元） */
-  buyElgAmount: number;
+  buyElgAmount: number | null;
   /** 大单净流入（元） */
-  buyLgAmount: number;
+  buyLgAmount: number | null;
   /** 中单净流入（元） */
-  buyMdAmount: number;
+  buyMdAmount: number | null;
   /** 小单净流入（元） */
-  buySmAmount: number;
+  buySmAmount: number | null;
 };
 
 export type SectorFlowRankingItem = {
   tsCode: string;
-  name: string;
+  name: string | null;
   /** 板块涨跌幅 % */
-  pctChange: number;
-  close: number;
+  pctChange: number | null;
+  close: number | null;
   /** 净流入（元） */
-  netAmount: number;
+  netAmount: number | null;
   /** 净流入率 % */
-  netAmountRate: number;
+  netAmountRate: number | null;
   /** 超大单净流入（元） */
-  buyElgAmount: number;
+  buyElgAmount: number | null;
   /** 大单净流入（元） */
-  buyLgAmount: number;
+  buyLgAmount: number | null;
   /** 中单净流入（元） */
-  buyMdAmount: number;
+  buyMdAmount: number | null;
   /** 小单净流入（元） */
-  buySmAmount: number;
+  buySmAmount: number | null;
 };
 
 export type SectorFlowTrendItem = {
   tradeDate: string;
   /** 板块涨跌幅 % */
-  pctChange: number;
+  pctChange: number | null;
   /** 当日净流入（元） */
-  netAmount: number;
+  netAmount: number | null;
   /** 累计净流入（元） */
   cumulativeNet: number;
 };
 
-export type HsgtTrendItem = {
-  tradeDate: string;
+export type HsgtFlowHistoryItem = {
+  tradeDate: string | null;
   /** 北向当日成交额（百万元，非净流入） */
   northMoney: number | null;
   /** 南向当日成交额（百万元，非净流入） */
@@ -318,6 +320,12 @@ export type HsgtTrendItem = {
   ggtSz: number | null;
 };
 
+export type HsgtTrendItem = Omit<HsgtFlowHistoryItem, 'tradeDate'> & {
+  tradeDate: string;
+  cumulativeNorth: number;
+  cumulativeSouth: number;
+};
+
 export type MainFlowRankingItem = {
   tsCode: string;
   name: string | null;
@@ -328,10 +336,10 @@ export type MainFlowRankingItem = {
   elgNetInflow: number;
   /** 大单净流入（万元） */
   lgNetInflow: number;
-  /** 中单净流入（万元）— 后端待支持，现返回 undefined */
-  mdNetInflow?: number;
-  /** 小单净流入（万元）— 后端待支持，现返回 undefined */
-  smNetInflow?: number;
+  /** 中单净流入（万元） */
+  mdNetInflow: number;
+  /** 小单净流入（万元） */
+  smNetInflow: number;
   /** 当日涨跌幅 % */
   pctChg: number | null;
   /** 当日成交额（千元） */
@@ -345,23 +353,23 @@ export type StockFlowDetailItem = {
   /** 散户净流入（万元） */
   retailNetInflow: number;
   /** 特大单买入（万元） */
-  buyElgAmount: number;
+  buyElgAmount: number | null;
   /** 特大单卖出（万元） */
-  sellElgAmount: number;
+  sellElgAmount: number | null;
   /** 大单买入（万元） */
-  buyLgAmount: number;
+  buyLgAmount: number | null;
   /** 大单卖出（万元） */
-  sellLgAmount: number;
+  sellLgAmount: number | null;
   /** 中单买入（万元） */
-  buyMdAmount: number;
+  buyMdAmount: number | null;
   /** 中单卖出（万元） */
-  sellMdAmount: number;
+  sellMdAmount: number | null;
   /** 小单买入（万元） */
-  buySmAmount: number;
+  buySmAmount: number | null;
   /** 小单卖出（万元） */
-  sellSmAmount: number;
+  sellSmAmount: number | null;
   /** 总净流入（万元） */
-  netMfAmount: number;
+  netMfAmount: number | null;
 };
 
 // ----------------------------------------------------------------------
@@ -387,16 +395,16 @@ export function fetchMoneyFlowTrend(query?: { trade_date?: string; days?: number
 export function fetchSectorFlowRanking(query?: {
   trade_date?: string;
   content_type?: 'INDUSTRY' | 'CONCEPT' | 'REGION';
-  sort_by?: 'net_amount' | 'pct_change' | 'buy_elg_amount' | 'buy_lg_amount';
+  sort_by?: 'net_amount' | 'pct_change' | 'buy_elg_amount';
   order?: 'asc' | 'desc';
   limit?: number;
   /** 后端支持双榜合并返回，dual=true 时响应包含 topInflow + topOutflow，忽略 order 参数 */
   dual?: boolean;
 }) {
   return postOnce<
-    | { tradeDate: string; contentType: string; sectors: SectorFlowRankingItem[] }
+    | { tradeDate: string | null; contentType: string; sectors: SectorFlowRankingItem[] }
     | {
-        tradeDate: string;
+        tradeDate: string | null;
         contentType: string;
         topInflow: SectorFlowRankingItem[];
         topOutflow: SectorFlowRankingItem[];
@@ -409,41 +417,40 @@ export function fetchSectorFlowTrend(query: {
   content_type?: 'INDUSTRY' | 'CONCEPT' | 'REGION';
   days?: number;
 }) {
-  return postOnce<{ tsCode: string; name: string; data: SectorFlowTrendItem[] }>(
+  return postOnce<{ tsCode: string; name: string | null; data: SectorFlowTrendItem[] }>(
     '/api/market/sector-flow-trend',
     query
   );
 }
 
 export function fetchHsgtFlow(query?: { trade_date?: string; days?: number }) {
-  return postOnce<{ tradeDate: string | null; history: HsgtTrendItem[] }>(
+  return postOnce<{ tradeDate: string | null; history: HsgtFlowHistoryItem[] }>(
     '/api/market/hsgt-flow',
     query ?? {}
   );
 }
 
-export function fetchHsgtTrend(query?: { period?: string; trade_date?: string }) {
+export function fetchHsgtTrend(query?: { period?: '1m' | '3m' | '6m' | '1y' }) {
   return postOnce<{ period: string; data: HsgtTrendItem[] }>('/api/market/hsgt-trend', query ?? {});
 }
 
 export type MainFlowRankingResponse =
-  | { tradeDate: string; data: MainFlowRankingItem[] }
-  | { tradeDate: string; topInflow: MainFlowRankingItem[]; topOutflow: MainFlowRankingItem[] };
+  | { tradeDate: string | null; data: MainFlowRankingItem[] }
+  | { tradeDate: string | null; topInflow: MainFlowRankingItem[]; topOutflow: MainFlowRankingItem[] };
 
 export function fetchMainFlowRanking(query?: {
   trade_date?: string;
-  /** 后端待支持：排序维度 */
-  sort_by?: string;
-  /** 后端待支持：dual=true 时单次返回 topInflow + topOutflow */
+  sort_by?: 'main_net_inflow' | 'elg_net_inflow' | 'lg_net_inflow' | 'pct_chg';
+  /** dual=true 时单次返回 topInflow + topOutflow */
   dual?: boolean;
-  order?: string;
+  order?: 'asc' | 'desc';
   limit?: number;
 }) {
   return postOnce<MainFlowRankingResponse>('/api/market/main-flow-ranking', query ?? {});
 }
 
 export function fetchStockFlowDetail(query: { ts_code: string; days?: number }) {
-  return postOnce<{ tsCode: string; name: string; data: StockFlowDetailItem[] }>(
+  return postOnce<{ tsCode: string; name: string | null; data: StockFlowDetailItem[] }>(
     '/api/market/stock-flow-detail',
     query
   );
@@ -454,12 +461,11 @@ export function fetchStockFlowDetail(query: { ts_code: string; days?: number }) 
 // ----------------------------------------------------------------------
 
 export type RotationOverviewResult = {
-  tradeDate: string;
+  tradeDate: string | null;
   period: string;
   topGainers: Array<{ name: string; pctChange: number }>;
   topLosers: Array<{ name: string; pctChange: number }>;
-  topInflows: Array<{ name: string; netAmount: number }>;
-  avgPctChange: number;
+  avgPctChange: number | null;
   riseCount: number;
   fallCount: number;
   totalCount: number;
@@ -467,14 +473,11 @@ export type RotationOverviewResult = {
 
 export type RotationHeatmapSector = {
   name: string;
-  pctChange: number;
-  amount: number;
-  netAmount: number;
-  children?: Array<{ name: string; pctChange: number; amount: number }>;
+  pctChange: number | null;
 };
 
 export type RotationHeatmapResult = {
-  tradeDate: string;
+  tradeDate: string | null;
   sectors: RotationHeatmapSector[];
 };
 
@@ -482,21 +485,17 @@ export type MomentumRankingItem = {
   name: string;
   momentum: number;
   rank: number;
-  prevRank: number;
-  rankChange: number;
-  /** 成交额（万元） */
-  amount?: number;
 };
 
 export type MomentumRankingResult = {
-  tradeDate: string;
+  tradeDate: string | null;
   period: string;
   rankings: MomentumRankingItem[];
 };
 
 type BackendReturnComparisonIndustry = {
   tsCode: string;
-  name: string;
+  name: string | null;
   returns: Record<string, number | null>;
   latestPctChange: number | null;
   latestClose: number | null;
@@ -547,7 +546,7 @@ export async function fetchRotationOverview(query?: {
 
   const returns = (res?.industries ?? [])
     .map((ind) => ({
-      name: ind.name,
+      name: ind.name ?? ind.tsCode,
       pctChange: readReturnValue(ind.returns, periodDays),
     }))
     .filter((item): item is { name: string; pctChange: number } => item.pctChange != null);
@@ -557,12 +556,11 @@ export async function fetchRotationOverview(query?: {
   const sumPctChange = returns.reduce((sum, item) => sum + item.pctChange, 0);
 
   return {
-    tradeDate: res?.tradeDate ?? '',
+    tradeDate: res.tradeDate || null,
     period: `${periodDays}d`,
     topGainers: sortedDesc.filter((item) => item.pctChange > 0).slice(0, 5),
     topLosers: sortedAsc.filter((item) => item.pctChange < 0).slice(0, 5),
-    topInflows: [],
-    avgPctChange: returns.length > 0 ? sumPctChange / returns.length : 0,
+    avgPctChange: returns.length > 0 ? sumPctChange / returns.length : null,
     riseCount: returns.filter((item) => item.pctChange > 0).length,
     fallCount: returns.filter((item) => item.pctChange < 0).length,
     totalCount: returns.length,
@@ -570,7 +568,7 @@ export async function fetchRotationOverview(query?: {
 }
 
 /** BE returns { periods, industries: [{tsCode, name, returns}] };
- *  adapter maps to FE { sectors: [{name, pctChange, amount, netAmount}] } */
+ * adapter exposes only fields actually returned by that endpoint. */
 export async function fetchRotationHeatmap(query?: {
   trade_date?: string;
   periods?: number[];
@@ -578,18 +576,16 @@ export async function fetchRotationHeatmap(query?: {
   const res = await postOnce<{
     tradeDate: string;
     periods: number[];
-    industries: Array<{ tsCode: string; name: string; returns: Record<string, number | null> }>;
+    industries: Array<{ tsCode: string; name: string | null; returns: Record<string, number | null> }>;
   }>('/api/industry-rotation/heatmap', query ?? {});
 
   const firstPeriod = String(res?.periods?.[0] ?? '');
 
   return {
-    tradeDate: res?.tradeDate ?? '',
+    tradeDate: res.tradeDate || null,
     sectors: (res?.industries ?? []).map((ind) => ({
-      name: ind.name,
-      pctChange: readReturnValue(ind.returns, firstPeriod) ?? 0,
-      amount: 0,
-      netAmount: 0,
+      name: ind.name ?? ind.tsCode,
+      pctChange: readReturnValue(ind.returns, firstPeriod),
     })),
   };
 }
@@ -608,7 +604,7 @@ export async function fetchMomentumRanking(query?: {
     method: string;
     industries: Array<{
       tsCode: string;
-      name: string;
+      name: string | null;
       momentumScore: number;
       return5d: number | null;
       return20d: number | null;
@@ -619,15 +615,12 @@ export async function fetchMomentumRanking(query?: {
   }>('/api/industry-rotation/momentum-ranking', query ?? {});
 
   return {
-    tradeDate: res?.tradeDate ?? '',
-    period: res?.method ?? 'weighted',
+    tradeDate: res.tradeDate || null,
+    period: res.method,
     rankings: (res?.industries ?? []).map((ind) => ({
-      name: ind.name,
+      name: ind.name ?? ind.tsCode,
       momentum: ind.momentumScore,
       rank: ind.rank,
-      prevRank: 0,
-      rankChange: 0,
-      amount: undefined,
     })),
   };
 }
@@ -648,14 +641,17 @@ export type ReturnComparisonResult = {
 
 export type FlowAnalysisItem = {
   name: string;
-  netInflow: number;
-  inflowAmount: number;
-  outflowAmount: number;
-  inflowRatio: number;
+  /** 区间累计净流入（元）；moneyflow_ind_dc 原始口径。 */
+  netInflowYuan: number;
+  /** 区间累计流入（元）。 */
+  inflowAmountYuan: number;
+  /** 区间累计流出绝对值（元）。 */
+  outflowAmountYuan: number;
+  inflowRatio: number | null;
 };
 
 export type FlowAnalysisResult = {
-  tradeDate: string;
+  tradeDate: string | null;
   period: string;
   flows: FlowAnalysisItem[];
   topInflowSectors: string[];
@@ -673,7 +669,7 @@ export type SectorValuationItem = {
 };
 
 export type SectorValuationResult = {
-  tradeDate: string;
+  tradeDate: string | null;
   sectors: SectorValuationItem[];
 };
 
@@ -688,10 +684,10 @@ export type RotationDetailTopStock = {
 
 export type RotationDetailResult = {
   sectorName: string;
-  tradeDate: string;
-  pctChange: number;
+  tradeDate: string | null;
+  pctChange: number | null;
   amount: number | null;
-  netAmount: number;
+  netAmount: number | null;
   momentum: number | null;
   pePercentile: number | null;
   pbPercentile: number | null;
@@ -731,7 +727,7 @@ export async function fetchReturnComparison(query?: {
     period: periodKeys.join(','),
     benchmark: null,
     sectors: industries.map((ind) => ({
-      name: ind.name,
+      name: ind.name ?? ind.tsCode,
       data: periodKeys.map((pk) => ({
         tradeDate: `${pk}d`,
         cumReturn: readReturnValue(ind.returns, pk),
@@ -744,7 +740,7 @@ export async function fetchReturnComparison(query?: {
 export async function fetchFlowAnalysis(query?: {
   trade_date?: string;
   days?: number;
-  sort_by?: string;
+  sort_by?: 'cumulative_net' | 'avg_daily_net' | 'flow_momentum';
   order?: 'asc' | 'desc';
   limit?: number;
 }): Promise<FlowAnalysisResult> {
@@ -753,7 +749,7 @@ export async function fetchFlowAnalysis(query?: {
     days: number;
     industries: Array<{
       tsCode: string;
-      name: string;
+      name: string | null;
       cumulativeNetAmount: number;
       avgDailyNetAmount: number;
       cumulativeReturn: number | null;
@@ -767,23 +763,27 @@ export async function fetchFlowAnalysis(query?: {
     summary: {
       inflowCount: number;
       outflowCount: number;
-      topInflowNames: string[];
-      topOutflowNames: string[];
+      topInflowNames: Array<string | null>;
+      topOutflowNames: Array<string | null>;
     };
   }>('/api/industry-rotation/flow-analysis', query ?? {});
 
   return {
-    tradeDate: res?.tradeDate ?? '',
-    period: String(res?.days ?? ''),
+    tradeDate: res.tradeDate || null,
+    period: String(res.days),
     flows: (res?.industries ?? []).map((ind) => ({
-      name: ind.name,
-      netInflow: ind.cumulativeNetAmount,
-      inflowAmount: ind.cumulativeNetAmount > 0 ? ind.cumulativeNetAmount : 0,
-      outflowAmount: ind.cumulativeNetAmount < 0 ? Math.abs(ind.cumulativeNetAmount) : 0,
-      inflowRatio: ind.mainForceRatio ?? 0,
+      name: ind.name ?? ind.tsCode,
+      netInflowYuan: ind.cumulativeNetAmount,
+      inflowAmountYuan: ind.cumulativeNetAmount > 0 ? ind.cumulativeNetAmount : 0,
+      outflowAmountYuan: ind.cumulativeNetAmount < 0 ? Math.abs(ind.cumulativeNetAmount) : 0,
+      inflowRatio: ind.mainForceRatio,
     })),
-    topInflowSectors: res?.summary?.topInflowNames ?? [],
-    topOutflowSectors: res?.summary?.topOutflowNames ?? [],
+    topInflowSectors: (res?.summary?.topInflowNames ?? []).filter(
+      (name): name is string => name != null
+    ),
+    topOutflowSectors: (res?.summary?.topOutflowNames ?? []).filter(
+      (name): name is string => name != null
+    ),
   };
 }
 
@@ -811,7 +811,7 @@ export async function fetchSectorValuation(query?: {
   }>('/api/industry-rotation/valuation', query ?? {});
 
   return {
-    tradeDate: res?.tradeDate ?? '',
+    tradeDate: res.tradeDate || null,
     sectors: (res?.industries ?? []).map((ind) => ({
       name: ind.industry,
       peTtm: ind.peTtmMedian,
@@ -868,11 +868,11 @@ export async function fetchRotationDetail(query: {
   const latestFlow = res?.flowTrend?.at(-1);
 
   return {
-    sectorName: res?.industry ?? '',
-    tradeDate: latestReturn?.tradeDate ?? '',
-    pctChange: latestReturn?.pctChange ?? 0,
+    sectorName: res.industry,
+    tradeDate: latestReturn?.tradeDate ?? null,
+    pctChange: latestReturn?.pctChange ?? null,
     amount: null,
-    netAmount: latestFlow?.netAmount ?? 0,
+    netAmount: latestFlow?.netAmount ?? null,
     momentum: null,
     pePercentile: res?.valuation?.peTtmPercentile1y ?? null,
     pbPercentile: res?.valuation?.pbPercentile1y ?? null,
@@ -903,23 +903,25 @@ export async function fetchRotationDetail(query: {
 
 export type SectorFlowItem = {
   tsCode: string;
-  name: string;
-  pctChange: number;
-  close: number;
-  /** 成交额（万元） */
-  amount: number;
+  tradeDate: string;
+  contentType: 'INDUSTRY' | 'CONCEPT' | 'REGION';
+  name: string | null;
+  pctChange: number | null;
+  close: number | null;
   /** 净流入额（元，来自 moneyflow_ind_dc） */
-  netAmount: number;
+  netAmount: number | null;
   /** 净流入占比 */
-  netAmountRate: number;
-  /** 上涨家数 */
-  upCount: number;
-  /** 下跌家数 */
-  downCount: number;
-  /** 领涨股 */
-  leadStock: string | null;
-  /** 领涨股涨跌幅 */
-  leadPctChg: number | null;
+  netAmountRate: number | null;
+  buyElgAmount: number | null;
+  buyElgAmountRate: number | null;
+  buyLgAmount: number | null;
+  buyLgAmountRate: number | null;
+  buyMdAmount: number | null;
+  buyMdAmountRate: number | null;
+  buySmAmount: number | null;
+  buySmAmountRate: number | null;
+  buySmAmountStock: string | null;
+  rank: number | null;
 };
 
 export type SectorFlowResult = {
@@ -938,39 +940,25 @@ export type ConceptItem = {
   code: string;
   name: string;
   /** 成分股数量 */
-  count: number;
-  /** 涨跌幅 */
-  pctChange: number | null;
-  /** 成交额（万元） */
-  amount: number | null;
-  /** 净流入额（万元） */
-  netAmount: number | null;
-  /** 领涨股 */
-  leadStock: string | null;
-  /** 领涨股涨跌幅 */
-  leadPctChg: number | null;
+  count: number | null;
+  listDate: string | null;
 };
 
 export type ConceptListResult = {
-  tradeDate: string;
   total: number;
+  page: number;
+  pageSize: number;
   items: ConceptItem[];
 };
 
 export type ConceptMemberItem = {
   tsCode: string;
-  name: string;
-  pctChg: number | null;
-  close: number | null;
-  amount: number | null;
-  netAmount: number | null;
-  industry: string | null;
+  name: string | null;
 };
 
 export type ConceptMembersResult = {
   conceptCode: string;
-  conceptName: string;
-  tradeDate: string;
+  conceptName: string | null;
   /** 服务端返回的成分股总数（用于分页） */
   total: number;
   members: ConceptMemberItem[];
@@ -981,11 +969,39 @@ export function fetchSectorFlow(query?: {
   content_type?: 'INDUSTRY' | 'CONCEPT' | 'REGION';
   limit?: number;
 }) {
-  return apiClient.post<SectorFlowResult>('/api/market/sector-flow', query ?? {});
+  return postOnce<SectorFlowResult>('/api/market/sector-flow', query ?? {}).then((result) => {
+    const mapItem = (item: SectorFlowItem): SectorFlowItem => ({
+      tsCode: item.tsCode,
+      tradeDate: item.tradeDate,
+      contentType: item.contentType,
+      name: item.name,
+      pctChange: item.pctChange,
+      close: item.close,
+      netAmount: item.netAmount,
+      netAmountRate: item.netAmountRate,
+      buyElgAmount: item.buyElgAmount,
+      buyElgAmountRate: item.buyElgAmountRate,
+      buyLgAmount: item.buyLgAmount,
+      buyLgAmountRate: item.buyLgAmountRate,
+      buyMdAmount: item.buyMdAmount,
+      buyMdAmountRate: item.buyMdAmountRate,
+      buySmAmount: item.buySmAmount,
+      buySmAmountRate: item.buySmAmountRate,
+      buySmAmountStock: item.buySmAmountStock,
+      rank: item.rank,
+    });
+
+    return {
+      tradeDate: result.tradeDate,
+      industry: result.industry.map(mapItem),
+      concept: result.concept.map(mapItem),
+      region: result.region.map(mapItem),
+    };
+  });
 }
 
 /** BE returns { total, page, pageSize, items: [{tsCode, name, count, listDate}] };
- *  adapter maps tsCode→code and defaults missing trading fields */
+ * adapter only renames tsCode→code and preserves nullable values. */
 export async function fetchConceptList(query?: {
   keyword?: string;
   page?: number;
@@ -1004,23 +1020,19 @@ export async function fetchConceptList(query?: {
   }>('/api/market/concept/list', query ?? {});
 
   return {
-    tradeDate: '',
-    total: res?.total ?? 0,
-    items: (res?.items ?? []).map((it) => ({
+    total: res.total,
+    page: res.page,
+    pageSize: res.pageSize,
+    items: res.items.map((it) => ({
       code: it.tsCode,
       name: it.name,
-      count: it.count ?? 0,
-      pctChange: null,
-      amount: null,
-      netAmount: null,
-      leadStock: null,
-      leadPctChg: null,
+      count: it.count,
+      listDate: it.listDate,
     })),
   };
 }
 
-/** BE returns { tsCode, name, total, items: [{conCode, conName}] };
- *  adapter maps to FE { conceptCode, conceptName, members: [{tsCode, name, ...}] } */
+/** BE returns { tsCode, name, total, items: [{conCode, conName}] } and the adapter only renames keys. */
 export async function fetchConceptMembers(query: {
   tsCode: string;
   name?: string;
@@ -1038,18 +1050,12 @@ export async function fetchConceptMembers(query: {
   }>('/api/market/concept/members', query);
 
   return {
-    conceptCode: res?.tsCode ?? '',
-    conceptName: res?.name ?? '',
-    tradeDate: '',
-    total: res?.total ?? 0,
-    members: (res?.items ?? []).map((it) => ({
+    conceptCode: res.tsCode,
+    conceptName: res.name,
+    total: res.total,
+    members: res.items.map((it) => ({
       tsCode: it.conCode,
-      name: it.conName ?? '',
-      pctChg: null,
-      close: null,
-      amount: null,
-      netAmount: null,
-      industry: null,
+      name: it.conName,
     })),
   };
 }
@@ -1098,10 +1104,14 @@ export type MarketBreadthResult = {
   bigFall: number;
   /** 当日有行情 A 股总数 */
   total: number;
+  /** 炸板家数 */
+  limitUpBroken: number;
+  /** 连板梯队 */
+  consecutiveLimitGroups: Array<{ board: number; count: number }>;
 };
 
 export function fetchMarketBreadth(query?: MarketQueryBase) {
-  return postOnce<MarketBreadthResult>('/api/market/market-breadth', query ?? {});
+  return postOnce<MarketBreadthResult | null>('/api/market/market-breadth', query ?? {});
 }
 
 // ── 指数行情 + 迷你走势（合并接口）────────────────────────────
@@ -1117,18 +1127,20 @@ export type IndexQuoteWithSparklineItem = {
   vol: number | null;
   /** 成交额（千元） */
   amount: number | null;
+  baseDate: string;
+  basePoint: number;
   /** 近 N 交易日收盘价数组（升序） */
   sparkline: (number | null)[];
 };
 
 export type IndexQuoteWithSparklineResult = {
-  tradeDate: string;
+  tradeDate: string | null;
   sparklinePeriod: string;
   indices: IndexQuoteWithSparklineItem[];
 };
 
 export function fetchIndexQuoteWithSparkline(
-  query?: MarketQueryBase & { sparkline_period?: string }
+  query?: MarketQueryBase & { sparkline_period?: '1m' | '3m' | '6m' | '1y' | '3y' }
 ) {
   return postOnce<IndexQuoteWithSparklineResult>(
     '/api/market/index-quote-with-sparkline',

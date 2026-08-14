@@ -3,15 +3,9 @@ import type { ModelPolicy } from 'src/types/agent/generated';
 import { useRef, useMemo, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
-import Menu from '@mui/material/Menu';
-import Stack from '@mui/material/Stack';
 import Alert from '@mui/material/Alert';
 import Drawer from '@mui/material/Drawer';
-import Tooltip from '@mui/material/Tooltip';
-import MenuItem from '@mui/material/MenuItem';
 import { useTheme } from '@mui/material/styles';
-import Typography from '@mui/material/Typography';
-import IconButton from '@mui/material/IconButton';
 import useMediaQuery from '@mui/material/useMediaQuery';
 
 import { useRouter } from 'src/routes/hooks';
@@ -19,30 +13,22 @@ import { useRouter } from 'src/routes/hooks';
 import { agentApi } from 'src/api/agent';
 import { useSyncNotification } from 'src/contexts/sync-notification-context';
 
-import { Label } from 'src/components/label';
-import { Iconify } from 'src/components/iconify';
-
 import { Composer } from './composer';
 import { EvidenceRail } from './evidence-rail';
 import { RunStatusBar } from './run-status-bar';
 import { MessageViewport } from './message-viewport';
 import { useAgentRun } from '../hooks/use-agent-run';
-import { AgentMemoryDrawer } from './agent-memory-drawer';
+import { AgentShellHeader } from './agent-shell-header';
 import { useConversation } from '../hooks/use-conversation';
 import { ConversationSidebar } from './conversation-sidebar';
 import { useComposerDraft } from '../hooks/use-composer-draft';
 import { TERMINAL_RUN_STATUSES } from '../state/agent-state.types';
 import { useConversationList } from '../hooks/use-conversation-list';
+import { formatReasoningEffort } from './conversation-model-control';
 import { AgentMuiXProvider } from './mui-x-chat/agent-mui-x-provider';
 import { AgentReportPreviewDialog } from './agent-report-preview-dialog';
-import { AgentReportLibraryDialog } from './agent-report-library-dialog';
 import { useAgentState, useAgentDispatch } from '../state/agent-provider';
-import { NotificationChannelSettings } from './notification-channel-settings';
 import { toChatMessages, toChatConversations } from './mui-x-chat/agent-chat-mappers';
-import {
-  formatReasoningEffort,
-  ConversationModelControl,
-} from './conversation-model-control';
 
 import type { AgentComposerModel } from '../state/agent-state.types';
 
@@ -62,13 +48,9 @@ export function AgentShell() {
   const handledSocketUpdateRef = useRef('');
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [conversationQuery, setConversationQuery] = useState('');
-  const [moreActionsAnchor, setMoreActionsAnchor] = useState<HTMLElement | null>(null);
   const [evidenceDrawerOpen, setEvidenceDrawerOpen] = useState(false);
   const [evidenceDismissed, setEvidenceDismissed] = useState(false);
-  const [memoryDrawerOpen, setMemoryDrawerOpen] = useState(false);
-  const [notificationSettingsOpen, setNotificationSettingsOpen] = useState(false);
   const [reportPreviewRunId, setReportPreviewRunId] = useState<string | null>(null);
-  const [reportLibraryOpen, setReportLibraryOpen] = useState(false);
   const [reportNotice, setReportNotice] = useState<string | null>(null);
   const [modelSaving, setModelSaving] = useState(false);
   const [modelError, setModelError] = useState<string | null>(null);
@@ -327,133 +309,25 @@ export function AgentShell() {
           component="main"
           sx={{ minWidth: 0, minHeight: 0, flex: 1, display: 'flex', flexDirection: 'column' }}
         >
-          <Box
-            sx={{
-              minHeight: 64,
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1,
-              px: { xs: 1, md: 3.25 },
-              borderBottom: 1,
-              borderColor: 'divider',
-              bgcolor: 'background.default',
+          <AgentShellHeader
+            mobile={mobile}
+            conversationId={conversationId}
+            conversationTitle={conversationState.conversation?.title ?? null}
+            activeRunStatus={run.activeRun?.status ?? null}
+            canConfigureModel={canConfigureModel}
+            modelPolicy={selectedModelPolicy}
+            preferredModel={selectedPreferredModel}
+            reasoningEffort={selectedReasoningEffort}
+            modelSaving={modelSaving}
+            evidenceAvailable={Boolean(evidenceMessage)}
+            evidencePanelOpen={evidencePanelOpen}
+            onOpenSidebar={() => setSidebarOpen(true)}
+            onToggleEvidence={() => {
+              if (wideEvidence) setEvidenceDismissed((value) => !value);
+              else setEvidenceDrawerOpen((value) => !value);
             }}
-          >
-            {mobile ? (
-              <Tooltip title="会话列表">
-                <IconButton aria-label="打开会话列表" onClick={() => setSidebarOpen(true)}>
-                  <Iconify icon="solar:list-bold" width={20} />
-                </IconButton>
-              </Tooltip>
-            ) : null}
-            <Box sx={{ minWidth: 0, flex: 1 }}>
-              <Typography
-                variant="caption"
-                noWrap
-                sx={{
-                  display: 'block',
-                  color: 'text.disabled',
-                  fontWeight: 700,
-                  letterSpacing: 1.1,
-                  textTransform: 'uppercase',
-                }}
-              >
-                Research thread{conversationId ? ` · ${conversationId}` : ''}
-              </Typography>
-              <Stack direction="row" spacing={1} alignItems="center">
-                <Typography component="h1" variant="subtitle1" noWrap sx={{ fontWeight: 700 }}>
-                  {conversationState.conversation?.title ?? 'AI 量化研究'}
-                </Typography>
-                {run.activeRun ? (
-                  <Label
-                    variant="soft"
-                    color={
-                      run.activeRun.status === 'FAILED'
-                        ? 'error'
-                        : run.activeRun.status === 'CANCELLED'
-                          ? 'warning'
-                          : run.activeRun.status === 'COMPLETED'
-                            ? 'success'
-                            : 'info'
-                    }
-                  >
-                    {run.activeRun.status === 'FAILED'
-                      ? '研究失败'
-                      : run.activeRun.status === 'CANCELLED'
-                        ? '已停止'
-                        : run.activeRun.status === 'COMPLETED'
-                          ? '已完成'
-                          : '研究中'}
-                  </Label>
-                ) : null}
-              </Stack>
-            </Box>
-            <Stack direction="row" spacing={0.25} alignItems="center">
-              {mobile ? (
-                <Tooltip title="更多研究操作">
-                  <IconButton
-                    aria-label="更多研究操作"
-                    onClick={(event) => setMoreActionsAnchor(event.currentTarget)}
-                  >
-                    <Iconify icon="solar:menu-dots-bold" width={20} />
-                  </IconButton>
-                </Tooltip>
-              ) : (
-                <>
-                  <Tooltip title="管理长期记忆">
-                    <IconButton
-                      aria-label="管理长期记忆"
-                      onClick={() => setMemoryDrawerOpen(true)}
-                      sx={headerActionSx}
-                    >
-                      <Iconify icon="solar:notebook-bookmark-bold" width={20} />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title="管理通知渠道">
-                    <IconButton
-                      aria-label="管理通知渠道"
-                      onClick={() => setNotificationSettingsOpen(true)}
-                      sx={headerActionSx}
-                    >
-                      <Iconify icon="solar:bell-bing-bold" width={20} />
-                    </IconButton>
-                  </Tooltip>
-                  <Tooltip title="查看研究报告">
-                    <IconButton
-                      aria-label="查看研究报告"
-                      onClick={() => setReportLibraryOpen(true)}
-                      sx={headerActionSx}
-                    >
-                      <Iconify icon="solar:document-text-bold" width={20} />
-                    </IconButton>
-                  </Tooltip>
-                </>
-              )}
-              {evidenceMessage ? (
-                <Tooltip title={evidencePanelOpen ? '关闭证据面板' : '查看证据面板'}>
-                  <IconButton
-                    aria-label={evidencePanelOpen ? '关闭证据面板' : '查看证据面板'}
-                    onClick={() => {
-                      if (wideEvidence) setEvidenceDismissed((value) => !value);
-                      else setEvidenceDrawerOpen((value) => !value);
-                    }}
-                    sx={headerActionSx}
-                  >
-                    <Iconify icon="solar:file-text-bold" width={20} />
-                  </IconButton>
-                </Tooltip>
-              ) : null}
-              {!mobile && canConfigureModel ? (
-                <ConversationModelControl
-                  policy={selectedModelPolicy}
-                  preferredModel={selectedPreferredModel}
-                  reasoningEffort={selectedReasoningEffort}
-                  saving={modelSaving}
-                  onSave={handleModelSave}
-                />
-              ) : null}
-            </Stack>
-          </Box>
+            onModelSave={handleModelSave}
+          />
 
           {modelError ? (
             <Alert severity="error" onClose={() => setModelError(null)} sx={{ borderRadius: 0 }}>
@@ -557,80 +431,13 @@ export function AgentShell() {
             />
           </Drawer>
         ) : null}
-        <Menu
-          anchorEl={moreActionsAnchor}
-          open={Boolean(moreActionsAnchor)}
-          onClose={() => setMoreActionsAnchor(null)}
-        >
-          {canConfigureModel ? (
-            <ConversationModelControl
-              trigger="menu-item"
-              policy={selectedModelPolicy}
-              preferredModel={selectedPreferredModel}
-              reasoningEffort={selectedReasoningEffort}
-              saving={modelSaving}
-              onTrigger={() => setMoreActionsAnchor(null)}
-              onSave={handleModelSave}
-            />
-          ) : null}
-          <MenuItem
-            onClick={() => {
-              setMoreActionsAnchor(null);
-              setMemoryDrawerOpen(true);
-            }}
-            sx={{ minWidth: 196, gap: 1 }}
-          >
-            <Iconify icon="solar:notebook-bookmark-bold" width={18} />
-            管理长期记忆
-          </MenuItem>
-          <MenuItem
-            onClick={() => {
-              setMoreActionsAnchor(null);
-              setNotificationSettingsOpen(true);
-            }}
-            sx={{ gap: 1 }}
-          >
-            <Iconify icon="solar:bell-bing-bold" width={18} />
-            管理通知渠道
-          </MenuItem>
-          <MenuItem
-            onClick={() => {
-              setMoreActionsAnchor(null);
-              setReportLibraryOpen(true);
-            }}
-            sx={{ gap: 1 }}
-          >
-            <Iconify icon="solar:document-text-bold" width={18} />
-            查看研究报告
-          </MenuItem>
-        </Menu>
-
-        <AgentMemoryDrawer open={memoryDrawerOpen} onClose={() => setMemoryDrawerOpen(false)} />
-        <NotificationChannelSettings
-          open={notificationSettingsOpen}
-          onClose={() => setNotificationSettingsOpen(false)}
-        />
         <AgentReportPreviewDialog
           open={reportPreviewRunId !== null}
           runId={reportPreviewRunId}
           onClose={() => setReportPreviewRunId(null)}
           onSaved={handleReportSaved}
         />
-        <AgentReportLibraryDialog
-          open={reportLibraryOpen}
-          onClose={() => setReportLibraryOpen(false)}
-        />
       </Box>
     </AgentMuiXProvider>
   );
 }
-
-const headerActionSx = {
-  width: 36,
-  height: 36,
-  border: 1,
-  borderColor: 'divider',
-  borderRadius: 1,
-  bgcolor: 'action.hover',
-  '&:hover': { bgcolor: 'action.selected' },
-};

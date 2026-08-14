@@ -31,6 +31,8 @@ import DialogActions from '@mui/material/DialogActions';
 import LinearProgress from '@mui/material/LinearProgress';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
+import { fmtTradeDate } from 'src/utils/format-time';
+
 import {
   getEventSchema,
   createSignalRule,
@@ -314,7 +316,7 @@ export function SignalRuleWizardDialog({ open, onClose, onSaved, editingRule, ev
                         variant="caption"
                         sx={{ fontVariantNumeric: 'tabular-nums', color: 'text.secondary' }}
                       >
-                        {s.tsCode} · {s.name ?? '-'} · {s.eventDate}
+                        {s.tsCode} · {s.name ?? '-'} · {fmtTradeDate(s.eventDate)}
                       </Typography>
                     ))}
                   </Stack>

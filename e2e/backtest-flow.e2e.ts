@@ -7,6 +7,27 @@ const VALIDATION_WAIT_MS = 1000;
 /** Wait time after switching a tab for content to render */
 const TAB_SWITCH_WAIT_MS = 500;
 
+const VALIDATION_SUCCESS = {
+  isValid: true,
+  warnings: [],
+  errors: [],
+  dataReadiness: {
+    hasDaily: true,
+    hasAdjFactor: true,
+    hasTradeCal: true,
+    hasIndexDaily: true,
+    hasStkLimit: true,
+    hasSuspendD: true,
+    hasIndexWeight: true,
+  },
+  stats: {
+    tradingDays: 250,
+    estimatedUniverseSize: 5200,
+    earliestAvailableDate: '2023-01-03',
+    latestAvailableDate: '2023-12-29',
+  },
+};
+
 // 流程 3：回测提交 → 查看结果
 
 test.describe('回测提交 → 查看结果', () => {
@@ -72,7 +93,7 @@ test.describe('回测提交 → 查看结果', () => {
           contentType: 'application/json',
           body: JSON.stringify({
             code: 0,
-            data: { tradingDays: 250, startDate: '20230101', endDate: '20231231' },
+            data: VALIDATION_SUCCESS,
           }),
         })
       );
@@ -118,7 +139,7 @@ test.describe('回测提交 → 查看结果', () => {
           contentType: 'application/json',
           body: JSON.stringify({
             code: 0,
-            data: { tradingDays: 250 },
+            data: VALIDATION_SUCCESS,
           }),
         })
       );

@@ -52,7 +52,7 @@ export function RotationOverviewCards({ tradeDate, period, refreshKey }: Props) 
   const riseRatio =
     data && data.totalCount > 0 ? Math.round((data.riseCount / data.totalCount) * 100) : 0;
 
-  const avgColor = !data
+  const avgColor = data?.avgPctChange == null
     ? theme.palette.text.secondary
     : data.avgPctChange > 0
       ? theme.palette.error.main
@@ -80,7 +80,7 @@ export function RotationOverviewCards({ tradeDate, period, refreshKey }: Props) 
                   行业涨跌比
                 </Typography>
                 <Typography variant="h4" sx={{ color: 'error.main' }}>
-                  {data?.riseCount ?? '--'}
+                  {data?.riseCount ?? '—'}
                   <Typography
                     component="span"
                     variant="h6"
@@ -89,7 +89,7 @@ export function RotationOverviewCards({ tradeDate, period, refreshKey }: Props) 
                     /
                   </Typography>
                   <Typography component="span" variant="h4" sx={{ color: 'success.main' }}>
-                    {data?.fallCount ?? '--'}
+                    {data?.fallCount ?? '—'}
                   </Typography>
                 </Typography>
                 <Box
@@ -139,7 +139,7 @@ export function RotationOverviewCards({ tradeDate, period, refreshKey }: Props) 
                 <Typography variant="h4" sx={{ color: avgColor }}>
                   {data?.avgPctChange != null
                     ? `${data.avgPctChange > 0 ? '+' : ''}${data.avgPctChange.toFixed(2)}%`
-                    : '--'}
+                    : '—'}
                 </Typography>
                 <Typography
                   variant="caption"

@@ -1,7 +1,7 @@
 import type { DataOperationsOverview } from 'src/api/tushare-sync';
 
 import { useState } from 'react';
-import { screen, waitFor } from '@testing-library/react';
+import { act, screen, waitFor } from '@testing-library/react';
 
 import { tushareSyncApi } from 'src/api/tushare-sync';
 import { renderWithProviders } from 'src/test/test-utils';
@@ -108,6 +108,10 @@ describe('SyncStatusOverviewPanel', () => {
     vi.mocked(tushareSyncApi.getOperationsOverview).mockResolvedValue(overviewFixture);
   });
 
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it('优先展示核心日频就绪度与可恢复的当前任务', async () => {
     renderWithProviders(<SyncStatusOverviewPanel />);
 
@@ -146,5 +150,37 @@ describe('SyncStatusOverviewPanel', () => {
 
     await user.click(screen.getByRole('button', { name: '触发概览刷新' }));
     await waitFor(() => expect(tushareSyncApi.getOperationsOverview).toHaveBeenCalledTimes(2));
+  });
+
+  it('运行中每 5 秒轮询，并在后端恢复空闲后停止', async () => {
+    vi.useFakeTimers();
+    vi.mocked(tushareSyncApi.getOperationsOverview)
+      .mockResolvedValueOnce(overviewFixture)
+      .mockResolvedValueOnce({
+        ...overviewFixture,
+        runtime: {
+          ...overviewFixture.runtime,
+          status: 'IDLE',
+          runId: null,
+          activeTasks: [],
+        },
+      });
+
+    renderWithProviders(<SyncStatusOverviewPanel />);
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(tushareSyncApi.getOperationsOverview).toHaveBeenCalledTimes(1);
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(5000);
+    });
+    expect(tushareSyncApi.getOperationsOverview).toHaveBeenCalledTimes(2);
+    expect(screen.getByText('当前空闲')).toBeInTheDocument();
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(5000);
+    });
+    expect(tushareSyncApi.getOperationsOverview).toHaveBeenCalledTimes(2);
   });
 });

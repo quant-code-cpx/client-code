@@ -13,6 +13,7 @@ import Tab from '@mui/material/Tab';
 import TabList from '@mui/lab/TabList';
 import Alert from '@mui/material/Alert';
 import TabPanel from '@mui/lab/TabPanel';
+import Button from '@mui/material/Button';
 import TabContext from '@mui/lab/TabContext';
 import Skeleton from '@mui/material/Skeleton';
 
@@ -136,7 +137,18 @@ export function PortfolioDetailView() {
   if (error || !detail) {
     return (
       <DashboardContent>
-        <Alert severity="error">{error || '组合不存在'}</Alert>
+        <Alert
+          severity="error"
+          action={
+            id ? (
+              <Button color="inherit" size="small" onClick={fetchDetail}>
+                重试
+              </Button>
+            ) : undefined
+          }
+        >
+          {error || '组合不存在'}
+        </Alert>
       </DashboardContent>
     );
   }

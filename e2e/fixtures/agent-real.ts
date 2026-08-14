@@ -41,7 +41,7 @@ export async function loginAgentReal(page: Page): Promise<void> {
 
   await page.getByLabel('账号').fill(state.account);
   await page.getByRole('textbox', { name: '密码' }).fill(state.password);
-  await page.getByLabel('验证码').fill('1234');
+  await page.getByLabel('验证码', { exact: true }).fill('1234');
   const loginResponse = page.waitForResponse(
     (response) => response.url().endsWith('/api/auth/login') && response.request().method() === 'POST'
   );

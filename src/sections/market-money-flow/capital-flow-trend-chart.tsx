@@ -41,9 +41,13 @@ const MODE_OPTIONS: Array<{ value: ChartMode; label: string }> = [
 const HINT_TEXT =
   '逐笔资金净流入 ≠ 主力资金。\n计算口径：超大/大/中/小单各档净流入按代数相加。\n主力占比 = (超大单净+大单净) ÷ 四档绝对值之和，\n正值表示主力主动买入占优，负值表示主力主动卖出占优。\n取值范围 -100% ~ +100%，数值越大表示主力买入意愿越强。';
 
-/** 元 → 亿元 */
-function toYi(yuan: number): number {
-  return +(yuan / 1e8).toFixed(2);
+/** 元 → 亿元；缺失值保留为图表断点。 */
+function toYi(yuan: number | null): number | null {
+  return yuan == null ? null : +(yuan / 1e8).toFixed(2);
+}
+
+function formatChartValue(value: number | null, unit: string, decimals: number): string {
+  return value == null ? '—' : `${value.toFixed(decimals)}${unit}`;
 }
 
 // ----------------------------------------------------------------------
@@ -120,8 +124,8 @@ export function CapitalFlowTrendChart({ tradeDate }: Props) {
       shared: true,
       intersect: false,
       y: [
-        { formatter: (v: number) => `${v.toFixed(2)}亿` },
-        { formatter: (v: number) => `${v.toFixed(2)}亿` },
+        { formatter: (v: number | null) => formatChartValue(v, '亿', 2) },
+        { formatter: (v: number | null) => formatChartValue(v, '亿', 2) },
       ],
     },
     legend: { show: true },
@@ -149,7 +153,7 @@ export function CapitalFlowTrendChart({ tradeDate }: Props) {
     tooltip: {
       shared: true,
       intersect: false,
-      y: { formatter: (v: number) => `${v.toFixed(2)}亿` },
+      y: { formatter: (v: number | null) => formatChartValue(v, '亿', 2) },
     },
     legend: { show: true },
   });
@@ -162,13 +166,14 @@ export function CapitalFlowTrendChart({ tradeDate }: Props) {
       name: '主力净占比(%)',
       type: 'bar' as const,
       data: data.map((d) => {
+        const tiers = [d.buyElgAmount, d.buyLgAmount, d.buyMdAmount, d.buySmAmount];
+        if (tiers.some((value) => value == null)) return null;
+
+        const [elg, lg, md, sm] = tiers as [number, number, number, number];
         const absSum =
-          Math.abs(d.buyElgAmount ?? 0) +
-          Math.abs(d.buyLgAmount ?? 0) +
-          Math.abs(d.buyMdAmount ?? 0) +
-          Math.abs(d.buySmAmount ?? 0);
+          Math.abs(elg) + Math.abs(lg) + Math.abs(md) + Math.abs(sm);
         if (absSum === 0) return 0;
-        const mainNet = (d.buyElgAmount ?? 0) + (d.buyLgAmount ?? 0);
+        const mainNet = elg + lg;
         return +((mainNet / absSum) * 100).toFixed(2);
       }),
     },
@@ -197,7 +202,7 @@ export function CapitalFlowTrendChart({ tradeDate }: Props) {
     tooltip: {
       shared: true,
       intersect: false,
-      y: { formatter: (v: number) => `${v.toFixed(2)}%` },
+      y: { formatter: (v: number | null) => formatChartValue(v, '%', 2) },
     },
     legend: { show: false },
   });

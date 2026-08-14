@@ -20,7 +20,7 @@ import { addCollection } from '@iconify/react';
 
 import { Iconify } from '../iconify';
 import { iconifyClasses } from '../classes';
-import { registerIcons } from '../register-icons';
+import { allIconNames, registerIcons } from '../register-icons';
 
 // ----------------------------------------------------------------------
 
@@ -31,6 +31,12 @@ describe('registerIcons', () => {
     // addCollection is fresh (no prior renderWithProviders calls at this point)
     registerIcons();
     expect(vi.mocked(addCollection)).toHaveBeenCalled();
+  });
+
+  it('知识库大专题图标均已本地注册', () => {
+    expect(allIconNames).toEqual(
+      expect.arrayContaining(['solar:database-bold', 'solar:server-square-bold'])
+    );
   });
 });
 

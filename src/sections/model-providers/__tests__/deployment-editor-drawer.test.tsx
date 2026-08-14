@@ -7,7 +7,12 @@ import { DeploymentEditorDrawer } from '../deployments/deployment-editor-drawer'
 
 vi.mock('src/api/model-provider', async () => {
   const actual = await vi.importActual<typeof ModelProviderApi>('src/api/model-provider');
-  return { ...actual, probeModelDeployment: vi.fn() };
+  return {
+    ...actual,
+    probeModelDeployment: vi.fn(),
+    createModelDeployment: vi.fn(),
+    updateModelDeployment: vi.fn(),
+  };
 });
 
 const CONNECTION: ModelProviderApi.ModelConnection = {
@@ -143,6 +148,48 @@ describe('DeploymentEditorDrawer', () => {
 
     expect(screen.getByRole('spinbutton', { name: '单次模型调用超时（毫秒）' })).toHaveValue(120000);
     expect(screen.getByText('整条研究时限会按工作流阶段与重试预算自动计算')).toBeInTheDocument();
+  });
+
+  it('新建部署保持完整默认配置并只在提交时修剪文本', async () => {
+    vi.mocked(ModelProviderApi.createModelDeployment).mockResolvedValue({
+      ...DEPLOYMENT,
+      modelId: 'gpt-5.6-sol',
+      displayName: '主模型',
+      enabled: false,
+    });
+    renderDrawer({});
+
+    expect(await screen.findByRole('combobox', { name: '供应商连接' })).toHaveValue(
+      CONNECTION.id
+    );
+    fireEvent.change(screen.getByRole('textbox', { name: '模型 ID' }), {
+      target: { value: '  gpt-5.6-sol  ' },
+    });
+    fireEvent.change(screen.getByRole('textbox', { name: '显示名称' }), {
+      target: { value: '  主模型  ' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: '保存草稿' }));
+
+    await waitFor(() =>
+      expect(ModelProviderApi.createModelDeployment).toHaveBeenCalledWith({
+        connectionId: CONNECTION.id,
+        modelId: 'gpt-5.6-sol',
+        displayName: '主模型',
+        priority: 10,
+        costTier: 'MEDIUM',
+        contextWindow: 128000,
+        maxOutputTokens: 8192,
+        capabilities: ['STREAMING', 'STRUCTURED_OUTPUT', 'TOOL_CALLING'],
+        reasoningMode: 'AUTO',
+        reasoningEfforts: ['NONE', 'MINIMAL', 'LOW', 'MEDIUM', 'HIGH', 'XHIGH', 'MAX'],
+        defaultReasoningEffort: 'MEDIUM',
+        dataClasses: ['PUBLIC', 'USER_PRIVATE'],
+        timeoutMs: 120000,
+        maxRetries: 2,
+        retryBaseMs: 200,
+        enabled: false,
+      })
+    );
   });
 
   it('深度探测失败时展示具体阶段、HTTP 诊断和每步结果', async () => {

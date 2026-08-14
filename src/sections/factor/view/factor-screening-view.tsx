@@ -1,7 +1,6 @@
 import type { LocalPreset } from 'src/sections/factor/screening/use-local-presets';
 import type {
   FactorDef,
-  ScreeningItem,
   FactorCondition,
   FactorLibraryResult,
   FactorScreeningResult,
@@ -10,14 +9,10 @@ import type {
 import { useRef, useMemo, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
-import Tab from '@mui/material/Tab';
-import Tabs from '@mui/material/Tabs';
-import Card from '@mui/material/Card';
 import Stack from '@mui/material/Stack';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Snackbar from '@mui/material/Snackbar';
-import Skeleton from '@mui/material/Skeleton';
 import Typography from '@mui/material/Typography';
 
 import { useRouter } from 'src/routes/hooks';
@@ -34,19 +29,15 @@ import {
   PAGE_SIZE,
   EMPTY_CONDITION,
   useLocalPresets,
-  ScreeningQueryBar,
-  ScreeningActionBar,
   validateConditions,
-  StockEvidenceDrawer,
   pickValidConditions,
-  ScreeningResultTable,
   ScreeningPresetDialog,
-  ScreeningFunnelPreview,
   useScreeningQueryState,
-  ScreeningResultKpiStrip,
-  ScreeningConditionBuilder,
-  ScreeningDiagnosticsPanel,
+  ScreeningResultsWorkspace,
+  ScreeningConfigurationWorkspace,
 } from '../screening';
+
+import type { ScreeningActionLogEntry } from '../screening';
 
 // ----------------------------------------------------------------------
 
@@ -55,10 +46,6 @@ type ToastState = {
   severity: 'success' | 'info' | 'warning' | 'error';
   message: string;
 };
-
-type ResultTab = 'table' | 'diagnostics' | 'log';
-
-// ----------------------------------------------------------------------
 
 export function FactorScreeningView() {
   const router = useRouter();
@@ -79,13 +66,9 @@ export function FactorScreeningView() {
   const [error, setError] = useState('');
 
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [tab, setTab] = useState<ResultTab>('table');
-  const [evidenceItem, setEvidenceItem] = useState<ScreeningItem | null>(null);
   const [presetOpen, setPresetOpen] = useState(false);
   const [watchlistOpen, setWatchlistOpen] = useState(false);
-  const [actionLog, setActionLog] = useState<
-    { time: string; message: string; severity: 'success' | 'warning' | 'error' | 'info' }[]
-  >([]);
+  const [actionLog, setActionLog] = useState<ScreeningActionLogEntry[]>([]);
   const [toast, setToast] = useState<ToastState>({
     open: false,
     severity: 'info',
@@ -411,139 +394,53 @@ export function FactorScreeningView() {
         </Stack>
       </Stack>
 
-      <ScreeningQueryBar
-        tradeDate={state.tradeDate}
-        universe={state.universe}
-        sortMode={state.sortMode}
-        sortBy={state.sortBy}
-        sortOrder={state.sortOrder}
-        tradeConstraints={state.tradeConstraints}
+      <ScreeningConfigurationWorkspace
+        state={state}
         factorOptions={factorOptions}
         loading={loading}
         isStale={isStale}
-        onChange={patch}
+        onQueryChange={patch}
         onRun={() => handleRun(0)}
         onReset={handleReset}
+        libraryError={libraryError}
+        libraryLoading={libraryLoading}
+        onRetryLibrary={fetchLibrary}
+        conditions={conditions}
+        allFactors={allFactors}
+        validation={validation}
+        onConditionsChange={setConditions}
+        conditionPassCounts={result?.conditionPassCounts}
+        error={error}
       />
 
-      {libraryError !== '' && (
-        <Alert
-          severity="error"
-          sx={{ mb: 2 }}
-          action={
-            <Button color="inherit" size="small" onClick={fetchLibrary}>
-              重试
-            </Button>
-          }
-        >
-          {libraryError}
-        </Alert>
-      )}
-
-      {libraryLoading ? (
-        <Skeleton variant="rectangular" height={160} sx={{ borderRadius: 2, mb: 3 }} />
-      ) : (
-        <ScreeningConditionBuilder
-          conditions={conditions}
-          allFactors={allFactors}
-          validation={validation}
-          onChange={setConditions}
-        />
-      )}
-
-      <ScreeningFunnelPreview data={result?.conditionPassCounts} allFactors={allFactors} />
-
-      {error !== '' && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
-      )}
-
-      <ScreeningResultKpiStrip result={result} />
-
-      <Card sx={{ mb: 2 }}>
-        <Tabs
-          value={tab}
-          onChange={(_, v: ResultTab) => setTab(v)}
-          sx={{ px: 2, borderBottom: 1, borderColor: 'divider' }}
-        >
-          <Tab value="table" label="结果表" />
-          <Tab value="diagnostics" label="诊断" />
-          <Tab value="log" label={`动作日志 (${actionLog.length})`} />
-        </Tabs>
-
-        {tab === 'table' && (
-          <ScreeningResultTable
-            result={result}
-            loading={loading}
-            factorColumns={factorColumns}
-            factorLabelMap={factorLabelMap}
-            page={page}
-            pageSize={PAGE_SIZE}
-            onPageChange={handlePageChange}
-            selected={selected}
-            onToggleRow={toggleRow}
-            onToggleAll={toggleAll}
-            onOpenEvidence={setEvidenceItem}
-            isStale={isStale}
-          />
-        )}
-
-        {tab === 'diagnostics' && (
-          <Box sx={{ p: 2 }}>
-            <ScreeningDiagnosticsPanel result={result} />
-          </Box>
-        )}
-
-        {tab === 'log' && (
-          <Box sx={{ p: 2 }}>
-            {actionLog.length === 0 ? (
-              <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                暂无动作记录。
-              </Typography>
-            ) : (
-              <Stack spacing={1}>
-                {actionLog.map((it, i) => (
-                  <Alert key={i} severity={it.severity} variant="outlined" sx={{ py: 0.5 }}>
-                    <Box component="span" sx={{ color: 'text.disabled', mr: 1 }}>
-                      {it.time}
-                    </Box>
-                    {it.message}
-                  </Alert>
-                ))}
-              </Stack>
-            )}
-          </Box>
-        )}
-      </Card>
-
-      {result && (
-        <ScreeningActionBar
-          selectedCount={selected.size}
-          totalCount={result.total}
-          canSavePreset={pickValidConditions(conditions).length > 0}
-          onClearSelection={() => setSelected(new Set())}
-          onAddToWatchlist={handleAddToWatchlist}
-          onSavePreset={() => setPresetOpen(true)}
-          onSaveStrategy={handleSaveStrategy}
-          onQuickBacktest={handleQuickBacktest}
-          onCreateSubscription={handleCreateSubscription}
-        />
-      )}
+      <ScreeningResultsWorkspace
+        result={result}
+        loading={loading}
+        factorColumns={factorColumns}
+        factorLabelMap={factorLabelMap}
+        page={page}
+        onPageChange={handlePageChange}
+        selected={selected}
+        onToggleRow={toggleRow}
+        onToggleAll={toggleAll}
+        isStale={isStale}
+        resultSnapshot={resultSnapshot}
+        allFactors={allFactors}
+        actionLog={actionLog}
+        canSavePreset={pickValidConditions(conditions).length > 0}
+        onClearSelection={() => setSelected(new Set())}
+        onAddToWatchlist={handleAddToWatchlist}
+        onSavePreset={() => setPresetOpen(true)}
+        onSaveStrategy={handleSaveStrategy}
+        onQuickBacktest={handleQuickBacktest}
+        onCreateSubscription={handleCreateSubscription}
+      />
 
       <Box sx={{ mt: 4, py: 2, textAlign: 'center' }}>
         <Typography variant="caption" sx={{ color: 'text.disabled' }}>
           数据来源：Tushare · 仅供参考，不构成投资建议
         </Typography>
       </Box>
-
-      <StockEvidenceDrawer
-        open={evidenceItem !== null}
-        item={evidenceItem}
-        conditions={resultSnapshot}
-        allFactors={allFactors}
-        onClose={() => setEvidenceItem(null)}
-      />
 
       <ScreeningPresetDialog
         open={presetOpen}

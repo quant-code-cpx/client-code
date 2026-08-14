@@ -193,7 +193,7 @@ export function ConceptMembersTable({ conceptCode, conceptName }: Props) {
                               '&:hover': { color: 'primary.main', textDecoration: 'underline' },
                             }}
                           >
-                            {m.name || '-'}
+                            {m.name ?? '—'}
                           </Typography>
                         </TableCell>
                         <TableCell align="right">

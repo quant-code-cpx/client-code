@@ -1,7 +1,6 @@
 import type {
-  HsgtTrendItem,
   SentimentResult,
-  MarketBreadthResult,
+  HsgtFlowHistoryItem,
   MarketMoneyFlowDetail,
 } from 'src/api/market';
 
@@ -17,74 +16,19 @@ import { useTheme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 
 import { fmtTradeDate } from 'src/utils/format-time';
+import { getAShareReturnTextColor } from 'src/utils/market-color';
 
 import { fetchMoneyFlow, fetchSentiment, fetchMarketBreadth } from 'src/api/market';
 
 import { Iconify } from 'src/components/iconify';
 
-// ── Types ──────────────────────────────────────────────────────
-
-type MarketTone = 'bullish' | 'bearish' | 'divergent' | 'neutral';
-
-type HeroData = {
-  tone: MarketTone;
-  breadth: MarketBreadthResult;
-  moneyFlowYi: number | null;
-  sentimentScore: number | null;
-  sentimentLabel: string;
-  tradeDate: string;
-};
-
-// ── Rule Engine ─────────────────────────────────────────────────
-
-function deriveTone(breadth: MarketBreadthResult, moneyFlowYi: number | null): MarketTone {
-  const total = breadth.total || 1;
-  const riseRatio = (breadth.bigRise + breadth.rise) / total;
-  const fallRatio = (breadth.bigFall + breadth.fall) / total;
-  const capitalIn = (moneyFlowYi ?? 0) >= 0;
-
-  if (riseRatio > 0.55 && capitalIn) return 'bullish';
-  if (fallRatio > 0.55 && !capitalIn) return 'bearish';
-  if (Math.abs(riseRatio - fallRatio) < 0.2) return 'neutral';
-  return 'divergent';
-}
-
-function buildHeadline(
-  tone: MarketTone,
-  breadth: MarketBreadthResult,
-  moneyFlowYi: number | null
-): string {
-  const total = breadth.total || 1;
-  const riseRatio = (breadth.bigRise + breadth.rise) / total;
-
-  const coreLabel =
-    tone === 'bullish'
-      ? riseRatio > 0.68
-        ? '全面普涨，多头情绪占优'
-        : '多头格局，量能配合'
-      : tone === 'bearish'
-        ? riseRatio < 0.25
-          ? '全面普跌，空头主导'
-          : '调整压力较重'
-        : tone === 'divergent'
-          ? '结构性分化，局部机会显现'
-          : '震荡整理，方向待明';
-
-  const addons: string[] = [];
-  if (breadth.limitUp > 80) addons.push(`涨停潮 ${breadth.limitUp} 家`);
-  if ((moneyFlowYi ?? 0) > 100) addons.push('主力大幅流入');
-  else if ((moneyFlowYi ?? 0) < -100) addons.push('主力大幅撤离');
-
-  return addons.length > 0 ? `${coreLabel} · ${addons.join(' · ')}` : coreLabel;
-}
-
-function getSentimentLabel(score: number): string {
-  if (score < 20) return '极度恐惧';
-  if (score < 40) return '偏恐惧';
-  if (score < 60) return '中性';
-  if (score < 80) return '偏贪婪';
-  return '极度贪婪';
-}
+import {
+  type MarketTone,
+  deriveMarketTone,
+  getSentimentLabel,
+  type MarketHeroData,
+  buildMarketHeadline,
+} from './market-hero-narrative-model';
 
 // ── Sub-components ──────────────────────────────────────────────
 
@@ -265,9 +209,7 @@ function ToneChip({ tone }: { tone: MarketTone }) {
 type Props = {
   tradeDate?: string;
   refreshKey?: number;
-  /** Shared HSGT history from parent — null/undefined means fetch not yet done or failed */
-  hsgtHistory?: HsgtTrendItem[] | null;
-  /** Called once after initial load so parent DatePicker can back-fill */
+  hsgtHistory?: HsgtFlowHistoryItem[] | null;
   onTradeDateResolved?: (date: string) => void;
 };
 
@@ -278,7 +220,7 @@ export function MarketHeroNarrative({
   onTradeDateResolved,
 }: Props) {
   const theme = useTheme();
-  const [data, setData] = useState<HeroData | null>(null);
+  const [data, setData] = useState<MarketHeroData | null>(null);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState(false);
 
@@ -321,7 +263,7 @@ export function MarketHeroNarrative({
       const sentTotal = sent?.total ?? 0;
       const sentimentScore = sentTotal > 0 ? ((riseTotal - fallTotal) / sentTotal) * 50 + 50 : null;
 
-      const tone = deriveTone(breadth, moneyFlowYi);
+      const tone = deriveMarketTone(breadth, moneyFlowYi);
 
       setData({
         tone,
@@ -366,8 +308,7 @@ export function MarketHeroNarrative({
     );
   }
 
-  // Compute headline at render time so it picks up latest northMoney from prop
-  const headline = buildHeadline(data.tone, data.breadth, data.moneyFlowYi);
+  const headline = buildMarketHeadline(data.tone, data.breadth, data.moneyFlowYi);
 
   const toneConfig: Record<MarketTone, { color: string; channel: string }> = {
     bullish: { color: theme.palette.error.main, channel: theme.vars.palette.error.mainChannel },
@@ -392,8 +333,7 @@ export function MarketHeroNarrative({
   const flatCount = data.breadth.flat;
 
   const mfSign = (data.moneyFlowYi ?? 0) > 0 ? '+' : '';
-  const mfColor =
-    (data.moneyFlowYi ?? 0) > 0 ? theme.palette.error.main : theme.palette.success.main;
+  const mfColor = getAShareReturnTextColor(data.moneyFlowYi);
   const sentColor =
     (data.sentimentScore ?? 50) > 60
       ? theme.palette.error.main
@@ -518,7 +458,7 @@ export function MarketHeroNarrative({
         />
         <StatItem
           label="北向成交额（今日）"
-          value={northMoneyYi != null ? `${northMoneyYi.toFixed(2)} 亿` : '暂无数据'}
+          value={northMoneyYi != null ? `${northMoneyYi.toFixed(2)} 亿` : '—'}
         />
         <StatItem
           label="市场情绪"

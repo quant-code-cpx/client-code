@@ -16,6 +16,8 @@ import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 import TableContainer from '@mui/material/TableContainer';
 
+import { fCurrency } from 'src/utils/format-number';
+
 import { analyzeCostSensitivity } from 'src/api/backtest';
 
 import { Chart, useChart } from 'src/components/chart';
@@ -37,7 +39,11 @@ function fNum(v: number | null, decimals = 2) {
 }
 
 function fBps(v: number) {
-  return `${(v * 10000).toFixed(0)}bps`;
+  return `${v} bps`;
+}
+
+function fMoney(v: number | null) {
+  return v == null ? '--' : fCurrency(v);
 }
 
 // Group rows by slippage for the chart
@@ -156,7 +162,7 @@ export function BacktestCostSensitivityPanel({ runId }: BacktestCostSensitivityP
                       <TableCell align="right">年化收益</TableCell>
                       <TableCell align="right">夏普比率</TableCell>
                       <TableCell align="right">最大回撤</TableCell>
-                      <TableCell align="right">总交易成本</TableCell>
+                      <TableCell align="right">总交易成本（元）</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -196,7 +202,7 @@ export function BacktestCostSensitivityPanel({ runId }: BacktestCostSensitivityP
                           <TableCell align="right" sx={{ color: 'error.main' }}>
                             {fPct(row.maxDrawdown)}
                           </TableCell>
-                          <TableCell align="right">{fPct(row.totalCost)}</TableCell>
+                          <TableCell align="right">{fMoney(row.totalCost)}</TableCell>
                         </TableRow>
                       );
                     })}

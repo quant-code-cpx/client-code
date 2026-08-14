@@ -7,7 +7,7 @@ import { renderWithProviders } from 'src/test/test-utils';
 import { RotationHeatmapChart } from '../rotation-heatmap-chart';
 
 type ChartMockProps = {
-  series: Array<{ data: Array<{ x: string; y: number; netYuan: number }> }>;
+  series: Array<{ data: Array<{ x: string; y: number; netInflowYuan: number | null }> }>;
   options: {
     tooltip?: {
       custom?: (input: { seriesIndex: number; dataPointIndex: number; w: unknown }) => string;
@@ -72,11 +72,14 @@ describe('RotationHeatmapChart', () => {
 
     heatmapDeferred.resolve({
       tradeDate: '20260703',
-      sectors: [{ name: '半导体设备', pctChange: 40.03, amount: 0, netAmount: 0 }],
+      sectors: [{ name: '半导体设备', pctChange: 40.03 }],
     });
 
     await screen.findByTestId('rotation-heatmap-chart');
-    expect(latestChartProps().series[0].data[0]).toMatchObject({ y: 40.03, netYuan: 0 });
+    expect(latestChartProps().series[0].data[0]).toMatchObject({
+      y: 40.03,
+      netInflowYuan: null,
+    });
 
     flowDeferred.resolve({
       tradeDate: '20260703',
@@ -87,15 +90,15 @@ describe('RotationHeatmapChart', () => {
         {
           name: '半导体设备',
           inflowRatio: 0,
-          outflowAmount: 0,
-          netInflow: 3089290144,
-          inflowAmount: 3089290144,
+          outflowAmountYuan: 0,
+          netInflowYuan: 3_089_290_144,
+          inflowAmountYuan: 3_089_290_144,
         },
       ],
     });
 
     await waitFor(() => {
-      expect(latestChartProps().series[0].data[0].netYuan).toBe(3089290144);
+      expect(latestChartProps().series[0].data[0].netInflowYuan).toBe(3_089_290_144);
     });
 
     const tooltipHtml = latestChartProps().options.tooltip?.custom?.({
@@ -110,7 +113,7 @@ describe('RotationHeatmapChart', () => {
   it('1Y 请求 250 日，辅助资金失败时保留涨跌热力图并显式提示', async () => {
     apiMock.fetchRotationHeatmap.mockResolvedValueOnce({
       tradeDate: '20260703',
-      sectors: [{ name: '银行', pctChange: 2, amount: 0, netAmount: 0 }],
+      sectors: [{ name: '银行', pctChange: 2 }],
     });
     apiMock.fetchFlowAnalysis.mockRejectedValueOnce(new Error('flow failed'));
 

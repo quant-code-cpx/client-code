@@ -10,6 +10,9 @@ import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 import TableContainer from '@mui/material/TableContainer';
 
+import { fmtTradeDate } from 'src/utils/format-time';
+import { getAShareReturnColor } from 'src/utils/market-color';
+
 import { Label } from 'src/components/label';
 
 // ----------------------------------------------------------------------
@@ -51,7 +54,7 @@ export function EventAnalysisSamplesTable({ title, samples, color, onSampleClick
               ) : (
                 samples.map((sample) => {
                   const carLabel = `${sample.car > 0 ? '+' : ''}${(sample.car * 100).toFixed(2)}%`;
-                  const carColor = sample.car > 0 ? 'success' : 'error';
+                  const carColor = getAShareReturnColor(sample.car, 'default');
                   return (
                     <TableRow
                       key={`${sample.tsCode}-${sample.eventDate}`}
@@ -60,7 +63,7 @@ export function EventAnalysisSamplesTable({ title, samples, color, onSampleClick
                       tabIndex={onSampleClick ? 0 : undefined}
                       aria-label={
                         onSampleClick
-                          ? `查看样本 ${sample.name ?? sample.tsCode} ${sample.eventDate}`
+                          ? `查看样本 ${sample.name ?? sample.tsCode} ${fmtTradeDate(sample.eventDate)}`
                           : undefined
                       }
                       sx={{
@@ -80,7 +83,7 @@ export function EventAnalysisSamplesTable({ title, samples, color, onSampleClick
                     >
                       <TableCell>{sample.tsCode}</TableCell>
                       <TableCell>{sample.name ?? '-'}</TableCell>
-                      <TableCell>{sample.eventDate}</TableCell>
+                      <TableCell>{fmtTradeDate(sample.eventDate)}</TableCell>
                       <TableCell>
                         <Label color={carColor}>{carLabel}</Label>
                       </TableCell>

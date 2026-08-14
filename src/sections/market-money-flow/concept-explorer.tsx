@@ -93,12 +93,8 @@ export function ConceptExplorer({ initialConcept }: Props) {
     return {
       code: current.tsCode,
       name: current.name,
-      count: 0,
-      pctChange: null,
-      amount: null,
-      netAmount: null,
-      leadStock: null,
-      leadPctChg: null,
+      count: null,
+      listDate: null,
     };
   }, [current]);
 
@@ -138,7 +134,7 @@ export function ConceptExplorer({ initialConcept }: Props) {
                   <Typography variant="body2" sx={{ flex: 1 }}>
                     {option.name}
                   </Typography>
-                  {option.count > 0 && (
+                  {option.count != null && option.count > 0 && (
                     <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                       {option.count} 只
                     </Typography>

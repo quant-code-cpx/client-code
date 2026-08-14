@@ -1,55 +1,41 @@
 import type { ReactNode } from 'react';
 import type { ButtonProps } from '@mui/material/Button';
 import type {
-  UserRole,
   UserStatus,
   CreateUserDto,
   UserManageItem,
-  UserStatusFilter,
   UserSortableField,
   UpdateUserRoleDto,
   AdminUpdateUserDto,
 } from 'src/api/user-manage';
 
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router';
 import { useRef, useMemo, useState, useEffect, useCallback } from 'react';
 
-import Tab from '@mui/material/Tab';
 import Box from '@mui/material/Box';
-import Card from '@mui/material/Card';
-import Tabs from '@mui/material/Tabs';
 import Alert from '@mui/material/Alert';
-import Table from '@mui/material/Table';
 import Stack from '@mui/material/Stack';
-import Button from '@mui/material/Button';
-import Checkbox from '@mui/material/Checkbox';
-import TableRow from '@mui/material/TableRow';
-import Skeleton from '@mui/material/Skeleton';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableHead from '@mui/material/TableHead';
 import Typography from '@mui/material/Typography';
-import TableContainer from '@mui/material/TableContainer';
-import TableSortLabel from '@mui/material/TableSortLabel';
-import TablePagination from '@mui/material/TablePagination';
 
-import { CONFIG } from 'src/config-global';
+import { usePermission } from 'src/permission';
 import { userManageApi } from 'src/api/user-manage';
 import { DashboardContent } from 'src/layouts/dashboard';
-import { HasPermission, usePermission } from 'src/permission';
 
-import { Iconify } from 'src/components/iconify';
-import { Scrollbar } from 'src/components/scrollbar';
 import { ConfirmDialog } from 'src/components/confirm-dialog';
 
-import { KpiSummary } from '../kpi-summary';
 import { AuditLogTab } from '../audit-log-tab';
-import { BulkActionBar } from '../bulk-action-bar';
 import { UserRoleDialog } from '../user-role-dialog';
-import { UserManageTableRow } from '../user-manage-table-row';
 import { UserManageFormDialog } from '../user-manage-form-dialog';
-import { UserManageTableToolbar } from '../user-manage-table-toolbar';
+import { type BulkResult, UserManageTableCard } from '../user-manage-table-card';
 import { UserManageResetPasswordDialog } from '../user-manage-reset-password-dialog';
+import { UserManagePageHeader, UserManageAccessDenied } from '../user-manage-page-header';
+import {
+  parseRole,
+  parseSortBy,
+  parseSortOrder,
+  parsePositiveInt,
+  parseStatusFilter,
+} from '../user-manage-url-state';
 
 // ----------------------------------------------------------------------
 
@@ -59,72 +45,6 @@ type ConfirmAction = {
   confirmLabel?: string;
   confirmColor?: ButtonProps['color'];
   onConfirm: () => Promise<void>;
-};
-
-type BulkResult = {
-  success: number[];
-  failed: { id: number; reason: string }[];
-};
-
-const PAGE_SIZE_OPTIONS = [10, 20, 50];
-const USER_STATUS_FILTERS: UserStatusFilter[] = ['ACTIVE', 'DEACTIVATED', 'DELETED', 'LOCKED'];
-const USER_SORT_FIELDS: UserSortableField[] = [
-  'createdAt',
-  'updatedAt',
-  'lastLoginAt',
-  'account',
-  'role',
-  'status',
-];
-
-const TABLE_HEAD: Array<{
-  id: UserSortableField | 'id' | 'select' | 'email' | 'backtestQuota' | 'watchlistLimit' | '';
-  label: string;
-  width?: number;
-  minWidth?: number;
-  sortable?: boolean;
-  align?: 'left' | 'center' | 'right';
-}> = [
-  { id: 'select', label: '', width: 48 },
-  { id: 'id', label: 'ID', width: 60 },
-  { id: 'account', label: '账号 / 昵称', minWidth: 170, sortable: true },
-  { id: 'role', label: '角色', width: 120, sortable: true },
-  { id: 'status', label: '状态', width: 120, sortable: true },
-  { id: 'email', label: '邮箱', minWidth: 140 },
-  { id: 'backtestQuota', label: '回测配额', width: 100, align: 'center' },
-  { id: 'watchlistLimit', label: '监控股票数', width: 110, align: 'center' },
-  { id: 'lastLoginAt', label: '最近登录', width: 120, sortable: true },
-  { id: 'createdAt', label: '注册时间', width: 110, sortable: true },
-  { id: '', label: '操作', width: 60, align: 'right' },
-];
-
-const parsePositiveInt = (value: string | null, fallback: number): number => {
-  const parsed = Number(value);
-  return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
-};
-
-const parseStatusFilter = (value: string | null): UserStatusFilter | '' => {
-  if (value && USER_STATUS_FILTERS.includes(value as UserStatusFilter)) {
-    return value as UserStatusFilter;
-  }
-  return '';
-};
-
-const parseRole = (value: string | null): UserRole | '' => {
-  if (value === 'SUPER_ADMIN' || value === 'ADMIN' || value === 'USER') return value;
-  return '';
-};
-
-const parseSortBy = (value: string | null): UserSortableField | '' => {
-  if (value && USER_SORT_FIELDS.includes(value as UserSortableField)) {
-    return value as UserSortableField;
-  }
-  return '';
-};
-
-const parseSortOrder = (value: string | null): 'asc' | 'desc' | '' => {
-  if (value === 'asc' || value === 'desc') return value;
-  return '';
 };
 
 // ----------------------------------------------------------------------
@@ -466,232 +386,69 @@ export function UserManageView() {
   }, [confirm]);
 
   if (!isAdmin) {
-    return (
-      <DashboardContent>
-        <Box
-          sx={{
-            gap: 2,
-            minHeight: 320,
-            display: 'flex',
-            alignItems: 'center',
-            flexDirection: 'column',
-            justifyContent: 'center',
-          }}
-        >
-          <Iconify
-            icon="solar:shield-keyhole-bold-duotone"
-            sx={{ fontSize: 64, color: 'text.disabled' }}
-          />
-          <Typography variant="h6" color="text.secondary">
-            权限不足
-          </Typography>
-          <Typography variant="body2" color="text.disabled">
-            需要管理员及以上权限才能访问用户管理
-          </Typography>
-        </Box>
-      </DashboardContent>
-    );
+    return <UserManageAccessDenied />;
   }
 
   return (
     <DashboardContent>
-      <Stack
-        direction={{ xs: 'column', sm: 'row' }}
-        spacing={2}
-        sx={{ mb: 3 }}
-        alignItems={{ sm: 'center' }}
-      >
-        <Box sx={{ flexGrow: 1 }}>
-          <Typography variant="h4">用户管理</Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-            管理账号生命周期、配额与角色，并追溯所有关键变更
-          </Typography>
-        </Box>
-
-        {currentTab === 0 && (
-          <HasPermission minRole="ADMIN">
-            <Button
-              variant="contained"
-              color="primary"
-              startIcon={<Iconify icon="mingcute:add-line" />}
-              onClick={() => {
-                setFormMode('create');
-                setEditRow(null);
-                setFormOpen(true);
-              }}
-            >
-              新增用户
-            </Button>
-          </HasPermission>
-        )}
-      </Stack>
-
-      {CONFIG.userManageFeatures.stats && (
-        <KpiSummary
-          onApplyStatus={(status) => setQueryPatch({ status })}
-          refreshKey={kpiRefreshKey}
-        />
-      )}
-
-      <Tabs
-        value={currentTab}
-        onChange={(_, value) => setQueryPatch({ tab: value === 1 ? 'audit' : null }, false)}
-        sx={{ mb: 3 }}
-      >
-        <Tab
-          icon={<Iconify icon="solar:users-group-rounded-bold" />}
-          label="用户列表"
-          iconPosition="start"
-        />
-        <Tab
-          icon={<Iconify icon="solar:document-text-bold" />}
-          label="审计日志"
-          iconPosition="start"
-        />
-      </Tabs>
+      <UserManagePageHeader
+        currentTab={currentTab}
+        kpiRefreshKey={kpiRefreshKey}
+        onCreate={() => {
+          setFormMode('create');
+          setEditRow(null);
+          setFormOpen(true);
+        }}
+        onApplyStatus={(status) => setQueryPatch({ status })}
+        onTabChange={(value) =>
+          setQueryPatch({ tab: value === 1 ? 'audit' : null }, false)
+        }
+      />
 
       {currentTab === 0 && (
-        <Card>
-          <UserManageTableToolbar
-            filterAccount={filterAccount}
-            filterStatus={filterStatus}
-            filterRole={filterRole}
-            createdFrom={createdFrom}
-            createdTo={createdTo}
-            includeDeleted={includeDeleted}
-            onFilterAccount={(value) => setQueryPatch({ account: value })}
-            onFilterStatus={(value) => setQueryPatch({ status: value })}
-            onFilterRole={(value) => setQueryPatch({ role: value })}
-            onCreatedFrom={(value) => setQueryPatch({ createdFrom: value })}
-            onCreatedTo={(value) => setQueryPatch({ createdTo: value })}
-            onIncludeDeleted={(value) => {
-              setQueryPatch({
-                includeDeleted: value,
-                status: value ? filterStatus : filterStatus === 'DELETED' ? null : filterStatus,
-              });
-            }}
-          />
-
-          {CONFIG.userManageFeatures.bulk && (
-            <BulkActionBar
-              selectedCount={selectedIds.size}
-              submitting={bulkSubmitting}
-              onClear={() => setSelectedIds(new Set())}
-              onEnable={() => handleBulkStatus('ACTIVE')}
-              onDisable={() => handleBulkStatus('DEACTIVATED')}
-            />
-          )}
-
-          {bulkResult && (
-            <Alert
-              severity={bulkResult.failed.length > 0 ? 'warning' : 'success'}
-              sx={{ mx: 3, mb: 2 }}
-            >
-              批量操作完成：成功 {bulkResult.success.length} 个，失败 {bulkResult.failed.length} 个
-            </Alert>
-          )}
-
-          {listError && (
-            <Alert severity="error" sx={{ mx: 3, mb: 2 }} onClose={() => setListError('')}>
-              {listError}
-            </Alert>
-          )}
-
-          <Scrollbar>
-            <TableContainer sx={{ overflow: 'unset' }}>
-              <Table sx={{ minWidth: 1100 }}>
-                <TableHead>
-                  <TableRow>
-                    {TABLE_HEAD.map((col) => (
-                      <TableCell
-                        key={col.id}
-                        align={col.align ?? 'left'}
-                        padding={col.id === 'select' ? 'checkbox' : 'normal'}
-                        sx={{ width: col.width, minWidth: col.minWidth }}
-                      >
-                        {col.id === 'select' ? (
-                          <Checkbox
-                            indeterminate={!allSelected && someSelected}
-                            checked={allSelected}
-                            disabled={selectableRows.length === 0}
-                            onChange={(event) => handleSelectAll(event.target.checked)}
-                            slotProps={{ input: { 'aria-label': '选择当前页全部用户' } }}
-                          />
-                        ) : col.sortable ? (
-                          <TableSortLabel
-                            active={sortBy === col.id}
-                            direction={sortOrder || 'desc'}
-                            onClick={() => handleSort(col.id as UserSortableField)}
-                          >
-                            {col.label}
-                          </TableSortLabel>
-                        ) : (
-                          col.label
-                        )}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                </TableHead>
-
-                <TableBody>
-                  {loading ? (
-                    Array.from({ length: 6 }).map((_, index) => (
-                      <TableRow key={index}>
-                        <TableCell colSpan={TABLE_HEAD.length}>
-                          <Skeleton variant="text" height={36} />
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  ) : rows.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={TABLE_HEAD.length} align="center" sx={{ py: 6 }}>
-                        <Typography variant="body2" color="text.disabled">
-                          暂无数据
-                        </Typography>
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    rows.map((row) => (
-                      <UserManageTableRow
-                        key={row.id}
-                        row={row}
-                        selected={selectedIds.has(row.id)}
-                        onSelect={handleSelect}
-                        onEdit={(item) => {
-                          setFormMode('edit');
-                          setEditRow(item);
-                          setFormOpen(true);
-                        }}
-                        onUpdateRole={(item) => {
-                          setRoleRow(item);
-                          setRoleOpen(true);
-                        }}
-                        onToggleStatus={handleToggleStatus}
-                        onResetPassword={handleResetPassword}
-                        onDelete={handleDelete}
-                        onRestore={handleRestore}
-                      />
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </Scrollbar>
-
-          <TablePagination
-            component="div"
-            page={page}
-            count={total}
-            rowsPerPage={pageSize}
-            rowsPerPageOptions={PAGE_SIZE_OPTIONS}
-            onPageChange={(_, newPage) => setQueryPatch({ page: newPage + 1 }, false)}
-            onRowsPerPageChange={(event) => {
-              setQueryPatch({ pageSize: parseInt(event.target.value, 10), page: null }, false);
-            }}
-            labelRowsPerPage="每页行数："
-            labelDisplayedRows={({ from, to, count }) => `${from}–${to} / 共 ${count} 条`}
-          />
-        </Card>
+        <UserManageTableCard
+          rows={rows}
+          total={total}
+          page={page}
+          pageSize={pageSize}
+          loading={loading}
+          listError={listError}
+          filterAccount={filterAccount}
+          filterStatus={filterStatus}
+          filterRole={filterRole}
+          createdFrom={createdFrom}
+          createdTo={createdTo}
+          includeDeleted={includeDeleted}
+          sortBy={sortBy}
+          sortOrder={sortOrder}
+          selectedIds={selectedIds}
+          selectableRows={selectableRows}
+          allSelected={allSelected}
+          someSelected={someSelected}
+          bulkSubmitting={bulkSubmitting}
+          bulkResult={bulkResult}
+          onQueryPatch={setQueryPatch}
+          onRetry={() => void fetchList()}
+          onDismissError={() => setListError('')}
+          onClearSelection={() => setSelectedIds(new Set())}
+          onBulkStatus={handleBulkStatus}
+          onSelectAll={handleSelectAll}
+          onSelect={handleSelect}
+          onSort={handleSort}
+          onEdit={(item) => {
+            setFormMode('edit');
+            setEditRow(item);
+            setFormOpen(true);
+          }}
+          onUpdateRole={(item) => {
+            setRoleRow(item);
+            setRoleOpen(true);
+          }}
+          onToggleStatus={handleToggleStatus}
+          onResetPassword={handleResetPassword}
+          onDelete={handleDelete}
+          onRestore={handleRestore}
+        />
       )}
 
       {currentTab === 1 && <AuditLogTab />}

@@ -8,6 +8,8 @@ import TableHead from '@mui/material/TableHead';
 import Typography from '@mui/material/Typography';
 import TableContainer from '@mui/material/TableContainer';
 
+import { fmtTradeDate } from 'src/utils/format-time';
+
 import { Scrollbar } from 'src/components/scrollbar';
 
 // ----------------------------------------------------------------------
@@ -39,10 +41,10 @@ export function BacktestRebalanceLogTable({ items, loading }: BacktestRebalanceL
             {items.map((item, idx) => (
               <TableRow key={idx} hover>
                 <TableCell>
-                  <Typography variant="caption">{item.signalDate}</Typography>
+                  <Typography variant="caption">{fmtTradeDate(item.signalDate)}</Typography>
                 </TableCell>
                 <TableCell>
-                  <Typography variant="caption">{item.executeDate}</Typography>
+                  <Typography variant="caption">{fmtTradeDate(item.executeDate)}</Typography>
                 </TableCell>
                 <TableCell align="right">
                   <Typography variant="caption">{item.targetCount}</Typography>

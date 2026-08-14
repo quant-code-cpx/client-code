@@ -22,6 +22,8 @@ import FormControl from '@mui/material/FormControl';
 import TableContainer from '@mui/material/TableContainer';
 import LinearProgress from '@mui/material/LinearProgress';
 
+import { getAShareReturnTextColor } from 'src/utils/market-color';
+
 import { createParamSensitivity, getParamSensitivityResult } from 'src/api/backtest';
 
 import { Chart, useChart } from 'src/components/chart';
@@ -56,6 +58,12 @@ interface BacktestParamSensitivityPanelProps {
 function fNum(v: number | null, d = 2) {
   if (v == null) return '--';
   return v.toFixed(d);
+}
+
+export function getParamSensitivityValueColor(metric: string, value: number | null) {
+  if (metric === 'annualizedReturn') return getAShareReturnTextColor(value);
+  if (value == null || !Number.isFinite(value) || value === 0) return 'text.secondary';
+  return value > 0 ? 'success.main' : 'error.main';
 }
 
 // Build heatmap series from 2D heatmap array
@@ -382,7 +390,7 @@ export function BacktestParamSensitivityPanel({ runId }: BacktestParamSensitivit
                           <TableCell
                             align="right"
                             sx={{
-                              color: (row.value ?? 0) >= 0 ? 'success.main' : 'error.main',
+                              color: getParamSensitivityValueColor(result.metric, row.value),
                             }}
                           >
                             {fNum(row.value)}

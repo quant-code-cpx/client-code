@@ -55,15 +55,16 @@ const SORT_TABLE_LABELS: Record<SortBy, { inflow: string; outflow: string }> = {
 const TOP_N_OPTIONS = [10, 20, 30] as const;
 type TopN = (typeof TOP_N_OPTIONS)[number];
 
-function flowColor(value: number): 'error.main' | 'success.main' | 'text.secondary' {
+function flowColor(value: number | null): 'error.main' | 'success.main' | 'text.secondary' {
+  if (value == null) return 'text.secondary';
   if (value > 0) return 'error.main';
   if (value < 0) return 'success.main';
   return 'text.secondary';
 }
 
 /** 元 → 亿元，保留 2 位小数 */
-function toYiStr(yuan: number): string {
-  return `${(yuan / 1e8).toFixed(2)}亿`;
+function toYiStr(yuan: number | null): string {
+  return yuan == null ? '—' : `${(yuan / 1e8).toFixed(2)}亿`;
 }
 
 // ----------------------------------------------------------------------
@@ -98,6 +99,7 @@ function SectorTable({ title, rows, selectedCode, onRowClick }: SectorTableProps
           <TableBody>
             {rows.map((row, idx) => {
               const isSelected = row.tsCode === selectedCode;
+              const sectorName = row.name ?? row.tsCode;
               return (
                 <TableRow
                   key={row.tsCode}
@@ -105,7 +107,7 @@ function SectorTable({ title, rows, selectedCode, onRowClick }: SectorTableProps
                   selected={isSelected}
                   role="button"
                   tabIndex={0}
-                  aria-label={`${isSelected ? '取消选择' : '选择'}板块 ${row.name}`}
+                  aria-label={`${isSelected ? '取消选择' : '选择'}板块 ${sectorName}`}
                   onClick={() => onRowClick(row)}
                   onKeyDown={(event) => {
                     if (event.key !== 'Enter' && event.key !== ' ') return;
@@ -128,12 +130,12 @@ function SectorTable({ title, rows, selectedCode, onRowClick }: SectorTableProps
                   </TableCell>
                   <TableCell>
                     <Typography variant="body2" fontWeight="fontWeightMedium">
-                      {row.name}
+                      {sectorName}
                     </Typography>
                   </TableCell>
                   <TableCell align="right">
                     <Typography variant="body2" sx={{ color: flowColor(row.pctChange) }}>
-                      {fPctChg(row.pctChange)}
+                      {row.pctChange == null ? '—' : fPctChg(row.pctChange)}
                     </Typography>
                   </TableCell>
                   <TableCell align="right">
@@ -255,7 +257,9 @@ export function SectorFlowRankingPanel({
     setSelectedSector((prev) => {
       const next = prev?.tsCode === item.tsCode ? null : item;
       if (contentType === 'CONCEPT') {
-        onConceptSelectedRef.current?.(next ? { tsCode: next.tsCode, name: next.name } : null);
+        onConceptSelectedRef.current?.(
+          next ? { tsCode: next.tsCode, name: next.name ?? next.tsCode } : null
+        );
       }
       return next;
     });
@@ -347,7 +351,7 @@ export function SectorFlowRankingPanel({
       {selectedSector != null && (
         <SectorFlowTrendChart
           tsCode={selectedSector.tsCode}
-          sectorName={selectedSector.name}
+          sectorName={selectedSector.name ?? selectedSector.tsCode}
           contentType={contentType}
           days={20}
           open

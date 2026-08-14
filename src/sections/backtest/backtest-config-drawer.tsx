@@ -5,6 +5,8 @@ import Grid from '@mui/material/Grid';
 import Divider from '@mui/material/Divider';
 import Typography from '@mui/material/Typography';
 
+import { fmtTradeDate } from 'src/utils/format-time';
+
 import {
   UNIVERSE_OPTIONS,
   BENCHMARK_OPTIONS,
@@ -53,7 +55,10 @@ export function BacktestConfigDrawer({ detail }: BacktestConfigDrawerProps) {
         </Typography>
         <InfoRow label="策略类型" value={strategyLabel} />
         <Divider />
-        <InfoRow label="回测区间" value={`${detail.startDate} ~ ${detail.endDate}`} />
+        <InfoRow
+          label="回测区间"
+          value={`${fmtTradeDate(detail.startDate)} ~ ${fmtTradeDate(detail.endDate)}`}
+        />
         <Divider />
         <InfoRow label="基准指数" value={benchmarkLabel} />
         <Divider />

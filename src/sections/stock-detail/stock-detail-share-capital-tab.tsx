@@ -20,6 +20,7 @@ import CardContent from '@mui/material/CardContent';
 import TableContainer from '@mui/material/TableContainer';
 
 import { fWanYuan } from 'src/utils/format-number';
+import { fmtTradeDate } from 'src/utils/format-time';
 
 import { stockDetailApiExtra } from 'src/api/stock';
 
@@ -171,7 +172,7 @@ export function StockDetailShareCapitalTab({ tsCode }: Props) {
                   {changes.map((row, i) => (
                     <TableRow key={i} hover>
                       <TableCell sx={{ fontFamily: 'monospace', fontSize: 12 }}>
-                        {row.annDate ?? '-'}
+                        {fmtTradeDate(row.annDate ?? '') || '-'}
                       </TableCell>
                       <TableCell>{row.changeReason ?? '-'}</TableCell>
                       <TableCell align="right">

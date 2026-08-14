@@ -5,6 +5,8 @@ import {
   aggregateSectors,
   computeDistribution,
   pickScatterLabelKeys,
+  hasScatterCoordinates,
+  summarizeSectorStocks,
   computeLinearAxisBounds,
   buildScatterInsightLists,
   pickCrowdedScatterSectors,
@@ -17,35 +19,41 @@ function sector(
   tsCode: string,
   name: string,
   pctChange: number,
-  netAmountYi: number,
-  amountYi = 80
+  netAmountYi: number
 ): SectorFlowItem {
   return {
     tsCode,
+    tradeDate: '20260808',
+    contentType: 'INDUSTRY',
     name,
     pctChange,
-    close: 0,
-    amount: amountYi * 10000,
+    close: null,
     netAmount: netAmountYi * 100_000_000,
-    netAmountRate: 0,
-    upCount: 0,
-    downCount: 0,
-    leadStock: null,
-    leadPctChg: null,
+    netAmountRate: null,
+    buyElgAmount: null,
+    buyElgAmountRate: null,
+    buyLgAmount: null,
+    buyLgAmountRate: null,
+    buyMdAmount: null,
+    buyMdAmountRate: null,
+    buySmAmount: null,
+    buySmAmountRate: null,
+    buySmAmountStock: null,
+    rank: null,
   };
 }
 
 const sampleSectors: SectorFlowItem[] = [
-  sector('A', '银行', 0.2, 12, 220),
-  sector('B', '有色金属', 5.8, 3, 160),
-  sector('C', '传媒', -6.1, -2, 150),
-  sector('D', '电子', 1.6, -18, 210),
-  sector('E', '医药生物', 0.1, 0.2, 340),
-  sector('F', '机械设备', -0.2, -0.1, 300),
-  sector('G', '基础化工', 0.3, -0.3, 260),
-  sector('H', '国防军工', -0.1, 0.4, 240),
-  sector('I', '食品饮料', 2.2, 1.1, 120),
-  sector('J', '房地产', -2.8, -1.2, 110),
+  sector('A', '银行', 0.2, 12),
+  sector('B', '有色金属', 5.8, 3),
+  sector('C', '传媒', -6.1, -2),
+  sector('D', '电子', 1.6, -18),
+  sector('E', '医药生物', 0.1, 0.2),
+  sector('F', '机械设备', -0.2, -0.1),
+  sector('G', '基础化工', 0.3, -0.3),
+  sector('H', '国防军工', -0.1, 0.4),
+  sector('I', '食品饮料', 2.2, 1.1),
+  sector('J', '房地产', -2.8, -1.2),
 ];
 
 // ----------------------------------------------------------------------
@@ -63,9 +71,29 @@ describe('buildScatterInsightLists', () => {
   it('surfaces central crowded sectors that are easy to miss when bubbles overlap near zero axes', () => {
     const crowded = pickCrowdedScatterSectors(sampleSectors, 3);
 
-    expect(crowded.map((item) => item.name)).toEqual(['医药生物', '机械设备', '基础化工']);
-    expect(crowded.every((item) => Math.abs(item.pctChange) <= 0.3)).toBe(true);
-    expect(crowded.every((item) => Math.abs(item.netAmount) <= 0.4 * 100_000_000)).toBe(true);
+    expect(crowded.map((item) => item.name)).toEqual(['医药生物', '机械设备', '国防军工']);
+    expect(crowded.every((item) => Math.abs(Number(item.pctChange)) <= 0.3)).toBe(true);
+    expect(crowded.every((item) => Math.abs(Number(item.netAmount)) <= 0.4 * 100_000_000)).toBe(
+      true
+    );
+  });
+
+  it('excludes sectors missing either real scatter coordinate from every index', () => {
+    const missingPct = { ...sector('K', '缺涨跌幅', 1, 2), pctChange: null };
+    const missingFlow = { ...sector('L', '缺净流入', 1, 2), netAmount: null };
+    const lists = buildScatterInsightLists([...sampleSectors, missingPct, missingFlow], 20);
+    const indexedCodes = [
+      ...lists.topInflow,
+      ...lists.topOutflow,
+      ...lists.topGainers,
+      ...lists.topLosers,
+      ...lists.crowded,
+    ].map((item) => item.tsCode);
+
+    expect(hasScatterCoordinates(missingPct)).toBe(false);
+    expect(hasScatterCoordinates(missingFlow)).toBe(false);
+    expect(indexedCodes).not.toContain('K');
+    expect(indexedCodes).not.toContain('L');
   });
 
   it('keeps every sector reachable from the five information-index groups', () => {
@@ -100,7 +128,9 @@ describe('pickScatterLabelKeys', () => {
 describe('computeLinearAxisBounds', () => {
   it('uses fallback bounds for empty and non-finite inputs', () => {
     expect(computeLinearAxisBounds([], { min: -5, max: 5 })).toEqual({ min: -5, max: 5 });
-    expect(computeLinearAxisBounds([Number.NaN, Number.POSITIVE_INFINITY], { min: -2, max: 2 })).toEqual({
+    expect(
+      computeLinearAxisBounds([Number.NaN, Number.POSITIVE_INFINITY], { min: -2, max: 2 })
+    ).toEqual({
       min: -2,
       max: 2,
     });
@@ -182,5 +212,62 @@ describe('heatmap distribution', () => {
         flatCount: 0,
       }),
     ]);
+  });
+});
+
+describe('summarizeSectorStocks', () => {
+  it('derives turnover and rise/fall counts from real stock rows', () => {
+    const summary = summarizeSectorStocks([
+      {
+        tsCode: 'A',
+        name: 'A',
+        groupName: '测试',
+        industry: '测试',
+        pctChg: 1.2,
+        totalMv: null,
+        amount: 100_000,
+      },
+      {
+        tsCode: 'B',
+        name: 'B',
+        groupName: '测试',
+        industry: '测试',
+        pctChg: -0.8,
+        totalMv: null,
+        amount: 50_000,
+      },
+      {
+        tsCode: 'C',
+        name: 'C',
+        groupName: '测试',
+        industry: '测试',
+        pctChg: null,
+        totalMv: null,
+        amount: null,
+      },
+    ]);
+
+    expect(summary).toEqual({ totalAmountYi: 1.5, upCount: 1, downCount: 1 });
+  });
+
+  it('keeps unavailable summaries null instead of manufacturing zeros', () => {
+    expect(summarizeSectorStocks([])).toEqual({
+      totalAmountYi: null,
+      upCount: null,
+      downCount: null,
+    });
+    expect(
+      summarizeSectorStocks([
+        {
+          tsCode: 'A',
+          name: 'A',
+          groupName: '测试',
+          industry: '测试',
+          pctChg: null,
+          totalMv: null,
+          amount: null,
+        },
+      ])
+    ).toEqual({ totalAmountYi: null, upCount: null, downCount: null });
   });
 });

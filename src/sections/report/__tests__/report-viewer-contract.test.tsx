@@ -123,7 +123,10 @@ describe('report viewers backend contract', () => {
         },
       ],
       top10Holders: [{ holderName: null, holdAmount: null, holdRatio: 9.99 }],
-      dividends: [{ endDate: null, divProc: '实施', cashDivTax: null, stkDiv: 0.1 }],
+      dividends: [
+        { endDate: '20251231', divProc: '实施', cashDivTax: null, stkDiv: 0.1 },
+        { endDate: null, divProc: '预案', cashDivTax: null, stkDiv: null },
+      ],
     };
 
     renderWithProviders(<StockReportViewer data={data} />);
@@ -132,6 +135,8 @@ describe('report viewers backend contract', () => {
     expect(screen.getByText('销售净利率 (%)')).toBeInTheDocument();
     expect(screen.getByText('营收同比 (%)')).toBeInTheDocument();
     expect(screen.getByText('8.20%')).toBeInTheDocument();
+    expect(screen.getAllByText('2025-12-31').length).toBeGreaterThanOrEqual(2);
+    expect(screen.queryByText('20251231')).not.toBeInTheDocument();
     expect(screen.getByText('实施')).toBeInTheDocument();
     expect(screen.getByText('暂无行情数据')).toBeInTheDocument();
   });

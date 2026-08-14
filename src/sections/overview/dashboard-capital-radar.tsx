@@ -1,4 +1,4 @@
-import type { HsgtTrendItem, MarketMoneyFlowDetail } from 'src/api/market';
+import type { HsgtFlowHistoryItem, MarketMoneyFlowDetail } from 'src/api/market';
 
 import { varAlpha } from 'minimal-shared/utils';
 import { useRef, useState, useEffect, useCallback } from 'react';
@@ -17,16 +17,13 @@ import CardHeader from '@mui/material/CardHeader';
 
 import { useRouter } from 'src/routes/hooks';
 
+import { getAShareReturnTextColor } from 'src/utils/market-color';
+
 import { fetchHsgtFlow, fetchMoneyFlow } from 'src/api/market';
 
 import { Iconify } from 'src/components/iconify';
 
 // ----------------------------------------------------------------------
-
-function flowColor(v: number | null): 'error.main' | 'success.main' | 'text.secondary' {
-  if (v == null) return 'text.secondary';
-  return v >= 0 ? 'error.main' : 'success.main';
-}
 
 function errorMessage(error: unknown, fallback: string): string {
   return error instanceof Error && error.message ? error.message : fallback;
@@ -40,7 +37,7 @@ export function DashboardCapitalRadar({ refreshKey }: DashboardCapitalRadarProps
   const theme = useTheme();
   const router = useRouter();
 
-  const [hsgt, setHsgt] = useState<HsgtTrendItem | null>(null);
+  const [hsgt, setHsgt] = useState<HsgtFlowHistoryItem | null>(null);
   const [moneyFlow, setMoneyFlow] = useState<MarketMoneyFlowDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [errors, setErrors] = useState({ hsgt: '', moneyFlow: '' });
@@ -92,7 +89,7 @@ export function DashboardCapitalRadar({ refreshKey }: DashboardCapitalRadarProps
   // 逐笔资金净流入（独立算法，元 → 亿元）
   const mfNet = moneyFlow?.netMfAmount ?? null;
   const mfNetYi = mfNet == null ? null : mfNet / 1e8;
-  const mfIsPos = mfNetYi != null && mfNetYi >= 0;
+  const mfIsPositive = mfNetYi != null && mfNetYi > 0;
 
   // 主力汇总口径（超大+大单，元）
   const mainNet = moneyFlow?.main?.netAmount ?? null;
@@ -170,11 +167,11 @@ export function DashboardCapitalRadar({ refreshKey }: DashboardCapitalRadarProps
             variant="h4"
             sx={{
               fontWeight: 800,
-              color: flowColor(mfNetYi),
+              color: getAShareReturnTextColor(mfNetYi),
               lineHeight: 1.3,
             }}
           >
-            {mfNetYi == null ? '—' : `${mfIsPos ? '+' : ''}${mfNetYi.toFixed(2)}`}
+            {mfNetYi == null ? '—' : `${mfIsPositive ? '+' : ''}${mfNetYi.toFixed(2)}`}
             <Typography
               component="span"
               variant="body2"
@@ -188,7 +185,7 @@ export function DashboardCapitalRadar({ refreshKey }: DashboardCapitalRadarProps
         {/* ── 主力净流入（超大+大单；散户方向必然相反，不重复展示） ── */}
         {(() => {
           const yi = mainNet == null ? null : mainNet / 1e8;
-          const isPos = yi != null && yi >= 0;
+          const isPositive = yi != null && yi > 0;
           return (
             <Box
               sx={{
@@ -196,10 +193,10 @@ export function DashboardCapitalRadar({ refreshKey }: DashboardCapitalRadarProps
                 mb: 2,
                 borderRadius: 1.5,
                 bgcolor:
-                  yi == null
+                  yi == null || yi === 0
                     ? 'background.neutral'
                     : varAlpha(
-                        isPos
+                        isPositive
                           ? theme.vars.palette.error.mainChannel
                           : theme.vars.palette.success.mainChannel,
                         0.06
@@ -220,8 +217,11 @@ export function DashboardCapitalRadar({ refreshKey }: DashboardCapitalRadarProps
                   主力净流入
                 </Typography>
               </Tooltip>
-              <Typography variant="subtitle2" sx={{ fontWeight: 700, color: flowColor(yi) }}>
-                {yi == null ? '—' : `${isPos ? '+' : ''}${yi.toFixed(2)}亿`}
+              <Typography
+                variant="subtitle2"
+                sx={{ fontWeight: 700, color: getAShareReturnTextColor(yi) }}
+              >
+                {yi == null ? '—' : `${isPositive ? '+' : ''}${yi.toFixed(2)}亿`}
               </Typography>
             </Box>
           );
@@ -315,7 +315,7 @@ export function DashboardCapitalRadar({ refreshKey }: DashboardCapitalRadarProps
                   <Typography
                     variant="caption"
                     sx={{
-                      color: flowColor(netYi),
+                      color: getAShareReturnTextColor(netYi),
                       fontWeight: 700,
                       fontSize: 12,
                       flexShrink: 0,
@@ -323,7 +323,7 @@ export function DashboardCapitalRadar({ refreshKey }: DashboardCapitalRadarProps
                       textAlign: 'right',
                     }}
                   >
-                    {netYi == null ? '—' : `${netYi >= 0 ? '+' : ''}${netYi.toFixed(1)}亿`}
+                    {netYi == null ? '—' : `${netYi > 0 ? '+' : ''}${netYi.toFixed(1)}亿`}
                   </Typography>
                 </Stack>
 

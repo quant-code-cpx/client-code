@@ -17,21 +17,25 @@ import { Chart, useChart } from 'src/components/chart';
 
 type Mode = 'pct' | 'count';
 
+type SectorBarItem = Pick<HeatmapSectorSummary, 'groupName' | 'avgPctChg'> &
+  Partial<Pick<HeatmapSectorSummary, 'upCount' | 'downCount' | 'flatCount'>>;
+
 type Props = {
-  sectors: HeatmapSectorSummary[];
+  sectors: SectorBarItem[];
   loading: boolean;
   error: string;
+  supportsCount?: boolean;
 };
 
-export function HeatmapSectorBarChart({ sectors, loading, error }: Props) {
+export function HeatmapSectorBarChart({ sectors, loading, error, supportsCount = true }: Props) {
   const theme = useTheme();
   const [mode, setMode] = useState<Mode>('pct');
+  const activeMode: Mode = supportsCount ? mode : 'pct';
 
   // --- pct mode: sorted by avgPctChg desc ---
   const sortedByPct = sectors
     .filter(
-      (sector): sector is HeatmapSectorSummary & { avgPctChg: number } =>
-        sector.avgPctChg != null
+      (sector): sector is HeatmapSectorSummary & { avgPctChg: number } => sector.avgPctChg != null
     )
     .sort((a, b) => b.avgPctChg - a.avgPctChg);
 
@@ -67,8 +71,14 @@ export function HeatmapSectorBarChart({ sectors, loading, error }: Props) {
 
   const pctSeries = [{ name: '涨跌幅', data: sortedByPct.map((s) => +s.avgPctChg.toFixed(2)) }];
 
-  // --- count mode: sorted by (upCount - downCount) desc ---
-  const sortedByCount = [...sectors].sort(
+  // 涨跌家数仅用于由真实个股聚合出的数据；散点接口不提供该统计。
+  const countSectors = sectors.filter(
+    (sector): sector is SectorBarItem & { upCount: number; downCount: number; flatCount: number } =>
+      Number.isFinite(sector.upCount) &&
+      Number.isFinite(sector.downCount) &&
+      Number.isFinite(sector.flatCount)
+  );
+  const sortedByCount = [...countSectors].sort(
     (a, b) => b.upCount - b.downCount - (a.upCount - a.downCount)
   );
 
@@ -91,7 +101,7 @@ export function HeatmapSectorBarChart({ sectors, loading, error }: Props) {
     { name: '平盘', data: sortedByCount.map((s) => s.flatCount) },
   ];
 
-  const activeSectors = mode === 'pct' ? sortedByPct : sortedByCount;
+  const activeSectors = activeMode === 'pct' ? sortedByPct : sortedByCount;
   const chartHeight = Math.max(400, activeSectors.length * 22);
 
   return (
@@ -100,17 +110,19 @@ export function HeatmapSectorBarChart({ sectors, loading, error }: Props) {
         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 2 }}>
           <Typography variant="h6">行业涨跌统计</Typography>
 
-          <ToggleButtonGroup
-            size="small"
-            exclusive
-            value={mode}
-            onChange={(_e, v) => {
-              if (v) setMode(v);
-            }}
-          >
-            <ToggleButton value="pct">涨跌幅</ToggleButton>
-            <ToggleButton value="count">涨跌家数</ToggleButton>
-          </ToggleButtonGroup>
+          {supportsCount && (
+            <ToggleButtonGroup
+              size="small"
+              exclusive
+              value={mode}
+              onChange={(_e, v) => {
+                if (v) setMode(v);
+              }}
+            >
+              <ToggleButton value="pct">涨跌幅</ToggleButton>
+              <ToggleButton value="count">涨跌家数</ToggleButton>
+            </ToggleButtonGroup>
+          )}
         </Stack>
 
         {loading && (
@@ -123,11 +135,11 @@ export function HeatmapSectorBarChart({ sectors, loading, error }: Props) {
           </Typography>
         )}
 
-        {!loading && !error && sortedByPct.length > 0 && mode === 'pct' && (
+        {!loading && !error && sortedByPct.length > 0 && activeMode === 'pct' && (
           <Chart type="bar" series={pctSeries} options={pctOptions} sx={{ height: chartHeight }} />
         )}
 
-        {!loading && !error && sectors.length > 0 && mode === 'count' && (
+        {!loading && !error && sortedByCount.length > 0 && activeMode === 'count' && (
           <Chart
             type="bar"
             series={countSeries}
@@ -138,10 +150,16 @@ export function HeatmapSectorBarChart({ sectors, loading, error }: Props) {
 
         {!loading &&
           !error &&
-          (sectors.length === 0 || (mode === 'pct' && sortedByPct.length === 0)) && (
-          <Typography color="text.disabled" sx={{ py: 4, textAlign: 'center' }}>
-            {sectors.length === 0 ? '暂无数据' : '暂无有效涨跌幅数据'}
-          </Typography>
+          (sectors.length === 0 ||
+            (activeMode === 'pct' && sortedByPct.length === 0) ||
+            (activeMode === 'count' && sortedByCount.length === 0)) && (
+            <Typography color="text.disabled" sx={{ py: 4, textAlign: 'center' }}>
+              {sectors.length === 0
+                ? '暂无数据'
+                : activeMode === 'pct'
+                  ? '暂无有效涨跌幅数据'
+                  : '暂无有效涨跌家数数据'}
+            </Typography>
           )}
       </CardContent>
     </Card>

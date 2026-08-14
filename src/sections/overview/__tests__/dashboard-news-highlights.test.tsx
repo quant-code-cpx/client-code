@@ -50,8 +50,8 @@ describe('DashboardNewsHighlights', () => {
 
     renderHighlights();
 
-    expect(await screen.findByRole('heading', { name: '重磅新闻' })).toBeInTheDocument();
-    const links = screen.getAllByRole('link', { name: /查看新闻：/ });
+    const links = await screen.findAllByRole('link', { name: /查看新闻：/ });
+    expect(screen.getByRole('heading', { name: '重磅新闻' })).toBeInTheDocument();
     expect(links.map((link) => link.textContent)).toEqual([
       expect.stringContaining('第二条重磅新闻'),
       expect.stringContaining('第一条重磅新闻'),
@@ -109,8 +109,8 @@ describe('DashboardNewsHighlights', () => {
     for (const scenario of scenarios) {
       vi.mocked(newsApi.getHighlights).mockResolvedValueOnce(scenario.value);
       const rendered = renderHighlights();
-      expect(await screen.findByRole('heading', { name: scenario.heading })).toBeInTheDocument();
-      expect(screen.getByRole('status')).toHaveTextContent(scenario.expected);
+      expect(await screen.findByRole('status')).toHaveTextContent(scenario.expected);
+      expect(screen.getByRole('heading', { name: scenario.heading })).toBeInTheDocument();
       rendered.unmount();
     }
   });
@@ -154,6 +154,49 @@ describe('DashboardNewsHighlights', () => {
         '/market/news?article=aaaaaaaaaaaaaaaaaaaa'
       )
     );
+  });
+
+  it('数据截止缺失、来源降级、无原因与 RECENT 标签都保持真实语义', async () => {
+    vi.mocked(newsApi.getHighlights).mockResolvedValue(
+      response({
+        dataThrough: null,
+        displayMode: 'RECENT',
+        rankingStatus: 'RECENT_FALLBACK',
+        items: [
+          item('providerfallback00001', 'Provider 来源', {
+            publisher: null,
+            providerKeys: ['provider-only'],
+            reasonCodes: [],
+            impactLevel: 'RECENT',
+          }),
+          item('unknownsource0000002', '未知来源', {
+            publisher: null,
+            providerKeys: [],
+            reasonCodes: [],
+            impactLevel: 'RECENT',
+          }),
+        ],
+      })
+    );
+
+    renderHighlights();
+
+    expect(await screen.findByText('数据截止时间暂不可用')).toBeInTheDocument();
+    expect(screen.getByText('provider-only')).toBeInTheDocument();
+    expect(screen.getByText('来源未知')).toBeInTheDocument();
+    expect(screen.getAllByText('最新')).toHaveLength(2);
+    expect(screen.queryByText(/权威来源/)).not.toBeInTheDocument();
+  });
+
+  it('AbortError 作为取消语义静默处理，不误报首页新闻故障', async () => {
+    vi.mocked(newsApi.getHighlights).mockRejectedValue(
+      new DOMException('request aborted', 'AbortError')
+    );
+    renderHighlights();
+
+    await waitFor(() => expect(screen.queryByLabelText('首页新闻加载中')).not.toBeInTheDocument());
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: '重磅新闻' })).toBeInTheDocument();
   });
 });
 

@@ -31,6 +31,8 @@ import FormControl from '@mui/material/FormControl';
 import TableContainer from '@mui/material/TableContainer';
 import TablePagination from '@mui/material/TablePagination';
 
+import { fmtTradeDate } from 'src/utils/format-time';
+
 import { querySignals, listSignalRules } from 'src/api/event-study';
 
 import { Label } from 'src/components/label';
@@ -279,7 +281,7 @@ export function SignalHistoryTab() {
                             {cfg.label}
                           </Label>
                         </TableCell>
-                        <TableCell>{item.eventDate}</TableCell>
+                        <TableCell>{fmtTradeDate(item.eventDate)}</TableCell>
                         <TableCell>
                           {item.triggeredAt
                             ? new Date(item.triggeredAt).toLocaleString('zh-CN', {

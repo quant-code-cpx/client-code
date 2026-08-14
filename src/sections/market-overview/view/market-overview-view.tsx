@@ -1,5 +1,5 @@
 import type { Dayjs } from 'dayjs';
-import type { HsgtTrendItem } from 'src/api/market';
+import type { HsgtFlowHistoryItem } from 'src/api/market';
 
 import dayjs from 'dayjs';
 import { useState, useEffect, useCallback } from 'react';
@@ -64,7 +64,7 @@ export function MarketOverviewView() {
   const [apiFetchDate, setApiFetchDate] = useState<string | undefined>(undefined);
   const [refreshKey, setRefreshKey] = useState(0);
   // Shared HSGT history — fetched once here, passed to Hero + HsgtMiniCard.
-  const [hsgtHistory, setHsgtHistory] = useState<HsgtTrendItem[]>([]);
+  const [hsgtHistory, setHsgtHistory] = useState<HsgtFlowHistoryItem[]>([]);
   const [hsgtLoading, setHsgtLoading] = useState(true);
   const [hsgtError, setHsgtError] = useState('');
 

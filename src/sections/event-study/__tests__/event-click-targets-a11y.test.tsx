@@ -29,7 +29,7 @@ describe('event-study clickable table accessibility', () => {
       />
     );
 
-    const row = screen.getByRole('button', { name: '查看样本 贵州茅台 20260808' });
+    const row = screen.getByRole('button', { name: '查看样本 贵州茅台 2026-08-08' });
 
     fireEvent.keyDown(row, { key: 'Enter' });
     fireEvent.keyDown(row, { key: ' ' });

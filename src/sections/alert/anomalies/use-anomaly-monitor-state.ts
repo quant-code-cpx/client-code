@@ -13,7 +13,7 @@ import { useRef, useMemo, useState, useEffect, useCallback } from 'react';
 import { alertApi } from 'src/api/alert';
 import { getSocket } from 'src/lib/socket';
 
-import { tradeDateToYYYYMMDD } from './anomaly-type-config';
+import { fmtTradeDate, tradeDateToYYYYMMDD } from './anomaly-type-config';
 
 // ----------------------------------------------------------------------
 
@@ -226,7 +226,7 @@ export function useAnomalyMonitorState(): UseAnomalyMonitorState {
         setScanFeedback({
           open: true,
           severity: 'success',
-          message: `扫描完成（${payload?.tradeDate ?? '最新交易日'}），新增 ${
+          message: `扫描完成（${payload?.tradeDate ? fmtTradeDate(payload.tradeDate) : '最新交易日'}），新增 ${
             payload?.totalNew ?? 0
           } 条异动`,
         });

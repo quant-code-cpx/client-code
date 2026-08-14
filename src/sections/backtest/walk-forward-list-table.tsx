@@ -21,6 +21,8 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import LinearProgress from '@mui/material/LinearProgress';
 import TableContainer from '@mui/material/TableContainer';
 
+import { fmtTradeDate } from 'src/utils/format-time';
+
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
 import { Scrollbar } from 'src/components/scrollbar';
@@ -153,10 +155,6 @@ export function WalkForwardListTable({ rows, loading, onDelete }: Props) {
                     </TableCell>
 
                     <TableCell>
-                      <Chip size="small" label={row.windowMode ?? 'ROLLING'} variant="outlined" />
-                    </TableCell>
-
-                    <TableCell>
                       <Chip
                         size="small"
                         label={STRATEGY_TYPE_LABEL[row.baseStrategyType] ?? row.baseStrategyType}
@@ -166,8 +164,12 @@ export function WalkForwardListTable({ rows, loading, onDelete }: Props) {
 
                     <TableCell>
                       <Typography variant="body2" noWrap>
-                        {row.fullStartDate} ~ {row.fullEndDate}
+                        {fmtTradeDate(row.fullStartDate)} ~ {fmtTradeDate(row.fullEndDate)}
                       </Typography>
+                    </TableCell>
+
+                    <TableCell>
+                      <Chip size="small" label={row.windowMode ?? 'ROLLING'} variant="outlined" />
                     </TableCell>
 
                     <TableCell>

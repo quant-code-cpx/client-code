@@ -5,14 +5,16 @@ import type { BacktestRunListItem } from 'src/api/backtest';
 import { useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
+import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
+import Button from '@mui/material/Button';
 import Switch from '@mui/material/Switch';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import Autocomplete from '@mui/material/Autocomplete';
 import FormControlLabel from '@mui/material/FormControlLabel';
 
-import { fDate } from 'src/utils/format-time';
+import { fDate, fmtTradeDate } from 'src/utils/format-time';
 
 import { listRuns } from 'src/api/backtest';
 import { listStrategies } from 'src/api/strategy';
@@ -26,20 +28,37 @@ export function GenerateFormStrategy({ value, onChange, onValidChange }: Props) 
   const [strategies, setStrategies] = useState<Strategy[]>([]);
   const [runs, setRuns] = useState<BacktestRunListItem[]>([]);
   const [portfolios, setPortfolios] = useState<PortfolioListItem[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const load = useCallback(async () => {
-    try {
-      const [s, r, p] = await Promise.all([
-        listStrategies({ pageSize: 100 }).catch(() => ({ strategies: [] as Strategy[] })),
-        listRuns({ pageSize: 50 }).catch(() => ({ items: [] as BacktestRunListItem[] })),
-        listPortfolios().catch(() => [] as PortfolioListItem[]),
-      ]);
-      setStrategies(s.strategies ?? []);
-      setRuns(r.items ?? []);
-      setPortfolios(p);
-    } catch {
-      // ignore - empty state shown in autocompletes
+    setLoading(true);
+    setError('');
+    const [strategyResult, runResult, portfolioResult] = await Promise.allSettled([
+      listStrategies({ pageSize: 100 }),
+      listRuns({ pageSize: 50 }),
+      listPortfolios(),
+    ]);
+    const failures: string[] = [];
+
+    if (strategyResult.status === 'fulfilled') {
+      setStrategies(strategyResult.value.strategies ?? []);
+    } else {
+      failures.push('策略');
     }
+    if (runResult.status === 'fulfilled') {
+      setRuns(runResult.value.items ?? []);
+    } else {
+      failures.push('回测运行');
+    }
+    if (portfolioResult.status === 'fulfilled') {
+      setPortfolios(portfolioResult.value);
+    } else {
+      failures.push('组合');
+    }
+
+    setError(failures.length > 0 ? `${failures.join('、')}加载失败` : '');
+    setLoading(false);
   }, []);
 
   useEffect(() => {
@@ -71,12 +90,25 @@ export function GenerateFormStrategy({ value, onChange, onValidChange }: Props) 
 
   return (
     <Stack spacing={2}>
+      {error && (
+        <Alert
+          severity="error"
+          action={
+            <Button size="small" onClick={load} disabled={loading}>
+              重试
+            </Button>
+          }
+        >
+          {error}
+        </Alert>
+      )}
       <Autocomplete
         size="small"
+        loading={loading}
         options={runs}
         value={selectedRun}
         getOptionLabel={(o) =>
-          `${o.name ?? o.strategyType} · ${o.startDate}~${o.endDate} · ${o.runId.slice(-6)}`
+          `${o.name ?? o.strategyType} · ${fmtTradeDate(o.startDate)}~${fmtTradeDate(o.endDate)} · ${o.runId.slice(-6)}`
         }
         onChange={(_, opt) => onChange({ ...value, backtestRunId: opt?.runId ?? '' })}
         renderOption={(props, option) => (
@@ -86,7 +118,8 @@ export function GenerateFormStrategy({ value, onChange, onValidChange }: Props) 
                 {option.name ?? option.strategyType}
               </Typography>
               <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                {option.startDate} ~ {option.endDate} · {fDate(option.createdAt)}
+                {fmtTradeDate(option.startDate)} ~ {fmtTradeDate(option.endDate)} ·{' '}
+                {fDate(option.createdAt)}
               </Typography>
             </Box>
           </Box>
@@ -96,6 +129,7 @@ export function GenerateFormStrategy({ value, onChange, onValidChange }: Props) 
 
       <Autocomplete
         size="small"
+        loading={loading}
         options={strategies}
         value={selectedStrategy}
         getOptionLabel={(o) => `${o.name} · v${o.version}`}
@@ -105,6 +139,7 @@ export function GenerateFormStrategy({ value, onChange, onValidChange }: Props) 
 
       <Autocomplete
         size="small"
+        loading={loading}
         options={portfolios}
         value={selectedPortfolio}
         getOptionLabel={(o) => o.name}

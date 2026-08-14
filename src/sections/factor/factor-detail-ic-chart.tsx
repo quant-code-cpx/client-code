@@ -13,6 +13,8 @@ import CardHeader from '@mui/material/CardHeader';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 
+import { fmtTradeDate } from 'src/utils/format-time';
+
 import { factorApi } from 'src/api/factor';
 
 import { Chart, useChart } from 'src/components/chart';
@@ -71,7 +73,7 @@ export function FactorDetailIcChart({ factorName, params }: FactorDetailIcChartP
 
   const icValues = result?.series.map((d) => d.ic) ?? [];
   const ma20 = computeMA(icValues, 20);
-  const categories = result?.series.map((d) => d.tradeDate) ?? [];
+  const categories = result?.series.map((d) => fmtTradeDate(d.tradeDate)) ?? [];
 
   const cumulativeIc = icValues.reduce<number[]>((acc, d, i) => {
     acc.push((acc[i - 1] ?? 0) + d);

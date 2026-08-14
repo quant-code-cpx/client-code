@@ -8,6 +8,8 @@ import Tooltip from '@mui/material/Tooltip';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 
+import { fmtTradeDate } from 'src/utils/format-time';
+
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
 
@@ -84,6 +86,7 @@ function formatFieldValue(value: unknown): string {
   if (/^\d{4}-\d{2}-\d{2}T/.test(str)) {
     return str.slice(0, 10);
   }
+  if (/^\d{8}$/.test(str)) return fmtTradeDate(str);
   return str;
 }
 

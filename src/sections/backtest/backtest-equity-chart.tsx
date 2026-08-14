@@ -5,6 +5,8 @@ import Card from '@mui/material/Card';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 
+import { fmtTradeDate } from 'src/utils/format-time';
+
 import { Chart, useChart } from 'src/components/chart';
 
 // ----------------------------------------------------------------------
@@ -14,7 +16,7 @@ interface BacktestEquityChartProps {
 }
 
 export function BacktestEquityChart({ points }: BacktestEquityChartProps) {
-  const categories = points.map((p) => p.tradeDate);
+  const categories = points.map((p) => fmtTradeDate(p.tradeDate));
 
   const series = [
     { name: '策略净值', data: points.map((p) => Number(p.nav.toFixed(4))) },

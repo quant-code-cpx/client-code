@@ -8,18 +8,18 @@ import { useTheme } from '@mui/material/styles';
 
 type TierBarItem = {
   label: string;
-  value: number;
+  value: number | null;
 };
 
 type Props = {
   /** 超大单 */
-  elg: number;
+  elg: number | null;
   /** 大单 */
-  lg: number;
+  lg: number | null;
   /** 中单 */
-  md: number;
+  md: number | null;
   /** 小单 */
-  sm: number;
+  sm: number | null;
   /** 单位说明，如 "亿" 或 "万元" */
   unit?: string;
   width?: number;
@@ -46,20 +46,11 @@ export function MiniTierBar({ elg, lg, md, sm, unit = '亿', width = 80, height 
     { label: '小单', value: sm },
   ];
 
-  const totalAbs = tiers.reduce((s, t) => s + Math.abs(t.value), 0);
-
-  if (totalAbs === 0) {
-    return (
-      <Box
-        sx={{
-          width,
-          height,
-          borderRadius: 0.5,
-          bgcolor: varAlpha(theme.vars.palette.grey['500Channel'], 0.16),
-        }}
-      />
-    );
-  }
+  const knownTiers = tiers.filter(
+    (tier): tier is { label: string; value: number } => tier.value != null
+  );
+  const isComplete = knownTiers.length === tiers.length;
+  const totalAbs = knownTiers.reduce((sum, tier) => sum + Math.abs(tier.value), 0);
 
   // Colors: inflow = error系 (deep→light), outflow = success系
   const inflowColors = [
@@ -77,6 +68,7 @@ export function MiniTierBar({ elg, lg, md, sm, unit = '亿', width = 80, height 
 
   const tooltipContent = tiers
     .map((t) => {
+      if (t.value == null) return `${t.label}: —`;
       const sign = t.value > 0 ? '+' : '';
       const val = unit === '亿' ? `${sign}${toYi(t.value)}亿` : `${sign}${t.value.toFixed(0)}万`;
       return `${t.label}: ${val}`;
@@ -89,24 +81,37 @@ export function MiniTierBar({ elg, lg, md, sm, unit = '亿', width = 80, height 
       placement="top"
     >
       <Box
-        sx={{ display: 'flex', width, height, borderRadius: 0.5, overflow: 'hidden', gap: '1px' }}
+        aria-label={`资金分层：${tooltipContent.replace(/\n/g, '；')}`}
+        sx={{
+          display: 'flex',
+          width,
+          height,
+          borderRadius: 0.5,
+          overflow: 'hidden',
+          gap: '1px',
+          bgcolor: varAlpha(theme.vars.palette.grey['500Channel'], 0.16),
+        }}
       >
-        {tiers.map((tier, i) => {
-          const ratio = Math.abs(tier.value) / totalAbs;
-          const color = tier.value >= 0 ? inflowColors[i] : outflowColors[i];
-          return (
-            <Box
-              key={tier.label}
-              sx={{
-                width: `${ratio * 100}%`,
-                height: '100%',
-                bgcolor: color,
-                minWidth: ratio > 0 ? 2 : 0,
-                flexShrink: 0,
-              }}
-            />
-          );
-        })}
+        {isComplete && totalAbs > 0
+          ? tiers.map((tier, i) => {
+              if (tier.value == null) return null;
+              const value = tier.value;
+              const ratio = Math.abs(value) / totalAbs;
+              const color = value >= 0 ? inflowColors[i] : outflowColors[i];
+              return (
+                <Box
+                  key={tier.label}
+                  sx={{
+                    width: `${ratio * 100}%`,
+                    height: '100%',
+                    bgcolor: color,
+                    minWidth: ratio > 0 ? 2 : 0,
+                    flexShrink: 0,
+                  }}
+                />
+              );
+            })
+          : null}
       </Box>
     </Tooltip>
   );

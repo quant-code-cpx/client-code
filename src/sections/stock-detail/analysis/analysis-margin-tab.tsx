@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 
 import Stack from '@mui/material/Stack';
 import Alert from '@mui/material/Alert';
+import Button from '@mui/material/Button';
 import Skeleton from '@mui/material/Skeleton';
 
 import { stockDetailApi } from 'src/api/stock';
@@ -50,7 +51,18 @@ export function AnalysisMarginTab({ tsCode }: Props) {
   }
 
   if (error) {
-    return <Alert severity="error">{error}</Alert>;
+    return (
+      <Alert
+        severity="error"
+        action={
+          <Button color="inherit" size="small" onClick={() => void fetchData()}>
+            重试
+          </Button>
+        }
+      >
+        {error}
+      </Alert>
+    );
   }
 
   if (!data) return null;

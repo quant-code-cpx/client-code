@@ -4,7 +4,7 @@ import Stack from '@mui/material/Stack';
 import Divider from '@mui/material/Divider';
 import Typography from '@mui/material/Typography';
 
-import { fDateTime } from 'src/utils/format-time';
+import { fDateTime, fmtTradeDate } from 'src/utils/format-time';
 
 import { Label } from 'src/components/label';
 
@@ -22,7 +22,7 @@ type DataProvenanceProps = {
 
 function asOfLabel(provenance: DataProvenance): string {
   const { asOf } = provenance;
-  if (asOf.tradeDate) return `交易日 ${asOf.tradeDate}`;
+  if (asOf.tradeDate) return `交易日 ${fmtTradeDate(asOf.tradeDate)}`;
   if (asOf.reportPeriod) return `报告期 ${asOf.reportPeriod}`;
   if (asOf.availableAt) return `可用时点 ${fDateTime(asOf.availableAt)}`;
   return `获取于 ${fDateTime(asOf.retrievedAt)}`;

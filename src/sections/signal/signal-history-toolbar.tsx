@@ -83,6 +83,9 @@ export function SignalHistoryToolbar({
   onRetryActivations,
 }: Props) {
   const [advancedOpen, setAdvancedOpen] = useState(false);
+  const hasSelectedActivation = activations.some(
+    (activation) => activation.strategyId === draft.strategyId
+  );
 
   const dateError = Boolean(
     draft.startDate &&
@@ -130,6 +133,11 @@ export function SignalHistoryToolbar({
           sx={{ minWidth: 220 }}
           disabled={loadingActivations || activations.length === 0}
         >
+          {draft.strategyId && !hasSelectedActivation && (
+            <MenuItem value={draft.strategyId}>
+              {loadingActivations ? '加载中…' : draft.strategyId}
+            </MenuItem>
+          )}
           {activations.map((activation) => (
             <MenuItem key={activation.strategyId} value={activation.strategyId}>
               {activation.strategyName}

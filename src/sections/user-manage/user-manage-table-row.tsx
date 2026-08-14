@@ -63,7 +63,7 @@ export function UserManageTableRow({
   onRestore,
 }: UserManageTableRowProps) {
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null);
-  const { canManage } = usePermission();
+  const { canManage, hasMinRole } = usePermission();
   const { userProfile } = useAuth();
 
   const handleOpen = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
@@ -73,13 +73,18 @@ export function UserManageTableRow({
   const handleClose = useCallback(() => setAnchorEl(null), []);
 
   const canAct = canManage(row.role);
+  const isSuperAdmin = hasMinRole('SUPER_ADMIN');
   const isSelf = userProfile?.id === row.id;
   const locked = isLockedUser(row);
   const deleted = row.status === 'DELETED';
+  const canRestore = deleted && isSuperAdmin && CONFIG.userManageFeatures.restore;
+  const canOpenActions = canAct && (!deleted || canRestore);
   const actionTip = isSelf
     ? '请通过个人资料页修改自身信息'
     : row.role === 'SUPER_ADMIN'
       ? '不允许操作超级管理员账号'
+      : deleted
+        ? '只有超级管理员可以恢复已删除用户'
       : '当前账号无权操作该用户';
 
   return (
@@ -143,11 +148,11 @@ export function UserManageTableRow({
         </TableCell>
 
         <TableCell align="right">
-          <Tooltip title={!canAct ? actionTip : ''}>
+          <Tooltip title={!canOpenActions ? actionTip : ''}>
             <Box component="span">
               <IconButton
                 onClick={handleOpen}
-                disabled={!canAct}
+                disabled={!canOpenActions}
                 aria-label={`打开 ${row.account} 的操作菜单`}
               >
                 <Iconify icon="eva:more-vertical-fill" />
@@ -179,17 +184,19 @@ export function UserManageTableRow({
             },
           }}
         >
-          <MenuItem
-            onClick={() => {
-              handleClose();
-              onEdit(row);
-            }}
-          >
-            <Iconify icon="solar:pen-bold" />
-            编辑信息
-          </MenuItem>
+          {!deleted && (
+            <MenuItem
+              onClick={() => {
+                handleClose();
+                onEdit(row);
+              }}
+            >
+              <Iconify icon="solar:pen-bold" />
+              编辑信息
+            </MenuItem>
+          )}
 
-          {CONFIG.userManageFeatures.updateRole && !isSelf && !deleted && (
+          {CONFIG.userManageFeatures.updateRole && isSuperAdmin && !isSelf && !deleted && (
             <MenuItem
               onClick={() => {
                 handleClose();
@@ -220,26 +227,28 @@ export function UserManageTableRow({
             </MenuItem>
           )}
 
-          {locked && (
+          {!deleted && locked && (
             <MenuItem disabled aria-label="解锁账号（未开放）">
               <Iconify icon="solar:lock-keyhole-unlocked-bold" />
               解锁账号（未开放）
             </MenuItem>
           )}
 
-          <MenuItem
-            onClick={() => {
-              handleClose();
-              onResetPassword(row);
-            }}
-            sx={{ color: 'info.main' }}
-          >
-            <Iconify icon="solar:restart-bold" />
-            重置密码
-          </MenuItem>
+          {!deleted && (
+            <MenuItem
+              onClick={() => {
+                handleClose();
+                onResetPassword(row);
+              }}
+              sx={{ color: 'info.main' }}
+            >
+              <Iconify icon="solar:restart-bold" />
+              重置密码
+            </MenuItem>
+          )}
 
           {deleted ? (
-            CONFIG.userManageFeatures.restore && (
+            canRestore && (
               <MenuItem
                 onClick={() => {
                   handleClose();

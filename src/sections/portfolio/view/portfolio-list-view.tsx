@@ -200,7 +200,15 @@ export function PortfolioListView() {
       />
 
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
+        <Alert
+          severity="error"
+          action={
+            <Button color="inherit" size="small" onClick={fetchPortfolios} disabled={loading}>
+              重试
+            </Button>
+          }
+          sx={{ mb: 2 }}
+        >
           {error}
         </Alert>
       )}

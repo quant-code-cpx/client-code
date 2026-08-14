@@ -215,9 +215,10 @@ function NavSparkline({
       .join(' ');
   };
 
-  const lastNav = series[series.length - 1].nav;
   const baselineChange = baseline?.length
-    ? ((lastNav / (baseline[0]?.nav ?? 1) - 1) * 100).toFixed(2)
+    ? (((baseline[baseline.length - 1]?.nav ?? 1) / (baseline[0]?.nav ?? 1) - 1) * 100).toFixed(
+        2
+      )
     : null;
 
   return (

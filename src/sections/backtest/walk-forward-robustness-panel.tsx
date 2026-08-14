@@ -11,6 +11,8 @@ import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 import LinearProgress from '@mui/material/LinearProgress';
 
+import { getAShareReturnColor } from 'src/utils/market-color';
+
 import { Label } from 'src/components/label';
 
 import {
@@ -123,7 +125,7 @@ export function WalkForwardRobustnessPanel({ detail }: Props) {
                     sx={{ flex: 1 }}
                   />
                   <LinearProgress
-                    color={(item.oosReturn ?? 0) >= 0 ? 'success' : 'error'}
+                    color={getAShareReturnColor(item.oosReturn, 'inherit')}
                     variant="determinate"
                     value={Math.max(0, Math.min(100, Math.abs(item.oosReturn ?? 0) * 100))}
                     sx={{ flex: 1 }}

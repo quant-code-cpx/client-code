@@ -21,6 +21,8 @@ import CardContent from '@mui/material/CardContent';
 
 import { RouterLink } from 'src/routes/components';
 
+import { fmtTradeDate } from 'src/utils/format-time';
+
 import { DashboardContent } from 'src/layouts/dashboard';
 import {
   cancelWalkForwardRun,
@@ -77,7 +79,10 @@ export function WalkForwardDetailView() {
   const [error, setError] = useState('');
 
   const loadDetail = useCallback(async () => {
-    if (!wfRunId) return;
+    if (!wfRunId) {
+      setLoadingDetail(false);
+      return;
+    }
     setLoadingDetail(true);
     setError('');
     try {
@@ -198,8 +203,8 @@ export function WalkForwardDetailView() {
           </Box>
           <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
             {STRATEGY_TYPE_LABEL[detail.baseStrategyType] ?? detail.baseStrategyType} ·{' '}
-            {detail.fullStartDate} ~ {detail.fullEndDate} · IS {detail.inSampleDays}天 / OOS{' '}
-            {detail.outOfSampleDays}天 · 优化: {optimizeLabel}
+            {fmtTradeDate(detail.fullStartDate)} ~ {fmtTradeDate(detail.fullEndDate)} · IS{' '}
+            {detail.inSampleDays}天 / OOS {detail.outOfSampleDays}天 · 优化: {optimizeLabel}
           </Typography>
         </Box>
         <Stack direction="row" spacing={1} sx={{ mt: 0.5, flexShrink: 0 }}>

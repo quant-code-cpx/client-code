@@ -3,6 +3,7 @@ import {
   fNumber,
   fPctChg,
   fPercent,
+  yuanToYi,
   fWanYuan,
   fCurrency,
   fQianYuan,
@@ -158,6 +159,14 @@ describe('format-number', () => {
 
     it('returns - for null', () => {
       expect(fWanYi(null)).toBe('-');
+    });
+  });
+
+  describe('yuanToYi', () => {
+    it('converts yuan to yi without rounding', () => {
+      expect(yuanToYi(100_000_000)).toBe(1);
+      expect(yuanToYi(-250_000_000)).toBe(-2.5);
+      expect(yuanToYi(3_089_290_144)).toBe(30.89290144);
     });
   });
 

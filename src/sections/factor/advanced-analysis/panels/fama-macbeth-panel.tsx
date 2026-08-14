@@ -26,6 +26,8 @@ import FormControl from '@mui/material/FormControl';
 import TableContainer from '@mui/material/TableContainer';
 import FormControlLabel from '@mui/material/FormControlLabel';
 
+import { fmtTradeDate } from 'src/utils/format-time';
+
 import { famaMacBeth } from 'src/api/factor';
 
 import { Label } from 'src/components/label';
@@ -110,7 +112,7 @@ export function FamaMacBethPanel({ universe, factors, onHistorySave, prefillRequ
     if (!data) return null;
     const elapsed = elapsedMs ? `${(elapsedMs / 1000).toFixed(1)}s` : '';
     const sig = data.factors.filter((f) => f.significant).length;
-    return `时间窗 ${data.startDate} → ${data.endDate} · 持有 ${data.forwardDays} 日 · 平均 R² ${f4(data.rSquaredMean)} · 显著因子 ${sig}/${data.factors.length}${elapsed ? ` · 耗时 ${elapsed}` : ''}`;
+    return `时间窗 ${fmtTradeDate(data.startDate)} → ${fmtTradeDate(data.endDate)} · 持有 ${data.forwardDays} 日 · 平均 R² ${f4(data.rSquaredMean)} · 显著因子 ${sig}/${data.factors.length}${elapsed ? ` · 耗时 ${elapsed}` : ''}`;
   }, [data, elapsedMs]);
 
   const hasNw = data?.factors.some((f) => f.tStatNW != null) ?? false;
@@ -151,8 +153,9 @@ export function FamaMacBethPanel({ universe, factors, onHistorySave, prefillRequ
               ))}
             </ButtonGroup>
             <FormControl size="small" sx={{ width: { xs: '100%', sm: 130 } }}>
-              <InputLabel>持有天数</InputLabel>
+              <InputLabel id="fama-forward-days-label">持有天数</InputLabel>
               <Select
+                labelId="fama-forward-days-label"
                 value={String(forwardDays)}
                 label="持有天数"
                 onChange={(e) => setForwardDays(Number(e.target.value))}

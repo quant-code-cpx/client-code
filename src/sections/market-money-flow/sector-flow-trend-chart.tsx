@@ -19,9 +19,9 @@ import { Chart, useChart } from 'src/components/chart';
 
 // ----------------------------------------------------------------------
 
-/** 元 → 亿元（SectorFlowTrendItemDto 金额单位为元） */
-function toYi(yuan: number): number {
-  return +(yuan / 1e8).toFixed(2);
+/** 元 → 亿元（SectorFlowTrendItemDto 金额单位为元），缺失值保留为断点。 */
+function toYi(yuan: number | null): number | null {
+  return yuan == null ? null : +(yuan / 1e8).toFixed(2);
 }
 
 // ----------------------------------------------------------------------

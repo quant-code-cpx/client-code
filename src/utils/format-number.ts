@@ -152,6 +152,11 @@ export function fWanYi(value: InputNumberValue, suffix = '', decimals = 2): stri
   return `${(num / 10000).toFixed(decimals)}万${suffix}`;
 }
 
+/** 将人民币元换算为亿元；只做单位换算，不负责舍入。 */
+export function yuanToYi(value: number): number {
+  return value / 100_000_000;
+}
+
 /**
  * 格式化涨跌幅：自动补 '+'/'-' 前缀，保留指定小数位，结尾加 '%'。
  * null 返回 '-'。

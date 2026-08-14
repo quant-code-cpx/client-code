@@ -22,26 +22,24 @@ import { Chart, useChart } from 'src/components/chart';
 
 // ----------------------------------------------------------------------
 
-const PERIODS: Array<{ value: string; label: string }> = [
+const PERIODS = [
   { value: '1m', label: '1M' },
   { value: '3m', label: '3M' },
   { value: '6m', label: '6M' },
   { value: '1y', label: '1Y' },
-];
+] as const;
+
+type Period = (typeof PERIODS)[number]['value'];
 
 /** 百万元 → 亿元 */
-function toYi(v: number | null | undefined): number {
-  return +((v ?? 0) / 100).toFixed(2);
+function toYi(v: number | null | undefined): number | null {
+  return v == null ? null : +(v / 100).toFixed(2);
 }
 
 // ----------------------------------------------------------------------
 
-type Props = {
-  tradeDate?: string;
-};
-
-export function HsgtTrendChart({ tradeDate }: Props) {
-  const [period, setPeriod] = useState('3m');
+export function HsgtTrendChart() {
+  const [period, setPeriod] = useState<Period>('3m');
   const [tabIndex, setTabIndex] = useState(0); // 0=北向, 1=南向
   const [viewMode, setViewMode] = useState<'total' | 'split'>('total');
   const [data, setData] = useState<HsgtTrendItem[]>([]);
@@ -53,7 +51,7 @@ export function HsgtTrendChart({ tradeDate }: Props) {
     setLoading(true);
     setError('');
 
-    fetchHsgtTrend({ period, trade_date: tradeDate })
+    fetchHsgtTrend({ period })
       .then((res) => {
         if (!cancelled) setData(res?.data ?? []);
       })
@@ -67,7 +65,7 @@ export function HsgtTrendChart({ tradeDate }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [period, tradeDate]);
+  }, [period]);
 
   const categories = data.map((d) => fmtDate(d.tradeDate));
   const isNorth = tabIndex === 0;

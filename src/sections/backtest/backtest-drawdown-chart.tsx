@@ -6,6 +6,8 @@ import { useTheme } from '@mui/material/styles';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 
+import { fmtTradeDate } from 'src/utils/format-time';
+
 import { Chart, useChart } from 'src/components/chart';
 
 // ----------------------------------------------------------------------
@@ -16,7 +18,7 @@ interface BacktestDrawdownChartProps {
 
 export function BacktestDrawdownChart({ points }: BacktestDrawdownChartProps) {
   const theme = useTheme();
-  const categories = points.map((p) => p.tradeDate);
+  const categories = points.map((p) => fmtTradeDate(p.tradeDate));
 
   const series = [{ name: '回撤', data: points.map((p) => Number((p.drawdown * 100).toFixed(2))) }];
 

@@ -10,6 +10,8 @@ import { useTheme } from '@mui/material/styles';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 
+import { fmtTradeDate } from 'src/utils/format-time';
+
 import { Iconify } from 'src/components/iconify';
 import { Chart, useChart } from 'src/components/chart';
 
@@ -71,7 +73,7 @@ export function SampleDetailDrawer({ open, onClose, sample, preDays }: Props) {
             {sample?.name ?? '-'}
           </Typography>
           <Typography variant="caption" color="text.secondary">
-            {sample?.tsCode} · {sample?.eventDate}
+            {sample?.tsCode} · {sample?.eventDate ? fmtTradeDate(sample.eventDate) : '—'}
           </Typography>
         </Box>
         <Tooltip title="关闭">

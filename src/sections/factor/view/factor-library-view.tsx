@@ -3,12 +3,10 @@ import type { FactorDef, FactorCategory, FactorLibraryResult } from 'src/api/fac
 import { useMemo, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
-import Grid from '@mui/material/Grid';
 import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Snackbar from '@mui/material/Snackbar';
-import Skeleton from '@mui/material/Skeleton';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import ToggleButton from '@mui/material/ToggleButton';
@@ -30,9 +28,7 @@ import { Iconify } from 'src/components/iconify';
 import { ConfirmDialog } from 'src/components/confirm-dialog';
 
 import { FactorCustomDialog } from '../factor-custom-dialog';
-import { FactorLibraryCardV2 } from '../library/factor-library-card';
-import { FactorLibraryTable } from '../library/factor-library-table';
-import { FactorLibraryBulkBar } from '../library/factor-library-bulk-bar';
+import { FactorLibraryResults } from '../library/factor-library-results';
 import { resolveLatestFactorTradeDate } from '../latest-factor-trade-date';
 import { FactorLibraryCategoryTabs } from '../factor-library-category-tabs';
 import { FactorLibraryFilterBar } from '../library/factor-library-filter-bar';
@@ -427,66 +423,27 @@ export function FactorLibraryView() {
 
       <FactorLibraryFilterBar filters={filters} onChange={setFilters} onReset={reset} />
 
-      <FactorLibraryBulkBar
-        selected={selectedFactors}
-        onClear={() => setSelectedNames(new Set())}
+      <FactorLibraryResults
+        loading={loading}
+        view={filters.view}
+        factors={visibleFactors}
+        selectedNames={selectedNames}
+        selectedFactors={selectedFactors}
+        precomputingNames={precomputingNames}
+        batchPrecomputing={batchPrecomputing}
+        onClearSelection={() => setSelectedNames(new Set())}
         onAddToScreening={() => handleAddToScreening(selectedFactors)}
         onBatchPrecompute={handleBatchPrecompute}
         onCopyNames={handleCopyNames}
-        batchPrecomputing={batchPrecomputing}
+        onToggleSelect={toggleSelect}
+        onToggleSelectAll={toggleSelectAll}
+        onOpenDetail={setDetailFactor}
+        onEdit={handleEdit}
+        onDelete={setDeleteTarget}
+        onPrecompute={handlePrecompute}
+        onToggleEnabled={handleToggleEnabled}
+        onResetFilters={reset}
       />
-
-      {loading ? (
-        <Grid container spacing={2}>
-          {[...Array(12)].map((_, i) => (
-            <Grid key={i} size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
-              <Skeleton variant="rectangular" height={200} sx={{ borderRadius: 2 }} />
-            </Grid>
-          ))}
-        </Grid>
-      ) : filters.view === 'table' ? (
-        <FactorLibraryTable
-          factors={visibleFactors}
-          selectedNames={selectedNames}
-          onToggleSelect={toggleSelect}
-          onToggleSelectAll={toggleSelectAll}
-          onOpenDetail={setDetailFactor}
-          onEdit={handleEdit}
-          onDelete={setDeleteTarget}
-          onPrecompute={handlePrecompute}
-          precomputingNames={precomputingNames}
-        />
-      ) : (
-        <Grid container spacing={2}>
-          {visibleFactors.map((factor) => (
-            <Grid key={factor.id} size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
-              <FactorLibraryCardV2
-                factor={factor}
-                selected={selectedNames.has(factor.name)}
-                onToggleSelect={toggleSelect}
-                onOpenDetail={setDetailFactor}
-                onEdit={factor.isBuiltin ? undefined : handleEdit}
-                onDelete={factor.isBuiltin ? undefined : setDeleteTarget}
-                onPrecompute={factor.isBuiltin ? undefined : handlePrecompute}
-                onToggleEnabled={factor.isBuiltin ? undefined : handleToggleEnabled}
-                precomputing={precomputingNames.has(factor.name)}
-              />
-            </Grid>
-          ))}
-          {visibleFactors.length === 0 && (
-            <Grid size={{ xs: 12 }}>
-              <Box sx={{ textAlign: 'center', py: 6 }}>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-                  当前筛选下无匹配因子
-                </Typography>
-                <Button size="small" onClick={reset}>
-                  重置筛选
-                </Button>
-              </Box>
-            </Grid>
-          )}
-        </Grid>
-      )}
 
       <FactorCustomDialog
         open={customDialogOpen}

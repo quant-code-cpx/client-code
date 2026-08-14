@@ -4,6 +4,11 @@
 // pattern.
 
 export const paths = {
+  knowledge: {
+    root: '/knowledge',
+    major: (majorSlug: string) => `/knowledge/${majorSlug}`,
+    topic: (majorSlug: string, topicSlug: string) => `/knowledge/${majorSlug}/${topicSlug}`,
+  },
   market: {
     news: '/market/news',
   },

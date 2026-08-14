@@ -10,6 +10,8 @@ import Typography from '@mui/material/Typography';
 import TableContainer from '@mui/material/TableContainer';
 import TablePagination from '@mui/material/TablePagination';
 
+import { fmtTradeDate } from 'src/utils/format-time';
+
 import type { MarketPeriod, MarketKLineData } from './market-kline.types';
 
 function formatNumber(value: number | undefined, digits = 2): string {
@@ -57,7 +59,7 @@ export function MarketKlineTable({
           <TableBody>
             {visibleBars.map((bar) => (
               <TableRow key={bar.timestamp} hover>
-                <TableCell>{period === 'T' ? bar.time : bar.tradeDate}</TableCell>
+                <TableCell>{period === 'T' ? bar.time : fmtTradeDate(bar.tradeDate)}</TableCell>
                 {[bar.open, bar.high, bar.low, bar.close].map((value, index) => (
                   <TableCell key={index} align="right">
                     {formatNumber(value)}

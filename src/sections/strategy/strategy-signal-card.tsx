@@ -7,6 +7,7 @@ import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
+import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Slider from '@mui/material/Slider';
 import Divider from '@mui/material/Divider';
@@ -37,11 +38,18 @@ type Props = {
   strategyName: string;
 };
 
+function normalizeSignalUniverse(universe: string) {
+  if (universe === 'ZZ500') return 'CSI500';
+  if (universe === 'ZZ1000') return 'CSI1000';
+  return universe;
+}
+
 export function StrategySignalCard({ strategyId, strategyName }: Props) {
   const router = useRouter();
 
   const [activation, setActivation] = useState<SignalActivationItem | null>(null);
   const [loading, setLoading] = useState(true);
+  const [activationError, setActivationError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [editing, setEditing] = useState(false);
 
@@ -56,25 +64,36 @@ export function StrategySignalCard({ strategyId, strategyName }: Props) {
 
   // Portfolio list for dropdown
   const [portfolios, setPortfolios] = useState<PortfolioListItem[]>([]);
+  const [portfoliosError, setPortfoliosError] = useState('');
 
   const fetchActivation = useCallback(async () => {
     setLoading(true);
+    setActivationError('');
     try {
       const list = await listSignalActivations();
       const found = list.find((a) => a.strategyId === strategyId);
       setActivation(found ?? null);
       if (found) {
         setPortfolioId(found.portfolioId ?? '');
-        setUniverse(found.universe);
+        setUniverse(normalizeSignalUniverse(found.universe));
         setBenchmarkTsCode(found.benchmarkTsCode);
         setAlertThreshold(found.alertThreshold);
       }
-    } catch {
-      // silently fail
+    } catch (err) {
+      setActivationError(err instanceof Error ? err.message : '加载信号配置失败');
     } finally {
       setLoading(false);
     }
   }, [strategyId]);
+
+  const fetchPortfolios = useCallback(async () => {
+    setPortfoliosError('');
+    try {
+      setPortfolios(await listPortfolios());
+    } catch (err) {
+      setPortfoliosError(err instanceof Error ? err.message : '加载组合列表失败');
+    }
+  }, []);
 
   useEffect(() => {
     fetchActivation();
@@ -95,10 +114,8 @@ export function StrategySignalCard({ strategyId, strategyName }: Props) {
   }, [activation, strategyId]);
 
   useEffect(() => {
-    listPortfolios()
-      .then(setPortfolios)
-      .catch(() => {});
-  }, []);
+    fetchPortfolios();
+  }, [fetchPortfolios]);
 
   const handleActivate = async () => {
     setSubmitting(true);
@@ -135,6 +152,26 @@ export function StrategySignalCard({ strategyId, strategyName }: Props) {
           <Typography variant="body2" color="text.secondary">
             加载中…
           </Typography>
+        </Box>
+      </Card>
+    );
+  }
+
+  if (activationError) {
+    return (
+      <Card>
+        <CardHeader title="信号生成" />
+        <Box sx={{ p: 3 }}>
+          <Alert
+            severity="error"
+            action={
+              <Button color="inherit" size="small" onClick={fetchActivation}>
+                重试
+              </Button>
+            }
+          >
+            {activationError}
+          </Alert>
         </Box>
       </Card>
     );
@@ -177,6 +214,19 @@ export function StrategySignalCard({ strategyId, strategyName }: Props) {
       />
 
       <Box sx={{ p: 3 }}>
+        {portfoliosError && (
+          <Alert
+            severity="error"
+            action={
+              <Button color="inherit" size="small" onClick={fetchPortfolios}>
+                重试
+              </Button>
+            }
+            sx={{ mb: 2 }}
+          >
+            {portfoliosError}
+          </Alert>
+        )}
         {/* 今日信号摘要（仅激活状态下显示） */}
         {isActive && latestSignal && (
           <>
@@ -262,8 +312,8 @@ export function StrategySignalCard({ strategyId, strategyName }: Props) {
             >
               <MenuItem value="ALL_A">ALL_A（全 A）</MenuItem>
               <MenuItem value="HS300">HS300（沪深 300）</MenuItem>
-              <MenuItem value="ZZ500">ZZ500（中证 500）</MenuItem>
-              <MenuItem value="ZZ1000">ZZ1000（中证 1000）</MenuItem>
+              <MenuItem value="CSI500">CSI500（中证 500）</MenuItem>
+              <MenuItem value="CSI1000">CSI1000（中证 1000）</MenuItem>
             </TextField>
 
             <TextField

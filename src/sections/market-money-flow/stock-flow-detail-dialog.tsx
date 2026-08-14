@@ -32,33 +32,46 @@ import { Scrollbar } from 'src/components/scrollbar';
 
 // ----------------------------------------------------------------------
 
-function fmtWan(v: number): string {
+function fmtWan(v: number | null): string {
+  if (v == null) return '—';
   const abs = Math.abs(v);
   if (abs >= 10000) return `${(v / 10000).toFixed(2)}亿`;
   return `${v.toFixed(2)}万`;
 }
 
+function calculateNet(buy: number | null, sell: number | null): number | null {
+  return buy == null || sell == null ? null : buy - sell;
+}
+
+function maxKnownAbs(values: Array<number | null>): number {
+  const knownValues = values.filter((value): value is number => value != null);
+  return Math.max(...knownValues.map((value) => Math.abs(value)), 1);
+}
+
 /** 单格：数值 + 独立比例背景条 */
-type NetCellProps = { value: number; maxAbs: number; posColor: string; negColor: string };
+type NetCellProps = { value: number | null; maxAbs: number; posColor: string; negColor: string };
 
 function NetCell({ value, maxAbs, posColor, negColor }: NetCellProps) {
-  const pct = maxAbs > 0 ? (Math.abs(value) / maxAbs) * 100 : 0;
-  const isPos = value > 0;
-  const textColor = value > 0 ? posColor : value < 0 ? negColor : 'text.secondary';
+  const pct = value == null ? null : maxAbs > 0 ? (Math.abs(value) / maxAbs) * 100 : 0;
+  const isPos = value != null && value > 0;
+  const textColor =
+    value == null ? 'text.secondary' : value > 0 ? posColor : value < 0 ? negColor : 'text.secondary';
   return (
     <TableCell align="right" sx={{ position: 'relative', py: 0.75 }}>
-      <Box
-        sx={{
-          position: 'absolute',
-          top: '20%',
-          bottom: '20%',
-          right: 4,
-          width: `calc(${pct}% - 4px)`,
-          maxWidth: 'calc(100% - 8px)',
-          bgcolor: isPos ? `${posColor}26` : `${negColor}26`,
-          borderRadius: '2px 0 0 2px',
-        }}
-      />
+      {value != null && pct != null && (
+        <Box
+          sx={{
+            position: 'absolute',
+            top: '20%',
+            bottom: '20%',
+            right: 4,
+            width: `calc(${pct}% - 4px)`,
+            maxWidth: 'calc(100% - 8px)',
+            bgcolor: isPos ? `${posColor}26` : `${negColor}26`,
+            borderRadius: '2px 0 0 2px',
+          }}
+        />
+      )}
       <Typography
         variant="caption"
         sx={{
@@ -68,8 +81,7 @@ function NetCell({ value, maxAbs, posColor, negColor }: NetCellProps) {
           fontVariantNumeric: 'tabular-nums',
         }}
       >
-        {value >= 0 ? '+' : ''}
-        {fmtWan(value)}
+        {value == null ? '—' : `${value >= 0 ? '+' : ''}${fmtWan(value)}`}
       </Typography>
     </TableCell>
   );
@@ -79,9 +91,9 @@ function NetCell({ value, maxAbs, posColor, negColor }: NetCellProps) {
 
 type LatestTierRow = {
   label: string;
-  buy: number;
-  sell: number;
-  net: number;
+  buy: number | null;
+  sell: number | null;
+  net: number | null;
 };
 
 type Props = {
@@ -130,11 +142,13 @@ export function StockFlowDetailDialog({ open, tsCode, stockName, onClose }: Prop
   const tableRows = [...data].reverse();
 
   // 各档独立最大绝对值，用于比例条宽度计算
-  const maxElgAbs = Math.max(...data.map((d) => Math.abs(d.buyElgAmount - d.sellElgAmount)), 1);
-  const maxLgAbs = Math.max(...data.map((d) => Math.abs(d.buyLgAmount - d.sellLgAmount)), 1);
-  const maxMdAbs = Math.max(...data.map((d) => Math.abs(d.buyMdAmount - d.sellMdAmount)), 1);
-  const maxSmAbs = Math.max(...data.map((d) => Math.abs(d.buySmAmount - d.sellSmAmount)), 1);
-  const maxTotalAbs = Math.max(...data.map((d) => Math.abs(d.netMfAmount)), 1);
+  const maxElgAbs = maxKnownAbs(
+    data.map((d) => calculateNet(d.buyElgAmount, d.sellElgAmount))
+  );
+  const maxLgAbs = maxKnownAbs(data.map((d) => calculateNet(d.buyLgAmount, d.sellLgAmount)));
+  const maxMdAbs = maxKnownAbs(data.map((d) => calculateNet(d.buyMdAmount, d.sellMdAmount)));
+  const maxSmAbs = maxKnownAbs(data.map((d) => calculateNet(d.buySmAmount, d.sellSmAmount)));
+  const maxTotalAbs = maxKnownAbs(data.map((d) => d.netMfAmount));
 
   const posColor = theme.palette.error.main;
   const negColor = theme.palette.success.main;
@@ -147,25 +161,25 @@ export function StockFlowDetailDialog({ open, tsCode, stockName, onClose }: Prop
           label: '超大单',
           buy: latest.buyElgAmount,
           sell: latest.sellElgAmount,
-          net: latest.buyElgAmount - latest.sellElgAmount,
+          net: calculateNet(latest.buyElgAmount, latest.sellElgAmount),
         },
         {
           label: '大单',
           buy: latest.buyLgAmount,
           sell: latest.sellLgAmount,
-          net: latest.buyLgAmount - latest.sellLgAmount,
+          net: calculateNet(latest.buyLgAmount, latest.sellLgAmount),
         },
         {
           label: '中单',
           buy: latest.buyMdAmount,
           sell: latest.sellMdAmount,
-          net: latest.buyMdAmount - latest.sellMdAmount,
+          net: calculateNet(latest.buyMdAmount, latest.sellMdAmount),
         },
         {
           label: '小单',
           buy: latest.buySmAmount,
           sell: latest.sellSmAmount,
-          net: latest.buySmAmount - latest.sellSmAmount,
+          net: calculateNet(latest.buySmAmount, latest.sellSmAmount),
         },
       ]
     : [];
@@ -268,25 +282,25 @@ export function StockFlowDetailDialog({ open, tsCode, stockName, onClose }: Prop
                           </Typography>
                         </TableCell>
                         <NetCell
-                          value={row.buyElgAmount - row.sellElgAmount}
+                          value={calculateNet(row.buyElgAmount, row.sellElgAmount)}
                           maxAbs={maxElgAbs}
                           posColor={posColor}
                           negColor={negColor}
                         />
                         <NetCell
-                          value={row.buyLgAmount - row.sellLgAmount}
+                          value={calculateNet(row.buyLgAmount, row.sellLgAmount)}
                           maxAbs={maxLgAbs}
                           posColor={posColor}
                           negColor={negColor}
                         />
                         <NetCell
-                          value={row.buyMdAmount - row.sellMdAmount}
+                          value={calculateNet(row.buyMdAmount, row.sellMdAmount)}
                           maxAbs={maxMdAbs}
                           posColor={posColor}
                           negColor={negColor}
                         />
                         <NetCell
-                          value={row.buySmAmount - row.sellSmAmount}
+                          value={calculateNet(row.buySmAmount, row.sellSmAmount)}
                           maxAbs={maxSmAbs}
                           posColor={posColor}
                           negColor={negColor}
@@ -311,7 +325,7 @@ export function StockFlowDetailDialog({ open, tsCode, stockName, onClose }: Prop
               variant="caption"
               sx={{ color: 'text.disabled', fontWeight: 600, mb: 1.5, display: 'block' }}
             >
-              最新交易日（{latest ? fmtDate(latest.tradeDate) : '-'}）买卖明细
+              最新交易日（{latest ? fmtDate(latest.tradeDate) : '—'}）买卖明细
             </Typography>
 
             <Box
@@ -343,7 +357,10 @@ export function StockFlowDetailDialog({ open, tsCode, stockName, onClose }: Prop
                       <Typography variant="caption" sx={{ color: 'text.disabled' }}>
                         买入
                       </Typography>
-                      <Typography variant="caption" sx={{ color: 'error.main', fontWeight: 600 }}>
+                      <Typography
+                        variant="caption"
+                        sx={{ color: row.buy == null ? 'text.secondary' : 'error.main', fontWeight: 600 }}
+                      >
                         {fmtWan(row.buy)}
                       </Typography>
                     </Box>
@@ -351,7 +368,13 @@ export function StockFlowDetailDialog({ open, tsCode, stockName, onClose }: Prop
                       <Typography variant="caption" sx={{ color: 'text.disabled' }}>
                         卖出
                       </Typography>
-                      <Typography variant="caption" sx={{ color: 'success.main', fontWeight: 600 }}>
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          color: row.sell == null ? 'text.secondary' : 'success.main',
+                          fontWeight: 600,
+                        }}
+                      >
                         {fmtWan(row.sell)}
                       </Typography>
                     </Box>
@@ -365,15 +388,16 @@ export function StockFlowDetailDialog({ open, tsCode, stockName, onClose }: Prop
                         sx={{
                           fontWeight: 700,
                           color:
-                            row.net > 0
+                            row.net == null
+                              ? theme.palette.text.secondary
+                              : row.net > 0
                               ? theme.palette.error.main
                               : row.net < 0
                                 ? theme.palette.success.main
                                 : theme.palette.text.secondary,
                         }}
                       >
-                        {row.net >= 0 ? '+' : ''}
-                        {fmtWan(row.net)}
+                        {row.net == null ? '—' : `${row.net >= 0 ? '+' : ''}${fmtWan(row.net)}`}
                       </Typography>
                     </Box>
                   </Box>

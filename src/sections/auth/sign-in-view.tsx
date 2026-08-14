@@ -1,5 +1,6 @@
 import type { CaptchaResponse } from 'src/api/auth';
 
+import { useLocation } from 'react-router';
 import { useRef, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
@@ -31,6 +32,7 @@ function toCaptchaImageSource(svgImage: string): string {
 
 export function SignInView() {
   const router = useRouter();
+  const location = useLocation();
   const { signIn, loadProfile } = useAuth();
 
   const [account, setAccount] = useState('');
@@ -107,7 +109,7 @@ export function SignInView() {
       });
       signIn(accessToken);
       await loadProfile();
-      router.push('/');
+      router.replace(getPostSignInTarget(location.state));
     } catch (err) {
       const msg = err instanceof Error ? err.message : '登录失败，请重试';
       setErrorMsg(msg);
@@ -115,7 +117,17 @@ export function SignInView() {
     } finally {
       setSubmitting(false);
     }
-  }, [account, password, captchaCode, captcha, signIn, loadProfile, router, fetchCaptcha]);
+  }, [
+    account,
+    password,
+    captchaCode,
+    captcha,
+    signIn,
+    loadProfile,
+    router,
+    fetchCaptcha,
+    location.state,
+  ]);
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -276,4 +288,19 @@ export function SignInView() {
       </Box>
     </>
   );
+}
+
+function getPostSignInTarget(state: unknown) {
+  if (!state || typeof state !== 'object' || !('from' in state)) return '/';
+
+  const from = state.from;
+  if (!from || typeof from !== 'object' || !('pathname' in from)) return '/';
+
+  const pathname = typeof from.pathname === 'string' ? from.pathname : '';
+  if (!pathname.startsWith('/') || pathname.startsWith('//') || pathname === '/sign-in') return '/';
+
+  const search = 'search' in from && typeof from.search === 'string' ? from.search : '';
+  const hash = 'hash' in from && typeof from.hash === 'string' ? from.hash : '';
+
+  return { pathname, search, hash };
 }

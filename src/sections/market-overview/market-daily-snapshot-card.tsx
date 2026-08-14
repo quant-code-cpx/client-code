@@ -179,24 +179,32 @@ export function MarketDailySnapshotCard({ tradeDate, refreshKey }: Props) {
       )}
 
       {/* ── Index Ticker Grid ── */}
-      <Box
-        sx={{
-          display: 'grid',
-          gridTemplateColumns: { xs: 'repeat(3, 1fr)', md: 'repeat(6, 1fr)' },
-        }}
-      >
-        {defaultIndices.map((item, idx) => (
-          <Box
-            key={item.tsCode}
-            sx={{
-              borderRight: idx < defaultIndices.length - 1 ? '1px solid' : 'none',
-              borderColor: 'divider',
-            }}
-          >
-            <IndexCard item={item} />
-          </Box>
-        ))}
-      </Box>
+      {!error && indices.length === 0 ? (
+        <Box sx={{ py: 5, textAlign: 'center' }}>
+          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+            暂无指数行情
+          </Typography>
+        </Box>
+      ) : (
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: 'repeat(3, 1fr)', md: 'repeat(6, 1fr)' },
+          }}
+        >
+          {defaultIndices.map((item, idx) => (
+            <Box
+              key={item.tsCode}
+              sx={{
+                borderRight: idx < defaultIndices.length - 1 ? '1px solid' : 'none',
+                borderColor: 'divider',
+              }}
+            >
+              <IndexCard item={item} />
+            </Box>
+          ))}
+        </Box>
+      )}
 
       {/* ── Collapsible extra indices ── */}
       {extraIndices.length > 0 && (

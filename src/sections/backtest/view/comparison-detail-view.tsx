@@ -48,7 +48,10 @@ export function ComparisonDetailView() {
   const [error, setError] = useState('');
 
   const loadDetail = useCallback(async () => {
-    if (!groupId) return;
+    if (!groupId) {
+      setLoadingDetail(false);
+      return;
+    }
     setLoadingDetail(true);
     setError('');
     try {

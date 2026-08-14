@@ -5,6 +5,22 @@ import { renderWithProviders } from 'src/test/test-utils';
 import { DataProvenance } from '../components/data-provenance';
 
 describe('DataProvenance', () => {
+  it('将八位交易日格式化为可读日期', () => {
+    renderWithProviders(
+      <DataProvenance
+        provenance={{
+          sourceType: 'MODEL_INFERENCE',
+          citationIds: [],
+          asOf: { tradeDate: '20260812', retrievedAt: '2026-08-13T00:00:00.000Z' },
+          timezone: 'Asia/Shanghai',
+        }}
+      />
+    );
+
+    expect(screen.getByText('交易日 2026-08-12')).toBeInTheDocument();
+    expect(screen.queryByText(/20260812/)).not.toBeInTheDocument();
+  });
+
   it('将时区和旧工作流告警码转换为中文数据提示', () => {
     renderWithProviders(
       <DataProvenance

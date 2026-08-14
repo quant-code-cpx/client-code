@@ -1,4 +1,4 @@
-import type { HsgtTrendItem } from 'src/api/market';
+import type { HsgtFlowHistoryItem } from 'src/api/market';
 
 import { useState, useEffect } from 'react';
 import { varAlpha } from 'minimal-shared/utils';
@@ -22,9 +22,9 @@ import { Iconify } from 'src/components/iconify';
 // ----------------------------------------------------------------------
 
 /** 百万元 → 亿元（tushare north_money 单位为百万元） */
-function toYi(millionYuan: number | null): string {
-  if (millionYuan == null) return '-';
-  return (millionYuan / 100).toFixed(2);
+function formatYi(millionYuan: number | null): string {
+  if (millionYuan == null) return '—';
+  return `${millionYuan > 0 ? '+' : ''}${(millionYuan / 100).toFixed(2)}亿`;
 }
 
 function flowColor(value: number | null): 'error.main' | 'success.main' | 'text.secondary' {
@@ -46,8 +46,10 @@ type ChannelSplitBarProps = {
 };
 
 function ChannelSplitBar({ aVal, bVal, aLabel, bLabel, aColor, bColor }: ChannelSplitBarProps) {
-  const va = Math.abs(aVal ?? 0);
-  const vb = Math.abs(bVal ?? 0);
+  if (aVal == null || bVal == null) return null;
+
+  const va = Math.abs(aVal);
+  const vb = Math.abs(bVal);
   const total = va + vb;
   if (total === 0) return null;
   const pctA = Math.round((va / total) * 100);
@@ -84,8 +86,7 @@ function SubItem({ label, value }: SubItemProps) {
         {label}
       </Typography>
       <Typography variant="caption" fontWeight="fontWeightSemiBold" sx={{ color, fontSize: 12 }}>
-        {value != null && value > 0 ? '+' : ''}
-        {toYi(value)}亿
+        {formatYi(value)}
       </Typography>
     </Box>
   );
@@ -99,7 +100,7 @@ type Props = {
 
 export function HsgtSummaryCard({ tradeDate }: Props) {
   const theme = useTheme();
-  const [data, setData] = useState<HsgtTrendItem | null>(null);
+  const [data, setData] = useState<HsgtFlowHistoryItem | null>(null);
   const [resolvedDate, setResolvedDate] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -192,8 +193,7 @@ export function HsgtSummaryCard({ tradeDate }: Props) {
                 fontWeight="fontWeightBold"
                 sx={{ color: flowColor(data.northMoney), lineHeight: 1.3 }}
               >
-                {(data.northMoney ?? 0) > 0 ? '+' : ''}
-                {toYi(data.northMoney)}亿
+                {formatYi(data.northMoney)}
               </Typography>
 
               <Box sx={{ mt: 1 }}>
@@ -237,8 +237,7 @@ export function HsgtSummaryCard({ tradeDate }: Props) {
                 fontWeight="fontWeightBold"
                 sx={{ color: flowColor(data.southMoney), lineHeight: 1.3 }}
               >
-                {(data.southMoney ?? 0) > 0 ? '+' : ''}
-                {toYi(data.southMoney)}亿
+                {formatYi(data.southMoney)}
               </Typography>
 
               <Box sx={{ mt: 1 }}>

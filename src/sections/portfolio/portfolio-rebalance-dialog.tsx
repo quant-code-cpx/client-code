@@ -1,7 +1,5 @@
-import type { StockSearchItem } from 'src/api/stock';
 import type {
   OmitAction,
-  RebalanceAction,
   HoldingDetailItem,
   RebalancePlanResponse,
 } from 'src/api/portfolio';
@@ -45,11 +43,6 @@ import {
 
 // ----------------------------------------------------------------------
 
-interface TargetRow {
-  stock: StockSearchItem | null;
-  targetWeight: number; // 0~100 (百分比)
-}
-
 interface RebalancePlanDialogProps {
   open: boolean;
   onClose: () => void;
@@ -57,56 +50,15 @@ interface RebalancePlanDialogProps {
   holdings: HoldingDetailItem[];
 }
 
-const ACTION_LABELS: Record<string, string> = {
-  BUY: '买入',
-  SELL: '卖出',
-  ADJUST: '调整',
-  HOLD: '持有',
-};
-
-const ACTION_COLOR: Record<
-  string,
-  'success' | 'error' | 'info' | 'default' | 'warning' | 'primary' | 'secondary'
-> = {
-  BUY: 'success',
-  SELL: 'error',
-  ADJUST: 'info',
-  HOLD: 'default',
-};
-
-const EMPTY_TARGET: TargetRow = { stock: null, targetWeight: 0 };
-
-function toOptionalNumber(value: string): number | undefined {
-  const trimmed = value.trim();
-  if (!trimmed) return undefined;
-  return Number(trimmed);
-}
-
-function stockFromHolding(holding: HoldingDetailItem): StockSearchItem {
-  return {
-    tsCode: holding.tsCode,
-    symbol: '',
-    name: holding.stockName,
-    market: null,
-    industry: holding.industry,
-    listStatus: null,
-  };
-}
-
-function buildOrderText(actions: RebalanceAction[]): string {
-  const rows = actions
-    .filter((action) => action.deltaQuantity !== 0)
-    .map((action) => {
-      const direction = action.deltaQuantity > 0 ? '买入' : '卖出';
-      return [direction, action.tsCode, action.stockName, Math.abs(action.deltaQuantity)].join(
-        '\t'
-      );
-    });
-
-  if (rows.length === 0) return '无需调仓，当前持仓已符合目标权重。';
-
-  return ['方向\t股票代码\t股票名称\t数量', ...rows].join('\n');
-}
+import {
+  stockFromHolding,
+  EMPTY_REBALANCE_TARGET,
+  type RebalanceTargetRow,
+  buildRebalanceOrderText,
+  REBALANCE_ACTION_LABELS,
+  REBALANCE_ACTION_COLORS,
+  toOptionalRebalanceNumber,
+} from './portfolio-rebalance-model';
 
 export function PortfolioRebalanceDialog({
   open,
@@ -114,7 +66,7 @@ export function PortfolioRebalanceDialog({
   holdings,
   portfolioId,
 }: RebalancePlanDialogProps) {
-  const [targets, setTargets] = useState<TargetRow[]>([EMPTY_TARGET]);
+  const [targets, setTargets] = useState<RebalanceTargetRow[]>([EMPTY_REBALANCE_TARGET]);
   const [omitUnspecified, setOmitUnspecified] = useState<OmitAction>('HOLD');
   const [totalValue, setTotalValue] = useState('');
   const [commissionRate, setCommissionRate] = useState('0.0003');
@@ -130,14 +82,14 @@ export function PortfolioRebalanceDialog({
   const weightOk = totalWeight > 0 && totalWeight <= 100;
 
   function addRow() {
-    setTargets((prev) => [...prev, EMPTY_TARGET]);
+    setTargets((prev) => [...prev, EMPTY_REBALANCE_TARGET]);
   }
 
   function removeRow(idx: number) {
     setTargets((prev) => prev.filter((_, index) => index !== idx));
   }
 
-  function updateRow(idx: number, patch: Partial<TargetRow>) {
+  function updateRow(idx: number, patch: Partial<RebalanceTargetRow>) {
     setTargets((prev) => prev.map((row, index) => (index === idx ? { ...row, ...patch } : row)));
   }
 
@@ -154,7 +106,7 @@ export function PortfolioRebalanceDialog({
   }
 
   function handleClose() {
-    setTargets([EMPTY_TARGET]);
+    setTargets([EMPTY_REBALANCE_TARGET]);
     setOmitUnspecified('HOLD');
     setTotalValue('');
     setCommissionRate('0.0003');
@@ -171,10 +123,10 @@ export function PortfolioRebalanceDialog({
     const validTargets = targets.filter(
       (target) => target.stock?.tsCode && target.targetWeight > 0
     );
-    const parsedTotalValue = toOptionalNumber(totalValue);
-    const parsedCommissionRate = toOptionalNumber(commissionRate);
-    const parsedStampDutyRate = toOptionalNumber(stampDutyRate);
-    const parsedMinCommission = toOptionalNumber(minCommission);
+    const parsedTotalValue = toOptionalRebalanceNumber(totalValue);
+    const parsedCommissionRate = toOptionalRebalanceNumber(commissionRate);
+    const parsedStampDutyRate = toOptionalRebalanceNumber(stampDutyRate);
+    const parsedMinCommission = toOptionalRebalanceNumber(minCommission);
 
     if (validTargets.length === 0) {
       setError('请至少选择一只股票并填写目标权重');
@@ -221,7 +173,7 @@ export function PortfolioRebalanceDialog({
   const handleCopyOrders = async () => {
     if (!result) return;
     try {
-      await navigator.clipboard.writeText(buildOrderText(result.actions));
+      await navigator.clipboard.writeText(buildRebalanceOrderText(result.actions));
       setCopyMessage('委托清单已复制，可粘贴到券商或交易笔记中。');
     } catch {
       setCopyMessage('复制失败，请手动选择表格内容复制。');
@@ -452,13 +404,13 @@ export function PortfolioRebalanceDialog({
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {actions.map((action: RebalanceAction) => (
+                      {actions.map((action) => (
                         <TableRow key={`${action.tsCode}-${action.action}`} hover>
                           <TableCell>{action.tsCode}</TableCell>
                           <TableCell>{action.stockName}</TableCell>
                           <TableCell>
-                            <Label color={ACTION_COLOR[action.action] ?? 'default'}>
-                              {ACTION_LABELS[action.action] ?? action.action}
+                            <Label color={REBALANCE_ACTION_COLORS[action.action] ?? 'default'}>
+                              {REBALANCE_ACTION_LABELS[action.action] ?? action.action}
                             </Label>
                           </TableCell>
                           <TableCell

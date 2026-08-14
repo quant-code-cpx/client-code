@@ -121,13 +121,10 @@ export function RotationMomentumChart({ tradeDate, period, onSectorClick, refres
         const item = sorted[dataPointIndex];
         if (!item) return '';
         const sign = item.momentum > 0 ? '+' : '';
-        const amountStr =
-          item.amount != null ? `成交额：${(item.amount / 10000).toFixed(2)} 亿<br/>` : '';
         return [
           '<div style="padding:8px 12px;font-size:13px;">',
           `<b>${item.name}</b><br/>`,
           `动量值：<span style="color:${item.momentum >= 0 ? theme.palette.error.main : theme.palette.success.main}">${sign}${item.momentum.toFixed(2)}%</span><br/>`,
-          amountStr,
           `当前排名：${item.rank}`,
           '</div>',
         ].join('');

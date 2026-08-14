@@ -102,18 +102,12 @@ export function MarketHeatmapView({
   const sectors: HeatmapSectorSummary[] = useMemo(() => aggregateSectors(items), [items]);
   const distribution: HeatmapDistribution = useMemo(() => computeDistribution(items), [items]);
 
-  // 散点图模式下，从 SectorFlowItem[] 构建行业统计（代替 5000 股聚合结果）
-  const scatterSectors: HeatmapSectorSummary[] = useMemo(
+  // 散点接口只提供板块涨跌幅，不伪造个股数量、成交额或市值统计。
+  const scatterSectors = useMemo(
     () =>
       sectorFlows.map((s) => ({
-        groupName: s.name,
+        groupName: s.name ?? s.tsCode,
         avgPctChg: Number.isFinite(s.pctChange) ? s.pctChange : null,
-        stockCount: (s.upCount ?? 0) + (s.downCount ?? 0),
-        upCount: s.upCount ?? 0,
-        downCount: s.downCount ?? 0,
-        flatCount: 0,
-        totalAmount: s.amount ?? 0,
-        totalMv: 0,
       })),
     [sectorFlows]
   );
@@ -142,12 +136,13 @@ export function MarketHeatmapView({
   const topInflowByGroup = useMemo(() => {
     const map: Record<string, Array<{ name: string; tsCode: string; mainNetInflow: number }>> = {};
     for (const item of mainFlowRanking) {
+      if (!Number.isFinite(item.mainNetInflow)) continue;
       const group = item.industry ?? '其他';
       if (!map[group]) map[group] = [];
       map[group].push({
         name: item.name ?? item.tsCode,
         tsCode: item.tsCode,
-        mainNetInflow: item.mainNetInflow ?? 0,
+        mainNetInflow: item.mainNetInflow,
       });
     }
     for (const key of Object.keys(map)) {
@@ -321,27 +316,22 @@ export function MarketHeatmapView({
   const activeGroupBy = GROUP_OPTIONS.find((o) => o.value === groupBy)!.groupBy;
 
   // ── 弹窗数据：按行业筛选个股 ─────────────────
-  const detailStocks = useMemo(
-    () =>
-      detailSector
-        ? detailItems.filter((s) => (s.groupName ?? s.industry) === detailSector.name)
-        : [],
-    [detailItems, detailSector]
-  );
+  const detailStocks = useMemo(() => {
+    if (!detailSector?.name) return [];
+    return detailItems.filter((s) => (s.groupName ?? s.industry) === detailSector.name);
+  }, [detailItems, detailSector]);
 
   const detailStockFlows = useMemo(
-    () => (detailSector ? mainFlowRanking.filter((s) => s.industry === detailSector.name) : []),
+    () =>
+      detailSector?.name ? mainFlowRanking.filter((s) => s.industry === detailSector.name) : [],
     [mainFlowRanking, detailSector]
   );
 
   // 查找与 detailSector 对应的 HeatmapItem（用于传递 swCode/dcTsCode 等映射字段）
-  const detailHeatmapItem = useMemo(
-    () =>
-      detailSector
-        ? (detailItems.find((s) => (s.groupName ?? s.industry) === detailSector.name) ?? null)
-        : null,
-    [detailItems, detailSector]
-  );
+  const detailHeatmapItem = useMemo(() => {
+    if (!detailSector?.name) return null;
+    return detailItems.find((s) => (s.groupName ?? s.industry) === detailSector.name) ?? null;
+  }, [detailItems, detailSector]);
 
   // ── 工具栏 ───────────────────────────────────
   const toolbar = (
@@ -445,6 +435,7 @@ export function MarketHeatmapView({
       <Grid size={{ xs: 12, md: viewMode === 'treemap' ? 7 : 12 }}>
         <HeatmapSectorBarChart
           sectors={viewMode === 'scatter' ? scatterSectors : sectors}
+          supportsCount={viewMode === 'treemap'}
           loading={viewMode === 'scatter' ? scatterLoading : loading}
           error={viewMode === 'scatter' ? scatterError : error}
         />

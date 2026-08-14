@@ -10,8 +10,8 @@ test.describe('登录 → 首页', () => {
     test('访问 /sign-in 渲染登录表单', async ({ page }) => {
       await page.goto('/sign-in');
       await expect(page.getByLabel('账号')).toBeVisible();
-      await expect(page.getByLabel('密码')).toBeVisible();
-      await expect(page.getByLabel('验证码')).toBeVisible();
+    await expect(page.getByLabel('密码', { exact: true })).toBeVisible();
+    await expect(page.getByLabel('验证码', { exact: true })).toBeVisible();
       await expect(page.getByRole('button', { name: /登\s*录/ })).toBeVisible();
     });
 
@@ -74,7 +74,7 @@ test.describe('登录 → 首页', () => {
         timeout: 10_000,
       });
       await page.getByLabel('账号').fill(TEST_ACCOUNT.account);
-      await page.getByLabel('密码').fill(TEST_ACCOUNT.password);
+    await page.getByLabel('密码', { exact: true }).fill(TEST_ACCOUNT.password);
       await page.getByRole('button', { name: /登\s*录/ }).click();
       await expect(page.getByRole('alert')).toContainText('请输入验证码');
     });
@@ -87,8 +87,8 @@ test.describe('登录 → 首页', () => {
         timeout: 10_000,
       });
       await page.getByLabel('账号').fill(TEST_ACCOUNT.account);
-      await page.getByLabel('密码').fill(TEST_ACCOUNT.password);
-      await page.getByLabel('验证码').fill(TEST_ACCOUNT.captchaCode);
+    await page.getByLabel('密码', { exact: true }).fill(TEST_ACCOUNT.password);
+    await page.getByLabel('验证码', { exact: true }).fill(TEST_ACCOUNT.captchaCode);
       await page.getByRole('button', { name: /登\s*录/ }).click();
       await page.waitForURL('/', { timeout: 15_000 });
       await expect(page).toHaveURL('/');
@@ -100,8 +100,8 @@ test.describe('登录 → 首页', () => {
         timeout: 10_000,
       });
       await page.getByLabel('账号').fill(TEST_ACCOUNT.account);
-      await page.getByLabel('密码').fill(TEST_ACCOUNT.password);
-      await page.getByLabel('验证码').fill(TEST_ACCOUNT.captchaCode);
+    await page.getByLabel('密码', { exact: true }).fill(TEST_ACCOUNT.password);
+    await page.getByLabel('验证码', { exact: true }).fill(TEST_ACCOUNT.captchaCode);
       await page.getByRole('button', { name: /登\s*录/ }).click();
       await page.waitForURL('/', { timeout: 15_000 });
       // 侧边导航应包含关键菜单项
@@ -124,8 +124,8 @@ test.describe('登录 → 首页', () => {
       });
 
       await page.getByLabel('账号').fill('wrong-user');
-      await page.getByLabel('密码').fill('wrong-password');
-      await page.getByLabel('验证码').fill(TEST_ACCOUNT.captchaCode);
+    await page.getByLabel('密码', { exact: true }).fill('wrong-password');
+    await page.getByLabel('验证码', { exact: true }).fill(TEST_ACCOUNT.captchaCode);
       await page.getByRole('button', { name: /登\s*录/ }).click();
 
       // 断言：显示错误信息
@@ -144,8 +144,8 @@ test.describe('登录 → 首页', () => {
         timeout: 10_000,
       });
       await page.getByLabel('账号').fill(TEST_ACCOUNT.account);
-      await page.getByLabel('密码').fill(TEST_ACCOUNT.password);
-      await page.getByLabel('验证码').fill('wrong-code');
+    await page.getByLabel('密码', { exact: true }).fill(TEST_ACCOUNT.password);
+    await page.getByLabel('验证码', { exact: true }).fill('wrong-code');
       await page.getByRole('button', { name: /登\s*录/ }).click();
       await expect(page.getByRole('alert')).toBeVisible({ timeout: 10_000 });
     });

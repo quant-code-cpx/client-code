@@ -13,6 +13,8 @@ import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 
+import { getAShareReturnColor } from 'src/utils/market-color';
+
 import { runMonteCarlo } from 'src/api/backtest';
 
 import { Chart, useChart } from 'src/components/chart';
@@ -60,7 +62,7 @@ export function BacktestMonteCarloPanel({ runId }: BacktestMonteCarloPanelProps)
             {
               label: '期望年化收益',
               value: formatPct(result.annualizedReturnDistribution.mean),
-              color: result.annualizedReturnDistribution.mean >= 0 ? 'success' : 'error',
+              color: getAShareReturnColor(result.annualizedReturnDistribution.mean, 'default'),
             },
             {
               label: '年化收益波动率',
@@ -83,7 +85,7 @@ export function BacktestMonteCarloPanel({ runId }: BacktestMonteCarloPanelProps)
             {
               label: '原始总收益',
               value: formatPct(result.originalTotalReturn),
-              color: result.originalTotalReturn >= 0 ? 'success' : 'error',
+              color: getAShareReturnColor(result.originalTotalReturn, 'default'),
             },
             {
               label: '正收益概率',
