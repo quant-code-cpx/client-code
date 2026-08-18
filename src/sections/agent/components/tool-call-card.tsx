@@ -16,6 +16,7 @@ import { fDateTime } from 'src/utils/format-time';
 import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
 
+import { toolDisplayLabel } from '../lib/evidence-display';
 import { useAgentToolCalls } from '../hooks/use-agent-tool-calls';
 
 import type { AgentToolCall } from '../hooks/use-agent-tool-calls';
@@ -53,7 +54,15 @@ function summaryEntries(summary: Record<string, unknown> | null | undefined) {
     });
 }
 
-export function ToolCallCard({ toolCall }: { toolCall: AgentToolCall }) {
+export function ToolCallCard({
+  toolCall,
+  expanded,
+  onExpandedChange,
+}: {
+  toolCall: AgentToolCall;
+  expanded?: boolean;
+  onExpandedChange?: (expanded: boolean) => void;
+}) {
   const input = summaryEntries(toolCall.inputSummary);
   const output = summaryEntries(toolCall.outputSummary);
 
@@ -61,6 +70,8 @@ export function ToolCallCard({ toolCall }: { toolCall: AgentToolCall }) {
     <Accordion
       disableGutters
       elevation={0}
+      expanded={expanded}
+      onChange={onExpandedChange ? (_event, value) => onExpandedChange(value) : undefined}
       sx={{
         borderBottom: 1,
         borderColor: 'divider',
@@ -76,12 +87,17 @@ export function ToolCallCard({ toolCall }: { toolCall: AgentToolCall }) {
       >
         <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" alignItems="center">
           <Iconify icon="solar:settings-bold-duotone" width={18} sx={{ color: 'primary.main' }} />
-          <Typography variant="subtitle2" sx={{ fontFamily: 'monospace', fontWeight: 600 }}>
-            {toolCall.toolName}
+          <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+            {toolDisplayLabel(toolCall.toolName, toolCall.toolDisplayName)}
           </Typography>
           <Label variant="soft" color={statusColor(toolCall.status)}>
             {STATUS_LABELS[toolCall.status]}
           </Label>
+          {toolCall.reusedFromRunId ? (
+            <Label variant="soft" color="info">
+              从上一轮复用
+            </Label>
+          ) : null}
           <Typography variant="caption" sx={{ color: 'text.secondary' }}>
             第 {toolCall.attemptCount} 次尝试
           </Typography>
@@ -94,6 +110,11 @@ export function ToolCallCard({ toolCall }: { toolCall: AgentToolCall }) {
       </AccordionSummary>
       <AccordionDetails id={`tool-${toolCall.toolCallId}-content`}>
         <Stack spacing={1.5}>
+          {toolCall.reusedFromRunId ? (
+            <Alert severity="info">
+              复用来源 Run：{toolCall.reusedFromRunId}。本轮未重新执行此工具。
+            </Alert>
+          ) : null}
           <SummarySection title="输入摘要" entries={input} />
           {output.length > 0 ? <SummarySection title="输出摘要" entries={output} /> : null}
           {toolCall.errorMessage ? <Alert severity="error">{toolCall.errorMessage}</Alert> : null}
@@ -173,11 +194,7 @@ export function ToolCallList({
   useEffect(() => {
     if (defaultExpanded) setExpanded(true);
   }, [defaultExpanded]);
-  const { items, loading, error } = useAgentToolCalls(
-    runId,
-    statusVersion,
-    enabled && expanded
-  );
+  const { items, loading, error } = useAgentToolCalls(runId, statusVersion, enabled && expanded);
   if (!enabled || !runId) return null;
 
   return (

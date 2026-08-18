@@ -23,9 +23,14 @@ function fixture(type: AgentSseEvent['type'], sequence: number): AgentSseEvent {
 export const agentMockEvents: AgentSseEvent[] = [
   fixture('message.created', 1),
   fixture('agent.started', 2),
-  fixture('model.started', 3),
-  fixture('model.delta', 4),
-  fixture('agent.completed', 5),
+  fixture('agent.planning', 3),
+  fixture('tool.started', 4),
+  fixture('tool.completed', 5),
+  fixture('model.started', 6),
+  fixture('model.reasoning.delta', 7),
+  fixture('model.delta', 8),
+  fixture('model.completed', 9),
+  fixture('agent.completed', 10),
 ];
 
 const agentMockConversationSummary = {
@@ -35,6 +40,8 @@ const agentMockConversationSummary = {
   modelPolicy: 'AUTO',
   preferredModel: null,
   reasoningEffort: null,
+  researchDepth: 'STANDARD',
+  answerDetail: 'STANDARD',
   createdAt: '2026-07-20T00:00:00.000Z',
   updatedAt: '2026-07-20T00:00:05.000Z',
   messageCount: 2,
@@ -98,7 +105,9 @@ export const agentMockMessages = [
 export const agentMockToolCalls = [
   {
     toolCallId: 'tool_call_mock_1',
+    reusedFromRunId: null,
     toolName: 'get_stock_overview',
+    toolDisplayName: '个股基础数据',
     toolVersion: '1.0.0',
     status: 'SUCCEEDED',
     attemptCount: 1,
@@ -161,11 +170,21 @@ export const agentHandlers = [
       modelPolicy === 'MANUAL' && typeof body.reasoningEffort === 'string'
         ? body.reasoningEffort
         : null;
+    const researchDepth =
+      body.researchDepth === 'QUICK' || body.researchDepth === 'DEEP'
+        ? body.researchDepth
+        : 'STANDARD';
+    const answerDetail =
+      body.answerDetail === 'CONCISE' || body.answerDetail === 'DETAILED'
+        ? body.answerDetail
+        : 'STANDARD';
     return ok({
       conversationId: 'cm_mock_1',
       modelPolicy,
       preferredModel,
       reasoningEffort,
+      researchDepth,
+      answerDetail,
       contextPreparation: {
         status: 'COMPACTION_REQUIRED',
         targetModel: preferredModel ?? 'research-model',
@@ -198,6 +217,9 @@ export const agentHandlers = [
           defaultReasoningEffort: 'XHIGH',
           contextWindow: 256000,
           maxOutputTokens: 54000,
+          contextAccountingMode: 'SHARED_WINDOW',
+          completionTokenAccounting: 'REASONING_AND_VISIBLE',
+          supportedVerbosityLevels: ['LOW', 'MEDIUM', 'HIGH'],
           costTier: 'HIGH',
           status: 'AVAILABLE',
           reason: null,
@@ -218,6 +240,9 @@ export const agentHandlers = [
           defaultReasoningEffort: 'HIGH',
           contextWindow: 128000,
           maxOutputTokens: 128000,
+          contextAccountingMode: 'SHARED_WINDOW',
+          completionTokenAccounting: 'REASONING_AND_VISIBLE',
+          supportedVerbosityLevels: ['LOW', 'MEDIUM', 'HIGH'],
           costTier: 'MEDIUM',
           status: 'AVAILABLE',
           reason: null,
@@ -237,6 +262,9 @@ export const agentHandlers = [
           defaultReasoningEffort: 'MEDIUM',
           contextWindow: 1000000,
           maxOutputTokens: 384000,
+          contextAccountingMode: 'SHARED_WINDOW',
+          completionTokenAccounting: 'REASONING_AND_VISIBLE',
+          supportedVerbosityLevels: [],
           costTier: 'HIGH',
           status: 'AVAILABLE',
           reason: null,
@@ -283,10 +311,12 @@ export const agentHandlers = [
       statusVersion: 3,
       currentStep: null,
       finalMessageId: 'msg_assistant_mock_1',
-      latestEventSequence: 5,
+      latestEventSequence: agentMockEvents.at(-1)?.sequence ?? 0,
       canCancel: false,
       canRetry: false,
       retryDepth: 0,
+      researchDepth: 'STANDARD',
+      answerDetail: 'STANDARD',
       errorCode: null,
       errorMessage: null,
       queuedAt: '2026-07-20T00:00:00.000Z',
@@ -303,8 +333,22 @@ export const agentHandlers = [
     } satisfies AgentResponse<'/agent/runs/cancel'>)
   ),
   http.post('*/api/agent/runs/tool-calls/list', () =>
-    ok({ items: agentMockToolCalls, payloadIncluded: false })
+    ok({ items: agentMockToolCalls, nextCursor: null, payloadIncluded: false })
   ),
+  http.post('*/api/agent/runs/events/list', async ({ request }) => {
+    const body = await requestBody(request);
+    const afterSequence = Number(body.afterSequence ?? 0);
+    const limit = Number(body.limit ?? 50);
+    const remaining = agentMockEvents.filter((event) => event.sequence > afterSequence);
+    const items = remaining.slice(0, limit);
+    const nextAfterSequence =
+      remaining.length > items.length ? (items.at(-1)?.sequence ?? null) : null;
+
+    return ok({
+      items,
+      nextAfterSequence,
+    } satisfies AgentResponse<'/agent/runs/events/list'>);
+  }),
   http.post('*/api/agent/runs/events', async ({ request }) => {
     const body = await requestBody(request);
     const lastEventId = request.headers.get('Last-Event-ID');

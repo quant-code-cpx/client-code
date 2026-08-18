@@ -191,6 +191,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/agent/messages/feedback": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** 提交或更新 assistant 消息的结构化反馈 */
+    post: operations["AgentController_upsertMessageFeedback"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/agent/conversations/model/update": {
     parameters: {
       query?: never;
@@ -389,6 +406,23 @@ export interface paths {
     put?: never;
     /** 删除长期记忆 */
     post: operations["AgentMemoryController_delete"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
+  "/agent/runs/events/list": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** 分页查询 Agent Run 持久事件历史 */
+    post: operations["AgentStreamController_listEvents"];
     delete?: never;
     options?: never;
     head?: never;
@@ -1213,7 +1247,7 @@ export interface components {
       requiredWatermarks: components["schemas"]["RequiredWatermarkDto"][];
       /** @default stock_research */
       workflowKey: string;
-      /** @default 11 */
+      /** @default 14 */
       workflowVersion: number;
       /**
        * @default AUTO
@@ -1376,7 +1410,21 @@ export interface components {
        */
       costTier: "LOW" | "MEDIUM" | "HIGH";
       contextWindow?: number;
+      maxInputTokens?: number | null;
       maxOutputTokens?: number;
+      /**
+       * @default SHARED_WINDOW
+       * @enum {string}
+       */
+      contextAccountingMode: "SHARED_WINDOW" | "INDEPENDENT_LIMITS";
+      /**
+       * @default REASONING_AND_VISIBLE
+       * @enum {string}
+       */
+      completionTokenAccounting: "VISIBLE_ONLY" | "REASONING_AND_VISIBLE";
+      /** @default [] */
+      verbosityLevels: string[];
+      defaultVerbosity?: string | null;
       capabilities?: (
         | "STREAMING"
         | "STRUCTURED_OUTPUT"
@@ -1419,7 +1467,21 @@ export interface components {
        */
       costTier: "LOW" | "MEDIUM" | "HIGH";
       contextWindow: number;
+      maxInputTokens?: number | null;
       maxOutputTokens: number;
+      /**
+       * @default SHARED_WINDOW
+       * @enum {string}
+       */
+      contextAccountingMode: "SHARED_WINDOW" | "INDEPENDENT_LIMITS";
+      /**
+       * @default REASONING_AND_VISIBLE
+       * @enum {string}
+       */
+      completionTokenAccounting: "VISIBLE_ONLY" | "REASONING_AND_VISIBLE";
+      /** @default [] */
+      verbosityLevels: string[];
+      defaultVerbosity?: string | null;
       capabilities: (
         | "STREAMING"
         | "STRUCTURED_OUTPUT"
@@ -1664,6 +1726,93 @@ export interface components {
     AgentRunEventsDto: {
       runId: string;
       afterSequence: number;
+      /**
+       * @description 显式订阅供应商公开返回的推理文本；缺省 false 兼容旧客户端
+       * @default false
+       */
+      includeReasoning: boolean;
+    };
+    AgentRunEventListResponseDto: {
+      items: components["schemas"]["AgentRunEventResponseDto"][];
+      /** @description 下一页 afterSequence；null 表示已到末页 */
+      nextAfterSequence: number | null;
+    };
+    AgentRunEventResponseDto: {
+      /** @enum {string} */
+      schemaVersion: "1.0";
+      eventId: string;
+      sequence: number;
+      /** @enum {string} */
+      type:
+        | "message.created"
+        | "agent.started"
+        | "agent.planning"
+        | "agent.progress"
+        | "context.compaction.started"
+        | "context.compaction.completed"
+        | "context.compaction.failed"
+        | "tool.started"
+        | "tool.completed"
+        | "tool.failed"
+        | "model.started"
+        | "model.trace"
+        | "model.fallback"
+        | "model.activity"
+        | "model.reasoning.delta"
+        | "model.preview.reset"
+        | "model.preview.delta"
+        | "model.completed"
+        | "model.failed"
+        | "model.delta"
+        | "citation.created"
+        | "report.generated"
+        | "agent.completed"
+        | "agent.failed"
+        | "agent.cancelled";
+      runId: string;
+      conversationId: string;
+      messageId?: string;
+      /** Format: date-time */
+      occurredAt: string;
+      traceId: string;
+      payload: {
+        [key: string]: unknown;
+      };
+    };
+    ListAgentRunEventsDto: {
+      runId: string;
+      /** @default 0 */
+      afterSequence: number;
+      /** @default 50 */
+      limit: number;
+      /** @description 只返回指定类型的持久事件；缺省时返回全部公开事件 */
+      eventTypes?: (
+        | "message.created"
+        | "agent.started"
+        | "agent.planning"
+        | "agent.progress"
+        | "context.compaction.started"
+        | "context.compaction.completed"
+        | "context.compaction.failed"
+        | "tool.started"
+        | "tool.completed"
+        | "tool.failed"
+        | "model.started"
+        | "model.trace"
+        | "model.fallback"
+        | "model.activity"
+        | "model.reasoning.delta"
+        | "model.preview.reset"
+        | "model.preview.delta"
+        | "model.completed"
+        | "model.failed"
+        | "model.delta"
+        | "citation.created"
+        | "report.generated"
+        | "agent.completed"
+        | "agent.failed"
+        | "agent.cancelled"
+      )[];
     };
     DeleteAgentMemoryResponseDto: {
       memoryId: string;
@@ -1779,7 +1928,11 @@ export interface components {
     };
     AgentToolCallResponseDto: {
       toolCallId: string;
+      /** @description 非 null 表示本 Tool 结果由 SAFE_CHECKPOINT 从该上游 Run 复用，本轮未重新执行 */
+      reusedFromRunId?: string | null;
       toolName: string;
+      /** @description 服务端统一映射的中文展示名；toolName 仍用于程序关联 */
+      toolDisplayName: string;
       toolVersion: string;
       /** @enum {string} */
       status:
@@ -1860,6 +2013,17 @@ export interface components {
       /** @enum {string|null} */
       retryMode?: "SAFE_CHECKPOINT" | null;
       retryDepth: number;
+      /** @enum {string} */
+      researchDepth: "QUICK" | "STANDARD" | "DEEP";
+      /** @enum {string} */
+      answerDetail: "CONCISE" | "STANDARD" | "DETAILED";
+      /** @enum {string|null} */
+      fulfillmentStatus?: "FULL" | "DEGRADED" | null;
+      /** @enum {string|null} */
+      resultKind?: "ANSWER" | "CLARIFICATION" | null;
+      fulfillmentSummary?: {
+        [key: string]: unknown;
+      } | null;
       errorCode?: number | null;
       errorMessage?: string | null;
       /** Format: date-time */
@@ -1932,6 +2096,16 @@ export interface components {
       messageId: string;
       /** @enum {string} */
       modelPolicy: "AUTO" | "MANUAL";
+      /**
+       * @description 仅覆盖本次重新生成
+       * @enum {string}
+       */
+      researchDepth?: "QUICK" | "STANDARD" | "DEEP";
+      /**
+       * @description 仅覆盖本次重新生成
+       * @enum {string}
+       */
+      answerDetail?: "CONCISE" | "STANDARD" | "DETAILED";
     };
     AgentRunCreatedResponseDto: {
       conversationId: string;
@@ -1958,6 +2132,16 @@ export interface components {
       /** @enum {string} */
       modelPolicy: "AUTO" | "MANUAL";
       allowedCapabilities: ("INTERNAL_DATA" | "QUANT_COMPUTE" | "WEB_SEARCH")[];
+      /**
+       * @description 仅覆盖当前 Run；缺省时继承会话
+       * @enum {string}
+       */
+      researchDepth?: "QUICK" | "STANDARD" | "DEEP";
+      /**
+       * @description 仅覆盖当前 Run；缺省时继承会话
+       * @enum {string}
+       */
+      answerDetail?: "CONCISE" | "STANDARD" | "DETAILED";
     };
     AgentPageContextDto: {
       /** @example /stock/detail */
@@ -1987,7 +2171,13 @@ export interface components {
       reasoningEfforts: string[];
       defaultReasoningEffort?: string | null;
       contextWindow: number;
+      maxInputTokens?: number | null;
       maxOutputTokens: number;
+      /** @enum {string} */
+      contextAccountingMode: "SHARED_WINDOW" | "INDEPENDENT_LIMITS";
+      /** @enum {string} */
+      completionTokenAccounting: "VISIBLE_ONLY" | "REASONING_AND_VISIBLE";
+      supportedVerbosityLevels: string[];
       /** @enum {string} */
       costTier: "LOW" | "MEDIUM" | "HIGH";
       /** @enum {string} */
@@ -2000,6 +2190,10 @@ export interface components {
       modelPolicy: "AUTO" | "MANUAL";
       preferredModel?: string | null;
       reasoningEffort?: string | null;
+      /** @enum {string} */
+      researchDepth: "QUICK" | "STANDARD" | "DEEP";
+      /** @enum {string} */
+      answerDetail: "CONCISE" | "STANDARD" | "DETAILED";
       contextPreparation: components["schemas"]["ConversationContextPreparationResponseDto"];
       /** Format: date-time */
       updatedAt: string;
@@ -2021,6 +2215,28 @@ export interface components {
       modelPolicy: "AUTO" | "MANUAL";
       preferredModel?: string | null;
       reasoningEffort?: string | null;
+      /** @enum {string} */
+      researchDepth?: "QUICK" | "STANDARD" | "DEEP";
+      /** @enum {string} */
+      answerDetail?: "CONCISE" | "STANDARD" | "DETAILED";
+    };
+    MessageFeedbackResponseDto: {
+      feedbackId: string;
+      messageId: string;
+      /** @enum {string} */
+      rating: "HELPFUL" | "NOT_HELPFUL";
+      reasons: string[];
+      comment?: string | null;
+      version: number;
+      /** Format: date-time */
+      updatedAt: string;
+    };
+    UpsertMessageFeedbackDto: {
+      messageId: string;
+      /** @enum {string} */
+      rating: "HELPFUL" | "NOT_HELPFUL";
+      reasons: string[];
+      comment?: string | null;
     };
     AgentMessageListResponseDto: {
       items: components["schemas"]["AgentMessageResponseDto"][];
@@ -2040,6 +2256,7 @@ export interface components {
       parentMessageId?: string | null;
       modelName?: string | null;
       run?: components["schemas"]["AgentMessageRunSummaryDto"] | null;
+      feedback?: components["schemas"]["AgentMessageFeedbackDto"] | null;
       citations: components["schemas"]["AgentCitationResponseDto"][];
       /** Format: date-time */
       createdAt: string;
@@ -2061,6 +2278,16 @@ export interface components {
         [key: string]: unknown;
       };
     };
+    AgentMessageFeedbackDto: {
+      feedbackId: string;
+      /** @enum {string} */
+      rating: "HELPFUL" | "NOT_HELPFUL";
+      reasons: string[];
+      comment?: string | null;
+      version: number;
+      /** Format: date-time */
+      updatedAt: string;
+    };
     AgentMessageRunSummaryDto: {
       runId: string;
       status: string;
@@ -2069,6 +2296,10 @@ export interface components {
       endedAt?: string | null;
       errorCode?: string | null;
       errorMessage?: string | null;
+      /** @enum {string|null} */
+      fulfillmentStatus?: "FULL" | "DEGRADED" | null;
+      /** @enum {string|null} */
+      resultKind?: "ANSWER" | "CLARIFICATION" | null;
     };
     ListConversationMessagesDto: {
       conversationId: string;
@@ -2085,6 +2316,10 @@ export interface components {
       modelPolicy: "AUTO" | "MANUAL";
       preferredModel?: string | null;
       reasoningEffort?: string | null;
+      /** @enum {string} */
+      researchDepth: "QUICK" | "STANDARD" | "DEEP";
+      /** @enum {string} */
+      answerDetail: "CONCISE" | "STANDARD" | "DETAILED";
       messageCount: number;
       /** Format: date-time */
       lastMessageAt: string;
@@ -2125,6 +2360,10 @@ export interface components {
       modelPolicy: "AUTO" | "MANUAL";
       preferredModel?: string | null;
       reasoningEffort?: string | null;
+      /** @enum {string} */
+      researchDepth: "QUICK" | "STANDARD" | "DEEP";
+      /** @enum {string} */
+      answerDetail: "CONCISE" | "STANDARD" | "DETAILED";
       messageCount: number;
       /** Format: date-time */
       lastMessageAt: string;
@@ -2157,6 +2396,16 @@ export interface components {
       /** @example null */
       preferredModel?: string | null;
       reasoningEffort?: string | null;
+      /**
+       * @default STANDARD
+       * @enum {string}
+       */
+      researchDepth: "QUICK" | "STANDARD" | "DEEP";
+      /**
+       * @default STANDARD
+       * @enum {string}
+       */
+      answerDetail: "CONCISE" | "STANDARD" | "DETAILED";
     };
     NotificationDeliveryResponseDto: {
       deliveryId: string;
@@ -2555,6 +2804,31 @@ export interface operations {
       };
     };
   };
+  AgentController_upsertMessageFeedback: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["UpsertMessageFeedbackDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ResponseModel"] & {
+            data?: components["schemas"]["MessageFeedbackResponseDto"];
+          };
+        };
+      };
+    };
+  };
   AgentController_updateConversationModel: {
     parameters: {
       query?: never;
@@ -2846,6 +3120,31 @@ export interface operations {
         content: {
           "application/json": components["schemas"]["ResponseModel"] & {
             data?: components["schemas"]["DeleteAgentMemoryResponseDto"];
+          };
+        };
+      };
+    };
+  };
+  AgentStreamController_listEvents: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["ListAgentRunEventsDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ResponseModel"] & {
+            data?: components["schemas"]["AgentRunEventListResponseDto"];
           };
         };
       };

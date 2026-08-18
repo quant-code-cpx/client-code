@@ -81,8 +81,48 @@ export const AGENT_TOOL_KEYS = [
   'get_backtest_analytics',
   'get_portfolio_analytics',
   'get_market_news',
+  'get_stock_realtime_quote',
   'save_research_report',
 ] as const;
+export const AGENT_TOOL_DISPLAY_NAMES = {
+  resolve_security: '研究标的确认',
+  get_stock_price_history: '个股历史行情',
+  get_stock_realtime_quote: '个股准实时行情',
+  get_stock_overview: '个股基础数据',
+  get_data_availability: '数据覆盖与可用性',
+  get_financial_statements: '财务报表',
+  get_financial_indicators: '财务指标',
+  get_stock_moneyflow: '个股资金流向',
+  compute_valuation_percentile: '估值历史分位',
+  screen_stocks: '条件选股结果',
+  get_stock_technical_indicators: '技术指标计算',
+  get_stock_technical_signals: '技术信号计算',
+  get_stock_chip_profile: '筹码结构分析',
+  get_stock_margin_history: '融资融券数据',
+  get_stock_relative_strength: '相对强弱计算',
+  get_stock_events: '公司事件',
+  get_stock_shareholder_profile: '股东与质押数据',
+  get_market_snapshot: '市场快照',
+  get_sector_membership: '行业归属与成分',
+  get_index_market_data: '指数行情与估值',
+  get_fund_research: '基金研究数据',
+  get_industry_rotation: '行业轮动数据',
+  get_factor_analysis: '因子分析结果',
+  get_macro_snapshot: '宏观经济数据',
+  get_option_market: '期权市场数据',
+  get_convertible_bond_market: '可转债市场数据',
+  run_event_study: '事件研究结果',
+  search_web: '公开网页检索结果',
+  fetch_web_page: '公开网页正文',
+  get_user_watchlist: '自选股数据',
+  get_portfolio_risk: '组合风险分析',
+  get_backtest_result: '回测结果',
+  get_backtest_analytics: '回测深度分析',
+  get_portfolio_analytics: '组合绩效分析',
+  get_market_news: '本地新闻与公告',
+  compute_performance_metrics: '收益与风险指标',
+  save_research_report: '研究报告保存预览',
+} as const;
 export const AGENT_EVENT_TYPES = [
   'message.created',
   'agent.started',
@@ -98,6 +138,7 @@ export const AGENT_EVENT_TYPES = [
   'model.trace',
   'model.fallback',
   'model.activity',
+  'model.reasoning.delta',
   'model.preview.reset',
   'model.preview.delta',
   'model.completed',
@@ -461,6 +502,15 @@ export const AGENT_ERROR_DEFINITIONS = [
     message: 'Agent 内部错误',
   },
 ] as const;
+export const SOURCE_TYPES = [
+  'DATABASE',
+  'MARKET_DATA',
+  'PROGRAM_CALCULATION',
+  'OFFICIAL',
+  'MEDIA',
+  'INSTITUTION',
+  'MODEL_INFERENCE',
+] as const;
 
 export type ConversationStatus = (typeof CONVERSATION_STATUSES)[number];
 export type MessageRole = (typeof MESSAGE_ROLES)[number];
@@ -475,13 +525,7 @@ export type AgentToolKey = (typeof AGENT_TOOL_KEYS)[number];
 export type AgentEventType = (typeof AGENT_EVENT_TYPES)[number];
 export type AgentErrorDefinition = (typeof AGENT_ERROR_DEFINITIONS)[number];
 
-export type SourceType =
-  | 'DATABASE'
-  | 'PROGRAM_CALCULATION'
-  | 'OFFICIAL'
-  | 'MEDIA'
-  | 'INSTITUTION'
-  | 'MODEL_INFERENCE';
+export type SourceType = (typeof SOURCE_TYPES)[number];
 export type ValueScale = 'PERCENT' | 'DECIMAL';
 export type PriceAdjustment = 'NONE' | 'FORWARD' | 'BACKWARD';
 
@@ -659,6 +703,7 @@ export type AgentEventPayloadMap = {
   'tool.started': {
     toolCallId: string;
     toolName: AgentToolKey;
+    toolDisplayName?: string;
     inputSummary: string;
     attempt: number;
   };
@@ -719,6 +764,12 @@ export type AgentEventPayloadMap = {
     reasonCode: string;
   };
   'model.activity': { modelCallId: string; phase: 'REASONING'; processedCharacters: number };
+  'model.reasoning.delta': {
+    modelCallId: string;
+    attempt: number;
+    kind: 'FULL' | 'SUMMARY';
+    delta: string;
+  };
   'model.preview.reset': { modelCallId: string; attempt: number };
   'model.preview.delta': { modelCallId: string; attempt: number; delta: string };
   'model.completed': {
@@ -1024,7 +1075,7 @@ export const AGENT_CONTRACT_JSON_SCHEMA = {
                     },
                     selectedTools: {
                       type: 'array',
-                      maxItems: 36,
+                      maxItems: 37,
                       items: {
                         enum: [
                           'resolve_security',
@@ -1062,13 +1113,14 @@ export const AGENT_CONTRACT_JSON_SCHEMA = {
                           'get_backtest_analytics',
                           'get_portfolio_analytics',
                           'get_market_news',
+                          'get_stock_realtime_quote',
                           'save_research_report',
                         ],
                       },
                     },
                     plannedTools: {
                       type: 'array',
-                      maxItems: 36,
+                      maxItems: 37,
                       items: {
                         enum: [
                           'resolve_security',
@@ -1106,6 +1158,7 @@ export const AGENT_CONTRACT_JSON_SCHEMA = {
                           'get_backtest_analytics',
                           'get_portfolio_analytics',
                           'get_market_news',
+                          'get_stock_realtime_quote',
                           'save_research_report',
                         ],
                       },
@@ -1551,8 +1604,14 @@ export const AGENT_CONTRACT_JSON_SCHEMA = {
                     'get_backtest_analytics',
                     'get_portfolio_analytics',
                     'get_market_news',
+                    'get_stock_realtime_quote',
                     'save_research_report',
                   ],
+                },
+                toolDisplayName: {
+                  type: 'string',
+                  minLength: 1,
+                  maxLength: 128,
                 },
                 inputSummary: {
                   type: 'string',
@@ -2287,6 +2346,88 @@ export const AGENT_CONTRACT_JSON_SCHEMA = {
               maximum: 9007199254740991,
             },
             type: {
+              const: 'model.reasoning.delta',
+            },
+            runId: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 128,
+            },
+            conversationId: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 128,
+            },
+            messageId: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 128,
+            },
+            occurredAt: {
+              type: 'string',
+              format: 'date-time',
+            },
+            traceId: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 128,
+            },
+            payload: {
+              type: 'object',
+              additionalProperties: false,
+              required: ['modelCallId', 'attempt', 'kind', 'delta'],
+              properties: {
+                modelCallId: {
+                  type: 'string',
+                  minLength: 1,
+                  maxLength: 128,
+                },
+                attempt: {
+                  type: 'integer',
+                  minimum: 1,
+                  maximum: 9007199254740991,
+                },
+                kind: {
+                  enum: ['FULL', 'SUMMARY'],
+                },
+                delta: {
+                  type: 'string',
+                  minLength: 1,
+                  maxLength: 2048,
+                },
+              },
+            },
+          },
+        },
+        {
+          type: 'object',
+          additionalProperties: true,
+          required: [
+            'schemaVersion',
+            'eventId',
+            'sequence',
+            'type',
+            'runId',
+            'conversationId',
+            'occurredAt',
+            'traceId',
+            'payload',
+          ],
+          properties: {
+            schemaVersion: {
+              const: '1.0',
+            },
+            eventId: {
+              type: 'string',
+              minLength: 1,
+              maxLength: 128,
+            },
+            sequence: {
+              type: 'integer',
+              minimum: 0,
+              maximum: 9007199254740991,
+            },
+            type: {
               const: 'model.preview.reset',
             },
             runId: {
@@ -2856,6 +2997,7 @@ export const AGENT_CONTRACT_JSON_SCHEMA = {
                     sourceType: {
                       enum: [
                         'DATABASE',
+                        'MARKET_DATA',
                         'PROGRAM_CALCULATION',
                         'OFFICIAL',
                         'MEDIA',
@@ -3330,6 +3472,7 @@ export const AGENT_CONTRACT_JSON_SCHEMA = {
                 sourceType: {
                   enum: [
                     'DATABASE',
+                    'MARKET_DATA',
                     'PROGRAM_CALCULATION',
                     'OFFICIAL',
                     'MEDIA',
@@ -3459,6 +3602,7 @@ export const AGENT_CONTRACT_JSON_SCHEMA = {
                 sourceType: {
                   enum: [
                     'DATABASE',
+                    'MARKET_DATA',
                     'PROGRAM_CALCULATION',
                     'OFFICIAL',
                     'MEDIA',
@@ -3640,6 +3784,7 @@ export const AGENT_CONTRACT_JSON_SCHEMA = {
                 sourceType: {
                   enum: [
                     'DATABASE',
+                    'MARKET_DATA',
                     'PROGRAM_CALCULATION',
                     'OFFICIAL',
                     'MEDIA',
@@ -3822,6 +3967,7 @@ export const AGENT_CONTRACT_JSON_SCHEMA = {
                 sourceType: {
                   enum: [
                     'DATABASE',
+                    'MARKET_DATA',
                     'PROGRAM_CALCULATION',
                     'OFFICIAL',
                     'MEDIA',
@@ -3997,6 +4143,7 @@ export const AGENT_CONTRACT_JSON_SCHEMA = {
                 sourceType: {
                   enum: [
                     'DATABASE',
+                    'MARKET_DATA',
                     'PROGRAM_CALCULATION',
                     'OFFICIAL',
                     'MEDIA',
@@ -4179,6 +4326,7 @@ export const AGENT_CONTRACT_JSON_SCHEMA = {
                 sourceType: {
                   enum: [
                     'DATABASE',
+                    'MARKET_DATA',
                     'PROGRAM_CALCULATION',
                     'OFFICIAL',
                     'MEDIA',
@@ -4301,6 +4449,7 @@ export const AGENT_CONTRACT_JSON_SCHEMA = {
         sourceType: {
           enum: [
             'DATABASE',
+            'MARKET_DATA',
             'PROGRAM_CALCULATION',
             'OFFICIAL',
             'MEDIA',
@@ -4412,6 +4561,7 @@ export const AGENT_CONTRACT_JSON_SCHEMA = {
         sourceType: {
           enum: [
             'DATABASE',
+            'MARKET_DATA',
             'PROGRAM_CALCULATION',
             'OFFICIAL',
             'MEDIA',
@@ -4534,6 +4684,7 @@ export const AGENT_CONTRACT_JSON_SCHEMA = {
       'get_backtest_analytics',
       'get_portfolio_analytics',
       'get_market_news',
+      'get_stock_realtime_quote',
       'save_research_report',
     ],
   },
@@ -5026,6 +5177,7 @@ export const AGENT_EVENT_FIXTURES = [
     payload: {
       toolCallId: 'tool_call_fixture',
       toolName: 'get_stock_overview',
+      toolDisplayName: '个股基础数据',
       inputSummary: '查询 600519.SH',
       attempt: 1,
     },
@@ -5148,6 +5300,23 @@ export const AGENT_EVENT_FIXTURES = [
       modelCallId: 'model_call_fixture',
       phase: 'REASONING',
       processedCharacters: 2048,
+    },
+  },
+  {
+    schemaVersion: '1.0',
+    eventId: 'evt_fixture',
+    sequence: 1,
+    runId: 'run_fixture',
+    conversationId: 'conversation_fixture',
+    messageId: 'message_fixture',
+    occurredAt: '2026-07-19T02:11:31.102Z',
+    traceId: 'trace_fixture',
+    type: 'model.reasoning.delta',
+    payload: {
+      modelCallId: 'model_call_fixture',
+      attempt: 1,
+      kind: 'FULL',
+      delta: '先核验行情时间范围。',
     },
   },
   {

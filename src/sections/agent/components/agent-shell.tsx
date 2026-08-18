@@ -53,8 +53,12 @@ export function AgentShell() {
   const [reportPreviewRunId, setReportPreviewRunId] = useState<string | null>(null);
   const [reportNotice, setReportNotice] = useState<string | null>(null);
   const [modelSaving, setModelSaving] = useState(false);
-  const [modelError, setModelError] = useState<string | null>(null);
+  const [modelError, setModelError] = useState<{
+    selectionGeneration: number;
+    message: string;
+  } | null>(null);
   const [modelNotice, setModelNotice] = useState<{
+    selectionGeneration: number;
     severity: 'success' | 'warning' | 'error';
     message: string;
   } | null>(null);
@@ -210,6 +214,7 @@ export function AgentShell() {
         });
         setModelError(null);
         setModelNotice({
+          selectionGeneration: state.selectionGeneration,
           severity: 'success',
           message:
             policy === 'MANUAL'
@@ -230,6 +235,7 @@ export function AgentShell() {
         });
         const preparation = response.contextPreparation;
         setModelNotice({
+          selectionGeneration: state.selectionGeneration,
           severity:
             preparation.status === 'READY'
               ? 'success'
@@ -244,14 +250,22 @@ export function AgentShell() {
         await conversationState.refresh();
         return true;
       } catch (error) {
-        setModelError(error instanceof Error ? error.message : '模型偏好保存失败');
+        setModelError({
+          selectionGeneration: state.selectionGeneration,
+          message: error instanceof Error ? error.message : '模型偏好保存失败',
+        });
         return false;
       } finally {
         setModelSaving(false);
       }
     },
-    [conversationId, conversationState]
+    [conversationId, conversationState, state.selectionGeneration]
   );
+
+  const visibleModelError =
+    modelError?.selectionGeneration === state.selectionGeneration ? modelError : null;
+  const visibleModelNotice =
+    modelNotice?.selectionGeneration === state.selectionGeneration ? modelNotice : null;
 
   const selectedModelPolicy =
     conversationState.conversation?.modelPolicy ?? newConversationModel.policy;
@@ -329,20 +343,20 @@ export function AgentShell() {
             onModelSave={handleModelSave}
           />
 
-          {modelError ? (
+          {visibleModelError ? (
             <Alert severity="error" onClose={() => setModelError(null)} sx={{ borderRadius: 0 }}>
-              {modelError}
+              {visibleModelError.message}
             </Alert>
           ) : null}
-          {modelNotice ? (
+          {visibleModelNotice ? (
             <Alert
-              severity={modelNotice.severity}
-              role={modelNotice.severity === 'error' ? 'alert' : 'status'}
-              aria-live={modelNotice.severity === 'error' ? 'assertive' : 'polite'}
+              severity={visibleModelNotice.severity}
+              role={visibleModelNotice.severity === 'error' ? 'alert' : 'status'}
+              aria-live={visibleModelNotice.severity === 'error' ? 'assertive' : 'polite'}
               onClose={() => setModelNotice(null)}
               sx={{ borderRadius: 0 }}
             >
-              {modelNotice.message}
+              {visibleModelNotice.message}
             </Alert>
           ) : null}
           {reportNotice ? (

@@ -46,6 +46,7 @@ export type StreamAgentRunOptions = {
   runId: string;
   afterSequence?: number;
   lastEventId?: string;
+  includeReasoning?: boolean;
   signal?: AbortSignal;
   callbacks: AgentStreamCallbacks;
   endpoint?: string;
@@ -236,7 +237,11 @@ export async function streamAgentRun(options: StreamAgentRunOptions): Promise<Ag
           'Content-Type': 'application/json',
           ...(cursor.lastEventId === undefined ? {} : { 'Last-Event-ID': cursor.lastEventId }),
         },
-        body: JSON.stringify({ runId: options.runId, afterSequence: cursor.lastAppliedSequence }),
+        body: JSON.stringify({
+          runId: options.runId,
+          afterSequence: cursor.lastAppliedSequence,
+          includeReasoning: options.includeReasoning ?? true,
+        }),
         signal: connectionController.signal,
       });
 

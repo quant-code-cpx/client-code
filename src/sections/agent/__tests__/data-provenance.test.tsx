@@ -39,4 +39,20 @@ describe('DataProvenance', () => {
     expect(screen.getByText('数据提示：本回答包含数据限制，具体说明见正文“数据限制”。')).toBeInTheDocument();
     expect(screen.queryByText('WORKFLOW_WARNING_1')).not.toBeInTheDocument();
   });
+
+  it('将市场数据来源显示为公开行情', () => {
+    renderWithProviders(
+      <DataProvenance
+        provenance={{
+          sourceType: 'MARKET_DATA',
+          citationIds: [],
+          asOf: { retrievedAt: '2026-08-17T07:00:00.000Z' },
+          timezone: 'Asia/Shanghai',
+        }}
+      />
+    );
+
+    expect(screen.getByText('公开行情')).toBeInTheDocument();
+    expect(screen.queryByText('媒体报道')).not.toBeInTheDocument();
+  });
 });

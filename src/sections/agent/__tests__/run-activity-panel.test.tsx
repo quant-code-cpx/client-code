@@ -16,6 +16,7 @@ function run(overrides: Partial<AgentRunProjection> = {}): AgentRunProjection {
     canCancel: true,
     currentStep: null,
     latestEventSequence: 4,
+    latestPersistedEventSequence: 4,
     connectionGeneration: 1,
     connectionState: 'OPEN',
     reconnects: 0,
@@ -39,7 +40,7 @@ describe('RunActivityPanel', () => {
     vi.useRealTimers();
   });
 
-  it('持续显示公开决策、研究路径、真实进度和已用时间', () => {
+  it('持续显示决策、研究路径、真实进度和已用时间', () => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date('2026-08-05T00:00:05.000Z'));
 
@@ -48,7 +49,9 @@ describe('RunActivityPanel', () => {
     );
 
     expect(screen.getByText('已用时 00:05')).toBeInTheDocument();
-    expect(screen.getByLabelText('研究决策与证据')).toHaveTextContent('公开决策，不是隐藏推理');
+    expect(screen.getByLabelText('研究决策与证据')).not.toHaveTextContent(
+      '公开决策，不是隐藏推理'
+    );
     expect(screen.getByText('需要先读取行情与财务数据，才能形成可验证结论。')).toBeInTheDocument();
     expect(screen.getByText('先核验行情与财务数据，再形成可验证结论。')).toBeInTheDocument();
     expect(screen.getByText('选用：个股历史行情、财务指标')).toBeInTheDocument();
@@ -95,9 +98,7 @@ describe('RunActivityPanel', () => {
       />
     );
 
-    expect(
-      screen.getByText('模型正在处理当前步骤；完成后会补充公开决策或数据结果')
-    ).toBeInTheDocument();
+    expect(screen.getByText('模型正在处理当前步骤')).toBeInTheDocument();
 
     rerender(
       <RunActivityPanel

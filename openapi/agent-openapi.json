@@ -529,6 +529,54 @@
         ]
       }
     },
+    "/agent/messages/feedback": {
+      "post": {
+        "operationId": "AgentController_upsertMessageFeedback",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpsertMessageFeedbackDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/MessageFeedbackResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "提交或更新 assistant 消息的结构化反馈",
+        "tags": [
+          "Agent - 会话与运行"
+        ]
+      }
+    },
     "/agent/conversations/model/update": {
       "post": {
         "operationId": "AgentController_updateConversationModel",
@@ -1092,6 +1140,54 @@
         "summary": "删除长期记忆",
         "tags": [
           "Agent - 用户记忆"
+        ]
+      }
+    },
+    "/agent/runs/events/list": {
+      "post": {
+        "operationId": "AgentStreamController_listEvents",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ListAgentRunEventsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/AgentRunEventListResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "分页查询 Agent Run 持久事件历史",
+        "tags": [
+          "Agent - 事件流"
         ]
       }
     },
@@ -3441,7 +3537,7 @@
           },
           "workflowVersion": {
             "type": "number",
-            "default": 11,
+            "default": 14,
             "minimum": 1
           },
           "modelPolicy": {
@@ -3991,10 +4087,44 @@
             "minimum": 1,
             "maximum": 10000000
           },
+          "maxInputTokens": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 10000000,
+            "nullable": true
+          },
           "maxOutputTokens": {
             "type": "number",
             "minimum": 1,
             "maximum": 1000000
+          },
+          "contextAccountingMode": {
+            "type": "string",
+            "enum": [
+              "SHARED_WINDOW",
+              "INDEPENDENT_LIMITS"
+            ],
+            "default": "SHARED_WINDOW"
+          },
+          "completionTokenAccounting": {
+            "type": "string",
+            "enum": [
+              "VISIBLE_ONLY",
+              "REASONING_AND_VISIBLE"
+            ],
+            "default": "REASONING_AND_VISIBLE"
+          },
+          "verbosityLevels": {
+            "default": [],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "defaultVerbosity": {
+            "type": "string",
+            "maxLength": 64,
+            "nullable": true
           },
           "capabilities": {
             "type": "array",
@@ -4119,10 +4249,44 @@
             "minimum": 1,
             "maximum": 10000000
           },
+          "maxInputTokens": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 10000000,
+            "nullable": true
+          },
           "maxOutputTokens": {
             "type": "number",
             "minimum": 1,
             "maximum": 1000000
+          },
+          "contextAccountingMode": {
+            "type": "string",
+            "enum": [
+              "SHARED_WINDOW",
+              "INDEPENDENT_LIMITS"
+            ],
+            "default": "SHARED_WINDOW"
+          },
+          "completionTokenAccounting": {
+            "type": "string",
+            "enum": [
+              "VISIBLE_ONLY",
+              "REASONING_AND_VISIBLE"
+            ],
+            "default": "REASONING_AND_VISIBLE"
+          },
+          "verbosityLevels": {
+            "default": [],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "defaultVerbosity": {
+            "type": "string",
+            "maxLength": 64,
+            "nullable": true
           },
           "capabilities": {
             "type": "array",
@@ -4840,11 +5004,174 @@
             "type": "number",
             "minimum": 0,
             "maximum": 9007199254740991
+          },
+          "includeReasoning": {
+            "type": "boolean",
+            "default": false,
+            "description": "显式订阅供应商公开返回的推理文本；缺省 false 兼容旧客户端"
           }
         },
         "required": [
           "runId",
           "afterSequence"
+        ]
+      },
+      "AgentRunEventListResponseDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AgentRunEventResponseDto"
+            }
+          },
+          "nextAfterSequence": {
+            "type": "number",
+            "nullable": true,
+            "minimum": 1,
+            "description": "下一页 afterSequence；null 表示已到末页"
+          }
+        },
+        "required": [
+          "items",
+          "nextAfterSequence"
+        ]
+      },
+      "AgentRunEventResponseDto": {
+        "type": "object",
+        "properties": {
+          "schemaVersion": {
+            "type": "string",
+            "enum": [
+              "1.0"
+            ]
+          },
+          "eventId": {
+            "type": "string"
+          },
+          "sequence": {
+            "type": "number",
+            "minimum": 1
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "message.created",
+              "agent.started",
+              "agent.planning",
+              "agent.progress",
+              "context.compaction.started",
+              "context.compaction.completed",
+              "context.compaction.failed",
+              "tool.started",
+              "tool.completed",
+              "tool.failed",
+              "model.started",
+              "model.trace",
+              "model.fallback",
+              "model.activity",
+              "model.reasoning.delta",
+              "model.preview.reset",
+              "model.preview.delta",
+              "model.completed",
+              "model.failed",
+              "model.delta",
+              "citation.created",
+              "report.generated",
+              "agent.completed",
+              "agent.failed",
+              "agent.cancelled"
+            ]
+          },
+          "runId": {
+            "type": "string"
+          },
+          "conversationId": {
+            "type": "string"
+          },
+          "messageId": {
+            "type": "string"
+          },
+          "occurredAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "traceId": {
+            "type": "string"
+          },
+          "payload": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "schemaVersion",
+          "eventId",
+          "sequence",
+          "type",
+          "runId",
+          "conversationId",
+          "occurredAt",
+          "traceId",
+          "payload"
+        ]
+      },
+      "ListAgentRunEventsDto": {
+        "type": "object",
+        "properties": {
+          "runId": {
+            "type": "string"
+          },
+          "afterSequence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 9007199254740991,
+            "default": 0
+          },
+          "limit": {
+            "type": "number",
+            "minimum": 1,
+            "maximum": 100,
+            "default": 50
+          },
+          "eventTypes": {
+            "type": "array",
+            "maxItems": 25,
+            "description": "只返回指定类型的持久事件；缺省时返回全部公开事件",
+            "items": {
+              "type": "string",
+              "enum": [
+                "message.created",
+                "agent.started",
+                "agent.planning",
+                "agent.progress",
+                "context.compaction.started",
+                "context.compaction.completed",
+                "context.compaction.failed",
+                "tool.started",
+                "tool.completed",
+                "tool.failed",
+                "model.started",
+                "model.trace",
+                "model.fallback",
+                "model.activity",
+                "model.reasoning.delta",
+                "model.preview.reset",
+                "model.preview.delta",
+                "model.completed",
+                "model.failed",
+                "model.delta",
+                "citation.created",
+                "report.generated",
+                "agent.completed",
+                "agent.failed",
+                "agent.cancelled"
+              ]
+            }
+          }
+        },
+        "required": [
+          "runId"
         ]
       },
       "DeleteAgentMemoryResponseDto": {
@@ -5232,8 +5559,17 @@
           "toolCallId": {
             "type": "string"
           },
+          "reusedFromRunId": {
+            "type": "string",
+            "nullable": true,
+            "description": "非 null 表示本 Tool 结果由 SAFE_CHECKPOINT 从该上游 Run 复用，本轮未重新执行"
+          },
           "toolName": {
             "type": "string"
+          },
+          "toolDisplayName": {
+            "type": "string",
+            "description": "服务端统一映射的中文展示名；toolName 仍用于程序关联"
           },
           "toolVersion": {
             "type": "string"
@@ -5298,6 +5634,7 @@
         "required": [
           "toolCallId",
           "toolName",
+          "toolDisplayName",
           "toolVersion",
           "status",
           "attemptCount",
@@ -5438,6 +5775,43 @@
           "retryDepth": {
             "type": "number"
           },
+          "researchDepth": {
+            "type": "string",
+            "enum": [
+              "QUICK",
+              "STANDARD",
+              "DEEP"
+            ]
+          },
+          "answerDetail": {
+            "type": "string",
+            "enum": [
+              "CONCISE",
+              "STANDARD",
+              "DETAILED"
+            ]
+          },
+          "fulfillmentStatus": {
+            "type": "string",
+            "enum": [
+              "FULL",
+              "DEGRADED"
+            ],
+            "nullable": true
+          },
+          "resultKind": {
+            "type": "string",
+            "enum": [
+              "ANSWER",
+              "CLARIFICATION"
+            ],
+            "nullable": true
+          },
+          "fulfillmentSummary": {
+            "type": "object",
+            "additionalProperties": true,
+            "nullable": true
+          },
           "errorCode": {
             "type": "number",
             "nullable": true
@@ -5470,6 +5844,8 @@
           "canCancel",
           "canRetry",
           "retryDepth",
+          "researchDepth",
+          "answerDetail",
           "queuedAt"
         ]
       },
@@ -5650,6 +6026,24 @@
               "AUTO",
               "MANUAL"
             ]
+          },
+          "researchDepth": {
+            "type": "string",
+            "enum": [
+              "QUICK",
+              "STANDARD",
+              "DEEP"
+            ],
+            "description": "仅覆盖本次重新生成"
+          },
+          "answerDetail": {
+            "type": "string",
+            "enum": [
+              "CONCISE",
+              "STANDARD",
+              "DETAILED"
+            ],
+            "description": "仅覆盖本次重新生成"
           }
         },
         "required": [
@@ -5734,6 +6128,24 @@
                 "WEB_SEARCH"
               ]
             }
+          },
+          "researchDepth": {
+            "type": "string",
+            "enum": [
+              "QUICK",
+              "STANDARD",
+              "DEEP"
+            ],
+            "description": "仅覆盖当前 Run；缺省时继承会话"
+          },
+          "answerDetail": {
+            "type": "string",
+            "enum": [
+              "CONCISE",
+              "STANDARD",
+              "DETAILED"
+            ],
+            "description": "仅覆盖当前 Run；缺省时继承会话"
           }
         },
         "required": [
@@ -5839,8 +6251,32 @@
           "contextWindow": {
             "type": "number"
           },
+          "maxInputTokens": {
+            "type": "number",
+            "nullable": true
+          },
           "maxOutputTokens": {
             "type": "number"
+          },
+          "contextAccountingMode": {
+            "type": "string",
+            "enum": [
+              "SHARED_WINDOW",
+              "INDEPENDENT_LIMITS"
+            ]
+          },
+          "completionTokenAccounting": {
+            "type": "string",
+            "enum": [
+              "VISIBLE_ONLY",
+              "REASONING_AND_VISIBLE"
+            ]
+          },
+          "supportedVerbosityLevels": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           },
           "costTier": {
             "type": "string",
@@ -5870,6 +6306,9 @@
           "reasoningEfforts",
           "contextWindow",
           "maxOutputTokens",
+          "contextAccountingMode",
+          "completionTokenAccounting",
+          "supportedVerbosityLevels",
           "costTier",
           "status"
         ]
@@ -5895,6 +6334,22 @@
             "type": "string",
             "nullable": true
           },
+          "researchDepth": {
+            "type": "string",
+            "enum": [
+              "QUICK",
+              "STANDARD",
+              "DEEP"
+            ]
+          },
+          "answerDetail": {
+            "type": "string",
+            "enum": [
+              "CONCISE",
+              "STANDARD",
+              "DETAILED"
+            ]
+          },
           "contextPreparation": {
             "$ref": "#/components/schemas/ConversationContextPreparationResponseDto"
           },
@@ -5906,6 +6361,8 @@
         "required": [
           "conversationId",
           "modelPolicy",
+          "researchDepth",
+          "answerDetail",
           "contextPreparation",
           "updatedAt"
         ]
@@ -5977,11 +6434,103 @@
             "nullable": true,
             "maxLength": 64,
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$"
+          },
+          "researchDepth": {
+            "type": "string",
+            "enum": [
+              "QUICK",
+              "STANDARD",
+              "DEEP"
+            ]
+          },
+          "answerDetail": {
+            "type": "string",
+            "enum": [
+              "CONCISE",
+              "STANDARD",
+              "DETAILED"
+            ]
           }
         },
         "required": [
           "conversationId",
           "modelPolicy"
+        ]
+      },
+      "MessageFeedbackResponseDto": {
+        "type": "object",
+        "properties": {
+          "feedbackId": {
+            "type": "string"
+          },
+          "messageId": {
+            "type": "string"
+          },
+          "rating": {
+            "type": "string",
+            "enum": [
+              "HELPFUL",
+              "NOT_HELPFUL"
+            ]
+          },
+          "reasons": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "comment": {
+            "type": "string",
+            "nullable": true
+          },
+          "version": {
+            "type": "number"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "feedbackId",
+          "messageId",
+          "rating",
+          "reasons",
+          "version",
+          "updatedAt"
+        ]
+      },
+      "UpsertMessageFeedbackDto": {
+        "type": "object",
+        "properties": {
+          "messageId": {
+            "type": "string"
+          },
+          "rating": {
+            "type": "string",
+            "enum": [
+              "HELPFUL",
+              "NOT_HELPFUL"
+            ]
+          },
+          "reasons": {
+            "minItems": 1,
+            "maxItems": 8,
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "comment": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 1000
+          }
+        },
+        "required": [
+          "messageId",
+          "rating",
+          "reasons"
         ]
       },
       "AgentMessageListResponseDto": {
@@ -6055,6 +6604,15 @@
             "allOf": [
               {
                 "$ref": "#/components/schemas/AgentMessageRunSummaryDto"
+              }
+            ]
+          },
+          "feedback": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AgentMessageFeedbackDto"
               }
             ]
           },
@@ -6133,6 +6691,45 @@
           "locator"
         ]
       },
+      "AgentMessageFeedbackDto": {
+        "type": "object",
+        "properties": {
+          "feedbackId": {
+            "type": "string"
+          },
+          "rating": {
+            "type": "string",
+            "enum": [
+              "HELPFUL",
+              "NOT_HELPFUL"
+            ]
+          },
+          "reasons": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "comment": {
+            "type": "string",
+            "nullable": true
+          },
+          "version": {
+            "type": "number"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "feedbackId",
+          "rating",
+          "reasons",
+          "version",
+          "updatedAt"
+        ]
+      },
       "AgentMessageRunSummaryDto": {
         "type": "object",
         "properties": {
@@ -6156,6 +6753,22 @@
           },
           "errorMessage": {
             "type": "string",
+            "nullable": true
+          },
+          "fulfillmentStatus": {
+            "type": "string",
+            "enum": [
+              "FULL",
+              "DEGRADED"
+            ],
+            "nullable": true
+          },
+          "resultKind": {
+            "type": "string",
+            "enum": [
+              "ANSWER",
+              "CLARIFICATION"
+            ],
             "nullable": true
           }
         },
@@ -6217,6 +6830,22 @@
             "type": "string",
             "nullable": true
           },
+          "researchDepth": {
+            "type": "string",
+            "enum": [
+              "QUICK",
+              "STANDARD",
+              "DEEP"
+            ]
+          },
+          "answerDetail": {
+            "type": "string",
+            "enum": [
+              "CONCISE",
+              "STANDARD",
+              "DETAILED"
+            ]
+          },
           "messageCount": {
             "type": "number"
           },
@@ -6250,6 +6879,8 @@
           "title",
           "status",
           "modelPolicy",
+          "researchDepth",
+          "answerDetail",
           "messageCount",
           "lastMessageAt",
           "createdAt",
@@ -6361,6 +6992,22 @@
             "type": "string",
             "nullable": true
           },
+          "researchDepth": {
+            "type": "string",
+            "enum": [
+              "QUICK",
+              "STANDARD",
+              "DEEP"
+            ]
+          },
+          "answerDetail": {
+            "type": "string",
+            "enum": [
+              "CONCISE",
+              "STANDARD",
+              "DETAILED"
+            ]
+          },
           "messageCount": {
             "type": "number"
           },
@@ -6382,6 +7029,8 @@
           "title",
           "status",
           "modelPolicy",
+          "researchDepth",
+          "answerDetail",
           "messageCount",
           "lastMessageAt",
           "createdAt",
@@ -6461,6 +7110,24 @@
             "nullable": true,
             "maxLength": 64,
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$"
+          },
+          "researchDepth": {
+            "type": "string",
+            "enum": [
+              "QUICK",
+              "STANDARD",
+              "DEEP"
+            ],
+            "default": "STANDARD"
+          },
+          "answerDetail": {
+            "type": "string",
+            "enum": [
+              "CONCISE",
+              "STANDARD",
+              "DETAILED"
+            ],
+            "default": "STANDARD"
           }
         },
         "required": [

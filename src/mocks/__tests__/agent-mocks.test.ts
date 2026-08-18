@@ -47,6 +47,7 @@ describe('Agent MSW handlers', () => {
       code: 0,
       data: {
         payloadIncluded: false,
+        nextCursor: null,
         items: [
           {
             toolCallId: 'tool_call_mock_1',
@@ -71,8 +72,33 @@ describe('Agent MSW handlers', () => {
         runId: 'run_mock_1',
         conversationId: 'cm_mock_1',
         statusVersion: 3,
-        latestEventSequence: 5,
+        latestEventSequence: 10,
         canCancel: false,
+      },
+    });
+  });
+
+  it('returns paginated reasoning and Tool event history', async () => {
+    const response = await fetch('http://localhost/api/agent/runs/events/list', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ runId: 'run_mock_1', afterSequence: 3, limit: 4 }),
+    });
+
+    await expect(response.json()).resolves.toMatchObject({
+      code: 0,
+      data: {
+        items: [
+          { sequence: 4, type: 'tool.started' },
+          { sequence: 5, type: 'tool.completed' },
+          { sequence: 6, type: 'model.started' },
+          {
+            sequence: 7,
+            type: 'model.reasoning.delta',
+            payload: { kind: 'FULL', delta: '先核验行情时间范围。' },
+          },
+        ],
+        nextAfterSequence: 7,
       },
     });
   });

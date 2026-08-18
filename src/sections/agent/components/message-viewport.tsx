@@ -121,7 +121,8 @@ export function MessageViewport({
       if (!message) return null;
       const messageRun =
         activeRun &&
-        (activeRun.assistantMessageId === message.messageId || activeRun.runId === message.run?.runId)
+        (activeRun.assistantMessageId === message.messageId ||
+          activeRun.runId === message.run?.runId)
           ? activeRun
           : message.run?.runId
             ? (runsById[message.run.runId] ?? null)
@@ -144,11 +145,21 @@ export function MessageViewport({
             onRetry={onRetryMessage}
             onSaveReport={onSaveReport}
             onContinue={onContinue}
+            onRetryFinalSnapshot={onRetryLoad}
           />
         </ChatMessage>
       );
     },
-    [activeRun, messageById, onContinue, onRegenerate, onRetryMessage, onSaveReport, runsById]
+    [
+      activeRun,
+      messageById,
+      onContinue,
+      onRegenerate,
+      onRetryLoad,
+      onRetryMessage,
+      onSaveReport,
+      runsById,
+    ]
   );
   const handleScroll = useCallback((event: UIEvent<HTMLDivElement>) => {
     const viewport = event.currentTarget;

@@ -16,6 +16,7 @@ function run(overrides: Partial<AgentRunProjection> = {}): AgentRunProjection {
     canCancel: true,
     currentStep: null,
     latestEventSequence: 4,
+    latestPersistedEventSequence: 4,
     connectionGeneration: 1,
     connectionState: 'OPEN',
     reconnects: 0,

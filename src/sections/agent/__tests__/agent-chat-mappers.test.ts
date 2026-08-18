@@ -9,6 +9,8 @@ const conversation: AgentConversationEntity = {
   modelPolicy: 'AUTO',
   preferredModel: null,
   reasoningEffort: null,
+  researchDepth: 'STANDARD',
+  answerDetail: 'STANDARD',
   messageCount: 6,
   lastMessageAt: '2026-08-04T04:00:00.000Z',
   createdAt: '2026-08-04T03:00:00.000Z',

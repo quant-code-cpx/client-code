@@ -82,6 +82,35 @@ describe('AgentView', () => {
     expect(screen.getByRole('button', { name: '自动模型' })).toBeInTheDocument();
   });
 
+  it('切换会话后清理新建态的模型配置提示', async () => {
+    vi.spyOn(agentApi, 'listModels').mockResolvedValue({ items: [] });
+    mocks.useConversationList.mockReturnValue({
+      items: [agentMockConversation],
+      status: 'ready',
+      error: null,
+      hasMore: false,
+      loadingMore: false,
+      refresh: vi.fn(),
+      loadMore: vi.fn(),
+    });
+
+    const { user } = renderAgent('/agent');
+    await user.click(screen.getByRole('button', { name: '自动模型' }));
+    const saveButton = await screen.findByRole('button', { name: '保存' });
+    await waitFor(() => expect(saveButton).toBeEnabled());
+    await user.click(saveButton);
+
+    expect(await screen.findByText('已选择自动模型；首条消息将由系统自动选择模型。')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('option', { name: /贵州茅台估值研究/ }));
+
+    await waitFor(() =>
+      expect(
+        screen.queryByText('已选择自动模型；首条消息将由系统自动选择模型。')
+      ).not.toBeInTheDocument()
+    );
+  });
+
   it('深链把指定 conversationId 交给加载 hook', () => {
     renderAgent('/agent/cm_deep_link');
     expect(mocks.useConversation).toHaveBeenCalledWith('cm_deep_link');
@@ -115,6 +144,8 @@ describe('AgentView', () => {
       modelPolicy: 'AUTO',
       preferredModel: null,
       reasoningEffort: null,
+      researchDepth: 'STANDARD',
+      answerDetail: 'STANDARD',
       contextPreparation: {
         status: 'COMPACTION_REQUIRED',
         targetModel: 'research-model',

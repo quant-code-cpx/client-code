@@ -20,8 +20,7 @@ import { Iconify } from 'src/components/iconify';
 import { Markdown } from 'src/components/markdown/markdown';
 
 import { CitationList } from './citation-list';
-import { ToolCallList } from './tool-call-card';
-import { RunActivityPanel } from './run-activity-panel';
+import { ThinkingPanel } from './thinking-panel';
 import { BlockRenderer } from './blocks/block-renderer';
 import { groupCitationSources } from '../lib/evidence-display';
 import { parseSupportedMessageBlock } from '../lib/message-block-guards';
@@ -35,6 +34,7 @@ type MessageItemProps = {
   onRetry: (message: AgentMessageEntity) => void;
   onSaveReport: (runId: string) => void;
   onContinue: () => void;
+  onRetryFinalSnapshot: () => void;
 };
 
 const STATUS_LABELS = {
@@ -59,6 +59,7 @@ function MessageItemComponent({
   onRetry,
   onSaveReport,
   onContinue,
+  onRetryFinalSnapshot,
 }: MessageItemProps) {
   const [copied, setCopied] = useState(false);
   const isUser = message.role === 'USER';
@@ -71,13 +72,14 @@ function MessageItemComponent({
         ? '工具记录'
         : '系统';
   const streaming = message.status === 'PENDING' || message.status === 'STREAMING';
-  const currentRun =
+  const matchingRun =
     isAssistant &&
-    streaming &&
     run &&
     (run.assistantMessageId === message.messageId || run.runId === message.run?.runId)
       ? run
       : null;
+  const runId = message.run?.runId ?? matchingRun?.runId ?? null;
+  const runStatusVersion = message.run?.statusVersion ?? matchingRun?.statusVersion;
   const hasMarkdownBlock = message.contentBlocks.some((input) => {
     const result = parseSupportedMessageBlock(input);
     return result.ok && result.block.type === 'MARKDOWN';
@@ -87,13 +89,14 @@ function MessageItemComponent({
   const canSaveReport =
     isAssistant && message.status === 'COMPLETED' && Boolean(message.run?.runId);
   const citationSourceCount = groupCitationSources(message.citations).length;
-  const failedModelMessage = run?.modelDiagnostics?.find((item) => item.status === 'FAILED')?.error?.message;
+  const failedModelMessage = run?.modelDiagnostics?.find((item) => item.status === 'FAILED')?.error
+    ?.message;
   const failureReason =
     isAssistant && message.status === 'FAILED'
-      ? run?.errorMessage ??
+      ? (run?.errorMessage ??
         failedModelMessage ??
         message.run?.errorMessage ??
-        '研究执行失败，暂未收到具体原因。请检查模型、连接和调用日志。'
+        '研究执行失败，暂未收到具体原因。请检查模型、连接和调用日志。')
       : null;
   const errorCode = run?.errorCode ?? message.run?.errorCode;
   const failureCode = errorCode != null ? `错误 ${errorCode} · ` : '';
@@ -232,8 +235,28 @@ function MessageItemComponent({
           </Stack>
         ) : null}
 
-        {currentRun ? (
-          <RunActivityPanel run={currentRun} startedAt={message.createdAt} onContinue={onContinue} />
+        {isAssistant && runId ? (
+          <ThinkingPanel
+            runId={runId}
+            statusVersion={runStatusVersion}
+            messageStatus={message.status}
+            run={matchingRun}
+            onContinue={onContinue}
+          />
+        ) : null}
+
+        {matchingRun?.finalSnapshotError ? (
+          <Alert
+            severity="warning"
+            action={
+              <Button color="inherit" size="small" onClick={onRetryFinalSnapshot}>
+                重新加载
+              </Button>
+            }
+            sx={{ mb: 2 }}
+          >
+            {matchingRun.finalSnapshotError}
+          </Alert>
         ) : null}
 
         {failureReason ? (
@@ -265,7 +288,7 @@ function MessageItemComponent({
           ) : (
             <Markdown streaming={streaming}>{message.contentText}</Markdown>
           )
-        ) : message.contentBlocks.length === 0 && !currentRun && !failureReason ? (
+        ) : message.contentBlocks.length === 0 && !runId && !failureReason ? (
           <Typography variant="body2" sx={{ py: 1, color: 'text.secondary' }}>
             {message.status === 'PENDING' ? '等待研究开始…' : '暂无可展示内容'}
           </Typography>
@@ -293,12 +316,6 @@ function MessageItemComponent({
           </Stack>
         ) : null}
 
-        <ToolCallList
-          runId={message.run?.runId}
-          statusVersion={message.run?.statusVersion}
-          enabled={isAssistant && CONFIG.agentRichBlocksEnabled}
-          defaultExpanded={message.status === 'FAILED'}
-        />
         <CitationList citations={message.citations} />
 
         <Stack

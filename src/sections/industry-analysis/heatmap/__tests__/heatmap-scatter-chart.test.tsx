@@ -63,6 +63,7 @@ describe('HeatmapScatterChart', () => {
 
     const props = chartMock.props as {
       series: Array<{ data: Array<[number, number, number]> }>;
+      sx: { overflow: string };
       options: {
         tooltip: {
           custom: (point: { seriesIndex: number; dataPointIndex: number }) => string;
@@ -70,6 +71,7 @@ describe('HeatmapScatterChart', () => {
       };
     };
     expect(props.series.flatMap((item) => item.data)).toEqual([[1, 2, 1]]);
+    expect(props.sx.overflow).toBe('visible');
 
     const tooltip = props.options.tooltip.custom({ seriesIndex: 0, dataPointIndex: 0 });
     expect(tooltip).toContain('银行');

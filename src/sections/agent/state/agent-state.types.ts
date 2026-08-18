@@ -22,6 +22,46 @@ export type AgentConversationEntity = AgentConversationSummary & {
 
 export type AgentMessageDeliveryStatus = 'SENDING' | 'UNSENT';
 
+export type AgentReasoningDeltaEvent = Extract<AgentSseEvent, { type: 'model.reasoning.delta' }>;
+export type AgentRunEvent = AgentSseEvent;
+
+export function isAgentReasoningDeltaEvent(
+  event: AgentRunEvent
+): event is AgentReasoningDeltaEvent {
+  return event.type === 'model.reasoning.delta';
+}
+
+type ExistingThinkingEvent = Extract<
+  AgentSseEvent,
+  {
+    type: (typeof AGENT_THINKING_EVENT_TYPES)[number];
+  }
+>;
+
+export const AGENT_THINKING_EVENT_TYPES = [
+  'agent.started',
+  'agent.planning',
+  'agent.progress',
+  'context.compaction.started',
+  'context.compaction.completed',
+  'context.compaction.failed',
+  'tool.started',
+  'tool.completed',
+  'tool.failed',
+  'model.started',
+  'model.trace',
+  'model.fallback',
+  'model.reasoning.delta',
+  'model.completed',
+  'model.failed',
+] as const satisfies readonly AgentSseEvent['type'][];
+
+export type AgentThinkingEvent = ExistingThinkingEvent;
+
+export function isAgentThinkingEvent(event: AgentRunEvent): event is AgentThinkingEvent {
+  return (AGENT_THINKING_EVENT_TYPES as readonly string[]).includes(event.type);
+}
+
 export type AgentMessageEntity = AgentMessageSnapshot & {
   conversationId: string;
   clientRequestId?: string;
@@ -119,6 +159,7 @@ export type AgentPlanningDecision = Extract<
 export type AgentToolActivity = {
   toolCallId: string;
   toolName: AgentToolKey;
+  toolDisplayName?: string;
   status: 'RUNNING' | 'COMPLETED' | 'FAILED';
   attempt: number;
   inputSummary?: string;
@@ -138,6 +179,7 @@ export type AgentRunProjection = {
   canCancel: boolean;
   currentStep: AgentRunStatusSnapshot['currentStep'];
   latestEventSequence: number;
+  latestPersistedEventSequence: number;
   lastEventId?: string;
   connectionGeneration: number;
   connectionState: AgentRunConnectionState;
@@ -149,11 +191,13 @@ export type AgentRunProjection = {
   modelActivity?: AgentModelActivity;
   modelDiagnostics?: AgentModelDiagnostic[];
   toolActivities?: AgentToolActivity[];
+  thinkingEvents?: AgentThinkingEvent[];
   draftPreview?: AgentDraftPreview;
   errorCode?: number | null;
   errorMessage?: string | null;
   retryable?: boolean;
   needsFinalSnapshot: boolean;
+  finalSnapshotError?: string | null;
   cancelRequested: boolean;
 };
 
@@ -279,9 +323,10 @@ export type AgentAction =
     }
   | {
       type: 'RUN_EVENT_ACCEPTED';
-      event: AgentSseEvent;
+      event: AgentRunEvent;
       connectionGeneration: number;
     }
+  | { type: 'RUN_FINAL_SNAPSHOT_FAILED'; runId: string; error: string }
   | { type: 'RUN_CANCEL_REQUESTED'; runId: string }
   | {
       type: 'RUN_CANCEL_RESOLVED';
@@ -306,6 +351,10 @@ export type AgentComposerModel = {
 };
 
 export const TERMINAL_RUN_STATUSES = new Set<AgentRunStatus>(['COMPLETED', 'FAILED', 'CANCELLED']);
+
+export function isTerminalRunStatus(status: string): status is AgentRunStatus {
+  return TERMINAL_RUN_STATUSES.has(status as AgentRunStatus);
+}
 
 export function messageStatusForRun(status: AgentRunStatus): MessageStatus {
   if (status === 'COMPLETED') return 'COMPLETED';

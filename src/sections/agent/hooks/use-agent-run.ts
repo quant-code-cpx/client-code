@@ -9,10 +9,10 @@ import { streamAgentRun } from 'src/api/agent-stream';
 
 import { AGENT_CAPABILITIES } from 'src/types/agent/generated';
 
-import { TERMINAL_RUN_STATUSES } from '../state/agent-state.types';
 import { nextAgentRequestGeneration } from '../lib/request-generation';
 import { useAgentState, useAgentDispatch } from '../state/agent-provider';
 import { selectActiveRun, selectCurrentConversation } from '../state/agent-selectors';
+import { isTerminalRunStatus, TERMINAL_RUN_STATUSES } from '../state/agent-state.types';
 
 import type {
   AgentRunRetried,
@@ -23,6 +23,9 @@ import type {
 } from '../state/agent-state.types';
 
 const MAX_MESSAGE_LENGTH = 10_000;
+const DEFAULT_RESEARCH_DEPTH = 'STANDARD' as const;
+const DEFAULT_ANSWER_DETAIL = 'STANDARD' as const;
+const FINAL_SNAPSHOT_RETRY_DELAYS_MS = [250, 1_000] as const;
 const DEFAULT_NEW_CONVERSATION_MODEL: AgentComposerModel = {
   policy: 'AUTO',
   preferredModel: null,
@@ -35,6 +38,13 @@ type ActiveStream = {
   controller: AbortController;
 };
 
+type MessageRefreshOptions = {
+  expectedMessageId?: string;
+  finalRunId?: string;
+  retryDelaysMs?: readonly number[];
+  abortSignal?: AbortSignal;
+};
+
 function commandErrorMessage(error: unknown, fallback: string): string {
   return error instanceof Error ? error.message : fallback;
 }
@@ -45,6 +55,22 @@ function newRequestId(): string {
 
 function connectionState(state: AgentStreamConnectionState) {
   return state;
+}
+
+function waitForRetry(delayMs: number, signal?: AbortSignal): Promise<boolean> {
+  if (signal?.aborted) return Promise.resolve(false);
+  return new Promise((resolve) => {
+    const timer = window.setTimeout(() => {
+      signal?.removeEventListener('abort', handleAbort);
+      resolve(true);
+    }, delayMs);
+    const handleAbort = () => {
+      window.clearTimeout(timer);
+      signal?.removeEventListener('abort', handleAbort);
+      resolve(false);
+    };
+    signal?.addEventListener('abort', handleAbort, { once: true });
+  });
 }
 
 function conversationTitle(content: string): string {
@@ -61,6 +87,7 @@ export function useAgentRun(
   const dispatch = useAgentDispatch();
   const stateRef = useRef(state);
   const activeStreamRef = useRef<ActiveStream | null>(null);
+  const finalSnapshotAbortRef = useRef<AbortController | null>(null);
   const streamGenerationRef = useRef(0);
   const lastAutoResumeKeyRef = useRef('');
   const sendingRef = useRef(false);
@@ -73,35 +100,93 @@ export function useAgentRun(
     stateRef.current = state;
   }, [state]);
 
+  useEffect(() => {
+    const controller = new AbortController();
+    finalSnapshotAbortRef.current = controller;
+    return () => {
+      controller.abort();
+      if (finalSnapshotAbortRef.current === controller) finalSnapshotAbortRef.current = null;
+    };
+  }, [conversationId]);
+
   const refreshMessages = useCallback(
-    async (targetConversationId: string, authoritative: boolean) => {
+    async (
+      targetConversationId: string,
+      authoritative: boolean,
+      options: MessageRefreshOptions = {}
+    ): Promise<boolean> => {
+      if (options.abortSignal?.aborted) return false;
       const generation = nextAgentRequestGeneration();
       dispatch({ type: 'MESSAGES_REQUESTED', conversationId: targetConversationId, generation });
-      try {
-        const result = await agentApi.listMessages({
-          conversationId: targetConversationId,
-          beforeMessageId: null,
-          limit: 50,
-        });
+      const retryDelaysMs = options.retryDelaysMs ?? [];
+      let lastError: unknown;
+
+      for (let attempt = 0; attempt <= retryDelaysMs.length; attempt += 1) {
+        if (
+          attempt > 0 &&
+          !(await waitForRetry(retryDelaysMs[attempt - 1]!, options.abortSignal))
+        ) {
+          return false;
+        }
+        try {
+          const result = await agentApi.listMessages({
+            conversationId: targetConversationId,
+            beforeMessageId: null,
+            limit: 50,
+          });
+          if (options.abortSignal?.aborted) return false;
+          if (options.expectedMessageId) {
+            const finalMessage = result.items.find(
+              (item) => item.messageId === options.expectedMessageId
+            );
+            if (!finalMessage?.run || !isTerminalRunStatus(finalMessage.run.status)) {
+              throw new Error('最终消息尚未出现在权威快照中');
+            }
+          }
+          dispatch({
+            type: 'MESSAGES_SUCCEEDED',
+            conversationId: targetConversationId,
+            generation,
+            items: result.items,
+            nextBeforeMessageId: result.nextBeforeMessageId ?? null,
+            mode: 'refresh',
+            authoritative,
+          });
+          return true;
+        } catch (error) {
+          if (options.abortSignal?.aborted) return false;
+          lastError = error;
+        }
+      }
+
+      const error = commandErrorMessage(lastError, '消息快照刷新失败');
+      dispatch({
+        type: 'MESSAGES_FAILED',
+        conversationId: targetConversationId,
+        generation,
+        error,
+      });
+      if (options.finalRunId) {
         dispatch({
-          type: 'MESSAGES_SUCCEEDED',
-          conversationId: targetConversationId,
-          generation,
-          items: result.items,
-          nextBeforeMessageId: result.nextBeforeMessageId ?? null,
-          mode: 'refresh',
-          authoritative,
-        });
-      } catch (error) {
-        dispatch({
-          type: 'MESSAGES_FAILED',
-          conversationId: targetConversationId,
-          generation,
-          error: commandErrorMessage(error, '消息快照刷新失败'),
+          type: 'RUN_FINAL_SNAPSHOT_FAILED',
+          runId: options.finalRunId,
+          error: `最终快照同步失败：${error}。当前回答与引用可能不完整。`,
         });
       }
+      return false;
     },
     [dispatch]
+  );
+
+  const refreshFinalSnapshot = useCallback(
+    (runId: string, targetConversationId: string, expectedMessageId?: string) =>
+      refreshMessages(targetConversationId, true, {
+        expectedMessageId,
+        finalRunId: runId,
+        retryDelaysMs: FINAL_SNAPSHOT_RETRY_DELAYS_MS,
+        abortSignal: finalSnapshotAbortRef.current?.signal,
+      }),
+    [refreshMessages]
   );
 
   const refreshRunStatus = useCallback(
@@ -134,6 +219,7 @@ export function useAgentRun(
         runId,
         afterSequence,
         lastEventId,
+        includeReasoning: true,
         signal: controller.signal,
         ...(endpoint === undefined ? {} : { endpoint }),
         callbacks: {
@@ -172,8 +258,14 @@ export function useAgentRun(
             dispatch({ type: 'RUN_EVENT_ACCEPTED', event, connectionGeneration: generation });
           },
           onTerminal: (event) => {
-            void refreshMessages(event.conversationId, true);
-            void refreshRunStatus(runId, event.messageId);
+            const finalMessageId =
+              event.type === 'agent.completed'
+                ? event.payload.finalMessageId
+                : (event.messageId ?? stateRef.current.runs.byId[runId]?.assistantMessageId);
+            void Promise.allSettled([
+              refreshRunStatus(runId, finalMessageId),
+              refreshFinalSnapshot(runId, event.conversationId, finalMessageId),
+            ]);
           },
         },
       })
@@ -189,10 +281,15 @@ export function useAgentRun(
           try {
             const run = stateRef.current.runs.byId[runId];
             const snapshot = await refreshRunStatus(runId, run?.assistantMessageId);
-            await refreshMessages(
-              snapshot.conversationId,
-              TERMINAL_RUN_STATUSES.has(snapshot.status)
-            );
+            if (TERMINAL_RUN_STATUSES.has(snapshot.status)) {
+              await refreshFinalSnapshot(
+                runId,
+                snapshot.conversationId,
+                snapshot.finalMessageId ?? run?.assistantMessageId
+              );
+            } else {
+              await refreshMessages(snapshot.conversationId, false);
+            }
           } catch (statusError) {
             setCommandError(commandErrorMessage(statusError, '无法确认任务状态'));
           }
@@ -201,7 +298,7 @@ export function useAgentRun(
           if (activeStreamRef.current?.generation === generation) activeStreamRef.current = null;
         });
     },
-    [dispatch, refreshMessages, refreshRunStatus]
+    [dispatch, refreshFinalSnapshot, refreshMessages, refreshRunStatus]
   );
 
   const resumeRun = useCallback(
@@ -214,7 +311,7 @@ export function useAgentRun(
         const snapshot = await refreshRunStatus(run.runId, run.assistantMessageId);
         await refreshMessages(snapshot.conversationId, false);
         if (!TERMINAL_RUN_STATUSES.has(snapshot.status)) {
-          startStream(snapshot.runId, snapshot.latestEventSequence);
+          startStream(snapshot.runId, run.latestEventSequence, run.lastEventId);
         }
       } catch (error) {
         setCommandError(commandErrorMessage(error, '运行恢复失败'));
@@ -285,6 +382,8 @@ export function useAgentRun(
             modelPolicy,
             preferredModel,
             reasoningEffort: modelPolicy === 'MANUAL' ? newConversationModel.reasoningEffort : null,
+            researchDepth: DEFAULT_RESEARCH_DEPTH,
+            answerDetail: DEFAULT_ANSWER_DETAIL,
           });
           targetConversationId = created.conversationId;
           dispatch({
@@ -295,6 +394,10 @@ export function useAgentRun(
               status: created.status,
               modelPolicy,
               preferredModel,
+              reasoningEffort:
+                modelPolicy === 'MANUAL' ? newConversationModel.reasoningEffort : null,
+              researchDepth: DEFAULT_RESEARCH_DEPTH,
+              answerDetail: DEFAULT_ANSWER_DETAIL,
               messageCount: 0,
               lastMessageAt: created.createdAt,
               createdAt: created.createdAt,
@@ -369,7 +472,11 @@ export function useAgentRun(
       let snapshot = await refreshRunStatus(run.runId, run.assistantMessageId);
       for (let attempt = 0; attempt < 2; attempt += 1) {
         if (TERMINAL_RUN_STATUSES.has(snapshot.status)) {
-          await refreshMessages(run.conversationId, true);
+          await refreshFinalSnapshot(
+            run.runId,
+            run.conversationId,
+            snapshot.finalMessageId ?? run.assistantMessageId
+          );
           return;
         }
         if (!snapshot.canCancel) return;
@@ -387,7 +494,7 @@ export function useAgentRun(
             cancellationAccepted: result.cancellationAccepted,
           });
           if (TERMINAL_RUN_STATUSES.has(result.status)) {
-            await refreshMessages(run.conversationId, true);
+            await refreshFinalSnapshot(run.runId, run.conversationId, run.assistantMessageId);
           }
           return;
         } catch (error) {
@@ -398,7 +505,15 @@ export function useAgentRun(
     } catch (error) {
       try {
         const snapshot = await refreshRunStatus(run.runId, run.assistantMessageId);
-        await refreshMessages(run.conversationId, TERMINAL_RUN_STATUSES.has(snapshot.status));
+        if (TERMINAL_RUN_STATUSES.has(snapshot.status)) {
+          await refreshFinalSnapshot(
+            run.runId,
+            run.conversationId,
+            snapshot.finalMessageId ?? run.assistantMessageId
+          );
+        } else {
+          await refreshMessages(run.conversationId, false);
+        }
         if (!TERMINAL_RUN_STATUSES.has(snapshot.status) && snapshot.status !== 'CANCEL_REQUESTED') {
           setCommandError(commandErrorMessage(error, '停止请求结果未知，任务可能仍在后台运行'));
         }
@@ -406,7 +521,7 @@ export function useAgentRun(
         setCommandError(commandErrorMessage(error, '停止请求结果未知，任务可能仍在后台运行'));
       }
     }
-  }, [conversationId, dispatch, refreshMessages, refreshRunStatus]);
+  }, [conversationId, dispatch, refreshFinalSnapshot, refreshMessages, refreshRunStatus]);
 
   const retryUnsent = useCallback(
     async (message: AgentMessageEntity): Promise<boolean> => {

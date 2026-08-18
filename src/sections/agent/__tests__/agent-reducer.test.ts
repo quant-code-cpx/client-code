@@ -7,7 +7,9 @@ import { agentReducer, createInitialAgentState } from '../state/agent-reducer';
 import type {
   AgentRunCreated,
   AgentMessageEntity,
+  AgentRunStatusSnapshot,
   AgentConversationDetail,
+  AgentReasoningDeltaEvent,
 } from '../state/agent-state.types';
 
 const CONVERSATION_ID = 'cm_test_1';
@@ -31,6 +33,28 @@ function optimisticMessage(): AgentMessageEntity {
     clientRequestId: '00000000-0000-4000-8000-000000000001',
     localId: LOCAL_MESSAGE_ID,
     deliveryStatus: 'SENDING',
+  };
+}
+
+function finalMessageSnapshot() {
+  return {
+    messageId: 'msg_assistant_1',
+    role: 'ASSISTANT' as const,
+    status: 'COMPLETED' as const,
+    contentText: '权威最终研究结论',
+    contentBlocks: [],
+    version: 2,
+    parentMessageId: 'msg_user_1',
+    modelName: 'gpt-5.6-sol',
+    run: {
+      runId: 'run_1',
+      status: 'COMPLETED' as const,
+      statusVersion: 4,
+      endedAt: '2026-08-16T01:00:05.000Z',
+    },
+    citations: [],
+    createdAt: '2026-08-16T01:00:01.000Z',
+    completedAt: '2026-08-16T01:00:05.000Z',
   };
 }
 
@@ -58,6 +82,43 @@ function streamEvent(type: AgentSseEvent['type'], sequence: number): AgentSseEve
   } as AgentSseEvent;
   if (event.type !== 'agent.completed') return event;
   return { ...event, payload: { ...event.payload, finalMessageId: 'msg_assistant_1' } };
+}
+
+function reasoningEvent(sequence: number, delta: string): AgentReasoningDeltaEvent {
+  return {
+    schemaVersion: '1.0',
+    eventId: `evt_reasoning_${sequence}`,
+    sequence,
+    type: 'model.reasoning.delta',
+    runId: 'run_1',
+    conversationId: CONVERSATION_ID,
+    messageId: 'msg_assistant_1',
+    occurredAt: '2026-08-16T01:00:00.000Z',
+    traceId: 'trace_reasoning_1',
+    payload: { modelCallId: 'model_call_1', attempt: 1, kind: 'FULL', delta },
+  };
+}
+
+function runningSnapshot(latestEventSequence: number): AgentRunStatusSnapshot {
+  return {
+    runId: 'run_1',
+    conversationId: CONVERSATION_ID,
+    status: 'RUNNING',
+    statusVersion: 3,
+    currentStep: null,
+    finalMessageId: null,
+    latestEventSequence,
+    canCancel: true,
+    canRetry: false,
+    retryDepth: 0,
+    researchDepth: 'STANDARD',
+    answerDetail: 'STANDARD',
+    errorCode: null,
+    errorMessage: null,
+    queuedAt: '2026-08-16T01:00:00.000Z',
+    startedAt: '2026-08-16T01:00:01.000Z',
+    endedAt: null,
+  };
 }
 
 function stateWithConfirmedRun() {
@@ -132,6 +193,37 @@ describe('Agent reducer', () => {
     });
     expect(state.messages.byId.msg_assistant_1.contentText).toBe(`${firstText}${firstText}`);
     expect(state.runs.byId.run_1.latestEventSequence).toBe(2);
+    expect(state.runs.byId.run_1.latestPersistedEventSequence).toBe(2);
+  });
+
+  it('状态快照只推进服务端水位，不跳过客户端尚未应用的事件', () => {
+    let state = agentReducer(stateWithConfirmedRun(), {
+      type: 'RUN_EVENT_ACCEPTED',
+      event: reasoningEvent(1, '已收到的推理。'),
+      connectionGeneration: 2,
+    });
+
+    state = agentReducer(state, {
+      type: 'RUN_STATUS_RECEIVED',
+      snapshot: runningSnapshot(5),
+      assistantMessageId: 'msg_assistant_1',
+    });
+
+    expect(state.runs.byId.run_1).toMatchObject({
+      latestEventSequence: 1,
+      latestPersistedEventSequence: 5,
+      lastEventId: 'evt_reasoning_1',
+    });
+
+    state = agentReducer(state, {
+      type: 'RUN_EVENT_ACCEPTED',
+      event: reasoningEvent(2, '断线后补回的推理。'),
+      connectionGeneration: 2,
+    });
+    expect(state.runs.byId.run_1).toMatchObject({
+      latestEventSequence: 2,
+      latestPersistedEventSequence: 5,
+    });
   });
 
   it('模型降级事件更新运行状态，不把模型切换伪装成文本输出', () => {
@@ -183,12 +275,91 @@ describe('Agent reducer', () => {
       connectionGeneration: 2,
     });
 
-    expect(state.runs.byId.run_1.stageLabel).toBe('模型正在处理当前步骤，等待公开决策或结果');
+    expect(state.runs.byId.run_1.stageLabel).toBe('模型正在思考');
     expect(state.runs.byId.run_1.modelActivity).toMatchObject({
       phase: 'REASONING',
       processedCharacters: 2048,
     });
     expect(state.messages.byId.msg_assistant_1.contentText).toBe('');
+  });
+
+  it('实时保留完整供应商推理事件，Run 完成后仍可回看', () => {
+    let state = stateWithConfirmedRun();
+    state = agentReducer(state, {
+      type: 'RUN_EVENT_ACCEPTED',
+      event: reasoningEvent(1, '先核对估值口径。'),
+      connectionGeneration: 2,
+    });
+    state = agentReducer(state, {
+      type: 'RUN_EVENT_ACCEPTED',
+      event: reasoningEvent(2, '再检查盈利质量。'),
+      connectionGeneration: 2,
+    });
+
+    expect(state.runs.byId.run_1.thinkingEvents).toHaveLength(2);
+    expect(state.runs.byId.run_1.stageLabel).toBe('模型正在思考');
+    expect(state.messages.byId.msg_assistant_1.contentText).toBe('');
+
+    state = agentReducer(state, {
+      type: 'RUN_EVENT_ACCEPTED',
+      event: streamEvent('agent.completed', 3),
+      connectionGeneration: 2,
+    });
+    expect(state.runs.byId.run_1.status).toBe('COMPLETED');
+    expect(state.runs.byId.run_1.thinkingEvents).toHaveLength(2);
+  });
+
+  it('权威终态消息清除不完整标记，随后到达的同终态状态快照不会把标记重新置回', () => {
+    let state = agentReducer(stateWithConfirmedRun(), {
+      type: 'RUN_EVENT_ACCEPTED',
+      event: streamEvent('agent.completed', 1),
+      connectionGeneration: 2,
+    });
+    state = agentReducer(state, {
+      type: 'RUN_FINAL_SNAPSHOT_FAILED',
+      runId: 'run_1',
+      error: '最终快照同步失败',
+    });
+    expect(state.runs.byId.run_1).toMatchObject({
+      needsFinalSnapshot: true,
+      finalSnapshotError: '最终快照同步失败',
+    });
+
+    state = agentReducer(state, {
+      type: 'MESSAGES_REQUESTED',
+      conversationId: CONVERSATION_ID,
+      generation: 7,
+    });
+    state = agentReducer(state, {
+      type: 'MESSAGES_SUCCEEDED',
+      conversationId: CONVERSATION_ID,
+      generation: 7,
+      items: [finalMessageSnapshot()],
+      nextBeforeMessageId: null,
+      mode: 'refresh',
+      authoritative: true,
+    });
+    expect(state.runs.byId.run_1).toMatchObject({
+      needsFinalSnapshot: false,
+      finalSnapshotError: null,
+    });
+
+    state = agentReducer(state, {
+      type: 'RUN_STATUS_RECEIVED',
+      assistantMessageId: 'msg_assistant_1',
+      snapshot: {
+        ...runningSnapshot(1),
+        status: 'COMPLETED',
+        statusVersion: 4,
+        finalMessageId: 'msg_assistant_1',
+        canCancel: false,
+        endedAt: '2026-08-16T01:00:05.000Z',
+      },
+    });
+    expect(state.runs.byId.run_1).toMatchObject({
+      needsFinalSnapshot: false,
+      finalSnapshotError: null,
+    });
   });
 
   it('公开展示模型已返回的决策理由、计划与工具执行结果', () => {
@@ -229,6 +400,7 @@ describe('Agent reducer', () => {
       expect.objectContaining({
         toolCallId: 'tool_call_fixture',
         toolName: 'get_stock_overview',
+        toolDisplayName: '个股基础数据',
         status: 'COMPLETED',
         outputSummary: '返回个股概览',
       }),
@@ -394,6 +566,8 @@ describe('Agent reducer', () => {
       modelPolicy: 'AUTO',
       preferredModel: null,
       reasoningEffort: null,
+      researchDepth: 'STANDARD',
+      answerDetail: 'STANDARD',
       messageCount: 0,
       lastMessageAt: '2026-07-20T01:00:00.000Z',
       createdAt: '2026-07-20T01:00:00.000Z',

@@ -449,6 +449,7 @@ export function HeatmapScatterChart({
                 options={chartOptions}
                 sx={{
                   height: { xs: 520, md: 600 },
+                  overflow: 'visible',
                   '& .apexcharts-marker': {
                     cursor: onSectorClick ? 'pointer' : 'default',
                   },

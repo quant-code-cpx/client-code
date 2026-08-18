@@ -75,4 +75,39 @@ describe('CitationList', () => {
     expect(screen.queryByText('get_stock_price_history')).not.toBeInTheDocument();
     expect(screen.queryByText(/fact_price/)).not.toBeInTheDocument();
   });
+
+  it('将新实时行情来源显示为公开行情', () => {
+    renderWithProviders(
+      <CitationList
+        citations={[
+          citation({
+            sourceType: 'MARKET_DATA',
+            title: 'get_stock_realtime_quote',
+            canonicalUrl: undefined,
+          }),
+        ]}
+      />
+    );
+
+    expect(screen.getByText('个股准实时行情')).toBeInTheDocument();
+    expect(screen.getByText('公开行情', { exact: false })).toBeInTheDocument();
+    expect(screen.queryByText('媒体报道', { exact: false })).not.toBeInTheDocument();
+  });
+
+  it('旧运行中误存为 MEDIA 的实时行情只在展示层兼容为公开行情', () => {
+    renderWithProviders(
+      <CitationList
+        citations={[
+          citation({
+            sourceType: 'MEDIA',
+            title: 'get_stock_realtime_quote',
+            canonicalUrl: undefined,
+          }),
+        ]}
+      />
+    );
+
+    expect(screen.getByText('公开行情', { exact: false })).toBeInTheDocument();
+    expect(screen.queryByText('媒体报道', { exact: false })).not.toBeInTheDocument();
+  });
 });

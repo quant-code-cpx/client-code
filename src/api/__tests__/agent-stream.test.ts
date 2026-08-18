@@ -106,7 +106,11 @@ describe('streamAgentRun', () => {
     const [url, init] = mockFetch.mock.calls[0] as [string, RequestInit];
     expect(requestPath(url)).toBe('/api/agent/runs/events');
     expect(init.method).toBe('POST');
-    expect(JSON.parse(String(init.body))).toEqual({ runId: 'run_fixture', afterSequence: 0 });
+    expect(JSON.parse(String(init.body))).toEqual({
+      runId: 'run_fixture',
+      afterSequence: 0,
+      includeReasoning: true,
+    });
     const headers = new Headers(init.headers);
     expect(headers.get('Accept')).toBe('text/event-stream');
     expect(headers.get('Authorization')).toBe('Bearer stream-token');
@@ -168,7 +172,11 @@ describe('streamAgentRun', () => {
     expect(sleep).toHaveBeenCalledWith(300, undefined);
 
     const [, retryInit] = mockFetch.mock.calls[1] as [string, RequestInit];
-    expect(JSON.parse(String(retryInit.body))).toEqual({ runId: 'run_fixture', afterSequence: 1 });
+    expect(JSON.parse(String(retryInit.body))).toEqual({
+      runId: 'run_fixture',
+      afterSequence: 1,
+      includeReasoning: true,
+    });
     expect(new Headers(retryInit.headers).get('Last-Event-ID')).toBe('evt_1');
   });
 
@@ -325,7 +333,11 @@ describe('streamAgentRun', () => {
     const [retryUrl, retryInit] = mockFetch.mock.calls[2] as [string, RequestInit];
     expect(requestPath(retryUrl)).toBe('/api/agent/runs/events');
     expect(new Headers(retryInit.headers).get('Authorization')).toBe('Bearer fresh-token');
-    expect(JSON.parse(String(retryInit.body))).toEqual({ runId: 'run_fixture', afterSequence: 0 });
+    expect(JSON.parse(String(retryInit.body))).toEqual({
+      runId: 'run_fixture',
+      afterSequence: 0,
+      includeReasoning: true,
+    });
   });
 
   it('stops without reconnecting when caller aborts and releases the reader', async () => {

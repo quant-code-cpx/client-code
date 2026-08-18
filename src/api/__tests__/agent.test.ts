@@ -47,6 +47,8 @@ describe('agentApi', () => {
       modelPolicy: 'AUTO',
       preferredModel: null,
       reasoningEffort: null,
+      researchDepth: 'STANDARD',
+      answerDetail: 'STANDARD',
     } satisfies AgentRequest<'/agent/conversations/create'>;
 
     const result = await agentApi.createConversation(input);
@@ -118,6 +120,23 @@ describe('agentApi', () => {
     expect(result).toMatchObject({ runId: 'run_retry', retryMode: 'SAFE_CHECKPOINT' });
     const [url, init] = mockFetch.mock.calls[0] as [string, RequestInit];
     expect(requestPath(url)).toBe('/api/agent/runs/retry');
+    expect(init.method).toBe('POST');
+    expect(JSON.parse(String(init.body))).toEqual(input);
+  });
+
+  it('posts paginated Run event history through the canonical Agent facade', async () => {
+    mockFetch.mockResolvedValueOnce(
+      jsonResponse({
+        code: 0,
+        data: { items: [], nextAfterSequence: null },
+      })
+    );
+    const input = { runId: 'run_1', afterSequence: 0, limit: 100 };
+
+    await agentApi.listRunEvents(input);
+
+    const [url, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    expect(requestPath(url)).toBe('/api/agent/runs/events/list');
     expect(init.method).toBe('POST');
     expect(JSON.parse(String(init.body))).toEqual(input);
   });

@@ -133,7 +133,11 @@ export function AgentReportContent({
                       </Typography>
                     )}
                     <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary' }}>
-                      {[citation.publisher, sourceTypeLabel(citation.sourceType), fDateTime(citation.retrievedAt)]
+                      {[
+                        citation.publisher,
+                        sourceTypeLabel(citation.sourceType, citation.title),
+                        fDateTime(citation.retrievedAt),
+                      ]
                         .filter(Boolean)
                         .join(' · ')}
                     </Typography>

@@ -13,6 +13,7 @@ import {
   MESSAGE_BLOCK_FIXTURES,
   AGENT_ERROR_DEFINITIONS,
   isSupportedMessageBlock,
+  AGENT_TOOL_DISPLAY_NAMES,
 } from '../generated';
 
 describe('Agent 公共契约', () => {
@@ -83,8 +84,15 @@ describe('Agent 公共契约', () => {
       'get_backtest_analytics',
       'get_portfolio_analytics',
       'get_market_news',
+      'get_stock_realtime_quote',
       'save_research_report',
     ]);
+  });
+
+  it('生成契约携带统一中文工具展示名', () => {
+    expect(Object.keys(AGENT_TOOL_DISPLAY_NAMES).sort()).toEqual([...AGENT_TOOL_KEYS].sort());
+    expect(AGENT_TOOL_DISPLAY_NAMES.get_stock_realtime_quote).toBe('个股准实时行情');
+    expect(AGENT_TOOL_DISPLAY_NAMES.get_industry_rotation).toBe('行业轮动数据');
   });
 
   it('Run、ToolCall、ModelCall 状态与公共协议一致', () => {

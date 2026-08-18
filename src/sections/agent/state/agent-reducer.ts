@@ -1,4 +1,11 @@
-import { messageStatusForRun, TERMINAL_RUN_STATUSES } from './agent-state.types';
+import { toolDisplayLabel } from '../lib/evidence-display';
+import {
+  messageStatusForRun,
+  isTerminalRunStatus,
+  isAgentThinkingEvent,
+  TERMINAL_RUN_STATUSES,
+  isAgentReasoningDeltaEvent,
+} from './agent-state.types';
 
 import type {
   AgentState,
@@ -105,11 +112,13 @@ function createRun(
     canCancel: status === 'QUEUED' || status === 'RUNNING',
     currentStep: null,
     latestEventSequence: 0,
+    latestPersistedEventSequence: 0,
     connectionGeneration: 0,
     connectionState: 'IDLE',
     reconnects: 0,
     stageLabel: status === 'QUEUED' ? '等待开始' : '正在研究',
     needsFinalSnapshot: false,
+    finalSnapshotError: null,
     cancelRequested: false,
   };
 }
@@ -197,6 +206,28 @@ function mergeMessages(
   };
 }
 
+function reconcileFinalMessageSnapshots(
+  runs: AgentState['runs'],
+  items: AgentMessageEntity[]
+): AgentState['runs'] {
+  let byId = runs.byId;
+
+  items.forEach((message) => {
+    if (!message.run || !isTerminalRunStatus(message.run.status)) return;
+    const run = byId[message.run.runId];
+    if (!run || run.assistantMessageId !== message.messageId) return;
+    if (!run.needsFinalSnapshot && !run.finalSnapshotError) return;
+    if (byId === runs.byId) byId = { ...runs.byId };
+    byId[run.runId] = {
+      ...run,
+      needsFinalSnapshot: false,
+      finalSnapshotError: null,
+    };
+  });
+
+  return byId === runs.byId ? runs : { ...runs, byId };
+}
+
 function updateRunMessage(
   messages: AgentState['messages'],
   run: AgentRunProjection,
@@ -233,7 +264,7 @@ function upsertModelDiagnostic(
           status: 'RUNNING' as const,
         };
   const next = { ...current, ...patch } satisfies AgentModelDiagnostic;
-  if (index < 0) return [...diagnostics, next].slice(-8);
+  if (index < 0) return [...diagnostics, next];
   return diagnostics.map((item, itemIndex) => (itemIndex === index ? next : item));
 }
 
@@ -401,6 +432,7 @@ export function agentReducer(state: AgentState, action: AgentAction): AgentState
         ...item,
         conversationId: action.conversationId,
       }));
+      const runs = reconcileFinalMessageSnapshots(state.runs, items);
       return {
         ...state,
         messages: mergeMessages(
@@ -410,6 +442,7 @@ export function agentReducer(state: AgentState, action: AgentAction): AgentState
           action.mode,
           action.authoritative ?? false
         ),
+        runs,
         loadsByConversation: {
           ...state.loadsByConversation,
           [action.conversationId]: {
@@ -595,6 +628,8 @@ export function agentReducer(state: AgentState, action: AgentAction): AgentState
       }
       const assistantMessageId = action.assistantMessageId ?? existing?.assistantMessageId;
       if (!assistantMessageId) return state;
+      const snapshotTerminal = TERMINAL_RUN_STATUSES.has(action.snapshot.status);
+      const existingTerminal = existing ? TERMINAL_RUN_STATUSES.has(existing.status) : false;
       const run: AgentRunProjection = {
         ...(existing ??
           createRun(
@@ -609,17 +644,23 @@ export function agentReducer(state: AgentState, action: AgentAction): AgentState
         statusVersion: action.snapshot.statusVersion,
         canCancel: action.snapshot.canCancel,
         currentStep: action.snapshot.currentStep,
-        latestEventSequence: Math.max(
-          existing?.latestEventSequence ?? 0,
+        latestEventSequence: existing?.latestEventSequence ?? 0,
+        latestPersistedEventSequence: Math.max(
+          existing?.latestPersistedEventSequence ?? existing?.latestEventSequence ?? 0,
           action.snapshot.latestEventSequence
         ),
         errorCode: action.snapshot.errorCode,
         errorMessage: action.snapshot.errorMessage,
         cancelRequested: action.snapshot.status === 'CANCEL_REQUESTED',
-        needsFinalSnapshot: TERMINAL_RUN_STATUSES.has(action.snapshot.status),
+        needsFinalSnapshot: snapshotTerminal
+          ? existingTerminal
+            ? (existing?.needsFinalSnapshot ?? true)
+            : true
+          : false,
+        finalSnapshotError:
+          snapshotTerminal && existingTerminal ? (existing?.finalSnapshotError ?? null) : null,
         stageLabel:
-          action.snapshot.currentStep?.stepKey ??
-          (TERMINAL_RUN_STATUSES.has(action.snapshot.status) ? '研究结束' : '正在研究'),
+          action.snapshot.currentStep?.stepKey ?? (snapshotTerminal ? '研究结束' : '正在研究'),
       };
       const active = { ...state.runs.activeRunIdByConversation };
       if (TERMINAL_RUN_STATUSES.has(run.status)) delete active[run.conversationId];
@@ -670,9 +711,19 @@ export function agentReducer(state: AgentState, action: AgentAction): AgentState
       let nextRun: AgentRunProjection = {
         ...run,
         latestEventSequence: action.event.sequence,
+        latestPersistedEventSequence: Math.max(
+          run.latestPersistedEventSequence,
+          action.event.sequence
+        ),
         lastEventId: action.event.eventId,
         errorMessage: null,
       };
+      if (isAgentThinkingEvent(action.event)) {
+        nextRun = {
+          ...nextRun,
+          thinkingEvents: [...(nextRun.thinkingEvents ?? []), action.event],
+        };
+      }
       let messages = state.messages;
 
       switch (action.event.type) {
@@ -758,19 +809,23 @@ export function agentReducer(state: AgentState, action: AgentAction): AgentState
           break;
         case 'tool.started': {
           const toolCall = action.event.payload;
+          const toolDisplayName = toolDisplayLabel(toolCall.toolName, toolCall.toolDisplayName);
           nextRun = {
             ...nextRun,
-            stageLabel: `正在调用 ${toolCall.toolName}`,
+            stageLabel: `正在调用 ${toolDisplayName}`,
             toolActivities: [
-              ...(nextRun.toolActivities ?? []).filter((item) => item.toolCallId !== toolCall.toolCallId),
+              ...(nextRun.toolActivities ?? []).filter(
+                (item) => item.toolCallId !== toolCall.toolCallId
+              ),
               {
                 toolCallId: toolCall.toolCallId,
                 toolName: toolCall.toolName,
+                toolDisplayName,
                 status: 'RUNNING' as const,
                 attempt: toolCall.attempt,
                 inputSummary: toolCall.inputSummary,
               },
-            ].slice(-8),
+            ],
           };
           break;
         }
@@ -824,8 +879,8 @@ export function agentReducer(state: AgentState, action: AgentAction): AgentState
                   : action.event.payload.purpose === 'VERIFY'
                     ? '正在核验研究结论'
                     : action.event.payload.purpose === 'CLASSIFY'
-                ? '正在理解研究问题'
-                : '正在组织研究结论',
+                      ? '正在理解研究问题'
+                      : '正在组织研究结论',
           };
           break;
         case 'model.trace': {
@@ -858,7 +913,7 @@ export function agentReducer(state: AgentState, action: AgentAction): AgentState
                 ? '模型请求已发送，等待供应商响应'
                 : trace.phase === 'FIRST_PROVIDER_CHUNK'
                   ? trace.chunkType === 'REASONING'
-                    ? '模型正在处理当前步骤，等待公开决策或结果'
+                    ? '模型正在思考'
                     : '模型正在生成结构化输出'
                   : trace.phase === 'STRUCTURED_REPAIR'
                     ? '模型输出格式校验失败，正在修复'
@@ -882,9 +937,22 @@ export function agentReducer(state: AgentState, action: AgentAction): AgentState
               status: 'RUNNING',
             }),
             stageLabel: nextRun.stageLabel.includes('历史会话')
-              ? '模型正在整理历史会话，等待公开结果'
-              : '模型正在处理当前步骤，等待公开决策或结果',
+              ? '模型正在整理历史会话'
+              : '模型正在思考',
             modelActivity: action.event.payload,
+          };
+          break;
+        case 'model.reasoning.delta':
+          if (!isAgentReasoningDeltaEvent(action.event)) break;
+          nextRun = {
+            ...nextRun,
+            modelDiagnostics: upsertModelDiagnostic(nextRun, action.event.payload.modelCallId, {
+              phase: 'REASONING',
+              attempt: action.event.payload.attempt,
+              status: 'RUNNING',
+            }),
+            stageLabel: '模型正在思考',
+            modelActivity: undefined,
           };
           break;
         case 'model.preview.reset':
@@ -1008,6 +1076,7 @@ export function agentReducer(state: AgentState, action: AgentAction): AgentState
             canCancel: false,
             cancelRequested: false,
             needsFinalSnapshot: true,
+            finalSnapshotError: null,
             connectionState: 'COMPLETED',
             stageLabel: '研究完成',
             modelActivity: undefined,
@@ -1022,6 +1091,7 @@ export function agentReducer(state: AgentState, action: AgentAction): AgentState
             canCancel: false,
             cancelRequested: false,
             needsFinalSnapshot: true,
+            finalSnapshotError: null,
             connectionState: 'COMPLETED',
             stageLabel: '研究失败',
             errorCode: action.event.payload.error.code,
@@ -1038,6 +1108,7 @@ export function agentReducer(state: AgentState, action: AgentAction): AgentState
             canCancel: false,
             cancelRequested: false,
             needsFinalSnapshot: true,
+            finalSnapshotError: null,
             connectionState: 'COMPLETED',
             stageLabel: '已停止',
             modelActivity: undefined,
@@ -1062,6 +1133,21 @@ export function agentReducer(state: AgentState, action: AgentAction): AgentState
         runs: {
           byId: { ...state.runs.byId, [nextRun.runId]: nextRun },
           activeRunIdByConversation: active,
+        },
+      };
+    }
+
+    case 'RUN_FINAL_SNAPSHOT_FAILED': {
+      const run = state.runs.byId[action.runId];
+      if (!run || !run.needsFinalSnapshot || !TERMINAL_RUN_STATUSES.has(run.status)) return state;
+      return {
+        ...state,
+        runs: {
+          ...state.runs,
+          byId: {
+            ...state.runs.byId,
+            [run.runId]: { ...run, finalSnapshotError: action.error },
+          },
         },
       };
     }
@@ -1091,16 +1177,19 @@ export function agentReducer(state: AgentState, action: AgentAction): AgentState
       if (TERMINAL_RUN_STATUSES.has(run.status) && !TERMINAL_RUN_STATUSES.has(action.status)) {
         return state;
       }
+      const terminal = TERMINAL_RUN_STATUSES.has(action.status);
       const nextRun: AgentRunProjection = {
         ...run,
         status: action.status,
         statusVersion: action.statusVersion,
         canCancel: action.status === 'QUEUED' || action.status === 'RUNNING',
         cancelRequested: action.cancellationAccepted && action.status === 'CANCEL_REQUESTED',
+        needsFinalSnapshot: terminal ? true : run.needsFinalSnapshot,
+        finalSnapshotError: terminal ? null : run.finalSnapshotError,
         stageLabel:
           action.status === 'CANCEL_REQUESTED'
             ? '正在停止'
-            : TERMINAL_RUN_STATUSES.has(action.status)
+            : terminal
               ? '研究结束'
               : run.stageLabel,
       };

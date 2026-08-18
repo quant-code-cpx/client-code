@@ -48,9 +48,6 @@ function ResearchDecisionPanel({ decision, planSummary, toolActivities = [] }: R
         <Typography variant="caption" sx={{ fontWeight: 700 }}>
           研究决策与证据
         </Typography>
-        <Typography variant="caption" sx={{ ml: 'auto !important', color: 'text.secondary' }}>
-          公开决策，不是隐藏推理
-        </Typography>
       </Stack>
 
       <Stack spacing={1.1} sx={{ px: 1.25, py: 1.1 }}>
@@ -64,7 +61,7 @@ function ResearchDecisionPanel({ decision, planSummary, toolActivities = [] }: R
             </Typography>
             {decision.selectedTools.length ? (
               <Typography variant="caption" sx={{ display: 'block', mt: 0.25, color: 'text.secondary' }}>
-                选用：{decision.selectedTools.map(toolDisplayLabel).join('、')}
+                选用：{decision.selectedTools.map((toolName) => toolDisplayLabel(toolName)).join('、')}
                 {decision.fallback ? '（安全回退）' : ''}
               </Typography>
             ) : null}
@@ -81,7 +78,7 @@ function ResearchDecisionPanel({ decision, planSummary, toolActivities = [] }: R
             </Typography>
             {decision?.plannedTools.length ? (
               <Typography variant="caption" sx={{ display: 'block', mt: 0.25, color: 'text.secondary' }}>
-                计划执行：{decision.plannedTools.map(toolDisplayLabel).join('、')}
+                计划执行：{decision.plannedTools.map((toolName) => toolDisplayLabel(toolName)).join('、')}
               </Typography>
             ) : null}
           </Box>
@@ -93,10 +90,11 @@ function ResearchDecisionPanel({ decision, planSummary, toolActivities = [] }: R
               3. 实际取得了什么
             </Typography>
             <Stack spacing={0.5} sx={{ mt: 0.5 }}>
-              {toolActivities.slice(-5).map((activity) => (
+              {toolActivities.map((activity) => (
                 <Box key={activity.toolCallId} sx={{ minWidth: 0 }}>
                   <Typography variant="body2" sx={{ lineHeight: 1.55 }}>
-                    {toolDisplayLabel(activity.toolName)} · {toolActivityLabel(activity)}
+                    {toolDisplayLabel(activity.toolName, activity.toolDisplayName)} ·{' '}
+                    {toolActivityLabel(activity)}
                   </Typography>
                   <Typography
                     variant="caption"
@@ -282,7 +280,7 @@ export function RunActivityPanel({ run, startedAt, onContinue }: RunActivityPane
         >
           <Iconify icon="solar:shield-check-bold" width={16} aria-hidden="true" />
           <Typography variant="caption" sx={{ fontWeight: 700 }}>
-            模型正在处理当前步骤；完成后会补充公开决策或数据结果
+            模型正在处理当前步骤
           </Typography>
         </Stack>
       ) : null}
@@ -307,7 +305,7 @@ export function RunActivityPanel({ run, startedAt, onContinue }: RunActivityPane
             </Typography>
           </Stack>
           <Stack spacing={0.75} sx={{ px: 1.25, py: 1 }}>
-            {run.modelDiagnostics.slice(-6).map((diagnostic) => (
+            {run.modelDiagnostics.map((diagnostic) => (
               <Box key={diagnostic.modelCallId} sx={{ minWidth: 0 }}>
                 <Stack direction="row" spacing={0.75} alignItems="baseline" flexWrap="wrap">
                   <Typography variant="caption" sx={{ fontWeight: 700 }}>

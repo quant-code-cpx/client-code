@@ -57,9 +57,15 @@ type MessageViewportFixtureProps = {
   messages: AgentMessageEntity[];
   activeRun?: AgentRunProjection | null;
   runsById?: Record<string, AgentRunProjection>;
+  onRetryLoad?: () => void;
 };
 
-function MessageViewportFixture({ messages, activeRun = null, runsById = {} }: MessageViewportFixtureProps) {
+function MessageViewportFixture({
+  messages,
+  activeRun = null,
+  runsById = {},
+  onRetryLoad = vi.fn(),
+}: MessageViewportFixtureProps) {
   return (
     <AgentMuiXProvider
       activeConversationId="cm_1"
@@ -78,7 +84,7 @@ function MessageViewportFixture({ messages, activeRun = null, runsById = {} }: M
         error={null}
         hasOlder={false}
         onLoadOlder={vi.fn()}
-        onRetryLoad={vi.fn()}
+        onRetryLoad={onRetryLoad}
         onRegenerate={vi.fn()}
         onRetryMessage={vi.fn()}
         onSaveReport={vi.fn()}
@@ -150,7 +156,7 @@ describe('MessageViewport', () => {
     expect(document.body).not.toHaveTextContent('onerror');
   });
 
-  it('将当前 Run 的公开执行状态投影到对应的助手占位消息', () => {
+  it('将当前 Run 的公开执行状态投影到默认展开的思考面板', async () => {
     const assistantMessage: AgentMessageEntity = {
       ...message(1, ''),
       status: 'PENDING',
@@ -165,6 +171,7 @@ describe('MessageViewport', () => {
       canCancel: true,
       currentStep: null,
       latestEventSequence: 3,
+      latestPersistedEventSequence: 3,
       connectionGeneration: 1,
       connectionState: 'OPEN',
       reconnects: 0,
@@ -177,9 +184,15 @@ describe('MessageViewport', () => {
 
     renderViewport([assistantMessage], activeRun);
 
-    expect(screen.getByLabelText('实时执行进度')).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: /正在思考/ })).toHaveAttribute(
+      'aria-expanded',
+      'true'
+    );
     expect(screen.getByText('正在组织研究结论')).toBeInTheDocument();
-    expect(screen.getByText('核验行情与财务数据后形成结论。')).toBeInTheDocument();
+    expect(screen.getByRole('progressbar', { name: '研究数据' })).toHaveAttribute(
+      'aria-valuenow',
+      '50'
+    );
     expect(screen.queryByText('等待研究开始…')).not.toBeInTheDocument();
   });
 
@@ -187,7 +200,12 @@ describe('MessageViewport', () => {
     const assistantMessage: AgentMessageEntity = {
       ...message(1, ''),
       status: 'FAILED',
-      run: { runId: 'run_failed', status: 'FAILED', statusVersion: 4, endedAt: '2026-07-20T01:00:04.000Z' },
+      run: {
+        runId: 'run_failed',
+        status: 'FAILED',
+        statusVersion: 4,
+        endedAt: '2026-07-20T01:00:04.000Z',
+      },
     };
     const failedRun: AgentRunProjection = {
       runId: 'run_failed',
@@ -198,6 +216,7 @@ describe('MessageViewport', () => {
       canCancel: false,
       currentStep: null,
       latestEventSequence: 4,
+      latestPersistedEventSequence: 4,
       connectionGeneration: 1,
       connectionState: 'COMPLETED',
       reconnects: 0,
@@ -235,6 +254,49 @@ describe('MessageViewport', () => {
       '错误 MODEL_PROVIDER_UNAVAILABLE · 模型供应商返回 HTTP 502，请检查上游服务状态或协议兼容日志'
     );
     expect(screen.queryByText('研究执行失败，暂未收到具体原因。')).not.toBeInTheDocument();
+  });
+
+  it('终态权威快照重试耗尽时明确提示结果不完整，并提供重新加载入口', () => {
+    const onRetryLoad = vi.fn();
+    const assistantMessage: AgentMessageEntity = {
+      ...message(1, '流内暂存结论'),
+      run: {
+        runId: 'run_incomplete',
+        status: 'COMPLETED',
+        statusVersion: 4,
+        endedAt: '2026-08-16T01:00:05.000Z',
+      },
+    };
+    const incompleteRun: AgentRunProjection = {
+      runId: 'run_incomplete',
+      conversationId: 'cm_1',
+      assistantMessageId: assistantMessage.messageId,
+      status: 'COMPLETED',
+      statusVersion: 4,
+      canCancel: false,
+      currentStep: null,
+      latestEventSequence: 8,
+      latestPersistedEventSequence: 8,
+      connectionGeneration: 1,
+      connectionState: 'COMPLETED',
+      reconnects: 0,
+      stageLabel: '研究完成',
+      needsFinalSnapshot: true,
+      finalSnapshotError: '最终快照同步失败：HTTP 503。当前回答与引用可能不完整。',
+      cancelRequested: false,
+    };
+
+    renderWithProviders(
+      <MessageViewportFixture
+        messages={[assistantMessage]}
+        runsById={{ [incompleteRun.runId]: incompleteRun }}
+        onRetryLoad={onRetryLoad}
+      />
+    );
+
+    expect(screen.getByRole('alert')).toHaveTextContent('当前回答与引用可能不完整');
+    fireEvent.click(screen.getByRole('button', { name: '重新加载' }));
+    expect(onRetryLoad).toHaveBeenCalledTimes(1);
   });
 
   it('发送乐观用户消息后自动滚动到底部', () => {
