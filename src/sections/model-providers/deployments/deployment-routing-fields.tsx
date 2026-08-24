@@ -7,6 +7,8 @@ import AccordionSummary from '@mui/material/AccordionSummary';
 
 import { Iconify } from 'src/components/iconify';
 
+import { blurDeploymentNumberInputOnWheel } from './deployment-number-input';
+
 import type { DeploymentDraft, DeploymentDraftUpdater } from './deployment-editor-model';
 
 type DeploymentRoutingFieldsProps = {
@@ -33,12 +35,14 @@ export function DeploymentRoutingFields({ draft, onUpdate }: DeploymentRoutingFi
             type="number"
             value={draft.contextWindow}
             onChange={(event) => onUpdate('contextWindow', Number(event.target.value))}
+            slotProps={{ htmlInput: { onWheel: blurDeploymentNumberInputOnWheel } }}
           />
           <TextField
             label="最大输出"
             type="number"
             value={draft.maxOutputTokens}
             onChange={(event) => onUpdate('maxOutputTokens', Number(event.target.value))}
+            slotProps={{ htmlInput: { onWheel: blurDeploymentNumberInputOnWheel } }}
           />
           <TextField
             label="优先级"
@@ -46,6 +50,7 @@ export function DeploymentRoutingFields({ draft, onUpdate }: DeploymentRoutingFi
             value={draft.priority}
             onChange={(event) => onUpdate('priority', Number(event.target.value))}
             helperText="数字越小越优先"
+            slotProps={{ htmlInput: { onWheel: blurDeploymentNumberInputOnWheel } }}
           />
           <TextField
             select
@@ -66,6 +71,7 @@ export function DeploymentRoutingFields({ draft, onUpdate }: DeploymentRoutingFi
             value={draft.timeoutMs}
             onChange={(event) => onUpdate('timeoutMs', Number(event.target.value))}
             helperText="整条研究时限会按工作流阶段与重试预算自动计算"
+            slotProps={{ htmlInput: { onWheel: blurDeploymentNumberInputOnWheel } }}
           />
           <TextField
             label="最大重试"
@@ -73,12 +79,14 @@ export function DeploymentRoutingFields({ draft, onUpdate }: DeploymentRoutingFi
             value={draft.maxRetries}
             onChange={(event) => onUpdate('maxRetries', Number(event.target.value))}
             helperText="作用于每次模型请求"
+            slotProps={{ htmlInput: { onWheel: blurDeploymentNumberInputOnWheel } }}
           />
           <TextField
             label="重试基数（毫秒）"
             type="number"
             value={draft.retryBaseMs}
             onChange={(event) => onUpdate('retryBaseMs', Number(event.target.value))}
+            slotProps={{ htmlInput: { onWheel: blurDeploymentNumberInputOnWheel } }}
           />
         </Box>
       </AccordionDetails>

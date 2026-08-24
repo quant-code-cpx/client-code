@@ -83,8 +83,9 @@ function presentationTitle(value: string): string {
 export function AgentReportPreviewDialog({ open, runId, onClose, onSaved }: AgentReportPreviewDialogProps) {
   const [preview, setPreview] = useState<ResearchReportPreview | null>(null);
   const [confirmationToken, setConfirmationToken] = useState<string | null>(null);
+  const [titleOverride, setTitleOverride] = useState<string | null>(null);
   const [journal, setJournal] = useState<JournalForm>(EMPTY_JOURNAL);
-  const [journalDirty, setJournalDirty] = useState(false);
+  const [previewDirty, setPreviewDirty] = useState(false);
   const [loadingPreview, setLoadingPreview] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -93,19 +94,33 @@ export function AgentReportPreviewDialog({ open, runId, onClose, onSaved }: Agen
   const currentJournal = useMemo(() => journalPayload(journal), [journal]);
 
   const loadPreview = useCallback(
-    async (nextJournal: ResearchReportJournal | undefined, resetDirty: boolean) => {
+    async (
+      nextJournal: ResearchReportJournal | undefined,
+      nextTitleOverride: string | null,
+      resetDirty: boolean
+    ) => {
       if (!runId) return;
+      const normalizedTitle = nextTitleOverride === null ? null : nextTitleOverride.trim();
+      if (normalizedTitle !== null && !normalizedTitle) {
+        setError('报告标题不能为空');
+        return;
+      }
       setLoadingPreview(true);
       setError(null);
       try {
-        const response = await agentApi.saveReport({ runId, ...(nextJournal ? { journal: nextJournal } : {}) });
+        const response = await agentApi.saveReport({
+          runId,
+          ...(normalizedTitle !== null ? { title: normalizedTitle } : {}),
+          ...(nextJournal ? { journal: nextJournal } : {}),
+        });
         if (!response.requiresConfirmation || !response.preview || !response.confirmationToken) {
           throw new Error('报告预览响应不完整，请重试');
         }
         setPreview(response.preview);
         setConfirmationToken(response.confirmationToken);
+        setTitleOverride(normalizedTitle);
         clientRequestIdRef.current = null;
-        if (resetDirty) setJournalDirty(false);
+        if (resetDirty) setPreviewDirty(false);
       } catch (caught) {
         setError(caught instanceof Error ? caught.message : '加载报告预览失败');
       } finally {
@@ -119,19 +134,25 @@ export function AgentReportPreviewDialog({ open, runId, onClose, onSaved }: Agen
     if (!open || !runId) return;
     setPreview(null);
     setConfirmationToken(null);
+    setTitleOverride(null);
     setJournal(EMPTY_JOURNAL);
-    setJournalDirty(false);
+    setPreviewDirty(false);
     clientRequestIdRef.current = null;
-    void loadPreview(undefined, true);
+    void loadPreview(undefined, null, true);
   }, [loadPreview, open, runId]);
 
   const updateJournal = useCallback((key: keyof JournalForm, value: string) => {
     setJournal((current) => ({ ...current, [key]: value }));
-    setJournalDirty(true);
+    setPreviewDirty(true);
+  }, []);
+
+  const updateTitle = useCallback((value: string) => {
+    setTitleOverride(value);
+    setPreviewDirty(true);
   }, []);
 
   const handleConfirm = useCallback(async () => {
-    if (!confirmationToken || !preview || journalDirty) return;
+    if (!confirmationToken || !preview || previewDirty) return;
     setSaving(true);
     setError(null);
     try {
@@ -140,6 +161,7 @@ export function AgentReportPreviewDialog({ open, runId, onClose, onSaved }: Agen
       const response = await agentApi.saveReport({
         confirmationToken,
         clientRequestId,
+        ...(titleOverride !== null ? { title: titleOverride } : {}),
         ...(currentJournal ? { journal: currentJournal } : {}),
       });
       if (response.requiresConfirmation || !response.report) throw new Error('报告保存响应不完整，请重试');
@@ -149,9 +171,10 @@ export function AgentReportPreviewDialog({ open, runId, onClose, onSaved }: Agen
     } finally {
       setSaving(false);
     }
-  }, [confirmationToken, currentJournal, journalDirty, onSaved, preview]);
+  }, [confirmationToken, currentJournal, onSaved, preview, previewDirty, titleOverride]);
 
-  const canConfirm = Boolean(preview && confirmationToken && !journalDirty && !loadingPreview && !saving);
+  const titleInvalid = titleOverride !== null && !titleOverride.trim();
+  const canConfirm = Boolean(preview && confirmationToken && !previewDirty && !loadingPreview && !saving);
 
   return (
     <Dialog
@@ -246,9 +269,18 @@ export function AgentReportPreviewDialog({ open, runId, onClose, onSaved }: Agen
               保存设置
             </Typography>
             <Typography variant="caption" sx={{ display: 'block', mb: 2, color: 'text.secondary' }}>
-              引用与数据口径随报告保留；投资日志可选。
+              标题、引用与数据口径随报告保留；投资日志可选。
             </Typography>
             <Box sx={{ display: 'grid', gridTemplateColumns: '1fr', gap: 1.5 }}>
+              <TextField
+                label="报告标题"
+                value={titleOverride ?? presentationTitle(preview.title)}
+                onChange={(event) => updateTitle(event.target.value)}
+                error={titleInvalid}
+                helperText={titleInvalid ? '报告标题不能为空' : '最多 200 个字符'}
+                fullWidth
+                slotProps={{ htmlInput: { maxLength: 200 } }}
+              />
               <TextField
                 label="证券代码"
                 value={journal.tsCode}
@@ -296,9 +328,9 @@ export function AgentReportPreviewDialog({ open, runId, onClose, onSaved }: Agen
                 fullWidth
               />
             </Box>
-            {journalDirty ? (
+            {previewDirty ? (
               <Alert severity="warning" sx={{ mt: 2 }}>
-                投资日志已修改，请先更新预览再确认保存。
+                报告标题或投资日志已修改，请先更新预览再确认保存。
               </Alert>
             ) : null}
             </Box>
@@ -307,8 +339,12 @@ export function AgentReportPreviewDialog({ open, runId, onClose, onSaved }: Agen
       </DialogContent>
       <DialogActions>
         <Button color="inherit" onClick={onClose} disabled={saving}>取消</Button>
-        {journalDirty ? (
-          <Button variant="outlined" onClick={() => void loadPreview(currentJournal, true)} disabled={loadingPreview || saving}>
+        {previewDirty ? (
+          <Button
+            variant="outlined"
+            onClick={() => void loadPreview(currentJournal, titleOverride, true)}
+            disabled={titleInvalid || loadingPreview || saving}
+          >
             更新预览
           </Button>
         ) : null}

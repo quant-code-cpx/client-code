@@ -31,18 +31,21 @@ describe('model provider validation', () => {
     ).toMatchObject({ connectionKey: expect.stringContaining('允许英文') });
   });
 
-  it.each(['gpt-5.6-sol', 'openai/gpt-5.6', 'vendor:model@2026'])('accepts real-world model ID %s', (modelId) => {
-    expect(
-      validateDeploymentFields({
-        modelId,
-        displayName: '模型',
-        reasoningMode: 'EFFORT',
-        reasoningEfforts: ['LOW', 'XHIGH', 'MAX'],
-        defaultReasoningEffort: 'MAX',
-        maxOutputTokens: 8192,
-      })
-    ).toEqual({});
-  });
+  it.each(['gpt-5.6-sol', 'openai/gpt-5.6', 'vendor:model@2026'])(
+    'accepts real-world model ID %s',
+    (modelId) => {
+      expect(
+        validateDeploymentFields({
+          modelId,
+          displayName: '模型',
+          reasoningMode: 'EFFORT',
+          reasoningEfforts: ['LOW', 'XHIGH', 'MAX'],
+          defaultReasoningEffort: 'MAX',
+          maxOutputTokens: 8192,
+        })
+      ).toEqual({});
+    }
+  );
 
   it('validates token budget and custom effort boundaries', () => {
     expect(

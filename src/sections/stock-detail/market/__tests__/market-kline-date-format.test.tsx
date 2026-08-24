@@ -28,4 +28,13 @@ describe('Market Kline 日期展示', () => {
     expect(screen.getAllByText('2026-08-12')).toHaveLength(2);
     expect(screen.queryByText('20260812')).not.toBeInTheDocument();
   });
+
+  it('分时图例展示相对昨收的涨跌额和涨跌幅', () => {
+    renderWithProviders(
+      <MarketKlineLegend bar={{ ...bar, time: '15:30', preClose: 10, close: 10.5 }} period="T" />
+    );
+
+    expect(screen.getByText('+0.50')).toBeInTheDocument();
+    expect(screen.getByText('+5.00%')).toBeInTheDocument();
+  });
 });

@@ -1,8 +1,6 @@
 import type { MouseEvent } from 'react';
-import type { AgentResponse } from 'src/api/agent';
-import type { ModelPolicy } from 'src/types/agent/generated';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
@@ -19,27 +17,24 @@ import Typography from '@mui/material/Typography';
 import FormControl from '@mui/material/FormControl';
 import ListItemText from '@mui/material/ListItemText';
 
-import { agentApi } from 'src/api/agent';
-
 import { Iconify } from 'src/components/iconify';
 
-type AgentModel = AgentResponse<'/agent/models/list'>['items'][number];
+import type { AgentModel } from '../hooks/use-agent-model-catalog';
 
 type ConversationModelControlProps = {
-  policy: ModelPolicy;
   preferredModel: string | null;
   reasoningEffort: string | null;
+  models: AgentModel[];
+  defaultModel: string | null;
+  loading: boolean;
+  loadError: string | null;
   saving: boolean;
   trigger?: 'button' | 'menu-item';
   onTrigger?: () => void;
-  onSave: (
-    policy: ModelPolicy,
-    preferredModel: string | null,
-    reasoningEffort: string | null
-  ) => Promise<boolean>;
+  onReloadModels: () => void;
+  onSave: (preferredModel: string, reasoningEffort: string | null) => Promise<boolean>;
 };
 
-const AUTO_MODEL_VALUE = '__AUTO_MODEL__';
 const FOLLOW_MODEL_VALUE = '__FOLLOW_MODEL__';
 
 const REASONING_EFFORT_LABELS: Record<string, string> = {
@@ -63,58 +58,45 @@ function findSupportedEffort(model: AgentModel | undefined, effort: string | nul
 }
 
 export function ConversationModelControl({
-  policy,
   preferredModel,
   reasoningEffort,
+  models,
+  defaultModel,
+  loading,
+  loadError,
   saving,
   trigger = 'button',
   onTrigger,
+  onReloadModels,
   onSave,
 }: ConversationModelControlProps) {
   const [open, setOpen] = useState(false);
   const [anchorPosition, setAnchorPosition] = useState<{ top: number; left: number } | null>(null);
-  const [models, setModels] = useState<AgentModel[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [loadError, setLoadError] = useState<string | null>(null);
-  const [draftPolicy, setDraftPolicy] = useState<ModelPolicy>(policy);
-  const [draftModel, setDraftModel] = useState(preferredModel ?? '');
+  const [draftModel, setDraftModel] = useState(preferredModel ?? defaultModel ?? '');
   const [draftReasoningEffort, setDraftReasoningEffort] = useState<string | null>(reasoningEffort);
-
-  const loadModels = useCallback(async (signal: AbortSignal) => {
-    setLoading(true);
-    setLoadError(null);
-    try {
-      const response = await agentApi.listModels(signal);
-      if (!signal.aborted) setModels(response.items);
-    } catch (error) {
-      if (!signal.aborted) {
-        setLoadError(error instanceof Error ? error.message : '模型目录加载失败');
-      }
-    } finally {
-      if (!signal.aborted) setLoading(false);
-    }
-  }, []);
 
   useEffect(() => {
     if (!open) {
-      setDraftPolicy(policy);
-      setDraftModel(preferredModel ?? '');
+      setDraftModel(preferredModel ?? defaultModel ?? '');
       setDraftReasoningEffort(reasoningEffort);
-      return undefined;
     }
-    const controller = new AbortController();
-    void loadModels(controller.signal);
-    return () => controller.abort();
-  }, [loadModels, open, policy, preferredModel, reasoningEffort]);
+  }, [defaultModel, open, preferredModel, reasoningEffort]);
+
+  useEffect(() => {
+    if (open && !draftModel && defaultModel) setDraftModel(defaultModel);
+  }, [defaultModel, draftModel, open]);
 
   const selectedModel = models.find((model) => model.model === draftModel);
+  const configuredModel = models.find(
+    (model) => model.model === (preferredModel ?? defaultModel)
+  );
   const selectableReasoningEfforts = selectedModel?.capabilities.includes('REASONING_EFFORT')
     ? selectedModel.reasoningEfforts
     : [];
   const selectedEffort = findSupportedEffort(selectedModel, draftReasoningEffort);
-  const manualValid = selectedModel?.status === 'AVAILABLE';
-  const valid = draftPolicy === 'AUTO' ? draftReasoningEffort === null : manualValid;
-  const buttonLabel = policy === 'AUTO' ? '自动模型' : preferredModel ?? '指定模型';
+  const valid = selectedModel?.status === 'AVAILABLE';
+  const buttonLabel =
+    configuredModel?.displayName ?? preferredModel ?? defaultModel ?? '选择模型';
   const triggerLabel = reasoningEffort
     ? `${buttonLabel} · ${formatReasoningEffort(reasoningEffort)}`
     : buttonLabel;
@@ -204,7 +186,7 @@ export function ConversationModelControl({
               severity="error"
               sx={{ mt: 2 }}
               action={
-                <Button size="small" onClick={() => void loadModels(new AbortController().signal)}>
+                <Button size="small" onClick={onReloadModels}>
                   重试
                 </Button>
               }
@@ -220,27 +202,17 @@ export function ConversationModelControl({
                 <Select
                   labelId="conversation-model-label"
                   label="模型"
-                  value={draftPolicy === 'AUTO' ? AUTO_MODEL_VALUE : draftModel}
+                  value={draftModel}
                   onChange={(event) => {
                     const value = event.target.value;
-                    if (value === AUTO_MODEL_VALUE) {
-                      setDraftPolicy('AUTO');
-                      setDraftModel('');
-                      setDraftReasoningEffort(null);
-                      return;
-                    }
                     const nextModel = models.find((model) => model.model === value);
-                    setDraftPolicy('MANUAL');
                     setDraftModel(value);
                     setDraftReasoningEffort((current) => findSupportedEffort(nextModel, current));
                   }}
                   renderValue={(value) =>
-                    value === AUTO_MODEL_VALUE
-                      ? '自动选择'
-                      : (models.find((model) => model.model === value)?.displayName ?? value)
+                    models.find((model) => model.model === value)?.displayName ?? value
                   }
                 >
-                  <MenuItem value={AUTO_MODEL_VALUE}>自动选择</MenuItem>
                   {models.map((model) => (
                     <MenuItem
                       key={model.model}
@@ -260,7 +232,7 @@ export function ConversationModelControl({
               <FormControl
                 fullWidth
                 size="small"
-                disabled={draftPolicy === 'AUTO' || selectableReasoningEfforts.length === 0}
+                disabled={selectableReasoningEfforts.length === 0}
               >
                 <InputLabel id="conversation-reasoning-effort-label">思考强度</InputLabel>
                 <Select
@@ -287,11 +259,9 @@ export function ConversationModelControl({
               </FormControl>
 
               <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                {draftPolicy === 'AUTO'
-                  ? '自动选择时使用各模型默认强度。'
-                  : selectableReasoningEfforts.length
-                    ? '强度越高通常耗时与用量越多；“跟随模型”使用部署默认值。'
-                    : '该模型不支持调整思考强度，将使用模型默认设置。'}
+                {selectableReasoningEfforts.length
+                  ? '强度越高通常耗时与用量越多；“跟随模型”使用部署默认值。'
+                  : '该模型不支持调整思考强度，将使用模型默认设置。'}
               </Typography>
             </Stack>
           ) : null}
@@ -310,9 +280,7 @@ export function ConversationModelControl({
               disabled={!valid || loading || Boolean(loadError)}
               loading={saving}
               onClick={async () => {
-                const nextPreferredModel = draftPolicy === 'MANUAL' ? draftModel : null;
-                const nextReasoningEffort = draftPolicy === 'MANUAL' ? selectedEffort : null;
-                const saved = await onSave(draftPolicy, nextPreferredModel, nextReasoningEffort);
+                const saved = await onSave(draftModel, selectedEffort);
                 if (saved) setOpen(false);
               }}
             >

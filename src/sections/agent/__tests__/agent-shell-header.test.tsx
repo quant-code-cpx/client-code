@@ -28,14 +28,18 @@ const baseProps = {
   conversationTitle: '贵州茅台研究',
   activeRunStatus: null,
   canConfigureModel: true,
-  modelPolicy: 'AUTO' as const,
-  preferredModel: null,
+  preferredModel: 'gpt-5.6-sol',
   reasoningEffort: null,
+  models: [],
+  defaultModel: 'gpt-5.6-sol',
+  modelLoading: false,
+  modelLoadError: null,
   modelSaving: false,
   evidenceAvailable: true,
   evidencePanelOpen: false,
   onOpenSidebar: vi.fn(),
   onToggleEvidence: vi.fn(),
+  onReloadModels: vi.fn(),
   onModelSave: vi.fn().mockResolvedValue(true),
 };
 
@@ -43,6 +47,7 @@ describe('AgentShellHeader', () => {
   beforeEach(() => {
     baseProps.onOpenSidebar.mockClear();
     baseProps.onToggleEvidence.mockClear();
+    baseProps.onReloadModels.mockClear();
     baseProps.onModelSave.mockClear();
   });
 

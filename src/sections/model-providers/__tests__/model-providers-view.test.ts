@@ -16,13 +16,13 @@ describe('getModelProbeFeedback', () => {
       ],
     };
 
-    const feedback = getModelProbeFeedback('gpt-5.6-luna', '深度探测', result);
+    const feedback = getModelProbeFeedback('gpt-5.6-luna', '模型测试', result);
 
     expect(feedback.severity).toBe('error');
     expect(feedback.message).toContain('供应商返回 401：API key 无效');
   });
 
-  it('探测通过时展示成功状态', () => {
+  it('测试通过时展示成功状态', () => {
     const result: Pick<ModelProbeResult, 'status' | 'steps'> = {
       status: 'PASSED',
       steps: [],

@@ -1,4 +1,4 @@
-import type { AgentState } from './agent-state.types';
+import type { AgentState, AgentMessageProjectionState } from './agent-state.types';
 
 const EMPTY_IDS: string[] = [];
 
@@ -32,4 +32,19 @@ export function selectActiveRun(state: AgentState, conversationId: string | null
 export function selectConversationLoad(state: AgentState, conversationId: string | null) {
   if (!conversationId) return null;
   return state.loadsByConversation[conversationId] ?? null;
+}
+
+export function selectIsHistoricalBranchView(
+  projection: AgentMessageProjectionState | null | undefined
+) {
+  if (!projection || projection.isActiveBranch || !projection.displayLeafMessageId) return false;
+  const displayedVersion = projection.siblingGroups
+    .flatMap((group) => group.versions)
+    .find((version) => version.messageId === projection.displayLeafMessageId);
+
+  return (
+    displayedVersion?.status === 'COMPLETED' ||
+    displayedVersion?.status === 'FAILED' ||
+    displayedVersion?.status === 'CANCELLED'
+  );
 }

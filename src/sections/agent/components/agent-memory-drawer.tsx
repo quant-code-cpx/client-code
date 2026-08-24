@@ -60,11 +60,16 @@ export function AgentMemoryDrawer({ open, onClose }: AgentMemoryDrawerProps) {
   }, [load, open]);
 
   const handleSaved = useCallback((saved: AgentMemory) => {
-    setItems((current) => {
-      const index = current.findIndex((item) => item.memoryId === saved.memoryId);
-      if (index < 0) return [saved, ...current];
-      return current.map((item) => (item.memoryId === saved.memoryId ? saved : item));
-    });
+    setItems((current) => [
+      saved,
+      ...current.filter(
+        (item) =>
+          !(
+            item.memoryId === saved.memoryId ||
+            (item.category === saved.category && item.key === saved.key)
+          )
+      ),
+    ]);
     setEditorMemory(undefined);
   }, []);
 

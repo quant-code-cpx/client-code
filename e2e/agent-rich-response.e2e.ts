@@ -131,6 +131,32 @@ async function mockAuth(page: Page) {
 }
 
 async function mockAgent(page: Page) {
+  await page.route('**/api/agent/models/list', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: ok({
+        items: [
+          {
+            model: 'fixture-model',
+            displayName: 'Fixture Model',
+            provider: 'fixture',
+            capabilities: ['STREAMING', 'STRUCTURED_OUTPUT'],
+            reasoningEfforts: [],
+            defaultReasoningEffort: null,
+            contextWindow: 128000,
+            maxOutputTokens: 8192,
+            contextAccountingMode: 'SHARED_WINDOW',
+            completionTokenAccounting: 'REASONING_AND_VISIBLE',
+            supportedVerbosityLevels: [],
+            costTier: 'LOW',
+            status: 'AVAILABLE',
+            reason: null,
+          },
+        ],
+      }),
+    })
+  );
   await page.route('**/api/agent/conversations/list', (route) =>
     route.fulfill({ status: 200, contentType: 'application/json', body: ok({ items: [], nextCursor: null }) })
   );
@@ -142,8 +168,8 @@ async function mockAgent(page: Page) {
         conversationId: CONVERSATION_ID,
         title: '贵州茅台可审计研究',
         status: 'ACTIVE',
-        modelPolicy: 'AUTO',
-        preferredModel: null,
+        modelPolicy: 'MANUAL',
+        preferredModel: 'fixture-model',
         messageCount: 2,
         lastMessageAt: '2026-07-20T01:00:05.000Z',
         createdAt: '2026-07-20T01:00:00.000Z',

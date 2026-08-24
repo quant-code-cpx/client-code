@@ -1,13 +1,8 @@
 import { screen, waitFor } from '@testing-library/react';
 
-import { agentApi } from 'src/api/agent';
 import { renderWithProviders } from 'src/test/test-utils';
 
 import { ConversationModelControl } from '../components/conversation-model-control';
-
-vi.mock('src/api/agent', () => ({
-  agentApi: { listModels: vi.fn() },
-}));
 
 const models = {
   items: [
@@ -65,27 +60,30 @@ const models = {
 describe('ConversationModelControl', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(agentApi.listModels).mockResolvedValue(models);
   });
 
-  it('用紧凑双选择器保存模型与该模型支持的思考强度', async () => {
+  it('默认选中具体模型，且模型列表不再提供自动选择', async () => {
     const onSave = vi.fn().mockResolvedValue(true);
     const { user } = renderWithProviders(
       <ConversationModelControl
-        policy="AUTO"
         preferredModel={null}
         reasoningEffort={null}
+        models={models.items}
+        defaultModel="research-standard-v1"
+        loading={false}
+        loadError={null}
         saving={false}
+        onReloadModels={vi.fn()}
         onSave={onSave}
       />
     );
 
-    expect(agentApi.listModels).not.toHaveBeenCalled();
-    await user.click(screen.getByRole('button', { name: '自动模型' }));
+    await user.click(screen.getByRole('button', { name: '标准研究' }));
     await waitFor(() => expect(screen.getByText('模型与思考强度')).toBeInTheDocument());
 
     const modelSelect = screen.getByRole('combobox', { name: '模型' });
     await user.click(modelSelect);
+    expect(screen.queryByRole('option', { name: '自动选择' })).not.toBeInTheDocument();
     await user.click(screen.getByRole('option', { name: /^快速研究/ }));
 
     const effortSelect = screen.getByRole('combobox', { name: '思考强度' });
@@ -94,22 +92,26 @@ describe('ConversationModelControl', () => {
     await user.click(screen.getByRole('option', { name: '高' }));
     await user.click(screen.getByRole('button', { name: '保存' }));
 
-    expect(onSave).toHaveBeenCalledWith('MANUAL', 'research-fast-v1', 'HIGH');
+    expect(onSave).toHaveBeenCalledWith('research-fast-v1', 'HIGH');
   });
 
   it('切换到不支持调节的模型时自动回到跟随模型', async () => {
     const onSave = vi.fn().mockResolvedValue(true);
     const { user } = renderWithProviders(
       <ConversationModelControl
-        policy="MANUAL"
         preferredModel="research-fast-v1"
         reasoningEffort="HIGH"
+        models={models.items}
+        defaultModel="research-fast-v1"
+        loading={false}
+        loadError={null}
         saving={false}
+        onReloadModels={vi.fn()}
         onSave={onSave}
       />
     );
 
-    await user.click(screen.getByRole('button', { name: 'research-fast-v1 · 高' }));
+    await user.click(screen.getByRole('button', { name: '快速研究 · 高' }));
     await waitFor(() => expect(screen.getByText('模型与思考强度')).toBeInTheDocument());
     await user.click(screen.getByRole('combobox', { name: '模型' }));
     await user.click(screen.getByRole('option', { name: /^标准研究/ }));
@@ -120,26 +122,31 @@ describe('ConversationModelControl', () => {
     );
     await user.click(screen.getByRole('button', { name: '保存' }));
 
-    expect(onSave).toHaveBeenCalledWith('MANUAL', 'research-standard-v1', null);
+    expect(onSave).toHaveBeenCalledWith('research-standard-v1', null);
   });
 
   it('目录加载失败时显示重试并禁止保存', async () => {
-    vi.mocked(agentApi.listModels).mockRejectedValueOnce(new Error('目录不可用'));
     const onSave = vi.fn().mockResolvedValue(true);
+    const onReloadModels = vi.fn();
     const { user } = renderWithProviders(
       <ConversationModelControl
-        policy="AUTO"
         preferredModel={null}
         reasoningEffort={null}
+        models={[]}
+        defaultModel={null}
+        loading={false}
+        loadError="目录不可用"
         saving={false}
+        onReloadModels={onReloadModels}
         onSave={onSave}
       />
     );
 
-    await user.click(screen.getByRole('button', { name: '自动模型' }));
+    await user.click(screen.getByRole('button', { name: '选择模型' }));
 
-    await waitFor(() => expect(screen.getByText('目录不可用')).toBeInTheDocument());
+    expect(screen.getByText('目录不可用')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '保存' })).toBeDisabled();
-    expect(screen.getByRole('button', { name: '重试' })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: '重试' }));
+    expect(onReloadModels).toHaveBeenCalledOnce();
   });
 });

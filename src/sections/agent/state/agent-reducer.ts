@@ -16,6 +16,7 @@ import type {
   AgentModelDiagnostic,
   AgentConversationEntity,
   AgentConversationLoadState,
+  AgentMessageProjectionState,
 } from './agent-state.types';
 
 const EMPTY_LOAD: AgentConversationLoadState = {
@@ -25,6 +26,7 @@ const EMPTY_LOAD: AgentConversationLoadState = {
   detailGeneration: 0,
   messagesGeneration: 0,
   nextBeforeMessageId: null,
+  messageProjection: null,
 };
 
 export function createInitialAgentState(initialConversationId: string | null = null): AgentState {
@@ -68,7 +70,14 @@ function mergeConversation(
   ) {
     return { ...incoming, ...current };
   }
-  return { ...current, ...incoming };
+  const merged = { ...current, ...incoming };
+  return incoming.branchVersion < current.branchVersion
+    ? {
+        ...merged,
+        activeLeafMessageId: current.activeLeafMessageId,
+        branchVersion: current.branchVersion,
+      }
+    : merged;
 }
 
 function loadFor(state: AgentState, conversationId: string): AgentConversationLoadState {
@@ -128,7 +137,10 @@ function assistantPlaceholder(
   messageId: string,
   runId: string,
   status: AgentRunProjection['status'],
-  createdAt: string
+  createdAt: string,
+  contextParentMessageId: string | null,
+  baseAssistantMessageId: string | null,
+  expectedBranchVersion: number
 ): AgentMessageEntity {
   return {
     messageId,
@@ -139,11 +151,14 @@ function assistantPlaceholder(
     contentBlocks: [],
     citations: [],
     version: 1,
-    parentMessageId: null,
+    parentMessageId: contextParentMessageId,
+    contextParentMessageId,
     modelName: null,
     run: { runId, status, statusVersion: 1, endedAt: null },
     createdAt,
     completedAt: null,
+    baseAssistantMessageId,
+    expectedBranchVersion,
   };
 }
 
@@ -167,7 +182,8 @@ function mergeMessages(
   conversationId: string,
   items: AgentMessageEntity[],
   mode: 'replace' | 'prepend' | 'refresh',
-  authoritative: boolean
+  authoritative: boolean,
+  projection: AgentMessageProjectionState
 ): AgentState['messages'] {
   const byId = { ...state.messages.byId };
   const incomingIds: string[] = [];
@@ -188,7 +204,8 @@ function mergeMessages(
   const localOrPendingIds = currentIds.filter((id) => {
     if (incomingIds.includes(id)) return false;
     const message = byId[id];
-    return message?.localId !== undefined || message?.status === 'PENDING';
+    if (message?.localId === undefined && message?.status !== 'PENDING') return false;
+    return isFrozenOptimisticTailCompatible(message, projection);
   });
   const orderedIds =
     mode === 'prepend'
@@ -204,6 +221,38 @@ function mergeMessages(
       [conversationId]: [...new Set(orderedIds)],
     },
   };
+}
+
+function isFrozenOptimisticTailCompatible(
+  message: AgentMessageEntity,
+  projection: AgentMessageProjectionState
+): boolean {
+  if (!projection.lineageComplete || !projection.isActiveBranch) return false;
+  if (message.expectedBranchVersion === undefined) return false;
+  return (
+    message.expectedBranchVersion === projection.branchVersion &&
+    (message.baseAssistantMessageId ?? null) === projection.activeLeafMessageId
+  );
+}
+
+function mergeProjection(
+  current: AgentMessageProjectionState | null,
+  incoming: AgentMessageProjectionState,
+  mode: 'replace' | 'prepend' | 'refresh'
+): AgentMessageProjectionState {
+  if (
+    mode !== 'prepend' ||
+    !current ||
+    current.projection !== incoming.projection ||
+    current.branchVersion !== incoming.branchVersion ||
+    current.activeLeafMessageId !== incoming.activeLeafMessageId ||
+    current.displayLeafMessageId !== incoming.displayLeafMessageId
+  ) {
+    return incoming;
+  }
+  const groups = new Map(current.siblingGroups.map((group) => [group.parentMessageId, group]));
+  incoming.siblingGroups.forEach((group) => groups.set(group.parentMessageId, group));
+  return { ...incoming, siblingGroups: [...groups.values()] };
 }
 
 function reconcileFinalMessageSnapshots(
@@ -428,6 +477,41 @@ export function agentReducer(state: AgentState, action: AgentAction): AgentState
     case 'MESSAGES_SUCCEEDED': {
       const current = loadFor(state, action.conversationId);
       if (current.messagesGeneration !== action.generation) return state;
+      const conversation = state.conversations.byId[action.conversationId];
+      const projection: AgentMessageProjectionState =
+        action.projection ??
+        ({
+          projection: 'ACTIVE_BRANCH',
+          activeLeafMessageId: conversation?.activeLeafMessageId ?? null,
+          branchVersion: conversation?.branchVersion ?? 0,
+          displayLeafMessageId: conversation?.activeLeafMessageId ?? null,
+          lineageComplete: true,
+          isActiveBranch: true,
+          displayBranchCompatible: true,
+          canAdoptDisplay: false,
+          siblingGroups: [],
+        } satisfies AgentMessageProjectionState);
+      const conflictsWithKnownBranch = Boolean(
+        conversation &&
+          (projection.branchVersion < conversation.branchVersion ||
+            (projection.branchVersion === conversation.branchVersion &&
+              conversation.activeLeafMessageId !== null &&
+              projection.activeLeafMessageId !== conversation.activeLeafMessageId))
+      );
+      if (conflictsWithKnownBranch) {
+        return {
+          ...state,
+          loadsByConversation: {
+            ...state.loadsByConversation,
+            [action.conversationId]: {
+              ...current,
+              messagesStatus: 'error',
+              error: '消息快照与当前会话分支不一致，请重新加载',
+              nextBeforeMessageId: null,
+            },
+          },
+        };
+      }
       const items = action.items.map((item) => ({
         ...item,
         conversationId: action.conversationId,
@@ -440,8 +524,22 @@ export function agentReducer(state: AgentState, action: AgentAction): AgentState
           action.conversationId,
           items,
           action.mode,
-          action.authoritative ?? false
+          action.authoritative ?? false,
+          projection
         ),
+        conversations: state.conversations.byId[action.conversationId]
+          ? {
+              ...state.conversations,
+              byId: {
+                ...state.conversations.byId,
+                [action.conversationId]: {
+                  ...state.conversations.byId[action.conversationId]!,
+                  activeLeafMessageId: projection.activeLeafMessageId,
+                  branchVersion: projection.branchVersion,
+                },
+              },
+            }
+          : state.conversations,
         runs,
         loadsByConversation: {
           ...state.loadsByConversation,
@@ -450,6 +548,7 @@ export function agentReducer(state: AgentState, action: AgentAction): AgentState
             messagesStatus: 'ready',
             error: null,
             nextBeforeMessageId: action.nextBeforeMessageId,
+            messageProjection: mergeProjection(current.messageProjection, projection, action.mode),
           },
         },
       };
@@ -471,6 +570,23 @@ export function agentReducer(state: AgentState, action: AgentAction): AgentState
       };
     }
 
+    case 'MESSAGE_CURSOR_INVALIDATED': {
+      const current = loadFor(state, action.conversationId);
+      if (current.messagesGeneration !== action.generation) return state;
+      return {
+        ...state,
+        loadsByConversation: {
+          ...state.loadsByConversation,
+          [action.conversationId]: {
+            ...current,
+            messagesStatus: 'ready',
+            error: null,
+            nextBeforeMessageId: null,
+          },
+        },
+      };
+    }
+
     case 'OPTIMISTIC_USER_MESSAGE_ADDED':
       return {
         ...state,
@@ -486,6 +602,7 @@ export function agentReducer(state: AgentState, action: AgentAction): AgentState
         status: 'COMPLETED',
         deliveryStatus: undefined,
         localId: action.localMessageId,
+        expectedBranchVersion: action.response.branchVersion,
       };
       let messages = replaceMessageIdentity(
         state,
@@ -498,7 +615,10 @@ export function agentReducer(state: AgentState, action: AgentAction): AgentState
         action.response.assistantMessageId,
         action.response.runId,
         action.response.runStatus,
-        new Date().toISOString()
+        new Date().toISOString(),
+        action.response.userMessageId,
+        local.baseAssistantMessageId ?? null,
+        action.response.branchVersion
       );
       const order = messages.orderedIdsByConversation[action.conversationId] ?? [];
       messages = {
@@ -516,8 +636,25 @@ export function agentReducer(state: AgentState, action: AgentAction): AgentState
         action.response.assistantMessageId,
         action.response.runStatus
       );
+      const conversation = state.conversations.byId[action.conversationId];
+      const conversations = conversation
+        ? {
+            ...state.conversations,
+            byId: {
+              ...state.conversations.byId,
+              [action.conversationId]: {
+                ...conversation,
+                branchVersion: action.response.branchVersion,
+                ...(local.baseAssistantMessageId === undefined
+                  ? {}
+                  : { activeLeafMessageId: local.baseAssistantMessageId }),
+              },
+            },
+          }
+        : state.conversations;
       return {
         ...state,
+        conversations,
         messages,
         runs: {
           byId: { ...state.runs.byId, [run.runId]: run },
@@ -548,6 +685,29 @@ export function agentReducer(state: AgentState, action: AgentAction): AgentState
       };
     }
 
+    case 'MESSAGE_BRANCH_REBASED': {
+      const message = state.messages.byId[action.localMessageId];
+      if (!message?.localId) return state;
+      const rebasedMessage = { ...message };
+      delete rebasedMessage.branchAdoptionRunId;
+      return {
+        ...state,
+        messages: {
+          ...state.messages,
+          byId: {
+            ...state.messages.byId,
+            [action.localMessageId]: {
+              ...rebasedMessage,
+              clientRequestId: action.clientRequestId,
+              contextParentMessageId: action.baseAssistantMessageId,
+              baseAssistantMessageId: action.baseAssistantMessageId,
+              expectedBranchVersion: action.expectedBranchVersion,
+            },
+          },
+        },
+      };
+    }
+
     case 'MESSAGE_RETRY_REQUESTED': {
       const message = state.messages.byId[action.messageId];
       if (!message || !message.clientRequestId) return state;
@@ -568,27 +728,231 @@ export function agentReducer(state: AgentState, action: AgentAction): AgentState
     }
 
     case 'RUN_REGENERATION_CONFIRMED': {
-      const run = createRun(
-        action.response.runId,
-        action.conversationId,
-        action.response.assistantMessageId,
-        action.response.runStatus
-      );
+      const run: AgentRunProjection = {
+        ...createRun(
+          action.response.runId,
+          action.conversationId,
+          action.response.assistantMessageId,
+          action.response.runStatus
+        ),
+        ...('sourceMessageId' in action.response
+          ? {
+              branchAdoption: {
+                targetMessageId: action.response.assistantMessageId,
+                expectedBranchVersion: action.response.branchVersion,
+                status: 'PENDING' as const,
+              },
+            }
+          : {}),
+      };
       const placeholder = assistantPlaceholder(
         action.conversationId,
         action.response.assistantMessageId,
         action.response.runId,
         action.response.runStatus,
-        action.createdAt
+        action.createdAt,
+        action.contextParentMessageId,
+        action.baseAssistantMessageId,
+        action.expectedBranchVersion
       );
+      const conversation = state.conversations.byId[action.conversationId];
+      const currentOrder = state.messages.orderedIdsByConversation[action.conversationId] ?? [];
+      const triggerIndex = currentOrder.indexOf(action.contextParentMessageId ?? '');
+      const sourceIndex = currentOrder.indexOf(action.sourceMessageId);
+      const branchPrefix =
+        triggerIndex >= 0 && sourceIndex > triggerIndex
+          ? currentOrder.slice(0, triggerIndex + 1)
+          : [];
+      const visibleIds = new Set(branchPrefix);
+      const currentLoad = loadFor(state, action.conversationId);
+      const currentProjection = currentLoad.messageProjection;
+      const regeneratedProjection = currentProjection
+        ? {
+            ...currentProjection,
+            branchVersion: action.response.branchVersion,
+            displayLeafMessageId: placeholder.messageId,
+            lineageComplete:
+              currentProjection.lineageComplete && triggerIndex >= 0 && sourceIndex > triggerIndex,
+            isActiveBranch: false,
+            displayBranchCompatible: true,
+            canAdoptDisplay: false,
+            siblingGroups: currentProjection.siblingGroups.filter((group) =>
+              visibleIds.has(group.selectedMessageId)
+            ),
+          }
+        : null;
+      const conversations = conversation
+        ? {
+            ...state.conversations,
+            byId: {
+              ...state.conversations.byId,
+              [action.conversationId]: {
+                ...conversation,
+                branchVersion: action.response.branchVersion,
+              },
+            },
+          }
+        : state.conversations;
       return {
         ...state,
-        messages: withMessage(state, action.conversationId, placeholder),
+        conversations,
+        messages: {
+          byId: { ...state.messages.byId, [placeholder.messageId]: placeholder },
+          orderedIdsByConversation: {
+            ...state.messages.orderedIdsByConversation,
+            [action.conversationId]: [...branchPrefix, placeholder.messageId],
+          },
+        },
+        loadsByConversation: regeneratedProjection
+          ? {
+              ...state.loadsByConversation,
+              [action.conversationId]: {
+                ...currentLoad,
+                messageProjection: regeneratedProjection,
+              },
+            }
+          : state.loadsByConversation,
         runs: {
           byId: { ...state.runs.byId, [run.runId]: run },
           activeRunIdByConversation: {
             ...state.runs.activeRunIdByConversation,
             [action.conversationId]: run.runId,
+          },
+        },
+      };
+    }
+
+    case 'RUN_BRANCH_ADOPTION_STARTED': {
+      const run = state.runs.byId[action.runId];
+      if (!run?.branchAdoption || run.branchAdoption.status !== 'PENDING') return state;
+      return {
+        ...state,
+        runs: {
+          ...state.runs,
+          byId: {
+            ...state.runs.byId,
+            [action.runId]: {
+              ...run,
+              branchAdoption: { ...run.branchAdoption, status: 'ADOPTING' },
+            },
+          },
+        },
+      };
+    }
+
+    case 'RUN_BRANCH_ADOPTION_RESOLVED': {
+      const run = state.runs.byId[action.runId];
+      const conversation = state.conversations.byId[action.conversationId];
+      const currentLoad = loadFor(state, action.conversationId);
+      const currentProjection = currentLoad.messageProjection;
+      const adoptedProjection =
+        currentProjection?.displayLeafMessageId === action.activeLeafMessageId
+          ? {
+              ...currentProjection,
+              activeLeafMessageId: action.activeLeafMessageId,
+              branchVersion: action.branchVersion,
+              isActiveBranch: true,
+              displayBranchCompatible: true,
+              canAdoptDisplay: false,
+              siblingGroups: currentProjection.siblingGroups.map((group) => ({
+                ...group,
+                activeMessageId: group.selectedMessageId,
+                versions: group.versions.map((version) => ({
+                  ...version,
+                  isActive: version.isDisplayed,
+                  canAdopt: version.status === 'COMPLETED' && !version.isDisplayed,
+                })),
+              })),
+            }
+          : null;
+      return {
+        ...state,
+        conversations: conversation
+          ? {
+              ...state.conversations,
+              byId: {
+                ...state.conversations.byId,
+                [action.conversationId]: {
+                  ...conversation,
+                  activeLeafMessageId: action.activeLeafMessageId,
+                  branchVersion: action.branchVersion,
+                },
+              },
+            }
+          : state.conversations,
+        loadsByConversation: adoptedProjection
+          ? {
+              ...state.loadsByConversation,
+              [action.conversationId]: {
+                ...currentLoad,
+                messageProjection: adoptedProjection,
+              },
+            }
+          : state.loadsByConversation,
+        runs: run?.branchAdoption
+          ? {
+              ...state.runs,
+              byId: {
+                ...state.runs.byId,
+                [action.runId]: {
+                  ...run,
+                  branchAdoption: { ...run.branchAdoption, status: 'ADOPTED' },
+                },
+              },
+            }
+          : state.runs,
+      };
+    }
+
+    case 'RUN_BRANCH_ADOPTION_CONFLICTED': {
+      const run = state.runs.byId[action.runId];
+      if (!run?.branchAdoption) return state;
+      return {
+        ...state,
+        runs: {
+          ...state.runs,
+          byId: {
+            ...state.runs.byId,
+            [action.runId]: {
+              ...run,
+              branchAdoption: { ...run.branchAdoption, status: 'CONFLICT' },
+            },
+          },
+        },
+      };
+    }
+
+    case 'RUN_BRANCH_ADOPTION_UNCERTAIN': {
+      const run = state.runs.byId[action.runId];
+      if (!run?.branchAdoption) return state;
+      return {
+        ...state,
+        runs: {
+          ...state.runs,
+          byId: {
+            ...state.runs.byId,
+            [action.runId]: {
+              ...run,
+              branchAdoption: { ...run.branchAdoption, status: 'UNCERTAIN' },
+            },
+          },
+        },
+      };
+    }
+
+    case 'RUN_BRANCH_ADOPTION_ABANDONED': {
+      const run = state.runs.byId[action.runId];
+      if (!run?.branchAdoption) return state;
+      return {
+        ...state,
+        runs: {
+          ...state.runs,
+          byId: {
+            ...state.runs.byId,
+            [action.runId]: {
+              ...run,
+              branchAdoption: { ...run.branchAdoption, status: 'ABANDONED' },
+            },
           },
         },
       };

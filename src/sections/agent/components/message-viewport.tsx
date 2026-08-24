@@ -4,6 +4,7 @@ import { useRef, useMemo, useState, useEffect, useCallback, useLayoutEffect } fr
 
 import Box from '@mui/material/Box';
 import Alert from '@mui/material/Alert';
+import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Skeleton from '@mui/material/Skeleton';
 import { ChatMessage } from '@mui/x-chat/ChatMessage';
@@ -13,11 +14,13 @@ import { Iconify } from 'src/components/iconify';
 import { EmptyContent } from 'src/components/empty-content';
 
 import { MessageItem } from './message-item';
+import { selectIsHistoricalBranchView } from '../state/agent-selectors';
 
 import type {
   AsyncStatus,
   AgentMessageEntity,
   AgentRunProjection,
+  AgentMessageProjectionState,
 } from '../state/agent-state.types';
 
 type MessageViewportProps = {
@@ -33,6 +36,12 @@ type MessageViewportProps = {
   onRetryMessage: (message: AgentMessageEntity) => void;
   onSaveReport: (runId: string) => void;
   onContinue: () => void;
+  branchProjection?: AgentMessageProjectionState | null;
+  branchChanging?: boolean;
+  branchError?: string | null;
+  onViewBranch?: (messageId: string) => void;
+  onAdoptDisplayedBranch?: () => void;
+  onReturnToActiveBranch?: () => void;
 };
 
 const AUTO_SCROLL_BUFFER = 24;
@@ -50,6 +59,12 @@ export function MessageViewport({
   onRetryMessage,
   onSaveReport,
   onContinue,
+  branchProjection = null,
+  branchChanging = false,
+  branchError = null,
+  onViewBranch = () => undefined,
+  onAdoptDisplayedBranch = () => undefined,
+  onReturnToActiveBranch = () => undefined,
 }: MessageViewportProps) {
   const messageListRef = useRef<ElementRef<typeof ChatMessageList>>(null);
   const messageListContentRef = useRef<HTMLDivElement>(null);
@@ -61,10 +76,27 @@ export function MessageViewport({
     () => new Map(messages.map((message) => [message.messageId, message])),
     [messages]
   );
+  const siblingGroupByMessageId = useMemo(
+    () =>
+      new Map(
+        (branchProjection?.siblingGroups ?? []).map((group) => [group.selectedMessageId, group])
+      ),
+    [branchProjection?.siblingGroups]
+  );
   const latestMessage = messages.at(-1);
   const latestMessageId = latestMessage?.messageId;
   const latestMessageIsLocalUser =
     latestMessage?.role === 'USER' && latestMessage.messageId.startsWith('local:');
+  const displayedVersionStatus = branchProjection?.siblingGroups
+    .flatMap((group) => group.versions)
+    .find((version) => version.messageId === branchProjection.displayLeafMessageId)?.status;
+  const viewingHistoricalBranch = selectIsHistoricalBranchView(branchProjection);
+  const unavailableBranchMessage =
+    displayedVersionStatus === 'CANCELLED'
+      ? '此历史版本已停止，不能设为当前分支。请回到最新后继续。'
+      : displayedVersionStatus === 'FAILED'
+        ? '此历史版本执行失败，不能设为当前分支。请回到最新后继续。'
+        : '此历史版本不可继续，不能设为当前分支。请回到最新后继续。';
 
   const scrollToLatest = useCallback(() => {
     messageListRef.current?.scrollToBottom();
@@ -127,6 +159,7 @@ export function MessageViewport({
           : message.run?.runId
             ? (runsById[message.run.runId] ?? null)
             : null;
+      const canMutateMessage = !viewingHistoricalBranch;
 
       return (
         <ChatMessage
@@ -146,6 +179,10 @@ export function MessageViewport({
             onSaveReport={onSaveReport}
             onContinue={onContinue}
             onRetryFinalSnapshot={onRetryLoad}
+            siblingGroup={siblingGroupByMessageId.get(message.messageId)}
+            canMutateMessage={canMutateMessage}
+            branchChanging={branchChanging}
+            onViewBranch={onViewBranch}
           />
         </ChatMessage>
       );
@@ -158,7 +195,11 @@ export function MessageViewport({
       onRetryLoad,
       onRetryMessage,
       onSaveReport,
+      onViewBranch,
       runsById,
+      branchChanging,
+      siblingGroupByMessageId,
+      viewingHistoricalBranch,
     ]
   );
   const handleScroll = useCallback((event: UIEvent<HTMLDivElement>) => {
@@ -233,39 +274,80 @@ export function MessageViewport({
   }
 
   return (
-    <ChatMessageList
-      ref={messageListRef}
-      items={messageIds}
-      renderItem={renderItem}
-      autoScroll={{ buffer: AUTO_SCROLL_BUFFER }}
-      enableRovingFocus
-      onReachTop={hasOlder ? onLoadOlder : undefined}
-      overlay={
-        !atBottom ? (
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', p: 2, pointerEvents: 'none' }}>
-            <Button
-              size="small"
-              variant="contained"
-              startIcon={<Iconify icon="solar:alt-arrow-down-bold" width={16} />}
-              onClick={() => messageListRef.current?.scrollToBottom({ behavior: 'smooth' })}
-              sx={{ boxShadow: 2, pointerEvents: 'auto' }}
-            >
-              回到最新
-            </Button>
-          </Box>
-        ) : null
-      }
-      slotProps={{
-        messageListContent: { ref: messageListContentRef },
-        messageListScroller: { onScroll: handleScroll },
-      }}
-      sx={{
-        bgcolor: 'background.default',
-        '& [data-message-list-row]': {
-          contentVisibility: 'auto',
-          containIntrinsicSize: '84px',
-        },
-      }}
-    />
+    <Box sx={{ minHeight: 0, flex: 1, display: 'flex', flexDirection: 'column' }}>
+      {branchError ? (
+        <Alert severity="error" sx={{ borderRadius: 0 }}>
+          {branchError}
+        </Alert>
+      ) : null}
+      {viewingHistoricalBranch ? (
+        <Alert
+          severity={branchProjection?.canAdoptDisplay ? 'info' : 'warning'}
+          action={
+            <Stack direction="row" spacing={1}>
+              {branchProjection?.canAdoptDisplay ? (
+                <Button
+                  size="small"
+                  variant="contained"
+                  disabled={branchChanging}
+                  onClick={onAdoptDisplayedBranch}
+                >
+                  从此版本继续
+                </Button>
+              ) : null}
+              <Button
+                color="inherit"
+                size="small"
+                disabled={branchChanging}
+                onClick={onReturnToActiveBranch}
+              >
+                回到最新
+              </Button>
+            </Stack>
+          }
+          sx={{ borderRadius: 0 }}
+        >
+          {branchProjection?.canAdoptDisplay
+            ? '正在查看历史版本。设为当前分支后，后续问题将从此版本继续。'
+            : unavailableBranchMessage}
+        </Alert>
+      ) : null}
+      <ChatMessageList
+        ref={messageListRef}
+        items={messageIds}
+        renderItem={renderItem}
+        autoScroll={{ buffer: AUTO_SCROLL_BUFFER }}
+        enableRovingFocus
+        onReachTop={hasOlder ? onLoadOlder : undefined}
+        overlay={
+          !atBottom ? (
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', p: 2, pointerEvents: 'none' }}>
+              <Button
+                size="small"
+                variant="contained"
+                startIcon={<Iconify icon="solar:alt-arrow-down-bold" width={16} />}
+                onClick={() => messageListRef.current?.scrollToBottom({ behavior: 'smooth' })}
+                sx={{ boxShadow: 2, pointerEvents: 'auto' }}
+              >
+                滚动到底部
+              </Button>
+            </Box>
+          ) : null
+        }
+        slotProps={{
+          messageListContent: { ref: messageListContentRef },
+          messageListScroller: { onScroll: handleScroll },
+        }}
+        sx={{
+          minHeight: 0,
+          flex: 1,
+          bgcolor: 'background.default',
+          '& [data-message-list-row]': {
+            contentVisibility: 'auto',
+            containIntrinsicSize: '84px',
+          },
+        }}
+      />
+    </Box>
   );
 }

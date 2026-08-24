@@ -24,12 +24,12 @@ export function DeploymentProbeDiagnostics({ probe }: { probe: ModelProbeResult 
         variant="caption"
         sx={{ display: 'block', mb: probe ? 1 : 0, color: 'text.secondary' }}
       >
-        深度探测会按当前默认推理策略、最大输出上限、结构化输出和工具能力执行一至两次最小调用；视觉输入仅保留声明，不在此伪判定。
+        模型测试是可选诊断，会按当前默认推理策略、最大输出上限、结构化输出和工具能力执行一至两次最小调用，可能计费；视觉输入仅保留声明，不在此伪判定。
       </Typography>
       {probe ? (
         <Box sx={{ p: 1.5, border: 1, borderColor: 'divider', borderRadius: 1 }}>
           <Alert severity={probe.status === 'PASSED' ? 'success' : 'error'}>
-            深度探测 {probe.status === 'PASSED' ? '通过' : '失败'} · {probe.durationMs} ms
+            模型测试 {probe.status === 'PASSED' ? '通过' : '失败'} · {probe.durationMs} ms
           </Alert>
           <Stack spacing={1.25} sx={{ mt: 1.5 }}>
             {probe.steps.map((step, index) => {

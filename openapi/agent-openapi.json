@@ -529,6 +529,54 @@
         ]
       }
     },
+    "/agent/conversations/branches/adopt": {
+      "post": {
+        "operationId": "AgentController_adoptConversationBranch",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdoptConversationBranchDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ResponseModel"
+                    },
+                    {
+                      "properties": {
+                        "data": {
+                          "$ref": "#/components/schemas/AdoptConversationBranchResponseDto"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "CAS 采纳已完成 assistant 分支",
+        "tags": [
+          "Agent - 会话与运行"
+        ]
+      }
+    },
     "/agent/messages/feedback": {
       "post": {
         "operationId": "AgentController_upsertMessageFeedback",
@@ -1282,6 +1330,12 @@
                 }
               }
             }
+          },
+          "409": {
+            "description": "clientRequestId 对应的评测身份与当前数据集不一致"
+          },
+          "500": {
+            "description": "评测执行失败或历史结果无法安全恢复"
           }
         },
         "security": [
@@ -3094,7 +3148,8 @@
           },
           "clientRequestId": {
             "type": "string",
-            "format": "uuid"
+            "format": "uuid",
+            "description": "手动执行命令族内同一用户唯一；同 task 重放原 execution，不同 task 返回冲突"
           }
         },
         "required": [
@@ -3176,13 +3231,12 @@
           "modelPolicy": {
             "type": "string",
             "enum": [
-              "AUTO",
               "MANUAL"
             ]
           },
           "preferredModel": {
             "type": "string",
-            "nullable": true
+            "maxLength": 256
           },
           "maxCostCny": {
             "type": "number"
@@ -3220,6 +3274,7 @@
           "workflowKey",
           "workflowVersion",
           "modelPolicy",
+          "preferredModel",
           "maxCostCny",
           "createdAt",
           "updatedAt"
@@ -3318,14 +3373,12 @@
           "modelPolicy": {
             "type": "string",
             "enum": [
-              "AUTO",
               "MANUAL"
             ]
           },
           "preferredModel": {
             "type": "string",
-            "nullable": true,
-            "maxLength": 128
+            "maxLength": 256
           },
           "maxCostCny": {
             "type": "number",
@@ -3350,7 +3403,8 @@
           "minTradeDate": {
             "type": "string",
             "pattern": "^\\d{8}$",
-            "example": "20260722"
+            "example": "20260722",
+            "description": "合法 Gregorian 交易日，YYYYMMDD"
           },
           "maxAgeMinutes": {
             "type": "number",
@@ -3537,21 +3591,19 @@
           },
           "workflowVersion": {
             "type": "number",
-            "default": 14,
+            "default": 18,
             "minimum": 1
           },
           "modelPolicy": {
             "type": "string",
             "enum": [
-              "AUTO",
               "MANUAL"
             ],
-            "default": "AUTO"
+            "default": "MANUAL"
           },
           "preferredModel": {
             "type": "string",
-            "nullable": true,
-            "maxLength": 128
+            "maxLength": 256
           },
           "maxCostCny": {
             "type": "number",
@@ -3566,6 +3618,7 @@
           "trigger",
           "prompt",
           "allowedCapabilities",
+          "preferredModel",
           "maxCostCny"
         ]
       },
@@ -3615,9 +3668,20 @@
             "type": "number",
             "nullable": true
           },
+          "errorCode": {
+            "type": "string",
+            "nullable": true,
+            "enum": [
+              "AI_RESEARCH_REPORT_RENDER_RETRYING",
+              "AI_RESEARCH_REPORT_RENDER_FAILED",
+              "AI_RESEARCH_REPORT_CLEANUP_RETRYING"
+            ],
+            "description": "报告后台处理失败的稳定公开错误码；底层诊断永不返回"
+          },
           "errorMessage": {
             "type": "string",
-            "nullable": true
+            "nullable": true,
+            "description": "与 errorCode 对应的固定安全产品文案"
           },
           "createdAt": {
             "type": "string",
@@ -3769,6 +3833,11 @@
             "type": "string",
             "description": "首次预览必须提供；确认阶段由 token 绑定"
           },
+          "title": {
+            "type": "string",
+            "description": "报告标题覆盖；必须重新预览后才能确认",
+            "maxLength": 200
+          },
           "confirmationToken": {
             "type": "string",
             "description": "首次预览返回的短期确认 token"
@@ -3860,9 +3929,20 @@
             "type": "number",
             "nullable": true
           },
+          "errorCode": {
+            "type": "string",
+            "nullable": true,
+            "enum": [
+              "AI_RESEARCH_REPORT_RENDER_RETRYING",
+              "AI_RESEARCH_REPORT_RENDER_FAILED",
+              "AI_RESEARCH_REPORT_CLEANUP_RETRYING"
+            ],
+            "description": "报告后台处理失败的稳定公开错误码；底层诊断永不返回"
+          },
           "errorMessage": {
             "type": "string",
-            "nullable": true
+            "nullable": true,
+            "description": "与 errorCode 对应的固定安全产品文案"
           },
           "createdAt": {
             "type": "string",
@@ -4044,7 +4124,7 @@
           "confirmBillable": {
             "type": "boolean",
             "default": false,
-            "description": "深度探测会产生一次最小模型调用"
+            "description": "可选模型测试会产生一至两次最小模型调用，可能计费"
           }
         },
         "required": [
@@ -4060,6 +4140,7 @@
           },
           "modelId": {
             "type": "string",
+            "maxLength": 256,
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]{0,255}$",
             "example": "gpt-5.6-sol"
           },
@@ -4159,12 +4240,14 @@
           },
           "defaultReasoningEffort": {
             "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$"
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$",
+            "nullable": true
           },
           "reasoningBudgetTokens": {
             "type": "number",
             "minimum": 1,
-            "maximum": 1000000
+            "maximum": 1000000,
+            "nullable": true
           },
           "dataClasses": {
             "type": "array",
@@ -4222,6 +4305,7 @@
           },
           "modelId": {
             "type": "string",
+            "maxLength": 256,
             "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]{0,255}$",
             "example": "gpt-5.6-sol"
           },
@@ -4321,12 +4405,14 @@
           },
           "defaultReasoningEffort": {
             "type": "string",
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$"
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$",
+            "nullable": true
           },
           "reasoningBudgetTokens": {
             "type": "number",
             "minimum": 1,
-            "maximum": 1000000
+            "maximum": 1000000,
+            "nullable": true
           },
           "dataClasses": {
             "type": "array",
@@ -4573,7 +4659,8 @@
             "type": "string"
           },
           "model": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 256
           },
           "priority": {
             "type": "number"
@@ -4680,12 +4767,12 @@
           },
           "displayName": {
             "type": "string",
-            "maxLength": 256,
-            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]{0,255}$"
+            "maxLength": 128
           },
           "model": {
             "type": "string",
-            "maxLength": 128
+            "maxLength": 256,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:/@-]{0,255}$"
           },
           "priority": {
             "type": "number",
@@ -5003,7 +5090,8 @@
           "afterSequence": {
             "type": "number",
             "minimum": 0,
-            "maximum": 9007199254740991
+            "maximum": 9007199254740991,
+            "description": "Last-Event-ID 缺省时使用，不得超过 Run 当前 latestEventSequence"
           },
           "includeReasoning": {
             "type": "boolean",
@@ -5326,6 +5414,11 @@
       "UpdateMemoryDto": {
         "type": "object",
         "properties": {
+          "clientRequestId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "同一用户 Memory 写命令族内唯一；精确重试必须复用"
+          },
           "memoryId": {
             "type": "string"
           },
@@ -5394,6 +5487,7 @@
           }
         },
         "required": [
+          "clientRequestId",
           "memoryId",
           "value",
           "topic",
@@ -5403,6 +5497,11 @@
       "CreateMemoryDto": {
         "type": "object",
         "properties": {
+          "clientRequestId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "同一用户 Memory 写命令族内唯一；精确重试必须复用"
+          },
           "category": {
             "type": "string",
             "enum": [
@@ -5485,6 +5584,7 @@
           }
         },
         "required": [
+          "clientRequestId",
           "category",
           "key",
           "value",
@@ -5935,6 +6035,10 @@
               "SAFE_CHECKPOINT"
             ]
           },
+          "branchVersion": {
+            "type": "number",
+            "minimum": 0
+          },
           "streamEndpoint": {
             "type": "string",
             "enum": [
@@ -5949,6 +6053,7 @@
           "runId",
           "runStatus",
           "retryMode",
+          "branchVersion",
           "streamEndpoint"
         ]
       },
@@ -5994,6 +6099,10 @@
               "CANCELLED"
             ]
           },
+          "branchVersion": {
+            "type": "number",
+            "minimum": 0
+          },
           "streamEndpoint": {
             "type": "string",
             "enum": [
@@ -6007,6 +6116,7 @@
           "assistantMessageId",
           "runId",
           "runStatus",
+          "branchVersion",
           "streamEndpoint"
         ]
       },
@@ -6023,7 +6133,6 @@
           "modelPolicy": {
             "type": "string",
             "enum": [
-              "AUTO",
               "MANUAL"
             ]
           },
@@ -6078,6 +6187,10 @@
               "CANCELLED"
             ]
           },
+          "branchVersion": {
+            "type": "number",
+            "minimum": 0
+          },
           "streamEndpoint": {
             "type": "string",
             "enum": [
@@ -6091,6 +6204,7 @@
           "assistantMessageId",
           "runId",
           "runStatus",
+          "branchVersion",
           "streamEndpoint"
         ]
       },
@@ -6108,13 +6222,22 @@
             "type": "string",
             "maxLength": 10000
           },
+          "baseAssistantMessageId": {
+            "type": "string",
+            "nullable": true,
+            "description": "显式指定当前可见的已完成 assistant 作为本轮上下文父；必须与 expectedBranchVersion 同时提供"
+          },
+          "expectedBranchVersion": {
+            "type": "number",
+            "minimum": 0,
+            "description": "显式分支父对应的会话 branchVersion CAS"
+          },
           "pageContext": {
             "$ref": "#/components/schemas/AgentPageContextDto"
           },
           "modelPolicy": {
             "type": "string",
             "enum": [
-              "AUTO",
               "MANUAL"
             ]
           },
@@ -6224,7 +6347,8 @@
         "type": "object",
         "properties": {
           "model": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 256
           },
           "displayName": {
             "type": "string"
@@ -6322,13 +6446,12 @@
           "modelPolicy": {
             "type": "string",
             "enum": [
-              "AUTO",
               "MANUAL"
             ]
           },
           "preferredModel": {
             "type": "string",
-            "nullable": true
+            "maxLength": 256
           },
           "reasoningEffort": {
             "type": "string",
@@ -6361,6 +6484,7 @@
         "required": [
           "conversationId",
           "modelPolicy",
+          "preferredModel",
           "researchDepth",
           "answerDetail",
           "contextPreparation",
@@ -6420,14 +6544,12 @@
           "modelPolicy": {
             "type": "string",
             "enum": [
-              "AUTO",
               "MANUAL"
             ]
           },
           "preferredModel": {
             "type": "string",
-            "nullable": true,
-            "maxLength": 128
+            "maxLength": 256
           },
           "reasoningEffort": {
             "type": "string",
@@ -6454,7 +6576,8 @@
         },
         "required": [
           "conversationId",
-          "modelPolicy"
+          "modelPolicy",
+          "preferredModel"
         ]
       },
       "MessageFeedbackResponseDto": {
@@ -6533,22 +6656,190 @@
           "reasons"
         ]
       },
+      "AdoptConversationBranchResponseDto": {
+        "type": "object",
+        "properties": {
+          "conversationId": {
+            "type": "string"
+          },
+          "activeLeafMessageId": {
+            "type": "string"
+          },
+          "branchVersion": {
+            "type": "number",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "conversationId",
+          "activeLeafMessageId",
+          "branchVersion"
+        ]
+      },
+      "AdoptConversationBranchDto": {
+        "type": "object",
+        "properties": {
+          "conversationId": {
+            "type": "string"
+          },
+          "messageId": {
+            "type": "string"
+          },
+          "expectedBranchVersion": {
+            "type": "number",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "conversationId",
+          "messageId",
+          "expectedBranchVersion"
+        ]
+      },
       "AgentMessageListResponseDto": {
         "type": "object",
         "properties": {
+          "projection": {
+            "type": "string",
+            "enum": [
+              "ALL",
+              "ACTIVE_BRANCH"
+            ]
+          },
+          "activeLeafMessageId": {
+            "type": "string",
+            "nullable": true
+          },
+          "branchVersion": {
+            "type": "number",
+            "minimum": 0
+          },
+          "displayLeafMessageId": {
+            "type": "string",
+            "nullable": true
+          },
+          "lineageComplete": {
+            "type": "boolean"
+          },
+          "isActiveBranch": {
+            "type": "boolean",
+            "description": "展示叶是否就是当前 active leaf；空会话视为当前分支。"
+          },
+          "displayBranchCompatible": {
+            "type": "boolean",
+            "description": "展示 attempt 的冻结分支快照是否仍与当前 active 分支相容；不代表可直接输入。"
+          },
+          "canAdoptDisplay": {
+            "type": "boolean",
+            "description": "展示叶是否可通过 branchVersion CAS 提升为 active leaf。"
+          },
           "items": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/AgentMessageResponseDto"
             }
           },
+          "siblingGroups": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AgentMessageSiblingGroupDto"
+            }
+          },
           "nextBeforeMessageId": {
             "type": "string",
-            "nullable": true
+            "nullable": true,
+            "description": "不透明分页游标；ACTIVE_BRANCH 游标在分支变化后失效。"
           }
         },
         "required": [
-          "items"
+          "projection",
+          "branchVersion",
+          "lineageComplete",
+          "isActiveBranch",
+          "displayBranchCompatible",
+          "canAdoptDisplay",
+          "items",
+          "siblingGroups"
+        ]
+      },
+      "AgentMessageSiblingGroupDto": {
+        "type": "object",
+        "properties": {
+          "parentMessageId": {
+            "type": "string"
+          },
+          "selectedMessageId": {
+            "type": "string"
+          },
+          "selectedVersion": {
+            "type": "number",
+            "minimum": 1
+          },
+          "activeMessageId": {
+            "type": "string",
+            "nullable": true
+          },
+          "totalVersions": {
+            "type": "number",
+            "minimum": 1
+          },
+          "versions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AgentMessageSiblingVersionDto"
+            }
+          }
+        },
+        "required": [
+          "parentMessageId",
+          "selectedMessageId",
+          "selectedVersion",
+          "totalVersions",
+          "versions"
+        ]
+      },
+      "AgentMessageSiblingVersionDto": {
+        "type": "object",
+        "properties": {
+          "messageId": {
+            "type": "string"
+          },
+          "version": {
+            "type": "number",
+            "minimum": 1
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "STREAMING",
+              "COMPLETED",
+              "FAILED",
+              "CANCELLED"
+            ]
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "isDisplayed": {
+            "type": "boolean"
+          },
+          "canAdopt": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "messageId",
+          "version",
+          "status",
+          "isActive",
+          "isDisplayed",
+          "canAdopt",
+          "createdAt"
         ]
       },
       "AgentMessageResponseDto": {
@@ -6594,9 +6885,14 @@
             "type": "string",
             "nullable": true
           },
-          "modelName": {
+          "contextParentMessageId": {
             "type": "string",
             "nullable": true
+          },
+          "modelName": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 256
           },
           "run": {
             "nullable": true,
@@ -6748,7 +7044,7 @@
             "format": "date-time"
           },
           "errorCode": {
-            "type": "string",
+            "type": "number",
             "nullable": true
           },
           "errorMessage": {
@@ -6784,9 +7080,26 @@
           "conversationId": {
             "type": "string"
           },
+          "projection": {
+            "type": "string",
+            "enum": [
+              "ALL",
+              "ACTIVE_BRANCH"
+            ],
+            "default": "ALL",
+            "description": "ALL 保留完整审计流；ACTIVE_BRANCH 沿权威上下文父链返回当前或指定展示分支。"
+          },
           "beforeMessageId": {
             "type": "string",
-            "nullable": true
+            "nullable": true,
+            "maxLength": 2048,
+            "description": "ALL 首次请求兼容历史 message id；服务端返回的后续游标为绑定分支快照的不透明值。"
+          },
+          "displayMessageId": {
+            "type": "string",
+            "nullable": true,
+            "pattern": "^[A-Za-z0-9_-]{1,32}$",
+            "description": "ACTIVE_BRANCH 可指定本会话 assistant 消息作为只读展示叶；非 active 分支需先 adopt 才能继续。"
           },
           "limit": {
             "type": "number",
@@ -6818,13 +7131,12 @@
           "modelPolicy": {
             "type": "string",
             "enum": [
-              "AUTO",
               "MANUAL"
             ]
           },
           "preferredModel": {
             "type": "string",
-            "nullable": true
+            "maxLength": 256
           },
           "reasoningEffort": {
             "type": "string",
@@ -6845,6 +7157,14 @@
               "STANDARD",
               "DETAILED"
             ]
+          },
+          "activeLeafMessageId": {
+            "type": "string",
+            "nullable": true
+          },
+          "branchVersion": {
+            "type": "number",
+            "minimum": 0
           },
           "messageCount": {
             "type": "number"
@@ -6879,8 +7199,10 @@
           "title",
           "status",
           "modelPolicy",
+          "preferredModel",
           "researchDepth",
           "answerDetail",
+          "branchVersion",
           "messageCount",
           "lastMessageAt",
           "createdAt",
@@ -6907,7 +7229,8 @@
             "type": "string"
           },
           "modelName": {
-            "type": "string"
+            "type": "string",
+            "maxLength": 256
           },
           "sourceTokenCount": {
             "type": "number"
@@ -6980,13 +7303,12 @@
           "modelPolicy": {
             "type": "string",
             "enum": [
-              "AUTO",
               "MANUAL"
             ]
           },
           "preferredModel": {
             "type": "string",
-            "nullable": true
+            "maxLength": 256
           },
           "reasoningEffort": {
             "type": "string",
@@ -7007,6 +7329,14 @@
               "STANDARD",
               "DETAILED"
             ]
+          },
+          "activeLeafMessageId": {
+            "type": "string",
+            "nullable": true
+          },
+          "branchVersion": {
+            "type": "number",
+            "minimum": 0
           },
           "messageCount": {
             "type": "number"
@@ -7029,8 +7359,10 @@
           "title",
           "status",
           "modelPolicy",
+          "preferredModel",
           "researchDepth",
           "answerDetail",
+          "branchVersion",
           "messageCount",
           "lastMessageAt",
           "createdAt",
@@ -7095,15 +7427,13 @@
           "modelPolicy": {
             "type": "string",
             "enum": [
-              "AUTO",
               "MANUAL"
             ]
           },
           "preferredModel": {
             "type": "string",
-            "nullable": true,
-            "maxLength": 128,
-            "example": null
+            "maxLength": 256,
+            "example": "gpt-5.6-sol"
           },
           "reasoningEffort": {
             "type": "string",
@@ -7133,7 +7463,8 @@
         "required": [
           "clientRequestId",
           "title",
-          "modelPolicy"
+          "modelPolicy",
+          "preferredModel"
         ]
       },
       "NotificationDeliveryResponseDto": {

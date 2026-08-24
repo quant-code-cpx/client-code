@@ -77,7 +77,7 @@ describe('createMarketKlineStyles', () => {
     );
   });
 
-  it('分时 hover 展示时间、价格、均价和当分钟成交数据', () => {
+  it('分时 hover 展示时间、价格、涨跌、均价和当分钟成交数据', () => {
     const template = getTooltipTemplate('T');
     const current: MarketKLineData = {
       timestamp: 1785461400000,
@@ -101,9 +101,37 @@ describe('createMarketKlineStyles', () => {
     expect(legends).toEqual([
       { title: '时间', value: { text: '2026-07-31 15:30', color: theme.palette.text.primary } },
       { title: '价格', value: { text: '7.99', color: theme.palette.success.main } },
+      { title: '涨跌额', value: { text: '-0.01', color: theme.palette.success.main } },
+      { title: '涨跌幅', value: { text: '-0.13%', color: theme.palette.success.main } },
       { title: '均价', value: { text: '8.02', color: theme.palette.error.main } },
       { title: '成交量', value: { text: '144 手', color: theme.palette.text.primary } },
       { title: '成交额', value: { text: '115 千元', color: theme.palette.text.primary } },
     ]);
+  });
+
+  it('极小涨跌幅舍入为 0.00% 时使用中性色，不用颜色暗示隐藏方向', () => {
+    const template = getTooltipTemplate('T');
+    const current: MarketKLineData = {
+      timestamp: 1785461400000,
+      tradeDate: '2026-07-31',
+      time: '15:30',
+      preClose: 1000,
+      open: 1000.01,
+      high: 1000.01,
+      low: 1000.01,
+      close: 1000.01,
+    };
+
+    const legends = template(
+      { prev: null, current, next: null },
+      createMarketKlineStyles(theme, 'T').candle as CandleStyle
+    );
+
+    expect(legends).toEqual(
+      expect.arrayContaining([
+        { title: '涨跌额', value: { text: '+0.01', color: theme.palette.error.main } },
+        { title: '涨跌幅', value: { text: '0.00%', color: theme.palette.text.secondary } },
+      ])
+    );
   });
 });

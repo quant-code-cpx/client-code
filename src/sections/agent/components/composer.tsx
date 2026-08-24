@@ -26,6 +26,7 @@ type ComposerProps = {
   isRunning: boolean;
   stopping: boolean;
   error: string | null;
+  blockedReason?: string | null;
   onSubmit: () => void;
   onStop: () => void;
 };
@@ -37,18 +38,20 @@ export function Composer({
   isRunning,
   stopping,
   error,
+  blockedReason = null,
   onSubmit,
   onStop,
 }: ComposerProps) {
   const composingRef = useRef(false);
   const trimmedLength = value.trim().length;
   const tooLong = value.length > MAX_MESSAGE_LENGTH;
-  const canSubmit = trimmedLength > 0 && !tooLong && !isSending;
+  const canSubmit = trimmedLength > 0 && !tooLong && !isSending && !blockedReason;
   const helperText = useMemo(() => {
     if (tooLong) return `已超过 ${MAX_MESSAGE_LENGTH.toLocaleString()} 字限制`;
+    if (blockedReason) return blockedReason;
     if (recovered && value.length > 0) return '已恢复未发送草稿';
     return 'Enter 发送 · Shift + Enter 换行';
-  }, [recovered, tooLong, value.length]);
+  }, [blockedReason, recovered, tooLong, value.length]);
 
   return (
     <Box
@@ -70,6 +73,7 @@ export function Composer({
       ) : null}
       <ChatComposer
         aria-label="发送研究问题"
+        disabled={Boolean(blockedReason)}
         features={COMPOSER_FEATURES}
         onSubmit={(event) => {
           event.preventDefault();

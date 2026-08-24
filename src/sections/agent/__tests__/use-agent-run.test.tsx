@@ -5,6 +5,8 @@ import type { StreamAgentRunOptions } from 'src/api/agent-stream';
 import { MemoryRouter } from 'react-router';
 import { act, waitFor, renderHook } from '@testing-library/react';
 
+import { AgentClientError } from 'src/api/agent-error';
+
 import { AGENT_EVENT_FIXTURES } from 'src/types/agent/generated';
 
 import { useAgentRun } from '../hooks/use-agent-run';
@@ -20,6 +22,8 @@ const mocks = vi.hoisted(() => ({
   retryRun: vi.fn(),
   streamAgentRun: vi.fn(),
   getRunStatus: vi.fn(),
+  getConversation: vi.fn(),
+  adoptConversationBranch: vi.fn(),
   listMessages: vi.fn(),
 }));
 
@@ -31,6 +35,8 @@ vi.mock('src/api/agent', () => ({
     regenerateMessage: mocks.regenerateMessage,
     retryRun: mocks.retryRun,
     getRunStatus: mocks.getRunStatus,
+    getConversation: mocks.getConversation,
+    adoptConversationBranch: mocks.adoptConversationBranch,
     listMessages: mocks.listMessages,
   },
 }));
@@ -57,11 +63,13 @@ function conversation() {
     conversationId: 'cm_1',
     title: '测试会话',
     status: 'ACTIVE' as const,
-    modelPolicy: 'AUTO' as const,
-    preferredModel: null,
+    modelPolicy: 'MANUAL' as const,
+    preferredModel: 'gpt-5.6-sol',
     reasoningEffort: null,
     researchDepth: 'STANDARD' as const,
     answerDetail: 'STANDARD' as const,
+    activeLeafMessageId: null,
+    branchVersion: 0,
     messageCount: 0,
     lastMessageAt: '2026-07-20T01:00:00.000Z',
     createdAt: '2026-07-20T01:00:00.000Z',
@@ -77,6 +85,7 @@ function setupRunResponse() {
     assistantMessageId: 'msg_assistant_1',
     runId: 'run_1',
     runStatus: 'QUEUED',
+    branchVersion: 0,
     streamEndpoint: '/api/agent/runs/events',
   });
   mocks.streamAgentRun.mockImplementation(
@@ -243,13 +252,144 @@ function assistantMessage(status: 'COMPLETED' | 'FAILED') {
       status,
       statusVersion: 3,
       endedAt: '2026-08-10T23:02:01.000Z',
-      errorCode: status === 'FAILED' ? '6007' : null,
+      errorCode: status === 'FAILED' ? 6007 : null,
       errorMessage: status === 'FAILED' ? '模型调用超时' : null,
     },
     citations: [],
     createdAt: '2026-08-10T23:00:00.000Z',
     completedAt: '2026-08-10T23:02:01.000Z',
   };
+}
+
+function assistantTriggerMessage() {
+  return {
+    messageId: 'msg_user_1',
+    role: 'USER' as const,
+    status: 'COMPLETED' as const,
+    contentText: '研究问题',
+    contentBlocks: [],
+    version: 1,
+    parentMessageId: null,
+    contextParentMessageId: null,
+    modelName: null,
+    run: null,
+    citations: [],
+    createdAt: '2026-08-10T22:59:59.000Z',
+    completedAt: '2026-08-10T22:59:59.000Z',
+  };
+}
+
+function branchAssistantMessage(
+  messageId: string,
+  runId: string,
+  parentMessageId: string,
+  version: number
+) {
+  return {
+    messageId,
+    role: 'ASSISTANT' as const,
+    status: 'COMPLETED' as const,
+    contentText: `回答 ${version}`,
+    contentBlocks: [],
+    version,
+    parentMessageId,
+    contextParentMessageId: parentMessageId,
+    modelName: 'gpt-5.6-sol',
+    run: {
+      runId,
+      status: 'COMPLETED' as const,
+      statusVersion: 4,
+      endedAt: '2026-08-20T01:00:05.000Z',
+    },
+    citations: [],
+    createdAt: `2026-08-20T01:00:0${version}.000Z`,
+    completedAt: '2026-08-20T01:00:05.000Z',
+  };
+}
+
+function branchUserMessage() {
+  return {
+    messageId: 'msg_user_branch_1',
+    role: 'USER' as const,
+    status: 'COMPLETED' as const,
+    contentText: '原问题',
+    contentBlocks: [],
+    version: 1,
+    parentMessageId: null,
+    contextParentMessageId: null,
+    modelName: null,
+    run: null,
+    citations: [],
+    createdAt: '2026-08-20T01:00:00.000Z',
+    completedAt: '2026-08-20T01:00:00.000Z',
+  };
+}
+
+function regeneratedCompletedSnapshot() {
+  return {
+    ...completedSnapshot(),
+    runId: 'run_regenerated',
+    finalMessageId: 'msg_assistant_v2',
+  };
+}
+
+function regeneratedCompletedEvent(): AgentSseEvent {
+  return {
+    ...completedEvent(1),
+    runId: 'run_regenerated',
+    messageId: 'msg_assistant_v2',
+    payload: { ...completedEvent(1).payload, finalMessageId: 'msg_assistant_v2' },
+  } as AgentSseEvent;
+}
+
+function branchConversation(activeLeafMessageId: string, branchVersion: number) {
+  return {
+    ...conversation(),
+    activeLeafMessageId,
+    branchVersion,
+    messageCount: 3,
+  };
+}
+
+function branchListSnapshot(
+  items: Array<ReturnType<typeof branchAssistantMessage> | ReturnType<typeof branchUserMessage>>,
+  activeLeafMessageId: string,
+  branchVersion: number,
+  displayLeafMessageId = activeLeafMessageId
+) {
+  const isActiveBranch = activeLeafMessageId === displayLeafMessageId;
+  return {
+    projection: 'ACTIVE_BRANCH' as const,
+    activeLeafMessageId,
+    branchVersion,
+    displayLeafMessageId,
+    lineageComplete: true,
+    isActiveBranch,
+    displayBranchCompatible: isActiveBranch,
+    canAdoptDisplay: !isActiveBranch,
+    items,
+    siblingGroups: [],
+    nextBeforeMessageId: null,
+  };
+}
+
+function loadBranchMessages(
+  dispatch: ReturnType<typeof useAgentDispatch>,
+  items = [
+    branchUserMessage(),
+    branchAssistantMessage('msg_assistant_v1', 'run_v1', 'msg_user_branch_1', 1),
+  ]
+) {
+  dispatch({ type: 'MESSAGES_REQUESTED', conversationId: 'cm_1', generation: 1 });
+  dispatch({
+    type: 'MESSAGES_SUCCEEDED',
+    conversationId: 'cm_1',
+    generation: 1,
+    items,
+    nextBeforeMessageId: null,
+    mode: 'replace',
+    authoritative: true,
+  });
 }
 
 function loadAssistantMessage(
@@ -261,7 +401,7 @@ function loadAssistantMessage(
     type: 'MESSAGES_SUCCEEDED',
     conversationId: 'cm_1',
     generation: 1,
-    items: [assistantMessage(status)],
+    items: [assistantTriggerMessage(), assistantMessage(status)],
     nextBeforeMessageId: null,
     mode: 'replace',
     authoritative: true,
@@ -272,6 +412,12 @@ beforeEach(() => {
   vi.clearAllMocks();
   setupRunResponse();
   mocks.getRunStatus.mockResolvedValue(runningSnapshot());
+  mocks.getConversation.mockResolvedValue(conversation());
+  mocks.adoptConversationBranch.mockResolvedValue({
+    conversationId: 'cm_1',
+    activeLeafMessageId: 'msg_regenerated',
+    branchVersion: 2,
+  });
   mocks.listMessages.mockResolvedValue({ items: [], nextBeforeMessageId: null });
   mocks.cancelRun.mockResolvedValue({
     runId: 'run_1',
@@ -673,7 +819,7 @@ describe('useAgentRun', () => {
     hook.unmount();
   });
 
-  it('深链会话尚未加载时保留输入，不以 AUTO 策略误发', async () => {
+  it('深链会话尚未加载时保留输入且不发送', async () => {
     const hook = renderHook(() => useAgentRun('cm_1'), { wrapper });
     let accepted = true;
     await act(async () => {
@@ -694,6 +840,7 @@ describe('useAgentRun', () => {
       runId: 'run_retry',
       runStatus: 'QUEUED',
       retryMode: 'SAFE_CHECKPOINT',
+      branchVersion: 0,
       streamEndpoint: '/api/agent/runs/events',
     });
     const hook = renderHook(
@@ -726,6 +873,59 @@ describe('useAgentRun', () => {
     hook.unmount();
   });
 
+  it('安全 retry 在服务端原子发现 6051 时不启动 Run，并刷新另一 Tab 的权威分支', async () => {
+    const otherBranchItems = [
+      branchUserMessage(),
+      branchAssistantMessage('msg_other_client', 'run_other_client', 'msg_user_branch_1', 2),
+    ];
+    mocks.getRunStatus.mockResolvedValue(failedSnapshot(true));
+    mocks.retryRun.mockRejectedValue(
+      new AgentClientError('源失败运行已脱离当前会话分支', {
+        kind: 'BUSINESS',
+        code: 6051,
+        status: 409,
+      })
+    );
+    mocks.getConversation.mockResolvedValue(branchConversation('msg_other_client', 2));
+    mocks.listMessages.mockResolvedValue(
+      branchListSnapshot(otherBranchItems, 'msg_other_client', 2)
+    );
+    const hook = renderHook(
+      () => ({
+        runner: useAgentRun('cm_1'),
+        state: useAgentState(),
+        dispatch: useAgentDispatch(),
+      }),
+      { wrapper }
+    );
+    act(() => {
+      hook.result.current.dispatch({ type: 'CONVERSATION_CREATED', conversation: conversation() });
+      loadAssistantMessage(hook.result.current.dispatch, 'FAILED');
+    });
+
+    let accepted = true;
+    await act(async () => {
+      accepted = await hook.result.current.runner.regenerate('msg_failed');
+    });
+
+    expect(accepted).toBe(false);
+    expect(mocks.retryRun).toHaveBeenCalledTimes(1);
+    expect(mocks.streamAgentRun).not.toHaveBeenCalled();
+    expect(hook.result.current.state.runs.byId.run_retry).toBeUndefined();
+    expect(hook.result.current.state.conversations.byId.cm_1).toMatchObject({
+      activeLeafMessageId: 'msg_other_client',
+      branchVersion: 2,
+    });
+    expect(hook.result.current.state.loadsByConversation.cm_1.messageProjection).toMatchObject({
+      activeLeafMessageId: 'msg_other_client',
+      displayLeafMessageId: 'msg_other_client',
+      branchVersion: 2,
+      isActiveBranch: true,
+    });
+    expect(hook.result.current.runner.commandError).toContain('其他页面变更');
+    hook.unmount();
+  });
+
   it('失败 Run 不可安全重试时才回退到完整重新生成', async () => {
     mocks.getRunStatus.mockResolvedValue(failedSnapshot(false));
     mocks.regenerateMessage.mockResolvedValue({
@@ -734,6 +934,7 @@ describe('useAgentRun', () => {
       assistantMessageId: 'msg_regenerated',
       runId: 'run_regenerated',
       runStatus: 'QUEUED',
+      branchVersion: 0,
       streamEndpoint: '/api/agent/runs/events',
     });
     const hook = renderHook(
@@ -756,7 +957,7 @@ describe('useAgentRun', () => {
     expect(mocks.regenerateMessage).toHaveBeenCalledWith({
       clientRequestId: expect.any(String),
       messageId: 'msg_failed',
-      modelPolicy: 'AUTO',
+      modelPolicy: 'MANUAL',
     });
     expect(mocks.retryRun).not.toHaveBeenCalled();
     hook.unmount();
@@ -769,6 +970,7 @@ describe('useAgentRun', () => {
       assistantMessageId: 'msg_regenerated',
       runId: 'run_regenerated',
       runStatus: 'QUEUED',
+      branchVersion: 0,
       streamEndpoint: '/api/agent/runs/events',
     });
     const hook = renderHook(
@@ -790,10 +992,882 @@ describe('useAgentRun', () => {
     expect(mocks.regenerateMessage).toHaveBeenCalledWith({
       clientRequestId: expect.any(String),
       messageId: 'msg_failed',
-      modelPolicy: 'AUTO',
+      modelPolicy: 'MANUAL',
     });
     expect(mocks.getRunStatus).not.toHaveBeenCalled();
     expect(mocks.retryRun).not.toHaveBeenCalled();
+    hook.unmount();
+  });
+
+  it('REG-branch-1：重新生成完成后采纳可见 v2，下一问显式携带 v2 与最新 CAS', async () => {
+    const completedMessages = [
+      branchUserMessage(),
+      branchAssistantMessage('msg_assistant_v2', 'run_regenerated', 'msg_user_branch_1', 2),
+    ];
+    mocks.regenerateMessage.mockResolvedValue({
+      conversationId: 'cm_1',
+      sourceMessageId: 'msg_assistant_v1',
+      assistantMessageId: 'msg_assistant_v2',
+      runId: 'run_regenerated',
+      runStatus: 'QUEUED',
+      branchVersion: 1,
+      streamEndpoint: '/api/agent/runs/events',
+    });
+    mocks.getRunStatus.mockResolvedValue(regeneratedCompletedSnapshot());
+    mocks.listMessages.mockResolvedValue(
+      branchListSnapshot(completedMessages, 'msg_assistant_v2', 2)
+    );
+    mocks.getConversation.mockResolvedValue(branchConversation('msg_assistant_v2', 2));
+    mocks.adoptConversationBranch.mockResolvedValue({
+      conversationId: 'cm_1',
+      activeLeafMessageId: 'msg_assistant_v2',
+      branchVersion: 2,
+    });
+
+    const hook = renderHook(
+      () => ({
+        runner: useAgentRun('cm_1'),
+        state: useAgentState(),
+        dispatch: useAgentDispatch(),
+      }),
+      { wrapper }
+    );
+    act(() => {
+      hook.result.current.dispatch({
+        type: 'CONVERSATION_CREATED',
+        conversation: branchConversation('msg_assistant_v1', 1),
+      });
+      loadBranchMessages(hook.result.current.dispatch);
+    });
+    await act(async () => {
+      await hook.result.current.runner.regenerate('msg_assistant_v1');
+    });
+    expect(hook.result.current.state.messages.orderedIdsByConversation.cm_1).toEqual([
+      'msg_user_branch_1',
+      'msg_assistant_v2',
+    ]);
+    expect(hook.result.current.state.loadsByConversation.cm_1.messageProjection).toMatchObject({
+      activeLeafMessageId: 'msg_assistant_v1',
+      displayLeafMessageId: 'msg_assistant_v2',
+      isActiveBranch: false,
+      displayBranchCompatible: true,
+    });
+
+    const streamOptions = mocks.streamAgentRun.mock.calls[0][0] as StreamAgentRunOptions;
+    const terminal = regeneratedCompletedEvent();
+    act(() => {
+      streamOptions.callbacks.onTerminal?.(terminal, {
+        runId: 'run_regenerated',
+        lastAppliedSequence: 1,
+        lastEventId: terminal.eventId,
+        connectionGeneration: 1,
+      });
+    });
+
+    await waitFor(() =>
+      expect(hook.result.current.state.runs.byId.run_regenerated.branchAdoption?.status).toBe(
+        'ADOPTED'
+      )
+    );
+    expect(mocks.adoptConversationBranch).not.toHaveBeenCalled();
+    await waitFor(() =>
+      expect(hook.result.current.state.conversations.byId.cm_1).toMatchObject({
+        activeLeafMessageId: 'msg_assistant_v2',
+        branchVersion: 2,
+      })
+    );
+
+    mocks.sendMessage.mockResolvedValue({
+      conversationId: 'cm_1',
+      userMessageId: 'msg_user_follow_up',
+      assistantMessageId: 'msg_assistant_follow_up',
+      runId: 'run_follow_up',
+      runStatus: 'QUEUED',
+      branchVersion: 2,
+      streamEndpoint: '/api/agent/runs/events',
+    });
+    await act(async () => {
+      await hook.result.current.runner.send('基于新答案继续追问');
+    });
+
+    expect(mocks.sendMessage).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        conversationId: 'cm_1',
+        baseAssistantMessageId: 'msg_assistant_v2',
+        expectedBranchVersion: 2,
+      })
+    );
+    hook.unmount();
+  });
+
+  it('REG-branch-2：采纳响应丢失时以刷新后的 active leaf 判定成功', async () => {
+    mocks.regenerateMessage.mockResolvedValue({
+      conversationId: 'cm_1',
+      sourceMessageId: 'msg_assistant_v1',
+      assistantMessageId: 'msg_assistant_v2',
+      runId: 'run_regenerated',
+      runStatus: 'QUEUED',
+      branchVersion: 1,
+      streamEndpoint: '/api/agent/runs/events',
+    });
+    mocks.getRunStatus.mockResolvedValue(regeneratedCompletedSnapshot());
+    mocks.listMessages.mockResolvedValue(
+      branchListSnapshot(
+        [
+          branchUserMessage(),
+          branchAssistantMessage('msg_assistant_v2', 'run_regenerated', 'msg_user_branch_1', 2),
+        ],
+        'msg_assistant_v1',
+        1,
+        'msg_assistant_v2'
+      )
+    );
+    mocks.getConversation
+      .mockResolvedValueOnce(branchConversation('msg_assistant_v1', 1))
+      .mockResolvedValueOnce(branchConversation('msg_assistant_v2', 2));
+    mocks.adoptConversationBranch.mockRejectedValue(
+      new AgentClientError('响应在提交后断开', { kind: 'NETWORK' })
+    );
+
+    const hook = renderHook(
+      () => ({
+        runner: useAgentRun('cm_1'),
+        state: useAgentState(),
+        dispatch: useAgentDispatch(),
+      }),
+      { wrapper }
+    );
+    act(() => {
+      hook.result.current.dispatch({
+        type: 'CONVERSATION_CREATED',
+        conversation: branchConversation('msg_assistant_v1', 1),
+      });
+      loadBranchMessages(hook.result.current.dispatch);
+    });
+    await act(async () => {
+      await hook.result.current.runner.regenerate('msg_assistant_v1');
+    });
+    const streamOptions = mocks.streamAgentRun.mock.calls[0][0] as StreamAgentRunOptions;
+    const terminal = regeneratedCompletedEvent();
+    act(() => {
+      streamOptions.callbacks.onTerminal?.(terminal, {
+        runId: 'run_regenerated',
+        lastAppliedSequence: 1,
+        lastEventId: terminal.eventId,
+        connectionGeneration: 1,
+      });
+    });
+
+    await waitFor(() =>
+      expect(hook.result.current.state.runs.byId.run_regenerated.branchAdoption?.status).toBe(
+        'ADOPTED'
+      )
+    );
+    expect(mocks.adoptConversationBranch).toHaveBeenCalledTimes(1);
+    expect(mocks.listMessages).toHaveBeenCalledWith(
+      expect.objectContaining({
+        projection: 'ACTIVE_BRANCH',
+        displayMessageId: 'msg_assistant_v2',
+      })
+    );
+    expect(hook.result.current.state.conversations.byId.cm_1).toMatchObject({
+      activeLeafMessageId: 'msg_assistant_v2',
+      branchVersion: 2,
+    });
+    expect(hook.result.current.runner.commandError).toBeNull();
+    hook.unmount();
+  });
+
+  it('REG-branch-3：采纳 CAS 冲突后刷新，不覆盖另一客户端已选分支', async () => {
+    mocks.regenerateMessage.mockResolvedValue({
+      conversationId: 'cm_1',
+      sourceMessageId: 'msg_assistant_v1',
+      assistantMessageId: 'msg_assistant_v2',
+      runId: 'run_regenerated',
+      runStatus: 'QUEUED',
+      branchVersion: 1,
+      streamEndpoint: '/api/agent/runs/events',
+    });
+    mocks.getRunStatus.mockResolvedValue(regeneratedCompletedSnapshot());
+    mocks.listMessages.mockResolvedValue(
+      branchListSnapshot(
+        [
+          branchUserMessage(),
+          branchAssistantMessage('msg_assistant_v2', 'run_regenerated', 'msg_user_branch_1', 2),
+        ],
+        'msg_other_client',
+        2,
+        'msg_assistant_v2'
+      )
+    );
+    mocks.getConversation
+      .mockResolvedValueOnce(branchConversation('msg_assistant_v1', 1))
+      .mockResolvedValueOnce(branchConversation('msg_other_client', 2));
+    mocks.adoptConversationBranch.mockRejectedValue(
+      new AgentClientError('会话分支已变化', { kind: 'BUSINESS', code: 6051, status: 409 })
+    );
+
+    const hook = renderHook(
+      () => ({
+        runner: useAgentRun('cm_1'),
+        state: useAgentState(),
+        dispatch: useAgentDispatch(),
+      }),
+      { wrapper }
+    );
+    act(() => {
+      hook.result.current.dispatch({
+        type: 'CONVERSATION_CREATED',
+        conversation: branchConversation('msg_assistant_v1', 1),
+      });
+      loadBranchMessages(hook.result.current.dispatch);
+    });
+    await act(async () => {
+      await hook.result.current.runner.regenerate('msg_assistant_v1');
+    });
+    const streamOptions = mocks.streamAgentRun.mock.calls[0][0] as StreamAgentRunOptions;
+    const terminal = regeneratedCompletedEvent();
+    act(() => {
+      streamOptions.callbacks.onTerminal?.(terminal, {
+        runId: 'run_regenerated',
+        lastAppliedSequence: 1,
+        lastEventId: terminal.eventId,
+        connectionGeneration: 1,
+      });
+    });
+
+    await waitFor(() =>
+      expect(hook.result.current.state.runs.byId.run_regenerated.branchAdoption?.status).toBe(
+        'CONFLICT'
+      )
+    );
+    expect(mocks.adoptConversationBranch).toHaveBeenCalledTimes(1);
+    expect(hook.result.current.state.conversations.byId.cm_1).toMatchObject({
+      activeLeafMessageId: 'msg_other_client',
+      branchVersion: 2,
+    });
+    expect(hook.result.current.runner.commandError).toContain('其他页面切换');
+    hook.unmount();
+  });
+
+  it.each([
+    ['FAILED', 'agent.failed'],
+    ['CANCELLED', 'agent.cancelled'],
+  ] as const)('REG-branch-terminal：重新生成以 %s 结束后不再把目标消息作为下一问 base', async (status, eventType) => {
+    mocks.regenerateMessage.mockResolvedValue({
+      conversationId: 'cm_1',
+      sourceMessageId: 'msg_assistant_v1',
+      assistantMessageId: 'msg_assistant_v2',
+      runId: 'run_regenerated',
+      runStatus: 'QUEUED',
+      branchVersion: 1,
+      streamEndpoint: '/api/agent/runs/events',
+    });
+    mocks.getRunStatus.mockResolvedValue({
+      ...regeneratedCompletedSnapshot(),
+      status,
+      canRetry: false,
+      errorCode: status === 'FAILED' ? 6007 : null,
+      errorMessage: status === 'FAILED' ? '模型调用失败' : null,
+    });
+    mocks.listMessages.mockResolvedValue({
+      projection: 'ACTIVE_BRANCH',
+      activeLeafMessageId: 'msg_assistant_v1',
+      branchVersion: 1,
+      displayLeafMessageId: 'msg_assistant_v2',
+      lineageComplete: true,
+      isActiveBranch: false,
+      displayBranchCompatible: true,
+      canAdoptDisplay: false,
+      items: [
+        branchUserMessage(),
+        branchAssistantMessage('msg_assistant_v1', 'run_v1', 'msg_user_branch_1', 1),
+        {
+          ...branchAssistantMessage(
+            'msg_assistant_v2',
+            'run_regenerated',
+            'msg_user_branch_1',
+            2
+          ),
+          status,
+          contentText: status === 'FAILED' ? null : '',
+          run: {
+            runId: 'run_regenerated',
+            status,
+            statusVersion: 4,
+            endedAt: '2026-08-20T01:00:05.000Z',
+            errorCode: status === 'FAILED' ? 6007 : null,
+            errorMessage: status === 'FAILED' ? '模型调用失败' : null,
+          },
+        },
+      ],
+      siblingGroups: [],
+      nextBeforeMessageId: null,
+    });
+    mocks.getConversation.mockResolvedValue(branchConversation('msg_assistant_v1', 1));
+    mocks.sendMessage.mockResolvedValue({
+      conversationId: 'cm_1',
+      userMessageId: 'msg_user_follow_up',
+      assistantMessageId: 'msg_assistant_follow_up',
+      runId: 'run_follow_up',
+      runStatus: 'QUEUED',
+      branchVersion: 1,
+      streamEndpoint: '/api/agent/runs/events',
+    });
+
+    const hook = renderHook(
+      () => ({
+        runner: useAgentRun('cm_1'),
+        state: useAgentState(),
+        dispatch: useAgentDispatch(),
+      }),
+      { wrapper }
+    );
+    act(() => {
+      hook.result.current.dispatch({
+        type: 'CONVERSATION_CREATED',
+        conversation: branchConversation('msg_assistant_v1', 1),
+      });
+      loadBranchMessages(hook.result.current.dispatch);
+    });
+    await act(async () => {
+      await hook.result.current.runner.regenerate('msg_assistant_v1');
+    });
+    const streamOptions = mocks.streamAgentRun.mock.calls[0][0] as StreamAgentRunOptions;
+    const fixture = AGENT_EVENT_FIXTURES.find((event) => event.type === eventType);
+    if (!fixture) throw new Error(`缺少 ${eventType} fixture`);
+    const terminal = {
+      ...fixture,
+      runId: 'run_regenerated',
+      conversationId: 'cm_1',
+      messageId: 'msg_assistant_v2',
+    } as AgentSseEvent;
+    act(() => {
+      streamOptions.callbacks.onTerminal?.(terminal, {
+        runId: 'run_regenerated',
+        lastAppliedSequence: 1,
+        lastEventId: terminal.eventId,
+        connectionGeneration: 1,
+      });
+    });
+
+    await waitFor(() =>
+      expect(hook.result.current.state.runs.byId.run_regenerated.status).toBe(status)
+    );
+    expect(hook.result.current.state.runs.byId.run_regenerated.branchAdoption?.status).not.toBe(
+      'PENDING'
+    );
+
+    await act(async () => {
+      await hook.result.current.runner.send('沿当前有效分支继续');
+    });
+    expect(mocks.sendMessage).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        baseAssistantMessageId: 'msg_assistant_v1',
+        expectedBranchVersion: 1,
+      })
+    );
+    hook.unmount();
+  });
+
+  it('REG-branch-4：安全 retry 由后端推进 active leaf，客户端不重复 adopt', async () => {
+    mocks.getRunStatus.mockResolvedValueOnce(failedSnapshot(true)).mockResolvedValueOnce({
+      ...completedSnapshot(),
+      runId: 'run_retry',
+      finalMessageId: 'msg_retry',
+    });
+    mocks.retryRun.mockResolvedValue({
+      conversationId: 'cm_1',
+      sourceRunId: 'run_failed',
+      assistantMessageId: 'msg_retry',
+      runId: 'run_retry',
+      runStatus: 'QUEUED',
+      retryMode: 'SAFE_CHECKPOINT',
+      branchVersion: 1,
+      streamEndpoint: '/api/agent/runs/events',
+    });
+    mocks.listMessages.mockResolvedValue({
+      items: [branchAssistantMessage('msg_retry', 'run_retry', 'msg_user_1', 2)],
+      nextBeforeMessageId: null,
+    });
+    mocks.getConversation.mockResolvedValue(branchConversation('msg_retry', 2));
+
+    const hook = renderHook(
+      () => ({
+        runner: useAgentRun('cm_1'),
+        state: useAgentState(),
+        dispatch: useAgentDispatch(),
+      }),
+      { wrapper }
+    );
+    act(() => {
+      hook.result.current.dispatch({
+        type: 'CONVERSATION_CREATED',
+        conversation: branchConversation('msg_assistant_v1', 1),
+      });
+      loadAssistantMessage(hook.result.current.dispatch, 'FAILED');
+    });
+    await act(async () => {
+      await hook.result.current.runner.regenerate('msg_failed');
+    });
+    const streamOptions = mocks.streamAgentRun.mock.calls[0][0] as StreamAgentRunOptions;
+    const terminal = {
+      ...completedEvent(1),
+      runId: 'run_retry',
+      messageId: 'msg_retry',
+      payload: { ...completedEvent(1).payload, finalMessageId: 'msg_retry' },
+    } as AgentSseEvent;
+    act(() => {
+      streamOptions.callbacks.onTerminal?.(terminal, {
+        runId: 'run_retry',
+        lastAppliedSequence: 1,
+        lastEventId: terminal.eventId,
+        connectionGeneration: 1,
+      });
+    });
+
+    await waitFor(() =>
+      expect(hook.result.current.state.runs.byId.run_retry.status).toBe('COMPLETED')
+    );
+    mocks.sendMessage.mockResolvedValue({
+      conversationId: 'cm_1',
+      userMessageId: 'msg_user_after_retry',
+      assistantMessageId: 'msg_assistant_after_retry',
+      runId: 'run_after_retry',
+      runStatus: 'QUEUED',
+      branchVersion: 2,
+      streamEndpoint: '/api/agent/runs/events',
+    });
+    await act(async () => {
+      await hook.result.current.runner.send('基于 retry 结果继续');
+    });
+
+    expect(mocks.adoptConversationBranch).not.toHaveBeenCalled();
+    expect(mocks.sendMessage).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        baseAssistantMessageId: 'msg_retry',
+        expectedBranchVersion: 2,
+      })
+    );
+    hook.unmount();
+  });
+
+  it('查看历史版本时仍允许普通发送，并始终沿服务端 active leaf', async () => {
+    mocks.getConversation.mockResolvedValue(branchConversation('msg_assistant_v1', 7));
+    mocks.sendMessage.mockResolvedValue({
+      conversationId: 'cm_1',
+      userMessageId: 'msg_user_authoritative',
+      assistantMessageId: 'msg_assistant_authoritative',
+      runId: 'run_authoritative',
+      runStatus: 'QUEUED',
+      branchVersion: 7,
+      streamEndpoint: '/api/agent/runs/events',
+    });
+    const hook = renderHook(() => ({ runner: useAgentRun('cm_1'), dispatch: useAgentDispatch() }), {
+      wrapper,
+    });
+    act(() => {
+      hook.result.current.dispatch({
+        type: 'CONVERSATION_CREATED',
+        conversation: branchConversation('msg_assistant_v1', 7),
+      });
+      const historicalItems = [
+        branchUserMessage(),
+        branchAssistantMessage('msg_assistant_v1', 'run_v1', 'msg_user_branch_1', 1),
+        branchAssistantMessage('msg_abandoned_v2', 'run_v2', 'msg_user_branch_1', 2),
+      ];
+      hook.result.current.dispatch({
+        type: 'MESSAGES_REQUESTED',
+        conversationId: 'cm_1',
+        generation: 1,
+      });
+      hook.result.current.dispatch({
+        type: 'MESSAGES_SUCCEEDED',
+        conversationId: 'cm_1',
+        generation: 1,
+        items: historicalItems,
+        nextBeforeMessageId: null,
+        projection: branchListSnapshot(
+          historicalItems,
+          'msg_assistant_v1',
+          7,
+          'msg_abandoned_v2'
+        ),
+        mode: 'replace',
+        authoritative: true,
+      });
+    });
+
+    await act(async () => {
+      await hook.result.current.runner.send('沿当前主分支继续');
+    });
+
+    expect(mocks.sendMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        baseAssistantMessageId: 'msg_assistant_v1',
+        expectedBranchVersion: 7,
+      })
+    );
+    hook.unmount();
+  });
+
+  it('send 收到 6050 时保留 exact request 与 CAS，不误判为 branch conflict', async () => {
+    mocks.getConversation.mockResolvedValue(branchConversation('msg_assistant_v1', 3));
+    mocks.sendMessage.mockRejectedValue(
+      new AgentClientError('已有 active Run', { kind: 'BUSINESS', code: 6050, status: 409 })
+    );
+    const hook = renderHook(
+      () => ({
+        runner: useAgentRun('cm_1'),
+        state: useAgentState(),
+        dispatch: useAgentDispatch(),
+      }),
+      { wrapper }
+    );
+    act(() => {
+      hook.result.current.dispatch({
+        type: 'CONVERSATION_CREATED',
+        conversation: branchConversation('msg_assistant_v1', 3),
+      });
+      loadBranchMessages(hook.result.current.dispatch);
+    });
+
+    await act(async () => {
+      await hook.result.current.runner.send('等待已有任务后发送');
+    });
+
+    const request = mocks.sendMessage.mock.calls[0][0] as {
+      clientRequestId: string;
+      baseAssistantMessageId: string;
+      expectedBranchVersion: number;
+    };
+    const local = Object.values(hook.result.current.state.messages.byId).find((message) =>
+      message.localId?.startsWith('local:')
+    );
+    expect(local).toMatchObject({
+      clientRequestId: request.clientRequestId,
+      baseAssistantMessageId: 'msg_assistant_v1',
+      expectedBranchVersion: 3,
+      deliveryStatus: 'UNSENT',
+    });
+    expect(mocks.listMessages).not.toHaveBeenCalled();
+    expect(hook.result.current.runner.commandError).toContain('已有任务运行中');
+    hook.unmount();
+  });
+
+  it('adopt 收到 6050 时保留 regenerate intent，不永久标记为 CAS conflict', async () => {
+    mocks.regenerateMessage.mockResolvedValue({
+      conversationId: 'cm_1',
+      sourceMessageId: 'msg_assistant_v1',
+      assistantMessageId: 'msg_assistant_v2',
+      runId: 'run_regenerated',
+      runStatus: 'QUEUED',
+      branchVersion: 1,
+      streamEndpoint: '/api/agent/runs/events',
+    });
+    mocks.getRunStatus.mockResolvedValue(regeneratedCompletedSnapshot());
+    mocks.listMessages.mockResolvedValue({
+      items: [
+        branchUserMessage(),
+        branchAssistantMessage('msg_assistant_v1', 'run_v1', 'msg_user_branch_1', 1),
+        branchAssistantMessage('msg_assistant_v2', 'run_regenerated', 'msg_user_branch_1', 2),
+      ],
+      nextBeforeMessageId: null,
+    });
+    mocks.getConversation.mockResolvedValue(branchConversation('msg_assistant_v1', 1));
+    mocks.adoptConversationBranch.mockRejectedValue(
+      new AgentClientError('已有 active Run', { kind: 'BUSINESS', code: 6050, status: 409 })
+    );
+    const hook = renderHook(
+      () => ({
+        runner: useAgentRun('cm_1'),
+        state: useAgentState(),
+        dispatch: useAgentDispatch(),
+      }),
+      { wrapper }
+    );
+    act(() => {
+      hook.result.current.dispatch({
+        type: 'CONVERSATION_CREATED',
+        conversation: branchConversation('msg_assistant_v1', 1),
+      });
+      loadBranchMessages(hook.result.current.dispatch);
+    });
+    await act(async () => {
+      await hook.result.current.runner.regenerate('msg_assistant_v1');
+    });
+    const streamOptions = mocks.streamAgentRun.mock.calls[0][0] as StreamAgentRunOptions;
+    const terminal = regeneratedCompletedEvent();
+    act(() => {
+      streamOptions.callbacks.onTerminal?.(terminal, {
+        runId: 'run_regenerated',
+        lastAppliedSequence: 1,
+        lastEventId: terminal.eventId,
+        connectionGeneration: 1,
+      });
+    });
+
+    await waitFor(() =>
+      expect(hook.result.current.state.runs.byId.run_regenerated.branchAdoption).toMatchObject({
+        targetMessageId: 'msg_assistant_v2',
+        expectedBranchVersion: 1,
+        status: 'UNCERTAIN',
+      })
+    );
+    expect(mocks.adoptConversationBranch).toHaveBeenCalledTimes(1);
+    expect(hook.result.current.runner.commandError).toContain('已有其他任务运行中');
+    hook.unmount();
+  });
+
+  it('send 收到 6051 时先 rebase 本地消息再刷新投影，未发送内容仍保持可见', async () => {
+    mocks.getConversation
+      .mockResolvedValueOnce(branchConversation('msg_assistant_v1', 4))
+      .mockResolvedValueOnce(branchConversation('msg_other_client', 5));
+    mocks.listMessages.mockResolvedValue({
+      projection: 'ACTIVE_BRANCH',
+      activeLeafMessageId: 'msg_other_client',
+      branchVersion: 5,
+      displayLeafMessageId: 'msg_other_client',
+      lineageComplete: true,
+      isActiveBranch: true,
+      displayBranchCompatible: true,
+      canAdoptDisplay: false,
+      items: [
+        branchUserMessage(),
+        branchAssistantMessage('msg_other_client', 'run_other_client', 'msg_user_branch_1', 2),
+      ],
+      siblingGroups: [],
+      nextBeforeMessageId: null,
+    });
+    mocks.sendMessage.mockRejectedValueOnce(
+      new AgentClientError('branch CAS conflict', {
+        kind: 'BUSINESS',
+        code: 6051,
+        status: 409,
+      })
+    );
+
+    const hook = renderHook(
+      () => ({
+        runner: useAgentRun('cm_1'),
+        state: useAgentState(),
+        dispatch: useAgentDispatch(),
+      }),
+      { wrapper }
+    );
+    act(() => {
+      hook.result.current.dispatch({
+        type: 'CONVERSATION_CREATED',
+        conversation: branchConversation('msg_assistant_v1', 4),
+      });
+      loadBranchMessages(hook.result.current.dispatch);
+    });
+
+    await act(async () => {
+      await hook.result.current.runner.send('保留这条跨页冲突消息');
+    });
+
+    const localMessageId = hook.result.current.state.messages.orderedIdsByConversation.cm_1.find(
+      (messageId) => messageId.startsWith('local:')
+    );
+    expect(localMessageId).toBeDefined();
+    expect(hook.result.current.state.messages.byId[localMessageId!]).toMatchObject({
+      contentText: '保留这条跨页冲突消息',
+      deliveryStatus: 'UNSENT',
+      baseAssistantMessageId: 'msg_other_client',
+      expectedBranchVersion: 5,
+    });
+    expect(hook.result.current.runner.commandError).toContain('其他页面变更');
+    hook.unmount();
+  });
+
+  it('retryUnsent 收到 6051 后按 authoritative leaf rebase/rekey，下一次重试成功', async () => {
+    mocks.getConversation.mockResolvedValue(branchConversation('msg_other_client', 5));
+    mocks.listMessages.mockResolvedValue({
+      projection: 'ACTIVE_BRANCH',
+      activeLeafMessageId: 'msg_other_client',
+      branchVersion: 5,
+      displayLeafMessageId: 'msg_other_client',
+      lineageComplete: true,
+      isActiveBranch: true,
+      displayBranchCompatible: true,
+      canAdoptDisplay: false,
+      items: [],
+      siblingGroups: [],
+      nextBeforeMessageId: null,
+    });
+    mocks.sendMessage.mockRejectedValueOnce(
+      new AgentClientError('branch CAS conflict', {
+        kind: 'BUSINESS',
+        code: 6051,
+        status: 409,
+      })
+    );
+    const hook = renderHook(
+      () => ({
+        runner: useAgentRun('cm_1'),
+        state: useAgentState(),
+        dispatch: useAgentDispatch(),
+      }),
+      { wrapper }
+    );
+    const staleRequestId = '00000000-0000-4000-8000-000000000099';
+    act(() => {
+      hook.result.current.dispatch({
+        type: 'CONVERSATION_CREATED',
+        conversation: branchConversation('msg_assistant_v1', 4),
+      });
+      hook.result.current.dispatch({
+        type: 'OPTIMISTIC_USER_MESSAGE_ADDED',
+        conversationId: 'cm_1',
+        message: {
+          messageId: 'local:stale-cas',
+          conversationId: 'cm_1',
+          role: 'USER',
+          status: 'FAILED',
+          contentText: '重试这条消息',
+          contentBlocks: [],
+          version: 1,
+          parentMessageId: null,
+          contextParentMessageId: 'msg_assistant_v1',
+          modelName: null,
+          run: null,
+          citations: [],
+          createdAt: '2026-08-20T01:10:00.000Z',
+          completedAt: null,
+          clientRequestId: staleRequestId,
+          localId: 'local:stale-cas',
+          deliveryStatus: 'UNSENT',
+          baseAssistantMessageId: 'msg_assistant_v1',
+          expectedBranchVersion: 4,
+        },
+      });
+    });
+
+    await act(async () => {
+      await hook.result.current.runner.retryUnsent(
+        hook.result.current.state.messages.byId['local:stale-cas']
+      );
+    });
+    const rebased = hook.result.current.state.messages.byId['local:stale-cas'];
+    expect(rebased).toMatchObject({
+      baseAssistantMessageId: 'msg_other_client',
+      expectedBranchVersion: 5,
+      deliveryStatus: 'UNSENT',
+    });
+    expect(hook.result.current.state.messages.orderedIdsByConversation.cm_1).toContain(
+      'local:stale-cas'
+    );
+    expect(rebased.clientRequestId).not.toBe(staleRequestId);
+
+    mocks.sendMessage.mockResolvedValueOnce({
+      conversationId: 'cm_1',
+      userMessageId: 'msg_user_retried',
+      assistantMessageId: 'msg_assistant_retried',
+      runId: 'run_retried',
+      runStatus: 'QUEUED',
+      branchVersion: 5,
+      streamEndpoint: '/api/agent/runs/events',
+    });
+    await act(async () => {
+      await hook.result.current.runner.retryUnsent(
+        hook.result.current.state.messages.byId['local:stale-cas']
+      );
+    });
+
+    expect(mocks.sendMessage).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        clientRequestId: rebased.clientRequestId,
+        baseAssistantMessageId: 'msg_other_client',
+        expectedBranchVersion: 5,
+      })
+    );
+    expect(hook.result.current.state.messages.byId.msg_user_retried).toBeDefined();
+    hook.unmount();
+  });
+
+  it('网络歧义耗尽后保留本地 regenerate target，后续显式 send 可恢复', async () => {
+    mocks.regenerateMessage.mockResolvedValue({
+      conversationId: 'cm_1',
+      sourceMessageId: 'msg_assistant_v1',
+      assistantMessageId: 'msg_assistant_v2',
+      runId: 'run_regenerated',
+      runStatus: 'QUEUED',
+      branchVersion: 1,
+      streamEndpoint: '/api/agent/runs/events',
+    });
+    mocks.getRunStatus.mockResolvedValue(regeneratedCompletedSnapshot());
+    mocks.listMessages.mockResolvedValue({
+      items: [
+        branchUserMessage(),
+        branchAssistantMessage('msg_assistant_v1', 'run_v1', 'msg_user_branch_1', 1),
+        branchAssistantMessage('msg_assistant_v2', 'run_regenerated', 'msg_user_branch_1', 2),
+      ],
+      nextBeforeMessageId: null,
+    });
+    mocks.getConversation.mockResolvedValue(branchConversation('msg_assistant_v1', 1));
+    mocks.adoptConversationBranch.mockRejectedValue(
+      new AgentClientError('网络不可达', { kind: 'NETWORK' })
+    );
+    const hook = renderHook(
+      () => ({
+        runner: useAgentRun('cm_1'),
+        state: useAgentState(),
+        dispatch: useAgentDispatch(),
+      }),
+      { wrapper }
+    );
+    act(() => {
+      hook.result.current.dispatch({
+        type: 'CONVERSATION_CREATED',
+        conversation: branchConversation('msg_assistant_v1', 1),
+      });
+      loadBranchMessages(hook.result.current.dispatch);
+    });
+    await act(async () => {
+      await hook.result.current.runner.regenerate('msg_assistant_v1');
+    });
+    const streamOptions = mocks.streamAgentRun.mock.calls[0][0] as StreamAgentRunOptions;
+    const terminal = regeneratedCompletedEvent();
+    act(() => {
+      streamOptions.callbacks.onTerminal?.(terminal, {
+        runId: 'run_regenerated',
+        lastAppliedSequence: 1,
+        lastEventId: terminal.eventId,
+        connectionGeneration: 1,
+      });
+    });
+    await waitFor(() =>
+      expect(hook.result.current.state.runs.byId.run_regenerated.branchAdoption?.status).toBe(
+        'UNCERTAIN'
+      )
+    );
+    expect(mocks.adoptConversationBranch).toHaveBeenCalledTimes(2);
+
+    mocks.sendMessage.mockResolvedValue({
+      conversationId: 'cm_1',
+      userMessageId: 'msg_user_recover',
+      assistantMessageId: 'msg_assistant_recover',
+      runId: 'run_recover',
+      runStatus: 'QUEUED',
+      branchVersion: 2,
+      streamEndpoint: '/api/agent/runs/events',
+    });
+    await act(async () => {
+      await hook.result.current.runner.send('明确沿本地 v2 继续');
+    });
+
+    expect(mocks.sendMessage).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        baseAssistantMessageId: 'msg_assistant_v2',
+        expectedBranchVersion: 1,
+      })
+    );
+    await waitFor(() =>
+      expect(hook.result.current.state.runs.byId.run_regenerated.branchAdoption?.status).toBe(
+        'ADOPTED'
+      )
+    );
     hook.unmount();
   });
 
@@ -809,12 +1883,12 @@ describe('useAgentRun', () => {
       assistantMessageId: 'msg_assistant_new',
       runId: 'run_new',
       runStatus: 'QUEUED',
+      branchVersion: 0,
       streamEndpoint: '/api/agent/runs/events',
     });
     const hook = renderHook(
       () =>
         useAgentRun(null, {
-          policy: 'MANUAL',
           preferredModel: 'research-fast-v1',
           reasoningEffort: 'HIGH',
         }),

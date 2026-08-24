@@ -37,11 +37,13 @@ const agentMockConversationSummary = {
   conversationId: 'cm_mock_1',
   status: 'ACTIVE',
   title: '贵州茅台估值研究',
-  modelPolicy: 'AUTO',
-  preferredModel: null,
+  modelPolicy: 'MANUAL',
+  preferredModel: 'gpt-5.6-sol',
   reasoningEffort: null,
   researchDepth: 'STANDARD',
   answerDetail: 'STANDARD',
+  activeLeafMessageId: 'msg_assistant_mock_1',
+  branchVersion: 1,
   createdAt: '2026-07-20T00:00:00.000Z',
   updatedAt: '2026-07-20T00:00:05.000Z',
   messageCount: 2,
@@ -62,6 +64,7 @@ export const agentMockMessages = [
     contentBlocks: [],
     version: 1,
     parentMessageId: null,
+    contextParentMessageId: null,
     modelName: null,
     run: null,
     citations: [],
@@ -76,6 +79,7 @@ export const agentMockMessages = [
     contentBlocks: MESSAGE_BLOCK_FIXTURES,
     version: 1,
     parentMessageId: 'msg_user_mock_1',
+    contextParentMessageId: 'msg_user_mock_1',
     modelName: 'fixture-model',
     run: {
       runId: 'run_mock_1',
@@ -156,20 +160,53 @@ export const agentHandlers = [
     } satisfies AgentResponse<'/agent/conversations/list'>)
   ),
   http.post('*/api/agent/conversations/detail', () => ok(agentMockConversation)),
+  http.post('*/api/agent/conversations/branches/adopt', async ({ request }) => {
+    const body = await requestBody(request);
+    return ok({
+      conversationId: String(body.conversationId),
+      activeLeafMessageId: String(body.messageId),
+      branchVersion: Number(body.expectedBranchVersion) + 1,
+    } satisfies AgentResponse<'/agent/conversations/branches/adopt'>);
+  }),
   http.post('*/api/agent/conversations/messages/list', () =>
     ok({
+      projection: 'ACTIVE_BRANCH',
+      activeLeafMessageId: agentMockConversation.activeLeafMessageId,
+      branchVersion: agentMockConversation.branchVersion,
+      displayLeafMessageId: agentMockConversation.activeLeafMessageId,
+      lineageComplete: true,
+      isActiveBranch: true,
+      displayBranchCompatible: true,
+      canAdoptDisplay: false,
       items: agentMockMessages,
+      siblingGroups: [
+        {
+          parentMessageId: 'msg_user_mock_1',
+          selectedMessageId: 'msg_assistant_mock_1',
+          selectedVersion: 1,
+          activeMessageId: 'msg_assistant_mock_1',
+          totalVersions: 1,
+          versions: [
+            {
+              messageId: 'msg_assistant_mock_1',
+              version: 1,
+              status: 'COMPLETED',
+              isActive: true,
+              isDisplayed: true,
+              canAdopt: false,
+              createdAt: '2026-07-20T00:00:02.000Z',
+            },
+          ],
+        },
+      ],
       nextBeforeMessageId: null,
     } satisfies AgentResponse<'/agent/conversations/messages/list'>)
   ),
   http.post('*/api/agent/conversations/model/update', async ({ request }) => {
     const body = await requestBody(request);
-    const modelPolicy = body.modelPolicy === 'MANUAL' ? 'MANUAL' : 'AUTO';
-    const preferredModel = modelPolicy === 'MANUAL' ? String(body.preferredModel) : null;
-    const reasoningEffort =
-      modelPolicy === 'MANUAL' && typeof body.reasoningEffort === 'string'
-        ? body.reasoningEffort
-        : null;
+    const modelPolicy = 'MANUAL';
+    const preferredModel = String(body.preferredModel);
+    const reasoningEffort = typeof body.reasoningEffort === 'string' ? body.reasoningEffort : null;
     const researchDepth =
       body.researchDepth === 'QUICK' || body.researchDepth === 'DEEP'
         ? body.researchDepth
@@ -279,6 +316,7 @@ export const agentHandlers = [
       assistantMessageId: 'msg_assistant_mock_1',
       runId: 'run_mock_1',
       runStatus: 'QUEUED',
+      branchVersion: 1,
       streamEndpoint: '/api/agent/runs/events',
     } satisfies AgentResponse<'/agent/messages/send'>)
   ),
@@ -289,6 +327,7 @@ export const agentHandlers = [
       assistantMessageId: 'msg_assistant_mock_2',
       runId: 'run_mock_2',
       runStatus: 'QUEUED',
+      branchVersion: 1,
       streamEndpoint: '/api/agent/runs/events',
     } satisfies AgentResponse<'/agent/runs/regenerate'>)
   ),
@@ -300,6 +339,7 @@ export const agentHandlers = [
       runId: 'run_mock_retry',
       runStatus: 'QUEUED',
       retryMode: 'SAFE_CHECKPOINT',
+      branchVersion: 1,
       streamEndpoint: '/api/agent/runs/events',
     } satisfies AgentResponse<'/agent/runs/retry'>)
   ),

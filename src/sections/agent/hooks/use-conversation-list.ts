@@ -6,9 +6,7 @@ import { selectConversationList } from '../state/agent-selectors';
 import { nextAgentRequestGeneration } from '../lib/request-generation';
 import { useAgentState, useAgentDispatch } from '../state/agent-provider';
 
-function errorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : '会话列表加载失败';
-}
+const CONVERSATION_LIST_ERROR_MESSAGE = '会话列表暂时无法加载，请稍后重试';
 
 export function useConversationList() {
   const state = useAgentState();
@@ -48,9 +46,13 @@ export function useConversationList() {
           items: result.items,
           nextCursor: result.nextCursor ?? null,
         });
-      } catch (error) {
+      } catch {
         if (controller.signal.aborted) return;
-        dispatch({ type: 'CONVERSATION_LIST_FAILED', generation, error: errorMessage(error) });
+        dispatch({
+          type: 'CONVERSATION_LIST_FAILED',
+          generation,
+          error: CONVERSATION_LIST_ERROR_MESSAGE,
+        });
       }
     },
     [dispatch]

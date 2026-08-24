@@ -20,6 +20,18 @@ function finiteNumber(value: unknown): number | null {
   return value;
 }
 
+export function calculatePriceChange(
+  priceValue: unknown,
+  preCloseValue: unknown
+): { amount: number; percent: number } | null {
+  const price = finiteNumber(priceValue);
+  const preClose = finiteNumber(preCloseValue);
+  if (price == null || price <= 0 || preClose == null || preClose <= 0) return null;
+
+  const amount = price - preClose;
+  return { amount, percent: (amount / preClose) * 100 };
+}
+
 function dateParts(value: string): [number, number, number] | null {
   const match = value.match(/^(\d{4})-?(\d{2})-?(\d{2})/);
   if (!match) return null;

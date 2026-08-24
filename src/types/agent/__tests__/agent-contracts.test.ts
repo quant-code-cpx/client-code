@@ -124,10 +124,10 @@ describe('Agent 公共契约', () => {
     ]);
   });
 
-  it('错误码覆盖 6001–6049 与 6099，且无重复', () => {
+  it('错误码覆盖 6001–6051 与 6099，且无重复', () => {
     const codes = AGENT_ERROR_DEFINITIONS.map((definition) => definition.code);
 
-    expect(codes).toEqual([...Array.from({ length: 49 }, (_, index) => 6001 + index), 6099]);
-    expect(new Set(codes).size).toBe(50);
+    expect(codes).toEqual([...Array.from({ length: 51 }, (_, index) => 6001 + index), 6099]);
+    expect(new Set(codes).size).toBe(52);
   });
 });

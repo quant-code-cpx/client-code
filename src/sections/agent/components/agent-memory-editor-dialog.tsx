@@ -1,6 +1,6 @@
 import type { AgentRequest } from 'src/api/agent';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useRef, useState, useEffect, useCallback } from 'react';
 
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
@@ -31,7 +31,26 @@ type Props = {
   onSaved: (memory: AgentMemory) => void;
 };
 
+type PendingRequest = {
+  id: string;
+  semanticFingerprint: string;
+};
+
+function stableJson(value: unknown): string {
+  if (Array.isArray(value)) {
+    return `[${value.map(stableJson).join(',')}]`;
+  }
+  if (value !== null && typeof value === 'object') {
+    return `{${Object.entries(value)
+      .sort(([left], [right]) => (left < right ? -1 : left > right ? 1 : 0))
+      .map(([entryKey, nested]) => `${JSON.stringify(entryKey)}:${stableJson(nested)}`)
+      .join(',')}}`;
+  }
+  return JSON.stringify(value);
+}
+
 export function AgentMemoryEditorDialog({ memory, open, onClose, onSaved }: Props) {
+  const pendingRequestRef = useRef<PendingRequest | null>(null);
   const [category, setCategory] = useState<MemoryCategory>('PREFERENCE');
   const [key, setKey] = useState('');
   const [valueJson, setValueJson] = useState('{\n  "style": "concise"\n}');
@@ -43,6 +62,7 @@ export function AgentMemoryEditorDialog({ memory, open, onClose, onSaved }: Prop
 
   useEffect(() => {
     if (!open) return;
+    pendingRequestRef.current = null;
     setCategory(memory?.category ?? 'PREFERENCE');
     setKey(memory?.key ?? '');
     setValueJson(memory ? formatMemoryJson(memory.value) : '{\n  "style": "concise"\n}');
@@ -77,9 +97,10 @@ export function AgentMemoryEditorDialog({ memory, open, onClose, onSaved }: Prop
         topic: 'GENERAL' as const,
         confirmation: true as const,
       };
-      const saved = memory
-        ? await agentApi.updateMemory({ ...shared, memoryId: memory.memoryId })
-        : await agentApi.createMemory({
+      const semanticCommand = memory
+        ? { operation: 'UPDATE_MEMORY', ...shared, memoryId: memory.memoryId }
+        : {
+            operation: 'CREATE_MEMORY',
             ...shared,
             category,
             key: key.trim(),
@@ -87,7 +108,27 @@ export function AgentMemoryEditorDialog({ memory, open, onClose, onSaved }: Prop
             sourceMessageId: null,
             confidence: 1,
             expiresAt: null,
+          };
+      const semanticFingerprint = stableJson(semanticCommand);
+      const pendingRequest = pendingRequestRef.current;
+      const clientRequestId =
+        pendingRequest?.semanticFingerprint === semanticFingerprint
+          ? pendingRequest.id
+          : globalThis.crypto.randomUUID();
+      pendingRequestRef.current = { id: clientRequestId, semanticFingerprint };
+      const saved = memory
+        ? await agentApi.updateMemory({ ...shared, clientRequestId, memoryId: memory.memoryId })
+        : await agentApi.createMemory({
+            ...shared,
+            clientRequestId,
+            category,
+            key: key.trim(),
+            sourceConversationId: null,
+            sourceMessageId: null,
+            confidence: 1,
+            expiresAt: null,
           });
+      pendingRequestRef.current = null;
       onSaved(saved);
       onClose();
     } catch (caught) {

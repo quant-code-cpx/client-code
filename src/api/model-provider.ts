@@ -1,9 +1,6 @@
 import { apiClient } from './client';
 
-export type ModelAdapterKind =
-  | 'openai-responses'
-  | 'openai-chat-compatible'
-  | 'anthropic-messages';
+export type ModelAdapterKind = 'openai-responses' | 'openai-chat-compatible' | 'anthropic-messages';
 export type ModelProviderCostTier = 'LOW' | 'MEDIUM' | 'HIGH';
 export type ModelProviderCapability =
   | 'STREAMING'
@@ -109,6 +106,7 @@ export interface ModelRoutingSummary {
   failedProbes: number;
   configurationIssues: number;
   activeVersion: string | null;
+  hasUnpublishedChanges: boolean;
 }
 
 export interface CreateModelConnectionPayload {

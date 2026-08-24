@@ -1,6 +1,5 @@
 import type { AgentResponse } from 'src/api/agent';
 import type {
-  ModelPolicy,
   AgentToolKey,
   MessageStatus,
   AgentSseEvent,
@@ -11,6 +10,21 @@ export type AgentConversationSummary = AgentResponse<'/agent/conversations/list'
 export type AgentConversationDetail = AgentResponse<'/agent/conversations/detail'>;
 export type AgentMessageSnapshot =
   AgentResponse<'/agent/conversations/messages/list'>['items'][number];
+export type AgentMessageListSnapshot = AgentResponse<'/agent/conversations/messages/list'>;
+export type AgentMessageSiblingGroup = AgentMessageListSnapshot['siblingGroups'][number];
+export type AgentMessageProjectionState = Pick<
+  AgentMessageListSnapshot,
+  | 'projection'
+  | 'branchVersion'
+  | 'lineageComplete'
+  | 'isActiveBranch'
+  | 'displayBranchCompatible'
+  | 'canAdoptDisplay'
+  | 'siblingGroups'
+> & {
+  activeLeafMessageId: string | null;
+  displayLeafMessageId: string | null;
+};
 export type AgentRunStatusSnapshot = AgentResponse<'/agent/runs/status'>;
 export type AgentRunCreated = AgentResponse<'/agent/messages/send'>;
 export type AgentRunRegenerated = AgentResponse<'/agent/runs/regenerate'>;
@@ -67,6 +81,10 @@ export type AgentMessageEntity = AgentMessageSnapshot & {
   clientRequestId?: string;
   localId?: string;
   deliveryStatus?: AgentMessageDeliveryStatus;
+  /** Frozen branch admission used to replay an unsent request with the same idempotency hash. */
+  baseAssistantMessageId?: string | null;
+  expectedBranchVersion?: number;
+  branchAdoptionRunId?: string;
 };
 
 export type AgentRunConnectionState =
@@ -199,6 +217,11 @@ export type AgentRunProjection = {
   needsFinalSnapshot: boolean;
   finalSnapshotError?: string | null;
   cancelRequested: boolean;
+  branchAdoption?: {
+    targetMessageId: string;
+    expectedBranchVersion: number;
+    status: 'PENDING' | 'ADOPTING' | 'ADOPTED' | 'UNCERTAIN' | 'CONFLICT' | 'ABANDONED';
+  };
 };
 
 export type AsyncStatus = 'idle' | 'loading' | 'ready' | 'error';
@@ -218,6 +241,7 @@ export type AgentConversationLoadState = {
   detailGeneration: number;
   messagesGeneration: number;
   nextBeforeMessageId: string | null;
+  messageProjection: AgentMessageProjectionState | null;
 };
 
 export type AgentState = {
@@ -272,6 +296,7 @@ export type AgentAction =
       generation: number;
       items: AgentMessageSnapshot[];
       nextBeforeMessageId: string | null;
+      projection?: AgentMessageProjectionState;
       mode: 'replace' | 'prepend' | 'refresh';
       authoritative?: boolean;
     }
@@ -281,6 +306,7 @@ export type AgentAction =
       generation: number;
       error: string;
     }
+  | { type: 'MESSAGE_CURSOR_INVALIDATED'; conversationId: string; generation: number }
   | {
       type: 'OPTIMISTIC_USER_MESSAGE_ADDED';
       conversationId: string;
@@ -295,11 +321,33 @@ export type AgentAction =
   | { type: 'MESSAGE_RETRY_REQUESTED'; messageId: string }
   | { type: 'MESSAGE_SEND_FAILED'; localMessageId: string }
   | {
+      type: 'MESSAGE_BRANCH_REBASED';
+      localMessageId: string;
+      clientRequestId: string;
+      baseAssistantMessageId: string;
+      expectedBranchVersion: number;
+    }
+  | {
       type: 'RUN_REGENERATION_CONFIRMED';
       conversationId: string;
       response: AgentRunRegenerated | AgentRunRetried;
       createdAt: string;
+      sourceMessageId: string;
+      contextParentMessageId: string | null;
+      baseAssistantMessageId: string | null;
+      expectedBranchVersion: number;
     }
+  | { type: 'RUN_BRANCH_ADOPTION_STARTED'; runId: string }
+  | {
+      type: 'RUN_BRANCH_ADOPTION_RESOLVED';
+      runId: string;
+      conversationId: string;
+      activeLeafMessageId: string;
+      branchVersion: number;
+    }
+  | { type: 'RUN_BRANCH_ADOPTION_UNCERTAIN'; runId: string }
+  | { type: 'RUN_BRANCH_ADOPTION_CONFLICTED'; runId: string }
+  | { type: 'RUN_BRANCH_ADOPTION_ABANDONED'; runId: string }
   | {
       type: 'RUN_DISCOVERED';
       runId: string;
@@ -345,7 +393,6 @@ export type ComposerDraft = {
 };
 
 export type AgentComposerModel = {
-  policy: ModelPolicy;
   preferredModel: string | null;
   reasoningEffort: string | null;
 };

@@ -124,4 +124,48 @@ describe('AgentReportPreviewDialog', () => {
       })
     );
   });
+
+  it('RPT-UI-003: 报告标题可编辑，刷新预览后的标题与确认请求保持一致', async () => {
+    const title = '中文在线跟踪纪要—2026-08-23';
+    const refreshed = {
+      ...preview,
+      confirmationToken: 'confirmation-token-title',
+      preview: { ...preview.preview!, title },
+    } satisfies ReportSaveResponse;
+    const savedWithTitle = {
+      ...saved,
+      report: { ...saved.report!, title },
+    } satisfies ReportSaveResponse;
+    mocks.saveReport
+      .mockResolvedValueOnce(preview)
+      .mockResolvedValueOnce(refreshed)
+      .mockResolvedValueOnce(savedWithTitle);
+    const onSaved = vi.fn();
+    const { user } = renderWithProviders(
+      <AgentReportPreviewDialog open runId="run_1" onClose={vi.fn()} onSaved={onSaved} />
+    );
+
+    const titleInput = await screen.findByRole('textbox', { name: '报告标题' });
+    await user.clear(titleInput);
+    await user.type(titleInput, title);
+
+    expect(screen.getByRole('button', { name: '确认保存' })).toBeDisabled();
+    await user.click(screen.getByRole('button', { name: '更新预览' }));
+
+    await waitFor(() =>
+      expect(mocks.saveReport).toHaveBeenLastCalledWith({ runId: 'run_1', title })
+    );
+    expect(screen.getByRole('button', { name: '确认保存' })).toBeEnabled();
+
+    await user.click(screen.getByRole('button', { name: '确认保存' }));
+
+    await waitFor(() => expect(onSaved).toHaveBeenCalledWith(savedWithTitle.report));
+    expect(mocks.saveReport).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        confirmationToken: 'confirmation-token-title',
+        clientRequestId: expect.any(String),
+        title,
+      })
+    );
+  });
 });

@@ -136,14 +136,20 @@ function SidebarContent({
         {error && totalItemCount === 0 ? (
           <Alert
             severity="error"
-            action={
-              <Button color="inherit" size="small" onClick={onRetry}>
-                重试
-              </Button>
-            }
-            sx={{ mx: 1.5 }}
+            sx={{
+              mx: 1.5,
+              alignItems: 'flex-start',
+              '& .MuiAlert-message': {
+                width: 1,
+                minWidth: 0,
+                overflowWrap: 'anywhere',
+              },
+            }}
           >
-            {error}
+            <Typography variant="body2">{error}</Typography>
+            <Button color="inherit" size="small" onClick={onRetry} sx={{ mt: 1 }}>
+              重试
+            </Button>
           </Alert>
         ) : null}
 

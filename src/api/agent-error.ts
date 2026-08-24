@@ -120,7 +120,12 @@ function validationDetailMessages(input: unknown): string[] {
 
 function categoryForCode(code?: number): AgentErrorCategory | undefined {
   if (code === undefined) return undefined;
-  if ([6001, 6002, 6003, 6004, 6013, 6014, 6018, 6019, 6021, 6022, 6024, 6025, 6030, 6031].includes(code)) {
+  if (
+    [
+      6001, 6002, 6003, 6004, 6013, 6014, 6018, 6019, 6021, 6022, 6024, 6025, 6030, 6031,
+      6050, 6051,
+    ].includes(code)
+  ) {
     return 'VALIDATION';
   }
   if ([6005, 6006, 6007].includes(code)) return 'MODEL';

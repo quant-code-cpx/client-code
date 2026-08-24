@@ -1,5 +1,3 @@
-import type { ModelPolicy } from 'src/types/agent/generated';
-
 import { useRef, useMemo, useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
@@ -26,6 +24,8 @@ import { TERMINAL_RUN_STATUSES } from '../state/agent-state.types';
 import { useConversationList } from '../hooks/use-conversation-list';
 import { formatReasoningEffort } from './conversation-model-control';
 import { AgentMuiXProvider } from './mui-x-chat/agent-mui-x-provider';
+import { useAgentModelCatalog } from '../hooks/use-agent-model-catalog';
+import { selectIsHistoricalBranchView } from '../state/agent-selectors';
 import { AgentReportPreviewDialog } from './agent-report-preview-dialog';
 import { useAgentState, useAgentDispatch } from '../state/agent-provider';
 import { toChatMessages, toChatConversations } from './mui-x-chat/agent-chat-mappers';
@@ -33,7 +33,6 @@ import { toChatMessages, toChatConversations } from './mui-x-chat/agent-chat-map
 import type { AgentComposerModel } from '../state/agent-state.types';
 
 const DEFAULT_NEW_CONVERSATION_MODEL: AgentComposerModel = {
-  policy: 'AUTO',
   preferredModel: null,
   reasoningEffort: null,
 };
@@ -68,7 +67,22 @@ export function AgentShell() {
   const conversationId = state.currentConversationId;
   const conversationList = useConversationList();
   const conversationState = useConversation(conversationId);
-  const run = useAgentRun(conversationId, newConversationModel);
+  const {
+    items: models,
+    defaultModel,
+    loading: modelsLoading,
+    error: modelsError,
+    reload: reloadModels,
+    rememberModel,
+  } = useAgentModelCatalog();
+  const effectiveNewConversationModel = useMemo<AgentComposerModel>(
+    () => ({
+      ...newConversationModel,
+      preferredModel: newConversationModel.preferredModel ?? defaultModel,
+    }),
+    [defaultModel, newConversationModel]
+  );
+  const run = useAgentRun(conversationId, effectiveNewConversationModel);
   const draft = useComposerDraft(conversationId ?? 'new');
   const isRunning = Boolean(run.activeRun && !TERMINAL_RUN_STATUSES.has(run.activeRun.status));
   const pageError = conversationState.loadState?.detailStatus === 'error';
@@ -110,7 +124,12 @@ export function AgentShell() {
         staleConversationIds: new Set(state.staleConversationIds),
         messageCountByConversation,
       }),
-    [activeConversationIds, messageCountByConversation, state.staleConversationIds, visibleConversations]
+    [
+      activeConversationIds,
+      messageCountByConversation,
+      state.staleConversationIds,
+      visibleConversations,
+    ]
   );
   const projectedMessages = useMemo(
     () => toChatMessages(pageError ? [] : conversationState.messages),
@@ -199,27 +218,18 @@ export function AgentShell() {
   }, [dispatch, router]);
 
   const handleModelSave = useCallback(
-    async (
-      policy: ModelPolicy,
-      preferredModel: string | null,
-      reasoningEffort: string | null
-    ) => {
+    async (preferredModel: string, reasoningEffort: string | null) => {
       if (!conversationId) {
-        const nextPreferredModel = policy === 'MANUAL' ? preferredModel : null;
-        const nextReasoningEffort = policy === 'MANUAL' ? reasoningEffort : null;
         setNewConversationModel({
-          policy,
-          preferredModel: nextPreferredModel,
-          reasoningEffort: nextReasoningEffort,
+          preferredModel,
+          reasoningEffort,
         });
+        rememberModel(preferredModel);
         setModelError(null);
         setModelNotice({
           selectionGeneration: state.selectionGeneration,
           severity: 'success',
-          message:
-            policy === 'MANUAL'
-              ? `已选择 ${nextPreferredModel ?? '指定模型'}${nextReasoningEffort ? ` · ${formatReasoningEffort(nextReasoningEffort)}` : ''}；首条消息将使用此配置。`
-              : '已选择自动模型；首条消息将由系统自动选择模型。',
+          message: `已选择 ${preferredModel}${reasoningEffort ? ` · ${formatReasoningEffort(reasoningEffort)}` : ''}；首条消息将使用此配置。`,
         });
         return true;
       }
@@ -229,10 +239,11 @@ export function AgentShell() {
       try {
         const response = await agentApi.updateConversationModel({
           conversationId,
-          modelPolicy: policy,
+          modelPolicy: 'MANUAL',
           preferredModel,
           reasoningEffort,
         });
+        rememberModel(preferredModel);
         const preparation = response.contextPreparation;
         setModelNotice({
           selectionGeneration: state.selectionGeneration,
@@ -259,7 +270,7 @@ export function AgentShell() {
         setModelSaving(false);
       }
     },
-    [conversationId, conversationState, state.selectionGeneration]
+    [conversationId, conversationState, rememberModel, state.selectionGeneration]
   );
 
   const visibleModelError =
@@ -267,13 +278,33 @@ export function AgentShell() {
   const visibleModelNotice =
     modelNotice?.selectionGeneration === state.selectionGeneration ? modelNotice : null;
 
-  const selectedModelPolicy =
-    conversationState.conversation?.modelPolicy ?? newConversationModel.policy;
-  const selectedPreferredModel =
-    conversationState.conversation?.preferredModel ?? newConversationModel.preferredModel;
-  const selectedReasoningEffort =
-    conversationState.conversation?.reasoningEffort ?? newConversationModel.reasoningEffort;
+  const selectedPreferredModel = conversationState.conversation
+    ? conversationState.conversation.preferredModel
+    : effectiveNewConversationModel.preferredModel;
+  const selectedReasoningEffort = conversationState.conversation
+    ? (conversationState.conversation.reasoningEffort ?? null)
+    : effectiveNewConversationModel.reasoningEffort;
   const canConfigureModel = Boolean(conversationState.conversation) || !conversationId;
+  const selectedCatalogModel = models.find((model) => model.model === selectedPreferredModel);
+  const modelBlockedReason = modelsLoading
+    ? '正在加载可用模型…'
+    : modelsError
+      ? `无法验证当前模型：${modelsError}`
+      : !selectedPreferredModel
+        ? '暂无可用模型，请先配置模型供应商。'
+        : !selectedCatalogModel
+          ? '当前会话模型已不在可用目录，请切换模型。'
+          : selectedCatalogModel.status !== 'AVAILABLE'
+            ? (selectedCatalogModel.reason ?? '当前会话模型暂不可用，请切换模型。')
+            : null;
+  const viewingHistoricalBranch = selectIsHistoricalBranchView(conversationState.branchProjection);
+  const branchBlockedReason = conversationState.branchChanging
+    ? '正在切换回答版本，请稍候…'
+    : viewingHistoricalBranch && conversationState.branchProjection
+      ? conversationState.branchProjection.canAdoptDisplay
+        ? '当前正在查看历史版本；请先选择“从此版本继续”或回到最新。'
+        : '当前历史版本不可继续；请先回到最新。'
+      : null;
 
   const evidenceVisible = Boolean(evidenceMessage) && !evidenceDismissed;
   const evidencePanelOpen = wideEvidence ? evidenceVisible : evidenceDrawerOpen;
@@ -329,9 +360,12 @@ export function AgentShell() {
             conversationTitle={conversationState.conversation?.title ?? null}
             activeRunStatus={run.activeRun?.status ?? null}
             canConfigureModel={canConfigureModel}
-            modelPolicy={selectedModelPolicy}
             preferredModel={selectedPreferredModel}
             reasoningEffort={selectedReasoningEffort}
+            models={models}
+            defaultModel={defaultModel}
+            modelLoading={modelsLoading}
+            modelLoadError={modelsError}
             modelSaving={modelSaving}
             evidenceAvailable={Boolean(evidenceMessage)}
             evidencePanelOpen={evidencePanelOpen}
@@ -340,6 +374,7 @@ export function AgentShell() {
               if (wideEvidence) setEvidenceDismissed((value) => !value);
               else setEvidenceDrawerOpen((value) => !value);
             }}
+            onReloadModels={reloadModels}
             onModelSave={handleModelSave}
           />
 
@@ -385,6 +420,12 @@ export function AgentShell() {
               onRetryMessage={run.retryUnsent}
               onSaveReport={setReportPreviewRunId}
               onContinue={run.continueReceiving}
+              branchProjection={conversationState.branchProjection}
+              branchChanging={conversationState.branchChanging}
+              branchError={conversationState.branchError}
+              onViewBranch={(messageId) => void conversationState.viewBranch(messageId)}
+              onAdoptDisplayedBranch={() => void conversationState.adoptDisplayedBranch()}
+              onReturnToActiveBranch={() => void conversationState.returnToActiveBranch()}
             />
           ) : (
             <MessageViewport
@@ -400,6 +441,12 @@ export function AgentShell() {
               onRetryMessage={run.retryUnsent}
               onSaveReport={setReportPreviewRunId}
               onContinue={run.continueReceiving}
+              branchProjection={conversationState.branchProjection}
+              branchChanging={conversationState.branchChanging}
+              branchError={conversationState.branchError}
+              onViewBranch={(messageId) => void conversationState.viewBranch(messageId)}
+              onAdoptDisplayedBranch={() => void conversationState.adoptDisplayedBranch()}
+              onReturnToActiveBranch={() => void conversationState.returnToActiveBranch()}
             />
           )}
 
@@ -411,6 +458,7 @@ export function AgentShell() {
               isRunning={isRunning}
               stopping={run.activeRun?.cancelRequested ?? false}
               error={run.commandError}
+              blockedReason={branchBlockedReason ?? modelBlockedReason}
               onSubmit={handleSubmit}
               onStop={run.cancel}
             />

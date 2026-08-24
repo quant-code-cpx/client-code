@@ -4,6 +4,7 @@ import type { TodayTimelineResponse } from 'stock-sdk';
 import {
   mergeMarketBars,
   toShanghaiTimestamp,
+  calculatePriceChange,
   normalizeTodayTimeline,
   isAShareTradingSession,
   aShareTimelineSlotIndex,
@@ -28,6 +29,13 @@ const validItem: StockChartItem = {
 };
 
 describe('market-kline-data', () => {
+  it('按昨收计算实时涨跌额和涨跌幅，缺失或无效昨收不伪造结果', () => {
+    expect(calculatePriceChange(10.5, 10)).toEqual({ amount: 0.5, percent: 5 });
+    expect(calculatePriceChange(9.5, 10)).toEqual({ amount: -0.5, percent: -5 });
+    expect(calculatePriceChange(10.5, undefined)).toBeNull();
+    expect(calculatePriceChange(10.5, 0)).toBeNull();
+  });
+
   it('把交易日按上海时区解析，并按 KLineChart 单位归一化', () => {
     const result = normalizeStockChartItems([
       validItem,

@@ -65,6 +65,7 @@ function runCreated(): AgentRunCreated {
     assistantMessageId: 'msg_assistant_1',
     runId: 'run_1',
     runStatus: 'QUEUED',
+    branchVersion: 0,
     streamEndpoint: '/api/agent/runs/events',
   };
 }
@@ -563,11 +564,13 @@ describe('Agent reducer', () => {
       conversationId: 'cm_a',
       title: '会话 A',
       status: 'ACTIVE',
-      modelPolicy: 'AUTO',
-      preferredModel: null,
+      modelPolicy: 'MANUAL',
+      preferredModel: 'gpt-5.6-sol',
       reasoningEffort: null,
       researchDepth: 'STANDARD',
       answerDetail: 'STANDARD',
+      activeLeafMessageId: null,
+      branchVersion: 0,
       messageCount: 0,
       lastMessageAt: '2026-07-20T01:00:00.000Z',
       createdAt: '2026-07-20T01:00:00.000Z',
@@ -610,5 +613,210 @@ describe('Agent reducer', () => {
 
     expect(stale).toBe(state);
     expect(stale.loadsByConversation[CONVERSATION_ID].messagesStatus).toBe('loading');
+  });
+
+  it('较旧或同版本异叶的消息投影不能回退已知会话分支', () => {
+    const detail = {
+      conversationId: CONVERSATION_ID,
+      title: '分支单调性测试',
+      status: 'ACTIVE' as const,
+      modelPolicy: 'MANUAL' as const,
+      preferredModel: 'gpt-5.6-sol',
+      reasoningEffort: null,
+      researchDepth: 'STANDARD' as const,
+      answerDetail: 'STANDARD' as const,
+      activeLeafMessageId: 'answer-v6',
+      branchVersion: 6,
+      messageCount: 1,
+      lastMessageAt: '2026-08-24T01:00:00.000Z',
+      createdAt: '2026-08-24T00:00:00.000Z',
+      updatedAt: '2026-08-24T01:00:00.000Z',
+      statusVersion: 1,
+    };
+    let state = createInitialAgentState(CONVERSATION_ID);
+    state = agentReducer(state, {
+      type: 'CONVERSATION_DETAIL_REQUESTED',
+      conversationId: CONVERSATION_ID,
+      generation: 1,
+    });
+    state = agentReducer(state, {
+      type: 'CONVERSATION_DETAIL_SUCCEEDED',
+      conversationId: CONVERSATION_ID,
+      generation: 1,
+      conversation: detail,
+    });
+
+    for (const [generation, branchVersion, activeLeafMessageId] of [
+      [2, 5, 'answer-v5'],
+      [3, 6, 'answer-split-brain'],
+    ] as const) {
+      state = agentReducer(state, {
+        type: 'MESSAGES_REQUESTED',
+        conversationId: CONVERSATION_ID,
+        generation,
+      });
+      state = agentReducer(state, {
+        type: 'MESSAGES_SUCCEEDED',
+        conversationId: CONVERSATION_ID,
+        generation,
+        items: [{ ...finalMessageSnapshot(), messageId: activeLeafMessageId }],
+        nextBeforeMessageId: 'stale-cursor',
+        mode: 'replace',
+        projection: {
+          projection: 'ACTIVE_BRANCH',
+          activeLeafMessageId,
+          branchVersion,
+          displayLeafMessageId: activeLeafMessageId,
+          lineageComplete: true,
+          isActiveBranch: true,
+          displayBranchCompatible: true,
+          canAdoptDisplay: false,
+          siblingGroups: [],
+        },
+      });
+
+      expect(state.conversations.byId[CONVERSATION_ID]).toMatchObject({
+        activeLeafMessageId: 'answer-v6',
+        branchVersion: 6,
+      });
+      expect(state.messages.byId[activeLeafMessageId]).toBeUndefined();
+      expect(state.loadsByConversation[CONVERSATION_ID]).toMatchObject({
+        messagesStatus: 'error',
+        nextBeforeMessageId: null,
+      });
+    }
+  });
+
+  it('只保存 ACTIVE_BRANCH 返回的可见链，并保留同一快照的版本元数据', () => {
+    let state = createInitialAgentState(CONVERSATION_ID);
+    state = agentReducer(state, {
+      type: 'MESSAGES_REQUESTED',
+      conversationId: CONVERSATION_ID,
+      generation: 1,
+    });
+    state = agentReducer(state, {
+      type: 'MESSAGES_SUCCEEDED',
+      conversationId: CONVERSATION_ID,
+      generation: 1,
+      items: [
+        {
+          ...finalMessageSnapshot(),
+          messageId: 'answer-v2',
+          parentMessageId: 'question-1',
+          contextParentMessageId: 'question-1',
+          version: 2,
+        },
+      ],
+      nextBeforeMessageId: null,
+      mode: 'replace',
+      projection: {
+        projection: 'ACTIVE_BRANCH',
+        activeLeafMessageId: 'answer-v2',
+        branchVersion: 2,
+        displayLeafMessageId: 'answer-v2',
+        lineageComplete: true,
+        isActiveBranch: true,
+        displayBranchCompatible: true,
+        canAdoptDisplay: false,
+        siblingGroups: [
+          {
+            parentMessageId: 'question-1',
+            selectedMessageId: 'answer-v2',
+            selectedVersion: 2,
+            activeMessageId: 'answer-v2',
+            totalVersions: 2,
+            versions: [
+              {
+                messageId: 'answer-v1',
+                version: 1,
+                status: 'COMPLETED',
+                isActive: false,
+                isDisplayed: false,
+                canAdopt: true,
+                createdAt: '2026-08-16T01:00:00.000Z',
+              },
+              {
+                messageId: 'answer-v2',
+                version: 2,
+                status: 'COMPLETED',
+                isActive: true,
+                isDisplayed: true,
+                canAdopt: false,
+                createdAt: '2026-08-16T01:01:00.000Z',
+              },
+            ],
+          },
+        ],
+      },
+    });
+
+    expect(state.messages.orderedIdsByConversation[CONVERSATION_ID]).toEqual(['answer-v2']);
+    expect(
+      state.loadsByConversation[CONVERSATION_ID].messageProjection?.siblingGroups[0]?.totalVersions
+    ).toBe(2);
+  });
+
+  it('跨 Tab adopt 改变 frozen leaf/version 后丢弃不兼容 optimistic tail', () => {
+    let state = createInitialAgentState(CONVERSATION_ID);
+    state = agentReducer(state, {
+      type: 'MESSAGES_REQUESTED',
+      conversationId: CONVERSATION_ID,
+      generation: 1,
+    });
+    state = agentReducer(state, {
+      type: 'MESSAGES_SUCCEEDED',
+      conversationId: CONVERSATION_ID,
+      generation: 1,
+      items: [],
+      nextBeforeMessageId: null,
+      mode: 'replace',
+      projection: {
+        projection: 'ACTIVE_BRANCH',
+        activeLeafMessageId: 'answer-v1',
+        branchVersion: 1,
+        displayLeafMessageId: 'answer-v1',
+        lineageComplete: true,
+        isActiveBranch: true,
+        displayBranchCompatible: true,
+        canAdoptDisplay: false,
+        siblingGroups: [],
+      },
+    });
+    state = agentReducer(state, {
+      type: 'OPTIMISTIC_USER_MESSAGE_ADDED',
+      conversationId: CONVERSATION_ID,
+      message: {
+        ...optimisticMessage(),
+        contextParentMessageId: 'answer-v1',
+        baseAssistantMessageId: 'answer-v1',
+        expectedBranchVersion: 1,
+      },
+    });
+    state = agentReducer(state, {
+      type: 'MESSAGES_REQUESTED',
+      conversationId: CONVERSATION_ID,
+      generation: 2,
+    });
+    state = agentReducer(state, {
+      type: 'MESSAGES_SUCCEEDED',
+      conversationId: CONVERSATION_ID,
+      generation: 2,
+      items: [],
+      nextBeforeMessageId: null,
+      mode: 'refresh',
+      projection: {
+        projection: 'ACTIVE_BRANCH',
+        activeLeafMessageId: 'answer-other-tab',
+        branchVersion: 2,
+        displayLeafMessageId: 'answer-other-tab',
+        lineageComplete: true,
+        isActiveBranch: true,
+        displayBranchCompatible: true,
+        canAdoptDisplay: false,
+        siblingGroups: [],
+      },
+    });
+
+    expect(state.messages.orderedIdsByConversation[CONVERSATION_ID]).toEqual([]);
   });
 });

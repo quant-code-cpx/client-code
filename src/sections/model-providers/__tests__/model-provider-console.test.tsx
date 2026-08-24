@@ -1,4 +1,8 @@
-import type { ModelDeployment, ModelConnection, ModelAdapterDefinition } from 'src/api/model-provider';
+import type {
+  ModelDeployment,
+  ModelConnection,
+  ModelAdapterDefinition,
+} from 'src/api/model-provider';
 
 import { act, waitFor, renderHook } from '@testing-library/react';
 
@@ -84,8 +88,9 @@ const summary = {
   activeDeployments: 1,
   verifiedConnections: 1,
   failedProbes: 0,
-  configurationIssues: 0,
-  activeVersion: null,
+    configurationIssues: 0,
+    activeVersion: null,
+    hasUnpublishedChanges: false,
 };
 
 beforeEach(() => {

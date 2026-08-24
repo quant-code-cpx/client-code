@@ -14,6 +14,7 @@ import Typography from '@mui/material/Typography';
 import { HasPermission } from 'src/permission';
 import { DashboardContent } from 'src/layouts/dashboard';
 import {
+  publishModelRouting,
   testModelConnection,
   probeModelDeployment,
   deleteModelConnection,
@@ -36,10 +37,11 @@ import { DeploymentEditorDrawer } from '../deployments/deployment-editor-drawer'
 
 type ConsoleTab = 'connections' | 'deployments';
 type ActionFeedback = { severity: 'error' | 'success'; message: string };
+const ROUTING_PUBLISH_ACTION_ID = 'model-routing-publish';
 
 export function getModelProbeFeedback(
   displayName: string,
-  operation: '连接测试' | '深度探测',
+  operation: '连接测试' | '模型测试',
   result: Pick<ModelProbeResult, 'status' | 'steps'>
 ): ActionFeedback {
   if (result.status === 'PASSED') {
@@ -184,6 +186,30 @@ export function ModelProvidersView({ unauthorized = false }: { unauthorized?: bo
 
         <ProviderStatusStrip summary={summary} loading={loading} />
 
+        {summary.hasUnpublishedChanges ? (
+          <Alert
+            severity="warning"
+            action={
+              <Button
+                color="inherit"
+                size="small"
+                onClick={() =>
+                  void perform(
+                    ROUTING_PUBLISH_ACTION_ID,
+                    publishModelRouting,
+                    '活动路由已同步，后续新建运行将使用最新配置。'
+                  )
+                }
+                disabled={loading || busyId === ROUTING_PUBLISH_ACTION_ID}
+              >
+                同步活动路由
+              </Button>
+            }
+          >
+            当前编辑配置尚未全部同步到活动路由。已启用部署正常保存时会自动同步；此入口用于恢复历史或异常状态。
+          </Alert>
+        ) : null}
+
         {error ? (
           <Alert severity="error" onClose={() => setError('')}>
             {error}
@@ -307,14 +333,14 @@ export function ModelProvidersView({ unauthorized = false }: { unauthorized?: bo
 
       <ConfirmDialog
         open={Boolean(probingDeployment)}
-        title="执行深度能力探测"
+        title="执行模型测试"
         content={
           <Typography variant="body2">
             将向 <strong>{probingDeployment?.displayName}</strong>{' '}
             按当前默认推理策略、输出上限和声明能力发送一至两次最小请求，可能产生少量费用。继续吗？
           </Typography>
         }
-        confirmLabel="确认并探测"
+        confirmLabel="确认并测试"
         confirmColor="warning"
         submitting={Boolean(probingDeployment && busyId === probingDeployment.id)}
         onClose={() => setProbingDeployment(undefined)}
@@ -322,7 +348,7 @@ export function ModelProvidersView({ unauthorized = false }: { unauthorized?: bo
           const target = probingDeployment;
           if (!target) return;
           void perform(target.id, () => probeModelDeployment(target.id, true), (result) =>
-            getModelProbeFeedback(target.displayName, '深度探测', result)
+            getModelProbeFeedback(target.displayName, '模型测试', result)
           ).finally(
             () => setProbingDeployment(undefined)
           );

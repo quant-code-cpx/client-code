@@ -42,7 +42,17 @@ export function DeploymentTable({
 }) {
   return (
     <Paper variant="outlined" sx={{ overflow: 'hidden', borderRadius: 1.5 }}>
-      <Box sx={{ px: 2.5, py: 2, display: 'flex', justifyContent: 'space-between', gap: 2, borderBottom: 1, borderColor: 'divider' }}>
+      <Box
+        sx={{
+          px: 2.5,
+          py: 2,
+          display: 'flex',
+          justifyContent: 'space-between',
+          gap: 2,
+          borderBottom: 1,
+          borderColor: 'divider',
+        }}
+      >
         <Box>
           <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
             模型部署
@@ -51,7 +61,11 @@ export function DeploymentTable({
             同名模型可部署在不同连接；Agent 路由使用稳定 deployment ID
           </Typography>
         </Box>
-        <Button variant="contained" startIcon={<Iconify icon="mingcute:add-line" />} onClick={onCreate}>
+        <Button
+          variant="contained"
+          startIcon={<Iconify icon="mingcute:add-line" />}
+          onClick={onCreate}
+        >
           新建部署
         </Button>
       </Box>
@@ -59,9 +73,11 @@ export function DeploymentTable({
         <Table sx={{ minWidth: 1120 }}>
           <TableHead>
             <TableRow>
-              {['模型', '连接与协议', '推理策略', '能力证据', '优先级', '探测', '启用', '操作'].map((label) => (
-                <TableCell key={label}>{label}</TableCell>
-              ))}
+              {['模型', '连接与协议', '推理策略', '能力证据', '优先级', '模型测试', '启用', '操作'].map(
+                (label) => (
+                  <TableCell key={label}>{label}</TableCell>
+                )
+              )}
             </TableRow>
           </TableHead>
           <TableBody>
@@ -110,10 +126,14 @@ export function DeploymentTable({
                       </Typography>
                     </TableCell>
                     <TableCell sx={{ minWidth: 155 }}>
-                      <Typography variant="body2">{REASONING_MODE_LABELS[item.reasoningMode]}</Typography>
+                      <Typography variant="body2">
+                        {REASONING_MODE_LABELS[item.reasoningMode]}
+                      </Typography>
                       <Typography variant="caption" color="text.secondary">
                         {item.defaultReasoningEffort?.toLowerCase() ??
-                          (item.reasoningBudgetTokens ? `${item.reasoningBudgetTokens} tokens` : '模型默认')}
+                          (item.reasoningBudgetTokens
+                            ? `${item.reasoningBudgetTokens} tokens`
+                            : '模型默认')}
                       </Typography>
                     </TableCell>
                     <TableCell sx={{ minWidth: 240 }}>
@@ -128,19 +148,39 @@ export function DeploymentTable({
                           />
                         ))}
                         {item.capabilities.length > 3 ? (
-                          <Chip label={`+${item.capabilities.length - 3}`} size="small" variant="outlined" />
+                          <Chip
+                            label={`+${item.capabilities.length - 3}`}
+                            size="small"
+                            variant="outlined"
+                          />
                         ) : null}
                       </Stack>
                     </TableCell>
                     <TableCell>
-                      <Chip label={item.priority} size="small" sx={{ fontWeight: 800, fontVariantNumeric: 'tabular-nums' }} />
+                      <Chip
+                        label={item.priority}
+                        size="small"
+                        sx={{ fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}
+                      />
                     </TableCell>
                     <TableCell>
                       <Chip
                         size="small"
                         variant="outlined"
-                        color={item.lastProbe?.status === 'PASSED' ? 'success' : item.lastProbe?.status === 'FAILED' ? 'error' : 'default'}
-                        label={item.lastProbe?.status === 'PASSED' ? '已验证' : item.lastProbe?.status === 'FAILED' ? '失败' : '未探测'}
+                        color={
+                          item.lastProbe?.status === 'PASSED'
+                            ? 'success'
+                            : item.lastProbe?.status === 'FAILED'
+                              ? 'error'
+                              : 'default'
+                        }
+                        label={
+                          item.lastProbe?.status === 'PASSED'
+                            ? '测试通过'
+                            : item.lastProbe?.status === 'FAILED'
+                              ? '测试失败'
+                              : '未测试'
+                        }
                       />
                     </TableCell>
                     <TableCell>
@@ -153,18 +193,28 @@ export function DeploymentTable({
                     </TableCell>
                     <TableCell align="right">
                       <Stack direction="row" justifyContent="flex-end">
-                        <Tooltip title="深度探测（可能计费）">
-                          <IconButton aria-label={`探测 ${item.displayName}`} onClick={() => onProbe(item)}>
+                        <Tooltip title="模型测试（可选，可能计费）">
+                          <IconButton
+                            aria-label={`测试 ${item.displayName}`}
+                            onClick={() => onProbe(item)}
+                          >
                             <Iconify icon="solar:test-tube-bold" width={18} />
                           </IconButton>
                         </Tooltip>
                         <Tooltip title="编辑">
-                          <IconButton aria-label={`编辑 ${item.displayName}`} onClick={() => onEdit(item)}>
+                          <IconButton
+                            aria-label={`编辑 ${item.displayName}`}
+                            onClick={() => onEdit(item)}
+                          >
                             <Iconify icon="solar:pen-bold" width={18} />
                           </IconButton>
                         </Tooltip>
                         <Tooltip title="删除">
-                          <IconButton color="error" aria-label={`删除 ${item.displayName}`} onClick={() => onDelete(item)}>
+                          <IconButton
+                            color="error"
+                            aria-label={`删除 ${item.displayName}`}
+                            onClick={() => onDelete(item)}
+                          >
                             <Iconify icon="solar:trash-bin-trash-bold" width={18} />
                           </IconButton>
                         </Tooltip>

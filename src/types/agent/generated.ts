@@ -43,7 +43,7 @@ export const MODEL_CALL_STATUSES = [
   'FAILED',
   'CANCELLED',
 ] as const;
-export const MODEL_POLICIES = ['AUTO', 'MANUAL'] as const;
+export const MODEL_POLICIES = ['MANUAL'] as const;
 export const AGENT_CAPABILITIES = ['INTERNAL_DATA', 'QUANT_COMPUTE', 'WEB_SEARCH'] as const;
 export const AGENT_TOOL_KEYS = [
   'resolve_security',
@@ -495,6 +495,20 @@ export const AGENT_ERROR_DEFINITIONS = [
     message: '当前输入本身超过所选模型的上下文窗口',
   },
   {
+    code: 6050,
+    key: 'AI_CONVERSATION_RUN_CONFLICT',
+    httpStatus: 409,
+    retryable: true,
+    message: '当前会话已有进行中的 Agent Run',
+  },
+  {
+    code: 6051,
+    key: 'AI_CONVERSATION_BRANCH_CONFLICT',
+    httpStatus: 409,
+    retryable: true,
+    message: '会话分支已变化，请刷新后重试',
+  },
+  {
     code: 6099,
     key: 'AI_INTERNAL_ERROR',
     httpStatus: 500,
@@ -674,7 +688,11 @@ export type StreamError = {
 
 export type AgentEventPayloadMap = {
   'message.created': { messageId: string; role: MessageRole; status: MessageStatus };
-  'agent.started': { workflowKey: string; workflowVersion: number; modelPolicy: ModelPolicy };
+  'agent.started': {
+    workflowKey: string;
+    workflowVersion: number;
+    modelPolicy: 'AUTO' | ModelPolicy;
+  };
   'agent.planning': {
     intent: string;
     capabilities: AgentCapability[];
@@ -1319,7 +1337,7 @@ export const AGENT_CONTRACT_JSON_SCHEMA = {
                 model: {
                   type: 'string',
                   minLength: 1,
-                  maxLength: 128,
+                  maxLength: 256,
                 },
                 reason: {
                   enum: ['MODEL_CONTEXT_PRESSURE', 'MODEL_SWITCH'],
@@ -1401,7 +1419,7 @@ export const AGENT_CONTRACT_JSON_SCHEMA = {
                 model: {
                   type: 'string',
                   minLength: 1,
-                  maxLength: 128,
+                  maxLength: 256,
                 },
                 summaryVersion: {
                   type: 'integer',
@@ -1485,7 +1503,7 @@ export const AGENT_CONTRACT_JSON_SCHEMA = {
                 model: {
                   type: 'string',
                   minLength: 1,
-                  maxLength: 128,
+                  maxLength: 256,
                 },
                 code: {
                   const: 6047,
@@ -1718,6 +1736,7 @@ export const AGENT_CONTRACT_JSON_SCHEMA = {
                 citationIds: {
                   type: 'array',
                   maxItems: 200,
+                  uniqueItems: true,
                   items: {
                     type: 'string',
                     minLength: 1,
@@ -2143,7 +2162,7 @@ export const AGENT_CONTRACT_JSON_SCHEMA = {
                     finishReason: {
                       type: ['string', 'null'],
                       minLength: 1,
-                      maxLength: 128,
+                      maxLength: 80,
                     },
                   },
                 },
@@ -2654,7 +2673,7 @@ export const AGENT_CONTRACT_JSON_SCHEMA = {
                 finishReason: {
                   type: ['string', 'null'],
                   minLength: 1,
-                  maxLength: 128,
+                  maxLength: 80,
                 },
                 usage: {
                   type: ['object', 'null'],
@@ -3246,6 +3265,9 @@ export const AGENT_CONTRACT_JSON_SCHEMA = {
                       minLength: 3,
                       maxLength: 3,
                     },
+                    knownOnly: {
+                      type: 'boolean',
+                    },
                   },
                 },
                 dataCutoff: {
@@ -3482,7 +3504,8 @@ export const AGENT_CONTRACT_JSON_SCHEMA = {
                 },
                 citationIds: {
                   type: 'array',
-                  maxItems: 200,
+                  maxItems: 100,
+                  uniqueItems: true,
                   items: {
                     type: 'string',
                     minLength: 1,
@@ -3563,7 +3586,7 @@ export const AGENT_CONTRACT_JSON_SCHEMA = {
             },
             text: {
               type: 'string',
-              maxLength: 200000,
+              maxLength: 1000000,
             },
           },
         },
@@ -3612,7 +3635,8 @@ export const AGENT_CONTRACT_JSON_SCHEMA = {
                 },
                 citationIds: {
                   type: 'array',
-                  maxItems: 200,
+                  maxItems: 100,
+                  uniqueItems: true,
                   items: {
                     type: 'string',
                     minLength: 1,
@@ -3794,7 +3818,8 @@ export const AGENT_CONTRACT_JSON_SCHEMA = {
                 },
                 citationIds: {
                   type: 'array',
-                  maxItems: 200,
+                  maxItems: 100,
+                  uniqueItems: true,
                   items: {
                     type: 'string',
                     minLength: 1,
@@ -3977,7 +4002,8 @@ export const AGENT_CONTRACT_JSON_SCHEMA = {
                 },
                 citationIds: {
                   type: 'array',
-                  maxItems: 200,
+                  maxItems: 100,
+                  uniqueItems: true,
                   items: {
                     type: 'string',
                     minLength: 1,
@@ -4153,7 +4179,8 @@ export const AGENT_CONTRACT_JSON_SCHEMA = {
                 },
                 citationIds: {
                   type: 'array',
-                  maxItems: 200,
+                  maxItems: 100,
+                  uniqueItems: true,
                   items: {
                     type: 'string',
                     minLength: 1,
@@ -4336,7 +4363,8 @@ export const AGENT_CONTRACT_JSON_SCHEMA = {
                 },
                 citationIds: {
                   type: 'array',
-                  maxItems: 200,
+                  maxItems: 100,
+                  uniqueItems: true,
                   items: {
                     type: 'string',
                     minLength: 1,
@@ -4459,7 +4487,8 @@ export const AGENT_CONTRACT_JSON_SCHEMA = {
         },
         citationIds: {
           type: 'array',
-          maxItems: 200,
+          maxItems: 100,
+          uniqueItems: true,
           items: {
             type: 'string',
             minLength: 1,
@@ -4646,7 +4675,7 @@ export const AGENT_CONTRACT_JSON_SCHEMA = {
       'REJECTED',
     ],
     modelCallStatus: ['PENDING', 'STREAMING', 'RETRY_WAIT', 'SUCCEEDED', 'FAILED', 'CANCELLED'],
-    modelPolicy: ['AUTO', 'MANUAL'],
+    modelPolicy: ['MANUAL'],
     capability: ['INTERNAL_DATA', 'QUANT_COMPUTE', 'WEB_SEARCH'],
     toolKey: [
       'resolve_security',
@@ -5033,6 +5062,20 @@ export const AGENT_CONTRACT_JSON_SCHEMA = {
       message: '当前输入本身超过所选模型的上下文窗口',
     },
     {
+      code: 6050,
+      key: 'AI_CONVERSATION_RUN_CONFLICT',
+      httpStatus: 409,
+      retryable: true,
+      message: '当前会话已有进行中的 Agent Run',
+    },
+    {
+      code: 6051,
+      key: 'AI_CONVERSATION_BRANCH_CONFLICT',
+      httpStatus: 409,
+      retryable: true,
+      message: '会话分支已变化，请刷新后重试',
+    },
+    {
       code: 6099,
       key: 'AI_INTERNAL_ERROR',
       httpStatus: 500,
@@ -5071,7 +5114,7 @@ export const AGENT_EVENT_FIXTURES = [
     payload: {
       workflowKey: 'research_v1',
       workflowVersion: 1,
-      modelPolicy: 'AUTO',
+      modelPolicy: 'MANUAL',
     },
   },
   {

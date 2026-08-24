@@ -1,4 +1,4 @@
-import type { ModelPolicy, AgentRunStatus } from 'src/types/agent/generated';
+import type { AgentRunStatus } from 'src/types/agent/generated';
 
 import { useState } from 'react';
 
@@ -18,25 +18,27 @@ import { ConversationModelControl } from './conversation-model-control';
 import { AgentReportLibraryDialog } from './agent-report-library-dialog';
 import { NotificationChannelSettings } from './notification-channel-settings';
 
+import type { AgentModel } from '../hooks/use-agent-model-catalog';
+
 type AgentShellHeaderProps = {
   mobile: boolean;
   conversationId: string | null;
   conversationTitle: string | null;
   activeRunStatus: AgentRunStatus | null;
   canConfigureModel: boolean;
-  modelPolicy: ModelPolicy;
   preferredModel: string | null;
   reasoningEffort: string | null;
+  models: AgentModel[];
+  defaultModel: string | null;
+  modelLoading: boolean;
+  modelLoadError: string | null;
   modelSaving: boolean;
   evidenceAvailable: boolean;
   evidencePanelOpen: boolean;
   onOpenSidebar: () => void;
   onToggleEvidence: () => void;
-  onModelSave: (
-    policy: ModelPolicy,
-    preferredModel: string | null,
-    reasoningEffort: string | null
-  ) => Promise<boolean>;
+  onReloadModels: () => void;
+  onModelSave: (preferredModel: string, reasoningEffort: string | null) => Promise<boolean>;
 };
 
 export function AgentShellHeader({
@@ -45,14 +47,18 @@ export function AgentShellHeader({
   conversationTitle,
   activeRunStatus,
   canConfigureModel,
-  modelPolicy,
   preferredModel,
   reasoningEffort,
+  models,
+  defaultModel,
+  modelLoading,
+  modelLoadError,
   modelSaving,
   evidenceAvailable,
   evidencePanelOpen,
   onOpenSidebar,
   onToggleEvidence,
+  onReloadModels,
   onModelSave,
 }: AgentShellHeaderProps) {
   const [moreActionsAnchor, setMoreActionsAnchor] = useState<HTMLElement | null>(null);
@@ -156,10 +162,14 @@ export function AgentShellHeader({
           ) : null}
           {!mobile && canConfigureModel ? (
             <ConversationModelControl
-              policy={modelPolicy}
               preferredModel={preferredModel}
               reasoningEffort={reasoningEffort}
+              models={models}
+              defaultModel={defaultModel}
+              loading={modelLoading}
+              loadError={modelLoadError}
               saving={modelSaving}
+              onReloadModels={onReloadModels}
               onSave={onModelSave}
             />
           ) : null}
@@ -174,11 +184,15 @@ export function AgentShellHeader({
         {canConfigureModel ? (
           <ConversationModelControl
             trigger="menu-item"
-            policy={modelPolicy}
             preferredModel={preferredModel}
             reasoningEffort={reasoningEffort}
+            models={models}
+            defaultModel={defaultModel}
+            loading={modelLoading}
+            loadError={modelLoadError}
             saving={modelSaving}
             onTrigger={() => setMoreActionsAnchor(null)}
+            onReloadModels={onReloadModels}
             onSave={onModelSave}
           />
         ) : null}

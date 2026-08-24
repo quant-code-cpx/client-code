@@ -1,4 +1,4 @@
-import { apiClient } from './client';
+import { apiClient, tokenStorage } from './client';
 
 // ----------------------------------------------------------------------
 // 类型定义（对应后端 tushare-admin 接口）
@@ -415,10 +415,50 @@ function normalizeSyncLogQuery(query: SyncLogQuery): SyncLogQuery {
   };
 }
 
+type OperationsOverviewRequest = {
+  authKey: string;
+  request: Promise<DataOperationsOverview>;
+};
+
+let operationsOverviewInFlight: OperationsOverviewRequest | null = null;
+
+function authRequestKey(): string {
+  return `${tokenStorage.getSessionEpoch()}:${tokenStorage.getEpoch()}`;
+}
+
+function assertAuthRequestCurrent(authKey: string): void {
+  if (authRequestKey() === authKey) return;
+  const error = new Error('认证会话已切换，请求结果已丢弃');
+  error.name = 'AbortError';
+  throw error;
+}
+
+function getOperationsOverview(): Promise<DataOperationsOverview> {
+  const authKey = authRequestKey();
+  if (operationsOverviewInFlight?.authKey === authKey) return operationsOverviewInFlight.request;
+
+  const request = apiClient
+    .post<DataOperationsOverview>('/api/tushare/admin/operations-overview', {})
+    .then(
+      (result) => {
+        assertAuthRequestCurrent(authKey);
+        return result;
+      },
+      (error: unknown) => {
+        assertAuthRequestCurrent(authKey);
+        throw error;
+      }
+    )
+    .finally(() => {
+      if (operationsOverviewInFlight?.request === request) operationsOverviewInFlight = null;
+    });
+  operationsOverviewInFlight = { authKey, request };
+  return request;
+}
+
 export const tushareSyncApi = {
   /** 数据运维决策概览 */
-  getOperationsOverview: (): Promise<DataOperationsOverview> =>
-    apiClient.post<DataOperationsOverview>('/api/tushare/admin/operations-overview', {}),
+  getOperationsOverview,
 
   /** 可恢复的同步运行态 */
   getSyncRuntimeStatus: (): Promise<SyncRuntimeSnapshot> =>

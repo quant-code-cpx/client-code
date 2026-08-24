@@ -18,6 +18,7 @@ const {
   mockDeleteModelDeployment,
   mockUpdateModelConnection,
   mockUpdateModelDeployment,
+  mockPublishModelRouting,
   mockGetModelConnectionDeleteImpact,
   mockGetModelDeploymentDeleteImpact,
 } = vi.hoisted(() => ({
@@ -29,6 +30,7 @@ const {
   mockDeleteModelDeployment: vi.fn(),
   mockUpdateModelConnection: vi.fn(),
   mockUpdateModelDeployment: vi.fn(),
+  mockPublishModelRouting: vi.fn(),
   mockGetModelConnectionDeleteImpact: vi.fn(),
   mockGetModelDeploymentDeleteImpact: vi.fn(),
 }));
@@ -87,6 +89,7 @@ const consoleState = {
     failedProbes: 0,
     configurationIssues: 0,
     activeVersion: null,
+    hasUnpublishedChanges: false,
   },
   loading: false,
   error: '',
@@ -101,6 +104,7 @@ vi.mock('src/api/model-provider', () => ({
   deleteModelDeployment: mockDeleteModelDeployment,
   updateModelConnection: mockUpdateModelConnection,
   updateModelDeployment: mockUpdateModelDeployment,
+  publishModelRouting: mockPublishModelRouting,
   getModelConnectionDeleteImpact: mockGetModelConnectionDeleteImpact,
   getModelDeploymentDeleteImpact: mockGetModelDeploymentDeleteImpact,
 }));
@@ -149,6 +153,11 @@ beforeEach(() => {
   mockRefresh.mockResolvedValue(undefined);
   mockUpdateModelConnection.mockResolvedValue(connection);
   mockUpdateModelDeployment.mockResolvedValue(deployment);
+  mockPublishModelRouting.mockResolvedValue({
+    activeVersion: 'modelcfg-new',
+    deployments: [deployment.id],
+  });
+  consoleState.summary.hasUnpublishedChanges = false;
   mockTestModelConnection.mockResolvedValue(passedProbe);
   mockProbeModelDeployment.mockResolvedValue(passedProbe);
   mockDeleteModelConnection.mockResolvedValue({ id: connection.id, deleted: true });
@@ -199,26 +208,39 @@ describe('ModelProvidersView', () => {
     expect(screen.queryByRole('dialog', { name: '删除供应商连接' })).not.toBeInTheDocument();
   });
 
-  it('部署深度探测需二次确认，提交 billable Body 语义并展示失败步骤', async () => {
+  it('可选模型测试需二次确认，提交 billable Body 语义并展示失败步骤', async () => {
     mockProbeModelDeployment.mockResolvedValue({
       ...passedProbe,
       status: 'FAILED',
-      steps: [
-        { key: 'MODEL', status: 'FAILED', durationMs: 20, message: '模型 ID 不存在' },
-      ],
+      steps: [{ key: 'MODEL', status: 'FAILED', durationMs: 20, message: '模型 ID 不存在' }],
     });
     const { user } = renderView('/settings/model-providers?tab=deployments');
 
     expect(screen.getByText('GPT 5.6')).toBeInTheDocument();
     expect(screen.getByText('+1')).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: '探测 GPT 5.6' }));
-    const dialog = screen.getByRole('dialog', { name: '执行深度能力探测' });
+    expect(screen.queryByText(/CNY Token 价格|元\/百万/)).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: '测试 GPT 5.6' }));
+    const dialog = screen.getByRole('dialog', { name: '执行模型测试' });
     expect(dialog).toHaveTextContent('可能产生少量费用');
-    await user.click(within(dialog).getByRole('button', { name: '确认并探测' }));
+    await user.click(within(dialog).getByRole('button', { name: '确认并测试' }));
 
     expect(mockProbeModelDeployment).toHaveBeenCalledWith('deployment-1', true);
     await waitFor(() => expect(mockRefresh).toHaveBeenCalledTimes(1));
-    expect(mockSetError).toHaveBeenCalledWith('GPT 5.6 深度探测失败：模型 ID 不存在');
+    expect(mockSetError).toHaveBeenCalledWith('GPT 5.6 模型测试失败：模型 ID 不存在');
+  });
+
+  it('活动快照与编辑配置不一致时提供同步入口并在成功后刷新', async () => {
+    consoleState.summary.hasUnpublishedChanges = true;
+    const { user } = renderView('/settings/model-providers?tab=deployments');
+
+    expect(screen.getByText(/当前编辑配置尚未全部同步到活动路由/)).toBeInTheDocument();
+    const publishButton = screen.getByRole('button', { name: '同步活动路由' });
+    expect(publishButton).toHaveClass('MuiButton-colorInherit');
+    await user.click(publishButton);
+
+    expect(mockPublishModelRouting).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(mockRefresh).toHaveBeenCalledTimes(1));
+    expect(await screen.findByText('活动路由已同步，后续新建运行将使用最新配置。')).toBeInTheDocument();
   });
 
   it('无权限态只展示警告，不渲染管理操作', () => {

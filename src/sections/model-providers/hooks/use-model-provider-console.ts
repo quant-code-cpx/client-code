@@ -20,6 +20,7 @@ const EMPTY_SUMMARY: ModelRoutingSummary = {
   failedProbes: 0,
   configurationIssues: 0,
   activeVersion: null,
+  hasUnpublishedChanges: false,
 };
 
 export function useModelProviderConsole(enabled = true) {

@@ -101,6 +101,14 @@ describe('Agent Composer', () => {
     expect(screen.getByRole('button', { name: '停止研究' })).toBeDisabled();
   });
 
+  it('历史或不完整分支锁定整个输入区，而不只禁用发送按钮', () => {
+    renderComposer({ value: '不应发到历史分支', blockedReason: '当前为历史分支' });
+
+    expect(screen.getByLabelText('研究问题')).toBeDisabled();
+    expect(screen.getByRole('button', { name: '发送问题' })).toBeDisabled();
+    expect(screen.getByText('当前为历史分支')).toBeInTheDocument();
+  });
+
   it('恢复草稿时显示恢复状态', () => {
     renderComposer({ value: '未发送内容', recovered: true });
     expect(screen.getByText('已恢复未发送草稿')).toBeInTheDocument();

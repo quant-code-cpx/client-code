@@ -7,9 +7,12 @@ import Box from '@mui/material/Box';
 import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
+import Select from '@mui/material/Select';
 import Tooltip from '@mui/material/Tooltip';
+import MenuItem from '@mui/material/MenuItem';
 import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
+import FormControl from '@mui/material/FormControl';
 
 import { fDateTime } from 'src/utils/format-time';
 
@@ -25,7 +28,11 @@ import { BlockRenderer } from './blocks/block-renderer';
 import { groupCitationSources } from '../lib/evidence-display';
 import { parseSupportedMessageBlock } from '../lib/message-block-guards';
 
-import type { AgentMessageEntity, AgentRunProjection } from '../state/agent-state.types';
+import type {
+  AgentMessageEntity,
+  AgentRunProjection,
+  AgentMessageSiblingGroup,
+} from '../state/agent-state.types';
 
 type MessageItemProps = {
   message: AgentMessageEntity;
@@ -35,6 +42,10 @@ type MessageItemProps = {
   onSaveReport: (runId: string) => void;
   onContinue: () => void;
   onRetryFinalSnapshot: () => void;
+  siblingGroup?: AgentMessageSiblingGroup;
+  canMutateMessage?: boolean;
+  branchChanging?: boolean;
+  onViewBranch?: (messageId: string) => void;
 };
 
 const STATUS_LABELS = {
@@ -60,6 +71,10 @@ function MessageItemComponent({
   onSaveReport,
   onContinue,
   onRetryFinalSnapshot,
+  siblingGroup,
+  canMutateMessage = true,
+  branchChanging = false,
+  onViewBranch = () => undefined,
 }: MessageItemProps) {
   const [copied, setCopied] = useState(false);
   const isUser = message.role === 'USER';
@@ -85,9 +100,17 @@ function MessageItemComponent({
     return result.ok && result.block.type === 'MARKDOWN';
   });
   const canRegenerate =
-    message.role === 'ASSISTANT' && ['COMPLETED', 'FAILED', 'CANCELLED'].includes(message.status);
+    canMutateMessage &&
+    message.role === 'ASSISTANT' &&
+    ['COMPLETED', 'FAILED', 'CANCELLED'].includes(message.status);
   const canSaveReport =
-    isAssistant && message.status === 'COMPLETED' && Boolean(message.run?.runId);
+    isAssistant &&
+    message.status === 'COMPLETED' &&
+    Boolean(message.run?.runId) &&
+    message.citations.length > 0;
+  const selectedSiblingVersion = siblingGroup?.versions.find(
+    (version) => version.messageId === message.messageId
+  );
   const citationSourceCount = groupCitationSources(message.citations).length;
   const failedModelMessage = run?.modelDiagnostics?.find((item) => item.status === 'FAILED')?.error
     ?.message;
@@ -177,6 +200,52 @@ function MessageItemComponent({
           <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 500 }}>
             {roleLabel}
           </Typography>
+          {isAssistant && siblingGroup ? (
+            <>
+              <Label
+                color={
+                  selectedSiblingVersion?.isActive
+                    ? 'success'
+                    : selectedSiblingVersion?.status === 'PENDING' ||
+                        selectedSiblingVersion?.status === 'STREAMING'
+                      ? 'info'
+                      : 'default'
+                }
+                variant="soft"
+              >
+                {selectedSiblingVersion?.isActive
+                  ? `当前分支 · V${message.version}`
+                  : selectedSiblingVersion?.status === 'PENDING' ||
+                      selectedSiblingVersion?.status === 'STREAMING'
+                    ? `生成中 · V${message.version}`
+                    : `历史版本 · V${message.version}`}
+              </Label>
+              {siblingGroup.totalVersions > 1 ? (
+                <FormControl size="small" sx={{ minWidth: 132 }}>
+                  <Select
+                    value={message.messageId}
+                    disabled={branchChanging}
+                    inputProps={{ 'aria-label': '回答版本' }}
+                    onChange={(event) => onViewBranch(event.target.value)}
+                    sx={{ height: 28, fontSize: '0.75rem' }}
+                  >
+                    {siblingGroup.versions.map((version) => (
+                      <MenuItem key={version.messageId} value={version.messageId}>
+                        V{version.version}
+                        {version.isActive
+                          ? ' · 当前分支'
+                          : version.isDisplayed
+                            ? ' · 正在查看'
+                            : version.status === 'COMPLETED'
+                              ? ' · 历史'
+                              : ` · ${STATUS_LABELS[version.status]}`}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              ) : null}
+            </>
+          ) : null}
           {message.deliveryStatus === 'UNSENT' || message.status !== 'COMPLETED' ? (
             <Label color={statusColor(message.status)} variant="soft">
               {message.deliveryStatus === 'UNSENT' ? '未发送' : STATUS_LABELS[message.status]}
@@ -364,7 +433,7 @@ function MessageItemComponent({
               </IconButton>
             </Tooltip>
           ) : null}
-          {message.deliveryStatus === 'UNSENT' ? (
+          {message.deliveryStatus === 'UNSENT' && canMutateMessage ? (
             <Button size="small" onClick={() => onRetry(message)}>
               重新发送
             </Button>

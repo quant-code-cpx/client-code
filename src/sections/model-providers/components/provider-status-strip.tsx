@@ -11,8 +11,8 @@ import { Iconify } from 'src/components/iconify';
 
 const STATUS_ITEMS = [
   { key: 'activeDeployments', label: '活动部署', note: '当前进入路由', icon: 'solar:layers-bold', color: 'primary' },
-  { key: 'verifiedConnections', label: '已验证连接', note: '最近探测通过', icon: 'solar:shield-check-bold', color: 'success' },
-  { key: 'failedProbes', label: '探测失败', note: '需要检查连接或模型', icon: 'solar:danger-triangle-bold', color: 'error' },
+  { key: 'verifiedConnections', label: '已验证连接', note: '最近连接测试通过', icon: 'solar:shield-check-bold', color: 'success' },
+  { key: 'failedProbes', label: '测试失败', note: '需要检查连接或模型', icon: 'solar:danger-triangle-bold', color: 'error' },
   { key: 'configurationIssues', label: '配置异常', note: '启用状态与验证不一致', icon: 'solar:settings-bold-duotone', color: 'warning' },
 ] as const;
 

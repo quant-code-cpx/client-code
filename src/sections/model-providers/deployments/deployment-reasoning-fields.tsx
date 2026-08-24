@@ -17,6 +17,7 @@ import AccordionSummary from '@mui/material/AccordionSummary';
 
 import { Iconify } from 'src/components/iconify';
 
+import { blurDeploymentNumberInputOnWheel } from './deployment-number-input';
 import {
   DATA_CLASS_OPTIONS,
   REASONING_MODE_LABELS,
@@ -137,7 +138,13 @@ export function DeploymentReasoningFields({
           onChange={(event) => onUpdate('reasoningBudgetTokens', Number(event.target.value))}
           error={Boolean(fieldErrors.reasoningBudgetTokens)}
           helperText={fieldErrors.reasoningBudgetTokens ?? '仅对支持 budget_tokens 的模型生效'}
-          slotProps={{ htmlInput: { min: 1, max: draft.maxOutputTokens - 1 } }}
+          slotProps={{
+            htmlInput: {
+              min: 1,
+              max: draft.maxOutputTokens - 1,
+              onWheel: blurDeploymentNumberInputOnWheel,
+            },
+          }}
         />
       ) : null}
 
@@ -153,7 +160,7 @@ export function DeploymentReasoningFields({
               name="customReasoningEffort"
               value={draft.customEffort}
               onChange={(event) => onUpdate('customEffort', event.target.value)}
-              helperText="例如 vendor_ultra；如需核实供应商支持情况，可执行深度探测"
+              helperText="例如 vendor_ultra；如需核实供应商支持情况，可执行可选的模型测试"
               sx={{ flex: 1 }}
               autoComplete="off"
               spellCheck={false}

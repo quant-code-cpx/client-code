@@ -87,8 +87,8 @@ function conversation(fixture: RunFixture, messageCount: number) {
     conversationId: fixture.conversationId,
     title: 'Batch 018 Agent 研究',
     status: 'ACTIVE',
-    modelPolicy: 'AUTO',
-    preferredModel: null,
+    modelPolicy: 'MANUAL',
+    preferredModel: 'fixture-model',
     messageCount,
     lastMessageAt: '2026-07-20T01:00:08.000Z',
     createdAt: '2026-07-20T01:00:00.000Z',
@@ -149,9 +149,47 @@ async function mockConversationList(page: Page): Promise<void> {
   );
 }
 
+async function mockModelCatalog(page: Page): Promise<void> {
+  await page.route('**/api/agent/models/list', (route) =>
+    fulfillJson(route, {
+      items: [
+        {
+          model: 'fixture-model',
+          displayName: 'Fixture Model',
+          provider: 'fixture',
+          capabilities: ['STREAMING', 'STRUCTURED_OUTPUT'],
+          reasoningEfforts: [],
+          defaultReasoningEffort: null,
+          contextWindow: 128000,
+          maxOutputTokens: 8192,
+          contextAccountingMode: 'SHARED_WINDOW',
+          completionTokenAccounting: 'REASONING_AND_VISIBLE',
+          supportedVerbosityLevels: [],
+          costTier: 'LOW',
+          status: 'AVAILABLE',
+          reason: null,
+        },
+      ],
+    })
+  );
+}
+
+async function mockRunReadModels(page: Page): Promise<void> {
+  await page.route('**/api/agent/runs/events/list', (route) =>
+    fulfillJson(route, { items: [], nextAfterSequence: null })
+  );
+  await page.route('**/api/agent/runs/tool-calls/list', (route) =>
+    fulfillJson(route, { items: [], nextCursor: null, payloadIncluded: false })
+  );
+}
+
 test.beforeEach(async ({ page }) => {
-  await mockAuth(page);
-  await mockConversationList(page);
+  await Promise.all([
+    mockAuth(page),
+    mockConversationList(page),
+    mockModelCatalog(page),
+    mockRunReadModels(page),
+  ]);
 });
 
 test('AR-001：运行中刷新后从权威 sequence 恢复，正文不重不漏', async ({ page }) => {
@@ -260,6 +298,10 @@ test('AR-002：取消终态后重新生成，新旧回答独立且历史保留',
     releaseCancelled = resolve;
   });
   let regenerateBody: Record<string, unknown> | null = null;
+  let adoptBody: Record<string, unknown> | null = null;
+  let followUpBody: Record<string, unknown> | null = null;
+  let activeLeafMessageId: string | null = null;
+  let branchVersion = 0;
 
   await page.route('**/api/agent/conversations/create', (route) =>
     fulfillJson(route, {
@@ -269,7 +311,11 @@ test('AR-002：取消终态后重新生成，新旧回答独立且历史保留',
     })
   );
   await page.route('**/api/agent/conversations/detail', (route) =>
-    fulfillJson(route, conversation(first, secondTerminal ? 3 : firstTerminal ? 2 : 0))
+    fulfillJson(route, {
+      ...conversation(first, secondTerminal ? 3 : firstTerminal ? 2 : 0),
+      activeLeafMessageId,
+      branchVersion,
+    })
   );
   await page.route('**/api/agent/conversations/messages/list', (route) => {
     const items = firstTerminal
@@ -277,22 +323,43 @@ test('AR-002：取消终态后重新生成，新旧回答独立且历史保留',
           userMessage(first, '分析贵州茅台并允许停止'),
           assistantMessage(first, 'CANCELLED', null, 3),
           ...(secondTerminal
-            ? [assistantMessage(second, 'COMPLETED', '重新生成后的可审计结论', 3)]
+            ? [
+                {
+                  ...assistantMessage(second, 'COMPLETED', '重新生成后的可审计结论', 3),
+                  version: 2,
+                  contextParentMessageId: first.userMessageId,
+                },
+              ]
             : []),
         ]
       : [];
     return fulfillJson(route, { items, nextBeforeMessageId: null });
   });
-  await page.route('**/api/agent/messages/send', (route) =>
-    fulfillJson(route, {
+  await page.route('**/api/agent/messages/send', async (route) => {
+    const body = route.request().postDataJSON() as Record<string, unknown>;
+    if (body.content === '基于重新生成答案继续') {
+      followUpBody = body;
+      await fulfillJson(route, {
+        conversationId: first.conversationId,
+        userMessageId: 'msg_research_follow_up_user',
+        assistantMessageId: 'msg_research_follow_up_assistant',
+        runId: 'run_research_follow_up',
+        runStatus: 'QUEUED',
+        branchVersion,
+        streamEndpoint: '/api/agent/runs/events',
+      });
+      return;
+    }
+    await fulfillJson(route, {
       conversationId: first.conversationId,
       userMessageId: first.userMessageId,
       assistantMessageId: first.assistantMessageId,
       runId: first.runId,
       runStatus: 'QUEUED',
+      branchVersion: 0,
       streamEndpoint: '/api/agent/runs/events',
-    })
-  );
+    });
+  });
   await page.route('**/api/agent/runs/cancel', async (route) => {
     cancelRequested = true;
     releaseCancelled();
@@ -311,7 +378,18 @@ test('AR-002：取消终态后重新生成，新旧回答独立且历史保留',
       assistantMessageId: second.assistantMessageId,
       runId: second.runId,
       runStatus: 'QUEUED',
+      branchVersion: 0,
       streamEndpoint: '/api/agent/runs/events',
+    });
+  });
+  await page.route('**/api/agent/conversations/branches/adopt', async (route) => {
+    adoptBody = route.request().postDataJSON() as Record<string, unknown>;
+    activeLeafMessageId = second.assistantMessageId;
+    branchVersion = 1;
+    await fulfillJson(route, {
+      conversationId: second.conversationId,
+      activeLeafMessageId,
+      branchVersion,
     });
   });
   await page.route('**/api/agent/runs/status', async (route) => {
@@ -342,6 +420,14 @@ test('AR-002：取消终态后重新生成，新旧回答独立且历史保留',
           frame(event(first, 'agent.started', 2)),
           frame(event(first, 'agent.cancelled', 3, { cancelledBy: 'USER', reason: '用户取消' })),
         ].join(''),
+      });
+      return;
+    }
+    if (streamCalls > 2) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'text/event-stream; charset=utf-8',
+        body: ': heartbeat\n\n',
       });
       return;
     }
@@ -385,7 +471,20 @@ test('AR-002：取消终态后重新生成，新旧回答独立且历史保留',
 
   await expect(page.getByText('重新生成后的可审计结论', { exact: true })).toBeVisible();
   await expect(page.getByLabel('Agent 回答')).toHaveCount(2);
-  expect(regenerateBody).toMatchObject({ messageId: first.assistantMessageId, modelPolicy: 'AUTO' });
+  expect(regenerateBody).toMatchObject({ messageId: first.assistantMessageId, modelPolicy: 'MANUAL' });
+  await expect.poll(() => adoptBody).toMatchObject({
+    conversationId: first.conversationId,
+    messageId: second.assistantMessageId,
+    expectedBranchVersion: 0,
+  });
+
+  await page.getByRole('textbox', { name: '研究问题' }).fill('基于重新生成答案继续');
+  await page.getByRole('button', { name: '发送问题' }).click();
+  await expect.poll(() => followUpBody).toMatchObject({
+    conversationId: first.conversationId,
+    baseAssistantMessageId: second.assistantMessageId,
+    expectedBranchVersion: 1,
+  });
 });
 
 test('AR-003：sequence gap 使用 Last-Event-ID 恢复，duplicate 不重复应用', async ({ page }) => {

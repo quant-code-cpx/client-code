@@ -8,7 +8,7 @@ import type {
   CreateModelDeploymentPayload,
 } from 'src/api/model-provider';
 
-import { useMemo, useState, useEffect } from 'react';
+import { useRef, useMemo, useState, useEffect } from 'react';
 
 import Box from '@mui/material/Box';
 import Alert from '@mui/material/Alert';
@@ -43,6 +43,34 @@ import {
 
 import type { DeploymentDraft } from './deployment-editor-model';
 
+function sameValues(left: readonly string[], right: readonly string[]): boolean {
+  return [...left].sort().join('\u0000') === [...right].sort().join('\u0000');
+}
+
+function draftMatchesDeployment(draft: DeploymentDraft, deployment?: ModelDeployment): boolean {
+  if (!deployment || draft.customEffort.trim()) return false;
+  return (
+    draft.connectionId === deployment.connectionId &&
+    draft.modelId.trim() === deployment.modelId &&
+    draft.displayName.trim() === deployment.displayName &&
+    draft.priority === deployment.priority &&
+    draft.costTier === deployment.costTier &&
+    draft.contextWindow === deployment.contextWindow &&
+    draft.maxOutputTokens === deployment.maxOutputTokens &&
+    sameValues(draft.capabilities, deployment.capabilities) &&
+    draft.reasoningMode === deployment.reasoningMode &&
+    sameValues(draft.reasoningEfforts, deployment.reasoningEfforts) &&
+    (draft.defaultReasoningEffort || undefined) ===
+      (deployment.defaultReasoningEffort ?? undefined) &&
+    (draft.reasoningBudgetTokens ?? undefined) ===
+      (deployment.reasoningBudgetTokens ?? undefined) &&
+    sameValues(draft.dataClasses, deployment.dataClasses) &&
+    draft.timeoutMs === deployment.timeoutMs &&
+    draft.maxRetries === deployment.maxRetries &&
+    draft.retryBaseMs === deployment.retryBaseMs
+  );
+}
+
 export function DeploymentEditorDrawer({
   open,
   deployment,
@@ -62,8 +90,10 @@ export function DeploymentEditorDrawer({
   const [saved, setSaved] = useState<ModelDeployment | undefined>(deployment);
   const [fieldErrors, setFieldErrors] = useState<ModelProviderFieldErrors>({});
   const [message, setMessage] = useState('');
+  const [messageSeverity, setMessageSeverity] = useState<'error' | 'info' | 'success'>('info');
   const [probe, setProbe] = useState<ModelProbeResult | null>(null);
   const [busy, setBusy] = useState(false);
+  const editorSessionRef = useRef<string | null>(null);
 
   const connection = useMemo(
     () => connections.find((item) => item.id === draft.connectionId),
@@ -75,7 +105,13 @@ export function DeploymentEditorDrawer({
   );
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      editorSessionRef.current = null;
+      return;
+    }
+    const sessionKey = deployment?.id ?? 'new';
+    if (editorSessionRef.current === sessionKey) return;
+    editorSessionRef.current = sessionKey;
     const initialConnection =
       connections.find((item) => item.id === deployment?.connectionId) ??
       connections.find((item) => item.enabled) ??
@@ -119,8 +155,26 @@ export function DeploymentEditorDrawer({
     setSaved(deployment);
     setFieldErrors({});
     setMessage('');
+    setMessageSeverity('info');
     setProbe(null);
   }, [adapters, connections, deployment, open]);
+
+  const isDirty = !draftMatchesDeployment(draft, saved);
+  const connectionReady = Boolean(connection?.enabled && connection.lastProbe?.status === 'PASSED');
+  const modelTestBlockedReason = !saved
+    ? '请先保存部署草稿'
+    : isDirty
+      ? '请先保存当前修改，再测试已保存配置'
+      : '';
+  const enableBlockedReason = !saved
+    ? '请先保存部署草稿'
+    : isDirty
+      ? '请先保存当前修改，再启用部署'
+      : !connection?.enabled
+        ? '请先启用供应商连接'
+        : connection.lastProbe?.status !== 'PASSED'
+          ? '请先完成并通过连接测试'
+          : '';
 
   const update = <K extends keyof DeploymentDraft>(key: K, value: DeploymentDraft[K]) => {
     setDraft((current) => ({ ...current, [key]: value }));
@@ -226,12 +280,16 @@ export function DeploymentEditorDrawer({
           });
       setSaved(result);
       setProbe(null);
+      setMessageSeverity(result.enabled ? 'success' : 'info');
       setMessage(
-        '模型部署已保存；当前启用状态与已有探测记录保持不变。可按需执行深度探测；后续调用失败会返回具体原因。'
+        result.enabled
+          ? '模型部署已保存并自动发布；后续新建运行将使用最新配置。'
+          : '模型部署已保存为未启用草稿；启用后才会进入活动路由。'
       );
       await onChanged();
     } catch (error) {
       setFieldErrors((current) => ({ ...current, ...apiFieldErrors(error) }));
+      setMessageSeverity('error');
       setMessage(error instanceof Error ? error.message : '保存模型部署失败');
     } finally {
       setBusy(false);
@@ -246,21 +304,23 @@ export function DeploymentEditorDrawer({
       const result = await probeModelDeployment(saved.id, true);
       setProbe(result);
       const failedStep = result.steps.find((step) => step.status === 'FAILED');
+      setMessageSeverity(result.status === 'PASSED' ? 'success' : 'error');
       setMessage(
         result.status === 'PASSED'
-          ? '深度探测通过，可以启用部署。'
-          : `深度探测失败：${failedStep?.message ?? '请检查模型 ID 与能力配置。'}`
+          ? '模型测试通过。'
+          : `模型测试失败：${failedStep?.message ?? '请检查模型 ID 与能力配置。'}`
       );
       await onChanged();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : '深度探测失败');
+      setMessageSeverity('error');
+      setMessage(error instanceof Error ? error.message : '模型测试失败');
     } finally {
       setBusy(false);
     }
   };
 
   const enableDeployment = async () => {
-    if (!saved || probe?.status !== 'PASSED') return;
+    if (!saved) return;
     setBusy(true);
     try {
       const result = await updateModelDeployment({
@@ -269,9 +329,11 @@ export function DeploymentEditorDrawer({
         enabled: true,
       });
       setSaved(result);
+      setMessageSeverity('success');
       setMessage('模型部署已启用，并已同步到活动路由。');
       await onChanged();
     } catch (error) {
+      setMessageSeverity('error');
       setMessage(error instanceof Error ? error.message : '启用模型部署失败');
     } finally {
       setBusy(false);
@@ -304,7 +366,7 @@ export function DeploymentEditorDrawer({
       <Box sx={{ p: 3, flex: 1, overflowY: 'auto' }}>
         <Stack spacing={2.25}>
           {message ? (
-            <Alert severity={probe?.status === 'FAILED' ? 'error' : 'info'}>{message}</Alert>
+            <Alert severity={messageSeverity}>{message}</Alert>
           ) : null}
           <DeploymentConnectionFields
             draft={draft}
@@ -333,23 +395,31 @@ export function DeploymentEditorDrawer({
           取消
         </Button>
         <Button variant="outlined" loading={busy} onClick={() => void saveDraft()} disabled={busy}>
-          {busy ? '正在保存…' : '保存草稿'}
+          {busy ? '正在保存…' : saved?.enabled ? '保存并生效' : '保存草稿'}
         </Button>
-        <Button
-          variant="outlined"
-          color="warning"
-          onClick={() => void runProbe()}
-          disabled={busy || !saved}
-        >
-          深度探测（可能计费）
-        </Button>
-        <Button
-          variant="contained"
-          onClick={() => void enableDeployment()}
-          disabled={busy || probe?.status !== 'PASSED' || saved?.enabled}
-        >
-          {saved?.enabled ? '已启用' : '启用部署'}
-        </Button>
+        <Tooltip title={modelTestBlockedReason} disableHoverListener={!modelTestBlockedReason}>
+          <span>
+            <Button
+              variant="outlined"
+              color="warning"
+              onClick={() => void runProbe()}
+              disabled={busy || !saved || isDirty}
+            >
+              模型测试（可选，可能计费）
+            </Button>
+          </span>
+        </Tooltip>
+        <Tooltip title={enableBlockedReason} disableHoverListener={!enableBlockedReason}>
+          <span>
+            <Button
+              variant="contained"
+              onClick={() => void enableDeployment()}
+              disabled={busy || !saved || saved.enabled || isDirty || !connectionReady}
+            >
+              {saved?.enabled ? '已启用' : '启用部署'}
+            </Button>
+          </span>
+        </Tooltip>
       </Stack>
     </Drawer>
   );

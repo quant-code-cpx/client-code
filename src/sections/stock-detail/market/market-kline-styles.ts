@@ -6,6 +6,8 @@ import type {
   CandleTooltipLegendsCustomCallback,
 } from 'klinecharts';
 
+import { calculatePriceChange } from './market-kline-data';
+
 import type { MarketPeriod, MarketKLineData } from './market-kline.types';
 
 const PRICE_FORMATTER = new Intl.NumberFormat('zh-CN', {
@@ -28,6 +30,17 @@ function formatQuantity(value: unknown, unit: string): string {
   return number == null ? '—' : `${INTEGER_FORMATTER.format(number)} ${unit}`;
 }
 
+function formatSignedNumber(value: number | null, suffix = ''): string {
+  if (value == null) return '—';
+  const normalized = normalizeSignedDisplayValue(value);
+  return `${normalized > 0 ? '+' : ''}${PRICE_FORMATTER.format(normalized)}${suffix}`;
+}
+
+function normalizeSignedDisplayValue(value: number): number {
+  const stabilized = Number(value.toFixed(10));
+  return Math.abs(stabilized) < 0.005 ? 0 : stabilized;
+}
+
 function tooltipValue(text: string, color: string): TooltipLegend['value'] {
   return { text, color };
 }
@@ -37,6 +50,13 @@ function comparedPriceColor(theme: Theme, value: unknown, reference: number | nu
   if (price == null || reference == null) return theme.palette.text.primary;
   if (price === reference) return theme.palette.text.secondary;
   return price > reference ? theme.palette.error.main : theme.palette.success.main;
+}
+
+function directionColor(theme: Theme, value: number | null): string {
+  if (value == null) return theme.palette.text.secondary;
+  const normalized = normalizeSignedDisplayValue(value);
+  if (normalized === 0) return theme.palette.text.secondary;
+  return normalized > 0 ? theme.palette.error.main : theme.palette.success.main;
 }
 
 function numericBorderRadius(value: string | number): number {
@@ -63,11 +83,28 @@ function createTooltipLegends(
 
     if (period === 'T') {
       const preClose = finiteNumber(bar.preClose);
+      const priceChange = calculatePriceChange(bar.close, preClose);
+      const amountChangeColor = directionColor(theme, priceChange?.amount ?? null);
+      const percentChangeColor = directionColor(theme, priceChange?.percent ?? null);
       return [
         { title: '时间', value: tooltipValue(dateLabel, textColor) },
         {
           title: '价格',
-          value: tooltipValue(formatPrice(bar.close), comparedPriceColor(theme, bar.close, preClose)),
+          value: tooltipValue(
+            formatPrice(bar.close),
+            comparedPriceColor(theme, bar.close, preClose)
+          ),
+        },
+        {
+          title: '涨跌额',
+          value: tooltipValue(formatSignedNumber(priceChange?.amount ?? null), amountChangeColor),
+        },
+        {
+          title: '涨跌幅',
+          value: tooltipValue(
+            formatSignedNumber(priceChange?.percent ?? null, '%'),
+            percentChangeColor
+          ),
         },
         {
           title: '均价',
@@ -102,9 +139,7 @@ function createTooltipLegends(
           ? theme.palette.error.main
           : theme.palette.success.main;
     const changeText =
-      pctChange == null
-        ? '—'
-        : `${pctChange > 0 ? '+' : ''}${PRICE_FORMATTER.format(pctChange)}%`;
+      pctChange == null ? '—' : `${pctChange > 0 ? '+' : ''}${PRICE_FORMATTER.format(pctChange)}%`;
 
     return [
       { title: '日期', value: tooltipValue(dateLabel, textColor) },

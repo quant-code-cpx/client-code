@@ -6,6 +6,7 @@ import { useRouter } from 'src/routes/hooks';
 
 import { agentApi } from 'src/api/agent';
 import { streamAgentRun } from 'src/api/agent-stream';
+import { AgentClientError } from 'src/api/agent-error';
 
 import { AGENT_CAPABILITIES } from 'src/types/agent/generated';
 
@@ -15,11 +16,15 @@ import { selectActiveRun, selectCurrentConversation } from '../state/agent-selec
 import { isTerminalRunStatus, TERMINAL_RUN_STATUSES } from '../state/agent-state.types';
 
 import type {
+  AgentState,
   AgentRunRetried,
   AgentComposerModel,
   AgentMessageEntity,
   AgentRunProjection,
   AgentRunRegenerated,
+  AgentMessageSnapshot,
+  AgentMessageListSnapshot,
+  AgentMessageProjectionState,
 } from '../state/agent-state.types';
 
 const MAX_MESSAGE_LENGTH = 10_000;
@@ -27,7 +32,6 @@ const DEFAULT_RESEARCH_DEPTH = 'STANDARD' as const;
 const DEFAULT_ANSWER_DETAIL = 'STANDARD' as const;
 const FINAL_SNAPSHOT_RETRY_DELAYS_MS = [250, 1_000] as const;
 const DEFAULT_NEW_CONVERSATION_MODEL: AgentComposerModel = {
-  policy: 'AUTO',
   preferredModel: null,
   reasoningEffort: null,
 };
@@ -38,15 +42,60 @@ type ActiveStream = {
   controller: AbortController;
 };
 
+type BranchAdoptionIntent = {
+  runId: string;
+  conversationId: string;
+  targetMessageId: string;
+  expectedBranchVersion: number;
+};
+
 type MessageRefreshOptions = {
   expectedMessageId?: string;
+  displayMessageId?: string | null;
   finalRunId?: string;
   retryDelaysMs?: readonly number[];
   abortSignal?: AbortSignal;
+  onExpectedMessage?: (message: AgentMessageSnapshot) => void;
 };
 
 function commandErrorMessage(error: unknown, fallback: string): string {
   return error instanceof Error ? error.message : fallback;
+}
+
+function projectionFromSnapshot(
+  result: AgentMessageListSnapshot,
+  fallback?: { activeLeafMessageId?: string | null; branchVersion?: number }
+): AgentMessageProjectionState {
+  const snapshot = result as Partial<AgentMessageListSnapshot>;
+  const activeLeafMessageId =
+    snapshot.activeLeafMessageId === undefined
+      ? (fallback?.activeLeafMessageId ?? null)
+      : (snapshot.activeLeafMessageId ?? null);
+  return {
+    projection: snapshot.projection ?? 'ACTIVE_BRANCH',
+    activeLeafMessageId,
+    branchVersion: snapshot.branchVersion ?? fallback?.branchVersion ?? 0,
+    displayLeafMessageId:
+      snapshot.displayLeafMessageId === undefined
+        ? activeLeafMessageId
+        : (snapshot.displayLeafMessageId ?? null),
+    lineageComplete: snapshot.lineageComplete ?? true,
+    isActiveBranch: snapshot.isActiveBranch ?? true,
+    displayBranchCompatible: snapshot.displayBranchCompatible ?? true,
+    canAdoptDisplay: snapshot.canAdoptDisplay ?? false,
+    siblingGroups: snapshot.siblingGroups ?? [],
+  };
+}
+
+function isBranchCasConflict(error: unknown): error is AgentClientError {
+  return (
+    error instanceof AgentClientError &&
+    (error.code === 6051 || (error.code === undefined && error.status === 409))
+  );
+}
+
+function isActiveRunConflict(error: unknown): error is AgentClientError {
+  return error instanceof AgentClientError && error.code === 6050;
 }
 
 function newRequestId(): string {
@@ -78,6 +127,29 @@ function conversationTitle(content: string): string {
   return firstLine.slice(0, 60);
 }
 
+function stateBranchAdoptionIntent(
+  state: AgentState,
+  targetConversationId: string
+): BranchAdoptionIntent | null {
+  const runs = Object.values(state.runs.byId);
+  for (let index = runs.length - 1; index >= 0; index -= 1) {
+    const run = runs[index];
+    if (
+      run?.conversationId === targetConversationId &&
+      run.branchAdoption &&
+      (run.branchAdoption.status === 'PENDING' || run.branchAdoption.status === 'UNCERTAIN')
+    ) {
+      return {
+        runId: run.runId,
+        conversationId: targetConversationId,
+        targetMessageId: run.branchAdoption.targetMessageId,
+        expectedBranchVersion: run.branchAdoption.expectedBranchVersion,
+      };
+    }
+  }
+  return null;
+}
+
 export function useAgentRun(
   conversationId: string | null,
   newConversationModel: AgentComposerModel = DEFAULT_NEW_CONVERSATION_MODEL
@@ -91,6 +163,8 @@ export function useAgentRun(
   const streamGenerationRef = useRef(0);
   const lastAutoResumeKeyRef = useRef('');
   const sendingRef = useRef(false);
+  const branchAdoptionInFlightRef = useRef(new Set<string>());
+  const branchAdoptionIntentRef = useRef(new Map<string, BranchAdoptionIntent>());
   const [isSending, setIsSending] = useState(false);
   const [commandError, setCommandError] = useState<string | null>(null);
   const activeRun = selectActiveRun(state, conversationId);
@@ -131,7 +205,9 @@ export function useAgentRun(
         try {
           const result = await agentApi.listMessages({
             conversationId: targetConversationId,
+            projection: 'ACTIVE_BRANCH',
             beforeMessageId: null,
+            displayMessageId: options.displayMessageId ?? null,
             limit: 50,
           });
           if (options.abortSignal?.aborted) return false;
@@ -142,6 +218,7 @@ export function useAgentRun(
             if (!finalMessage?.run || !isTerminalRunStatus(finalMessage.run.status)) {
               throw new Error('最终消息尚未出现在权威快照中');
             }
+            options.onExpectedMessage?.(finalMessage);
           }
           dispatch({
             type: 'MESSAGES_SUCCEEDED',
@@ -149,6 +226,10 @@ export function useAgentRun(
             generation,
             items: result.items,
             nextBeforeMessageId: result.nextBeforeMessageId ?? null,
+            projection: projectionFromSnapshot(
+              result,
+              stateRef.current.conversations.byId[targetConversationId]
+            ),
             mode: 'refresh',
             authoritative,
           });
@@ -178,15 +259,180 @@ export function useAgentRun(
     [dispatch]
   );
 
+  const refreshConversationDetail = useCallback(
+    async (targetConversationId: string) => {
+      const generation = nextAgentRequestGeneration();
+      dispatch({
+        type: 'CONVERSATION_DETAIL_REQUESTED',
+        conversationId: targetConversationId,
+        generation,
+      });
+      try {
+        const result = await agentApi.getConversation({ conversationId: targetConversationId });
+        dispatch({
+          type: 'CONVERSATION_DETAIL_SUCCEEDED',
+          conversationId: targetConversationId,
+          generation,
+          conversation: result,
+        });
+        return result;
+      } catch (error) {
+        dispatch({
+          type: 'CONVERSATION_DETAIL_FAILED',
+          conversationId: targetConversationId,
+          generation,
+          error: commandErrorMessage(error, '会话分支状态刷新失败'),
+        });
+        throw error;
+      }
+    },
+    [dispatch]
+  );
+
+  const recoverSendBranchConflict = useCallback(
+    async (
+      localMessageId: string,
+      targetConversationId: string,
+      branchOverride: BranchAdoptionIntent | null
+    ) => {
+      if (branchOverride) {
+        branchAdoptionIntentRef.current.delete(branchOverride.runId);
+        dispatch({ type: 'RUN_BRANCH_ADOPTION_CONFLICTED', runId: branchOverride.runId });
+      }
+      const branch = await refreshConversationDetail(targetConversationId);
+      if (!branch.activeLeafMessageId) return;
+      dispatch({
+        type: 'MESSAGE_BRANCH_REBASED',
+        localMessageId,
+        clientRequestId: newRequestId(),
+        baseAssistantMessageId: branch.activeLeafMessageId,
+        expectedBranchVersion: branch.branchVersion,
+      });
+      await refreshMessages(targetConversationId, false);
+    },
+    [dispatch, refreshConversationDetail, refreshMessages]
+  );
+
+  const settleRegeneratedBranch = useCallback(
+    async (
+      adoption: BranchAdoptionIntent,
+      observedBranch: Awaited<ReturnType<typeof agentApi.getConversation>>
+    ) => {
+      const { runId, conversationId: targetConversationId } = adoption;
+      if (branchAdoptionInFlightRef.current.has(runId)) return;
+
+      const resolveAdopted = (activeLeafMessageId: string, branchVersion: number) => {
+        branchAdoptionIntentRef.current.delete(runId);
+        dispatch({
+          type: 'RUN_BRANCH_ADOPTION_RESOLVED',
+          runId,
+          conversationId: targetConversationId,
+          activeLeafMessageId,
+          branchVersion,
+        });
+      };
+      const refreshAfterAmbiguousResult = async (): Promise<boolean> => {
+        const refreshed = await refreshConversationDetail(targetConversationId);
+        if (refreshed.activeLeafMessageId === adoption.targetMessageId) {
+          resolveAdopted(adoption.targetMessageId, refreshed.branchVersion);
+          return true;
+        }
+        return false;
+      };
+
+      branchAdoptionInFlightRef.current.add(runId);
+      dispatch({ type: 'RUN_BRANCH_ADOPTION_STARTED', runId });
+      try {
+        if (observedBranch.activeLeafMessageId === adoption.targetMessageId) {
+          resolveAdopted(adoption.targetMessageId, observedBranch.branchVersion);
+          return;
+        }
+
+        const adopt = () =>
+          agentApi.adoptConversationBranch({
+            conversationId: targetConversationId,
+            messageId: adoption.targetMessageId,
+            expectedBranchVersion: adoption.expectedBranchVersion,
+          });
+        let adoptionError: unknown;
+        try {
+          const adopted = await adopt();
+          resolveAdopted(adopted.activeLeafMessageId, adopted.branchVersion);
+          return;
+        } catch (error) {
+          adoptionError = error;
+        }
+        if (await refreshAfterAmbiguousResult()) return;
+
+        const retryAmbiguousRequest =
+          adoptionError instanceof AgentClientError &&
+          (adoptionError.kind === 'NETWORK' ||
+            (adoptionError.kind === 'HTTP' && (adoptionError.status ?? 0) >= 500));
+        if (retryAmbiguousRequest) {
+          try {
+            const adopted = await adopt();
+            resolveAdopted(adopted.activeLeafMessageId, adopted.branchVersion);
+            return;
+          } catch (error) {
+            adoptionError = error;
+          }
+          if (await refreshAfterAmbiguousResult()) return;
+        }
+
+        const definitiveConflict = isBranchCasConflict(adoptionError);
+        if (definitiveConflict) {
+          branchAdoptionIntentRef.current.delete(runId);
+          dispatch({ type: 'RUN_BRANCH_ADOPTION_CONFLICTED', runId });
+          setCommandError('重新生成结果未设为当前分支：会话已在其他页面切换');
+          return;
+        }
+
+        dispatch({ type: 'RUN_BRANCH_ADOPTION_UNCERTAIN', runId });
+        setCommandError(
+          isActiveRunConflict(adoptionError)
+            ? '会话已有其他任务运行中；已保留重新生成结果，可在任务结束后重试采纳'
+            : '无法确认重新生成结果是否已设为当前分支；已保留该结果，可稍后重试'
+        );
+      } catch (error) {
+        dispatch({ type: 'RUN_BRANCH_ADOPTION_UNCERTAIN', runId });
+        setCommandError(commandErrorMessage(error, '无法确认重新生成结果的分支状态'));
+      } finally {
+        branchAdoptionInFlightRef.current.delete(runId);
+      }
+    },
+    [dispatch, refreshConversationDetail]
+  );
+
   const refreshFinalSnapshot = useCallback(
-    (runId: string, targetConversationId: string, expectedMessageId?: string) =>
-      refreshMessages(targetConversationId, true, {
-        expectedMessageId,
-        finalRunId: runId,
-        retryDelaysMs: FINAL_SNAPSHOT_RETRY_DELAYS_MS,
-        abortSignal: finalSnapshotAbortRef.current?.signal,
-      }),
-    [refreshMessages]
+    async (runId: string, targetConversationId: string, expectedMessageId?: string) => {
+      const adoption =
+        branchAdoptionIntentRef.current.get(runId) ??
+        stateBranchAdoptionIntent(stateRef.current, targetConversationId);
+      let expectedMessageStatus: AgentMessageSnapshot['status'] | null = null;
+      const [refreshed, branch] = await Promise.all([
+        refreshMessages(targetConversationId, true, {
+          expectedMessageId,
+          displayMessageId: adoption?.targetMessageId ?? null,
+          finalRunId: runId,
+          retryDelaysMs: FINAL_SNAPSHOT_RETRY_DELAYS_MS,
+          abortSignal: finalSnapshotAbortRef.current?.signal,
+          onExpectedMessage: (message) => {
+            expectedMessageStatus = message.status;
+          },
+        }),
+        adoption ? refreshConversationDetail(targetConversationId) : Promise.resolve(null),
+      ]);
+      if (refreshed && adoption && !finalSnapshotAbortRef.current?.signal.aborted) {
+        if (expectedMessageStatus === 'COMPLETED' && branch) {
+          await settleRegeneratedBranch(adoption, branch);
+        } else if (expectedMessageStatus === 'FAILED' || expectedMessageStatus === 'CANCELLED') {
+          branchAdoptionIntentRef.current.delete(runId);
+          dispatch({ type: 'RUN_BRANCH_ADOPTION_ABANDONED', runId });
+        }
+      }
+      return refreshed;
+    },
+    [dispatch, refreshConversationDetail, refreshMessages, settleRegeneratedBranch]
   );
 
   const refreshRunStatus = useCallback(
@@ -364,24 +610,51 @@ export function useAgentRun(
       setCommandError(null);
       let targetConversationId = conversationId;
       let localMessageId: string | null = null;
-      const modelPolicy = conversation?.modelPolicy ?? newConversationModel.policy;
+      let baseAssistantMessageId: string | null = null;
+      let expectedBranchVersion = 0;
+      let branchOverride: BranchAdoptionIntent | null = null;
+      const modelPolicy = 'MANUAL' as const;
 
       try {
         if (targetConversationId && !conversation) {
           setCommandError('会话尚未加载完成');
           return false;
         }
+        if (targetConversationId) {
+          const branch = await refreshConversationDetail(targetConversationId);
+          const refOverrides = [...branchAdoptionIntentRef.current.values()].reverse();
+          branchOverride =
+            refOverrides.find((item) => item.conversationId === targetConversationId) ??
+            stateBranchAdoptionIntent(stateRef.current, targetConversationId);
+          if (branchOverride && branch.activeLeafMessageId === branchOverride.targetMessageId) {
+            branchAdoptionIntentRef.current.delete(branchOverride.runId);
+            dispatch({
+              type: 'RUN_BRANCH_ADOPTION_RESOLVED',
+              runId: branchOverride.runId,
+              conversationId: targetConversationId,
+              activeLeafMessageId: branchOverride.targetMessageId,
+              branchVersion: branch.branchVersion,
+            });
+            branchOverride = null;
+          }
+          baseAssistantMessageId =
+            branchOverride?.targetMessageId ?? branch.activeLeafMessageId ?? null;
+          expectedBranchVersion = branchOverride?.expectedBranchVersion ?? branch.branchVersion;
+        }
         if (!targetConversationId) {
           const createRequestId = newRequestId();
           const title = conversationTitle(content);
-          const preferredModel =
-            modelPolicy === 'MANUAL' ? newConversationModel.preferredModel : null;
+          const preferredModel = newConversationModel.preferredModel;
+          if (!preferredModel) {
+            setCommandError('暂无可用模型，请先配置或选择模型');
+            return false;
+          }
           const created = await agentApi.createConversation({
             clientRequestId: createRequestId,
             title,
             modelPolicy,
             preferredModel,
-            reasoningEffort: modelPolicy === 'MANUAL' ? newConversationModel.reasoningEffort : null,
+            reasoningEffort: newConversationModel.reasoningEffort,
             researchDepth: DEFAULT_RESEARCH_DEPTH,
             answerDetail: DEFAULT_ANSWER_DETAIL,
           });
@@ -394,10 +667,11 @@ export function useAgentRun(
               status: created.status,
               modelPolicy,
               preferredModel,
-              reasoningEffort:
-                modelPolicy === 'MANUAL' ? newConversationModel.reasoningEffort : null,
+              reasoningEffort: newConversationModel.reasoningEffort,
               researchDepth: DEFAULT_RESEARCH_DEPTH,
               answerDetail: DEFAULT_ANSWER_DETAIL,
+              activeLeafMessageId: null,
+              branchVersion: 0,
               messageCount: 0,
               lastMessageAt: created.createdAt,
               createdAt: created.createdAt,
@@ -427,6 +701,10 @@ export function useAgentRun(
           clientRequestId,
           localId: localMessageId,
           deliveryStatus: 'SENDING',
+          contextParentMessageId: baseAssistantMessageId,
+          baseAssistantMessageId,
+          expectedBranchVersion,
+          ...(branchOverride === null ? {} : { branchAdoptionRunId: branchOverride.runId }),
         };
         dispatch({
           type: 'OPTIMISTIC_USER_MESSAGE_ADDED',
@@ -440,6 +718,8 @@ export function useAgentRun(
           content,
           modelPolicy,
           allowedCapabilities: [...AGENT_CAPABILITIES],
+          ...(baseAssistantMessageId === null ? {} : { baseAssistantMessageId }),
+          ...(baseAssistantMessageId === null ? {} : { expectedBranchVersion }),
         });
         dispatch({
           type: 'MESSAGE_SEND_CONFIRMED',
@@ -447,18 +727,48 @@ export function useAgentRun(
           localMessageId,
           response,
         });
+        if (branchOverride && baseAssistantMessageId === branchOverride.targetMessageId) {
+          branchAdoptionIntentRef.current.delete(branchOverride.runId);
+          dispatch({
+            type: 'RUN_BRANCH_ADOPTION_RESOLVED',
+            runId: branchOverride.runId,
+            conversationId: targetConversationId,
+            activeLeafMessageId: baseAssistantMessageId,
+            branchVersion: response.branchVersion,
+          });
+        }
         startStream(response.runId, 0, undefined, response.streamEndpoint);
         return true;
       } catch (error) {
         if (localMessageId) dispatch({ type: 'MESSAGE_SEND_FAILED', localMessageId });
-        setCommandError(commandErrorMessage(error, '问题发送失败'));
+        if (isBranchCasConflict(error) && localMessageId && targetConversationId) {
+          try {
+            await recoverSendBranchConflict(localMessageId, targetConversationId, branchOverride);
+          } catch {
+            // Keep the original conflict visible; a later full refresh can recover the branch state.
+          }
+          setCommandError('会话分支已在其他页面变更，状态已刷新，请确认后重试');
+        } else if (isActiveRunConflict(error)) {
+          setCommandError('会话已有任务运行中；已保留本次请求，请在任务结束后重试');
+        } else {
+          setCommandError(commandErrorMessage(error, '问题发送失败'));
+        }
         return false;
       } finally {
         sendingRef.current = false;
         setIsSending(false);
       }
     },
-    [conversation, conversationId, dispatch, newConversationModel, router, startStream]
+    [
+      conversation,
+      conversationId,
+      dispatch,
+      newConversationModel,
+      recoverSendBranchConflict,
+      refreshConversationDetail,
+      router,
+      startStream,
+    ]
   );
 
   const cancel = useCallback(async (): Promise<void> => {
@@ -537,13 +847,23 @@ export function useAgentRun(
 
       dispatch({ type: 'MESSAGE_RETRY_REQUESTED', messageId: message.messageId });
       setCommandError(null);
+      const branchOverride = message.branchAdoptionRunId
+        ? (branchAdoptionIntentRef.current.get(message.branchAdoptionRunId) ??
+          stateBranchAdoptionIntent(stateRef.current, message.conversationId))
+        : null;
       try {
         const response = await agentApi.sendMessage({
           clientRequestId: message.clientRequestId,
           conversationId: message.conversationId,
           content,
-          modelPolicy: conversation?.modelPolicy ?? 'AUTO',
+          modelPolicy: 'MANUAL',
           allowedCapabilities: [...AGENT_CAPABILITIES],
+          ...(message.baseAssistantMessageId == null
+            ? {}
+            : { baseAssistantMessageId: message.baseAssistantMessageId }),
+          ...(message.baseAssistantMessageId == null || message.expectedBranchVersion === undefined
+            ? {}
+            : { expectedBranchVersion: message.expectedBranchVersion }),
         });
         dispatch({
           type: 'MESSAGE_SEND_CONFIRMED',
@@ -551,15 +871,40 @@ export function useAgentRun(
           localMessageId: message.messageId,
           response,
         });
+        if (message.branchAdoptionRunId && message.baseAssistantMessageId) {
+          branchAdoptionIntentRef.current.delete(message.branchAdoptionRunId);
+          dispatch({
+            type: 'RUN_BRANCH_ADOPTION_RESOLVED',
+            runId: message.branchAdoptionRunId,
+            conversationId: message.conversationId,
+            activeLeafMessageId: message.baseAssistantMessageId,
+            branchVersion: response.branchVersion,
+          });
+        }
         startStream(response.runId, 0, undefined, response.streamEndpoint);
         return true;
       } catch (error) {
         dispatch({ type: 'MESSAGE_SEND_FAILED', localMessageId: message.messageId });
-        setCommandError(commandErrorMessage(error, '消息重试失败'));
+        if (isBranchCasConflict(error)) {
+          try {
+            await recoverSendBranchConflict(
+              message.messageId,
+              message.conversationId,
+              branchOverride
+            );
+          } catch {
+            // Keep the failed local message and let a later conversation refresh recover.
+          }
+          setCommandError('会话分支已在其他页面变更，状态已刷新，请再次重试');
+        } else if (isActiveRunConflict(error)) {
+          setCommandError('会话已有任务运行中；已保留本次请求，请在任务结束后重试');
+        } else {
+          setCommandError(commandErrorMessage(error, '消息重试失败'));
+        }
         return false;
       }
     },
-    [conversation?.modelPolicy, dispatch, startStream]
+    [dispatch, recoverSendBranchConflict, startStream]
   );
 
   const regenerate = useCallback(
@@ -568,6 +913,37 @@ export function useAgentRun(
       setCommandError(null);
       try {
         const message = stateRef.current.messages.byId[messageId];
+        const projection =
+          stateRef.current.loadsByConversation[conversationId]?.messageProjection ?? null;
+        const currentConversation = stateRef.current.conversations.byId[conversationId];
+        const projectionMatchesConversation = Boolean(
+          projection &&
+            currentConversation &&
+            projection.branchVersion === currentConversation.branchVersion &&
+            projection.activeLeafMessageId === currentConversation.activeLeafMessageId
+        );
+        const orderedIds = stateRef.current.messages.orderedIdsByConversation[conversationId] ?? [];
+        const triggerMessage = message?.parentMessageId
+          ? stateRef.current.messages.byId[message.parentMessageId]
+          : null;
+        const retryingCompatibleAttempt =
+          projection?.displayLeafMessageId === messageId &&
+          projection.displayBranchCompatible &&
+          (message?.status === 'FAILED' || message?.status === 'CANCELLED');
+        if (
+          !message ||
+          !message.parentMessageId ||
+          !triggerMessage ||
+          triggerMessage.role !== 'USER' ||
+          !orderedIds.includes(triggerMessage.messageId) ||
+          !orderedIds.includes(messageId) ||
+          !projectionMatchesConversation ||
+          !projection?.lineageComplete ||
+          (!projection.isActiveBranch && !retryingCompatibleAttempt)
+        ) {
+          setCommandError('该版本不是可继续的当前分支，请先切换或采纳对应版本');
+          return false;
+        }
         const sourceRunId = message?.status === 'FAILED' ? message.run?.runId : null;
         const clientRequestId = newRequestId();
         let response: AgentRunRegenerated | AgentRunRetried;
@@ -578,13 +954,21 @@ export function useAgentRun(
             : await agentApi.regenerateMessage({
                 clientRequestId,
                 messageId,
-                modelPolicy: conversation?.modelPolicy ?? 'AUTO',
+                modelPolicy: 'MANUAL',
               });
         } else {
           response = await agentApi.regenerateMessage({
             clientRequestId,
             messageId,
-            modelPolicy: conversation?.modelPolicy ?? 'AUTO',
+            modelPolicy: 'MANUAL',
+          });
+        }
+        if ('sourceMessageId' in response) {
+          branchAdoptionIntentRef.current.set(response.runId, {
+            runId: response.runId,
+            conversationId,
+            targetMessageId: response.assistantMessageId,
+            expectedBranchVersion: response.branchVersion,
           });
         }
         dispatch({
@@ -592,15 +976,34 @@ export function useAgentRun(
           conversationId,
           response,
           createdAt: new Date().toISOString(),
+          sourceMessageId: messageId,
+          contextParentMessageId: message.parentMessageId,
+          baseAssistantMessageId: triggerMessage.contextParentMessageId ?? null,
+          expectedBranchVersion: response.branchVersion,
         });
         startStream(response.runId, 0, undefined, response.streamEndpoint);
         return true;
       } catch (error) {
-        setCommandError(commandErrorMessage(error, '重试或重新生成失败'));
+        if (isBranchCasConflict(error)) {
+          await Promise.allSettled([
+            refreshConversationDetail(conversationId),
+            refreshMessages(conversationId, false),
+          ]);
+          setCommandError('会话分支已在其他页面变更，状态已刷新，请确认后重试');
+        } else {
+          setCommandError(commandErrorMessage(error, '重试或重新生成失败'));
+        }
         return false;
       }
     },
-    [conversation?.modelPolicy, conversationId, dispatch, refreshRunStatus, startStream]
+    [
+      conversationId,
+      dispatch,
+      refreshConversationDetail,
+      refreshMessages,
+      refreshRunStatus,
+      startStream,
+    ]
   );
 
   const continueReceiving = useCallback(() => {

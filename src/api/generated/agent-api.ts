@@ -191,6 +191,23 @@ export interface paths {
     patch?: never;
     trace?: never;
   };
+  "/agent/conversations/branches/adopt": {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    get?: never;
+    put?: never;
+    /** CAS 采纳已完成 assistant 分支 */
+    post: operations["AgentController_adoptConversationBranch"];
+    delete?: never;
+    options?: never;
+    head?: never;
+    patch?: never;
+    trace?: never;
+  };
   "/agent/messages/feedback": {
     parameters: {
       query?: never;
@@ -1112,7 +1129,10 @@ export interface components {
     };
     RunScheduledResearchDto: {
       taskId: string;
-      /** Format: uuid */
+      /**
+       * Format: uuid
+       * @description 手动执行命令族内同一用户唯一；同 task 重放原 execution，不同 task 返回冲突
+       */
       clientRequestId: string;
     };
     ScheduledResearchTaskResponseDto: {
@@ -1141,8 +1161,8 @@ export interface components {
       workflowKey: string;
       workflowVersion: number;
       /** @enum {string} */
-      modelPolicy: "AUTO" | "MANUAL";
-      preferredModel?: string | null;
+      modelPolicy: "MANUAL";
+      preferredModel: string;
       maxCostCny: number;
       /** Format: date-time */
       nextRunAt?: string | null;
@@ -1180,14 +1200,17 @@ export interface components {
       )[];
       requiredWatermarks?: components["schemas"]["RequiredWatermarkDto"][];
       /** @enum {string} */
-      modelPolicy?: "AUTO" | "MANUAL";
-      preferredModel?: string | null;
+      modelPolicy?: "MANUAL";
+      preferredModel?: string;
       maxCostCny?: number;
     };
     RequiredWatermarkDto: {
       /** @enum {string} */
       dataset: "DAILY";
-      /** @example 20260722 */
+      /**
+       * @description 合法 Gregorian 交易日，YYYYMMDD
+       * @example 20260722
+       */
       minTradeDate?: string;
       /** @example 180 */
       maxAgeMinutes?: number;
@@ -1247,14 +1270,14 @@ export interface components {
       requiredWatermarks: components["schemas"]["RequiredWatermarkDto"][];
       /** @default stock_research */
       workflowKey: string;
-      /** @default 14 */
+      /** @default 18 */
       workflowVersion: number;
       /**
-       * @default AUTO
+       * @default MANUAL
        * @enum {string}
        */
-      modelPolicy: "AUTO" | "MANUAL";
-      preferredModel?: string | null;
+      modelPolicy: "MANUAL";
+      preferredModel: string;
       /** @example 2 */
       maxCostCny: number;
     };
@@ -1272,6 +1295,16 @@ export interface components {
       /** Format: date */
       dataAsOf?: string | null;
       journalId?: number | null;
+      /**
+       * @description 报告后台处理失败的稳定公开错误码；底层诊断永不返回
+       * @enum {string|null}
+       */
+      errorCode?:
+        | "AI_RESEARCH_REPORT_RENDER_RETRYING"
+        | "AI_RESEARCH_REPORT_RENDER_FAILED"
+        | "AI_RESEARCH_REPORT_CLEANUP_RETRYING"
+        | null;
+      /** @description 与 errorCode 对应的固定安全产品文案 */
       errorMessage?: string | null;
       /** Format: date-time */
       createdAt: string;
@@ -1315,6 +1348,8 @@ export interface components {
     SaveResearchReportDto: {
       /** @description 首次预览必须提供；确认阶段由 token 绑定 */
       runId?: string;
+      /** @description 报告标题覆盖；必须重新预览后才能确认 */
+      title?: string;
       /** @description 首次预览返回的短期确认 token */
       confirmationToken?: string;
       /** @description 确认保存必填；同一用户内幂等 */
@@ -1345,6 +1380,16 @@ export interface components {
       /** Format: date */
       dataAsOf?: string | null;
       journalId?: number | null;
+      /**
+       * @description 报告后台处理失败的稳定公开错误码；底层诊断永不返回
+       * @enum {string|null}
+       */
+      errorCode?:
+        | "AI_RESEARCH_REPORT_RENDER_RETRYING"
+        | "AI_RESEARCH_REPORT_RENDER_FAILED"
+        | "AI_RESEARCH_REPORT_CLEANUP_RETRYING"
+        | null;
+      /** @description 与 errorCode 对应的固定安全产品文案 */
       errorMessage?: string | null;
       /** Format: date-time */
       createdAt: string;
@@ -1392,7 +1437,7 @@ export interface components {
     ProbeModelDeploymentDto: {
       id: string;
       /**
-       * @description 深度探测会产生一次最小模型调用
+       * @description 可选模型测试会产生一至两次最小模型调用，可能计费
        * @default false
        */
       confirmBillable: boolean;
@@ -1440,8 +1485,8 @@ export interface components {
       reasoningMode: "AUTO" | "DISABLED" | "EFFORT" | "TOKEN_BUDGET";
       /** @description 适配器已知或供应商原生推理档位 */
       reasoningEfforts?: string[];
-      defaultReasoningEffort?: string;
-      reasoningBudgetTokens?: number;
+      defaultReasoningEffort?: string | null;
+      reasoningBudgetTokens?: number | null;
       dataClasses?: ("PUBLIC" | "USER_PRIVATE" | "PORTFOLIO_SENSITIVE")[];
       /** @default 120000 */
       timeoutMs: number;
@@ -1497,8 +1542,8 @@ export interface components {
       reasoningMode: "AUTO" | "DISABLED" | "EFFORT" | "TOKEN_BUDGET";
       /** @description 适配器已知或供应商原生推理档位 */
       reasoningEfforts: string[];
-      defaultReasoningEffort?: string;
-      reasoningBudgetTokens?: number;
+      defaultReasoningEffort?: string | null;
+      reasoningBudgetTokens?: number | null;
       dataClasses: ("PUBLIC" | "USER_PRIVATE" | "PORTFOLIO_SENSITIVE")[];
       /** @default 120000 */
       timeoutMs: number;
@@ -1725,6 +1770,7 @@ export interface components {
     };
     AgentRunEventsDto: {
       runId: string;
+      /** @description Last-Event-ID 缺省时使用，不得超过 Run 当前 latestEventSequence */
       afterSequence: number;
       /**
        * @description 显式订阅供应商公开返回的推理文本；缺省 false 兼容旧客户端
@@ -1854,6 +1900,11 @@ export interface components {
       updatedAt: string;
     };
     UpdateMemoryDto: {
+      /**
+       * Format: uuid
+       * @description 同一用户 Memory 写命令族内唯一；精确重试必须复用
+       */
+      clientRequestId: string;
       memoryId: string;
       value: Record<string, never> | unknown[] | string | number | boolean;
       /** @enum {string} */
@@ -1878,6 +1929,11 @@ export interface components {
       confirmation: true;
     };
     CreateMemoryDto: {
+      /**
+       * Format: uuid
+       * @description 同一用户 Memory 写命令族内唯一；精确重试必须复用
+       */
+      clientRequestId: string;
       /** @enum {string} */
       category: "PREFERENCE" | "PROFILE" | "CONSTRAINT" | "DOMAIN_FACT";
       /** @example response.style */
@@ -2066,6 +2122,7 @@ export interface components {
         | "CANCELLED";
       /** @enum {string} */
       retryMode: "SAFE_CHECKPOINT";
+      branchVersion: number;
       /** @enum {string} */
       streamEndpoint: "/api/agent/runs/events";
     };
@@ -2087,6 +2144,7 @@ export interface components {
         | "COMPLETED"
         | "FAILED"
         | "CANCELLED";
+      branchVersion: number;
       /** @enum {string} */
       streamEndpoint: "/api/agent/runs/events";
     };
@@ -2095,7 +2153,7 @@ export interface components {
       clientRequestId: string;
       messageId: string;
       /** @enum {string} */
-      modelPolicy: "AUTO" | "MANUAL";
+      modelPolicy: "MANUAL";
       /**
        * @description 仅覆盖本次重新生成
        * @enum {string}
@@ -2120,6 +2178,7 @@ export interface components {
         | "COMPLETED"
         | "FAILED"
         | "CANCELLED";
+      branchVersion: number;
       /** @enum {string} */
       streamEndpoint: "/api/agent/runs/events";
     };
@@ -2128,9 +2187,13 @@ export interface components {
       clientRequestId: string;
       conversationId: string;
       content: string;
+      /** @description 显式指定当前可见的已完成 assistant 作为本轮上下文父；必须与 expectedBranchVersion 同时提供 */
+      baseAssistantMessageId?: string | null;
+      /** @description 显式分支父对应的会话 branchVersion CAS */
+      expectedBranchVersion?: number;
       pageContext?: components["schemas"]["AgentPageContextDto"];
       /** @enum {string} */
-      modelPolicy: "AUTO" | "MANUAL";
+      modelPolicy: "MANUAL";
       allowedCapabilities: ("INTERNAL_DATA" | "QUANT_COMPUTE" | "WEB_SEARCH")[];
       /**
        * @description 仅覆盖当前 Run；缺省时继承会话
@@ -2187,8 +2250,8 @@ export interface components {
     UpdateConversationModelResponseDto: {
       conversationId: string;
       /** @enum {string} */
-      modelPolicy: "AUTO" | "MANUAL";
-      preferredModel?: string | null;
+      modelPolicy: "MANUAL";
+      preferredModel: string;
       reasoningEffort?: string | null;
       /** @enum {string} */
       researchDepth: "QUICK" | "STANDARD" | "DEEP";
@@ -2212,8 +2275,8 @@ export interface components {
     UpdateConversationModelDto: {
       conversationId: string;
       /** @enum {string} */
-      modelPolicy: "AUTO" | "MANUAL";
-      preferredModel?: string | null;
+      modelPolicy: "MANUAL";
+      preferredModel: string;
       reasoningEffort?: string | null;
       /** @enum {string} */
       researchDepth?: "QUICK" | "STANDARD" | "DEEP";
@@ -2238,9 +2301,52 @@ export interface components {
       reasons: string[];
       comment?: string | null;
     };
+    AdoptConversationBranchResponseDto: {
+      conversationId: string;
+      activeLeafMessageId: string;
+      branchVersion: number;
+    };
+    AdoptConversationBranchDto: {
+      conversationId: string;
+      messageId: string;
+      expectedBranchVersion: number;
+    };
     AgentMessageListResponseDto: {
+      /** @enum {string} */
+      projection: "ALL" | "ACTIVE_BRANCH";
+      activeLeafMessageId?: string | null;
+      branchVersion: number;
+      displayLeafMessageId?: string | null;
+      lineageComplete: boolean;
+      /** @description 展示叶是否就是当前 active leaf；空会话视为当前分支。 */
+      isActiveBranch: boolean;
+      /** @description 展示 attempt 的冻结分支快照是否仍与当前 active 分支相容；不代表可直接输入。 */
+      displayBranchCompatible: boolean;
+      /** @description 展示叶是否可通过 branchVersion CAS 提升为 active leaf。 */
+      canAdoptDisplay: boolean;
       items: components["schemas"]["AgentMessageResponseDto"][];
+      siblingGroups: components["schemas"]["AgentMessageSiblingGroupDto"][];
+      /** @description 不透明分页游标；ACTIVE_BRANCH 游标在分支变化后失效。 */
       nextBeforeMessageId?: string | null;
+    };
+    AgentMessageSiblingGroupDto: {
+      parentMessageId: string;
+      selectedMessageId: string;
+      selectedVersion: number;
+      activeMessageId?: string | null;
+      totalVersions: number;
+      versions: components["schemas"]["AgentMessageSiblingVersionDto"][];
+    };
+    AgentMessageSiblingVersionDto: {
+      messageId: string;
+      version: number;
+      /** @enum {string} */
+      status: "PENDING" | "STREAMING" | "COMPLETED" | "FAILED" | "CANCELLED";
+      isActive: boolean;
+      isDisplayed: boolean;
+      canAdopt: boolean;
+      /** Format: date-time */
+      createdAt: string;
     };
     AgentMessageResponseDto: {
       messageId: string;
@@ -2254,6 +2360,7 @@ export interface components {
       }[];
       version: number;
       parentMessageId?: string | null;
+      contextParentMessageId?: string | null;
       modelName?: string | null;
       run?: components["schemas"]["AgentMessageRunSummaryDto"] | null;
       feedback?: components["schemas"]["AgentMessageFeedbackDto"] | null;
@@ -2294,7 +2401,7 @@ export interface components {
       statusVersion: number;
       /** Format: date-time */
       endedAt?: string | null;
-      errorCode?: string | null;
+      errorCode?: number | null;
       errorMessage?: string | null;
       /** @enum {string|null} */
       fulfillmentStatus?: "FULL" | "DEGRADED" | null;
@@ -2303,7 +2410,16 @@ export interface components {
     };
     ListConversationMessagesDto: {
       conversationId: string;
+      /**
+       * @description ALL 保留完整审计流；ACTIVE_BRANCH 沿权威上下文父链返回当前或指定展示分支。
+       * @default ALL
+       * @enum {string}
+       */
+      projection: "ALL" | "ACTIVE_BRANCH";
+      /** @description ALL 首次请求兼容历史 message id；服务端返回的后续游标为绑定分支快照的不透明值。 */
       beforeMessageId?: string | null;
+      /** @description ACTIVE_BRANCH 可指定本会话 assistant 消息作为只读展示叶；非 active 分支需先 adopt 才能继续。 */
+      displayMessageId?: string | null;
       /** @default 50 */
       limit: number;
     };
@@ -2313,13 +2429,15 @@ export interface components {
       /** @enum {string} */
       status: "ACTIVE" | "ARCHIVED";
       /** @enum {string} */
-      modelPolicy: "AUTO" | "MANUAL";
-      preferredModel?: string | null;
+      modelPolicy: "MANUAL";
+      preferredModel: string;
       reasoningEffort?: string | null;
       /** @enum {string} */
       researchDepth: "QUICK" | "STANDARD" | "DEEP";
       /** @enum {string} */
       answerDetail: "CONCISE" | "STANDARD" | "DETAILED";
+      activeLeafMessageId?: string | null;
+      branchVersion: number;
       messageCount: number;
       /** Format: date-time */
       lastMessageAt: string;
@@ -2357,13 +2475,15 @@ export interface components {
       /** @enum {string} */
       status: "ACTIVE" | "ARCHIVED";
       /** @enum {string} */
-      modelPolicy: "AUTO" | "MANUAL";
-      preferredModel?: string | null;
+      modelPolicy: "MANUAL";
+      preferredModel: string;
       reasoningEffort?: string | null;
       /** @enum {string} */
       researchDepth: "QUICK" | "STANDARD" | "DEEP";
       /** @enum {string} */
       answerDetail: "CONCISE" | "STANDARD" | "DETAILED";
+      activeLeafMessageId?: string | null;
+      branchVersion: number;
       messageCount: number;
       /** Format: date-time */
       lastMessageAt: string;
@@ -2392,9 +2512,9 @@ export interface components {
       /** @example 贵州茅台估值研究 */
       title: string;
       /** @enum {string} */
-      modelPolicy: "AUTO" | "MANUAL";
-      /** @example null */
-      preferredModel?: string | null;
+      modelPolicy: "MANUAL";
+      /** @example gpt-5.6-sol */
+      preferredModel: string;
       reasoningEffort?: string | null;
       /**
        * @default STANDARD
@@ -2804,6 +2924,31 @@ export interface operations {
       };
     };
   };
+  AgentController_adoptConversationBranch: {
+    parameters: {
+      query?: never;
+      header?: never;
+      path?: never;
+      cookie?: never;
+    };
+    requestBody: {
+      content: {
+        "application/json": components["schemas"]["AdoptConversationBranchDto"];
+      };
+    };
+    responses: {
+      200: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content: {
+          "application/json": components["schemas"]["ResponseModel"] & {
+            data?: components["schemas"]["AdoptConversationBranchResponseDto"];
+          };
+        };
+      };
+    };
+  };
   AgentController_upsertMessageFeedback: {
     parameters: {
       query?: never;
@@ -3200,6 +3345,20 @@ export interface operations {
             data?: Record<string, never>;
           };
         };
+      };
+      /** @description clientRequestId 对应的评测身份与当前数据集不一致 */
+      409: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
+      };
+      /** @description 评测执行失败或历史结果无法安全恢复 */
+      500: {
+        headers: {
+          [name: string]: unknown;
+        };
+        content?: never;
       };
     };
   };

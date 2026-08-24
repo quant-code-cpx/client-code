@@ -57,4 +57,41 @@ describe('ConversationSidebar', () => {
     await user.click(screen.getByRole('option', { name: /沪深 300 复盘/ }));
     expect(onSelect).toHaveBeenCalledWith('cm_2');
   });
+
+  it('会话列表失败时显示紧凑错误态并提供重试', async () => {
+    const onRetry = vi.fn();
+    const { user } = renderWithProviders(
+      <AgentMuiXProvider
+        activeConversationId={null}
+        composerValue=""
+        conversations={[]}
+        messages={[]}
+        hasOlder={false}
+        onActiveConversationChange={vi.fn()}
+        onComposerValueChange={vi.fn()}
+      >
+        <ConversationSidebar
+          totalItemCount={0}
+          visibleItemCount={0}
+          query=""
+          status="error"
+          error="会话列表暂时无法加载，请稍后重试"
+          hasMore={false}
+          loadingMore={false}
+          mobileOpen={false}
+          mobile={false}
+          onClose={vi.fn()}
+          onNew={vi.fn()}
+          onQueryChange={vi.fn()}
+          onRetry={onRetry}
+          onLoadMore={vi.fn()}
+        />
+      </AgentMuiXProvider>
+    );
+
+    expect(screen.getByRole('alert')).toHaveTextContent('会话列表暂时无法加载，请稍后重试');
+
+    await user.click(screen.getByRole('button', { name: '重试' }));
+    expect(onRetry).toHaveBeenCalledOnce();
+  });
 });

@@ -44,8 +44,8 @@ describe('agentApi', () => {
     const input = {
       clientRequestId: '8e598a53-84d5-45bd-b06a-d8d10d3fb125',
       title: '估值研究',
-      modelPolicy: 'AUTO',
-      preferredModel: null,
+      modelPolicy: 'MANUAL',
+      preferredModel: 'gpt-5.6-sol',
       reasoningEffort: null,
       researchDepth: 'STANDARD',
       answerDetail: 'STANDARD',
@@ -93,6 +93,36 @@ describe('agentApi', () => {
     expect(requestPath(url)).toBe('/api/agent/models/list');
     expect(init.method).toBe('POST');
     expect(init.body).toBeUndefined();
+  });
+
+  it('posts branch adoption with the target assistant and CAS version', async () => {
+    mockFetch.mockResolvedValueOnce(
+      jsonResponse({
+        code: 0,
+        data: {
+          conversationId: 'cm_1',
+          activeLeafMessageId: 'msg_assistant_v2',
+          branchVersion: 8,
+        },
+      })
+    );
+    const input = {
+      conversationId: 'cm_1',
+      messageId: 'msg_assistant_v2',
+      expectedBranchVersion: 7,
+    } satisfies AgentRequest<'/agent/conversations/branches/adopt'>;
+
+    const result = await agentApi.adoptConversationBranch(input);
+
+    expect(result).toEqual({
+      conversationId: 'cm_1',
+      activeLeafMessageId: 'msg_assistant_v2',
+      branchVersion: 8,
+    });
+    const [url, init] = mockFetch.mock.calls[0] as [string, RequestInit];
+    expect(requestPath(url)).toBe('/api/agent/conversations/branches/adopt');
+    expect(init.method).toBe('POST');
+    expect(JSON.parse(String(init.body))).toEqual(input);
   });
 
   it('posts failed Run checkpoint retries through the canonical Agent facade', async () => {
@@ -205,7 +235,7 @@ describe('agentApi', () => {
       clientRequestId: '04907f45-c978-4058-8a4a-454625f27a2d',
       conversationId: 'cm_1',
       content: 'test',
-      modelPolicy: 'AUTO',
+      modelPolicy: 'MANUAL',
       allowedCapabilities: ['INTERNAL_DATA'],
     } satisfies AgentRequest<'/agent/messages/send'>;
 

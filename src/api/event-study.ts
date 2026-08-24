@@ -1,4 +1,4 @@
-import { apiClient } from './client';
+import { apiClient, tokenStorage } from './client';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -284,6 +284,24 @@ export type AnalysisPlanListResult = {
 
 // ── API Functions ─────────────────────────────────────────────────────────────
 
+const eventCalendarInFlight = new Map<string, Promise<EventCalendarResult>>();
+
+function eventCalendarRequestKey(params: EventCalendarParams): string {
+  return `${tokenStorage.getSessionEpoch()}:${tokenStorage.getEpoch()}:${params.startDate}:${params.endDate}:${(params.eventTypes ?? []).join(',')}`;
+}
+
+function assertCalendarRequestCurrent(sessionEpoch: number, tokenEpoch: number): void {
+  if (
+    tokenStorage.getSessionEpoch() === sessionEpoch &&
+    tokenStorage.getEpoch() === tokenEpoch
+  ) {
+    return;
+  }
+  const error = new Error('认证会话已切换，请求结果已丢弃');
+  error.name = 'AbortError';
+  throw error;
+}
+
 export function getEventTypes() {
   return apiClient.post<EventTypeItem[]>('/api/event-study/event-types/list', {});
 }
@@ -293,7 +311,31 @@ export function getEventSchema(eventType: EventType) {
 }
 
 export function getEventCalendar(params: EventCalendarParams) {
-  return apiClient.post<EventCalendarResult>('/api/event-study/events/calendar', params);
+  const sessionEpoch = tokenStorage.getSessionEpoch();
+  const tokenEpoch = tokenStorage.getEpoch();
+  const requestKey = eventCalendarRequestKey(params);
+  const existing = eventCalendarInFlight.get(requestKey);
+  if (existing) return existing;
+
+  const request = apiClient
+    .post<EventCalendarResult>('/api/event-study/events/calendar', params)
+    .then(
+      (result) => {
+        assertCalendarRequestCurrent(sessionEpoch, tokenEpoch);
+        return result;
+      },
+      (error: unknown) => {
+        assertCalendarRequestCurrent(sessionEpoch, tokenEpoch);
+        throw error;
+      }
+    )
+    .finally(() => {
+      if (eventCalendarInFlight.get(requestKey) === request) {
+        eventCalendarInFlight.delete(requestKey);
+      }
+    });
+  eventCalendarInFlight.set(requestKey, request);
+  return request;
 }
 
 export function queryEvents(params: EventsQueryParams) {
