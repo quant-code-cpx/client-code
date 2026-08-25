@@ -14,6 +14,7 @@ export const SYNC_FRESHNESS_STATUS_META = {
   READY: { label: '已就绪', color: 'success' as const },
   SYNCING: { label: '同步中', color: 'info' as const },
   WAITING: { label: '待同步', color: 'default' as const },
+  DEGRADED: { label: '同步不完整', color: 'warning' as const },
   LATE: { label: '已延迟', color: 'warning' as const },
   FAILED: { label: '失败', color: 'error' as const },
   BLOCKED: { label: '阻塞', color: 'error' as const },

@@ -1015,6 +1015,9 @@ export function agentReducer(state: AgentState, action: AgentAction): AgentState
         ),
         errorCode: action.snapshot.errorCode,
         errorMessage: action.snapshot.errorMessage,
+        failureDiagnostics: action.snapshot.failureDiagnostics,
+        retryable: action.snapshot.errorRetryable ?? existing?.retryable,
+        recommendedActions: action.snapshot.recommendedActions,
         cancelRequested: action.snapshot.status === 'CANCEL_REQUESTED',
         needsFinalSnapshot: snapshotTerminal
           ? existingTerminal

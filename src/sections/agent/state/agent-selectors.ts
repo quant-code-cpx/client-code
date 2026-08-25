@@ -38,13 +38,18 @@ export function selectIsHistoricalBranchView(
   projection: AgentMessageProjectionState | null | undefined
 ) {
   if (!projection || projection.isActiveBranch || !projection.displayLeafMessageId) return false;
-  const displayedVersion = projection.siblingGroups
-    .flatMap((group) => group.versions)
-    .find((version) => version.messageId === projection.displayLeafMessageId);
+  const displayedGroup = projection.siblingGroups.find((group) =>
+    group.versions.some((version) => version.messageId === projection.displayLeafMessageId)
+  );
+  const displayedVersion = displayedGroup?.versions.find(
+    (version) => version.messageId === projection.displayLeafMessageId
+  );
 
-  return (
-    displayedVersion?.status === 'COMPLETED' ||
-    displayedVersion?.status === 'FAILED' ||
-    displayedVersion?.status === 'CANCELLED'
+  if (displayedVersion?.status === 'COMPLETED') return true;
+  if (displayedVersion?.status !== 'FAILED' && displayedVersion?.status !== 'CANCELLED') return false;
+
+  return Boolean(
+    displayedGroup?.activeMessageId &&
+    displayedGroup.activeMessageId !== projection.displayLeafMessageId
   );
 }

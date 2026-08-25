@@ -116,6 +116,7 @@ function runningSnapshot(latestEventSequence: number): AgentRunStatusSnapshot {
     answerDetail: 'STANDARD',
     errorCode: null,
     errorMessage: null,
+    recommendedActions: [],
     queuedAt: '2026-08-16T01:00:00.000Z',
     startedAt: '2026-08-16T01:00:01.000Z',
     endedAt: null,
@@ -225,6 +226,43 @@ describe('Agent reducer', () => {
       latestEventSequence: 2,
       latestPersistedEventSequence: 5,
     });
+  });
+
+  it('失败状态快照保留后端模型诊断信息供失败卡片展示', () => {
+    const failureDiagnostics = {
+      traceId: 'trace-1',
+      modelCallId: 'model-call-1',
+      provider: 'fishxcode',
+      model: 'gpt-5.6-sol',
+      httpStatus: 503,
+      providerRequestId: 'request-1',
+      errorClass: 'ModelGatewayError',
+      providerInvocations: 1,
+      startedAt: '2026-08-16T01:00:01.000Z',
+      finishedAt: '2026-08-16T01:00:02.000Z',
+    };
+    const state = agentReducer(stateWithConfirmedRun(), {
+      type: 'RUN_STATUS_RECEIVED',
+      assistantMessageId: 'msg_assistant_1',
+      snapshot: {
+        ...runningSnapshot(3),
+        status: 'FAILED',
+        statusVersion: 4,
+        canCancel: false,
+        canRetry: true,
+        errorCode: 6005,
+        errorMessage: '模型供应商返回 HTTP 503：deployment overloaded',
+        errorRetryable: true,
+        recommendedActions: ['稍后重试；若持续失败，请检查上游服务状态。'],
+        failureDiagnostics,
+        endedAt: '2026-08-16T01:00:02.000Z',
+      },
+    });
+
+    expect(state.runs.byId.run_1.failureDiagnostics).toEqual(failureDiagnostics);
+    expect(state.runs.byId.run_1.recommendedActions).toEqual([
+      '稍后重试；若持续失败，请检查上游服务状态。',
+    ]);
   });
 
   it('模型降级事件更新运行状态，不把模型切换伪装成文本输出', () => {

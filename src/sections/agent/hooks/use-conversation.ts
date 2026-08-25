@@ -146,6 +146,24 @@ export function useConversation(conversationId: string | null) {
             statusVersion: active.run.statusVersion,
           });
         }
+        const failedRuns = new Map(
+          result.items.flatMap((item) =>
+            item.run?.status === 'FAILED' ? [[item.run.runId, item] as const] : []
+          )
+        );
+        for (const [runId, item] of failedRuns) {
+          void agentApi
+            .getRunStatus({ runId }, controller.signal)
+            .then((snapshot) => {
+              if (controller.signal.aborted) return;
+              dispatch({
+                type: 'RUN_STATUS_RECEIVED',
+                snapshot,
+                assistantMessageId: item.messageId,
+              });
+            })
+            .catch(() => undefined);
+        }
       })
       .catch((error: unknown) => {
         if (controller.signal.aborted) return;

@@ -359,6 +359,7 @@ export const agentHandlers = [
       answerDetail: 'STANDARD',
       errorCode: null,
       errorMessage: null,
+      recommendedActions: [],
       queuedAt: '2026-07-20T00:00:00.000Z',
       startedAt: '2026-07-20T00:00:01.000Z',
       endedAt: '2026-07-20T00:00:05.000Z',

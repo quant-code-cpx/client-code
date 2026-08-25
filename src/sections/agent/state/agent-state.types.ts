@@ -213,7 +213,9 @@ export type AgentRunProjection = {
   draftPreview?: AgentDraftPreview;
   errorCode?: number | null;
   errorMessage?: string | null;
+  failureDiagnostics?: AgentRunStatusSnapshot['failureDiagnostics'];
   retryable?: boolean;
+  recommendedActions?: string[];
   needsFinalSnapshot: boolean;
   finalSnapshotError?: string | null;
   cancelRequested: boolean;

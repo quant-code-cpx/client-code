@@ -8,6 +8,7 @@ import type { PaletteColorNoChannels } from './core/palette';
 
 type ThemePresetValue =
   | 'classic-blue'
+  | 'minimal-green'
   | 'quantum-night'
   | 'arctic-glass'
   | 'neo-securities'
@@ -48,8 +49,12 @@ type ThemePresetInput = {
   grey: ThemeGreyScale;
   surface: ThemeSurfaceSet;
   text: ThemeTextSet;
+  darkSurface?: ThemeSurfaceSet;
+  darkText?: ThemeTextSet;
   shape?: number;
   shadowColor?: string;
+  darkShadowColor?: string;
+  cardBorder?: boolean;
 };
 
 export type ThemePresetKey = ThemePresetValue;
@@ -90,12 +95,35 @@ function createThemePreset({
   grey,
   surface,
   text,
+  darkSurface,
+  darkText,
   shape = 8,
   shadowColor,
+  darkShadowColor,
+  cardBorder = true,
 }: ThemePresetInput): ThemePreset {
   const greyPalette = createPaletteChannel(grey);
   const shadowBase = createPaletteChannel({ main: shadowColor ?? grey['500'] });
+  const darkShadowBase = darkShadowColor
+    ? createPaletteChannel({ main: darkShadowColor })
+    : undefined;
   const primaryPalette = createPaletteChannel(palette.primary);
+
+  const resolvedDarkText =
+    darkText ??
+    ({
+      primary: '#FFFFFF',
+      secondary: grey['400'],
+      disabled: grey['600'],
+    } satisfies ThemeTextSet);
+
+  const resolvedDarkSurface =
+    darkSurface ??
+    ({
+      paper: grey['800'],
+      default: grey['900'],
+      neutral: grey['700'],
+    } satisfies ThemeSurfaceSet);
 
   // Accent colours shared by both light and dark modes
   const accentPalette = {
@@ -140,25 +168,22 @@ function createThemePreset({
         dark: {
           palette: {
             ...accentPalette,
-            text: createPaletteChannel({
-              primary: '#FFFFFF',
-              secondary: grey['400'],
-              disabled: grey['600'],
-            }),
-            background: createPaletteChannel({
-              paper: grey['800'],
-              default: grey['900'],
-              neutral: grey['700'],
-            }),
-            action: { ...sharedAction, active: grey['400'] },
+            text: createPaletteChannel(resolvedDarkText),
+            background: createPaletteChannel(resolvedDarkSurface),
+            action: { ...sharedAction, active: resolvedDarkText.secondary },
           },
+          ...(darkShadowBase && {
+            customShadows: createCustomShadows(darkShadowBase.mainChannel),
+          }),
         },
       },
       components: {
         MuiCard: {
           styleOverrides: {
             root: {
-              border: `1px solid ${varAlpha(primaryPalette.mainChannel, 0.12)}`,
+              border: cardBorder
+                ? `1px solid ${varAlpha(primaryPalette.mainChannel, 0.12)}`
+                : 'none',
             },
           },
         },
@@ -185,6 +210,98 @@ export const themePresets: ThemePreset[] = [
       },
     },
   },
+  createThemePreset({
+    value: 'minimal-green',
+    label: 'Minimal 原生绿',
+    description: '按目标 UI 复刻的绿色板，完整覆盖明暗背景、状态色与阴影。',
+    swatches: ['#00A76F', '#8E33FF', '#00B8D9', '#FFAB00'],
+    palette: {
+      primary: {
+        lighter: '#C8FAD6',
+        light: '#5BE49B',
+        main: '#00A76F',
+        dark: '#007867',
+        darker: '#004B50',
+        contrastText: '#FFFFFF',
+      },
+      secondary: {
+        lighter: '#EFD6FF',
+        light: '#C684FF',
+        main: '#8E33FF',
+        dark: '#5119B7',
+        darker: '#27097A',
+        contrastText: '#FFFFFF',
+      },
+      info: {
+        lighter: '#CAFDF5',
+        light: '#61F3F3',
+        main: '#00B8D9',
+        dark: '#006C9C',
+        darker: '#003768',
+        contrastText: '#FFFFFF',
+      },
+      success: {
+        lighter: '#D3FCD2',
+        light: '#77ED8B',
+        main: '#22C55E',
+        dark: '#118D57',
+        darker: '#065E49',
+        contrastText: '#FFFFFF',
+      },
+      warning: {
+        lighter: '#FFF5CC',
+        light: '#FFD666',
+        main: '#FFAB00',
+        dark: '#B76E00',
+        darker: '#7A4100',
+        contrastText: '#1C252E',
+      },
+      error: {
+        lighter: '#FFE9D5',
+        light: '#FFAC82',
+        main: '#FF5630',
+        dark: '#B71D18',
+        darker: '#7A0916',
+        contrastText: '#FFFFFF',
+      },
+    },
+    grey: {
+      '50': '#FCFDFD',
+      '100': '#F9FAFB',
+      '200': '#F4F6F8',
+      '300': '#DFE3E8',
+      '400': '#C4CDD5',
+      '500': '#919EAB',
+      '600': '#637381',
+      '700': '#454F5B',
+      '800': '#1C252E',
+      '900': '#141A21',
+    },
+    surface: {
+      paper: '#FFFFFF',
+      default: '#FFFFFF',
+      neutral: '#F4F6F8',
+    },
+    text: {
+      primary: '#1C252E',
+      secondary: '#637381',
+      disabled: '#919EAB',
+    },
+    darkSurface: {
+      paper: '#1C252E',
+      default: '#141A21',
+      neutral: '#28323D',
+    },
+    darkText: {
+      primary: '#FFFFFF',
+      secondary: '#919EAB',
+      disabled: '#637381',
+    },
+    shape: 8,
+    shadowColor: '#919EAB',
+    darkShadowColor: '#000000',
+    cardBorder: false,
+  }),
   createThemePreset({
     value: 'quantum-night',
     label: '量化夜盘',

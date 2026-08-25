@@ -5920,6 +5920,25 @@
             "type": "string",
             "nullable": true
           },
+          "errorRetryable": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "recommendedActions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "failureDiagnostics": {
+            "nullable": true,
+            "type": "object",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AgentRunFailureDiagnosticsResponseDto"
+              }
+            ]
+          },
           "queuedAt": {
             "type": "string",
             "format": "date-time"
@@ -5946,7 +5965,75 @@
           "retryDepth",
           "researchDepth",
           "answerDetail",
+          "recommendedActions",
           "queuedAt"
+        ]
+      },
+      "AgentRunFailureDiagnosticsResponseDto": {
+        "type": "object",
+        "properties": {
+          "traceId": {
+            "type": "string",
+            "nullable": true
+          },
+          "modelCallId": {
+            "type": "string"
+          },
+          "provider": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string"
+          },
+          "httpStatus": {
+            "type": "number",
+            "nullable": true
+          },
+          "providerRequestId": {
+            "type": "string",
+            "nullable": true
+          },
+          "errorClass": {
+            "type": "string",
+            "nullable": true
+          },
+          "configuredMaxOutputTokens": {
+            "type": "number",
+            "nullable": true,
+            "minimum": 1
+          },
+          "configuredMaxRetries": {
+            "type": "number",
+            "nullable": true,
+            "minimum": 0
+          },
+          "transportAttempts": {
+            "type": "number",
+            "nullable": true,
+            "minimum": 0,
+            "description": "失败的最后一次逻辑模型调用内，已实际发起的 Provider transport 请求数"
+          },
+          "providerInvocations": {
+            "type": "number",
+            "minimum": 0,
+            "description": "该 ModelCall 已实际开始的逻辑调用数（含结构化修复）"
+          },
+          "startedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "finishedAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "modelCallId",
+          "provider",
+          "model",
+          "providerInvocations",
+          "startedAt"
         ]
       },
       "AgentRunCurrentStepDto": {

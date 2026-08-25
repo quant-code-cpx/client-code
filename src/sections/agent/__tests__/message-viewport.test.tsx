@@ -316,6 +316,70 @@ describe('MessageViewport', () => {
     expect(screen.queryByText('暂无可展示内容')).not.toBeInTheDocument();
   });
 
+  it('失败卡片可展开模型、Provider、HTTP 与链路诊断信息', () => {
+    const assistantMessage: AgentMessageEntity = {
+      ...message(1, ''),
+      status: 'FAILED',
+      modelName: 'gpt-5.6-sol',
+      run: {
+        runId: 'run_failed_diagnostics',
+        status: 'FAILED',
+        statusVersion: 5,
+        endedAt: '2026-08-24T15:42:20.000Z',
+      },
+    };
+    const failedRun: AgentRunProjection = {
+      runId: 'run_failed_diagnostics',
+      conversationId: 'cm_1',
+      assistantMessageId: assistantMessage.messageId,
+      status: 'FAILED',
+      statusVersion: 5,
+      canCancel: false,
+      currentStep: null,
+      latestEventSequence: 5,
+      latestPersistedEventSequence: 5,
+      connectionGeneration: 1,
+      connectionState: 'COMPLETED',
+      reconnects: 0,
+      stageLabel: '研究失败',
+      errorCode: 6005,
+      errorMessage: '模型供应商返回 HTTP 503：deployment overloaded',
+      failureDiagnostics: {
+        traceId: 'trace-69677f2195c4fb20',
+        modelCallId: 'model-call-1',
+        provider: 'fishxcode',
+        model: 'gpt-5.6-sol',
+        httpStatus: 503,
+        providerRequestId: 'req-upstream-1',
+        errorClass: 'ModelGatewayError',
+        configuredMaxOutputTokens: 128000,
+        configuredMaxRetries: 2,
+        transportAttempts: 3,
+        providerInvocations: 1,
+        startedAt: '2026-08-24T15:42:19.000Z',
+        finishedAt: '2026-08-24T15:42:20.000Z',
+      },
+      retryable: true,
+      recommendedActions: ['稍后重试；若持续失败，请检查上游服务状态。'],
+      needsFinalSnapshot: true,
+      cancelRequested: false,
+    };
+
+    renderViewport([assistantMessage], null, { [failedRun.runId]: failedRun });
+
+    expect(screen.getByRole('alert')).toHaveTextContent('HTTP 503：deployment overloaded');
+    expect(screen.getByRole('alert')).toHaveTextContent('稍后重试');
+    fireEvent.click(screen.getByRole('button', { name: '查看诊断详情' }));
+    expect(screen.getByText('fishxcode')).toBeVisible();
+    expect(screen.getByText('gpt-5.6-sol')).toBeVisible();
+    expect(screen.getByText('trace-69677f2195c4fb20')).toBeVisible();
+    expect(screen.getByText('req-upstream-1')).toBeVisible();
+    expect(screen.getByText('配置最大输出')).toBeVisible();
+    expect(screen.getByText('128000 Token')).toBeVisible();
+    expect(screen.getByText('失败轮 transport 尝试')).toBeVisible();
+    expect(screen.getByRole('button', { name: '复制诊断信息' })).toBeVisible();
+  });
+
   it('刷新后没有实时 Run 投影时，仍展示历史消息携带的失败原因', () => {
     const assistantMessage: AgentMessageEntity = {
       ...message(1, ''),

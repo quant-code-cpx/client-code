@@ -131,6 +131,39 @@ describe('SyncStatusOverviewPanel', () => {
     expect(onGoLogs).toHaveBeenCalledWith({ task: 'MARGIN_DETAIL' });
   });
 
+  it('后端返回同步不完整状态时不崩溃并展示对应语义', async () => {
+    vi.mocked(tushareSyncApi.getOperationsOverview).mockResolvedValue({
+      ...overviewFixture,
+      freshness: [
+        {
+          ...overviewFixture.freshness[0],
+          status: 'DEGRADED',
+          reason: '最近同步存在失败分片',
+        },
+      ],
+    });
+
+    renderWithProviders(<SyncStatusOverviewPanel />);
+
+    expect(await screen.findByText('同步不完整')).toBeInTheDocument();
+  });
+
+  it('收到未知新鲜度状态时降级展示未知而非崩溃', async () => {
+    vi.mocked(tushareSyncApi.getOperationsOverview).mockResolvedValue({
+      ...overviewFixture,
+      freshness: [
+        {
+          ...overviewFixture.freshness[0],
+          status: 'FUTURE_STATUS' as DataOperationsOverview['freshness'][number]['status'],
+        },
+      ],
+    });
+
+    renderWithProviders(<SyncStatusOverviewPanel />);
+
+    expect(await screen.findByText('未知')).toBeInTheDocument();
+  });
+
   it('不向用户暴露模型名和英文状态枚举，并解释异常影响', async () => {
     const onGoLogs = vi.fn();
     const { user } = renderWithProviders(<SyncStatusOverviewPanel onGoLogs={onGoLogs} />);

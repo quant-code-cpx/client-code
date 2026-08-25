@@ -5,8 +5,8 @@ import { act, waitFor, renderHook } from '@testing-library/react';
 import { agentApi } from 'src/api/agent';
 import { AgentClientError } from 'src/api/agent-error';
 
-import { AgentProvider } from '../state/agent-provider';
 import { useConversation } from '../hooks/use-conversation';
+import { AgentProvider, useAgentState } from '../state/agent-provider';
 
 import type { AgentMessageListSnapshot } from '../state/agent-state.types';
 
@@ -279,6 +279,78 @@ describe('useConversation branch projection', () => {
     expect(listMessages).toHaveBeenCalledWith(
       expect.objectContaining({ projection: 'ACTIVE_BRANCH' }),
       expect.any(AbortSignal)
+    );
+  });
+
+  it('刷新历史失败消息时同步 Run 诊断详情', async () => {
+    const failedAnswer = {
+      ...answer3,
+      status: 'FAILED' as const,
+      contentText: '',
+      run: {
+        runId: 'run-failed',
+        status: 'FAILED' as const,
+        statusVersion: 4,
+        endedAt: '2026-08-24T15:42:20.000Z',
+        errorCode: 6005,
+        errorMessage: '模型供应商返回 HTTP 503：deployment overloaded',
+      },
+    };
+    vi.spyOn(agentApi, 'getConversation').mockResolvedValue(conversation('answer-3', 5));
+    vi.spyOn(agentApi, 'listMessages').mockResolvedValue({
+      ...activeProjection(false),
+      items: [question1, answer2, question2, failedAnswer],
+    });
+    const getRunStatus = vi.spyOn(agentApi, 'getRunStatus').mockResolvedValue({
+      runId: 'run-failed',
+      conversationId: CONVERSATION_ID,
+      status: 'FAILED',
+      statusVersion: 4,
+      currentStep: null,
+      finalMessageId: null,
+      latestEventSequence: 4,
+      canCancel: false,
+      canRetry: true,
+      retryDepth: 1,
+      researchDepth: 'STANDARD',
+      answerDetail: 'STANDARD',
+      errorCode: 6005,
+      errorMessage: '模型供应商返回 HTTP 503：deployment overloaded',
+      errorRetryable: true,
+      recommendedActions: ['稍后重试；若持续失败，请检查上游服务状态。'],
+      failureDiagnostics: {
+        traceId: 'trace-1',
+        modelCallId: 'model-call-1',
+        provider: 'fishxcode',
+        model: 'gpt-5.6-sol',
+        httpStatus: 503,
+        providerRequestId: 'request-1',
+        errorClass: 'ModelGatewayError',
+        providerInvocations: 1,
+        startedAt: '2026-08-24T15:42:19.000Z',
+        finishedAt: '2026-08-24T15:42:20.000Z',
+      },
+      queuedAt: '2026-08-24T15:42:18.000Z',
+      startedAt: '2026-08-24T15:42:19.000Z',
+      endedAt: '2026-08-24T15:42:20.000Z',
+    });
+
+    const hook = renderHook(
+      () => ({ conversation: useConversation(CONVERSATION_ID), state: useAgentState() }),
+      { wrapper }
+    );
+
+    await waitFor(() =>
+      expect(getRunStatus).toHaveBeenCalledWith({ runId: 'run-failed' }, expect.any(AbortSignal))
+    );
+    await waitFor(() =>
+      expect(hook.result.current.state.runs.byId['run-failed']).toMatchObject({
+        failureDiagnostics: {
+          provider: 'fishxcode',
+          httpStatus: 503,
+          traceId: 'trace-1',
+        },
+      })
     );
   });
 

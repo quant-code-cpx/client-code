@@ -90,6 +90,7 @@ export type OperationsFreshnessStatus =
   | 'READY'
   | 'SYNCING'
   | 'WAITING'
+  | 'DEGRADED'
   | 'LATE'
   | 'FAILED'
   | 'BLOCKED'

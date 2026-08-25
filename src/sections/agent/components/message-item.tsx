@@ -26,6 +26,7 @@ import { CitationList } from './citation-list';
 import { ThinkingPanel } from './thinking-panel';
 import { BlockRenderer } from './blocks/block-renderer';
 import { groupCitationSources } from '../lib/evidence-display';
+import { ModelFailureDiagnostics } from './model-failure-diagnostics';
 import { parseSupportedMessageBlock } from '../lib/message-block-guards';
 
 import type {
@@ -337,10 +338,20 @@ function MessageItemComponent({
               {failureCode}
               {failureReason}
             </Typography>
-            {run?.retryable ? (
+            {run?.retryable && !run.recommendedActions?.length ? (
               <Typography variant="caption" sx={{ display: 'block', mt: 0.5 }}>
-                此错误可重试；请修正配置后重新生成。
+                此错误可重试。
               </Typography>
+            ) : null}
+            {runId ? (
+              <ModelFailureDiagnostics
+                runId={runId}
+                modelName={run?.failureDiagnostics?.model ?? message.modelName ?? null}
+                errorCode={errorCode}
+                errorMessage={failureReason}
+                diagnostics={run?.failureDiagnostics}
+                recommendedActions={run?.recommendedActions}
+              />
             ) : null}
           </Alert>
         ) : null}

@@ -2082,12 +2082,36 @@ export interface components {
       } | null;
       errorCode?: number | null;
       errorMessage?: string | null;
+      errorRetryable?: boolean | null;
+      recommendedActions: string[];
+      failureDiagnostics?:
+        | components["schemas"]["AgentRunFailureDiagnosticsResponseDto"]
+        | null;
       /** Format: date-time */
       queuedAt: string;
       /** Format: date-time */
       startedAt?: string | null;
       /** Format: date-time */
       endedAt?: string | null;
+    };
+    AgentRunFailureDiagnosticsResponseDto: {
+      traceId?: string | null;
+      modelCallId: string;
+      provider: string;
+      model: string;
+      httpStatus?: number | null;
+      providerRequestId?: string | null;
+      errorClass?: string | null;
+      configuredMaxOutputTokens?: number | null;
+      configuredMaxRetries?: number | null;
+      /** @description 失败的最后一次逻辑模型调用内，已实际发起的 Provider transport 请求数 */
+      transportAttempts?: number | null;
+      /** @description 该 ModelCall 已实际开始的逻辑调用数（含结构化修复） */
+      providerInvocations: number;
+      /** Format: date-time */
+      startedAt: string;
+      /** Format: date-time */
+      finishedAt?: string | null;
     };
     AgentRunCurrentStepDto: {
       stepId: string;

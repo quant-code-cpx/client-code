@@ -1,0 +1,7 @@
+interface:
+  display_name: "PC 桌面 UI 逆向"
+  short_description: "从网站与截图取证，提取桌面设计系统并复刻验收"
+  default_prompt: "使用 $desktop-ui-reverse 先完成目标页面的证据清单与页面地图。"
+
+policy:
+  allow_implicit_invocation: false

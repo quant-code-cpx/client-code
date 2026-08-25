@@ -64,7 +64,8 @@ export function SyncFreshnessTable({ freshness, onGoLogs }: SyncFreshnessTablePr
           </TableHead>
           <TableBody>
             {freshness.map((item) => {
-              const meta = SYNC_FRESHNESS_STATUS_META[item.status];
+              const meta =
+                SYNC_FRESHNESS_STATUS_META[item.status] ?? SYNC_FRESHNESS_STATUS_META.UNKNOWN;
               return (
                 <TableRow key={item.dataset} hover>
                   <TableCell>

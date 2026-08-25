@@ -366,6 +366,109 @@ describe('AgentView', () => {
     expect(screen.queryByText(/此历史版本/)).not.toBeInTheDocument();
   });
 
+  it('全新会话首次 V1 执行失败不误判为历史版本', async () => {
+    const failedAssistant = {
+      ...agentMockMessages[1],
+      conversationId: 'cm_mock_1',
+      status: 'FAILED' as const,
+      contentText: '',
+      contentBlocks: [],
+      citations: [],
+      completedAt: '2026-08-24T01:00:04.000Z',
+      run: {
+        runId: 'run_failed',
+        status: 'FAILED' as const,
+        statusVersion: 4,
+        endedAt: '2026-08-24T01:00:04.000Z',
+        errorCode: 6005,
+        errorMessage: '模型供应商返回 HTTP 503',
+      },
+    };
+    mocks.useConversation.mockReturnValue({
+      conversation: {
+        ...agentMockConversation,
+        activeLeafMessageId: null,
+        branchVersion: 0,
+      },
+      messages: [{ ...agentMockMessages[0], conversationId: 'cm_mock_1' }, failedAssistant],
+      loadState: { detailStatus: 'ready', messagesStatus: 'ready', error: null },
+      refresh: vi.fn(),
+      loadOlder: vi.fn(),
+      hasOlder: false,
+      branchProjection: {
+        projection: 'ACTIVE_BRANCH',
+        activeLeafMessageId: null,
+        branchVersion: 0,
+        displayLeafMessageId: failedAssistant.messageId,
+        lineageComplete: true,
+        isActiveBranch: false,
+        displayBranchCompatible: true,
+        canAdoptDisplay: false,
+        siblingGroups: [
+          {
+            parentMessageId: 'msg_user_mock_1',
+            selectedMessageId: failedAssistant.messageId,
+            selectedVersion: 1,
+            activeMessageId: null,
+            totalVersions: 1,
+            versions: [
+              {
+                messageId: failedAssistant.messageId,
+                version: 1,
+                status: 'FAILED',
+                isActive: false,
+                isDisplayed: true,
+                canAdopt: false,
+                createdAt: failedAssistant.createdAt,
+              },
+            ],
+          },
+        ],
+      },
+      branchChanging: false,
+      branchError: null,
+      viewBranch: vi.fn(),
+      returnToActiveBranch: vi.fn(),
+      adoptDisplayedBranch: vi.fn(),
+    });
+    mocks.useAgentRun.mockReturnValue({
+      send: vi.fn(),
+      cancel: vi.fn(),
+      regenerate: vi.fn(),
+      retryUnsent: vi.fn(),
+      continueReceiving: vi.fn(),
+      activeRun: {
+        runId: 'run_failed',
+        conversationId: 'cm_mock_1',
+        assistantMessageId: failedAssistant.messageId,
+        status: 'FAILED',
+        statusVersion: 4,
+        canCancel: false,
+        currentStep: null,
+        latestEventSequence: 4,
+        latestPersistedEventSequence: 4,
+        connectionGeneration: 1,
+        connectionState: 'COMPLETED',
+        reconnects: 0,
+        stageLabel: '研究失败',
+        errorCode: 6005,
+        errorMessage: '模型供应商返回 HTTP 503',
+        retryable: true,
+        needsFinalSnapshot: false,
+        cancelRequested: false,
+      },
+      isSending: false,
+      commandError: null,
+    });
+
+    renderAgent('/agent/cm_mock_1');
+
+    expect(await screen.findByLabelText('研究问题')).not.toBeDisabled();
+    expect(screen.getByRole('alert')).toHaveTextContent('错误 6005');
+    expect(screen.queryByRole('button', { name: '回到最新' })).not.toBeInTheDocument();
+    expect(screen.queryByText(/此历史版本/)).not.toBeInTheDocument();
+  });
+
   it('深链无权限或不存在时展示页面错误，不回退到其他会话', async () => {
     mocks.useConversation.mockReturnValue({
       conversation: null,
