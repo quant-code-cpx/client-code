@@ -5,17 +5,13 @@ import { screen, within, waitFor } from '@testing-library/react';
 
 import { renderWithProviders } from 'src/test/test-utils';
 
-const {
-  mockListPortfolios,
-  mockCreatePortfolio,
-  mockUpdatePortfolio,
-  mockDeletePortfolio,
-} = vi.hoisted(() => ({
-  mockListPortfolios: vi.fn(),
-  mockCreatePortfolio: vi.fn(),
-  mockUpdatePortfolio: vi.fn(),
-  mockDeletePortfolio: vi.fn(),
-}));
+const { mockListPortfolios, mockCreatePortfolio, mockUpdatePortfolio, mockDeletePortfolio } =
+  vi.hoisted(() => ({
+    mockListPortfolios: vi.fn(),
+    mockCreatePortfolio: vi.fn(),
+    mockUpdatePortfolio: vi.fn(),
+    mockDeletePortfolio: vi.fn(),
+  }));
 
 vi.mock('src/api/portfolio', () => ({
   listPortfolios: mockListPortfolios,
@@ -44,7 +40,6 @@ function portfolio(
     holdingCount: 2,
     createdAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-08-12T08:00:00.000Z',
-    kind: 'PAPER',
     isArchived: false,
     todayPnl: null,
     todayPnlPct: null,
@@ -52,11 +47,13 @@ function portfolio(
     cumulativeReturn: null,
     sparkline: [{ date: '20260812', nav: null }],
     ...patch,
+    kind: 'PAPER',
+    executionMode: 'RESEARCH_ONLY',
+    liveTradingSupported: false,
   };
 }
 
-const live = portfolio('live-1', '实盘核心', {
-  kind: 'LIVE',
+const primary = portfolio('primary-1', '研究核心', {
   todayPnl: 1200,
   todayPnlPct: 0.012,
   totalMarketValue: 1120000,
@@ -90,22 +87,18 @@ describe('PortfolioListView', () => {
     expect(mockListPortfolios).toHaveBeenCalledTimes(2);
   });
 
-  it('按实盘/归档及关键词筛选，不把 archived 计入全部', async () => {
-    mockListPortfolios.mockResolvedValue([live, paper, archived]);
+  it('按研究/归档及关键词筛选，不把 archived 计入当前组合', async () => {
+    mockListPortfolios.mockResolvedValue([primary, paper, archived]);
     const { user } = renderWithProviders(<PortfolioListView />);
 
-    expect(await screen.findByText('实盘核心')).toBeInTheDocument();
+    expect(await screen.findByText('研究核心')).toBeInTheDocument();
     expect(screen.getByText('模拟成长')).toBeInTheDocument();
     expect(screen.queryByText('历史归档')).not.toBeInTheDocument();
-    expect(screen.getByRole('button', { name: '全部 2' })).toBeInTheDocument();
-
-    await user.click(screen.getByRole('button', { name: '实盘 1' }));
-    expect(screen.getByText('实盘核心')).toBeInTheDocument();
-    expect(screen.queryByText('模拟成长')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '研究组合 2' })).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: '归档 1' }));
     expect(screen.getByText('历史归档')).toBeInTheDocument();
-    expect(screen.queryByText('实盘核心')).not.toBeInTheDocument();
+    expect(screen.queryByText('研究核心')).not.toBeInTheDocument();
 
     await user.type(screen.getByPlaceholderText('搜索组合名称 / 描述'), '不存在');
     expect(screen.getByText('当前筛选下暂无组合，换个条件再看看。')).toBeInTheDocument();
@@ -140,32 +133,32 @@ describe('PortfolioListView', () => {
   });
 
   it('编辑与删除均提交资源 ID，并在成功后刷新', async () => {
-    mockListPortfolios.mockResolvedValue([live]);
+    mockListPortfolios.mockResolvedValue([primary]);
     const { user } = renderWithProviders(<PortfolioListView />);
 
-    await screen.findByText('实盘核心');
+    await screen.findByText('研究核心');
     await user.click(screen.getByRole('button', { name: '更多操作' }));
     await user.click(await screen.findByRole('menuitem', { name: '编辑' }));
     const editDialog = screen.getByRole('dialog', { name: '编辑组合' });
     const nameInput = within(editDialog).getByLabelText(/组合名称/);
     await user.clear(nameInput);
-    await user.type(nameInput, '实盘核心 2');
+    await user.type(nameInput, '研究核心 2');
     await user.click(within(editDialog).getByRole('button', { name: '保存' }));
 
     expect(mockUpdatePortfolio).toHaveBeenCalledWith({
-      id: 'live-1',
-      name: '实盘核心 2',
-      description: '实盘核心 描述',
+      id: 'primary-1',
+      name: '研究核心 2',
+      description: '研究核心 描述',
     });
     await waitFor(() => expect(mockListPortfolios).toHaveBeenCalledTimes(2));
 
     await user.click(await screen.findByRole('button', { name: '更多操作' }));
     await user.click(await screen.findByRole('menuitem', { name: '删除' }));
     const deleteDialog = screen.getByRole('dialog', { name: '确认删除' });
-    expect(deleteDialog).toHaveTextContent('实盘核心');
+    expect(deleteDialog).toHaveTextContent('研究核心');
     await user.click(within(deleteDialog).getByRole('button', { name: '确认删除' }));
 
-    expect(mockDeletePortfolio).toHaveBeenCalledWith({ portfolioId: 'live-1' });
+    expect(mockDeletePortfolio).toHaveBeenCalledWith({ portfolioId: 'primary-1' });
     await waitFor(() => expect(mockListPortfolios).toHaveBeenCalledTimes(3));
   });
 });

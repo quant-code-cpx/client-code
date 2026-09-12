@@ -306,6 +306,7 @@ describe('useConversation branch projection', () => {
       conversationId: CONVERSATION_ID,
       status: 'FAILED',
       statusVersion: 4,
+      wakeVersion: 0,
       currentStep: null,
       finalMessageId: null,
       latestEventSequence: 4,

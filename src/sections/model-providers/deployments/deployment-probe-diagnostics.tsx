@@ -2,11 +2,11 @@ import type { IconifyName } from 'src/components/iconify';
 import type { ModelProbeStep, ModelProbeResult } from 'src/api/model-provider';
 
 import Box from '@mui/material/Box';
-import Chip from '@mui/material/Chip';
 import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
 
+import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
 
 import { PROBE_STEP_LABELS } from '../model-provider.constants';
@@ -55,7 +55,7 @@ export function DeploymentProbeDiagnostics({ probe }: { probe: ModelProbeResult 
                       {step.message}
                     </Typography>
                   </Box>
-                  <Chip size="small" variant="outlined" label={appearance.label} />
+                  <Label variant="outlined">{appearance.label}</Label>
                 </Stack>
               );
             })}

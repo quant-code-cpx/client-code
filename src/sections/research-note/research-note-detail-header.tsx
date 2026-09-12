@@ -1,4 +1,3 @@
-import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import Tooltip from '@mui/material/Tooltip';
@@ -7,6 +6,7 @@ import Typography from '@mui/material/Typography';
 
 import { fDateTime } from 'src/utils/format-time';
 
+import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
 
 import type { AutosaveStatus } from './use-note-autosave';
@@ -71,16 +71,16 @@ export function ResearchNoteDetailHeader({
         {isUnsavedNewNote ? '新建笔记' : title || '（未命名笔记）'}
       </Typography>
 
-      <Chip
-        size="small"
-        label={
-          statusInfo.text +
-          (lastSavedAt && autosaveStatus === 'saved' ? ` · ${fDateTime(lastSavedAt)}` : '')
-        }
+      <Label
         color={statusInfo.color}
         variant={autosaveStatus === 'idle' ? 'outlined' : 'filled'}
         sx={{ alignSelf: { xs: 'flex-start', md: 'center' } }}
-      />
+      >
+        <>
+          {statusInfo.text}
+          {lastSavedAt && autosaveStatus === 'saved' ? ` · ${fDateTime(lastSavedAt)}` : ''}
+        </>
+      </Label>
 
       <Tooltip
         title={

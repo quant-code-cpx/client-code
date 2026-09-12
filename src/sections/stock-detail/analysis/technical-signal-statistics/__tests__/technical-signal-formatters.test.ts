@@ -7,6 +7,7 @@ import {
   normalizeHorizons,
   toCompactTradeDate,
   findHorizonStatistics,
+  formatDirectionalResult,
 } from '../technical-signal-formatters';
 
 const horizon = (overrides: Partial<SignalHorizonStatistics> = {}): SignalHorizonStatistics => ({
@@ -93,9 +94,34 @@ describe('technical signal formatters', () => {
     expect(metric).toEqual({
       ratioLabel: '上涨率',
       ratio: 0.625,
-      returnLabel: '平均收益',
+      returnLabel: '平均上涨',
       returnPct: 1.25,
     });
+  });
+
+  it('describes actual average price movement instead of directional return', () => {
+    const base = horizon();
+    const metric = primaryMetric(
+      'BEARISH',
+      horizon({
+        raw: { ...base.raw, averageReturnPct: -2.5 },
+        directional: { ...base.directional, averageDirectionalReturnPct: 2.5 },
+      })
+    );
+
+    expect(metric).toEqual({
+      ratioLabel: '方向成功率',
+      ratio: 0.625,
+      returnLabel: '平均下跌',
+      returnPct: 2.5,
+    });
+  });
+
+  it('translates directional return into an expected or opposite result', () => {
+    expect(formatDirectionalResult(2.5)).toBe('符合预期 2.50%');
+    expect(formatDirectionalResult(-1.25)).toBe('与预期相反 1.25%');
+    expect(formatDirectionalResult(0)).toBe('持平 0.00%');
+    expect(formatDirectionalResult(null)).toBe('—');
   });
 
   it('falls back to the first returned horizon when URL selection is stale', () => {

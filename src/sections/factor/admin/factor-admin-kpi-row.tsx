@@ -19,7 +19,7 @@ type Props = {
 type KpiItem = {
   label: string;
   value: number;
-  color: 'primary.main' | 'success.main' | 'warning.main' | 'error.main';
+  color: 'primary' | 'success' | 'warning' | 'error';
   status?: string;
 };
 
@@ -40,10 +40,10 @@ export function deriveKpi(items: PrecomputeStatusItem[] | null | undefined): Kpi
 export function FactorAdminKpiRow({ items, onFilterStatus }: Props) {
   const kpi = deriveKpi(items);
   const kpiItems: KpiItem[] = [
-    { label: '因子总数', value: kpi.total, color: 'primary.main' },
-    { label: '最新', value: kpi.fresh, color: 'success.main', status: 'UP_TO_DATE' },
-    { label: '滞后', value: kpi.stale, color: 'warning.main', status: 'STALE' },
-    { label: '失败', value: kpi.failed, color: 'error.main', status: 'FAILED' },
+    { label: '因子总数', value: kpi.total, color: 'primary' },
+    { label: '最新', value: kpi.fresh, color: 'success', status: 'UP_TO_DATE' },
+    { label: '滞后', value: kpi.stale, color: 'warning', status: 'STALE' },
+    { label: '失败', value: kpi.failed, color: 'error', status: 'FAILED' },
   ];
 
   return (
@@ -62,26 +62,38 @@ export function FactorAdminKpiRow({ items, onFilterStatus }: Props) {
             component={canFilter ? 'button' : 'div'}
             type={canFilter ? 'button' : undefined}
             onClick={canFilter ? () => onFilterStatus?.(item.status as string) : undefined}
-            sx={{
+            sx={(theme) => ({
               minHeight: 82,
               px: 2.5,
               py: 1.5,
               textAlign: 'left',
               border: 0,
-              borderRight: { xs: index % 2 === 0 ? 1 : 0, md: index < 3 ? 1 : 0 },
-              borderBottom: { xs: index < 2 ? 1 : 0, md: 0 },
-              borderColor: 'divider',
+              borderRight: {
+                xs: index % 2 === 0 ? `1px solid ${theme.vars.palette.divider}` : 0,
+                md: index < 3 ? `1px solid ${theme.vars.palette.divider}` : 0,
+              },
+              borderBottom: {
+                xs: index < 2 ? `1px solid ${theme.vars.palette.divider}` : 0,
+                md: 0,
+              },
               bgcolor: 'background.paper',
               cursor: canFilter ? 'pointer' : 'default',
               '&:hover': canFilter ? { bgcolor: 'action.hover' } : undefined,
-            }}
+            })}
           >
             <Typography variant="caption" color="text.secondary">
               {item.label}
             </Typography>
             <Typography
               variant="h4"
-              sx={{ color: item.color, mt: 0.25, fontVariantNumeric: 'tabular-nums' }}
+              sx={(theme) => ({
+                color: theme.vars.palette[item.color].dark,
+                mt: 0.25,
+                fontVariantNumeric: 'tabular-nums',
+                ...theme.applyStyles('dark', {
+                  color: theme.vars.palette[item.color].light,
+                }),
+              })}
             >
               {item.value.toLocaleString()}
             </Typography>

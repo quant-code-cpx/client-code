@@ -79,21 +79,18 @@ export function TechnicalSignalDetailPanel({ definition, group, horizon, onOpenO
   }
 
   const metric = primaryMetric(group.direction, horizon);
-  const usesRawDistribution = group.direction === 'CONTEXTUAL';
+  const isContextual = group.direction === 'CONTEXTUAL';
   const successInterval =
-    usesRawDistribution
+    isContextual
       ? '情境信号不计算方向成功率'
       : formatRatioConfidenceInterval(
           horizon.directional.successConfidenceLower,
           horizon.directional.successConfidenceUpper
         );
-  const returnInterval =
-    group.direction === 'CONTEXTUAL'
-      ? formatConfidenceInterval(horizon.raw.meanConfidenceLowerPct, horizon.raw.meanConfidenceUpperPct)
-      : formatConfidenceInterval(
-          horizon.directional.meanDirectionalConfidenceLowerPct,
-          horizon.directional.meanDirectionalConfidenceUpperPct
-        );
+  const returnInterval = formatConfidenceInterval(
+    horizon.raw.meanConfidenceLowerPct,
+    horizon.raw.meanConfidenceUpperPct
+  );
 
   return (
     <Card>
@@ -150,20 +147,14 @@ export function TechnicalSignalDetailPanel({ definition, group, horizon, onOpenO
 
             <Stack divider={<Divider flexItem />} spacing={1.25}>
               <DetailLine label="成功率 95% 区间" value={successInterval} />
-              <DetailLine label="平均收益 95% 区间" value={returnInterval} />
+              <DetailLine label="平均涨跌幅 95% 区间" value={returnInterval} />
               <DetailLine
-                label="中位数收益"
-                value={formatPercent(
-                  usesRawDistribution
-                    ? horizon.raw.medianReturnPct
-                    : horizon.directional.medianDirectionalReturnPct
-                )}
+                label="涨跌幅中位数"
+                value={formatPercent(horizon.raw.medianReturnPct)}
               />
               <DetailLine
-                label="收益标准差"
-                value={formatPercent(
-                  usesRawDistribution ? horizon.raw.stdDevPct : horizon.directional.stdDevDirectionalReturnPct
-                )}
+                label="涨跌幅标准差"
+                value={formatPercent(horizon.raw.stdDevPct)}
               />
               <DetailLine label="平均 MFE" value={formatPercent(horizon.excursion.averageMfePct)} />
               <DetailLine label="平均 MAE" value={formatPercent(horizon.excursion.averageMaePct)} />

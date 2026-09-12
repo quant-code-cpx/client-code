@@ -14,6 +14,8 @@ import { stockDetailApi } from 'src/api/stock';
 import { fetchInstitutionalHoldings } from 'src/api/fund';
 import { renderWithProviders } from 'src/test/test-utils';
 
+import { labelClasses } from 'src/components/label';
+
 import { AnalysisChipTab } from '../analysis-chip-tab';
 import { AnalysisTimingTab } from '../analysis-timing-tab';
 import { AnalysisInstitutionalTab } from '../analysis-institutional-tab';
@@ -303,14 +305,19 @@ describe('stock detail secondary analysis tabs', () => {
     expect(stockDetailApi.timingSignals).toHaveBeenCalledWith('000001.SZ');
     expect(screen.getByText('MACD').closest('tr')).toHaveTextContent('看多135金叉向上');
     expect(screen.getByText('KDJ').closest('tr')).toHaveTextContent('死叉-20短线转弱');
+    expect(screen.getByText('custom')).toBeInTheDocument();
     const progress = screen.getAllByRole('progressbar');
     expect(progress.at(-3)).toHaveAttribute('aria-valuenow', '100');
     expect(progress.at(-2)).toHaveAttribute('aria-valuenow', '0');
 
     const dates = screen.getAllByText(/^2026-08-/).map((node) => node.textContent);
     expect(dates).toEqual(['2026-08-13', '2026-08-10']);
-    expect(screen.getByText('买入').closest('.MuiChip-root')).toHaveClass('MuiChip-colorError');
-    expect(screen.getByText('卖出').closest('.MuiChip-root')).toHaveClass('MuiChip-colorSuccess');
+    const buyLabel = screen.getByText('买入').closest(`.${labelClasses.root}`);
+    const sellLabel = screen.getByText('卖出').closest(`.${labelClasses.root}`);
+    expect(buyLabel).toBeInTheDocument();
+    expect(sellLabel).toBeInTheDocument();
+    expect(getComputedStyle(buyLabel!).color).toBe('var(--palette-error-dark)');
+    expect(getComputedStyle(sellLabel!).color).toBe('var(--palette-success-dark)');
     expect(screen.getByText('⭐⭐⭐⭐⭐')).toBeInTheDocument();
     expect(screen.getByText('收盘: ¥10.12')).toBeInTheDocument();
   });

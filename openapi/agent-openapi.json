@@ -5839,6 +5839,24 @@
           "statusVersion": {
             "type": "number"
           },
+          "waitingReason": {
+            "type": "string",
+            "enum": [
+              "PROVIDER_RUNNING",
+              "PROVIDER_RECONNECT",
+              "CANCEL_REQUESTED"
+            ],
+            "nullable": true
+          },
+          "nextWakeAt": {
+            "type": "string",
+            "nullable": true,
+            "format": "date-time"
+          },
+          "wakeVersion": {
+            "type": "number",
+            "minimum": 0
+          },
           "currentStep": {
             "nullable": true,
             "type": "object",
@@ -5959,6 +5977,7 @@
           "conversationId",
           "status",
           "statusVersion",
+          "wakeVersion",
           "latestEventSequence",
           "canCancel",
           "canRetry",

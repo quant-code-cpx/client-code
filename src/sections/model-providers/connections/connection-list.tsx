@@ -1,7 +1,6 @@
 import type { ModelConnection } from 'src/api/model-provider';
 
 import Box from '@mui/material/Box';
-import Chip from '@mui/material/Chip';
 import Paper from '@mui/material/Paper';
 import Table from '@mui/material/Table';
 import Stack from '@mui/material/Stack';
@@ -17,6 +16,7 @@ import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import TableContainer from '@mui/material/TableContainer';
 
+import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
 
 import { ADAPTER_LABELS } from '../model-provider.constants';
@@ -128,12 +128,12 @@ export function ConnectionList({
                       </Stack>
                     </TableCell>
                     <TableCell sx={{ minWidth: 180 }}>
-                      <Chip
-                        size="small"
+                      <Label
                         variant="outlined"
-                        label={ADAPTER_LABELS[item.adapterKind]}
-                        icon={<Iconify icon="solar:plug-circle-bold" width={16} />}
-                      />
+                        startIcon={<Iconify icon="solar:plug-circle-bold" width={16} />}
+                      >
+                        {ADAPTER_LABELS[item.adapterKind]}
+                      </Label>
                     </TableCell>
                     <TableCell sx={{ maxWidth: 260 }}>
                       <Tooltip title={item.baseUrl} placement="top-start">
@@ -200,16 +200,16 @@ export function ConnectionList({
 }
 
 function ProbeStatus({ status, durationMs }: { status: string | null; durationMs?: number | null }) {
-  if (!status) return <Chip size="small" variant="outlined" label="未测试" />;
+  if (!status) return <Label variant="outlined">未测试</Label>;
   const passed = status === 'PASSED';
   return (
     <Stack spacing={0.25} alignItems="flex-start">
-      <Chip
-        size="small"
+      <Label
         color={passed ? 'success' : status === 'FAILED' ? 'error' : 'warning'}
         variant="outlined"
-        label={passed ? '已验证' : status === 'FAILED' ? '测试失败' : '迁移待验证'}
-      />
+      >
+        {passed ? '已验证' : status === 'FAILED' ? '测试失败' : '迁移待验证'}
+      </Label>
       {durationMs != null ? (
         <Typography variant="caption" color="text.secondary">
           {durationMs} ms

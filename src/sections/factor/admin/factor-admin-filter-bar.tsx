@@ -95,7 +95,6 @@ export function FactorAdminFilterBar({ filters, onChange }: Props) {
             label="清除筛选"
             size="small"
             variant="outlined"
-            color="error"
             onClick={() => onChange(DEFAULT_ADMIN_FILTERS)}
             sx={{ cursor: 'pointer', ml: 'auto' }}
           />

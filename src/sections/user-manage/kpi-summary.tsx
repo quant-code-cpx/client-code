@@ -111,14 +111,13 @@ export function KpiSummary({ onApplyStatus, refreshKey }: KpiSummaryProps) {
             gap: 1.5,
             display: 'flex',
             textAlign: 'left',
-            borderRadius: 1.5,
             alignItems: 'center',
             justifyContent: 'flex-start',
-            borderLeft: `2px solid ${theme.palette[item.color].main}`,
-            transition: theme.transitions.create(['box-shadow', 'transform'], { duration: 200 }),
+            transition: theme.transitions.create('box-shadow', {
+              duration: theme.transitions.duration.standard,
+            }),
             '&:hover': {
               boxShadow: theme.customShadows?.z8,
-              transform: 'translateY(-2px)',
             },
           })}
         >

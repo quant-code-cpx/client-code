@@ -7,7 +7,9 @@ export type PortfolioRiskRuleType =
   | 'MAX_INDUSTRY_WEIGHT'
   | 'MAX_DRAWDOWN_STOP';
 
-export type PortfolioKind = 'PAPER' | 'LIVE';
+export type PortfolioKind = 'PAPER';
+
+export type PortfolioExecutionMode = 'RESEARCH_ONLY';
 
 export type PortfolioSparklinePoint = {
   date: string;
@@ -22,7 +24,9 @@ export type PortfolioCreated = {
   initialCash: number;
   description: string | null;
   createdAt: string;
-  kind?: PortfolioKind;
+  kind: PortfolioKind;
+  executionMode: PortfolioExecutionMode;
+  liveTradingSupported: false;
   isArchived?: boolean;
   lastUpdated?: string | null;
 };
@@ -35,7 +39,9 @@ export type PortfolioListItem = {
   holdingCount: number;
   createdAt: string;
   updatedAt: string;
-  kind?: PortfolioKind;
+  kind: PortfolioKind;
+  executionMode: PortfolioExecutionMode;
+  liveTradingSupported: false;
   todayPnl?: number | null;
   todayPnlPct?: number | null;
   isArchived?: boolean;
@@ -75,6 +81,12 @@ export type PortfolioSummary = {
   totalUnrealizedPnl: number;
   totalPnlPct: number;
   cashBalance: number;
+  totalAssets: number;
+  netContributions: number;
+  totalPnl: number;
+  realizedPnl: number | null;
+  accountingQuality: 'EXACT' | 'ESTIMATED';
+  qualityFlags: string[];
   todayPnl?: number | null;
   todayPnlPct?: number | null;
   lastUpdated?: string | null;
@@ -103,6 +115,11 @@ export type PnlToday = {
   todayPnlPct: number | null;
   isTradingDay?: boolean;
   lastUpdated?: string | null;
+  totalAssets?: number;
+  totalPnl?: number;
+  realizedPnl?: number | null;
+  unrealizedPnl?: number;
+  qualityFlags: string[];
   byHolding: PnlByHoldingItem[];
 };
 
@@ -110,7 +127,15 @@ export type PnlHistoryItem = {
   date: string;
   marketValue: number;
   costBasis: number;
-  nav: number | null;
+  cash: number;
+  totalAssets: number;
+  netContributions: number;
+  totalPnl: number;
+  realizedPnl: number | null;
+  unrealizedPnl: number;
+  nav: number;
+  qualityFlags: string[];
+  algorithmVersion: string;
 };
 
 // ---- 风险分析类型 ----
@@ -250,6 +275,98 @@ export type RemoveHoldingRequest = {
   holdingId: string;
 } & HoldingMutationRequest;
 
+export type PortfolioTradeSide = 'BUY' | 'SELL';
+
+export type PortfolioCashMovementType = 'DEPOSIT' | 'WITHDRAWAL' | 'DIVIDEND' | 'FEE' | 'TAX';
+
+export type PortfolioShareActionType = 'STOCK_DIVIDEND' | 'SPLIT';
+
+export type PortfolioAccountingIdempotencyScope = 'trade' | 'cash' | 'corporate-action';
+
+export type RecordPortfolioTradeInput = {
+  portfolioId: string;
+  tsCode: string;
+  side: PortfolioTradeSide;
+  quantity: number;
+  price: number;
+  commission?: number;
+  tax?: number;
+  effectiveDate: string;
+  idempotencyKey: string;
+};
+
+export type RecordPortfolioCashEventInput = {
+  portfolioId: string;
+  eventType: PortfolioCashMovementType;
+  amount: number;
+  tsCode?: string;
+  effectiveDate: string;
+  idempotencyKey: string;
+  memo?: string;
+};
+
+export type PortfolioCashEventListInput = {
+  portfolioId: string;
+  startDate?: string;
+  endDate?: string;
+  page?: number;
+  pageSize?: number;
+};
+
+export type ApplyPortfolioShareActionInput = {
+  portfolioId: string;
+  tsCode: string;
+  actionType: PortfolioShareActionType;
+  newQuantity: number;
+  effectiveDate: string;
+  recordDate?: string;
+  idempotencyKey: string;
+};
+
+export type PortfolioAccountingMutationResponse = {
+  portfolioId: string;
+  holdingId: string | null;
+  eventId: string;
+  cashEventId: string | null;
+  effectiveDate: string;
+  cashBalance: number;
+  executionMode: PortfolioExecutionMode;
+};
+
+export type PortfolioCashEventType =
+  | 'OPENING_BALANCE'
+  | 'POSITION_ADJUSTMENT'
+  | 'TRADE_BUY'
+  | 'TRADE_SELL'
+  | PortfolioCashMovementType;
+
+export type PortfolioCashEventItem = {
+  id: string;
+  portfolioId: string;
+  userId: number;
+  holdingEventId: string | null;
+  tsCode: string | null;
+  eventType: PortfolioCashEventType;
+  amount: number;
+  balanceAfter: number | null;
+  externalFlow: boolean;
+  realizedPnlDelta: number | null;
+  isEstimated: boolean;
+  effectiveDate: string;
+  occurredAt: string;
+  idempotencyKey: string;
+  source: string;
+  metadata: unknown;
+};
+
+export type PortfolioCashEventListResponse = {
+  total: number;
+  page: number;
+  pageSize: number;
+  cashBalance: number;
+  items: PortfolioCashEventItem[];
+};
+
 export type PnlHistoryRequest = {
   portfolioId: string;
   startDate: string;
@@ -286,6 +403,12 @@ export function createHoldingMutationIdempotencyKey(action: HoldingMutationActio
 
 export function createApplyBacktestIdempotencyKey(): string {
   return createIdempotencyKey('portfolio-apply-backtest');
+}
+
+export function createPortfolioAccountingIdempotencyKey(
+  scope: PortfolioAccountingIdempotencyScope
+): string {
+  return createIdempotencyKey(`portfolio-accounting:${scope}`);
 }
 
 export function createPortfolio(data: CreatePortfolioRequest) {
@@ -328,6 +451,25 @@ export function updateHolding(data: UpdateHoldingRequest) {
 
 export function removeHolding(query: RemoveHoldingRequest) {
   return apiClient.post<{ message: string }>('/api/portfolio/holding/remove', query);
+}
+
+export function recordPortfolioTrade(data: RecordPortfolioTradeInput) {
+  return apiClient.post<PortfolioAccountingMutationResponse>('/api/portfolio/trade/record', data);
+}
+
+export function recordPortfolioCashEvent(data: RecordPortfolioCashEventInput) {
+  return apiClient.post<PortfolioAccountingMutationResponse>('/api/portfolio/cash/record', data);
+}
+
+export function listPortfolioCashEvents(data: PortfolioCashEventListInput) {
+  return apiClient.post<PortfolioCashEventListResponse>('/api/portfolio/cash/list', data);
+}
+
+export function applyPortfolioShareAction(data: ApplyPortfolioShareActionInput) {
+  return apiClient.post<PortfolioAccountingMutationResponse>(
+    '/api/portfolio/corporate-action/apply',
+    data
+  );
 }
 
 export function getPnlToday(query: { portfolioId: string }) {
@@ -463,6 +605,7 @@ export type PerformanceDailyItem = {
   dailyReturn: number;
   benchmarkReturn: number;
   excessReturn: number;
+  cumulativeExcess?: number;
 };
 
 export type PortfolioPerformanceResponse = {
@@ -471,9 +614,14 @@ export type PortfolioPerformanceResponse = {
   endDate: string;
   benchmarkTsCode: string;
   series: PerformanceDailyItem[];
+  accountingStatus: 'EXACT' | 'ESTIMATED' | 'NOT_READY';
+  coverageStart: string | null;
+  algorithmVersion: string;
+  qualityFlags: string[];
   metrics: {
     totalReturn: number | null;
     annualizedReturn: number | null;
+    annualizedVolatility?: number | null;
     benchmarkReturn: number | null;
     excessReturn: number | null;
     trackingError: number | null;
@@ -694,6 +842,10 @@ export async function getPerformance(
       maxDrawdown: number | null;
       sharpeRatio: number | null;
     };
+    accountingStatus: 'EXACT' | 'ESTIMATED' | 'NOT_READY';
+    coverageStart: string | null;
+    algorithmVersion: string;
+    qualityFlags: string[];
   }>('/api/portfolio/performance', dto);
 
   return {
@@ -702,9 +854,14 @@ export async function getPerformance(
     endDate: res.endDate,
     benchmarkTsCode: res.benchmarkTsCode,
     series: res.dailySeries ?? [],
+    accountingStatus: res.accountingStatus,
+    coverageStart: res.coverageStart,
+    algorithmVersion: res.algorithmVersion,
+    qualityFlags: res.qualityFlags,
     metrics: {
       totalReturn: res.metrics.totalReturn,
       annualizedReturn: res.metrics.annualizedReturn,
+      annualizedVolatility: res.metrics.annualizedVolatility,
       benchmarkReturn: res.metrics.benchmarkTotalReturn,
       excessReturn: res.metrics.cumulativeExcessReturn,
       trackingError: res.metrics.trackingError,

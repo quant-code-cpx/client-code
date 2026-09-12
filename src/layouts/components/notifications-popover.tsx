@@ -93,10 +93,12 @@ export function NotificationsPopover({ sx, ...other }: NotificationsPopoverProps
         slotProps={{
           paper: {
             sx: {
+              mt: 1,
               width: 360,
               overflow: 'hidden',
               display: 'flex',
               flexDirection: 'column',
+              borderRadius: 2,
             },
           },
         }}
@@ -140,7 +142,9 @@ export function NotificationsPopover({ sx, ...other }: NotificationsPopoverProps
               }}
             >
               <Iconify icon="solar:bell-bing-bold-duotone" sx={{ fontSize: 48, mb: 1 }} />
-              <Typography variant="body2">暂无通知</Typography>
+              <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                暂无通知
+              </Typography>
             </Box>
           ) : (
             <List
@@ -210,7 +214,7 @@ function NotificationItem({
               gap: 0.5,
               display: 'flex',
               alignItems: 'center',
-              color: 'text.disabled',
+              color: 'text.secondary',
             }}
           >
             <Iconify width={14} icon="solar:clock-circle-outline" />

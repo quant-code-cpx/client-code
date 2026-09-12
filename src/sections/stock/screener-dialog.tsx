@@ -446,7 +446,15 @@ export function ScreenerDialog({ open, onClose }: ScreenerDialogProps) {
             重置条件
           </Button>
           <Stack direction="row" alignItems="center" spacing={1.5}>
-            <Typography variant="caption" sx={{ color: dirty ? 'warning.main' : 'text.secondary' }}>
+            <Typography
+              variant="caption"
+              sx={(currentTheme) => ({
+                color: dirty ? 'warning.darker' : 'text.secondary',
+                ...currentTheme.applyStyles('dark', {
+                  color: dirty ? 'warning.light' : 'text.secondary',
+                }),
+              })}
+            >
               {dirty ? '条件已修改，结果待更新' : '结果与执行条件一致'}
             </Typography>
             <Button

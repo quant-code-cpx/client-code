@@ -135,7 +135,8 @@ describe('TechnicalSignalOccurrenceDrawer', () => {
       },
       expect.any(AbortSignal)
     );
-    expect(screen.getAllByText('2.00%')).toHaveLength(2);
+    expect(screen.getByText('2.00%')).toBeInTheDocument();
+    expect(screen.getByText('符合预期 2.00%')).toBeInTheDocument();
     expect(screen.getAllByText('1.00%')).toHaveLength(2);
     expect(screen.getByText('原始 2.50% / -0.50%')).toBeInTheDocument();
     expect(screen.getByText('方向 2.50% / -0.50%')).toBeInTheDocument();

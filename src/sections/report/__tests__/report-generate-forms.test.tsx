@@ -64,6 +64,9 @@ const portfolio: PortfolioListItem = {
   description: null,
   initialCash: 1000000,
   holdingCount: 8,
+  kind: 'PAPER',
+  executionMode: 'RESEARCH_ONLY',
+  liveTradingSupported: false,
   createdAt: '2026-01-15T00:00:00.000Z',
   updatedAt: '2026-02-01T00:00:00.000Z',
 };

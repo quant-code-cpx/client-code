@@ -43,7 +43,7 @@ export function ProgressSnackbar({
           p: 2,
           borderRadius: 1.5,
           bgcolor: 'background.paper',
-          boxShadow: (theme) => theme.shadows[8],
+          boxShadow: (theme) => theme.vars.customShadows.dropdown,
         }}
       >
         <Stack direction="row" alignItems="center" justifyContent="space-between">

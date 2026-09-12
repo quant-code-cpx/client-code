@@ -268,13 +268,16 @@ function MessageItemComponent({
             <Box sx={{ minWidth: 0 }}>
               <Typography
                 variant="caption"
-                sx={{
+                sx={(theme) => ({
                   display: 'block',
                   mb: 0.5,
-                  color: 'primary.light',
+                  color: 'primary.dark',
                   fontWeight: 700,
                   letterSpacing: 1.05,
-                }}
+                  ...theme.applyStyles('dark', {
+                    color: 'primary.light',
+                  }),
+                })}
               >
                 RESEARCH DOSSIER{message.modelName ? ` / ${message.modelName}` : ''}
               </Typography>

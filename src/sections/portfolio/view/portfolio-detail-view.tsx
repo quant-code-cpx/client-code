@@ -40,6 +40,7 @@ import { PortfolioTradeLogTab } from '../portfolio-trade-log-tab';
 import { PortfolioDeleteDialog } from '../portfolio-delete-dialog';
 import { PortfolioDetailHeader } from '../portfolio-detail-header';
 import { PortfolioSummaryCards } from '../portfolio-summary-cards';
+import { PortfolioCashLedgerTab } from '../portfolio-cash-ledger-tab';
 import { PortfolioPerformanceTab } from '../portfolio-performance-tab';
 
 // ----------------------------------------------------------------------
@@ -206,6 +207,16 @@ export function PortfolioDetailView() {
         <TabPanel value="performance" sx={{ p: 0 }}>
           {visitedTabs.current.has('performance') && (
             <PortfolioPerformanceTab key={`performance-${refreshKey}`} portfolioId={id!} />
+          )}
+        </TabPanel>
+        <TabPanel value="cash-ledger" sx={{ p: 0 }}>
+          {visitedTabs.current.has('cash-ledger') && (
+            <PortfolioCashLedgerTab
+              key={`cash-ledger-${refreshKey}`}
+              portfolioId={id!}
+              holdings={detail.holdings}
+              onPortfolioRefresh={handleRefreshAll}
+            />
           )}
         </TabPanel>
         <TabPanel value="trade-log" sx={{ p: 0 }}>

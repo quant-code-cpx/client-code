@@ -197,7 +197,16 @@ export function AgentReportPreviewDialog({ open, runId, onClose, onSaved }: Agen
       }}
     >
       <DialogTitle component="div" id="agent-report-preview-title">
-        <Typography variant="caption" sx={{ color: 'primary.light', letterSpacing: 1 }}>
+        <Typography
+          variant="caption"
+          sx={(theme) => ({
+            color: 'primary.dark',
+            letterSpacing: 1,
+            ...theme.applyStyles('dark', {
+              color: 'primary.light',
+            }),
+          })}
+        >
           RESEARCH REPORTS
         </Typography>
         <Typography variant="h6">保存研究报告</Typography>
@@ -220,7 +229,16 @@ export function AgentReportPreviewDialog({ open, runId, onClose, onSaved }: Agen
             }}
           >
             <Box sx={{ p: { xs: 2, md: 3 }, bgcolor: 'background.default' }}>
-            <Typography variant="caption" sx={{ color: 'primary.light', letterSpacing: 0.8 }}>
+            <Typography
+              variant="caption"
+              sx={(theme) => ({
+                color: 'primary.dark',
+                letterSpacing: 0.8,
+                ...theme.applyStyles('dark', {
+                  color: 'primary.light',
+                }),
+              })}
+            >
               QUANTDESK RESEARCH
             </Typography>
             <Typography variant="h5" sx={{ mt: 0.5, fontWeight: 700, textWrap: 'balance' }}>

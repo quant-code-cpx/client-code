@@ -249,7 +249,13 @@ export const ScreenerFilterPanel = memo(function ScreenerFilterPanelComponent({
                 />
                 <Typography
                   variant="caption"
-                  sx={{ color: count > 0 ? 'primary.main' : 'text.disabled', ml: 1 }}
+                  sx={(theme) => ({
+                    color: count > 0 ? 'primary.darker' : 'text.disabled',
+                    ml: 1,
+                    ...theme.applyStyles('dark', {
+                      color: count > 0 ? 'primary.light' : 'text.disabled',
+                    }),
+                  })}
                 >
                   {count}
                 </Typography>

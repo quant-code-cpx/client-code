@@ -138,6 +138,7 @@ export function WatchlistGroupCard({
           right: 4,
           display: 'flex',
           opacity: hovered ? 1 : 0,
+          '&:focus-within': { opacity: 1 },
           transition: (theme) => theme.transitions.create('opacity', { duration: 200 }),
           bgcolor: 'background.paper',
           borderRadius: 1,

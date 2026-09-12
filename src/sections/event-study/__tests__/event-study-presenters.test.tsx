@@ -293,7 +293,7 @@ describe('SampleDetailDrawer', () => {
 describe('ProgressSnackbar', () => {
   it('确定进度夹紧到 0~100 且支持关闭', async () => {
     const onClose = vi.fn();
-    const { user, rerender } = renderWithProviders(
+    const { user, unmount } = renderWithProviders(
       <ProgressSnackbar
         open
         onClose={onClose}
@@ -307,7 +307,10 @@ describe('ProgressSnackbar', () => {
     await user.click(screen.getByRole('button', { name: '关闭' }));
     expect(onClose).toHaveBeenCalledTimes(1);
 
-    rerender(<ProgressSnackbar open onClose={onClose} title="信号扫描" progress={-0.2} />);
+    unmount();
+    renderWithProviders(
+      <ProgressSnackbar open onClose={onClose} title="信号扫描" progress={-0.2} />
+    );
     expect(screen.getByText('0%')).toBeInTheDocument();
   });
 

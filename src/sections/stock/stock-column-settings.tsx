@@ -53,7 +53,7 @@ export function StockColumnSettings({ visibleColumns, onChange }: StockColumnSet
         onClose={() => setAnchorEl(null)}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-        slotProps={{ paper: { sx: { width: 240, p: 1.5 } } }}
+        slotProps={{ paper: { sx: { mt: 1, width: 240, p: 1.5, borderRadius: 2 } } }}
       >
         <Stack
           direction="row"

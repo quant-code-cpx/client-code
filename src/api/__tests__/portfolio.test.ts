@@ -1,18 +1,27 @@
-import { it, vi, expect, describe, afterEach } from 'vitest';
+import { it, vi, expect, describe, afterEach, expectTypeOf } from 'vitest';
 
 import { apiClient } from '../client';
 import {
   addHolding,
+  getPnlToday,
   detectDrift,
+  getPnlHistory,
   rebalancePlan,
   removeHolding,
   updateHolding,
   queryTradeLog,
   getPerformance,
   tradeLogSummary,
+  recordPortfolioTrade,
+  listPortfolioCashEvents,
+  recordPortfolioCashEvent,
+  applyPortfolioShareAction,
   createApplyBacktestIdempotencyKey,
   createHoldingMutationIdempotencyKey,
+  createPortfolioAccountingIdempotencyKey,
 } from '../portfolio';
+
+import type { PortfolioKind, PortfolioCreated, PortfolioListItem } from '../portfolio';
 
 vi.mock('../client', () => ({ apiClient: { post: vi.fn() } }));
 
@@ -73,7 +82,12 @@ describe('portfolio holding mutation API contract', () => {
     });
 
     const updateKey = createHoldingMutationIdempotencyKey('update');
-    await updateHolding({ holdingId: 'holding-1', quantity: 200, avgCost: 13, idempotencyKey: updateKey });
+    await updateHolding({
+      holdingId: 'holding-1',
+      quantity: 200,
+      avgCost: 13,
+      idempotencyKey: updateKey,
+    });
     expect(apiClient.post).toHaveBeenLastCalledWith('/api/portfolio/holding/update', {
       holdingId: 'holding-1',
       quantity: 200,
@@ -86,6 +100,206 @@ describe('portfolio holding mutation API contract', () => {
     expect(apiClient.post).toHaveBeenLastCalledWith('/api/portfolio/holding/remove', {
       holdingId: 'holding-1',
       idempotencyKey: removeKey,
+    });
+  });
+});
+
+describe('portfolio accounting API contract', () => {
+  afterEach(() => {
+    vi.clearAllMocks();
+    vi.unstubAllGlobals();
+  });
+
+  it('narrows portfolio capabilities to research-only paper portfolios', () => {
+    expectTypeOf<PortfolioKind>().toEqualTypeOf<'PAPER'>();
+    expectTypeOf<NonNullable<PortfolioCreated['executionMode']>>().toEqualTypeOf<'RESEARCH_ONLY'>();
+    expectTypeOf<NonNullable<PortfolioCreated['liveTradingSupported']>>().toEqualTypeOf<false>();
+    expectTypeOf<
+      NonNullable<PortfolioListItem['executionMode']>
+    >().toEqualTypeOf<'RESEARCH_ONLY'>();
+    expectTypeOf<NonNullable<PortfolioListItem['liveTradingSupported']>>().toEqualTypeOf<false>();
+  });
+
+  it('generates server-valid accounting idempotency keys for every mutation scope', () => {
+    vi.stubGlobal('crypto', {
+      randomUUID: vi
+        .fn()
+        .mockReturnValueOnce('11111111-1111-4111-8111-111111111111')
+        .mockReturnValueOnce('22222222-2222-4222-8222-222222222222')
+        .mockReturnValueOnce('33333333-3333-4333-8333-333333333333'),
+    });
+
+    const keys = [
+      createPortfolioAccountingIdempotencyKey('trade'),
+      createPortfolioAccountingIdempotencyKey('cash'),
+      createPortfolioAccountingIdempotencyKey('corporate-action'),
+    ];
+
+    expect(keys[0]).toMatch(/^portfolio-accounting:trade:/);
+    expect(keys[1]).toMatch(/^portfolio-accounting:cash:/);
+    expect(keys[2]).toMatch(/^portfolio-accounting:corporate-action:/);
+    expect(new Set(keys).size).toBe(3);
+    keys.forEach((key) => {
+      expect(key.length).toBeGreaterThanOrEqual(8);
+      expect(key.length).toBeLessThanOrEqual(128);
+    });
+  });
+
+  it('posts trade, cash, cash-list, and share-action payloads in request bodies', async () => {
+    vi.mocked(apiClient.post).mockResolvedValue({});
+    const trade = {
+      portfolioId: 'portfolio-1',
+      tsCode: '000001.SZ',
+      side: 'BUY' as const,
+      quantity: 100,
+      price: 12.5,
+      commission: 5,
+      tax: 1,
+      effectiveDate: '20260828',
+      idempotencyKey: 'portfolio-trade-0001',
+    };
+    const cash = {
+      portfolioId: 'portfolio-1',
+      eventType: 'DIVIDEND' as const,
+      amount: 100,
+      tsCode: '000001.SZ',
+      effectiveDate: '20260828',
+      idempotencyKey: 'portfolio-cash-0001',
+      memo: '2026 年中期分红',
+    };
+    const list = {
+      portfolioId: 'portfolio-1',
+      startDate: '20260801',
+      endDate: '20260828',
+      page: 2,
+      pageSize: 50,
+    };
+    const shareAction = {
+      portfolioId: 'portfolio-1',
+      tsCode: '000001.SZ',
+      actionType: 'STOCK_DIVIDEND' as const,
+      newQuantity: 1200,
+      effectiveDate: '20260828',
+      recordDate: '20260827',
+      idempotencyKey: 'portfolio-action-0001',
+    };
+
+    await recordPortfolioTrade(trade);
+    expect(apiClient.post).toHaveBeenLastCalledWith('/api/portfolio/trade/record', trade);
+    await recordPortfolioCashEvent(cash);
+    expect(apiClient.post).toHaveBeenLastCalledWith('/api/portfolio/cash/record', cash);
+    await listPortfolioCashEvents(list);
+    expect(apiClient.post).toHaveBeenLastCalledWith('/api/portfolio/cash/list', list);
+    await applyPortfolioShareAction(shareAction);
+    expect(apiClient.post).toHaveBeenLastCalledWith(
+      '/api/portfolio/corporate-action/apply',
+      shareAction
+    );
+  });
+
+  it('preserves signed cash amounts, nullable ledger fields, and research-only execution mode', async () => {
+    const response = {
+      total: 1,
+      page: 1,
+      pageSize: 20,
+      cashBalance: 98_995,
+      items: [
+        {
+          id: 'cash-1',
+          portfolioId: 'portfolio-1',
+          userId: 7,
+          holdingEventId: 'holding-event-1',
+          tsCode: '000001.SZ',
+          eventType: 'TRADE_BUY' as const,
+          amount: -1005,
+          balanceAfter: 98_995,
+          externalFlow: false,
+          realizedPnlDelta: -5,
+          isEstimated: false,
+          effectiveDate: '20260828',
+          occurredAt: '2026-08-28T10:00:00.000Z',
+          idempotencyKey: 'ledger:trade-1',
+          source: 'MANUAL_TRADE',
+          metadata: null,
+        },
+      ],
+    };
+    vi.mocked(apiClient.post).mockResolvedValueOnce(response);
+
+    const result = await listPortfolioCashEvents({ portfolioId: 'portfolio-1' });
+
+    expect(result).toEqual(response);
+    expect(result.items[0]).toMatchObject({ amount: -1005, realizedPnlDelta: -5 });
+
+    vi.mocked(apiClient.post).mockResolvedValueOnce({
+      portfolioId: 'portfolio-1',
+      holdingId: null,
+      eventId: 'cash-2',
+      cashEventId: 'cash-2',
+      effectiveDate: '20260828',
+      cashBalance: 99_995,
+      executionMode: 'RESEARCH_ONLY',
+    });
+    const mutation = await recordPortfolioCashEvent({
+      portfolioId: 'portfolio-1',
+      eventType: 'FEE',
+      amount: 5,
+      effectiveDate: '20260828',
+      idempotencyKey: 'portfolio-cash-0002',
+    });
+    expect(mutation).toMatchObject({ holdingId: null, executionMode: 'RESEARCH_ONLY' });
+  });
+
+  it('preserves v2 accounting fields in today and historical PnL responses', async () => {
+    vi.mocked(apiClient.post)
+      .mockResolvedValueOnce({
+        tradeDate: '20260828',
+        todayPnl: 120,
+        todayPnlPct: 0.0012,
+        byHolding: [],
+        totalAssets: 100_120,
+        totalPnl: 120,
+        realizedPnl: null,
+        unrealizedPnl: 120,
+        qualityFlags: ['LEGACY_REALIZED_PNL_UNAVAILABLE'],
+      })
+      .mockResolvedValueOnce([
+        {
+          date: '2026-08-28T00:00:00.000Z',
+          marketValue: 10_120,
+          costBasis: 10_000,
+          cash: 90_000,
+          totalAssets: 100_120,
+          netContributions: 100_000,
+          totalPnl: 120,
+          realizedPnl: null,
+          unrealizedPnl: 120,
+          nav: 1.0012,
+          qualityFlags: [],
+          algorithmVersion: 'portfolio-nav.v2-cash-ledger',
+        },
+      ]);
+
+    const today = await getPnlToday({ portfolioId: 'portfolio-1' });
+    const history = await getPnlHistory({
+      portfolioId: 'portfolio-1',
+      startDate: '20260801',
+      endDate: '20260828',
+    });
+
+    expect(today).toMatchObject({
+      totalAssets: 100_120,
+      totalPnl: 120,
+      realizedPnl: null,
+      unrealizedPnl: 120,
+      qualityFlags: ['LEGACY_REALIZED_PNL_UNAVAILABLE'],
+    });
+    expect(history[0]).toMatchObject({
+      cash: 90_000,
+      netContributions: 100_000,
+      totalPnl: 120,
+      realizedPnl: null,
+      algorithmVersion: 'portfolio-nav.v2-cash-ledger',
     });
   });
 });
@@ -136,9 +350,7 @@ describe('portfolio analysis API adapters', () => {
 
     const request = {
       portfolioId: 'portfolio-1',
-      targets: [
-        { tsCode: '000001.SZ', targetWeight: 0.1 },
-      ],
+      targets: [{ tsCode: '000001.SZ', targetWeight: 0.1 }],
       omitUnspecified: 'SELL' as const,
       totalValue: 500_000,
     };
@@ -191,6 +403,10 @@ describe('portfolio analysis API adapters', () => {
         maxDrawdown: 0.04,
         sharpeRatio: 0.56,
       },
+      accountingStatus: 'ESTIMATED',
+      coverageStart: '2026-01-02',
+      algorithmVersion: 'portfolio-nav.v2-cash-ledger',
+      qualityFlags: ['CASH_LEDGER_ESTIMATED'],
     });
 
     const request = {
@@ -208,9 +424,14 @@ describe('portfolio analysis API adapters', () => {
       endDate: '2026-08-08',
       benchmarkTsCode: '000300.SH',
       series: [{ date: '2026-08-08', portfolioNav: 1.08, benchmarkNav: 1.03 }],
+      accountingStatus: 'ESTIMATED',
+      coverageStart: '2026-01-02',
+      algorithmVersion: 'portfolio-nav.v2-cash-ledger',
+      qualityFlags: ['CASH_LEDGER_ESTIMATED'],
       metrics: {
         totalReturn: 0.08,
         annualizedReturn: 0.12,
+        annualizedVolatility: 0.18,
         benchmarkReturn: 0.03,
         excessReturn: 0.05,
         trackingError: 0.07,

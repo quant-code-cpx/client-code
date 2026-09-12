@@ -32,11 +32,13 @@ const schedule: ReportApi.ReportSchedule = {
   params: { runId: 'run-1' },
   format: 'HTML',
   frequency: 'DAILY',
-  cronExpression: '0 18 * * 1-5',
+  cronExpression: '0 0 18 * * 1-5',
+  timeZone: 'Asia/Shanghai',
   enabled: true,
   lastRunAt: null,
   nextRunAt: null,
   createdAt: '2026-08-10T00:00:00.000Z',
+  updatedAt: '2026-08-10T00:00:00.000Z',
 };
 
 beforeEach(() => {

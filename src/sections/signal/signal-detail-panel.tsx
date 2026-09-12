@@ -273,6 +273,7 @@ function SignalTable({
                 sx={{
                   '& .row-action': { opacity: 0 },
                   '&:hover .row-action': { opacity: 1 },
+                  '&:focus-within .row-action': { opacity: 1 },
                 }}
               >
                 <TableCell>

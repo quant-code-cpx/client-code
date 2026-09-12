@@ -73,12 +73,6 @@ function MetricCard({ label, amount, rate, icon, hero, hint }: MetricCardProps) 
         bgcolor: varAlpha(bgChannel, 0.06),
         border: `1px solid`,
         borderColor: varAlpha(bgChannel, 0.12),
-        transition: 'all 0.2s ease-in-out',
-        '&:hover': {
-          bgcolor: varAlpha(bgChannel, 0.1),
-          transform: 'translateY(-1px)',
-          boxShadow: `0 4px 16px 0 ${varAlpha(bgChannel, 0.16)}`,
-        },
       }}
     >
       <Stack direction="row" alignItems="center" spacing={0.75} sx={{ mb: 1 }}>
@@ -205,12 +199,7 @@ export function CapitalFlowSummaryCard({ tradeDate, onTradeDateResolved, onDataR
   }
 
   return (
-    <Card
-      sx={{
-        p: 3,
-        background: `linear-gradient(135deg, ${varAlpha(theme.vars.palette.primary.mainChannel, 0.02)} 0%, ${varAlpha(theme.vars.palette.background.neutralChannel, 0.02)} 100%)`,
-      }}
-    >
+    <Card sx={{ p: 3 }}>
       {loading || !data ? (
         <Grid container spacing={2}>
           {Array.from({ length: 5 }, (_, i) => i).map((k) => (

@@ -342,18 +342,19 @@ export function FactorLibraryView() {
                 component="button"
                 type="button"
                 variant="caption"
-                color="warning.main"
-                sx={{
+                sx={(theme) => ({
+                  color: 'warning.dark',
                   p: 0,
                   border: 0,
                   bgcolor: 'transparent',
                   cursor: 'pointer',
+                  ...theme.applyStyles('dark', { color: 'warning.light' }),
                   '&:focus-visible': {
                     outline: '2px solid',
                     outlineColor: 'primary.main',
                     outlineOffset: 2,
                   },
-                }}
+                })}
                 onClick={() => setFilters({ statuses: ['STALE'] })}
               >
                 · ⚠ 数据滞后 {headerCounts.staleCount}

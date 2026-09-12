@@ -2,12 +2,13 @@ import type { MarginSummary } from 'src/api/stock';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
-import Chip from '@mui/material/Chip';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 
 import { fPctChg, fWanYuan } from 'src/utils/format-number';
+
+import { Label } from 'src/components/label';
 
 // ----------------------------------------------------------------------
 
@@ -90,7 +91,9 @@ export function AnalysisMarginSummaryCard({ summary }: Props) {
                 趋势
               </Typography>
               <Box sx={{ mt: 0.5 }}>
-                <Chip label={trend || '--'} color={getTrendColor(trend)} size="small" />
+                <Label color={getTrendColor(trend)} variant="soft">
+                  <>{trend || '--'}</>
+                </Label>
               </Box>
             </Box>
           </Grid>

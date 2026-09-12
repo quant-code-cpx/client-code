@@ -1,8 +1,4 @@
-import type {
-  OmitAction,
-  HoldingDetailItem,
-  RebalancePlanResponse,
-} from 'src/api/portfolio';
+import type { OmitAction, HoldingDetailItem, RebalancePlanResponse } from 'src/api/portfolio';
 
 import { useState } from 'react';
 
@@ -382,11 +378,7 @@ export function PortfolioRebalanceDialog({
                     <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                       预估交易成本：{fCurrency(result.estimatedCost)}
                     </Typography>
-                    <Button
-                      size="small"
-                      variant="outlined"
-                      onClick={handleCopyOrders}
-                    >
+                    <Button size="small" variant="outlined" onClick={handleCopyOrders}>
                       复制委托清单
                     </Button>
                   </Box>
@@ -445,7 +437,7 @@ export function PortfolioRebalanceDialog({
                   variant="caption"
                   sx={{ display: 'block', mt: 1, color: 'text.secondary' }}
                 >
-                  说明：以上为参考计划，不会自动执行。实盘组合请人工确认后下单，模拟盘执行接口后续开放。
+                  说明：以上为研究参考计划，不会自动执行，系统也不连接券商。
                 </Typography>
               </Box>
             </>

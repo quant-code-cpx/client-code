@@ -106,6 +106,7 @@ function runningSnapshot(latestEventSequence: number): AgentRunStatusSnapshot {
     conversationId: CONVERSATION_ID,
     status: 'RUNNING',
     statusVersion: 3,
+    wakeVersion: 0,
     currentStep: null,
     finalMessageId: null,
     latestEventSequence,

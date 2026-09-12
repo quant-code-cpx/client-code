@@ -47,7 +47,9 @@ vi.mock('src/sections/report/report-generate-dialog', () => ({
     open ? (
       <div role="dialog" aria-label="生成组合报告">
         {`report:${defaultParams.portfolioId}`}
-        <button type="button" onClick={onGenerated}>报告完成</button>
+        <button type="button" onClick={onGenerated}>
+          报告完成
+        </button>
       </div>
     ) : null,
 }));
@@ -56,7 +58,9 @@ vi.mock('../portfolio-holding-tab', () => ({
   PortfolioHoldingTab: ({ onRefresh }: { onRefresh: () => void }) => (
     <div>
       tab:holdings
-      <button type="button" onClick={onRefresh}>刷新全部</button>
+      <button type="button" onClick={onRefresh}>
+        刷新全部
+      </button>
     </div>
   ),
 }));
@@ -71,6 +75,9 @@ vi.mock('../portfolio-risk-rule-tab', () => ({
 }));
 vi.mock('../portfolio-performance-tab', () => ({
   PortfolioPerformanceTab: () => <div>tab:performance</div>,
+}));
+vi.mock('../portfolio-cash-ledger-tab', () => ({
+  PortfolioCashLedgerTab: () => <div>tab:cash-ledger</div>,
 }));
 vi.mock('../portfolio-trade-log-tab', () => ({
   PortfolioTradeLogTab: () => <div>tab:trade-log</div>,
@@ -90,7 +97,9 @@ const detail: PortfolioDetail = {
     description: '长期价值',
     initialCash: 1000000,
     createdAt: '2026-01-02T00:00:00.000Z',
-    kind: 'LIVE',
+    kind: 'PAPER',
+    executionMode: 'RESEARCH_ONLY',
+    liveTradingSupported: false,
     lastUpdated: '2026-08-12T08:00:00.000Z',
   },
   holdings: [
@@ -114,6 +123,12 @@ const detail: PortfolioDetail = {
     totalUnrealizedPnl: 1000,
     totalPnlPct: 0.1,
     cashBalance: 990000,
+    totalAssets: 1001000,
+    netContributions: 1000000,
+    totalPnl: 1000,
+    realizedPnl: 0,
+    accountingQuality: 'EXACT',
+    qualityFlags: [],
     todayPnl: 500,
     todayPnlPct: 0.005,
     cumulativeReturn: 0.1,
@@ -126,6 +141,7 @@ const pnlToday: PnlToday = {
   todayPnl: -200,
   todayPnlPct: -0.002,
   isTradingDay: true,
+  qualityFlags: [],
   byHolding: [],
 };
 

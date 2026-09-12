@@ -5,7 +5,6 @@ import { useState } from 'react';
 import Box from '@mui/material/Box';
 import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
-import Chip from '@mui/material/Chip';
 import Alert from '@mui/material/Alert';
 import Stack from '@mui/material/Stack';
 import Drawer from '@mui/material/Drawer';
@@ -19,6 +18,7 @@ import { usePermission } from 'src/permission';
 import { DashboardContent } from 'src/layouts/dashboard';
 import { useSyncNotification } from 'src/contexts/sync-notification-context';
 
+import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
 
 import { OpsTab } from '../ops-tab';
@@ -165,7 +165,7 @@ export function TushareSyncView() {
         }}
       >
         <Box sx={{ flexGrow: 1 }}>
-          <Typography variant="h5" sx={{ mb: 0.25 }}>
+          <Typography component="h5" variant="h4" sx={{ mb: 0.25 }}>
             数据运维
           </Typography>
           <Typography variant="body2" color="text.secondary">
@@ -174,19 +174,16 @@ export function TushareSyncView() {
         </Box>
 
         <Stack direction="row" spacing={1} alignItems="center" sx={{ flexWrap: 'wrap' }}>
-          <Chip
-            size="small"
-            color={isReadOnly ? 'info' : 'success'}
-            label={isReadOnly ? '管理员（只读）' : '超级管理员'}
-            variant="outlined"
-          />
-          <Chip
-            size="small"
+          <Label color={isReadOnly ? 'info' : 'success'} variant="outlined">
+            {isReadOnly ? '管理员（只读）' : '超级管理员'}
+          </Label>
+          <Label
             color={statusMeta.color}
-            label={statusMeta.label}
-            icon={<Iconify icon="solar:restart-bold" />}
             variant="outlined"
-          />
+            startIcon={<Iconify icon="solar:restart-bold" />}
+          >
+            {statusMeta.label}
+          </Label>
           {socketStatus !== 'connected' && (
             <Button size="small" variant="outlined" onClick={reconnect}>
               重连

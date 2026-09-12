@@ -8,7 +8,6 @@ import CardContent from '@mui/material/CardContent';
 
 import {
   fSignedRatio,
-  fNullableRatio,
   fSignedCurrency,
   fNullableCurrency,
   getPortfolioValueTone,
@@ -53,6 +52,8 @@ export function PortfolioSummaryCards({ summary, pnlToday }: PortfolioSummaryCar
   const todayPnlPct = pnlToday?.todayPnlPct ?? summary.todayPnlPct ?? null;
   const isTradingDay = pnlToday?.isTradingDay ?? summary.isTradingDay;
   const todayHint = todayPnl === null && isTradingDay === false ? '今天非交易日' : undefined;
+  const accountingHint =
+    summary.accountingQuality === 'EXACT' ? '精确账本' : '含历史持仓校正，部分估算';
 
   return (
     <Box sx={{ mb: 3 }}>
@@ -74,27 +75,28 @@ export function PortfolioSummaryCards({ summary, pnlToday }: PortfolioSummaryCar
           />
         </Grid>
         <Grid size={{ xs: 6, sm: 4, lg: 2 }}>
-          <StatCard label="总市值" value={fNullableCurrency(summary.totalMarketValue)} />
+          <StatCard label="总资产" value={fNullableCurrency(summary.totalAssets)} />
         </Grid>
         <Grid size={{ xs: 6, sm: 4, lg: 2 }}>
           <StatCard
-            label="总盈亏"
-            value={fSignedCurrency(summary.totalUnrealizedPnl, '--')}
-            color={getPortfolioValueTone(summary.totalUnrealizedPnl)}
+            label="累计总盈亏"
+            value={fSignedCurrency(summary.totalPnl, '--')}
+            color={getPortfolioValueTone(summary.totalPnl)}
+            hint={accountingHint}
           />
         </Grid>
         <Grid size={{ xs: 6, sm: 4, lg: 2 }}>
           <StatCard
-            label="盈亏比例"
-            value={fSignedRatio(summary.totalPnlPct, '--')}
-            color={getPortfolioValueTone(summary.totalPnlPct)}
+            label="已实现盈亏"
+            value={fSignedCurrency(summary.realizedPnl, '--')}
+            color={getPortfolioValueTone(summary.realizedPnl)}
           />
         </Grid>
         <Grid size={{ xs: 6, sm: 4, lg: 2 }}>
           <StatCard
             label="剩余现金"
             value={fNullableCurrency(summary.cashBalance)}
-            hint={`累计收益 ${fNullableRatio(summary.cumulativeReturn ?? summary.totalPnlPct)}`}
+            hint={`净投入 ${fNullableCurrency(summary.netContributions)}`}
           />
         </Grid>
       </Grid>

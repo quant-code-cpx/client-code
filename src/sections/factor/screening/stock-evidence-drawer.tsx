@@ -176,7 +176,14 @@ export function StockEvidenceDrawer({ open, item, conditions, allFactors, onClos
                 </Typography>
                 <Stack spacing={0.5}>
                   {item.warnings.map((w, i) => (
-                    <Typography key={i} variant="caption" sx={{ color: 'warning.dark' }}>
+                    <Typography
+                      key={i}
+                      variant="caption"
+                      sx={(theme) => ({
+                        color: 'warning.dark',
+                        ...theme.applyStyles('dark', { color: 'warning.light' }),
+                      })}
+                    >
                       · {w}
                     </Typography>
                   ))}

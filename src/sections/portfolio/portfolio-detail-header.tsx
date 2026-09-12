@@ -11,6 +11,7 @@ import { useRouter } from 'src/routes/hooks';
 import { fDate } from 'src/utils/format-time';
 import { fCurrency } from 'src/utils/format-number';
 
+import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
 
 // ----------------------------------------------------------------------
@@ -51,8 +52,14 @@ export function PortfolioDetailHeader({
         }}
       >
         <Box>
-          <Typography variant="h4" sx={{ mb: 0.5 }}>
-            {portfolio.name}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+            <Typography variant="h4">{portfolio.name}</Typography>
+            <Label color="info" variant="soft">
+              研究模式
+            </Label>
+          </Box>
+          <Typography variant="caption" sx={{ display: 'block', mb: 1, color: 'text.secondary' }}>
+            仅用于模拟记账与研究，不连接券商、不会发送实盘订单
           </Typography>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
             <Typography variant="body2" color="text.secondary">

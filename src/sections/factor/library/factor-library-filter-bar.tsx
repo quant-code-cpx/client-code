@@ -58,7 +58,7 @@ export function FactorLibraryFilterBar({ filters, onChange, onReset }: Props) {
     <Box
       sx={{
         position: 'sticky',
-        top: 0,
+        top: 'var(--layout-header-desktop-height)',
         zIndex: 2,
         py: 1.5,
         px: 2,

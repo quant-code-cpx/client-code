@@ -30,10 +30,14 @@ const SCOPE_OPTIONS: Array<{ value: CalendarScope; label: string; icon: string }
   { value: 'PORTFOLIO', label: '持仓组合', icon: 'solar:wallet-bold' },
 ];
 
-const IMPACT_OPTIONS: Array<{ value: ImpactLevel; label: string; color: string }> = [
-  { value: 'HIGH', label: '高', color: 'error.main' },
-  { value: 'MEDIUM', label: '中', color: 'warning.main' },
-  { value: 'LOW', label: '低', color: 'info.main' },
+const IMPACT_OPTIONS: Array<{
+  value: ImpactLevel;
+  label: string;
+  color: 'error' | 'warning' | 'info';
+}> = [
+  { value: 'HIGH', label: '高', color: 'error' },
+  { value: 'MEDIUM', label: '中', color: 'warning' },
+  { value: 'LOW', label: '低', color: 'info' },
 ];
 
 const MARKET_CAP_OPTIONS = [
@@ -252,11 +256,7 @@ export function CalendarFilters({ filters, onChange, onReset, onRefresh }: Props
           sx={{ minWidth: 0, gridColumn: { xs: '1', sm: '1 / -1', lg: 'auto' } }}
         />
 
-        <Stack
-          direction="row"
-          spacing={0.5}
-          sx={{ justifySelf: { xs: 'stretch', sm: 'end' } }}
-        >
+        <Stack direction="row" spacing={0.5} sx={{ justifySelf: { xs: 'stretch', sm: 'end' } }}>
           <Button
             size="small"
             variant="outlined"
@@ -328,16 +328,18 @@ export function CalendarFilters({ filters, onChange, onReset, onRefresh }: Props
                 key={opt.value}
                 size="small"
                 label={opt.label}
+                color={active ? opt.color : 'default'}
                 variant={active ? 'filled' : 'outlined'}
                 aria-pressed={active}
                 onClick={() => toggleImpact(opt.value)}
-                sx={{
-                  ...(active && {
-                    bgcolor: opt.color,
-                    color: 'common.white',
-                    '&:hover': { bgcolor: opt.color },
-                  }),
-                }}
+                sx={
+                  active && (opt.color === 'error' || opt.color === 'info')
+                    ? {
+                        color: 'grey.900',
+                        '&:hover': { bgcolor: `${opt.color}.main` },
+                      }
+                    : undefined
+                }
               />
             );
           })}

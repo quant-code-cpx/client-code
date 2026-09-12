@@ -77,7 +77,7 @@ export function ScreeningQueryBar({
       sx={{
         mb: 3,
         position: 'sticky',
-        top: 64,
+        top: 'var(--layout-header-desktop-height)',
         zIndex: 5,
         backdropFilter: 'blur(6px)',
       }}
@@ -159,7 +159,14 @@ export function ScreeningQueryBar({
             )}
 
             {sortMode === 'composite' && (
-              <Typography variant="caption" sx={{ color: 'warning.dark', alignSelf: 'center' }}>
+              <Typography
+                variant="caption"
+                sx={(theme) => ({
+                  color: 'warning.dark',
+                  alignSelf: 'center',
+                  ...theme.applyStyles('dark', { color: 'warning.light' }),
+                })}
+              >
                 综合分依赖后端 BE-8，未上线前回退为单因子排序。
               </Typography>
             )}

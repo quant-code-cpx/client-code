@@ -55,6 +55,11 @@ export function PortfolioPnlTodayCard({ portfolioId }: PortfolioPnlTodayCardProp
   const pnlColor = getPortfolioValueTone(data?.todayPnl);
   const pnlPctColor = getPortfolioValueTone(data?.todayPnlPct);
   const emptyHint = data?.isTradingDay === false ? '非交易日' : '--';
+  const snapshotNotReady = data?.qualityFlags?.includes('SNAPSHOT_NOT_READY') ?? false;
+  const dailyPnlNotReady = data?.qualityFlags?.includes('DAILY_PNL_NOT_READY') ?? false;
+  const pnlNotReady = snapshotNotReady || dailyPnlNotReady;
+  const accountingEstimated =
+    data?.qualityFlags?.some((flag) => flag.includes('ESTIMATED')) ?? false;
 
   return (
     <Card sx={{ mb: 3 }}>
@@ -83,30 +88,47 @@ export function PortfolioPnlTodayCard({ portfolioId }: PortfolioPnlTodayCardProp
 
         {!loading && data && (
           <>
-            <Box sx={{ display: 'flex', gap: 4, mb: 2 }}>
-              <Box>
-                <Typography variant="caption" color="text.secondary">
-                  今日盈亏
-                </Typography>
-                <Typography variant="h5" sx={{ color: pnlColor }}>
-                  {data.todayPnl === null
-                    ? emptyHint
-                    : `${data.todayPnl >= 0 ? '+' : ''}${fCurrency(data.todayPnl)}`}
-                </Typography>
+            {snapshotNotReady ? (
+              <Alert severity="info">
+                会计快照尚未生成，暂不展示今日盈亏，避免用当前持仓倒推历史结果。
+              </Alert>
+            ) : null}
+            {dailyPnlNotReady && !snapshotNotReady ? (
+              <Alert severity="info">
+                缺少上一交易日净值快照，暂不展示今日盈亏，避免把累计盈亏当作单日收益。
+              </Alert>
+            ) : null}
+            {accountingEstimated && !pnlNotReady ? (
+              <Alert severity="warning" sx={{ mb: 2 }}>
+                组合含历史持仓校正，已实现盈亏口径不完整。
+              </Alert>
+            ) : null}
+            {!pnlNotReady ? (
+              <Box sx={{ display: 'flex', gap: 4, mb: 2 }}>
+                <Box>
+                  <Typography variant="caption" color="text.secondary">
+                    今日盈亏
+                  </Typography>
+                  <Typography variant="h5" sx={{ color: pnlColor }}>
+                    {data.todayPnl === null
+                      ? emptyHint
+                      : `${data.todayPnl >= 0 ? '+' : ''}${fCurrency(data.todayPnl)}`}
+                  </Typography>
+                </Box>
+                <Box>
+                  <Typography variant="caption" color="text.secondary">
+                    今日涨幅
+                  </Typography>
+                  <Typography variant="h5" sx={{ color: pnlPctColor }}>
+                    {data.todayPnlPct === null
+                      ? emptyHint
+                      : `${data.todayPnlPct >= 0 ? '+' : ''}${(data.todayPnlPct * 100).toFixed(2)}%`}
+                  </Typography>
+                </Box>
               </Box>
-              <Box>
-                <Typography variant="caption" color="text.secondary">
-                  今日涨幅
-                </Typography>
-                <Typography variant="h5" sx={{ color: pnlPctColor }}>
-                  {data.todayPnlPct === null
-                    ? emptyHint
-                    : `${data.todayPnlPct >= 0 ? '+' : ''}${(data.todayPnlPct * 100).toFixed(2)}%`}
-                </Typography>
-              </Box>
-            </Box>
+            ) : null}
 
-            {data.byHolding.length > 0 && (
+            {!pnlNotReady && data.byHolding.length > 0 && (
               <Table size="small">
                 <TableHead>
                   <TableRow>

@@ -191,7 +191,13 @@ export function FactorCorrelationParams({
           {paramsDirty && hasResult ? '重新计算' : '计算相关性'}
         </Button>
         {paramsDirty && hasResult ? (
-          <Typography variant="caption" color="warning.main">
+          <Typography
+            variant="caption"
+            sx={(theme) => ({
+              color: 'warning.dark',
+              ...theme.applyStyles('dark', { color: 'warning.light' }),
+            })}
+          >
             参数已变更，需重新计算
           </Typography>
         ) : null}

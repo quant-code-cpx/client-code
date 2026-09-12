@@ -137,12 +137,11 @@ export function SubscriptionSummaryCards({
               p: 2,
               cursor: item.onClick ? 'pointer' : 'default',
               borderLeft: `3px solid ${theme.vars.palette[item.tone].main}`,
-              transition: theme.transitions.create(['background-color', 'box-shadow'], {
+              transition: theme.transitions.create('background-color', {
                 duration: 200,
               }),
               ...(item.active && {
                 bgcolor: varAlpha(channel, 0.08),
-                boxShadow: theme.shadows[4],
               }),
               '&:hover': item.onClick ? { bgcolor: varAlpha(channel, 0.05) } : undefined,
               '&:focus-visible': {

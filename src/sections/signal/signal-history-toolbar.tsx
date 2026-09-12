@@ -10,7 +10,6 @@ import { useMemo, useState } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
-import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
 import Alert from '@mui/material/Alert';
 import Badge from '@mui/material/Badge';
@@ -27,6 +26,7 @@ import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
 import { RouterLink } from 'src/routes/components';
 
+import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
 import { DatePicker } from 'src/components/date-picker';
 
@@ -236,7 +236,11 @@ export function SignalHistoryToolbar({
         >
           高级筛选
         </Button>
-        {hasDirty && <Chip size="small" color="warning" variant="outlined" label="有未应用变更" />}
+        {hasDirty && (
+          <Label color="warning" variant="soft">
+            有未应用变更
+          </Label>
+        )}
       </Box>
 
       <Collapse in={advancedOpen}>

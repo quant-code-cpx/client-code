@@ -60,19 +60,37 @@ export function HeatmapDistributionChart({ distribution, loading, error }: Props
 
         {distribution && (
           <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap sx={{ mb: 2 }}>
-            <Label sx={{ bgcolor: 'error.dark', color: 'common.white', fontWeight: 700, fontSize: 12 }}>
+            <Label
+              sx={{ bgcolor: 'error.darker', color: 'common.white', fontWeight: 700, fontSize: 12 }}
+            >
               涨停 {distribution.limitUp}
             </Label>
-            <Label sx={{ bgcolor: 'error.main', color: 'common.white', fontWeight: 700, fontSize: 12 }}>
+            <Label
+              sx={{ bgcolor: 'error.darker', color: 'common.white', fontWeight: 700, fontSize: 12 }}
+            >
               上涨 {distribution.upCount}
             </Label>
             <Label sx={{ bgcolor: 'grey.600', color: 'common.white', fontWeight: 700, fontSize: 12 }}>
               平盘 {distribution.flatCount}
             </Label>
-            <Label sx={{ bgcolor: 'success.main', color: 'common.white', fontWeight: 700, fontSize: 12 }}>
+            <Label
+              sx={{
+                bgcolor: 'success.darker',
+                color: 'common.white',
+                fontWeight: 700,
+                fontSize: 12,
+              }}
+            >
               下跌 {distribution.downCount}
             </Label>
-            <Label sx={{ bgcolor: 'success.dark', color: 'common.white', fontWeight: 700, fontSize: 12 }}>
+            <Label
+              sx={{
+                bgcolor: 'success.darker',
+                color: 'common.white',
+                fontWeight: 700,
+                fontSize: 12,
+              }}
+            >
               跌停 {distribution.limitDown}
             </Label>
             {distribution.missingCount > 0 && (

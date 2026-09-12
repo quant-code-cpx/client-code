@@ -87,7 +87,7 @@ export function StrategySummaryBar() {
 function StatCard({ stat, bestReturn }: { stat: SummaryStat; bestReturn: number | null }) {
   return (
     <Card sx={{ p: 2.5 }}>
-      <Typography variant="overline" sx={{ color: 'text.disabled', fontSize: 12 }}>
+      <Typography variant="overline" sx={{ color: 'text.secondary', fontSize: 12 }}>
         {stat.label}
       </Typography>
       <Typography

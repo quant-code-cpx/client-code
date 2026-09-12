@@ -67,7 +67,14 @@ export function FactorLibraryTable({
 
   return (
     <Scrollbar sx={{ maxHeight: 'calc(100vh - 320px)' }}>
-      <TableContainer>
+      <TableContainer
+        sx={{
+          bgcolor: 'background.paper',
+          border: '1px solid',
+          borderColor: 'divider',
+          borderRadius: 2,
+        }}
+      >
         <Table size="small" stickyHeader>
           <TableHead>
             <TableRow>

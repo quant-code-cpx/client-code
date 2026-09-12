@@ -3,12 +3,13 @@ import type { TimingSignalItem } from 'src/api/stock';
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
 import List from '@mui/material/List';
-import Chip from '@mui/material/Chip';
 import { CardContent } from '@mui/material';
 import ListItem from '@mui/material/ListItem';
 import Typography from '@mui/material/Typography';
 
 import { fmtTradeDate as fmtD } from 'src/utils/format-time';
+
+import { Label } from 'src/components/label';
 
 // ----------------------------------------------------------------------
 
@@ -67,11 +68,9 @@ export function AnalysisTimingSignalTimeline({ signals }: Props) {
                     <Typography variant="caption" color="text.secondary">
                       {fmtD(sig.tradeDate)}
                     </Typography>
-                    <Chip
-                      label={TYPE_LABEL[sig.type.toLowerCase()] ?? sig.type}
-                      color={getTypeColor(sig.type)}
-                      size="small"
-                    />
+                    <Label color={getTypeColor(sig.type)} variant="soft">
+                      <>{TYPE_LABEL[sig.type.toLowerCase()] ?? sig.type}</>
+                    </Label>
                     <Typography variant="caption">
                       {'⭐'.repeat(Math.min(sig.strength, 5))}
                     </Typography>

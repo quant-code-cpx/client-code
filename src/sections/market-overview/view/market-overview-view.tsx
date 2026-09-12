@@ -34,15 +34,6 @@ const CONTROL_HEIGHT = 40;
 function SectionHeader({ title, action }: { title: string; action?: React.ReactNode }) {
   return (
     <Stack direction="row" alignItems="center" spacing={1.5} sx={{ mt: 4.5, mb: 2 }}>
-      <Box
-        sx={{
-          width: 3,
-          height: 16,
-          borderRadius: 1,
-          bgcolor: 'primary.main',
-          flexShrink: 0,
-        }}
-      />
       <Typography
         variant="overline"
         sx={{ fontWeight: 700, letterSpacing: 1.2, color: 'text.secondary' }}

@@ -109,7 +109,6 @@ export function DashboardCapitalRadar({ refreshKey }: DashboardCapitalRadarProps
     <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <CardHeader
         title="资金雷达"
-        slotProps={{ title: { variant: 'subtitle1', fontWeight: 700 } }}
         avatar={<Iconify icon="solar:target-bold" width={22} sx={{ color: 'info.main' }} />}
         sx={{ pb: 0.5 }}
       />

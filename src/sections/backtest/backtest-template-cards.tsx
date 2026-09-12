@@ -49,9 +49,8 @@ export function BacktestTemplateCards({
                 height: '100%',
                 border: (theme) =>
                   selected ? `2px solid ${theme.palette.primary.main}` : '2px solid transparent',
-                boxShadow: selected ? 6 : 1,
                 transition: (theme) =>
-                  theme.transitions.create(['border-color', 'box-shadow'], {
+                  theme.transitions.create('border-color', {
                     duration: theme.transitions.duration.shorter,
                   }),
               }}

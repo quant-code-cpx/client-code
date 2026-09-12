@@ -2060,6 +2060,15 @@ export interface components {
         | "FAILED"
         | "CANCELLED";
       statusVersion: number;
+      /** @enum {string|null} */
+      waitingReason?:
+        | "PROVIDER_RUNNING"
+        | "PROVIDER_RECONNECT"
+        | "CANCEL_REQUESTED"
+        | null;
+      /** Format: date-time */
+      nextWakeAt?: string | null;
+      wakeVersion: number;
       currentStep?: components["schemas"]["AgentRunCurrentStepDto"] | null;
       finalMessageId?: string | null;
       latestEventSequence: number;

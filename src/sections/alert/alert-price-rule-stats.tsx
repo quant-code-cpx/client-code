@@ -96,7 +96,15 @@ export function AlertPriceRuleStats({ rules, loading }: Props) {
                 <Iconify icon={icon} width={24} />
               </Box>
               <Box>
-                <Typography variant="h4" color={`${color}.main`}>
+                <Typography
+                  variant="h4"
+                  sx={(currentTheme) => ({
+                    color: currentTheme.vars.palette[color].dark,
+                    ...currentTheme.applyStyles('dark', {
+                      color: currentTheme.vars.palette[color].light,
+                    }),
+                  })}
+                >
                   {value}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">

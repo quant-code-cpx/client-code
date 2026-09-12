@@ -25,7 +25,7 @@ const group: SignalPeriodStatistics = {
   signalKey: 'macd.golden-cross',
   semanticsVersion: 'macd.v1',
   definitionHash: 'definition-hash',
-  direction: 'BULLISH',
+  direction: 'BEARISH',
   evaluable: true,
   notEvaluableReason: null,
   requiredValidRows: 35,
@@ -66,15 +66,15 @@ const group: SignalPeriodStatistics = {
         failureCount: 4,
         flatCount: 0,
         successRatio: 0.6,
-        averageDirectionalReturnPct: 1.2,
-        medianDirectionalReturnPct: 0.8,
-        minimumDirectionalReturnPct: -2,
-        maximumDirectionalReturnPct: 4,
+        averageDirectionalReturnPct: -1.2,
+        medianDirectionalReturnPct: -0.8,
+        minimumDirectionalReturnPct: -4,
+        maximumDirectionalReturnPct: 2,
         stdDevDirectionalReturnPct: 1.5,
         p25DirectionalReturnPct: -0.5,
         p75DirectionalReturnPct: 2.1,
-        meanDirectionalConfidenceLowerPct: 0.2,
-        meanDirectionalConfidenceUpperPct: 2.2,
+        meanDirectionalConfidenceLowerPct: -2.2,
+        meanDirectionalConfidenceUpperPct: -0.2,
         successConfidenceLower: 0.31,
         successConfidenceUpper: 0.83,
       },
@@ -114,10 +114,14 @@ describe('TechnicalSignalPerformanceChart', () => {
 
     expect(props.type).toBe('rangeArea');
     expect(props.series[0]).toEqual({
-      name: '平均方向收益 95% 置信区间',
+      name: '平均涨跌幅 95% 置信区间',
       type: 'rangeArea',
       data: [{ x: 'T+1', y: [0.2, 2.2] }],
     });
-    expect(props.series[1]).toMatchObject({ name: '平均方向收益', type: 'line' });
+    expect(props.series[1]).toMatchObject({
+      name: '平均涨跌幅',
+      type: 'line',
+      data: [{ x: 'T+1', y: 1.2 }],
+    });
   });
 });

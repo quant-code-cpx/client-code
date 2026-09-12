@@ -37,9 +37,6 @@ export function FactorLibraryBulkBar({
   return (
     <Box
       sx={{
-        position: 'sticky',
-        top: 64,
-        zIndex: 3,
         mb: 2,
         py: 1,
         px: 2,

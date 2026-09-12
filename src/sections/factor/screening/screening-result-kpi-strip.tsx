@@ -72,11 +72,12 @@ export function ScreeningResultKpiStrip({ result }: Props) {
             </Typography>
             <Typography
               variant="subtitle1"
-              sx={{
+              sx={(theme) => ({
                 ...tabularNum,
                 color: it.color ? `${it.color}.dark` : 'text.primary',
+                ...(it.color ? theme.applyStyles('dark', { color: `${it.color}.light` }) : {}),
                 lineHeight: 1.2,
-              }}
+              })}
             >
               {it.value}
             </Typography>

@@ -44,8 +44,12 @@ vi.mock('../portfolio-holding-table', () => ({
 
     return (
       <>
-        <button type="button" onClick={() => onEdit(holding)}>编辑模拟</button>
-        <button type="button" onClick={() => onDelete(holding)}>删除模拟</button>
+        <button type="button" onClick={() => onEdit(holding)}>
+          编辑模拟
+        </button>
+        <button type="button" onClick={() => onDelete(holding)}>
+          删除模拟
+        </button>
       </>
     );
   },
@@ -63,7 +67,12 @@ vi.mock('../holding-add-dialog', () => ({
       <button
         type="button"
         onClick={() =>
-          void onConfirm({ portfolioId: 'portfolio-1', tsCode: '000001.SZ', quantity: 100, avgCost: 12.5 })
+          void onConfirm({
+            portfolioId: 'portfolio-1',
+            tsCode: '000001.SZ',
+            quantity: 100,
+            avgCost: 12.5,
+          })
         }
       >
         提交新增模拟
@@ -90,6 +99,7 @@ vi.mock('../holding-edit-dialog', () => ({
 }));
 
 vi.mock('../portfolio-rebalance-dialog', () => ({ PortfolioRebalanceDialog: () => null }));
+vi.mock('../portfolio-trade-dialog', () => ({ PortfolioTradeDialog: () => null }));
 
 // ----------------------------------------------------------------------
 
@@ -124,7 +134,7 @@ describe('PortfolioHoldingTab idempotency', () => {
   it('gives every add, edit, and delete action its own idempotency key', async () => {
     render(<PortfolioHoldingTab portfolioId="portfolio-1" holdings={[]} onRefresh={vi.fn()} />);
 
-    fireEvent.click(screen.getByRole('button', { name: '添加持仓' }));
+    fireEvent.click(screen.getByRole('button', { name: '持仓校正' }));
     fireEvent.click(screen.getByRole('button', { name: '提交新增模拟' }));
     await waitFor(() =>
       expect(addHolding).toHaveBeenLastCalledWith({
@@ -136,7 +146,7 @@ describe('PortfolioHoldingTab idempotency', () => {
       })
     );
 
-    fireEvent.click(screen.getByRole('button', { name: '添加持仓' }));
+    fireEvent.click(screen.getByRole('button', { name: '持仓校正' }));
     fireEvent.click(screen.getByRole('button', { name: '提交新增模拟' }));
     await waitFor(() => expect(addHolding).toHaveBeenCalledTimes(2));
     expect(vi.mocked(addHolding).mock.calls[1]?.[0]?.idempotencyKey).not.toBe(

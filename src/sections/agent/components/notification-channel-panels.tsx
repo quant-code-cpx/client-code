@@ -9,6 +9,7 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 
 import { fDateTime } from 'src/utils/format-time';
 
+import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
 
 import {
@@ -63,12 +64,9 @@ export function NotificationChannelsPanel({
                       {channel.lastFour ? ` · ••••${channel.lastFour}` : ''}
                     </Typography>
                   </Box>
-                  <Chip
-                    size="small"
-                    label={status.label}
-                    color={status.color}
-                    variant="outlined"
-                  />
+                  <Label color={status.color} variant="outlined">
+                    {status.label}
+                  </Label>
                 </Box>
                 <Typography
                   variant="caption"
@@ -180,12 +178,9 @@ export function NotificationDeliveriesPanel({
                       {delivery.attempt}/{delivery.maxAttempts}
                     </Typography>
                   </Box>
-                  <Chip
-                    size="small"
-                    label={status.label}
-                    color={status.color}
-                    variant="outlined"
-                  />
+                  <Label color={status.color} variant="outlined">
+                    {status.label}
+                  </Label>
                 </Box>
                 <Typography
                   variant="caption"

@@ -24,10 +24,7 @@ export function InfoTooltip({ entry }: { entry: MethodologyEntry }) {
             {entry.oneLiner}
           </Typography>
           <Box>
-            <Typography
-              variant="overline"
-              sx={{ display: 'block', color: 'text.secondary', fontSize: 12 }}
-            >
+            <Typography variant="overline" sx={{ display: 'block', fontSize: 12 }}>
               简化公式
             </Typography>
             <Typography
@@ -42,10 +39,7 @@ export function InfoTooltip({ entry }: { entry: MethodologyEntry }) {
             </Typography>
           </Box>
           <Box>
-            <Typography
-              variant="overline"
-              sx={{ display: 'block', color: 'text.secondary', fontSize: 12 }}
-            >
+            <Typography variant="overline" sx={{ display: 'block', fontSize: 12 }}>
               输入 / 输出
             </Typography>
             <Typography variant="caption" sx={{ display: 'block', lineHeight: 1.6 }}>

@@ -94,6 +94,9 @@ describe('overview navigation accessibility', () => {
         description: null,
         initialCash: 10000,
         holdingCount: 1,
+        kind: 'PAPER',
+        executionMode: 'RESEARCH_ONLY',
+        liveTradingSupported: false,
         createdAt: '2026-08-01T00:00:00Z',
         updatedAt: '2026-08-01T00:00:00Z',
       },
@@ -102,6 +105,7 @@ describe('overview navigation accessibility', () => {
       tradeDate: '20260807',
       todayPnl: 110,
       todayPnlPct: 0.011,
+      qualityFlags: [],
       byHolding: [],
     });
 

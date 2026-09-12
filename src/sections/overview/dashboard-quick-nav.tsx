@@ -122,7 +122,7 @@ export function DashboardQuickNav() {
                     borderColor: paletteColor.main,
                     bgcolor: varAlpha(paletteColor.mainChannel, 0.1),
                     transform: 'translateY(-2px)',
-                    boxShadow: `0 4px 12px ${varAlpha(paletteColor.mainChannel, 0.16)}`,
+                    boxShadow: theme.vars.customShadows.z4,
                   },
                 }}
               >

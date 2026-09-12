@@ -161,7 +161,15 @@ export function AlertLimitNextDayMatrix({ data, loading, error }: Props) {
                   textAlign: 'center',
                 }}
               >
-                <Typography variant="caption" sx={{ color: `${b.tone}.main` }}>
+                <Typography
+                  variant="caption"
+                  sx={(currentTheme) => ({
+                    color: b.tone === 'default' ? 'text.secondary' : `${b.tone}.darker`,
+                    ...currentTheme.applyStyles('dark', {
+                      color: b.tone === 'default' ? 'text.secondary' : `${b.tone}.light`,
+                    }),
+                  })}
+                >
                   {b.label}
                 </Typography>
               </Box>

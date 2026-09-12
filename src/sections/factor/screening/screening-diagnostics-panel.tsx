@@ -65,7 +65,13 @@ export function ScreeningDiagnosticsPanel({ result }: Props) {
           <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }}>
             <Typography variant="subtitle2">行业分布（Top 10）</Typography>
             {isClientFallback && (
-              <Typography variant="caption" sx={{ color: 'warning.dark' }}>
+              <Typography
+                variant="caption"
+                sx={(theme) => ({
+                  color: 'warning.dark',
+                  ...theme.applyStyles('dark', { color: 'warning.light' }),
+                })}
+              >
                 客户端聚合（后端 BE-9 上线后切换）
               </Typography>
             )}

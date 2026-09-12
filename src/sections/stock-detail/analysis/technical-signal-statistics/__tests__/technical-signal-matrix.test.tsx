@@ -163,6 +163,41 @@ describe('TechnicalSignalMatrix', () => {
     expect(screen.getByText('区间内未出现')).toBeInTheDocument();
   });
 
+  it('shows actual average rise or fall instead of directional return', () => {
+    renderMatrix([
+      {
+        period: '1Y',
+        requestedStartDate: '20250801',
+        actualStartDate: '20250801',
+        endDate: '20260731',
+        signalKey: 'macd.golden-cross',
+        semanticsVersion: 'macd.v1',
+        definitionHash: 'definition-hash',
+        direction: 'BEARISH',
+        evaluable: true,
+        notEvaluableReason: null,
+        requiredValidRows: 35,
+        actualValidRows: 251,
+        occurrenceCount: 1,
+        horizons: [
+          {
+            ...horizon,
+            validOutcomeCount: 1,
+            raw: { ...horizon.raw, averageReturnPct: -2.58 },
+            directional: {
+              ...horizon.directional,
+              successRatio: 1,
+              averageDirectionalReturnPct: 2.58,
+            },
+          },
+        ],
+      },
+    ]);
+
+    expect(screen.getByText('平均下跌 2.58%')).toBeInTheDocument();
+    expect(screen.queryByText(/方向收益/)).not.toBeInTheDocument();
+  });
+
   it('activates the row and an individual horizon cell without bubbling twice', () => {
     const onSelect = vi.fn();
     renderMatrix(

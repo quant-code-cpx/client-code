@@ -49,6 +49,16 @@ export function formatNumber(value: number | null | undefined, digits = 2): stri
   return value === null || value === undefined ? '—' : value.toFixed(digits);
 }
 
+export function formatDirectionalResult(
+  value: number | null | undefined,
+  digits = 2
+): string {
+  if (value === null || value === undefined) return '—';
+  if (value > 0) return `符合预期 ${formatPercent(value, digits)}`;
+  if (value < 0) return `与预期相反 ${formatPercent(Math.abs(value), digits)}`;
+  return `持平 ${formatPercent(value, digits)}`;
+}
+
 export function formatConfidenceInterval(
   lower: number | null | undefined,
   upper: number | null | undefined
@@ -93,20 +103,21 @@ export function primaryMetric(
   direction: TechnicalSignalDirection,
   horizon: SignalHorizonStatistics
 ): { ratioLabel: string; ratio: number | null; returnLabel: string; returnPct: number | null } {
-  if (direction === 'CONTEXTUAL') {
-    return {
-      ratioLabel: '上涨率',
-      ratio: horizon.raw.upRatio,
-      returnLabel: '平均收益',
-      returnPct: horizon.raw.averageReturnPct,
-    };
-  }
+  const averageReturnPct = horizon.raw.averageReturnPct;
+  const returnLabel =
+    averageReturnPct === null
+      ? '平均涨跌'
+      : averageReturnPct > 0
+        ? '平均上涨'
+        : averageReturnPct < 0
+          ? '平均下跌'
+          : '平均持平';
 
   return {
-    ratioLabel: '方向成功率',
-    ratio: horizon.directional.successRatio,
-    returnLabel: '平均方向收益',
-    returnPct: horizon.directional.averageDirectionalReturnPct,
+    ratioLabel: direction === 'CONTEXTUAL' ? '上涨率' : '方向成功率',
+    ratio: direction === 'CONTEXTUAL' ? horizon.raw.upRatio : horizon.directional.successRatio,
+    returnLabel,
+    returnPct: averageReturnPct === null ? null : Math.abs(averageReturnPct),
   };
 }
 

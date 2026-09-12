@@ -305,6 +305,9 @@ function DayCell({
                   borderRadius: 0.5,
                   bgcolor: varAlpha(theme.vars.palette[cfg.paletteKey].mainChannel, 0.1),
                   color: `${cfg.paletteKey}.darker`,
+                  ...theme.applyStyles('dark', {
+                    color: `${cfg.paletteKey}.light`,
+                  }),
                   fontSize: 12,
                   lineHeight: 1.3,
                   textAlign: 'left',

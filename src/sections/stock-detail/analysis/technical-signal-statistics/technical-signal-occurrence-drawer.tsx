@@ -31,7 +31,12 @@ import { technicalSignalApi } from 'src/api/technical-signal';
 import { Label } from 'src/components/label';
 import { Scrollbar } from 'src/components/scrollbar';
 
-import { isAbortError, formatPercent, formatTradeDate } from './technical-signal-formatters';
+import {
+  isAbortError,
+  formatPercent,
+  formatTradeDate,
+  formatDirectionalResult,
+} from './technical-signal-formatters';
 
 // ----------------------------------------------------------------------
 
@@ -266,8 +271,8 @@ export function TechnicalSignalOccurrenceDrawer({
                 <TableCell>质量</TableCell>
                 <TableCell>预计入场日</TableCell>
                 <TableCell>预计目标日</TableCell>
-                <TableCell align="right">原始收益</TableCell>
-                <TableCell align="right">方向收益</TableCell>
+                <TableCell align="right">实际涨跌</TableCell>
+                <TableCell align="right">信号结果</TableCell>
                 <TableCell align="right">基准收益</TableCell>
                 <TableCell align="right">超额收益</TableCell>
                 <TableCell align="right">MFE / MAE</TableCell>
@@ -302,7 +307,9 @@ export function TechnicalSignalOccurrenceDrawer({
                       <TableCell>{formatTradeDate(outcome?.expectedEntryDate)}</TableCell>
                       <TableCell>{formatTradeDate(outcome?.expectedTargetDate)}</TableCell>
                       <TableCell align="right">{formatPercent(outcome?.rawReturnPct)}</TableCell>
-                      <TableCell align="right">{formatPercent(outcome?.directionalReturnPct)}</TableCell>
+                      <TableCell align="right">
+                        {formatDirectionalResult(outcome?.directionalReturnPct)}
+                      </TableCell>
                       <TableCell align="right">
                         <Stack alignItems="flex-end" spacing={0.25}>
                           <Typography sx={{ fontVariantNumeric: 'tabular-nums' }} variant="body2">

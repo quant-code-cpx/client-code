@@ -2,7 +2,6 @@ import type { TimingScoreDetail } from 'src/api/stock';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
-import Chip from '@mui/material/Chip';
 import Table from '@mui/material/Table';
 import TableRow from '@mui/material/TableRow';
 import TableBody from '@mui/material/TableBody';
@@ -12,6 +11,8 @@ import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 import LinearProgress from '@mui/material/LinearProgress';
 import TableContainer from '@mui/material/TableContainer';
+
+import { Label } from 'src/components/label';
 
 // ----------------------------------------------------------------------
 
@@ -55,12 +56,9 @@ export function AnalysisTimingDetailsTable({ details }: Props) {
                 <TableRow key={i}>
                   <TableCell>{row.indicator}</TableCell>
                   <TableCell>
-                    <Chip
-                      label={SIGNAL_LABEL[row.signal] ?? row.signal}
-                      color={getSignalColor(row.signal)}
-                      size="small"
-                      variant="outlined"
-                    />
+                    <Label color={getSignalColor(row.signal)} variant="outlined">
+                      <>{SIGNAL_LABEL[row.signal] ?? row.signal}</>
+                    </Label>
                   </TableCell>
                   <TableCell>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>

@@ -144,7 +144,14 @@ function DetailContent({ detail }: { detail: NewsArticleDetailResponse }) {
           查看原文
         </Button>
       ) : (
-        <Typography variant="body2" sx={{ mt: 2, color: 'warning.main' }}>
+        <Typography
+          variant="body2"
+          sx={(theme) => ({
+            mt: 2,
+            color: 'warning.darker',
+            ...theme.applyStyles('dark', { color: 'warning.light' }),
+          })}
+        >
           无原文链接 · 建议核验
         </Typography>
       )}
@@ -162,7 +169,15 @@ function DetailContent({ detail }: { detail: NewsArticleDetailResponse }) {
         </Box>
       ))}
       {detail.sources.truncated ? (
-        <Typography variant="caption" display="block" sx={{ mt: 1, color: 'warning.main' }}>
+        <Typography
+          variant="caption"
+          display="block"
+          sx={(theme) => ({
+            mt: 1,
+            color: 'warning.darker',
+            ...theme.applyStyles('dark', { color: 'warning.light' }),
+          })}
+        >
           来源结果已截断，仅显示 {detail.sources.items.length}/{detail.sources.total} 条
         </Typography>
       ) : null}
@@ -176,7 +191,15 @@ function DetailContent({ detail }: { detail: NewsArticleDetailResponse }) {
         </Box>
       ))}
       {detail.revisions.truncated ? (
-        <Typography variant="caption" display="block" sx={{ mt: 1, color: 'warning.main' }}>
+        <Typography
+          variant="caption"
+          display="block"
+          sx={(theme) => ({
+            mt: 1,
+            color: 'warning.darker',
+            ...theme.applyStyles('dark', { color: 'warning.light' }),
+          })}
+        >
           修订记录已截断，仅显示 {detail.revisions.items.length}/{detail.revisions.total} 条
         </Typography>
       ) : null}

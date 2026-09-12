@@ -114,7 +114,13 @@ export function FactorCorrelationPairDrawer({
               <DefRow
                 label="显著性"
                 value={
-                  <Typography variant="caption" color="warning.main">
+                  <Typography
+                    variant="caption"
+                    sx={(theme) => ({
+                      color: 'warning.dark',
+                      ...theme.applyStyles('dark', { color: 'warning.light' }),
+                    })}
+                  >
                     后端暂未返回 p-value，无法判断统计显著性
                   </Typography>
                 }

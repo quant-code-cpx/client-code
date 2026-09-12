@@ -54,7 +54,7 @@ export function StrategyDetailHeader({ strategy, onClone, onDelete }: StrategyDe
             <Typography variant="h4" noWrap>
               {strategy.name}
             </Typography>
-            <Typography variant="body2" sx={{ color: 'text.disabled' }}>
+            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
               v{strategy.version}
             </Typography>
           </Box>
@@ -73,14 +73,14 @@ export function StrategyDetailHeader({ strategy, onClone, onDelete }: StrategyDe
               </Box>
             ) : (
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                <Iconify icon="solar:lock-bold" width={14} sx={{ color: 'text.disabled' }} />
-                <Typography variant="caption" sx={{ color: 'text.disabled' }}>
+                <Iconify icon="solar:lock-bold" width={14} sx={{ color: 'text.secondary' }} />
+                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                   私有
                 </Typography>
               </Box>
             )}
 
-            <Typography variant="caption" sx={{ color: 'text.disabled' }}>
+            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
               更新于 {fToNow(strategy.updatedAt)}
             </Typography>
           </Box>

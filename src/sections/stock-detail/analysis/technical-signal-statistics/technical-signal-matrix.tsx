@@ -225,7 +225,7 @@ export function TechnicalSignalMatrix({
                           }}
                         >
                           <Tooltip
-                            title={`${metric.ratioLabel}以有效样本为分母；有效样本 ${statistics.validOutcomeCount} 个`}
+                            title={`${metric.ratioLabel}以有效样本为分母；平均涨跌为标的从入场日到目标日的实际价格变化；有效样本 ${statistics.validOutcomeCount} 个`}
                           >
                             <span>
                               <Typography

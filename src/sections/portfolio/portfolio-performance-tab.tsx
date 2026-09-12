@@ -171,13 +171,30 @@ export function PortfolioPerformanceTab({ portfolioId }: PortfolioPerformanceTab
       {!loading && error && <Alert severity="error">{error}</Alert>}
       {!loading && data && (
         <>
-          <Grid container spacing={2} sx={{ mb: 3 }}>
-            {metrics.map(({ label, value }) => (
-              <Grid key={label} size={{ xs: 6, sm: 4, md: 3 }}>
-                <MetricCard label={label} value={value} />
-              </Grid>
-            ))}
-          </Grid>
+          {data.accountingStatus === 'NOT_READY' ? (
+            <Alert severity="info" sx={{ mb: 3 }}>
+              会计快照或基准数据尚未就绪，暂不展示零值绩效指标。
+            </Alert>
+          ) : null}
+          {data.accountingStatus === 'ESTIMATED' ? (
+            <Alert severity="warning" sx={{ mb: 3 }}>
+              区间内含历史持仓校正，净值可用，但已实现盈亏口径不完整。
+            </Alert>
+          ) : null}
+          {data.qualityFlags.includes('REQUEST_CLIPPED_TO_LEDGER_COVERAGE') ? (
+            <Alert severity="info" sx={{ mb: 3 }}>
+              查询起点已自动裁剪到现金账本起始日 {data.coverageStart ?? '--'}。
+            </Alert>
+          ) : null}
+          {data.accountingStatus !== 'NOT_READY' ? (
+            <Grid container spacing={2} sx={{ mb: 3 }}>
+              {metrics.map(({ label, value }) => (
+                <Grid key={label} size={{ xs: 6, sm: 4, md: 3 }}>
+                  <MetricCard label={label} value={value} />
+                </Grid>
+              ))}
+            </Grid>
+          ) : null}
 
           {data.series.length > 0 ? (
             <Card>
@@ -188,9 +205,9 @@ export function PortfolioPerformanceTab({ portfolioId }: PortfolioPerformanceTab
                 <Chart type="line" series={series} options={chartOptions} sx={{ height: 320 }} />
               </CardContent>
             </Card>
-          ) : (
+          ) : data.accountingStatus !== 'NOT_READY' ? (
             <Alert severity="info">所选日期范围内暂无业绩数据</Alert>
-          )}
+          ) : null}
         </>
       )}
     </Box>

@@ -1,5 +1,6 @@
 import type { Theme, CSSObject } from '@mui/material/styles';
 
+import { varAlpha } from 'minimal-shared/utils';
 import { useRouteError, isRouteErrorResponse } from 'react-router';
 
 import GlobalStyles from '@mui/material/GlobalStyles';
@@ -19,7 +20,9 @@ export function ErrorBoundary({ showDetails = import.meta.env.DEV }: ErrorBounda
       {inputGlobalStyles()}
 
       <div className={errorBoundaryClasses.root}>
-        <div className={errorBoundaryClasses.container}>{renderErrorMessage(error, showDetails)}</div>
+        <div className={errorBoundaryClasses.container}>
+          {renderErrorMessage(error, showDetails)}
+        </div>
       </div>
     </>
   );
@@ -106,30 +109,16 @@ const errorBoundaryClasses = {
   filePath: 'error-boundary-file-path',
 };
 
-const cssVars: CSSObject = {
-  '--info-color': '#2dd9da',
-  '--warning-color': '#e2aa53',
-  '--error-color': '#ff5555',
-  '--error-background': '#2a1e1e',
-  '--details-background': '#111111',
-  '--root-background': '#2c2c2e',
-  '--container-background': '#1c1c1e',
-  '--font-stack-monospace':
-    '"SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace',
-  '--font-stack-sans':
-    '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"',
-};
-
-const rootStyles = (): CSSObject => ({
+const rootStyles = (theme: Theme): CSSObject => ({
   display: 'flex',
   flex: '1 1 auto',
   alignItems: 'center',
   padding: '10vh 15px 0',
   flexDirection: 'column',
-  fontFamily: 'var(--font-stack-sans)',
+  fontFamily: theme.typography.fontFamily,
 });
 
-const contentStyles = (): CSSObject => ({
+const contentStyles = (theme: Theme): CSSObject => ({
   gap: 24,
   padding: 20,
   width: '100%',
@@ -137,7 +126,7 @@ const contentStyles = (): CSSObject => ({
   display: 'flex',
   borderRadius: 8,
   flexDirection: 'column',
-  backgroundColor: 'var(--container-background)',
+  backgroundColor: theme.vars.palette.background.paper,
 });
 
 const titleStyles = (theme: Theme): CSSObject => ({
@@ -152,43 +141,54 @@ const messageStyles = (theme: Theme): CSSObject => ({
   lineHeight: 1.5,
   padding: '12px 16px',
   whiteSpace: 'pre-wrap',
-  color: 'var(--error-color)',
+  color: theme.vars.palette.error.dark,
   fontSize: theme.typography.pxToRem(14),
-  fontFamily: 'var(--font-stack-monospace)',
-  backgroundColor: 'var(--error-background)',
-  borderLeft: '2px solid var(--error-color)',
+  fontFamily: theme.typography.fontFamily,
+  backgroundColor: varAlpha(theme.vars.palette.error.mainChannel, 0.12),
+  borderLeft: `2px solid ${theme.vars.palette.error.main}`,
   fontWeight: theme.typography.fontWeightBold,
+  ...theme.applyStyles('dark', {
+    color: theme.vars.palette.error.light,
+    backgroundColor: varAlpha(theme.vars.palette.error.mainChannel, 0.16),
+  }),
 });
 
-const detailsStyles = (): CSSObject => ({
+const detailsStyles = (theme: Theme): CSSObject => ({
   margin: 0,
   padding: 16,
   lineHeight: 1.5,
   overflow: 'auto',
   borderRadius: 'inherit',
-  color: 'var(--warning-color)',
-  backgroundColor: 'var(--details-background)',
+  color: theme.vars.palette.warning.dark,
+  fontFamily: theme.typography.fontFamily,
+  backgroundColor: theme.vars.palette.background.neutral,
+  ...theme.applyStyles('dark', {
+    color: theme.vars.palette.warning.light,
+  }),
 });
 
-const filePathStyles = (): CSSObject => ({
+const filePathStyles = (theme: Theme): CSSObject => ({
   marginTop: 0,
-  color: 'var(--info-color)',
+  color: theme.vars.palette.info.dark,
+  fontFamily: theme.typography.fontFamily,
+  ...theme.applyStyles('dark', {
+    color: theme.vars.palette.info.light,
+  }),
 });
 
 const inputGlobalStyles = () => (
   <GlobalStyles
     styles={(theme) => ({
       body: {
-        ...cssVars,
         margin: 0,
-        color: 'white',
-        backgroundColor: 'var(--root-background)',
-        [`& .${errorBoundaryClasses.root}`]: rootStyles(),
-        [`& .${errorBoundaryClasses.container}`]: contentStyles(),
+        color: theme.vars.palette.text.primary,
+        backgroundColor: theme.vars.palette.background.default,
+        [`& .${errorBoundaryClasses.root}`]: rootStyles(theme),
+        [`& .${errorBoundaryClasses.container}`]: contentStyles(theme),
         [`& .${errorBoundaryClasses.title}`]: titleStyles(theme),
         [`& .${errorBoundaryClasses.message}`]: messageStyles(theme),
-        [`& .${errorBoundaryClasses.filePath}`]: filePathStyles(),
-        [`& .${errorBoundaryClasses.details}`]: detailsStyles(),
+        [`& .${errorBoundaryClasses.filePath}`]: filePathStyles(theme),
+        [`& .${errorBoundaryClasses.details}`]: detailsStyles(theme),
       },
     })}
   />

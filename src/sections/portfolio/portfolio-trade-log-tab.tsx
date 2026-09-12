@@ -5,7 +5,6 @@ import { useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
-import Chip from '@mui/material/Chip';
 import Alert from '@mui/material/Alert';
 import Table from '@mui/material/Table';
 import Button from '@mui/material/Button';
@@ -27,6 +26,7 @@ import { fDateTime } from 'src/utils/format-time';
 
 import { queryTradeLog, tradeLogSummary } from 'src/api/portfolio';
 
+import { Label } from 'src/components/label';
 import { DatePicker } from 'src/components/date-picker';
 
 // ----------------------------------------------------------------------
@@ -216,15 +216,7 @@ export function PortfolioTradeLogTab({ portfolioId }: PortfolioTradeLogTabProps)
                     <TableRow key={row.id} hover>
                       <TableCell>{fDateTime(row.createdAt)}</TableCell>
                       <TableCell>
-                        <Chip
-                          label={
-                            row.action === 'BUY'
-                              ? '买入'
-                              : row.action === 'SELL'
-                                ? '卖出'
-                                : row.action
-                          }
-                          size="small"
+                        <Label
                           color={
                             row.action === 'BUY'
                               ? 'error'
@@ -232,7 +224,13 @@ export function PortfolioTradeLogTab({ portfolioId }: PortfolioTradeLogTabProps)
                                 ? 'success'
                                 : 'default'
                           }
-                        />
+                        >
+                          {row.action === 'BUY'
+                            ? '买入'
+                            : row.action === 'SELL'
+                              ? '卖出'
+                              : row.action}
+                        </Label>
                       </TableCell>
                       <TableCell>{row.tsCode}</TableCell>
                       <TableCell>{row.stockName ?? '—'}</TableCell>

@@ -5,7 +5,6 @@ import { useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
-import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
@@ -242,27 +241,19 @@ export function StrategySignalCard({ strategyId, strategyName }: Props) {
                   return (
                     <>
                       {buyCount > 0 && (
-                        <Chip
-                          size="small"
-                          label={`买入 ${buyCount}`}
-                          sx={(theme) => ({
-                            bgcolor: theme.palette.error.light,
-                            color: theme.palette.error.dark,
-                          })}
-                        />
+                        <Label color="error" variant="soft">
+                          <>买入 {buyCount}</>
+                        </Label>
                       )}
                       {sellCount > 0 && (
-                        <Chip
-                          size="small"
-                          label={`卖出 ${sellCount}`}
-                          sx={(theme) => ({
-                            bgcolor: theme.palette.success.light,
-                            color: theme.palette.success.dark,
-                          })}
-                        />
+                        <Label color="success" variant="soft">
+                          <>卖出 {sellCount}</>
+                        </Label>
                       )}
                       {holdCount > 0 && (
-                        <Chip size="small" label={`持有 ${holdCount}`} variant="outlined" />
+                        <Label color="default" variant="soft">
+                          <>持有 {holdCount}</>
+                        </Label>
                       )}
                       {latestSignal.signals.length === 0 && (
                         <Typography variant="caption" color="text.secondary">

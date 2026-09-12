@@ -17,6 +17,7 @@ import CircularProgress from '@mui/material/CircularProgress';
 
 import { RouterLink } from 'src/routes/components';
 
+import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
 
 import { deriveStatus, getStatusMeta, SOURCE_LABELS, CATEGORY_LABELS } from '../constants';
@@ -217,7 +218,9 @@ export function FactorLibraryCardV2({
               variant="outlined"
             />
             {isCustom && factor.isEnabled === false && (
-              <Chip size="small" label="已禁用" color="default" variant="filled" />
+              <Label color="default" variant="soft">
+                已禁用
+              </Label>
             )}
           </Stack>
 

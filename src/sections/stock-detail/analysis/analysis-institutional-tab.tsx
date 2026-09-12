@@ -70,7 +70,13 @@ export function AnalysisInstitutionalTab({ tsCode }: Props) {
       <Grid container spacing={2}>
         <Grid size={{ xs: 6, sm: 4 }}>
           <Card sx={{ p: 2, textAlign: 'center' }}>
-            <Typography variant="h4" sx={{ color: 'primary.main' }}>
+            <Typography
+              variant="h4"
+              sx={(theme) => ({
+                color: 'primary.dark',
+                ...theme.applyStyles('dark', { color: 'primary.light' }),
+              })}
+            >
               {fundCount}
             </Typography>
             <Typography variant="caption" sx={{ color: 'text.secondary' }}>
@@ -80,7 +86,13 @@ export function AnalysisInstitutionalTab({ tsCode }: Props) {
         </Grid>
         <Grid size={{ xs: 6, sm: 4 }}>
           <Card sx={{ p: 2, textAlign: 'center' }}>
-            <Typography variant="h4" sx={{ color: 'info.main' }}>
+            <Typography
+              variant="h4"
+              sx={(theme) => ({
+                color: 'info.dark',
+                ...theme.applyStyles('dark', { color: 'info.light' }),
+              })}
+            >
               {fNumber(Math.round(totalMv))}万
             </Typography>
             <Typography variant="caption" sx={{ color: 'text.secondary' }}>

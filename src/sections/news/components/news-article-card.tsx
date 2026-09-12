@@ -11,6 +11,8 @@ import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import CardContent from '@mui/material/CardContent';
 
+import { Label } from 'src/components/label';
+
 import { formatNewsTime } from '../news-time';
 
 export type NewsArticleCardProps = {
@@ -73,12 +75,20 @@ export function NewsArticleCard({ article, onOpen }: NewsArticleCardProps) {
             <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap" alignItems="center">
               <Chip label={CONTENT_LABEL[article.contentType]} size="small" variant="outlined" />
               {article.revision > 1 ? (
-                <Chip
-                  label={`已修订 v${article.revision}`}
-                  size="small"
+                <Label
                   color="warning"
                   variant="outlined"
-                />
+                  sx={(theme) => ({
+                    color: 'warning.darker',
+                    borderColor: 'warning.darker',
+                    ...theme.applyStyles('dark', {
+                      color: 'warning.light',
+                      borderColor: 'warning.light',
+                    }),
+                  })}
+                >
+                  <>{`已修订 v${article.revision}`}</>
+                </Label>
               ) : null}
               {article.qualityFlags.slice(0, 2).map((flag) => (
                 <Chip key={flag} label={qualityLabel(flag)} size="small" variant="outlined" />
@@ -150,7 +160,13 @@ export function NewsArticleCard({ article, onOpen }: NewsArticleCardProps) {
                   <Button size="small" disabled aria-label="无原文链接">
                     无原文链接
                   </Button>
-                  <Typography variant="caption" sx={{ color: 'warning.main' }}>
+                  <Typography
+                    variant="caption"
+                    sx={(theme) => ({
+                      color: 'warning.darker',
+                      ...theme.applyStyles('dark', { color: 'warning.light' }),
+                    })}
+                  >
                     建议核验
                   </Typography>
                 </Stack>

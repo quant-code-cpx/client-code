@@ -41,7 +41,7 @@ export function PatternTemplateGallery({
           if (v) onTypeFilterChange(v);
         }}
         size="small"
-        sx={{ mb: 2, flexWrap: 'wrap', gap: 0.5 }}
+        sx={{ mb: 2, flexWrap: 'wrap' }}
       >
         {PATTERN_TYPE_FILTERS.map((f) => (
           <ToggleButton key={f.value} value={f.value}>

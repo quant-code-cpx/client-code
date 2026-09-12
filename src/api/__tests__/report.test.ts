@@ -1,5 +1,14 @@
 import { apiClient } from '../client';
-import { listSchedules, getReportDetail } from '../report';
+import {
+  listSchedules,
+  pauseSchedule,
+  createSchedule,
+  deleteSchedule,
+  resumeSchedule,
+  runScheduleNow,
+  updateSchedule,
+  getReportDetail,
+} from '../report';
 
 import type {
   ReportSchedule,
@@ -22,15 +31,57 @@ const schedule: ReportSchedule = {
   params: {},
   format: 'PDF',
   frequency: 'DAILY',
-  cronExpression: '0 18 * * 1-5',
+  cronExpression: '0 0 18 * * 1-5',
+  timeZone: 'Asia/Shanghai',
   enabled: true,
   lastRunAt: null,
   nextRunAt: null,
   createdAt: '2026-07-11T00:00:00.000Z',
+  updatedAt: '2026-07-11T00:00:00.000Z',
 };
 
 beforeEach(() => {
   vi.clearAllMocks();
+});
+
+describe('report schedule mutation contracts', () => {
+  it('routes create, update, state changes, deletion, and immediate execution through POST', async () => {
+    vi.mocked(apiClient.post).mockResolvedValue({});
+    const create = {
+      type: 'BACKTEST' as const,
+      title: '每日回测报告',
+      params: { runId: 'run-1' },
+      format: 'PDF' as const,
+      frequency: 'DAILY' as const,
+      cronExpression: '0 0 18 * * 1-5',
+    };
+
+    await createSchedule(create);
+    await updateSchedule({ scheduleId: 'schedule-1', title: '收盘报告' });
+    await pauseSchedule({ scheduleId: 'schedule-1' });
+    await resumeSchedule({ scheduleId: 'schedule-1' });
+    await deleteSchedule({ scheduleId: 'schedule-1' });
+    await runScheduleNow({ scheduleId: 'schedule-1' });
+
+    expect(vi.mocked(apiClient.post).mock.calls).toEqual([
+      ['/api/report/schedules/create', create],
+      ['/api/report/schedules/update', { scheduleId: 'schedule-1', title: '收盘报告' }],
+      ['/api/report/schedules/pause', { scheduleId: 'schedule-1' }],
+      ['/api/report/schedules/resume', { scheduleId: 'schedule-1' }],
+      ['/api/report/schedules/delete', { scheduleId: 'schedule-1' }],
+      ['/api/report/schedules/run', { scheduleId: 'schedule-1' }],
+    ]);
+  });
+
+  it('forwards schedule pagination in the request body', async () => {
+    vi.mocked(apiClient.post).mockResolvedValueOnce({ items: [], total: 0, page: 2, pageSize: 50 });
+
+    await expect(listSchedules({ page: 2, pageSize: 50 })).resolves.toEqual([]);
+    expect(apiClient.post).toHaveBeenCalledWith('/api/report/schedules/list', {
+      page: 2,
+      pageSize: 50,
+    });
+  });
 });
 
 describe('listSchedules', () => {
@@ -96,9 +147,7 @@ describe('getReportDetail data adapters', () => {
             amount: 1000,
           },
         ],
-        endPositions: [
-          { tsCode: '000001.SZ', quantity: 100, weight: 0.5, unrealizedPnl: 20 },
-        ],
+        endPositions: [{ tsCode: '000001.SZ', quantity: 100, weight: 0.5, unrealizedPnl: 20 }],
       },
     });
 
@@ -157,9 +206,7 @@ describe('getReportDetail data adapters', () => {
         holdingCount: 1,
       })
     );
-    expect(data.holdings[0]).toEqual(
-      expect.objectContaining({ avgCost: 10, industry: null })
-    );
+    expect(data.holdings[0]).toEqual(expect.objectContaining({ avgCost: 10, industry: null }));
     expect(data.industryDistribution[0]).toEqual({
       industry: '银行',
       stockCount: 1,
@@ -196,9 +243,7 @@ describe('getReportDetail data adapters', () => {
           revenueYoyGrowth: [8.2],
         },
         top10Holders: [{ holderName: null, holdAmount: null, holdRatio: 9.99 }],
-        dividends: [
-          { endDate: null, divProc: '实施', cashDivTax: null, stkDiv: 0.1 },
-        ],
+        dividends: [{ endDate: null, divProc: '实施', cashDivTax: null, stkDiv: 0.1 }],
       },
     });
 

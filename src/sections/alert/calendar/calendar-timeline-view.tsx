@@ -13,6 +13,7 @@ import { useTheme } from '@mui/material/styles';
 import ButtonBase from '@mui/material/ButtonBase';
 import Typography from '@mui/material/Typography';
 
+import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
 
 import { getEventImpactLevel } from './types';
@@ -83,7 +84,7 @@ export function CalendarTimelineView({ events, onSelectEvent }: Props) {
                 <Typography variant="caption" color="text.secondary">
                   周{['日', '一', '二', '三', '四', '五', '六'][dayObj.day()]}
                 </Typography>
-                {isToday && <Chip size="small" color="primary" label="今日" />}
+                {isToday && <Label color="primary">今日</Label>}
                 <Typography variant="caption" color="text.secondary" sx={{ ml: 'auto' }}>
                   {items.length} 项
                 </Typography>
@@ -186,12 +187,9 @@ export function CalendarTimelineView({ events, onSelectEvent }: Props) {
                           alignItems="center"
                           sx={{ flexShrink: 0 }}
                         >
-                          <Chip
-                            size="small"
-                            variant="outlined"
-                            color={cfg.color}
-                            label={cfg.label}
-                          />
+                          <Label variant="outlined" color={cfg.color}>
+                            {cfg.label}
+                          </Label>
                           {event.impactScore != null && (
                             <Chip
                               size="small"

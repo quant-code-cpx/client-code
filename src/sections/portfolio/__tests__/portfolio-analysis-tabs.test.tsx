@@ -1,8 +1,5 @@
 import type { ReactNode } from 'react';
-import type {
-  DriftDetectionResponse,
-  PortfolioPerformanceResponse,
-} from 'src/api/portfolio';
+import type { DriftDetectionResponse, PortfolioPerformanceResponse } from 'src/api/portfolio';
 
 import dayjs from 'dayjs';
 import { act, screen, within } from '@testing-library/react';
@@ -20,7 +17,9 @@ vi.mock('src/api/portfolio', () => ({
 }));
 vi.mock('src/components/chart', () => ({
   useChart: (options: unknown) => options,
-  Chart: ({ series }: { series: unknown }) => <div data-testid="performance-chart">{JSON.stringify(series)}</div>,
+  Chart: ({ series }: { series: unknown }) => (
+    <div data-testid="performance-chart">{JSON.stringify(series)}</div>
+  ),
 }));
 vi.mock('src/components/date-picker', () => ({
   DatePicker: ({
@@ -77,6 +76,10 @@ const performance: PortfolioPerformanceResponse = {
   startDate: '20260102',
   endDate: '20260812',
   benchmarkTsCode: '000905.SH',
+  accountingStatus: 'EXACT',
+  coverageStart: '2026-01-02',
+  algorithmVersion: 'portfolio-nav.v2-cash-ledger',
+  qualityFlags: [],
   series: [
     {
       date: '20260102',
@@ -201,7 +204,9 @@ describe('PortfolioDriftTab', () => {
       strategyId: 'strategy-alpha',
       alertThreshold: 0.05,
     });
-    expect(await screen.findByText('漂移告警：综合漂移度 8.00% 超过阈值 5.00%')).toBeInTheDocument();
+    expect(
+      await screen.findByText('漂移告警：综合漂移度 8.00% 超过阈值 5.00%')
+    ).toBeInTheDocument();
     const missingRow = screen.getByText('600000.SH').closest('tr');
     expect(missingRow).not.toBeNull();
     expect(within(missingRow as HTMLElement).getAllByText('--')).toHaveLength(2);

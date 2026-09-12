@@ -1,5 +1,7 @@
 import type { FactorDef, ScreeningItem, FactorScreeningResult } from 'src/api/factor';
 
+import { varAlpha } from 'minimal-shared/utils';
+
 import Box from '@mui/material/Box';
 import Link from '@mui/material/Link';
 import Stack from '@mui/material/Stack';
@@ -83,13 +85,17 @@ export function ScreeningResultTable({
     <Box>
       {isStale && (
         <Box
-          sx={{
+          sx={(theme) => ({
             px: 2,
             py: 1,
             bgcolor: 'warning.lighter',
             color: 'warning.darker',
             fontSize: 13,
-          }}
+            ...theme.applyStyles('dark', {
+              bgcolor: varAlpha(theme.vars.palette.warning.mainChannel, 0.16),
+              color: 'warning.light',
+            }),
+          })}
         >
           条件已变更，当前结果对应旧条件快照，请重新运行选股以同步。
         </Box>

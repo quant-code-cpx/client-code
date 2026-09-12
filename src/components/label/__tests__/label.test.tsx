@@ -37,6 +37,12 @@ describe('Label', () => {
       );
       expect(screen.getByTestId('child-node')).toBeInTheDocument();
     });
+
+    it('使用 full-pill 圆角', () => {
+      renderWithProviders(<Label>pill label</Label>);
+
+      expect(screen.getByText('Pill label')).toHaveStyle({ borderRadius: '12px' });
+    });
   });
 
   describe('variant 变体', () => {

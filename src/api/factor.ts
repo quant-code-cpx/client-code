@@ -900,19 +900,22 @@ export type AdminAuditAction =
   | 'JOB_RETRY';
 
 export type AdminAuditItem = {
+  id: string;
   createdAt: string;
+  operatorId: number | null;
   operator: string;
   action: AdminAuditAction;
+  source: 'ADMIN_API' | 'SCHEDULER';
   factorNames: string[];
-  ip?: string | null;
+  ip: string | null;
   success: boolean;
-  message?: string | null;
+  message: string | null;
 };
 
 export type AdminAuditRequest = {
   startDate?: string;
   endDate?: string;
-  operatorId?: string;
+  operatorId?: number;
   action?: AdminAuditAction;
   page: number;
   pageSize: number;
@@ -921,12 +924,26 @@ export type AdminAuditRequest = {
 export type AdminAuditResponse = {
   items: AdminAuditItem[];
   total: number;
+  page: number;
+  pageSize: number;
 };
 
 // ─── Admin Schedule 类型（BE-8） ─────────────────────────────
 
+export type AdminScheduleItem = {
+  id: string;
+  name: string;
+  cronExpression: string;
+  timeZone: 'Asia/Shanghai';
+  enabled: boolean;
+  lastRunAt: string | null;
+  nextRunAt: string;
+  lastStatus: 'SUCCEEDED' | 'FAILED' | null;
+  lastError: string | null;
+};
+
 export type AdminScheduleResponse = {
-  items: never[];
+  items: AdminScheduleItem[];
   total: number;
 };
 
@@ -998,9 +1015,7 @@ export async function adminPrecomputeStatus(): Promise<AdminPrecomputeStatusResp
   const items: PrecomputeStatusItem[] = byFactor.map((row) => {
     const factorName = String(row.factorName ?? '');
     const latestDate =
-      typeof row.latestDate === 'string' && /^\d{8}$/.test(row.latestDate)
-        ? row.latestDate
-        : null;
+      typeof row.latestDate === 'string' && /^\d{8}$/.test(row.latestDate) ? row.latestDate : null;
     const totalDates = Number(row.totalDates ?? 0);
     const rawStaleDays = row.staleDays == null ? Number.NaN : Number(row.staleDays);
     const staleDays = Number.isFinite(rawStaleDays) && rawStaleDays >= 0 ? rawStaleDays : null;
@@ -1036,12 +1051,12 @@ export function adminJobDetail(dto: { tradeDate: string }) {
   return apiClient.post<AdminJobDetailResponse>('/api/factor/admin/jobs/detail', dto);
 }
 
-/** BE-7：审计日志 */
+/** 因子管理审计日志 */
 export function adminAuditLog(dto: AdminAuditRequest) {
   return apiClient.post<AdminAuditResponse>('/api/factor/admin/audit', dto);
 }
 
-/** BE-8：调度配置（只读） */
+/** 因子预计算调度配置（只读） */
 export function adminScheduleInfo() {
   return apiClient.post<AdminScheduleResponse>('/api/factor/admin/schedule', {});
 }

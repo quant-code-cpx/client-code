@@ -61,8 +61,6 @@ export function StrategyCard({
         flexDirection: 'column',
         height: '100%',
         position: 'relative',
-        borderLeft: (theme) =>
-          `2px solid ${theme.palette[typeColor as keyof typeof theme.palette] ? (theme.palette[typeColor as keyof typeof theme.palette] as { main: string }).main : theme.palette.primary.main}`,
         transition: 'box-shadow 0.15s ease, border-color 0.15s ease',
         '&:hover': {
           boxShadow: (theme) => theme.customShadows?.z8 ?? theme.shadows[4],
@@ -75,7 +73,7 @@ export function StrategyCard({
           <Label color={typeColor} variant="soft">
             {typeLabel}
           </Label>
-          <Typography variant="caption" color="text.disabled">
+          <Typography variant="caption" color="text.secondary">
             v{strategy.version}
           </Typography>
           <Box sx={{ flexGrow: 1 }} />
@@ -148,7 +146,7 @@ export function StrategyCard({
         )}
 
         {/* Updated time */}
-        <Typography variant="caption" color="text.disabled">
+        <Typography variant="caption" color="text.secondary">
           更新于 {fToNow(strategy.updatedAt)}
         </Typography>
 
@@ -163,23 +161,23 @@ export function StrategyCard({
             gap: 1,
           }}
         >
-          <Typography variant="caption" sx={{ color: 'text.disabled', flexShrink: 0 }}>
+          <Typography variant="caption" sx={{ color: 'text.secondary', flexShrink: 0 }}>
             近一次:
           </Typography>
           {perf ? (
             <>
               <QuoteText value={perf.totalReturn} variant="caption" />
               {perf.sharpeRatio != null && (
-                <Typography variant="caption" sx={{ color: 'text.disabled' }}>
+                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                   夏普 {perf.sharpeRatio.toFixed(2)}
                 </Typography>
               )}
-              <Typography variant="caption" sx={{ color: 'text.disabled', ml: 'auto' }}>
+              <Typography variant="caption" sx={{ color: 'text.secondary', ml: 'auto' }}>
                 {fToNow(perf.runAt)}
               </Typography>
             </>
           ) : (
-            <Typography variant="caption" sx={{ color: 'text.disabled' }}>
+            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
               暂无回测
             </Typography>
           )}

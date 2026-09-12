@@ -65,15 +65,19 @@ export function ResultCard({
 
         {pendingNotice && (
           <Box
-            sx={{
+            sx={(theme) => ({
               mb: 2,
               px: 1.5,
               py: 1,
               borderRadius: 1,
-              bgcolor: (t) => varAlpha(t.vars.palette.warning.mainChannel, 0.08),
-              color: 'warning.darker',
+              bgcolor: varAlpha(theme.vars.palette.warning.mainChannel, 0.08),
+              color: theme.vars.palette.warning.darker,
               fontSize: 12,
-            }}
+              ...theme.applyStyles('dark', {
+                bgcolor: varAlpha(theme.vars.palette.warning.mainChannel, 0.16),
+                color: theme.vars.palette.warning.light,
+              }),
+            })}
           >
             {pendingNotice}
           </Box>

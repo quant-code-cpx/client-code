@@ -223,7 +223,7 @@ export function StrategyCreateDialog({
                       selected
                         ? `2px solid ${theme.palette.primary.main}`
                         : '2px solid transparent',
-                    boxShadow: selected ? 4 : 1,
+                    boxShadow: 1,
                     transition: 'all 0.15s',
                   }}
                 >

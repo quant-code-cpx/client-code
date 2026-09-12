@@ -98,17 +98,12 @@ function MiniSparkline({ points, color }: { points?: PortfolioSparklinePoint[]; 
 
 export function PortfolioCard({ portfolio, onEdit, onDelete }: PortfolioCardProps) {
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
-  const kind = portfolio.kind ?? 'PAPER';
   const isArchived = Boolean(portfolio.isArchived);
   const todayPnl = portfolio.todayPnl ?? null;
   const todayPnlPct = portfolio.todayPnlPct ?? null;
   const pnlFallback = portfolio.isTradingDay === false ? '非交易日' : '--';
   const valueTone = getPortfolioValueTone(todayPnl);
-  const accentColor = isArchived
-    ? 'text.disabled'
-    : kind === 'LIVE'
-      ? 'primary.main'
-      : 'secondary.main';
+  const accentColor = isArchived ? 'text.disabled' : 'info.main';
   const updatedAt = portfolio.lastUpdated ?? portfolio.updatedAt ?? portfolio.createdAt;
   const totalMarketValue = portfolio.totalMarketValue ?? portfolio.initialCash;
   const cumulativeReturn = portfolio.cumulativeReturn ?? null;
@@ -132,8 +127,6 @@ export function PortfolioCard({ portfolio, onEdit, onDelete }: PortfolioCardProp
         flexDirection: 'column',
         borderLeftColor: accentColor,
         opacity: isArchived ? 0.68 : 1,
-        transition: (theme) => theme.transitions.create(['box-shadow', 'transform']),
-        '&:hover, &:focus-within': { boxShadow: 8, transform: 'translateY(-2px)' },
         '& .portfolio-card-main-link:focus-visible': (theme) => ({
           outline: `2px solid ${theme.palette.primary.main}`,
           outlineOffset: -2,
@@ -164,8 +157,8 @@ export function PortfolioCard({ portfolio, onEdit, onDelete }: PortfolioCardProp
                   >
                     {portfolio.name}
                   </Typography>
-                  <Label color={kind === 'LIVE' ? 'primary' : 'secondary'} variant="soft">
-                    {kind === 'LIVE' ? '实盘' : '模拟'}
+                  <Label color="info" variant="soft">
+                    研究
                   </Label>
                 </Stack>
                 <Typography variant="caption" sx={{ color: 'text.secondary' }}>
@@ -243,11 +236,7 @@ export function PortfolioCard({ portfolio, onEdit, onDelete }: PortfolioCardProp
 
         <Box sx={{ pt: 1, pr: 1 }}>
           <Tooltip title="更多操作">
-            <IconButton
-              size="small"
-              aria-label="更多操作"
-              onClick={handleMenuOpen}
-            >
+            <IconButton size="small" aria-label="更多操作" onClick={handleMenuOpen}>
               <Iconify icon="solar:menu-dots-bold" width={20} />
             </IconButton>
           </Tooltip>

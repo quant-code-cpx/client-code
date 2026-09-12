@@ -170,6 +170,7 @@ export function AlertLimitListTableV2({ items, onSelect, onCreateAlert }: Props)
                         bgcolor: varAlpha(theme.vars.palette.primary.mainChannel, 0.04),
                       },
                       '&:hover .row-actions': { opacity: 1 },
+                      '&:focus-within .row-actions': { opacity: 1 },
                       '&:focus-visible': {
                         outline: '2px solid',
                         outlineColor: 'primary.main',

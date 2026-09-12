@@ -109,7 +109,7 @@ export function MarketQuickLinks() {
                   bgcolor: varAlpha(channelVar, 0.1),
                   borderColor: varAlpha(channelVar, 0.3),
                   transform: 'translateY(-2px)',
-                  boxShadow: `0 4px 16px ${varAlpha(channelVar, 0.2)}`,
+                  boxShadow: theme.vars.customShadows.z4,
                 },
               }}
             >

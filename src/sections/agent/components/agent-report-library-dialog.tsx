@@ -131,7 +131,16 @@ export function AgentReportLibraryDialog({ open, onClose }: AgentReportLibraryDi
         }}
       >
         <DialogTitle component="div" id="agent-report-library-title">
-          <Typography variant="caption" sx={{ color: 'primary.light', letterSpacing: 1 }}>
+          <Typography
+            variant="caption"
+            sx={(theme) => ({
+              color: 'primary.dark',
+              letterSpacing: 1,
+              ...theme.applyStyles('dark', {
+                color: 'primary.light',
+              }),
+            })}
+          >
             RESEARCH REPORTS
           </Typography>
           <Typography variant="h6">研究报告</Typography>

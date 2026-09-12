@@ -112,8 +112,12 @@ export function AnomalySummaryRow({
               border: `1px solid ${varAlpha(theme.vars.palette[c.color].mainChannel, 0.16)}`,
               bgcolor: varAlpha(theme.vars.palette[c.color].mainChannel, 0.04),
               opacity: c.disabled ? 0.7 : 1,
-              transition: 'transform 200ms ease',
-              '&:hover': c.disabled ? undefined : { transform: 'translateY(-1px)' },
+              ...(c.onClick && !c.disabled
+                ? {
+                    transition: 'transform 200ms ease',
+                    '&:hover': { transform: 'translateY(-1px)' },
+                  }
+                : {}),
             }}
           >
             <CardActionArea disabled={c.disabled || !c.onClick} onClick={c.onClick} sx={{ p: 2 }}>
@@ -139,11 +143,14 @@ export function AnomalySummaryRow({
                   </Typography>
                   <Typography
                     variant="h4"
-                    sx={{
+                    sx={(currentTheme) => ({
                       mt: 0.5,
-                      color: `${c.color}.main`,
+                      color: currentTheme.vars.palette[c.color].dark,
                       fontVariantNumeric: 'tabular-nums',
-                    }}
+                      ...currentTheme.applyStyles('dark', {
+                        color: currentTheme.vars.palette[c.color].light,
+                      }),
+                    })}
                   >
                     {c.value}
                   </Typography>

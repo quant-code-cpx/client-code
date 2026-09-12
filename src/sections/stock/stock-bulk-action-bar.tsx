@@ -37,7 +37,13 @@ export function StockBulkActionBar({
         borderTop: `1px dashed ${theme.vars.palette.divider}`,
       }}
     >
-      <Typography variant="subtitle2" sx={{ color: 'primary.main' }}>
+      <Typography
+        variant="subtitle2"
+        sx={(currentTheme) => ({
+          color: 'primary.dark',
+          ...currentTheme.applyStyles('dark', { color: 'primary.light' }),
+        })}
+      >
         已选 {selectedCount} 只
       </Typography>
 

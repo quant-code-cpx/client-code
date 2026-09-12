@@ -20,6 +20,7 @@ import { getAShareReturnTextColor } from 'src/utils/market-color';
 
 import { alertApi } from 'src/api/alert';
 
+import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
 
 import { getEventImpactLevel } from './types';
@@ -139,13 +140,17 @@ export function EventDetailDrawer({ open, event, onClose, onSubscribe }: Props) 
               </Link>
             </Stack>
             <Stack direction="row" spacing={0.75} flexWrap="wrap">
-              <Chip size="small" variant="outlined" color={cfg.color} label={cfg.label} />
-              <Chip size="small" color={IMPACT_COLOR[impact]} label={IMPACT_LABEL[impact]} />
+              <Label variant="outlined" color={cfg.color}>
+                {cfg.label}
+              </Label>
+              <Label color={IMPACT_COLOR[impact]}>{IMPACT_LABEL[impact]}</Label>
               {event.impactScore != null && (
                 <Chip size="small" variant="outlined" label={`影响力 ${event.impactScore}`} />
               )}
               {event.status === 'POSTPONED' && (
-                <Chip size="small" color="warning" variant="outlined" label="已延期" />
+                <Label color="warning" variant="outlined">
+                  已延期
+                </Label>
               )}
             </Stack>
           </Stack>
@@ -291,10 +296,7 @@ export function EventDetailDrawer({ open, event, onClose, onSubscribe }: Props) 
                       <Typography
                         variant="subtitle2"
                         sx={{
-                          color:
-                            value == null
-                              ? 'text.disabled'
-                              : getAShareReturnTextColor(value),
+                          color: value == null ? 'text.disabled' : getAShareReturnTextColor(value),
                         }}
                       >
                         {formatCalendarReturn(value)}

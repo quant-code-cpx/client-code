@@ -66,7 +66,11 @@ export function PortfolioHoldingTable({ holdings, onEdit, onDelete }: PortfolioH
               <TableRow
                 key={holding.tsCode}
                 hover
-                sx={{ '&:hover .holding-row-actions': { opacity: 1 } }}
+                sx={{
+                  '&:hover .holding-row-actions, &:focus-within .holding-row-actions': {
+                    opacity: 1,
+                  },
+                }}
               >
                 <TableCell>
                   <Typography variant="body2" sx={{ fontFamily: 'monospace' }}>
@@ -95,7 +99,11 @@ export function PortfolioHoldingTable({ holdings, onEdit, onDelete }: PortfolioH
                     sx={{ opacity: { xs: 1, md: 0 }, transition: 'opacity 150ms' }}
                   >
                     <Tooltip title="复制代码">
-                      <IconButton size="small" aria-label="复制代码" onClick={() => handleCopyCode(holding.tsCode)}>
+                      <IconButton
+                        size="small"
+                        aria-label="复制代码"
+                        onClick={() => handleCopyCode(holding.tsCode)}
+                      >
                         <Iconify icon="solar:copy-bold" width={16} />
                       </IconButton>
                     </Tooltip>

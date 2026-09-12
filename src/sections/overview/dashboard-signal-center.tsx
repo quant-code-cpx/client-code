@@ -79,7 +79,6 @@ export function DashboardSignalCenter({ refreshKey }: DashboardSignalCenterProps
     <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
       <CardHeader
         title="信号中心"
-        slotProps={{ title: { variant: 'subtitle1', fontWeight: 700 } }}
         avatar={<Iconify icon="solar:graph-up-bold" width={22} sx={{ color: 'secondary.main' }} />}
         sx={{ pb: 1 }}
       />

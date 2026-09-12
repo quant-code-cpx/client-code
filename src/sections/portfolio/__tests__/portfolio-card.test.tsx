@@ -18,6 +18,9 @@ const portfolio: PortfolioListItem = {
   holdingCount: 3,
   createdAt: '2026-08-01T00:00:00.000Z',
   updatedAt: '2026-08-08T00:00:00.000Z',
+  kind: 'PAPER',
+  executionMode: 'RESEARCH_ONLY',
+  liveTradingSupported: false,
 };
 
 function LocationProbe() {

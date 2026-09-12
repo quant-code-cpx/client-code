@@ -84,10 +84,10 @@ const MuiToggleButtonGroup: Components<Theme>['MuiToggleButtonGroup'] = {
 
 const MuiCard: Components<Theme>['MuiCard'] = {
   styleOverrides: {
-    root: ({ theme }) => ({
+    root: ({ theme, ownerState }) => ({
       zIndex: 0,
       position: 'relative',
-      boxShadow: theme.vars.customShadows.card,
+      boxShadow: ownerState.variant === 'outlined' ? 'none' : theme.vars.customShadows.card,
       borderRadius: Number(theme.shape.borderRadius) * 2,
     }),
   },
@@ -103,6 +103,15 @@ const MuiCardHeader: Components<Theme>['MuiCardHeader'] = {
   styleOverrides: {
     root: ({ theme }) => ({
       padding: theme.spacing(3, 3, 0),
+    }),
+  },
+};
+
+const MuiDialog: Components<Theme>['MuiDialog'] = {
+  styleOverrides: {
+    paper: ({ theme, ownerState }) => ({
+      boxShadow: theme.vars.customShadows.dialog,
+      borderRadius: ownerState.fullScreen ? 0 : Number(theme.shape.borderRadius) * 2,
     }),
   },
 };
@@ -125,6 +134,14 @@ const MuiPaper: Components<Theme>['MuiPaper'] = {
   },
 };
 
+const MuiPopover: Components<Theme>['MuiPopover'] = {
+  styleOverrides: {
+    paper: ({ theme }) => ({
+      boxShadow: theme.vars.customShadows.dropdown,
+    }),
+  },
+};
+
 const MuiTableCell: Components<Theme>['MuiTableCell'] = {
   styleOverrides: {
     head: ({ theme }) => ({
@@ -132,6 +149,14 @@ const MuiTableCell: Components<Theme>['MuiTableCell'] = {
       color: theme.vars.palette.text.secondary,
       fontWeight: theme.typography.fontWeightSemiBold,
       backgroundColor: theme.vars.palette.background.neutral,
+    }),
+  },
+};
+
+const MuiMenu: Components<Theme>['MuiMenu'] = {
+  styleOverrides: {
+    paper: ({ theme }) => ({
+      boxShadow: theme.vars.customShadows.dropdown,
     }),
   },
 };
@@ -224,13 +249,16 @@ const MuiRadio: Components<Theme>['MuiRadio'] = {
 
 export const components = {
   MuiCard,
+  MuiDialog,
   MuiLink,
   MuiPaper,
+  MuiPopover,
   MuiRadio,
   MuiButton,
   MuiButtonBase,
   MuiBackdrop,
   MuiIconButton,
+  MuiMenu,
   MuiMenuItem,
   MuiCheckbox,
   MuiToggleButton,

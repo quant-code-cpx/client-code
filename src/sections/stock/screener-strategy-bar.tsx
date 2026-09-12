@@ -143,7 +143,10 @@ export function ScreenerStrategyBar({
             if (menuStrategy) onDelete(menuStrategy);
             handleMenuClose();
           }}
-          sx={{ color: 'error.main' }}
+          sx={(theme) => ({
+            color: 'error.darker',
+            ...theme.applyStyles('dark', { color: 'error.light' }),
+          })}
         >
           <Iconify icon="solar:trash-bin-trash-bold" width={16} sx={{ mr: 1 }} />
           删除

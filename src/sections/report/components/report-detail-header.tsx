@@ -93,6 +93,7 @@ export function ReportDetailHeader({ report, actions }: Props) {
                   borderRadius: 0.75,
                   bgcolor: varAlpha(theme.vars.palette.info.mainChannel, 0.12),
                   color: 'info.dark',
+                  ...theme.applyStyles('dark', { color: 'info.light' }),
                   alignSelf: 'center',
                 }}
               >

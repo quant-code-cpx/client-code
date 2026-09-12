@@ -42,7 +42,7 @@ import { PortfolioDeleteDialog } from '../portfolio-delete-dialog';
 
 // ----------------------------------------------------------------------
 
-type PortfolioFilter = 'ALL' | 'LIVE' | 'PAPER' | 'ARCHIVED';
+type PortfolioFilter = 'ACTIVE' | 'ARCHIVED';
 
 type PortfolioSort = 'updatedAt' | 'todayPnl' | 'totalMarketValue' | 'cumulativeReturn';
 
@@ -86,7 +86,7 @@ export function PortfolioListView() {
   const [portfolios, setPortfolios] = useState<PortfolioListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [filter, setFilter] = useState<PortfolioFilter>('ALL');
+  const [filter, setFilter] = useState<PortfolioFilter>('ACTIVE');
   const [keyword, setKeyword] = useState('');
   const [sortBy, setSortBy] = useState<PortfolioSort>('updatedAt');
 
@@ -118,10 +118,7 @@ export function PortfolioListView() {
 
   const counts = useMemo(
     () => ({
-      all: portfolios.filter((item) => !item.isArchived).length,
-      live: portfolios.filter((item) => !item.isArchived && item.kind === 'LIVE').length,
-      paper: portfolios.filter((item) => !item.isArchived && (item.kind ?? 'PAPER') === 'PAPER')
-        .length,
+      active: portfolios.filter((item) => !item.isArchived).length,
       archived: portfolios.filter((item) => item.isArchived).length,
     }),
     [portfolios]
@@ -132,13 +129,8 @@ export function PortfolioListView() {
 
     return [...portfolios]
       .filter((portfolio) => {
-        const kind = portfolio.kind ?? 'PAPER';
         const matchesFilter =
-          filter === 'ALL'
-            ? !portfolio.isArchived
-            : filter === 'ARCHIVED'
-              ? Boolean(portfolio.isArchived)
-              : !portfolio.isArchived && kind === filter;
+          filter === 'ARCHIVED' ? Boolean(portfolio.isArchived) : !portfolio.isArchived;
         const matchesKeyword =
           !normalizedKeyword ||
           portfolio.name.toLowerCase().includes(normalizedKeyword) ||
@@ -227,9 +219,7 @@ export function PortfolioListView() {
               value={filter}
               onChange={(_, value: PortfolioFilter | null) => value && setFilter(value)}
             >
-              <ToggleButton value="ALL">全部 {counts.all}</ToggleButton>
-              <ToggleButton value="LIVE">实盘 {counts.live}</ToggleButton>
-              <ToggleButton value="PAPER">模拟 {counts.paper}</ToggleButton>
+              <ToggleButton value="ACTIVE">研究组合 {counts.active}</ToggleButton>
               <ToggleButton value="ARCHIVED">归档 {counts.archived}</ToggleButton>
             </ToggleButtonGroup>
 
@@ -295,7 +285,7 @@ export function PortfolioListView() {
                 <EmptyGuideCard
                   icon="solar:add-circle-bold"
                   title="新建空白组合"
-                  description="适合手工录入持仓，作为实盘或模拟盘的基础账户。"
+                  description="适合记录研究组合的成交、现金流与公司行动。"
                 />
               </Grid>
               <Grid size={{ xs: 12, md: 4 }}>

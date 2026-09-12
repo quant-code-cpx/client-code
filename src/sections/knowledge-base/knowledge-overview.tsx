@@ -44,7 +44,13 @@ export function KnowledgeOverview() {
                 <Stack direction="row" spacing={2} alignItems="flex-start">
                   <Iconify icon={major.icon} width={32} sx={{ mt: 0.25, color: 'primary.main' }} />
                   <Stack spacing={1} sx={{ minWidth: 0, flex: '1 1 auto' }}>
-                    <Typography variant="overline" sx={{ color: 'primary.main' }}>
+                    <Typography
+                      variant="overline"
+                      sx={(theme) => ({
+                        color: 'primary.dark',
+                        ...theme.applyStyles('dark', { color: 'primary.light' }),
+                      })}
+                    >
                       大专题 {major.code}
                     </Typography>
                     <Typography component="h3" variant="h5">

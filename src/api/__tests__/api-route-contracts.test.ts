@@ -31,6 +31,10 @@ import {
   getRiskPosition,
   getRiskMarketCap,
   getPortfolioDetail,
+  recordPortfolioTrade,
+  listPortfolioCashEvents,
+  recordPortfolioCashEvent,
+  applyPortfolioShareAction,
 } from '../portfolio';
 
 vi.mock('../client', () => ({ apiClient: { post: vi.fn() } }));
@@ -230,6 +234,106 @@ describe('portfolio query POST contracts', () => {
       expectedArgs: [
         '/api/portfolio/pnl/history',
         { portfolioId, startDate: '20260801', endDate: '20260810' },
+      ],
+    },
+    {
+      name: 'records a portfolio trade with accounting fields in the body',
+      invoke: () =>
+        recordPortfolioTrade({
+          portfolioId,
+          tsCode: '600519.SH',
+          side: 'BUY',
+          quantity: 100,
+          price: 1688.88,
+          commission: 5,
+          tax: 0,
+          effectiveDate: '20260810',
+          idempotencyKey: 'portfolio-accounting:trade:contract-test',
+        }),
+      expectedArgs: [
+        '/api/portfolio/trade/record',
+        {
+          portfolioId,
+          tsCode: '600519.SH',
+          side: 'BUY',
+          quantity: 100,
+          price: 1688.88,
+          commission: 5,
+          tax: 0,
+          effectiveDate: '20260810',
+          idempotencyKey: 'portfolio-accounting:trade:contract-test',
+        },
+      ],
+    },
+    {
+      name: 'records a portfolio cash event with the idempotency key in the body',
+      invoke: () =>
+        recordPortfolioCashEvent({
+          portfolioId,
+          eventType: 'DIVIDEND',
+          amount: 880.5,
+          tsCode: '600519.SH',
+          effectiveDate: '20260810',
+          idempotencyKey: 'portfolio-accounting:cash:contract-test',
+          memo: '分红入账',
+        }),
+      expectedArgs: [
+        '/api/portfolio/cash/record',
+        {
+          portfolioId,
+          eventType: 'DIVIDEND',
+          amount: 880.5,
+          tsCode: '600519.SH',
+          effectiveDate: '20260810',
+          idempotencyKey: 'portfolio-accounting:cash:contract-test',
+          memo: '分红入账',
+        },
+      ],
+    },
+    {
+      name: 'lists portfolio cash events with filters and pagination in the body',
+      invoke: () =>
+        listPortfolioCashEvents({
+          portfolioId,
+          startDate: '20260801',
+          endDate: '20260810',
+          page: 2,
+          pageSize: 50,
+        }),
+      expectedArgs: [
+        '/api/portfolio/cash/list',
+        {
+          portfolioId,
+          startDate: '20260801',
+          endDate: '20260810',
+          page: 2,
+          pageSize: 50,
+        },
+      ],
+    },
+    {
+      name: 'applies a portfolio share action with dates in the body',
+      invoke: () =>
+        applyPortfolioShareAction({
+          portfolioId,
+          tsCode: '600519.SH',
+          actionType: 'STOCK_DIVIDEND',
+          newQuantity: 110,
+          effectiveDate: '20260810',
+          recordDate: '20260807',
+          idempotencyKey: 'portfolio-accounting:corporate-action:contract-test',
+        }),
+      expectedArgs: [
+        '/api/portfolio/corporate-action/apply',
+        {
+          portfolioId,
+          tsCode: '600519.SH',
+          actionType: 'STOCK_DIVIDEND',
+          newQuantity: 110,
+          effectiveDate: '20260810',
+          recordDate: '20260807',
+          idempotencyKey: 'portfolio-accounting:corporate-action:contract-test',
+        },
       ],
     },
     {

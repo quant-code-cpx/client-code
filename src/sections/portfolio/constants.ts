@@ -34,6 +34,7 @@ export const DETAIL_TABS = [
   { value: 'risk', label: '风险分析', icon: 'solar:shield-warning-bold' },
   { value: 'rules', label: '风控规则', icon: 'solar:lock-bold' },
   { value: 'performance', label: '业绩归因', icon: 'solar:chart-2-bold' },
+  { value: 'cash-ledger', label: '现金账本', icon: 'solar:bill-list-bold' },
   { value: 'trade-log', label: '交易日志', icon: 'solar:clipboard-list-bold' },
   { value: 'drift', label: '漂移检测', icon: 'solar:radar-bold' },
 ];

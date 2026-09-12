@@ -16,7 +16,6 @@ import Card from '@mui/material/Card';
 import Tabs from '@mui/material/Tabs';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
-import Divider from '@mui/material/Divider';
 import Skeleton from '@mui/material/Skeleton';
 import Snackbar from '@mui/material/Snackbar';
 import Typography from '@mui/material/Typography';
@@ -366,8 +365,6 @@ export function BacktestRunDetailView() {
                 <Tab key={t.value} value={t.value} label={t.label} />
               ))}
             </Tabs>
-
-            <Divider />
 
             {/* Trades */}
             {tab === 'trades' && (

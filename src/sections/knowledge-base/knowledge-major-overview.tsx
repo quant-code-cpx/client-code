@@ -33,7 +33,13 @@ export function KnowledgeMajorOverview({ major }: Props) {
           <Typography color="text.primary">{major.title}</Typography>
         </Breadcrumbs>
 
-        <Typography variant="overline" sx={{ color: 'primary.main' }}>
+        <Typography
+          variant="overline"
+          sx={(theme) => ({
+            color: 'primary.dark',
+            ...theme.applyStyles('dark', { color: 'primary.light' }),
+          })}
+        >
           大专题 {major.code}
         </Typography>
         <Typography component="h1" variant="h3" sx={{ mt: 0.5 }}>
@@ -64,7 +70,13 @@ export function KnowledgeMajorOverview({ major }: Props) {
               <CardContent>
                 <Stack direction="row" spacing={2} alignItems="flex-start">
                   <Stack spacing={1} sx={{ minWidth: 0, flex: '1 1 auto' }}>
-                    <Typography variant="overline" sx={{ color: 'primary.main' }}>
+                    <Typography
+                      variant="overline"
+                      sx={(theme) => ({
+                        color: 'primary.dark',
+                        ...theme.applyStyles('dark', { color: 'primary.light' }),
+                      })}
+                    >
                       小专题 {topic.code}
                     </Typography>
                     <Typography component="h3" variant="h5">

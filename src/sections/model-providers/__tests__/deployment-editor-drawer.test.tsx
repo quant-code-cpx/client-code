@@ -1,5 +1,6 @@
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 
+import { renderWithProviders } from 'src/test/test-utils';
 import * as ModelProviderApi from 'src/api/model-provider';
 
 import { PROBE_STEP_LABELS } from '../model-provider.constants';
@@ -359,7 +360,7 @@ function renderDrawer({
   deployment?: ModelProviderApi.ModelDeployment;
   connections?: ModelProviderApi.ModelConnection[];
 }) {
-  return render(
+  return renderWithProviders(
     <DeploymentEditorDrawer
       open
       deployment={deployment}

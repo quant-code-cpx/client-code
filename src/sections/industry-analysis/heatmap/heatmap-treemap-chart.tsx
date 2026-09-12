@@ -3,7 +3,6 @@ import type { HeatmapItem, HeatmapDistribution } from 'src/api/heatmap';
 import { useRef, useMemo, useState, useEffect } from 'react';
 
 import Card from '@mui/material/Card';
-import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
 import Skeleton from '@mui/material/Skeleton';
 import { useTheme } from '@mui/material/styles';
@@ -12,6 +11,7 @@ import CardContent from '@mui/material/CardContent';
 import ToggleButton from '@mui/material/ToggleButton';
 import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 
+import { Label } from 'src/components/label';
 import { Chart, useChart } from 'src/components/chart';
 
 import { getHeatmapColor } from './utils';
@@ -189,33 +189,60 @@ export function HeatmapTreemapChart({
 
           {distribution && (
             <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-              <Chip
-                size="small"
-                label={`涨停 ${distribution.limitUp}`}
-                sx={{ bgcolor: 'error.dark', color: 'common.white', fontWeight: 700, fontSize: 12 }}
-              />
-              <Chip
-                size="small"
-                label={`上涨 ${distribution.upCount}`}
-                sx={{ bgcolor: 'error.main', color: 'common.white', fontWeight: 700, fontSize: 12 }}
-              />
-              <Chip
-                size="small"
-                label={`平盘 ${distribution.flatCount}`}
-                sx={{ bgcolor: 'grey.600', color: 'common.white', fontWeight: 700, fontSize: 12 }}
-              />
-              <Chip
-                size="small"
-                label={`下跌 ${distribution.downCount}`}
-                sx={{ bgcolor: 'success.main', color: 'common.white', fontWeight: 700, fontSize: 12 }}
-              />
-              <Chip
-                size="small"
-                label={`跌停 ${distribution.limitDown}`}
-                sx={{ bgcolor: 'success.dark', color: 'common.white', fontWeight: 700, fontSize: 12 }}
-              />
+              <Label
+                sx={{
+                  bgcolor: 'error.darker',
+                  color: 'common.white',
+                  fontWeight: 700,
+                  fontSize: 12,
+                }}
+              >
+                涨停 {distribution.limitUp}
+              </Label>
+              <Label
+                sx={{
+                  bgcolor: 'error.darker',
+                  color: 'common.white',
+                  fontWeight: 700,
+                  fontSize: 12,
+                }}
+              >
+                上涨 {distribution.upCount}
+              </Label>
+              <Label
+                sx={{
+                  bgcolor: 'grey.600',
+                  color: 'common.white',
+                  fontWeight: 700,
+                  fontSize: 12,
+                }}
+              >
+                平盘 {distribution.flatCount}
+              </Label>
+              <Label
+                sx={{
+                  bgcolor: 'success.darker',
+                  color: 'common.white',
+                  fontWeight: 700,
+                  fontSize: 12,
+                }}
+              >
+                下跌 {distribution.downCount}
+              </Label>
+              <Label
+                sx={{
+                  bgcolor: 'success.darker',
+                  color: 'common.white',
+                  fontWeight: 700,
+                  fontSize: 12,
+                }}
+              >
+                跌停 {distribution.limitDown}
+              </Label>
               {distribution.missingCount > 0 && (
-                <Chip size="small" label={`缺失 ${distribution.missingCount}`} variant="outlined" />
+                <Label variant="outlined" color="default">
+                  缺失 {distribution.missingCount}
+                </Label>
               )}
             </Stack>
           )}

@@ -211,7 +211,6 @@ export function DashboardMarketTemperature({
     <Card sx={{ height: '100%' }}>
       <CardHeader
         title="市场温度"
-        slotProps={{ title: { variant: 'subtitle1', fontWeight: 700 } }}
         avatar={<Iconify icon="solar:fire-bold" width={22} sx={{ color: 'warning.main' }} />}
         sx={{ pb: 1 }}
       />

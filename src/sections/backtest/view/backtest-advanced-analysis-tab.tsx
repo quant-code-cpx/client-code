@@ -3,7 +3,6 @@ import { useState } from 'react';
 import Box from '@mui/material/Box';
 import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
-import Divider from '@mui/material/Divider';
 
 import { BacktestMonteCarloPanel } from '../backtest-monte-carlo-panel';
 import { BacktestAttributionPanel } from '../backtest-attribution-panel';
@@ -39,8 +38,6 @@ export function BacktestAdvancedAnalysisTab({ runId }: BacktestAdvancedAnalysisT
           <Tab key={t.value} value={t.value} label={t.label} />
         ))}
       </Tabs>
-
-      <Divider />
 
       {activeTab === 'monte-carlo' && <BacktestMonteCarloPanel runId={runId} />}
       {activeTab === 'attribution' && <BacktestAttributionPanel runId={runId} />}

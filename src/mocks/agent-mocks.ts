@@ -349,6 +349,7 @@ export const agentHandlers = [
       conversationId: 'cm_mock_1',
       status: 'COMPLETED',
       statusVersion: 3,
+      wakeVersion: 0,
       currentStep: null,
       finalMessageId: 'msg_assistant_mock_1',
       latestEventSequence: agentMockEvents.at(-1)?.sequence ?? 0,

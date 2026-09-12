@@ -210,7 +210,13 @@ export function FactorAdminBackfillForm({
             {isLong ? (
               <>
                 （
-                <Typography component="span" color="warning.main">
+                <Typography
+                  component="span"
+                  sx={(theme) => ({
+                    color: 'warning.dark',
+                    ...theme.applyStyles('dark', { color: 'warning.light' }),
+                  })}
+                >
                   共 {Math.round(dateSpan)} 天
                 </Typography>
                 ）

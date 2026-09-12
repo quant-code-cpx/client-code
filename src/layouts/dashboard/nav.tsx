@@ -166,7 +166,8 @@ function NavItemWithChildren({ item, pathname }: NavItemWithChildrenProps) {
               minHeight: 44,
               ...(isChildActive && {
                 fontWeight: 'fontWeightSemiBold',
-                color: theme.vars.palette.primary.main,
+                color: theme.vars.palette.primary.dark,
+                ...theme.applyStyles('dark', { color: theme.vars.palette.primary.light }),
                 bgcolor: varAlpha(theme.vars.palette.primary.mainChannel, 0.08),
                 '&:hover': {
                   bgcolor: varAlpha(theme.vars.palette.primary.mainChannel, 0.16),
@@ -215,7 +216,8 @@ function NavItemWithChildren({ item, pathname }: NavItemWithChildrenProps) {
                       minHeight: 36,
                       ...(isActived && {
                         fontWeight: 'fontWeightSemiBold',
-                        color: theme.vars.palette.primary.main,
+                        color: theme.vars.palette.primary.dark,
+                        ...theme.applyStyles('dark', { color: theme.vars.palette.primary.light }),
                         bgcolor: varAlpha(theme.vars.palette.primary.mainChannel, 0.08),
                         '&:hover': {
                           bgcolor: varAlpha(theme.vars.palette.primary.mainChannel, 0.16),
@@ -305,7 +307,8 @@ export function NavContent({ data, slots, sx }: NavContentProps) {
                         minHeight: 44,
                         ...(isActived && {
                           fontWeight: 'fontWeightSemiBold',
-                          color: theme.vars.palette.primary.main,
+                          color: theme.vars.palette.primary.dark,
+                          ...theme.applyStyles('dark', { color: theme.vars.palette.primary.light }),
                           bgcolor: varAlpha(theme.vars.palette.primary.mainChannel, 0.08),
                           '&:hover': {
                             bgcolor: varAlpha(theme.vars.palette.primary.mainChannel, 0.16),

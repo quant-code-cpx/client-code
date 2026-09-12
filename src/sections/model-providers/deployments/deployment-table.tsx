@@ -17,6 +17,7 @@ import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import TableContainer from '@mui/material/TableContainer';
 
+import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
 
 import { ADAPTER_LABELS, REASONING_MODE_LABELS } from '../model-provider.constants';
@@ -73,11 +74,18 @@ export function DeploymentTable({
         <Table sx={{ minWidth: 1120 }}>
           <TableHead>
             <TableRow>
-              {['模型', '连接与协议', '推理策略', '能力证据', '优先级', '模型测试', '启用', '操作'].map(
-                (label) => (
-                  <TableCell key={label}>{label}</TableCell>
-                )
-              )}
+              {[
+                '模型',
+                '连接与协议',
+                '推理策略',
+                '能力证据',
+                '优先级',
+                '模型测试',
+                '启用',
+                '操作',
+              ].map((label) => (
+                <TableCell key={label}>{label}</TableCell>
+              ))}
             </TableRow>
           </TableHead>
           <TableBody>
@@ -164,8 +172,7 @@ export function DeploymentTable({
                       />
                     </TableCell>
                     <TableCell>
-                      <Chip
-                        size="small"
+                      <Label
                         variant="outlined"
                         color={
                           item.lastProbe?.status === 'PASSED'
@@ -174,14 +181,13 @@ export function DeploymentTable({
                               ? 'error'
                               : 'default'
                         }
-                        label={
-                          item.lastProbe?.status === 'PASSED'
-                            ? '测试通过'
-                            : item.lastProbe?.status === 'FAILED'
-                              ? '测试失败'
-                              : '未测试'
-                        }
-                      />
+                      >
+                        {item.lastProbe?.status === 'PASSED'
+                          ? '测试通过'
+                          : item.lastProbe?.status === 'FAILED'
+                            ? '测试失败'
+                            : '未测试'}
+                      </Label>
                     </TableCell>
                     <TableCell>
                       <Switch

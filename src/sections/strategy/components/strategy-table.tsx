@@ -262,7 +262,7 @@ function StrategyTableRow({ strategy, onView, onClone, onDelete }: StrategyTable
         <QuoteText value={perf?.maxDrawdown} variant="body2" />
       </TableCell>
       <TableCell align="right">
-        <Typography variant="caption" sx={{ color: 'text.disabled' }}>
+        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
           {fToNow(strategy.updatedAt)}
         </Typography>
       </TableCell>

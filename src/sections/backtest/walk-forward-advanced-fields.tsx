@@ -28,6 +28,7 @@ export function WalkForwardAdvancedFields({
       <Grid size={{ xs: 12, md: 4 }}>
         <TextField
           fullWidth
+          size="small"
           type="number"
           label="净化天数"
           value={purgeDays}
@@ -38,6 +39,7 @@ export function WalkForwardAdvancedFields({
       <Grid size={{ xs: 12, md: 4 }}>
         <TextField
           fullWidth
+          size="small"
           type="number"
           label="禁用天数"
           value={embargoDays}
@@ -48,6 +50,7 @@ export function WalkForwardAdvancedFields({
       <Grid size={{ xs: 12, md: 4 }}>
         <TextField
           fullWidth
+          size="small"
           type="number"
           label="最少 OOS 成交数"
           value={minOosTrades}

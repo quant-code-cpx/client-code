@@ -19,6 +19,7 @@ import Typography from '@mui/material/Typography';
 import TableSortLabel from '@mui/material/TableSortLabel';
 import TableContainer from '@mui/material/TableContainer';
 
+import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
 
 import { getEventImpactLevel } from './types';
@@ -270,7 +271,9 @@ export function CalendarTableView({ events, onSelectEvent, onBatchSubscribe }: P
                     </Stack>
                   </TableCell>
                   <TableCell>
-                    <Chip size="small" variant="outlined" color={cfg.color} label={cfg.label} />
+                    <Label variant="outlined" color={cfg.color}>
+                      {cfg.label}
+                    </Label>
                   </TableCell>
                   <TableCell sx={{ maxWidth: 320 }}>
                     <Typography

@@ -1,4 +1,8 @@
+import type { Theme } from '@mui/material/styles';
+
 import { varAlpha, createPaletteChannel } from 'minimal-shared/utils';
+
+import { components as baseComponents } from './core/components';
 
 import type { ThemeOptions } from './types';
 import type { CustomShadows } from './core/custom-shadows';
@@ -40,6 +44,11 @@ type ThemeTextSet = {
   disabled: string;
 };
 
+type CardRootStyleProps = {
+  theme: Theme;
+  ownerState: { variant?: string };
+};
+
 type ThemePresetInput = {
   value: ThemePresetValue;
   label: string;
@@ -70,6 +79,20 @@ export type ThemePreset = {
 export const defaultThemePreset: ThemePresetKey = 'classic-blue';
 
 const common = createPaletteChannel({ black: '#000000', white: '#FFFFFF' });
+
+function createCardRootStyleOverride(border: string, restoreOutlinedBorder = false) {
+  return [
+    baseComponents.MuiCard?.styleOverrides?.root,
+    restoreOutlinedBorder
+      ? ({ theme, ownerState }: CardRootStyleProps) => ({
+          border:
+            ownerState.variant === 'outlined'
+              ? `1px solid ${theme.vars.palette.divider}`
+              : border,
+        })
+      : { border },
+  ];
+}
 
 function createCustomShadows(colorChannel: string): CustomShadows {
   return {
@@ -180,11 +203,12 @@ function createThemePreset({
       components: {
         MuiCard: {
           styleOverrides: {
-            root: {
-              border: cardBorder
+            root: createCardRootStyleOverride(
+              cardBorder
                 ? `1px solid ${varAlpha(primaryPalette.mainChannel, 0.12)}`
                 : 'none',
-            },
+              !cardBorder
+            ),
           },
         },
       },
@@ -202,9 +226,7 @@ export const themePresets: ThemePreset[] = [
       components: {
         MuiCard: {
           styleOverrides: {
-            root: {
-              border: '1px solid rgba(24, 119, 242, 0.12)',
-            },
+            root: createCardRootStyleOverride('1px solid rgba(24, 119, 242, 0.12)'),
           },
         },
       },

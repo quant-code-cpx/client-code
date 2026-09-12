@@ -305,7 +305,13 @@ export function AnomalyTableWorkbench({
                       <TableCell align="right">
                         <Typography
                           variant="body2"
-                          sx={{ color: `${cfg.color}.main`, fontWeight: 600 }}
+                          sx={(currentTheme) => ({
+                            color: `${cfg.color}.darker`,
+                            fontWeight: 600,
+                            ...currentTheme.applyStyles('dark', {
+                              color: `${cfg.color}.light`,
+                            }),
+                          })}
                         >
                           {formatAnomalyValue(item.anomalyType, item.value)}
                         </Typography>
@@ -339,7 +345,11 @@ export function AnomalyTableWorkbench({
                       <TableCell align="center">
                         <Stack direction="row" spacing={0.5} justifyContent="center">
                           <Tooltip title="查看证据链">
-                            <IconButton size="small" aria-label="查看证据链" onClick={() => onOpenDetail(item)}>
+                            <IconButton
+                              size="small"
+                              aria-label="查看证据链"
+                              onClick={() => onOpenDetail(item)}
+                            >
                               <Iconify icon="solar:eye-bold" width={16} />
                             </IconButton>
                           </Tooltip>

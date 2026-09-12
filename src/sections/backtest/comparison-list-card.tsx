@@ -69,7 +69,7 @@ export function ComparisonListCard({ item, onView }: Props) {
         sx={{ height: 1, alignItems: 'stretch' }}
       >
         <Stack spacing={2} sx={{ p: 2.5, height: 1 }}>
-          <Stack direction="row" alignItems="flex-start" spacing={1.5}>
+          <Stack direction="row" alignItems="flex-start" spacing={1.5} sx={{ pr: 4 }}>
             <Box sx={{ flexGrow: 1, minWidth: 0 }}>
               <Typography variant="subtitle1" noWrap title={title}>
                 {title}

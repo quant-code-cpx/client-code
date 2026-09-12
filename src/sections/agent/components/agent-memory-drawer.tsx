@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 
 import Box from '@mui/material/Box';
-import Chip from '@mui/material/Chip';
 import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Drawer from '@mui/material/Drawer';
@@ -15,6 +14,7 @@ import { fDateTime } from 'src/utils/format-time';
 
 import { agentApi } from 'src/api/agent';
 
+import { Label } from 'src/components/label';
 import { Iconify } from 'src/components/iconify';
 import { Scrollbar } from 'src/components/scrollbar';
 import { ConfirmDialog } from 'src/components/confirm-dialog';
@@ -215,7 +215,7 @@ export function AgentMemoryDrawer({ open, onClose }: AgentMemoryDrawerProps) {
                         {memory.key}
                       </Typography>
                     </Box>
-                    <Chip size="small" label={SENSITIVITY_LABELS[memory.sensitivity]} variant="outlined" />
+                    <Label variant="outlined">{SENSITIVITY_LABELS[memory.sensitivity]}</Label>
                   </Box>
 
                   <Box

@@ -163,79 +163,96 @@ export function AlertLimitTopSummary({ items, summary, onMaxStreakClick }: Props
 
   return (
     <Grid container spacing={2}>
-      {kpis.map((kpi) => (
-        <Grid key={kpi.key} size={{ xs: 6, sm: 4, md: 2 }}>
-          <Card
-            role={kpi.onClick ? 'button' : undefined}
-            tabIndex={kpi.onClick ? 0 : undefined}
-            aria-label={kpi.onClick ? `${kpi.label}：${kpi.value}` : undefined}
-            sx={{
-              p: 2,
-              height: '100%',
-              position: 'relative',
-              cursor: kpi.onClick ? 'pointer' : 'default',
-              transition: 'border-color 200ms',
-              borderLeft: '2px solid',
-              borderLeftColor: `${kpi.accent}.main`,
-              '&:focus-visible': {
-                outline: '2px solid',
-                outlineColor: 'primary.main',
-                outlineOffset: 2,
-              },
-            }}
-            onClick={kpi.onClick}
-            onKeyDown={(event) => {
-              if (!kpi.onClick || (event.key !== 'Enter' && event.key !== ' ')) return;
-              event.preventDefault();
-              kpi.onClick();
-            }}
-          >
-            <Stack direction="row" alignItems="center" justifyContent="space-between">
-              {kpi.tooltip ? (
-                <Tooltip title={kpi.tooltip} arrow placement="top">
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      color: 'text.secondary',
-                      borderBottom: '1px dashed',
-                      borderBottomColor: 'divider',
-                      cursor: 'help',
-                    }}
-                  >
-                    {kpi.label}
-                  </Typography>
-                </Tooltip>
-              ) : (
-                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                  {kpi.label}
-                </Typography>
-              )}
-            </Stack>
-            <Typography
-              variant="h5"
+      {kpis.map((kpi) => {
+        const delta = kpi.delta;
+
+        return (
+          <Grid key={kpi.key} size={{ xs: 6, sm: 4, md: 2 }}>
+            <Card
+              role={kpi.onClick ? 'button' : undefined}
+              tabIndex={kpi.onClick ? 0 : undefined}
+              aria-label={kpi.onClick ? `${kpi.label}：${kpi.value}` : undefined}
               sx={{
-                mt: 0.5,
-                color: `${kpi.accent}.main`,
-                fontFeatureSettings: '"tnum"',
+                p: 2,
+                height: '100%',
+                position: 'relative',
+                cursor: kpi.onClick ? 'pointer' : 'default',
+                transition: 'border-color 200ms',
+                borderLeft: '2px solid',
+                borderLeftColor: `${kpi.accent}.main`,
+                '&:focus-visible': {
+                  outline: '2px solid',
+                  outlineColor: 'primary.main',
+                  outlineOffset: 2,
+                },
+              }}
+              onClick={kpi.onClick}
+              onKeyDown={(event) => {
+                if (!kpi.onClick || (event.key !== 'Enter' && event.key !== ' ')) return;
+                event.preventDefault();
+                kpi.onClick();
               }}
             >
-              {kpi.value}
-            </Typography>
-            {kpi.delta != null ? (
+              <Stack direction="row" alignItems="center" justifyContent="space-between">
+                {kpi.tooltip ? (
+                  <Tooltip title={kpi.tooltip} arrow placement="top">
+                    <Typography
+                      variant="caption"
+                      sx={{
+                        color: 'text.secondary',
+                        borderBottom: '1px dashed',
+                        borderBottomColor: 'divider',
+                        cursor: 'help',
+                      }}
+                    >
+                      {kpi.label}
+                    </Typography>
+                  </Tooltip>
+                ) : (
+                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                    {kpi.label}
+                  </Typography>
+                )}
+              </Stack>
               <Typography
-                variant="caption"
-                sx={{
-                  color: kpi.delta >= 0 ? 'error.main' : 'success.main',
+                variant="h5"
+                sx={(currentTheme) => ({
+                  mt: 0.5,
+                  color: currentTheme.vars.palette[kpi.accent].dark,
                   fontFeatureSettings: '"tnum"',
-                }}
+                  ...currentTheme.applyStyles('dark', {
+                    color: currentTheme.vars.palette[kpi.accent].light,
+                  }),
+                })}
               >
-                vs 5 日均值 {kpi.delta >= 0 ? '+' : ''}
-                {fPercent(kpi.delta * 100)}
+                {kpi.value}
               </Typography>
-            ) : null}
-          </Card>
-        </Grid>
-      ))}
+              {delta != null ? (
+                <Typography
+                  variant="caption"
+                  sx={(currentTheme) => ({
+                    color:
+                      delta >= 0
+                        ? currentTheme.vars.palette.error.darker
+                        : currentTheme.vars.palette.success.darker,
+                    fontSize: 12,
+                    fontFeatureSettings: '"tnum"',
+                    ...currentTheme.applyStyles('dark', {
+                      color:
+                        delta >= 0
+                          ? currentTheme.vars.palette.error.light
+                          : currentTheme.vars.palette.success.light,
+                    }),
+                  })}
+                >
+                  vs 5 日均值 {delta >= 0 ? '+' : ''}
+                  {fPercent(delta * 100)}
+                </Typography>
+              ) : null}
+            </Card>
+          </Grid>
+        );
+      })}
 
       {summaryList.length >= 2 ? (
         <Grid size={{ xs: 12 }}>

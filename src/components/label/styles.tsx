@@ -8,6 +8,8 @@ import type { LabelProps } from './types';
 
 // ----------------------------------------------------------------------
 
+const LABEL_HEIGHT = 24;
+
 export const LabelRoot = styled('span', {
   shouldForwardProp: (prop: string) => !['color', 'variant', 'disabled', 'sx'].includes(prop),
 })<LabelProps>(({ color, variant, disabled, theme }) => {
@@ -87,8 +89,8 @@ export const LabelRoot = styled('span', {
   };
 
   return {
-    height: 24,
-    minWidth: 24,
+    height: LABEL_HEIGHT,
+    minWidth: LABEL_HEIGHT,
     lineHeight: 0,
     flexShrink: 0,
     cursor: 'default',
@@ -100,7 +102,7 @@ export const LabelRoot = styled('span', {
     padding: theme.spacing(0, 0.75),
     fontSize: theme.typography.pxToRem(12),
     fontWeight: theme.typography.fontWeightBold,
-    borderRadius: Number(theme.shape.borderRadius) * 0.75,
+    borderRadius: LABEL_HEIGHT / 2,
     transition: theme.transitions.create(['all'], { duration: theme.transitions.duration.shorter }),
     ...defaultStyles,
     ...colorStyles,

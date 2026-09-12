@@ -101,7 +101,11 @@ export function StockTableRow({
   };
 
   return (
-    <TableRow hover selected={selected} sx={{ '&:hover .row-actions': { opacity: 1 } }}>
+    <TableRow
+      hover
+      selected={selected}
+      sx={{ '&:hover .row-actions, &:focus-within .row-actions': { opacity: 1 } }}
+    >
       <TableCell
         padding="checkbox"
         sx={{

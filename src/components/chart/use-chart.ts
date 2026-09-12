@@ -60,7 +60,7 @@ const baseChartOptions = (theme: Theme): ChartOptions => {
       zoom: { enabled: false },
       parentHeightOffset: 0,
       fontFamily: theme.typography.fontFamily,
-      foreColor: theme.vars.palette.text.disabled,
+      foreColor: theme.vars.palette.text.secondary,
       animations: {
         enabled: true,
         speed: 360,

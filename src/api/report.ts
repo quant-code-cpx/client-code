@@ -661,28 +661,114 @@ export type ReportSchedule = {
   params: Record<string, unknown>;
   format: ReportFormat;
   frequency: ReportScheduleFrequency;
-  /** cron 表达式，如 "0 18 * * 1-5" (工作日 18:00) */
+  /** 六段 cron 表达式（秒 分 时 日 月 周），如 "0 0 18 * * 1-5"（工作日 18:00） */
   cronExpression: string;
+  timeZone: 'Asia/Shanghai';
   enabled: boolean;
   lastRunAt: string | null;
   nextRunAt: string | null;
   createdAt: string;
+  updatedAt: string;
+  lastExecution?: ReportScheduleExecutionSummary | null;
+};
+
+export type ReportScheduleExecutionStatus = 'PENDING' | 'RUNNING' | 'COMPLETED' | 'FAILED';
+
+export type ReportScheduleExecutionSummary = {
+  id: string;
+  status: ReportScheduleExecutionStatus;
+  errorMessage: string | null;
+  reportId: string | null;
+  completedAt: string | null;
+};
+
+export type CreateReportScheduleParams = {
+  type: ReportType;
+  title: string;
+  params: Record<string, unknown>;
+  format?: ReportFormat;
+  frequency: ReportScheduleFrequency;
+  cronExpression?: string;
+  timeZone?: 'Asia/Shanghai';
+};
+
+export type UpdateReportScheduleParams = {
+  scheduleId: string;
+  type?: ReportType;
+  title?: string;
+  params?: Record<string, unknown>;
+  format?: ReportFormat;
+  frequency?: ReportScheduleFrequency;
+  cronExpression?: string;
+};
+
+export type ReportScheduleExecution = {
+  id: string;
+  scheduleId: string;
+  scheduledFor: string;
+  availableAt: string;
+  status: ReportScheduleExecutionStatus;
+  attempt: number;
+  maxAttempts: number;
+  leaseOwner: string | null;
+  leaseExpiresAt: string | null;
+  reportId: string | null;
+  errorMessage: string | null;
+  startedAt: string | null;
+  completedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+  queueState: 'enqueued' | 'existing' | 'pending';
 };
 
 export type ReportScheduleListResult = {
   items: ReportSchedule[];
   total: number;
+  page: number;
+  pageSize: number;
 };
 
 /** 查询定时报告列表 */
-export async function listSchedules(): Promise<ReportSchedule[]> {
+export async function listSchedules(
+  params: { page?: number; pageSize?: number } = {}
+): Promise<ReportSchedule[]> {
   const result = await apiClient.post<ReportSchedule[] | ReportScheduleListResult>(
     '/api/report/schedules/list',
-    {}
+    params
   );
 
   if (Array.isArray(result)) return result;
   if (result && Array.isArray(result.items)) return result.items;
 
   throw new Error('定时报告列表响应格式错误');
+}
+
+/** 创建定时报告 */
+export function createSchedule(params: CreateReportScheduleParams) {
+  return apiClient.post<ReportSchedule>('/api/report/schedules/create', params);
+}
+
+/** 更新定时报告 */
+export function updateSchedule(params: UpdateReportScheduleParams) {
+  return apiClient.post<ReportSchedule>('/api/report/schedules/update', params);
+}
+
+/** 暂停定时报告 */
+export function pauseSchedule(params: { scheduleId: string }) {
+  return apiClient.post<ReportSchedule>('/api/report/schedules/pause', params);
+}
+
+/** 恢复定时报告 */
+export function resumeSchedule(params: { scheduleId: string }) {
+  return apiClient.post<ReportSchedule>('/api/report/schedules/resume', params);
+}
+
+/** 删除定时报告 */
+export function deleteSchedule(params: { scheduleId: string }) {
+  return apiClient.post<{ deleted: true }>('/api/report/schedules/delete', params);
+}
+
+/** 立即执行一次定时报告 */
+export function runScheduleNow(params: { scheduleId: string }) {
+  return apiClient.post<ReportScheduleExecution>('/api/report/schedules/run', params);
 }

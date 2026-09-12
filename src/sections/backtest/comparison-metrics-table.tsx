@@ -123,7 +123,7 @@ export function ComparisonMetricsTable({ rows }: Props) {
                       key={row.runId}
                       align="right"
                       sx={{
-                        bgcolor: bestIdx === i ? 'success.lighter' : undefined,
+                        bgcolor: bestIdx === i ? 'action.selected' : undefined,
                         borderRadius: bestIdx === i ? 1 : 0,
                       }}
                     >

@@ -141,7 +141,15 @@ export function StockUniverseSelector({ value, onChange }: Props) {
             </Typography>
             {invalidTokens.length > 0 && (
               <>
-                <Typography variant="caption" color="warning.darker">
+                <Typography
+                  variant="caption"
+                  sx={(theme) => ({
+                    color: theme.vars.palette.warning.darker,
+                    ...theme.applyStyles('dark', {
+                      color: theme.vars.palette.warning.light,
+                    }),
+                  })}
+                >
                   {invalidTokens.length} 个无效:
                 </Typography>
                 {invalidTokens.slice(0, 5).map((t) => (

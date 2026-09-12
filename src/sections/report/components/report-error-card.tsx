@@ -45,7 +45,14 @@ export function ReportErrorCard({ report, onRetry, onJump }: Props) {
           sx={{ color: 'error.main', flexShrink: 0, mt: 0.25 }}
         />
         <Box sx={{ flex: 1 }}>
-          <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'error.dark' }}>
+          <Typography
+            variant="subtitle1"
+            sx={{
+              fontWeight: 700,
+              color: 'error.dark',
+              ...theme.applyStyles('dark', { color: 'error.light' }),
+            }}
+          >
             {tr.title}
           </Typography>
           {tr.description && (

@@ -167,7 +167,16 @@ export function NotificationChannelSettings({ open, onClose }: NotificationChann
       >
         <Box sx={{ px: 2.75, py: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
           <Box sx={{ minWidth: 0, flexGrow: 1 }}>
-            <Typography variant="caption" sx={{ color: 'primary.light', letterSpacing: 1 }}>
+            <Typography
+              variant="caption"
+              sx={(theme) => ({
+                color: 'primary.dark',
+                letterSpacing: 1,
+                ...theme.applyStyles('dark', {
+                  color: 'primary.light',
+                }),
+              })}
+            >
               DELIVERY CENTER
             </Typography>
             <Typography

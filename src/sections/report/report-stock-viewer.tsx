@@ -279,7 +279,7 @@ export function StockReportViewer({ data }: StockReportViewerProps) {
               <Typography
                 variant="caption"
                 sx={{
-                  color: 'primary.main',
+                  color: 'primary.darker',
                   bgcolor: 'primary.lighter',
                   px: 1,
                   py: 0.25,

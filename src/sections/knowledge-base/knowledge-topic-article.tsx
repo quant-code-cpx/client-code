@@ -165,7 +165,13 @@ function KnowledgePointSection({ point, index }: { point: KnowledgePoint; index:
       <Stack direction="row" spacing={1.25} alignItems="center" sx={{ mb: 1.25 }}>
         <Typography
           variant="caption"
-          sx={{ color: 'primary.main', fontWeight: 700, letterSpacing: 0.4, whiteSpace: 'nowrap' }}
+          sx={(theme) => ({
+            color: 'primary.dark',
+            fontWeight: 700,
+            letterSpacing: 0.4,
+            whiteSpace: 'nowrap',
+            ...theme.applyStyles('dark', { color: 'primary.light' }),
+          })}
         >
           知识点 {String(index + 1).padStart(2, '0')}
         </Typography>
@@ -297,7 +303,13 @@ export function KnowledgeTopicArticle({ major, topic }: Props) {
 
         <Stack direction="row" spacing={2} alignItems="flex-start" justifyContent="space-between">
           <Box sx={{ minWidth: 0 }}>
-            <Typography variant="overline" sx={{ color: 'primary.main' }}>
+            <Typography
+              variant="overline"
+              sx={(theme) => ({
+                color: 'primary.dark',
+                ...theme.applyStyles('dark', { color: 'primary.light' }),
+              })}
+            >
               小专题 {topic.code} · 静态知识页
             </Typography>
             <Typography component="h1" variant="h3" sx={{ mt: 0.5 }}>

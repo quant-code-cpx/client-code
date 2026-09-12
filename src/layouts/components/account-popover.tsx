@@ -86,7 +86,11 @@ export function AccountPopover({ data = [], sx, ...other }: AccountPopoverProps)
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
         slotProps={{
           paper: {
-            sx: { width: 200 },
+            sx: {
+              mt: 1,
+              width: 200,
+              borderRadius: 2,
+            },
           },
         }}
       >

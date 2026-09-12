@@ -90,7 +90,15 @@ export function DataProvenance({ provenance }: DataProvenanceProps) {
         </Typography>
       ) : null}
       {quality ? (
-        <Typography variant="caption" sx={{ color: 'warning.dark' }}>
+        <Typography
+          variant="caption"
+          sx={(theme) => ({
+            color: 'warning.darker',
+            ...theme.applyStyles('dark', {
+              color: 'warning.light',
+            }),
+          })}
+        >
           {quality}
         </Typography>
       ) : null}

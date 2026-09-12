@@ -37,7 +37,10 @@ export function AnalysisChipDistributionChart({ distribution, currentPrice, avgC
       borderColor: theme.palette.warning.main,
       label: {
         text: `当前价 ${currentPrice.toFixed(2)}`,
-        style: { color: theme.palette.common.white, background: theme.palette.warning.main },
+        style: {
+          color: theme.palette.warning.contrastText,
+          background: theme.palette.warning.main,
+        },
       },
     });
   }
@@ -47,7 +50,10 @@ export function AnalysisChipDistributionChart({ distribution, currentPrice, avgC
       borderColor: theme.palette.secondary.main,
       label: {
         text: `平均成本 ${avgCost.toFixed(2)}`,
-        style: { color: theme.palette.common.white, background: theme.palette.secondary.main },
+        style: {
+          color: theme.palette.secondary.contrastText,
+          background: theme.palette.secondary.main,
+        },
       },
     });
   }
